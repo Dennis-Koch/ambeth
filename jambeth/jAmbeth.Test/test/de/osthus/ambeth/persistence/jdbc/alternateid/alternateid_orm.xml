@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity
+		class="de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdEntity">
+		<table name="TBL_AE" />
+		<attributes>
+			<basic name="Name" alternate-id="true">
+				<column name="NAME_AE" />
+			</basic>
+			<to-many name="BaseEntities2"
+				target-entity="de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity2">
+				<join-table name="TBL_BASE2">
+					<join-column name="AE_NAME2" />
+					<inverse-join-column name="NAME_AE" />
+				</join-table>
+			</to-many>
+		</attributes>
+	</entity>
+
+	<entity class="de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity">
+		<table name="TBL_BASE" />
+		<attributes>
+			<basic name="Name" alternate-id="true">
+				<column name="NAME_BASE" />
+			</basic>
+		</attributes>
+	</entity>
+
+	<entity class="de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity2">
+		<table name="TBL_BASE2" />
+		<sequence-generator name="TBL_BASE_SEQ" />
+		<attributes>
+			<basic name="Name" alternate-id="true">
+				<column name="NAME_BASE2" />
+			</basic>
+		</attributes>
+	</entity>
+
+</entity-mappings>

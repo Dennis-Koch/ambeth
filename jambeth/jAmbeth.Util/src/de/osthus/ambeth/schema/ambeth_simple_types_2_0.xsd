@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://osthus.de/ambeth/ambeth_simple_types_2_0"
+	xmlns:ast="http://osthus.de/ambeth/ambeth_simple_types_2_0" elementFormDefault="qualified">
+
+	<xs:simpleType name="className">
+		<xs:annotation>
+			<xs:documentation>Full java class name with package</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="(\w+\.)*[A-Z]\w*" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="propertyName">
+		<xs:annotation>
+			<xs:documentation>Name of an entity property with leading capital letter</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Z]\w*\.)*[A-Z]\w*" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="sqlName">
+		<xs:annotation>
+			<xs:documentation>Name of a sql table, column, sequence or constraint</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="([A-Z\d_]+\.)?[A-Z\d_]+" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="cascadeDeleteType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="none" />
+			<xs:enumeration value="left" />
+			<xs:enumeration value="right" />
+			<xs:enumeration value="both" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="linkEntityIdType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="left" />
+			<xs:enumeration value="right" />
+		</xs:restriction>
+	</xs:simpleType>
+
+</xs:schema>

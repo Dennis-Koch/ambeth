@@ -1,0 +1,294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{2542BABC-BFA4-451C-A5C5-393C6B88E9C6}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Minerva.Client</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>true</SilverlightApplication>
+    <SupportedCultures>
+    </SupportedCultures>
+    <XapOutputs>true</XapOutputs>
+    <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
+    <XapFilename>Minerva.Client.xap</XapFilename>
+    <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
+    <SilverlightAppEntry>De.Osthus.Minerva.Client.App</SilverlightAppEntry>
+    <TestPageFileName>Minerva.ClientTestPage.html</TestPageFileName>
+    <CreateTestPage>true</CreateTestPage>
+    <ValidateXaml>true</ValidateXaml>
+    <EnableOutOfBrowser>false</EnableOutOfBrowser>
+    <OutOfBrowserSettingsFile>Properties\OutOfBrowserSettings.xml</OutOfBrowserSettingsFile>
+    <UsePlatformExtensions>false</UsePlatformExtensions>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <LinkedServerProject>
+    </LinkedServerProject>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug</OutputPath>
+    <DefineConstants>TRACE;DEBUG;SILVERLIGHT DEVELOP</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.CSharp, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\Microsoft.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Controls, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Data.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.Data.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Input, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Controls.Navigation, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Controls.Navigation.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Data, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Windows.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Xml.Serialization, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Xml.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Data">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Docking">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Docking.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.GridView">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.GridView.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Input">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Input.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.Navigation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.Navigation.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.RibbonBar">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.RibbonBar.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Controls.RichTextBoxUI">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Controls.RichTextBoxUI.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Windows.Data">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib.Telerik\Telerik.Windows.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="config\HelloWorldConfigurationConstants.cs" />
+    <Compile Include="ioc\HelloWorldModule.cs" />
+    <Compile Include="ioc\MainPageModule.cs" />
+    <Compile Include="model\AbstractEntity.cs" />
+    <Compile Include="refresher\AllTestEntitiesRefresher.cs" />
+    <Compile Include="refresher\AllTest2EntitiesRefresher.cs" />
+    <Compile Include="service\HelloWorldMergeMock.cs" />
+    <Compile Include="service\HelloWorldServiceMock.cs" />
+    <Compile Include="service\IHelloWorldService.cs" />
+    <Compile Include="transfer\TestEntity3.cs" />
+    <Compile Include="transfer\EmbeddedObject.cs" />
+    <Compile Include="transfer\TestEntity.cs" />
+    <Compile Include="transfer\TestEntity2.cs" />
+    <Compile Include="view\MainPage.xaml.cs">
+      <DependentUpon>MainPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+    <Page Include="view\MainPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="config\Osthus.properties">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <None Include="Properties\AppManifest.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Bytecode\Ambeth.Bytecode.SL.csproj">
+      <Project>{dccb3d82-3abe-42e3-882b-7ee768fe35a2}</Project>
+      <Name>Ambeth.Bytecode.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache.Bytecode\Ambeth.Cache.Bytecode.SL.csproj">
+      <Project>{5ee6d7be-19aa-46a6-9ce6-642b4c4e5187}</Project>
+      <Name>Ambeth.Cache.Bytecode.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.CacheDataChange\Ambeth.CacheDataChange.SL.csproj">
+      <Project>{7EACD11D-7441-41AA-B96B-D65B49314469}</Project>
+      <Name>Ambeth.CacheDataChange.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.SL.csproj">
+      <Project>{AABFCB0F-80E5-494A-90F9-5009CBB19121}</Project>
+      <Name>Ambeth.Cache.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.SL.csproj">
+      <Project>{A57F807F-8214-4BD4-A3E3-8EBA065D4D37}</Project>
+      <Name>Ambeth.DataChange.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL.csproj">
+      <Project>{5F63DBA2-BDA5-4CEC-937E-71438F68060D}</Project>
+      <Name>Ambeth.Event.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.SL.csproj">
+      <Project>{26C671A2-5AFB-4B90-8DEA-1F90B1917CEA}</Project>
+      <Name>Ambeth.Filter.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL.csproj">
+      <Project>{19A96089-734E-47F9-983C-298DD17A4517}</Project>
+      <Name>Ambeth.IOC.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log.Service\Ambeth.Log.Service.SL.csproj">
+      <Project>{E4F776CD-3B86-4BF8-9A2F-5FD100071044}</Project>
+      <Name>Ambeth.Log.Service.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL.csproj">
+      <Project>{2C44A82D-C27F-4B46-8700-DF4C130E9176}</Project>
+      <Name>Ambeth.Log.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Mapping\Ambeth.Mapping.SL.csproj">
+      <Project>{77313fca-26d7-47c8-8a99-9d3dae56a937}</Project>
+      <Name>Ambeth.Mapping.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.SL.csproj">
+      <Project>{a075eebd-79eb-4544-8f55-79e685c09471}</Project>
+      <Name>Ambeth.Merge.Bytecode.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL.csproj">
+      <Project>{C5578625-B948-4A25-9712-ACE10E075C82}</Project>
+      <Name>Ambeth.Merge.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Privilege\Ambeth.Privilege.SL.csproj">
+      <Project>{B23149E6-7589-4BD9-9B84-5B8B49757196}</Project>
+      <Name>Ambeth.Privilege.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.SL.csproj">
+      <Project>{E7A4E157-0CFB-4F55-A6DC-631134D89096}</Project>
+      <Name>Ambeth.Security.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service.REST\Ambeth.Service.REST.SL.csproj">
+      <Project>{BB63BA7E-FC39-456A-B8D6-2751DEAF9259}</Project>
+      <Name>Ambeth.Service.REST.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service.WCF\Ambeth.Service.WCF.SL.csproj">
+      <Project>{063C818C-1317-4F15-A05F-23BA723C6181}</Project>
+      <Name>Ambeth.Service.WCF.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL.csproj">
+      <Project>{0E9CB1B1-CB78-4B7E-A404-8F223665B4E3}</Project>
+      <Name>Ambeth.Service.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Xml\Ambeth.Xml.SL.csproj">
+      <Project>{A6BF22D5-1FDB-422F-B90D-11C6CB097E16}</Project>
+      <Name>Ambeth.Xml.SL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Minerva.Core\Minerva.Core.SL.csproj">
+      <Project>{44312772-42FB-4EDE-BF4D-A654C5B03469}</Project>
+      <Name>Minerva.Core.SL</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\OutOfBrowserSettings.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="service\RandomDataGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="config\helloworld_orm.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>

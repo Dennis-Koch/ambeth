@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityA">
+		<value-object class="de.osthus.ambeth.merge.independent.EntityAType">
+			<basic name="EmbName" name-in-entity="Embedded.Name" />
+			<basic name="EmbValue" name-in-entity="Embedded.Value" />
+		</value-object>
+	</entity>
+
+</entity-mappings>

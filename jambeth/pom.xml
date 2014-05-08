@@ -1,0 +1,83 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jAmbeth</artifactId>
+	<version>2.0.${build.number}</version>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.11</version>
+	</parent>
+
+	<properties>
+		<!-- <build.number>X-SNAPSHOT</build.number> -->
+	</properties>
+
+	<modules>
+		<module>jAmbeth.Bytecode</module>
+		<module>jAmbeth.Cache</module>
+		<module>jAmbeth.Cache.Bytecode</module>
+		<module>jAmbeth.Cache.DataChange</module>
+		<module>jAmbeth.Cache.Server</module>
+		<module>jAmbeth.Cache.Stream</module>
+		<module>jAmbeth.DataChange</module>
+		<module>jAmbeth.DataChange.Persistence</module>
+		<module>jAmbeth.Event</module>
+		<module>jAmbeth.Event.DataChange</module>
+		<module>jAmbeth.Event.Server</module>
+		<module>jAmbeth.Examples</module>
+		<module>jAmbeth.Filter</module>
+		<module>jAmbeth.Ioc</module>
+		<module>jAmbeth.Job</module>
+		<module>jAmbeth.Job.Cron4j</module>
+		<module>jAmbeth.Log</module>
+		<module>jAmbeth.Mapping</module>
+		<module>jAmbeth.Merge</module>
+		<module>jAmbeth.Merge.Bytecode</module>
+		<module>jAmbeth.Merge.Server</module>
+		<module>jAmbeth.Persistence</module>
+		<module>jAmbeth.Persistence.JDBC</module>
+		<module>jAmbeth.Persistence.Oracle11</module>
+		<module>jAmbeth.Platform</module>
+		<module>jAmbeth.Privilege</module>
+		<module>jAmbeth.Privilege.Server</module>
+		<module>jAmbeth.Query</module>
+		<module>jAmbeth.Query.InMemory</module>
+		<module>jAmbeth.Query.JDBC</module>
+		<module>jAmbeth.Security</module>
+		<module>jAmbeth.Security.Server</module>
+		<module>jAmbeth.Sensor</module>
+		<module>jAmbeth.Server.HelloWorld</module>
+		<module>jAmbeth.Server.REST</module>
+		<module>jAmbeth.Service</module>
+		<module>jAmbeth.SOAP</module>
+		<module>jAmbeth.Stream</module>
+		<module>jAmbeth.Test</module>
+		<module>jAmbeth.TestUtil</module>
+		<module>jAmbeth.Util</module>
+		<module>jAmbeth.Xml</module>
+		<module>jAmbeth.Xml.File</module>
+	</modules>
+
+	<dependencies>
+	</dependencies>
+
+	<build>
+		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

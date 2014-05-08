@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+
+		<entity class="de.osthus.ambeth.orm20.independent.a22b.EntityA" />
+
+		<entity class="de.osthus.ambeth.orm20.independent.a22b.EntityB" />
+
+	</entity-mappings>
+
+</or-mappings>

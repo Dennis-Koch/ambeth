@@ -1,0 +1,41 @@
+<project name="findbugs" default="findbugs">
+	
+	<target name="init-findbugs">
+		<fail unless="findbugs.analyze.dir" />
+		<fail unless="findbugs.home" />
+		<fail unless="findbugs.src.dir" />
+
+		<path id="findbugs.lib.path">
+			<pathelement location="${findbugs.home}/lib/findbugs.jar" />
+			<pathelement location="${findbugs.home}/lib/findbugs-ant.jar" />
+		</path>
+
+		<property name="findbugs.excludefilter.file" value="findbugs_exclude_checks.xml" />
+
+		<taskdef name="findbugs" classpathref="findbugs.lib.path" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" />
+	</target>
+
+	<target name="-findbugs-prop-outputfile" depends="init-findbugs" unless="findbugs.output.file">
+		<fail unless="target.base.dir" />
+		<property name="findbugs.report.dir" value="${target.base.dir}/findbugs" />
+		<mkdir dir="${findbugs.report.dir}" />
+		<property name="findbugs.output.file" value="${findbugs.report.dir}/findbugs.xml" />
+	</target>
+
+	<target name="findbugs" depends="init-findbugs,-findbugs-prop-outputfile">
+		<delete file="${findbugs.output.file}" quiet="true" />
+
+		<findbugs home="${findbugs.home}"
+				output="xml"
+				outputFile="${findbugs.output.file}"
+				effort="max"
+				reportLevel="low"
+				excludeFilter="${findbugs.excludefilter.file}"
+				failOnError="true">
+			<auxClasspath refid="findbugs.auxclasspath" />
+			<sourcepath location="${findbugs.src.dir}" />
+			<class location="${findbugs.analyze.dir}" />
+		</findbugs>
+	</target>
+</project>
+

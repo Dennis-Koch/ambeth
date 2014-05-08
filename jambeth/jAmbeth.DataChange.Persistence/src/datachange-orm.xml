@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<link source="FK_DCEN_TO_DCEV_INSERT" cascade-delete="right" />
+		<link source="FK_DCEN_TO_DCEV_UPDATE" cascade-delete="right" />
+		<link source="FK_DCEN_TO_DCEV_DELETE" cascade-delete="right" />
+	</link-mappings>
+
+	<entity-mappings>
+
+		<entity class="de.osthus.ambeth.model.DataChangeEventBO">
+			<table name="DATA_CHANGE_EVENT" />
+			<sequence-generator name="DATA_CHANGE_EVENT_SEQ" />
+			<attributes>
+				<relation name="Inserts" link="FK_DCEN_TO_DCEV_INSERT" />
+				<relation name="Updates" link="FK_DCEN_TO_DCEV_UPDATE" />
+				<relation name="Deletes" link="FK_DCEN_TO_DCEV_DELETE" />
+			</attributes>
+		</entity>
+
+		<entity class="de.osthus.ambeth.model.DataChangeEntryBO">
+			<table name="DATA_CHANGE_ENTRY" />
+			<sequence-generator name="DATA_CHANGE_ENTRY_SEQ" />
+		</entity>
+
+		<entity class="de.osthus.ambeth.model.EntityType" />
+
+	</entity-mappings>
+
+</or-mappings>

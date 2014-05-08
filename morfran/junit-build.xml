@@ -1,0 +1,201 @@
+<project name="junit" default="junit">
+
+	<target name="init-junit" depends="-init-junit-basic,-init-junit-build.test.dirs,-init-junit-src.test.dirs,-init-junit-src.relative.dirs">
+		
+	</target>
+	
+	<target name="-init-junit-basic">
+		<fail unless="build.dev.dirs" />
+		<fail unless="build.test.dir" />
+		<fail unless="emma.coverage.dir" />
+		<fail unless="emma.lib.dir" />
+		<fail unless="junit.lib.file" />
+		<fail unless="junit.property.file" />
+		<fail unless="junit.report.dir" />
+		<fail unless="junit.tmp.dir" />
+		<fail unless="projects.list" />
+		<fail unless="src.dev.dir" />
+		<fail unless="test.lib.files" />
+		<fail unless="workspace.base.dir" />
+
+		<echo message="Calling junit with environment:" />
+		<echo message="build.dev.dirs=${build.dev.dirs}" />
+		<echo message="build.test.dir=${build.test.dir}" />
+		<echo message="emma.coverage.dir=${emma.coverage.dir}" />
+		<echo message="emma.lib.dir=${emma.lib.dir}" />
+		<echo message="junit.lib.file=${junit.lib.file}" />
+		<echo message="junit.property.file=${junit.property.file}" />
+		<echo message="junit.report.dir=${junit.report.dir}" />
+		<echo message="junit.tmp.dir=${junit.tmp.dir}" />
+		<echo message="projects.list=${projects.list}" />
+		<echo message="src.dev.dir=${src.dev.dir}" />
+		<echo message="target.base.dir=${target.base.dir}" />
+		<echo message="test.lib.files=${test.lib.files}" />
+		<echo message="workspace.base.dir=${workspace.base.dir}" />
+		
+		<property name="junit.memory" value="512" />
+		<property name="test.target" location="${junit.tmp.dir}/test-classes" />
+		<property name="instr.target" location="${junit.tmp.dir}/instr-classes" />
+		
+		<path id="emma.lib.path">
+			<pathelement location="${emma.lib.dir}/emma.jar" />
+			<pathelement location="${emma.lib.dir}/emma_ant.jar" />
+		</path>
+
+		<path id="test.compile.classpath">
+			<path path="${test.lib.files}" />
+			<pathelement location="${junit.lib.file}" />
+			<path path="${build.dev.dirs}" />
+		</path>
+
+		<path id="junit.classpath">
+			<path refid="test.compile.classpath" />
+			<pathelement location="${test.target}" />
+		</path>
+		
+		<fileset id="tests.fileset" dir="${build.test.dir}" includes="de/osthus/**/*Test.class" excludes="**/Abstract*Test.class" />
+	</target>
+	
+	<target name="-init-junit-build.test.dirs">
+		<tempfile property="file.temp" deleteonexit="true"/>
+
+		<ant antfile="path-util-build.xml" target="expand-path" inheritall="false" inheritrefs="false">
+			<property name="output.linebased" value="true" />
+			<property name="output.propertyfile" value="${file.temp}" />
+			<property name="projects.list" value="${projects.list}" />
+			<property name="files.list" value="test/**/*.xml,test/**/*.properties,test/**/*.sql" />
+		</ant>
+
+		<loadfile property="build.test.dirs" srcfile="${file.temp}"></loadfile>
+		<echo>$${build.test.dirs}=${workspace.base.dir} => ${build.test.dirs}</echo>
+
+		<fileset id="build.test.dir.fileset" dir="${workspace.base.dir}" includesfile="${file.temp}" />
+	</target>
+	
+	<target name="-init-junit-src.test.dirs">
+		<tempfile property="file2.temp" deleteonexit="true"/>
+		
+		<ant antfile="path-util-build.xml" target="expand-path" inheritall="false" inheritrefs="false">
+			<property name="output.propertyfile" value="${file2.temp}" />
+			<property name="projects.list" value="${projects.list}" />
+			<property name="projects.basedir" value="${workspace.base.dir}" />
+			<property name="files.list" value="test" />
+		</ant>
+		<loadfile property="src.test.dirs" srcfile="${file2.temp}"></loadfile>
+		<echo>$${src.test.dirs}=${src.test.dirs}</echo>
+		<path id="junit.src.path" path="${src.test.dirs}" />
+	</target>
+	
+	<target name="-init-junit-src.relative.dirs">
+		<tempfile property="file3.temp" deleteonexit="true"/>
+			
+		<ant antfile="path-util-build.xml" target="expand-path" inheritall="false" inheritrefs="false">
+			<property name="output.linebased" value="true" />
+			<property name="output.propertyfile" value="${file3.temp}" />
+			<property name="projects.list" value="${projects.list}" />
+			<property name="files.list" value="src/**/*.java" />
+		</ant>
+		
+		<loadfile property="src.relative.dirs" srcfile="${file3.temp}" />
+		<echo>$${src.relative.dirs}=${workspace.base.dir} => ${src.relative.dirs}</echo>
+		
+		<fileset id="src.relative.dirs.fileset" dir="${workspace.base.dir}" includesfile="${file3.temp}" />
+	</target>
+
+	<target name="-emma-instrument" depends="init-junit">
+		<property name="emma.jar" value="${emma.lib.dir}/emma.jar" />
+
+		<taskdef resource="emma_ant.properties" classpathref="emma.lib.path" />
+
+		<delete dir="${instr.target}" />
+		<mkdir dir="${instr.target}" />
+		<delete dir="${emma.coverage.dir}" />
+		<mkdir dir="${emma.coverage.dir}" />
+		<emma>
+			<instr instrpath="${build.dev.dirs}" destdir="${instr.target}" metadatafile="${emma.coverage.dir}/metadata.emma" mode="copy">
+			</instr>
+		</emma>
+
+		<!-- Update the classpath that will run the instrumented code -->
+		<path id="test.classpath">
+			<pathelement location="${instr.target}" />
+			<pathelement location="${build.test.dir}" />
+			<pathelement location="${build.dev.dirs}" />
+			<path refid="junit.classpath" />
+			<pathelement location="${emma.jar}" />
+		</path>
+	</target>
+
+	<target name="-emma-report" depends="init-junit,export-src">
+		<property name="emma.coverage.html.file" value="${emma.coverage.dir}/coverage.html" />
+		<property name="emma.coverage.xml.file" value="${emma.coverage.dir}/coverage.xml" />
+		<delete file="${emma.coverage.html.file}" quiet="true" />
+		<delete file="${emma.coverage.xml.file}" quiet="true" />
+		<emma>
+			<report sourcepath="${src.dev.dir}">
+				<fileset dir="${emma.coverage.dir}">
+					<include name="*.*" />
+				</fileset>
+				<html outfile="${emma.coverage.html.file}" depth="method" />
+				<xml outfile="${emma.coverage.xml.file}" depth="method" />
+			</report>
+		</emma>
+	</target>
+
+	<target name="junit" depends="init-junit,-junit-execute,-emma-report">
+	</target>
+
+	<target name="-junit-execute" depends="init-junit,-emma-instrument">
+		<delete dir="${build.test.dir}" />
+		<delete dir="${junit.report.dir}" />
+		<mkdir dir="${build.test.dir}" />
+		<mkdir dir="${junit.report.dir}" />
+		<echo message="Looking for junit.jar at: ${junit.lib.file}" />
+
+		<javac  target="1.6"
+				destdir="${build.test.dir}"
+				includeAntRuntime="false"
+				fork="true"
+				debug="on">
+			<src refid="junit.src.path" />
+			<classpath refid="test.compile.classpath" />
+		</javac>
+		
+		<copy todir="${build.test.dir}" preservelastmodified="true" overwrite="true">
+			<fileset refid="build.test.dir.fileset" />
+			<regexpmapper from="[^\\]+\\test\\(.+)" to="\1"/>
+		</copy>
+		<junit
+				maxmemory="${junit.memory}m"
+				fork="true"
+				forkmode="once"
+				haltonerror="false"
+				timeout="3600000"
+				failureproperty="false"
+				filtertrace="false">
+			<jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+			<sysproperty key="property.file" value="${junit.property.file}" />
+			<formatter type="xml" />
+			<classpath refid="test.classpath" />
+			<batchtest todir="${junit.report.dir}">
+				<fileset refid="tests.fileset" />
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="export-src" depends="init-junit">
+		<delete dir="${src.dev.dir}" />
+		<mkdir dir="${src.dev.dir}" />
+
+		<copy todir="${src.dev.dir}">
+			<fileset refid="src.relative.dirs.fileset" />
+		</copy>
+	</target>
+
+	<target name="jar-src" depends="init-junit,export-src">
+		<jar basedir="${src.dev.dir}" destfile="${src.jar.file}" />
+		<jar basedir="${src.junit.dir}" destfile="${junitsrc.jar.file}" />
+	</target>
+</project>
+

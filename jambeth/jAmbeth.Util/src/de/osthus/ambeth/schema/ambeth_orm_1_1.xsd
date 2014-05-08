@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ast="http://www.osthus.de/ambeth/ambeth_simple_types_1_1"
+	targetNamespace="http://www.osthus.de/ambeth/ambeth_orm_1_1" xmlns:ans="http://www.osthus.de/ambeth/ambeth_orm_1_1"
+	elementFormDefault="qualified">
+
+	<xs:import namespace="http://www.osthus.de/ambeth/ambeth_simple_types_1_1"
+		schemaLocation="./ambeth_simple_types_1_1.xsd" />
+
+	<xs:element name="entity-mappings">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="entity" type="ans:entityType" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="entityType">
+		<xs:sequence>
+			<xs:element name="table" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="sequence-generator" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="attributes" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:element name="id" type="ans:idType" minOccurs="0" />
+						<xs:element name="version" type="ans:versionType" minOccurs="0" />
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="ignore" type="ans:ignoreType" minOccurs="0" />
+							<xs:element name="basic" type="ans:basicType" minOccurs="0" />
+							<xs:element name="to-one" type="ans:relation" minOccurs="0" />
+							<xs:element name="to-many" type="ans:relation" minOccurs="0" />
+						</xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="type">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:pattern value="external"></xs:pattern>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="class" type="ast:className" />
+	</xs:complexType>
+
+	<xs:complexType name="idType">
+		<xs:sequence>
+			<xs:element name="column" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" />
+	</xs:complexType>
+
+	<xs:complexType name="versionType">
+		<xs:sequence>
+			<xs:element name="column" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" use="optional" />
+		<xs:attribute name="without" type="xs:boolean" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="ignoreType">
+		<xs:attribute name="name" type="ast:propertyName" />
+	</xs:complexType>
+
+	<xs:complexType name="basicType">
+		<xs:sequence>
+			<xs:element name="column" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" />
+		<xs:attribute name="alternate-id" type="xs:boolean" use="optional" />
+		<xs:attribute name="created-on" type="xs:boolean" use="optional" />
+		<xs:attribute name="created-by" type="xs:boolean" use="optional" />
+		<xs:attribute name="updated-on" type="xs:boolean" use="optional" />
+		<xs:attribute name="updated-by" type="xs:boolean" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="relation">
+		<xs:sequence>
+			<xs:element name="join-table" type="ans:joinTable" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:propertyName" />
+		<xs:attribute name="target-entity" type="ast:className" />
+		<xs:attribute name="do-delete" type="xs:boolean" use="optional" />
+		<xs:attribute name="may-delete" type="xs:boolean" use="optional" />
+	</xs:complexType>
+
+	<xs:complexType name="joinTable">
+		<xs:sequence>
+			<xs:element name="join-column">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+			<xs:choice maxOccurs="2">
+				<xs:element name="inverse-join-column">
+					<xs:complexType>
+						<xs:attribute name="name" type="ast:sqlName" />
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="inverse-join-attribute">
+					<xs:complexType>
+						<xs:attribute name="name" type="ast:propertyName" />
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+		</xs:sequence>
+		<xs:attribute name="name" type="ast:sqlName" />
+	</xs:complexType>
+
+</xs:schema>

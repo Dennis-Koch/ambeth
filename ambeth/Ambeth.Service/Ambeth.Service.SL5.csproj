@@ -1,0 +1,186 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{0E9CB1B1-CB78-4B7E-A404-8F223665B4E3}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Service.SL5</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL5\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization, Version=5.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v5.0\Libraries\Client\System.Xml.Serialization.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\ClearAllCachesEvent.cs" />
+    <Compile Include="ambeth\config\ServiceConfigurationConstants.cs" />
+    <Compile Include="ambeth\exceptions\OptimisticLockException.cs" />
+    <Compile Include="ambeth\exceptions\ReconnectException.cs" />
+    <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
+    <Compile Include="ambeth\log\interceptor\LogInterceptor.cs" />
+    <Compile Include="ambeth\log\LoggingPostProcessor.cs" />
+    <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\model\IObjRelationResult.cs" />
+    <Compile Include="ambeth\model\IServiceResult.cs" />
+    <Compile Include="ambeth\model\ILoadContainer.cs" />
+    <Compile Include="ambeth\model\IObjRef.cs" />
+    <Compile Include="ambeth\model\IObjRelation.cs" />
+    <Compile Include="ambeth\model\IServiceDescription.cs" />
+    <Compile Include="ambeth\proxy\AbstractCascadePostProcessor.cs" />
+    <Compile Include="ambeth\proxy\AmbethInvocation.cs" />
+    <Compile Include="ambeth\proxy\ServiceClientAttribute.cs" />
+    <Compile Include="ambeth\remote\ClientServiceBean.cs" />
+    <Compile Include="ambeth\remote\AsyncClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\remote\IRemoteTargetProvider.cs" />
+    <Compile Include="ambeth\remote\IRemoteInterceptor.cs" />
+    <Compile Include="ambeth\remote\SyncClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\remote\IClientServiceInterceptorBuilder.cs" />
+    <Compile Include="ambeth\proxy\CustomInvocation.cs" />
+    <Compile Include="ambeth\proxy\ServiceAttribute.cs" />
+    <Compile Include="ambeth\proxy\SyncToAsyncUtil.cs" />
+    <Compile Include="ambeth\model\ISecurityScope.cs" />
+    <Compile Include="ambeth\service\AbstractOfflineServiceUrlProvider.cs" />
+    <Compile Include="ambeth\service\RethrownException.cs" />
+    <Compile Include="ambeth\service\IProcessService.cs" />
+    <Compile Include="ambeth\service\IProcessServiceWCF.cs" />
+    <Compile Include="ambeth\service\NoOpOfflineExtendable.cs" />
+    <Compile Include="ambeth\service\DefaultServiceUrlProvider.cs" />
+    <Compile Include="ambeth\service\IClientServiceFactory.cs" />
+    <Compile Include="ambeth\service\IEntityMetaData.cs" />
+    <Compile Include="ambeth\service\IEntityMetaDataProvider.cs" />
+    <Compile Include="ambeth\service\IExceptionHandler.cs" />
+    <Compile Include="ambeth\service\IOfflineListener.cs" />
+    <Compile Include="ambeth\service\IOfflineListenerExtendable.cs" />
+    <Compile Include="ambeth\service\IServiceByNameProvider.cs" />
+    <Compile Include="ambeth\service\IServiceExtendable.cs" />
+    <Compile Include="ambeth\service\IServiceFactory.cs" />
+    <Compile Include="ambeth\service\interceptor\SyncCallInterceptor.cs" />
+    <Compile Include="ambeth\service\IServiceUrlProvider.cs" />
+    <Compile Include="ambeth\service\ServiceByNameProvider.cs" />
+    <Compile Include="ambeth\service\ServiceFactory.cs" />
+    <Compile Include="ambeth\transfer\AmbethServiceException.cs" />
+    <Compile Include="ambeth\transfer\ServiceResult.cs" />
+    <Compile Include="ambeth\transfer\SecurityScope.cs" />
+    <Compile Include="ambeth\transfer\ListOfIObjRef.cs" />
+    <Compile Include="ambeth\transfer\ServiceDescription.cs" />
+    <Compile Include="ambeth\typeinfo\FieldInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\FieldInfoItemASM.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoItemASM.cs" />
+    <Compile Include="ambeth\typeinfo\RelationInfoItem.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoProvider.cs" />
+    <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
+    <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
+    <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
+    <Compile Include="ioc\ServiceBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL5.csproj">
+      <Project>{19A96089-734E-47F9-983C-298DD17A4517}</Project>
+      <Name>Ambeth.IOC.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL5.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL5.csproj">
+      <Project>{2C44A82D-C27F-4B46-8700-DF4C130E9176}</Project>
+      <Name>Ambeth.Log.SL5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ambeth\security\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\IServiceResultProcessor.cs" />
+    <Compile Include="ambeth\cache\IServiceResultProcessorExtendable.cs" />
+    <Compile Include="ambeth\cache\IServiceResultProcessorRegistry.cs" />
+    <Compile Include="ambeth\cache\ServiceResultProcessorRegistry.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\typeinfo\TypeInfoItem.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

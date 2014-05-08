@@ -1,0 +1,408 @@
+﻿using System;
+using System.ServiceModel;
+using System.Threading;
+using System.Text;
+using System.IO;
+using De.Osthus.Ambeth.Config;
+
+namespace De.Osthus.Ambeth.Log
+{
+    public class Logger : IConfigurableLogger
+    {
+        static Logger()
+        {
+            LogStreamEnabled = true;
+        }
+
+        protected static StreamWriter loggerStream;
+
+        protected static StreamWriter LoggerStream
+        {
+            get
+            {
+                if (loggerStream == null && LogStreamEnabled)
+                {
+                    String logfile = Properties.Application.GetString(LogConfigurationConstants.LogFile);
+                    if (logfile != null)
+                    {
+                        LoggerStream = new StreamWriter(new FileStream(logfile, AppendModeActive ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.Read));
+                    }
+                }
+                return loggerStream;
+            }
+            set
+            {
+                if (loggerStream != null)
+                {
+                    loggerStream.Dispose();
+                }
+                loggerStream = value;
+            }
+        }
+
+        public static bool LogStreamEnabled { get; set; }
+
+        public static bool AppendModeActive { get; set; }
+
+        protected static Object lockObject = new Object();
+
+        public bool LogToConsole { get; set; }
+
+        public LogSourceLevel LogSourceLevel { get; set; }
+
+        public bool DebugEnabled { get; set; }
+
+        public bool InfoEnabled { get; set; }
+
+        public bool WarnEnabled { get; set; }
+
+        public bool ErrorEnabled { get; set; }
+
+        private readonly string _source, _shortSource;
+
+        public Logger(string source)
+        {
+            this._source = source;
+
+            int lastIndexOf = _source.LastIndexOf('.');
+            if (lastIndexOf >= 0)
+            {
+                _shortSource = _source.Substring(lastIndexOf + 1);
+            }
+            else
+            {
+                _shortSource = _source;
+            }
+            DebugEnabled = true;
+            InfoEnabled = true;
+            WarnEnabled = true;
+            ErrorEnabled = true;
+        }
+
+        virtual public void Status(String status)
+        {
+            Info(status);
+        }
+
+        public void Info(String message)
+        {
+            if (!InfoEnabled)
+            {
+                return;
+            }
+            AddNotification("INFO", message);
+        }
+
+        public void Info(String message, Exception e)
+        {
+            if (!InfoEnabled)
+            {
+                return;
+            }
+            AddNotification("INFO", message, e);
+        }
+
+        public void Info(String message, ExceptionDetail e)
+        {
+            if (!InfoEnabled)
+            {
+                return;
+            }
+            AddNotification("INFO", message, e);
+        }
+
+        public void Info(Exception e)
+        {
+            if (!InfoEnabled)
+            {
+                return;
+            }
+            AddNotification("INFO", e);
+        }
+
+        public void Info(ExceptionDetail e)
+        {
+            if (!InfoEnabled)
+            {
+                return;
+            }
+            AddNotification("INFO", e);
+        }
+
+        public void Debug(String message)
+        {
+            if (!DebugEnabled)
+            {
+                return;
+            }
+            AddNotification("DEBUG", message);
+        }
+
+        public void Debug(String message, Exception e)
+        {
+            if (!DebugEnabled)
+            {
+                return;
+            } 
+            AddNotification("DEBUG", message, e);
+        }
+
+        public void Debug(String message, ExceptionDetail e)
+        {
+            if (!DebugEnabled)
+            {
+                return;
+            }
+            AddNotification("DEBUG", message, e);
+        }
+
+        public void Debug(Exception e)
+        {
+            if (!DebugEnabled)
+            {
+                return;
+            }
+            AddNotification("DEBUG", e);
+        }
+
+        public void Debug(ExceptionDetail e)
+        {
+            if (!DebugEnabled)
+            {
+                return;
+            }
+            AddNotification("DEBUG", e);
+        }
+
+        public void Warn(String message)
+        {
+            if (!WarnEnabled)
+            {
+                return;
+            }
+            AddNotification("WARN", message);
+        }
+
+        public void Warn(String message, Exception e)
+        {
+            if (!WarnEnabled)
+            {
+                return;
+            } 
+            AddNotification("WARN", message, e);
+        }
+
+        public void Warn(String message, ExceptionDetail e)
+        {
+            if (!WarnEnabled)
+            {
+                return;
+            }
+            AddNotification("WARN", message, e);
+        }
+
+        public void Warn(Exception e)
+        {
+            if (!WarnEnabled)
+            {
+                return;
+            }
+            AddNotification("WARN", e);
+        }
+
+        public void Warn(ExceptionDetail e)
+        {
+            if (!WarnEnabled)
+            {
+                return;
+            }
+            AddNotification("WARN", e);
+        }
+
+        public void Error(String message)
+        {
+            if (!ErrorEnabled)
+            {
+                return;
+            }
+            AddNotification("ERROR", message);
+        }
+
+        public void Error(String message, Exception e)
+        {
+            if (!ErrorEnabled)
+            {
+                return;
+            }
+            AddNotification("ERROR", message, e);
+        }
+
+        public void Error(String message, ExceptionDetail e)
+        {
+            if (!ErrorEnabled)
+            {
+                return;
+            }
+            AddNotification("ERROR", message, e);
+        }
+
+        public void Error(Exception e)
+        {
+            if (!ErrorEnabled)
+            {
+                return;
+            }
+            AddNotification("ERROR", e);
+        }
+
+        public void Error(ExceptionDetail e)
+        {
+            if (!ErrorEnabled)
+            {
+                return;
+            }
+            AddNotification("ERROR", e);
+        }
+
+        protected virtual void AddNotification(String level, Exception e)
+        {
+            AddNotification(level, null, e);
+        }
+
+        protected virtual void AddNotification(String level, ExceptionDetail e)
+        {
+            AddNotification(level, null, e);
+        }
+
+        protected virtual void AddNotification(String level, String message)
+        {
+            AddNotification(level, message, (Exception)null);
+        }
+
+        protected virtual void AddNotification(String level, String message, Exception e)
+        {
+            if (e != null)
+            {
+                AddNotification(level, message, e.GetType().FullName + ": " + e.Message, ExtractFullStackTrace(e));
+            }
+            else
+            {
+                AddNotification(level, message, null, null);
+            }
+        }
+
+        protected virtual void AddNotification(String level, String message, ExceptionDetail e)
+        {
+            if (e != null)
+            {
+                AddNotification(level, message, e.Message, e.StackTrace);
+            }
+            else
+            {
+                AddNotification(level, message, null, null);
+            }
+        }
+
+        protected String ExtractFullStackTrace(Exception e)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(e.StackTrace);
+            Exception innerException = e.InnerException;
+            while (innerException != null)
+            {
+                sb.Append(Environment.NewLine);
+                sb.Append(Environment.NewLine);
+                sb.Append(innerException.Message);
+                sb.Append(Environment.NewLine);
+                sb.Append(innerException.StackTrace);
+                innerException = innerException.InnerException;
+            }
+            return sb.ToString();
+        }
+
+        protected void AddNotification(String level, String message, String errorMessage, String stackTrace)
+        {
+            String notification;
+            if (errorMessage != null)
+            {
+                if (stackTrace != null)
+                {
+                    notification = message + ": " + errorMessage + Environment.NewLine + stackTrace;
+                }
+                else
+                {
+                    notification = message + ": " + errorMessage;
+                }
+            }
+            else
+            {
+                notification = message;
+            }
+            CreateLogEntry(level, notification);
+        }
+
+        protected virtual void CreateLogEntry(String level, String notification)
+        {
+            Thread currentThread = Thread.CurrentThread;
+
+            String threadName = currentThread.Name;
+            if (threadName == null || threadName.Length == 0)
+            {
+                threadName = "<No Name>";
+            }
+            DateTime now = DateTime.Now;
+
+            String printedSource;
+            switch (LogSourceLevel)
+            {
+                case LogSourceLevel.DEFAULT:
+                case LogSourceLevel.FULL:
+                    printedSource = _source;
+                    break;
+                case LogSourceLevel.SHORT:
+                    printedSource = _shortSource;
+                    break;
+                case LogSourceLevel.NONE:
+                    printedSource = null;
+                    break;
+                default:
+                    throw new Exception("Enum " + LogSourceLevel + " not supported");
+            }
+
+            String output = String.Format("[{4,2}: {5}] [{0:yyyy-MM-dd HH:mm:ss.fff}] {1,-5} {2}: {3}", new object[]
+            {
+                now, level, printedSource, notification, currentThread.ManagedThreadId, threadName
+            });
+            Log(output);
+        }
+
+        protected virtual void Log(String output)
+        {
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Diagnostics.Debugger.Log(5, "LOG", output + "\r\n");
+            }
+            else
+            {
+                Console.WriteLine(output);
+            }
+            if (LogStreamEnabled)
+            {
+                LogStream(output);
+            }
+        }
+
+        protected virtual void LogStream(String output)
+        {
+            lock (lockObject)
+            {
+                StreamWriter writer = LoggerStream;
+                if (writer != null)
+                {
+                    writer.WriteLine(output);
+                    writer.Flush();
+                }
+            }
+        }
+    }
+}

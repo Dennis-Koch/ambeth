@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_2_0">
+
+  <entity-mappings>
+
+    <entity class="de.osthus.ambeth.merge.independent.EntityA">
+      <attributes>
+        <basic name="Embedded.Name">
+          <column name="EMB_NAME" />
+        </basic>
+        <basic name="Embedded.Value">
+          <column name="EMB_VALUE" />
+        </basic>
+      </attributes>
+    </entity>
+
+  </entity-mappings>
+
+</or-mappings>

@@ -1,0 +1,11 @@
+<project name="build-hooks">
+	<target name="before-start">
+		<antcall target="foo" />
+	</target>
+		
+	
+	<target name="foo">
+		<echo>foo</echo>
+		<echo>bar</echo>
+	</target>
+</project>

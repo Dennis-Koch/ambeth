@@ -1,0 +1,196 @@
+package de.osthus.ambeth.ioc;
+
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import net.sf.cglib.proxy.MethodInterceptor;
+import de.osthus.ambeth.IDatabasePool;
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.DatabaseProvider;
+import de.osthus.ambeth.database.IDatabaseFactory;
+import de.osthus.ambeth.database.IDatabaseMapperExtendable;
+import de.osthus.ambeth.database.IDatabaseProviderExtendable;
+import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.merge.ITransactionState;
+import de.osthus.ambeth.persistence.JDBCSqlConnection;
+import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.ConnectionHolderInterceptor;
+import de.osthus.ambeth.persistence.jdbc.ConnectionHolderRegistry;
+import de.osthus.ambeth.persistence.jdbc.DefaultDatabasePool;
+import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.IConnectionHolder;
+import de.osthus.ambeth.persistence.jdbc.IConnectionHolderExtendable;
+import de.osthus.ambeth.persistence.jdbc.IConnectionHolderRegistry;
+import de.osthus.ambeth.persistence.jdbc.JdbcDatabaseFactory;
+import de.osthus.ambeth.persistence.jdbc.JdbcLink;
+import de.osthus.ambeth.persistence.jdbc.NoopDatabasePool;
+import de.osthus.ambeth.persistence.jdbc.TestRelationProvider;
+import de.osthus.ambeth.persistence.jdbc.array.ArrayConverter;
+import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.connection.DataSourceConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction;
+import de.osthus.ambeth.persistence.jdbc.lob.LobConversionHelper;
+import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.sql.ISqlConnection;
+import de.osthus.ambeth.typeinfo.IRelationProvider;
+import de.osthus.ambeth.util.DedicatedConverterUtil;
+import de.osthus.ambeth.util.ParamChecker;
+
+@FrameworkModule
+public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean
+{
+	protected IProxyFactory proxyFactory;
+
+	protected boolean integratedConnectionFactory;
+
+	protected boolean integratedConnectionPool;
+
+	protected String additionalConnectionInterfaces;
+
+	protected String additionalConnectionModules;
+
+	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, mandatory = false)
+	public void setAdditionalConnectionInterfaces(String additionalConnectionInterfaces)
+	{
+		this.additionalConnectionInterfaces = additionalConnectionInterfaces;
+	}
+
+	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, mandatory = false)
+	public void setAdditionalConnectionModules(String additionalConnectionModules)
+	{
+		this.additionalConnectionModules = additionalConnectionModules;
+	}
+
+	public void setProxyFactory(IProxyFactory proxyFactory)
+	{
+		this.proxyFactory = proxyFactory;
+	}
+
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, defaultValue = "true")
+	public void setOwnConnectionFactory(boolean ownConnectionFactory)
+	{
+		integratedConnectionFactory = ownConnectionFactory;
+	}
+
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
+	public void setOwnConnectionPool(boolean ownConnectionPool)
+	{
+		integratedConnectionPool = ownConnectionPool;
+	}
+
+	@Override
+	public void applyProperties(Properties contextProperties)
+	{
+		String linkType = contextProperties.getString(PersistenceConfigurationConstants.LinkClass);
+		if (linkType == null)
+		{
+			contextProperties.put(PersistenceConfigurationConstants.LinkClass, JdbcLink.class.getName());
+		}
+	}
+
+	@Override
+	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+	{
+		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
+
+		beanContextFactory.registerAutowireableBean(ITransaction.class, JdbcTransaction.class).autowireable(ITransactionState.class);
+
+		if (integratedConnectionPool)
+		{
+			beanContextFactory.registerAutowireableBean(IDatabasePool.class, DefaultDatabasePool.class);
+		}
+		else
+		{
+			beanContextFactory.registerAutowireableBean(IDatabasePool.class, NoopDatabasePool.class);
+		}
+
+		beanContextFactory.registerBean("databaseProvider", DatabaseProvider.class);
+		beanContextFactory.link("databaseProvider").to(IDatabaseProviderExtendable.class).with(Object.class);
+
+		List<Class<?>> connectionModuleTypes = new ArrayList<Class<?>>();
+		if (additionalConnectionModules != null)
+		{
+			String[] typeNames = additionalConnectionModules.split(";");
+			for (int a = typeNames.length; a-- > 0;)
+			{
+				Class<?> type = Thread.currentThread().getContextClassLoader().loadClass(typeNames[a]);
+				connectionModuleTypes.add(type);
+			}
+		}
+
+		beanContextFactory.registerAnonymousBean(JdbcDatabaseFactory.class).propertyRefs("databaseProvider")
+				.propertyValue("AdditionalModules", connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
+				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
+
+		beanContextFactory.registerBean("connectionHolderRegistry", ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
+				IConnectionHolderExtendable.class);
+
+		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerBean("connectionHolder", ConnectionHolderInterceptor.class)
+				.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();
+		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
+
+		List<Class<?>> connectionInterfaceTypes = new ArrayList<Class<?>>();
+		connectionInterfaceTypes.add(Connection.class);
+		if (additionalConnectionInterfaces != null)
+		{
+			String[] typeNames = additionalConnectionInterfaces.split(";");
+			for (int a = typeNames.length; a-- > 0;)
+			{
+				Class<?> type = Thread.currentThread().getContextClassLoader().loadClass(typeNames[a]);
+				connectionInterfaceTypes.add(type);
+			}
+		}
+		Class<?>[] cInterfaceTypes = connectionInterfaceTypes.toArray(new Class<?>[connectionInterfaceTypes.size()]);
+		Object connectionHolderProxy = proxyFactory.createProxy(cInterfaceTypes, chInterceptor);
+		beanContextFactory.registerExternalBean("connectionHolderProxy", connectionHolderProxy).autowireable(cInterfaceTypes);
+
+		if (integratedConnectionFactory)
+		{
+			beanContextFactory.registerBean("connectionFactory", ConnectionFactory.class).autowireable(IConnectionFactory.class);
+		}
+		else
+		{
+			beanContextFactory.registerBean("connectionFactory", DataSourceConnectionFactory.class).autowireable(IConnectionFactory.class);
+		}
+		beanContextFactory.registerAutowireableBean(IRelationProvider.class, TestRelationProvider.class);
+
+		beanContextFactory.registerAutowireableBean(ISqlConnection.class, JDBCSqlConnection.class);
+
+		beanContextFactory.registerBean("arrayConverter", ArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, boolean[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Boolean[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, byte[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Byte[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, char[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Character[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, short[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Short[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, int[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Integer[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, long[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Long[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, float[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Float[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, double[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Double[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, String[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, List.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Collection.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "arrayConverter", Array.class, Set.class);
+
+		beanContextFactory.registerBean("lobConverter", LobConversionHelper.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "lobConverter", Blob.class, byte[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "lobConverter", Clob.class, char[].class);
+		DedicatedConverterUtil.biLink(beanContextFactory, "lobConverter", Clob.class, String.class);
+	}
+}

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ast="http://osthus.de/ambeth/ambeth_simple_types_2_0"
+	targetNamespace="http://osthus.de/ambeth/ambeth_orm_2_0" xmlns:ans="http://osthus.de/ambeth/ambeth_orm_2_0"
+	elementFormDefault="qualified">
+
+	<xs:import namespace="http://osthus.de/ambeth/ambeth_simple_types_2_0" schemaLocation="./ambeth_simple_types_2_0.xsd" />
+
+	<xs:element name="or-mappings">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="link-mappings" type="ans:linkMappingType" minOccurs="0" maxOccurs="1" />
+				<xs:element name="entity-mappings" type="ans:entityMappingType" minOccurs="0" maxOccurs="1" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="linkMappingType">
+		<xs:sequence>
+			<xs:element name="link" type="ans:linkType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Configuration of a relation defined by a link table or foreign key constraint</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="external-link" type="ans:externalLinkType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Configuration of a relation to an external entity defined by an local entity table, the 'foreign'
+						key column and the correlating member in the target entity
+					</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="independent-link" type="ans:independentLinkType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Configuration of a relation in an environment without accessible persistence</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="entityMappingType">
+		<xs:sequence>
+			<xs:element name="entity" type="ans:entityType" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="external-entity" type="ans:externalEntityType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="linkType">
+		<xs:attribute name="source" type="ast:sqlName" use="required" />
+		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType" />
+		<xs:attribute name="alias" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="externalLinkType">
+		<xs:attribute name="source" type="ast:sqlName" use="required" />
+		<xs:attribute name="source-column" type="ast:sqlName" use="required" />
+		<xs:attribute name="target-member" type="ast:propertyName" use="required" />
+		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType" />
+		<xs:attribute name="alias" type="xs:string" />
+	</xs:complexType>
+
+	<xs:complexType name="independentLinkType">
+		<xs:attribute name="alias" type="xs:string" />
+		<xs:attribute name="cascade-delete" type="ast:cascadeDeleteType" />
+		<xs:attribute name="left" type="ast:className" />
+		<xs:attribute name="right" type="ast:className" />
+	</xs:complexType>
+
+	<xs:complexType name="entityType">
+		<xs:sequence>
+			<xs:element name="table" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="sequence-generator" minOccurs="0">
+				<xs:complexType>
+					<xs:attribute name="name" type="ast:sqlName" />
+				</xs:complexType>
+			</xs:element>
+			<xs:element name="attributes" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:choice minOccurs="0">
+							<xs:element name="id" type="ans:basicType" />
+							<xs:element name="id-composite" type="ans:compositeIdType" />
+						</xs:choice>
+						<xs:choice minOccurs="0" maxOccurs="unbounded">
+							<xs:element name="alternate-id" type="ans:basicType" />
+							<xs:element name="alternate-id-composite" type="ans:compositeIdType" />
+						</xs:choice>
+						<xs:choice minOccurs="0">
+							<xs:element name="version" type="ans:basicType" />
+							<xs:element name="no-version" type="ans:noVersionType" />
+						</xs:choice>
+						<xs:element name="created-by" type="ans:basicType" minOccurs="0" />
+						<xs:element name="created-on" type="ans:basicType" minOccurs="0" />
+						<xs:element name="updated-by" type="ans:basicType" minOccurs="0" />
+						<xs:element name="updated-on" type="ans:basicType" minOccurs="0" />
+						<xs:sequence minOccurs="0" maxOccurs="unbounded">
+							<xs:choice>
+								<xs:element name="ignore" type="ans:simpleBasicType" />
+								<xs:element name="basic" type="ans:basicType" />
+								<xs:element name="relation" type="ans:relationType" />
+							</xs:choice>
+						</xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="class" type="ast:className" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="externalEntityType">
+		<xs:sequence>
+			<xs:element name="attributes" minOccurs="0">
+				<xs:complexType>
+					<xs:sequence>
+						<xs:choice minOccurs="0">
+							<xs:element name="id" type="ans:basicType" />
+							<xs:element name="id-composite" type="ans:simpleCompositeIdType" />
+						</xs:choice>
+						<xs:choice minOccurs="0" maxOccurs="unbounded">
+							<xs:element name="alternate-id" type="ans:basicType" />
+							<xs:element name="alternate-id-composite" type="ans:simpleCompositeIdType" />
+						</xs:choice>
+						<xs:choice minOccurs="0">
+							<xs:element name="version" type="ans:simpleBasicType" />
+							<xs:element name="no-version" type="ans:noVersionType" />
+						</xs:choice>
+						<xs:element name="created-by" type="ans:simpleBasicType" minOccurs="0" />
+						<xs:element name="created-on" type="ans:simpleBasicType" minOccurs="0" />
+						<xs:element name="updated-by" type="ans:simpleBasicType" minOccurs="0" />
+						<xs:element name="updated-on" type="ans:simpleBasicType" minOccurs="0" />
+						<xs:sequence minOccurs="0" maxOccurs="unbounded">
+							<xs:choice>
+								<xs:element name="ignore" type="ans:simpleBasicType" />
+								<xs:element name="basic" type="ans:simpleBasicType" />
+								<xs:element name="relation" type="ans:externalRelationType" />
+							</xs:choice>
+						</xs:sequence>
+					</xs:sequence>
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="class" type="ast:className" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="simpleCompositeIdType">
+		<xs:sequence>
+			<xs:element name="id-fragment" type="ans:simpleBasicType" minOccurs="2" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="compositeIdType">
+		<xs:sequence>
+			<xs:element name="id-fragment" type="ans:basicType" minOccurs="2" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="simpleBasicType">
+		<xs:attribute name="name" type="ast:propertyName" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="basicType">
+		<xs:attribute name="name" type="ast:propertyName" use="required" />
+		<xs:attribute name="column" type="ast:sqlName" />
+	</xs:complexType>
+
+	<xs:complexType name="noVersionType" />
+
+	<xs:complexType name="relationType">
+		<xs:attribute name="name" type="ast:propertyName" use="required" />
+		<xs:attribute name="link" type="xs:string" />
+		<xs:attribute name="this" type="ast:linkEntityIdType" />
+	</xs:complexType>
+
+	<xs:complexType name="externalRelationType">
+		<xs:attribute name="name" type="ast:propertyName" use="required" />
+		<xs:attribute name="link" type="xs:string" use="required" />
+	</xs:complexType>
+
+</xs:schema>

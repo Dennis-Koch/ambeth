@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity class="de.osthus.ambeth.model.MaterialGroup" />
+
+	<entity class="de.osthus.ambeth.model.Material">
+		<attributes>
+			<basic name="CreatedOn">
+				<column name="CREATED_ON" />
+			</basic>
+			<basic name="CreatedBy">
+				<column name="CREATED_BY" />
+			</basic>
+			<basic name="UpdatedOn">
+				<column name="UPDATED_ON" />
+			</basic>
+			<basic name="UpdatedBy">
+				<column name="UPDATED_BY" />
+			</basic>
+		</attributes>
+	</entity>
+
+	<entity class="de.osthus.ambeth.model.Unit">
+		<table name="UNIT" />
+		<attributes>
+			<basic name="Name">
+				<column name="NAME" />
+			</basic>
+		</attributes>
+	</entity>
+
+</entity-mappings>

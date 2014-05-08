@@ -1,0 +1,320 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using De.Osthus.Ambeth.Bytecode.Behavior;
+using De.Osthus.Ambeth.Bytecode.Visitor;
+using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Exceptions;
+using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Extendable;
+using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Util;
+
+namespace De.Osthus.Ambeth.Bytecode.Core
+{
+    public class BytecodeEnhancer : IBytecodeEnhancer, IBytecodeBehaviorExtendable
+    {
+        public class ValueType : SmartCopyMap<IEnhancementHint, WeakReference>
+        {
+            private volatile int changeCount;
+
+            public void AddChangeCount()
+            {
+                changeCount++;
+            }
+
+            public int ChangeCount
+            {
+                get
+                {
+                    return changeCount;
+                }
+            }
+        }
+
+        [LogInstance]
+        public ILogger Log { private get; set; }
+
+        public IServiceContext BeanContext { protected get; set; }
+
+        public IBytecodeClassLoader BytecodeClassLoader { protected get; set; }
+
+        protected readonly WeakDictionary<Type, ValueType> typeToExtendedType = new WeakDictionary<Type, ValueType>();
+
+        protected readonly WeakDictionary<Type, WeakReference> extendedTypeToType = new WeakDictionary<Type, WeakReference>();
+
+        protected readonly IdentityHashSet<Object> hardRefToTypes = new IdentityHashSet<Object>();
+
+        protected readonly CHashSet<Type> supportedEnhancements = new CHashSet<Type>(0.5f);
+
+        protected readonly Object writeLock = new Object();
+
+        protected readonly IExtendableContainer<IBytecodeBehavior> bytecodeBehaviorExtensions = new ExtendableContainer<IBytecodeBehavior>("bytecodeBehavior");
+
+        public BytecodeEnhancer()
+        {
+            //extendedTypeToType.setAutoCleanupReference(true);
+        }
+
+        public bool SupportsEnhancement(Type enhancementType)
+        {
+            lock (writeLock)
+            {
+                return supportedEnhancements.Contains(enhancementType);
+            }
+        }
+
+        public bool IsEnhancedType(Type entityType)
+        {
+            return typeof(IEnhancedType).IsAssignableFrom(entityType);
+        }
+
+        public Type GetBaseType(Type enhancedType)
+        {
+            if (!IsEnhancedType(enhancedType))
+            {
+                return null;
+            }
+            lock (writeLock)
+            {
+                WeakReference typeR = DictionaryExtension.ValueOrDefault(extendedTypeToType, enhancedType);
+                if (typeR == null)
+                {
+                    throw new Exception("Must never happen");
+                }
+                Type type = (Type)typeR.Target;
+                if (type == null)
+                {
+                    throw new Exception("Must never happen");
+                }
+                return type;
+            }
+        }
+
+        protected Type GetEnhancedTypeIntern(Type entityType, IEnhancementHint bytecodeEnhancementContext)
+        {
+            lock (writeLock)
+            {
+                ValueType valueType = DictionaryExtension.ValueOrDefault(typeToExtendedType, entityType);
+                if (valueType == null)
+                {
+                    return null;
+                }
+                WeakReference extendedTypeR = valueType.Get(bytecodeEnhancementContext);
+                if (extendedTypeR == null)
+                {
+                    return null;
+                }
+                return (Type)extendedTypeR.Target;
+            }
+        }
+
+        public Type GetEnhancedType(Type typeToEnhance, IEnhancementHint hint)
+        {
+            ITargetNameEnhancementHint targetNameHint = hint.Unwrap<ITargetNameEnhancementHint>();
+            if (targetNameHint == null && hint is ITargetNameEnhancementHint)
+		    {
+			    targetNameHint = (ITargetNameEnhancementHint) hint;
+		    }
+            String newTypeNamePrefix = typeToEnhance.FullName;
+            if (targetNameHint != null)
+            {
+                newTypeNamePrefix = targetNameHint.GetTargetName(typeToEnhance);
+            }
+            return GetEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
+        }
+
+        public Type GetEnhancedType(Type typeToEnhance, String newTypeNamePrefix, IEnhancementHint hint)
+        {
+            Type extendedType = GetEnhancedTypeIntern(typeToEnhance, hint);
+            if (extendedType != null)
+            {
+                return extendedType;
+            }
+            lock (writeLock)
+            {
+                // Concurrent thread may have been faster
+                extendedType = GetEnhancedTypeIntern(typeToEnhance, hint);
+                if (extendedType != null)
+                {
+                    return extendedType;
+                }
+                if (Log.InfoEnabled)
+                {
+                    Log.Info("Enhancing " + typeToEnhance + " with hint: " + hint);
+                }
+                ValueType valueType = DictionaryExtension.ValueOrDefault(typeToExtendedType, typeToEnhance);
+                if (valueType == null)
+                {
+                    valueType = new ValueType();
+                    typeToExtendedType.Add(typeToEnhance, valueType);
+                }
+                else
+                {
+                    valueType.AddChangeCount();
+                    newTypeNamePrefix += "_O" + valueType.ChangeCount;
+                }
+
+                List<IBytecodeBehavior> pendingBehaviors = new List<IBytecodeBehavior>();
+
+                IBytecodeBehavior[] extensions = bytecodeBehaviorExtensions.GetExtensions();
+                pendingBehaviors.AddRange(extensions);
+
+                Type enhancedEntityType;
+                if (pendingBehaviors.Count > 0)
+                {
+                    enhancedEntityType = EnhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
+                }
+                else
+                {
+                    enhancedEntityType = typeToEnhance;
+                }
+                WeakReference entityTypeR = typeToExtendedType.GetWeakReferenceEntry(typeToEnhance);
+			    if (entityTypeR == null)
+			    {
+				    throw new Exception("Must never happen");
+			    }
+                hardRefToTypes.Add(enhancedEntityType);
+                hardRefToTypes.Add(typeToEnhance);
+                WeakReference enhancedEntityTypeR = new WeakReference(enhancedEntityType);
+                valueType.Put(hint, enhancedEntityTypeR);
+                extendedTypeToType.Add(enhancedEntityType, entityTypeR);
+                if (Log.DebugEnabled)
+                {
+                    Log.Debug(BytecodeClassLoader.ToPrintableBytecode(enhancedEntityType));
+                }
+                return enhancedEntityType;
+            }
+        }
+
+        protected Type EnhanceTypeIntern(Type originalType, String newTypeNamePrefix, IList<IBytecodeBehavior> pendingBehaviors,
+                IEnhancementHint hint)
+        {
+            if (pendingBehaviors.Count == 0)
+            {
+                return originalType;
+            }
+            WeakReference originalTypeR = typeToExtendedType.GetWeakReferenceEntry(originalType);
+            if (originalTypeR == null)
+		    {
+			    throw new Exception("Must never happen");
+		    }
+            newTypeNamePrefix = newTypeNamePrefix.Replace(".", "/");
+            StringBuilder sw = new StringBuilder();
+            try
+            {
+                Type currentType = originalType;
+                if (currentType.IsInterface)
+                {
+                    currentType = typeof(Object);
+                }
+                for (int a = 0, size = pendingBehaviors.Count; a < size; a++)
+                {
+                    Type newCurrentType = pendingBehaviors[a].GetTypeToExtendFrom(originalType, currentType, hint);
+                    if (newCurrentType != null)
+                    {
+                        currentType = newCurrentType;
+                    }
+                }
+                int iterationCount = 0;
+                Type currentContent = currentType; //BytecodeClassLoader.ReadTypeAsBinary(currentType);
+                while (pendingBehaviors.Count > 0)
+                {
+                    iterationCount++;
+
+                    NewType newTypeHandle = NewType.GetObjectType(newTypeNamePrefix + "$A" + iterationCount);
+
+                    IBytecodeBehavior[] currentPendingBehaviors = ListUtil.ToArray(pendingBehaviors);
+                    pendingBehaviors.Clear();
+                    BytecodeEnhancer This = this;
+                    Type fCurrentContent = currentContent;
+
+                    BytecodeBehaviorState acquiredState = null;
+                    Type newContent = BytecodeBehaviorState.SetState(originalType, currentType, newTypeHandle, BeanContext, hint,
+                            delegate()
+                            {
+                                acquiredState = (BytecodeBehaviorState)BytecodeBehaviorState.State;
+                                return This.ExecutePendingBehaviors(fCurrentContent, sw, currentPendingBehaviors, pendingBehaviors);
+                            });
+                    if (newContent == null)
+                    {
+                        if (pendingBehaviors.Count > 0)
+                        {
+                            // "fix" the iterationCount to have a consistent class name hierarchy
+                            iterationCount--;
+                            continue;
+                        }
+                        return currentType;
+                    }
+                    Type newType = newContent;// BytecodeClassLoader.LoadClass(newTypeHandle.InternalName, newContent);
+                    extendedTypeToType.Add(newType, originalTypeR);
+                    acquiredState.PostProcessCreatedType(newType);
+                    currentContent = newContent;
+                    currentType = newType;
+                }
+                return currentType;
+            }
+            catch (Exception e)
+            {
+                String classByteCode = sw.ToString();
+                if (classByteCode.Length > 0)
+                {
+                    throw RuntimeExceptionUtil.Mask(e, "Bytecode:\n" + classByteCode);
+                }
+                throw;
+            }
+        }
+
+        public Type ExecutePendingBehaviors(Type currentContent, StringBuilder sw, IBytecodeBehavior[] pendingBehaviors,
+                IList<IBytecodeBehavior> cascadePendingBehaviors)
+        {
+            IBytecodeBehaviorState state = BytecodeBehaviorState.State;
+            Type content = BytecodeClassLoader.BuildTypeFromParent(state.NewType.InternalName, currentContent, sw, delegate(IClassVisitor cv)
+                {
+                    IBytecodeBehavior[] currPendingBehaviors = pendingBehaviors;
+                    for (int a = 0; a < currPendingBehaviors.Length; a++)
+                    {
+                        List<IBytecodeBehavior> remainingPendingBehaviors = new List<IBytecodeBehavior>();
+                        for (int b = a + 1, sizeB = currPendingBehaviors.Length; b < sizeB; b++)
+                        {
+                            remainingPendingBehaviors.Add(currPendingBehaviors[b]);
+                        }
+                        IClassVisitor newCv = currPendingBehaviors[a].Extend(cv, state, remainingPendingBehaviors, cascadePendingBehaviors);
+                        currPendingBehaviors = remainingPendingBehaviors.ToArray();
+                        a = -1;
+                        if (newCv != null)
+                        {
+                            cv = newCv;
+                        }
+                    }
+                    return cv;
+                });
+            return content;
+        }
+
+        public void RegisterBytecodeBehavior(IBytecodeBehavior bytecodeBehavior)
+        {
+            bytecodeBehaviorExtensions.Register(bytecodeBehavior);
+            RefreshSupportedEnhancements();
+        }
+
+        public void UnregisterBytecodeBehavior(IBytecodeBehavior bytecodeBehavior)
+        {
+            bytecodeBehaviorExtensions.Unregister(bytecodeBehavior);
+            RefreshSupportedEnhancements();
+        }
+
+        protected void RefreshSupportedEnhancements()
+	    {
+		    lock (writeLock)
+		    {
+			    supportedEnhancements.Clear();
+			    foreach (IBytecodeBehavior bytecodeBehavior in bytecodeBehaviorExtensions.GetExtensions())
+			    {
+				    supportedEnhancements.AddAll(bytecodeBehavior.GetEnhancements());
+			    }
+		    }
+	    }
+    }
+}

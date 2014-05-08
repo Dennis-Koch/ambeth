@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity class="de.osthus.ambeth.persistence.jdbc.array.ArrayObject">
+		<table name="ARRAY_OBJECT" />
+		<attributes>
+			<basic name="ArrayContentLong">
+				<column name="LONG_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentLong2">
+				<column name="LONG_CONTENT2"/>
+			</basic>
+			<basic name="SetContentLong">
+				<column name="SET_LONG_CONTENT"/>
+			</basic>
+			<basic name="ListContentLong">
+				<column name="LIST_LONG_CONTENT"/>
+			</basic>
+			<basic name="CollContentLong">
+				<column name="COLL_LONG_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentInt">
+				<column name="INT_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentInt2">
+				<column name="INT_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentShort">
+				<column name="SHORT_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentShort2">
+				<column name="SHORT_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentByte">
+				<column name="BYTE_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentByte2">
+				<column name="BYTE_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentChar">
+				<column name="CHAR_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentChar2">
+				<column name="CHAR_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentBool">
+				<column name="BOOL_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentBool2">
+				<column name="BOOL_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentDouble">
+				<column name="DOUBLE_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentDouble2">
+				<column name="DOUBLE_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentFloat">
+				<column name="FLOAT_CONTENT"/>
+			</basic>
+			<basic name="ArrayContentFloat2">
+				<column name="FLOAT_CONTENT2"/>
+			</basic>
+			<basic name="ArrayContentString">
+				<column name="STRING_CONTENT"/>
+			</basic>
+			<basic name="ListContentString">
+				<column name="LIST_STRING_CONTENT"/>
+			</basic>
+		</attributes>
+	</entity>
+</entity-mappings>

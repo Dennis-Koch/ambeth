@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4D2C52A0-79EF-420B-88FC-8AE664E65905}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Xml.Test</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <CodeAnalysisDependentAssemblyPaths Condition=" '$(VS100COMNTOOLS)' != '' " Include="$(VS100COMNTOOLS)..\IDE\PrivateAssemblies">
+      <Visible>False</Visible>
+    </CodeAnalysisDependentAssemblyPaths>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\CacheFactoryMock.cs" />
+    <Compile Include="ambeth\xml\CacheMock.cs" />
+    <Compile Include="ambeth\xml\CyclicXMLWriterTest.cs" />
+    <Compile Include="ambeth\xml\EmptyDummy.cs" />
+    <Compile Include="ambeth\xml\EntityFactoryMock.cs" />
+    <Compile Include="ambeth\xml\EntityMetaDataProviderMock.cs" />
+    <Compile Include="ambeth\xml\Material.cs" />
+    <Compile Include="ambeth\xml\MaterialGroup.cs" />
+    <Compile Include="ambeth\xml\pending\CollectionSetterCommandTest.cs" />
+    <Compile Include="ioc\XmlBootstrapTestModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC.Test\Ambeth.IOC.Test.csproj">
+      <Project>{702447E8-19E6-4441-8E55-3F43E5E48FE9}</Project>
+      <Name>Ambeth.IOC.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Test\Ambeth.Merge.Test.csproj">
+      <Project>{7D6F4F78-FC61-470B-BA5A-3D806723BBD7}</Project>
+      <Name>Ambeth.Merge.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Xml\Ambeth.Xml.csproj">
+      <Project>{5693E87D-AE36-41AD-A6CC-232062ECD865}</Project>
+      <Name>Ambeth.Xml</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\transfer\Assert.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Shadow Include="Test References\Ambeth.Xml.accessor" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\transfer\TestEnum.cs" />
+    <Compile Include="ambeth\xml\transfer\TestXmlObject.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\XmlTestConstants.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\transfer\Compound.cs" />
+    <Compile Include="ambeth\xml\transfer\CompoundStateType.cs" />
+    <Compile Include="ambeth\xml\transfer\IOrderService.cs" />
+    <Compile Include="ambeth\xml\transfer\OrderStateType.cs" />
+    <Compile Include="ambeth\xml\transfer\OrderType.cs" />
+    <Compile Include="ambeth\xml\transfer\Ordr.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ambeth\xml\postprocess\TestXmlPostProcessor.cs" />
+    <Content Include="ambeth\xml\postprocess\XmlPostProcessTest.cs" />
+    <Content Include="ambeth\xml\postprocess\XmlPostProcessTestModule.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

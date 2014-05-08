@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+	<link-mappings>
+		<independent-link alias="Material_MaterialType_ChildMatType" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_ChildMatTypes" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_Types" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat.EmbMatType" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat.EmbMat2.EmbMatType2" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+		<independent-link alias="Material_MaterialType_EmbMat3.EmbMatType" left="de.osthus.ambeth.cache.valueholdercontainer.Material"
+			right="de.osthus.ambeth.cache.valueholdercontainer.MaterialType"/>
+	</link-mappings>
+
+	<entity-mappings>
+		<entity class="de.osthus.ambeth.cache.valueholdercontainer.Material">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<basic name="Name" />
+				<basic name="Names" />
+				<basic name="EmbMat.Name" />
+				<basic name="EmbMat.Names" />
+				<basic name="EmbMat.EmbMat2.Name2" />
+				<basic name="EmbMat.EmbMat2.Names2" />
+				<relation name="ChildMatType" link="Material_MaterialType_ChildMatType" />
+				<relation name="ChildMatTypes" link="Material_MaterialType_ChildMatTypes" />
+				<relation name="Types" link="Material_MaterialType_Types" />
+				<relation name="EmbMat.EmbMatType" link="Material_MaterialType_EmbMat.EmbMatType" />
+				<relation name="EmbMat.EmbMat2.EmbMatType2" link="Material_MaterialType_EmbMat.EmbMat2.EmbMatType2" />
+				<relation name="EmbMat3.EmbMatType" link="Material_MaterialType_EmbMat3.EmbMatType" />
+			</attributes>
+		</entity>
+
+		<entity class="de.osthus.ambeth.cache.valueholdercontainer.MaterialType">
+			<attributes>
+				<id name="Id" />
+				<version name="Version" />
+				<ignore name="Temp1" />
+				<ignore name="Temp2" />
+			</attributes>
+		</entity>
+	</entity-mappings>
+</or-mappings>

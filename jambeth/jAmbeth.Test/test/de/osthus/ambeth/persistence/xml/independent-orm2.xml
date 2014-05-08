@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity type="external" class="de.osthus.ambeth.persistence.schema.models.ParentA">
+		<attributes>
+			<id name="Id" />
+			<version name="Version" />
+			<to-one name="Child" target-entity="de.osthus.ambeth.persistence.schema.models.ChildA" />
+			<basic name="CreatedOn" created-on="true" />
+			<basic name="CreatedBy" created-by="true" />
+			<basic name="UpdatedOn" updated-on="true" />
+			<basic name="UpdatedBy" updated-by="true" />
+		</attributes>
+	</entity>
+
+	<entity type="external" class="de.osthus.ambeth.persistence.schema.models.ChildA">
+		<attributes>
+			<id name="Id" />
+			<version name="Version" />
+			<basic name="CreatedOn" created-on="true" />
+			<basic name="CreatedBy" created-by="true" />
+			<basic name="UpdatedOn" updated-on="true" />
+			<basic name="UpdatedBy" updated-by="true" />
+		</attributes>
+	</entity>
+
+</entity-mappings>

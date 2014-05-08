@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5C497020-6155-40CD-9C97-3C273718FE2E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Cache</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\CachedAttribute.cs" />
+    <Compile Include="ambeth\cache\CacheKey.cs" />
+    <Compile Include="ambeth\cache\CacheServiceRegistry.cs" />
+    <Compile Include="ambeth\cache\ChildCache.cs" />
+    <Compile Include="ambeth\cache\AbstractCache.cs" />
+    <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
+    <Compile Include="ambeth\cache\FlcEntry.cs" />
+    <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
+    <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
+    <Compile Include="ambeth\cache\ICacheIntern.cs" />
+    <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
+    <Compile Include="ambeth\cache\PendingValueHolders.cs" />
+    <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
+    <Compile Include="ambeth\cache\ServiceResultCache.cs" />
+    <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
+    <Compile Include="ambeth\cache\IServiceResultCache.cs" />
+    <Compile Include="ambeth\cache\EntityCallback.cs" />
+    <Compile Include="ambeth\cache\RootCache.cs" />
+    <Compile Include="ambeth\cache\interceptor\ThreadLocalRootCacheInterceptor.cs" />
+    <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
+    <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
+    <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
+    <Compile Include="ambeth\proxy\CachePostProcessor.cs" />
+    <Compile Include="ambeth\proxy\IValueHolderContainer.cs" />
+    <Compile Include="ambeth\service\CacheServiceDelegate.cs" />
+    <Compile Include="ambeth\service\CacheServiceModelProvider.cs" />
+    <Compile Include="ambeth\service\ICacheRetriever.cs" />
+    <Compile Include="ambeth\service\ICacheRetrieverExtendable.cs" />
+    <Compile Include="ambeth\service\ICacheService.cs" />
+    <Compile Include="ambeth\service\ICacheServiceByNameExtendable.cs" />
+    <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
+    <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
+    <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
+    <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
+    <Compile Include="ambeth\template\DataObjectTemplate.cs" />
+    <Compile Include="ambeth\transfer\ObjRelation.cs" />
+    <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
+    <Compile Include="ambeth\transfer\LoadContainer.cs" />
+    <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
+    <Compile Include="ambeth\util\CacheHelper.cs" />
+    <Compile Include="ambeth\util\CachePath.cs" />
+    <Compile Include="ambeth\util\CascadeLoadItem.cs" />
+    <Compile Include="ambeth\util\ICachePathHelper.cs" />
+    <Compile Include="ambeth\ValueHolderIEC.cs" />
+    <Compile Include="ioc\CacheBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.csproj">
+      <Project>{D952E360-12C3-4AC0-8B30-DD0E0E91932E}</Project>
+      <Name>Ambeth.Filter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.csproj">
+      <Project>{336798D1-D839-4256-B93B-B738B5BF4B3B}</Project>
+      <Name>Ambeth.Security</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\interceptor\CacheContextInterceptor.cs" />
+    <Compile Include="ambeth\cache\interceptor\CacheProviderInterceptor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\CacheContext.cs" />
+    <Compile Include="ambeth\cache\CacheFactory.cs" />
+    <Compile Include="ambeth\cache\CacheProvider.cs" />
+    <Compile Include="ambeth\cache\CacheType.cs" />
+    <Compile Include="ambeth\cache\ICacheContext.cs" />
+    <Compile Include="ambeth\cache\ICacheProviderExtendable.cs" />
+    <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\CacheNamedBeans.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\PrefetchConfig.cs" />
+    <Compile Include="ambeth\util\PrefetchHandle.cs" />
+    <Compile Include="ambeth\util\PrefetchState.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\CacheEventTargetExtractor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\FirstLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\IFirstLevelCacheExtendable.cs" />
+    <Compile Include="ambeth\cache\IFirstLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\IRootCache.cs" />
+    <Compile Include="ambeth\cache\ISecondLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\ITransactionalRootCache.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\RootCacheBridge.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IEntityEquals.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\collections\CacheMapEntry.cs" />
+    <Compile Include="ambeth\cache\collections\CacheHashMap.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapEntryEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapEntryTypeProvider.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapIterator.cs" />
+    <Compile Include="ambeth\cache\collections\DefaultCacheMapEntry.cs" />
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryTypeProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\IndirectValueHolderRef.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValue.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValue.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryAware.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\collections\DefaultCacheMapEntryFactory.cs" />
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryFactory.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

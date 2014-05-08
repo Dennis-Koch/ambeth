@@ -1,0 +1,96 @@
+<project name="path-util" default="expand-path">
+
+	<target name="expand-path">
+		<fail unless="output.propertyfile" />
+		<fail unless="projects.list" />
+		<fail unless="files.list" />
+		<if>
+			<isset property="output.property" />
+			<then>
+				<propertycopy property="output.property.value" from="${output.property}" silent="true"/>
+			</then>
+		</if>
+		<property name="path.separator" value=";" />
+		<property name="output.linebased" value="false" />
+		<if>
+			<isset property="output.property.value" />
+			<then>
+				<echo>Property $${${output.property}} already set. Expansion skipped</echo>
+			</then>
+			<else>
+				<var name="output.property.value" unset="true" />
+				<antcall target="-expand-path-intern" />
+			</else>
+		</if>
+	</target>
+
+	<target name="-expand-path-intern">
+		<if>
+			<or>
+				<not>
+					<isset property="output.property" />
+				</not>
+				<equals arg1="${output.linebased}" arg2="true" />
+			</or>
+			<then>
+				<echo file="${output.propertyfile}" append="false" message="" />
+			</then>
+			<else>
+				<echo file="${output.propertyfile}" append="false" message="${output.property}=" />
+			</else>
+		</if>
+		<foreach
+			list="${projects.list}"
+			target="-expand-path-intern-projectitem"
+			param="projects.list.item"
+			delimiter=" "
+			trim="true"
+			inheritall="true" />
+		<if>
+			<or>
+				<not>
+					<isset property="output.property" />
+				</not>
+				<equals arg1="${output.linebased}" arg2="true" />
+			</or>
+			<then>
+			</then>
+			<else>
+				<property file="${output.propertyfile}" />
+				<propertycopy property="output.property.value" from="${output.property}"/>
+				<echo>Expansion finished: $${${output.property}}=${output.property.value}</echo>
+			</else>
+		</if>
+	</target>
+
+	<target name="-expand-path-intern-fileitem">
+		<if>
+			<isset property="projects.basedir" />
+			<then>
+				<property name="path.item" value="${projects.basedir}/${projects.list.item}/${file}" />
+			</then>
+			<else>
+				<property name="path.item" value="${projects.list.item}/${file}" />
+			</else>
+		</if>
+		<if>
+			<equals arg1="${output.linebased}" arg2="true" />
+			<then>
+				<echo file="${output.propertyfile}" append="true" message="${path.item}${line.separator}" />
+			</then>
+			<else>
+				<echo file="${output.propertyfile}" append="true" message="${path.item}${path.separator}" />
+			</else>
+		</if>
+	</target>
+
+	<target name="-expand-path-intern-projectitem">
+		<foreach
+			list="${files.list}"
+			target="-expand-path-intern-fileitem"
+			param="file"
+			trim="true"
+			inheritall="true" />
+	</target>
+</project>
+

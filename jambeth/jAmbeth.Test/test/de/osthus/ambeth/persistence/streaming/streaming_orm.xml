@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+		<external-entity class="de.osthus.ambeth.persistence.streaming.StreamingEntity">
+			<attributes>
+				<id name="Id" />
+				<no-version />
+				<basic name="BooleanStreamed" />
+				<basic name="DoubleStreamed" />
+				<basic name="FloatStreamed" />
+				<basic name="IntStreamed" />
+				<basic name="LongStreamed" />
+				<basic name="StringStreamed" />
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

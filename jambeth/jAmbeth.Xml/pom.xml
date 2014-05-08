@@ -1,0 +1,73 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>jAmbeth.Xml</name>
+	<parent>
+		<groupId>de.osthus.ambeth</groupId>
+		<artifactId>jAmbeth</artifactId>
+		<version>2.0.${build.number}</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+	<artifactId>jAmbeth.Xml</artifactId>
+
+	<dependencies>
+		<!-- TODO INSERT DEPENDENCY:lib/commons-lang3-3.1.jar -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
+
+
+		<!-- TODO INSERT DEPENDENCY:lib/xpp3-1.1.4c.jar -->
+		<dependency>
+			<groupId>xpp3</groupId>
+			<artifactId>xpp3</artifactId>
+			<version>1.1.4c</version>
+		</dependency>
+
+
+		<!-- TODO INSERT DEPENDENCY:lib/servlet-api.jar -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<!-- TODO INSERT DEPENDENCY:lib/javassist.jar -->
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.16.1-GA</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.Ioc</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.Log</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.Merge</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.Merge</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+		</dependency>		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.Util</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+	</dependencies>
+</project>
