@@ -1,0 +1,158 @@
+<project name="ambeth" default="jenkins">
+
+	<property environment="env" />
+
+	<property name="env.BUILD_NUMBER" value="0" />
+	
+	<property name="env.JOB_NAME" value="Job" />
+	
+	<property name="workspace.base.dir" value=".." />
+
+	<property name="target.base.dir" value="${workspace.base.dir}" />
+
+	<property name="workspace.build.dir" value="${target.base.dir}/build" />
+
+	<property name="source.ambeth.dir" value="${target.base.dir}/Ambeth" />
+	<property name="source.minerva.dir" value="${target.base.dir}/Minerva" />
+	
+	<property name="build.number" value="2.0.0" />
+
+	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
+	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />
+	<property name="build.dev.xml.dir" value="${workspace.build.dir}/dev_xml" />
+	<property name="build.prod.dir" value="${workspace.build.dir}/prod" />
+	<property name="build.test.dir" value="${workspace.build.dir}/test" />
+	<property name="build.junit.dir" value="${workspace.build.dir}/junit" />
+	<property name="source.junit.dir" value="${target.base.dir}/src/jUnit" />
+	<property name="source.dev.dir" value="${target.base.dir}/src/all" />
+	
+	<property name="build.dev.dirs" value="${build.dev.dir},${build.dev.job.dir},${build.dev.xml.dir}" />
+
+	<property name="target.jars.dir" value="${target.base.dir}/jars" />
+	<property name="target.javadoc.dir" value="${target.base.dir}/javadoc" />
+	<property name="target.libs.dir" value="${target.base.dir}/libs" />
+
+	<property name="junit.report.dir" value="${target.base.dir}/junit" />
+
+	<property name="src.jar.filename" value="jAmbeth-src-${build.number}.jar" />
+	<property name="dev.jar.filename" value="jAmbeth-dev-${build.number}.jar" />
+	<property name="dev.job.jar.filename" value="jAmbeth-job-cron4j-dev-${build.number}.jar" />
+	<property name="dev.xml.jar.filename" value="jAmbeth-xml-dev-${build.number}.jar" />
+	<property name="prod.jar.filename" value="jAmbeth-${build.number}.jar" />
+	<property name="junit.jar.filename" value="jAmbeth-jUnit-${build.number}.jar" />
+
+	<property name="src.jar.file" value="${target.jars.dir}/${src.jar.filename}" />
+
+	<property name="dev.jar.file" value="${target.jars.dir}/${dev.jar.filename}" />
+	<property name="dev.job.jar.file" value="${target.jars.dir}/${dev.job.jar.filename}" />
+	<property name="dev.xml.jar.file" value="${target.jars.dir}/${dev.xml.jar.filename}" />
+
+	<property name="prod.jar.file" value="${target.jars.dir}/${prod.jar.filename}" />
+
+	<property name="junit.jar.file" value="${target.jars.dir}/${junit.jar.filename}" />
+
+	<property name="target.dir" value="${target.base.dir}/target" />
+	<property name="target" location="${build.dev.dir}" />
+	<property name="test.target" location="${target.dir}/test-classes" />
+	<property name="instr.target" location="${target.dir}/instr-classes" />
+
+	<target name="clean-dev">
+		<delete dir="${build.dev.dir}" />
+		<delete dir="${build.dev.job.dir}" />
+		<delete dir="${build.dev.xml.dir}" />
+	</target>
+
+	<target name="init-dev" depends="clean-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<mkdir dir="${build.dev.dir}" />
+		<mkdir dir="${build.dev.job.dir}" />
+		<mkdir dir="${build.dev.xml.dir}" />
+	</target>
+
+	<target name="-set-revision">
+		<property name="assemblyVersion" value="[assembly: AssemblyVersion(&quot;${build.number}&quot;)]" />
+		<property name="assemblyFileVersion" value="[assembly: AssemblyFileVersion(&quot;${build.number}&quot;)]" />
+		<replace dir="${src}" value="${assemblyVersion}">
+			<include name="**/Properties/AssemblyInfo.cs" />
+			<replacetoken>[assembly: AssemblyVersion("1.0.0.0")]</replacetoken>
+			<replacevalue>
+			</replacevalue>
+		</replace>
+		<replace dir="${src}" value="${assemblyFileVersion}">
+			<include name="**/Properties/AssemblyInfo.cs" />
+			<replacetoken>[assembly: AssemblyFileVersion("1.0.0.0")]</replacetoken>
+		</replace>
+	</target>
+
+
+	<target name="compile-dev" depends="init-dev">
+		<exec executable="svnversion" dir="${source.ambeth.dir}/." outputproperty="ambeth.revision" />
+		<echo>Ambeth revision: ${ambeth.revision}</echo>
+		<exec executable="svnversion" dir="${source.minerva.dir}/." outputproperty="minerva.revision" />
+		<echo>Minerva revision: ${minerva.revision}</echo>
+		<exec executable="svn" outputproperty="svn.result">
+			<arg value="copy"/>
+			<arg value="https://svn02.osthus.de/osthus-intern/pavonis/branches/ambeth_1_0@${ambeth.revision}"/>
+			<arg value="https://svn02.osthus.de/osthus-intern/pavonis/tags/ambeth/CI_BUILD_${env.BUILD_NUMBER}"/>
+			<arg value="-m"/>
+			<arg value="Tagging last-successful Ambeth rev: ${ambeth.revision}, Minerva rev: ${minerva.revision} in Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}"/>
+		</exec>
+		<echo>SVN Result ${svn.result}</echo>
+		<exec executable="svn" outputproperty="svn.result2">
+			<arg value="copy"/>
+			<arg value="https://svn02.osthus.de/osthus-intern/pavonis/branches/minerva_1_0@${minerva.revision}"/>
+			<arg value="https://svn02.osthus.de/osthus-intern/pavonis/tags/ambeth/CI_BUILD_${env.BUILD_NUMBER}"/>
+			<arg value="-m"/>
+			<arg value="Tagging last-successful Ambeth rev: ${ambeth.revision}, Minerva rev: ${minerva.revision} in Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}"/>
+		</exec>
+		<echo>SVN Result ${svn.result2}</echo>
+		<property name="source.all.dir" value="Ambeth_All" />
+		<delete dir="${source.all.dir}" />
+		<mkdir dir="${source.all.dir}"/>
+
+		<copy todir="${source.all.dir}" overwrite="true" preservelastmodified="true">
+			<fileset dir="${source.ambeth.dir}" includes="**/*" />
+			<fileset dir="${source.minerva.dir}" includes="**/*" />
+		</copy>
+
+		<antcall target="-set-revision">
+			<param name="src" value="${source.all.dir}"/>
+		</antcall>
+
+		<exec executable="${env.MSBUILD_EXE}">
+			<arg value="${source.all.dir}\\Minerva.Client\\Minerva.Client.sln"/>
+		</exec>
+
+		<delete dir="dlls" />
+		<mkdir dir="dlls" />
+
+		<copy todir="dlls" overwrite="true" preservelastmodified="true">
+			<fileset dir="${source.all.dir}/Minerva.Client/Bin/Debug" includes="*.dll" />
+		</copy>
+	</target>
+
+	<target name="-deleteTargetDir">
+		<delete dir="${target.jars.dir}"/>
+	</target>
+
+
+
+	<target name="-create-download-propfile">
+		<delete file="${target.jars.dir}/Ambeth.properties" />
+		<propertyfile file="${target.jars.dir}/Ambeth.properties">
+			<entry key="ambeth.src.jar" value="${src.jar.filename}"/>
+			<entry key="ambeth.dev.jar" value="${dev.jar.filename}"/>
+			<entry key="ambeth.dev.job.jar" value="${dev.job.jar.filename}"/>
+			<entry key="ambeth.dev.xml.jar" value="${dev.xml.jar.filename}"/>
+			<entry key="ambeth.prod.jar" value="${prod.jar.filename}"/>
+			<entry key="ambeth.test.jar" value="${junit.jar.filename}"/>
+			<entry key="ambeth.version" value="${build.number}"/>
+			<entry key="ambeth.revision" value="${jambeth_revision}"/>
+			<entry key="minerva.revision" value="${minerva_revision}"/>
+		</propertyfile>
+	</target>
+
+	<target name="jenkins" depends="-deleteTargetDir,compile-dev,-create-download-propfile">
+	</target>
+
+</project>

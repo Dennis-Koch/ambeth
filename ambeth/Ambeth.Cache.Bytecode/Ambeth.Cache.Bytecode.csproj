@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7782C99C-31AB-40E7-B113-2615018D3916}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Cache.Bytecode</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=2.5.1.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\EmbeddedTypeBehavior.cs" />
+    <Compile Include="ambeth\bytecode\util\EntityUtil.cs" />
+    <Compile Include="ambeth\bytecode\visitor\CacheMapEntryVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EmbeddedTypeVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\FlattenDebugHierarchyVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\SetBeanContextMethodCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\SetCacheModificationMethodCreator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Bytecode\Ambeth.Bytecode.csproj">
+      <Project>{cba7ad4b-ab18-4ae9-beea-15a036cd6bc5}</Project>
+      <Name>Ambeth.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.csproj">
+      <Project>{5c497020-6155-40cd-9c97-3c273718fe2e}</Project>
+      <Name>Ambeth.Cache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.csproj">
+      <Project>{f9f3daf6-681c-4039-8f2b-ebb6e6a1b4d7}</Project>
+      <Name>Ambeth.Merge.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\DataObjectBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\DefaultPropertiesBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\EnhancedTypeBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\EntityEqualsBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\LazyRelationsBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\NotifyPropertyChangedBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ParentCacheHardRefBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\PublicEmbeddedConstructorBehavior.cs" />
+    <Compile Include="ambeth\bytecode\util\EnhancerUtil.cs" />
+    <Compile Include="ambeth\bytecode\visitor\DataObjectVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\DefaultPropertiesMethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityEqualsVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\FieldAndSetterTemplate.cs" />
+    <Compile Include="ambeth\bytecode\visitor\GetBaseTypeMethodCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\GetIdMethodCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\NotifyPropertyChangedClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ParentCacheHardRefVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\PublicEmbeddedConstructorVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\RelationsGetterVisitor.cs" />
+    <Compile Include="ambeth\ioc\CacheBytecodeModule.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\CacheMapEntryBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\behavior\RootCacheValueBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\visitor\RootCacheValueVisitor.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

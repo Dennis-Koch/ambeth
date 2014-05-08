@@ -1,0 +1,266 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{BA00BDE1-75CB-438F-85B6-3BA2A6F0F6D3}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Merge.SL4</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+    <Reference Include="System.Xml.Linq, Version=2.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files (x86)\Microsoft SDKs\Silverlight\v4.0\Libraries\Client\System.Xml.Linq.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\EmbeddedEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\EntityEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\IBytecodeEnhancer.cs" />
+    <Compile Include="ambeth\bytecode\IBytecodePrinter.cs" />
+    <Compile Include="ambeth\bytecode\IEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\ITargetNameEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\AbstractCacheValue.cs" />
+    <Compile Include="ambeth\cache\CacheDirective.cs" />
+    <Compile Include="ambeth\cache\CacheFactoryDirective.cs" />
+    <Compile Include="ambeth\cache\CacheModification.cs" />
+    <Compile Include="ambeth\cache\ICacheModification.cs" />
+    <Compile Include="ambeth\cache\ICache.cs" />
+    <Compile Include="ambeth\cache\ICacheFactory.cs" />
+    <Compile Include="ambeth\cache\ICacheProvider.cs" />
+    <Compile Include="ambeth\cache\IDisposableCache.cs" />
+    <Compile Include="ambeth\cache\IWritableCache.cs" />
+    <Compile Include="ambeth\cache\ValueHolderState.cs" />
+    <Compile Include="ambeth\merge\config\IEntityMetaDataReader.cs" />
+    <Compile Include="ambeth\merge\config\IndependentEntityMetaDataReader.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataAddedEvent.cs" />
+    <Compile Include="ambeth\copy\IObjectCopier.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierExtendable.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierExtension.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierState.cs" />
+    <Compile Include="ambeth\copy\ObjectCopier.cs" />
+    <Compile Include="ambeth\copy\ObjectCopierState.cs" />
+    <Compile Include="ambeth\copy\StringBuilderOCE.cs" />
+    <Compile Include="ambeth\merge\ICUDResultExtendable.cs" />
+    <Compile Include="ambeth\merge\ICUDResultExtension.cs" />
+    <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />
+    <Compile Include="ambeth\merge\IEntityFactoryExtension.cs" />
+    <Compile Include="ambeth\merge\IEntityFactoryExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataEvent.cs" />
+    <Compile Include="ambeth\merge\IObjRefHelper.cs" />
+    <Compile Include="ambeth\merge\IObjRefProvider.cs" />
+    <Compile Include="ambeth\merge\ITransactionState.cs" />
+    <Compile Include="ambeth\merge\RevertChangesFinishedCallback.cs" />
+    <Compile Include="ambeth\merge\MergeFinishedCallback.cs" />
+    <Compile Include="ambeth\merge\MergeServiceRegistry.cs" />
+    <Compile Include="ambeth\merge\config\EntityMetaDataReader.cs" />
+    <Compile Include="ambeth\merge\config\MergeConfigurationConstants.cs" />
+    <Compile Include="ambeth\merge\config\ValueObjectConfigReader.cs" />
+    <Compile Include="ambeth\merge\EntityCallback.cs" />
+    <Compile Include="ambeth\merge\EntityInitializedState.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataCache.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
+    <Compile Include="ambeth\merge\ICUDResultHelper.cs" />
+    <Compile Include="ambeth\merge\IEntityChecker.cs" />
+    <Compile Include="ambeth\merge\IEntityFactory.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeProcess.cs" />
+    <Compile Include="ambeth\merge\IRevertChangesSavepoint.cs" />
+    <Compile Include="ambeth\merge\IValueObjectConfigExtendable.java.cs" />
+    <Compile Include="ambeth\merge\IMergeController.cs" />
+    <Compile Include="ambeth\merge\IndependentEntityMetaDataClient.cs" />
+    <Compile Include="ambeth\merge\interceptor\MergeInterceptor.cs" />
+    <Compile Include="ambeth\merge\CUDResultHelper.cs" />
+    <Compile Include="ambeth\merge\IMergeExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeExtension.cs" />
+    <Compile Include="ambeth\merge\IProxyHelper.cs" />
+    <Compile Include="ambeth\merge\IRevertChangesHelper.cs" />
+    <Compile Include="ambeth\merge\IUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\merge\MergeController.cs" />
+    <Compile Include="ambeth\merge\MergeHandle.cs" />
+    <Compile Include="ambeth\merge\MergeProcess.cs" />
+    <Compile Include="ambeth\merge\ORIHelper.cs" />
+    <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
+    <Compile Include="ambeth\merge\ValueObjectConfig.cs" />
+    <Compile Include="ambeth\merge\ValueObjectMap.cs" />
+    <Compile Include="ambeth\model\IChangeContainer.cs" />
+    <Compile Include="ambeth\model\ICUDResult.cs" />
+    <Compile Include="ambeth\model\IDirectObjRef.cs" />
+    <Compile Include="ambeth\model\IOriCollection.cs" />
+    <Compile Include="ambeth\model\IPrimitiveUpdateItem.cs" />
+    <Compile Include="ambeth\model\IRelationUpdateItem.cs" />
+    <Compile Include="ambeth\model\IUpdateItem.cs" />
+    <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
+    <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
+    <Compile Include="ambeth\orm\EntityConfig.cs" />
+    <Compile Include="ambeth\orm\ExternalLinkConfig.cs" />
+    <Compile Include="ambeth\orm\ILinkConfig.cs" />
+    <Compile Include="ambeth\orm\IMemberConfig.cs" />
+    <Compile Include="ambeth\orm\IndependentLinkConfig.cs" />
+    <Compile Include="ambeth\orm\IOrmConfig.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReader.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReaderExtendable.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReaderRegistry.cs" />
+    <Compile Include="ambeth\orm\IRelationConfig.cs" />
+    <Compile Include="ambeth\orm\LinkConfig.cs" />
+    <Compile Include="ambeth\orm\MemberConfig.cs" />
+    <Compile Include="ambeth\orm\OrmXmlReader20.cs" />
+    <Compile Include="ambeth\orm\OrmXmlReaderLegathy.cs" />
+    <Compile Include="ambeth\orm\RelationConfig20.cs" />
+    <Compile Include="ambeth\orm\RelationConfigLegathy.cs" />
+    <Compile Include="ambeth\proxy\AbstractEntityFactory.cs" />
+    <Compile Include="ambeth\proxy\DefaultList.cs" />
+    <Compile Include="ambeth\proxy\DefaultObservableList.cs" />
+    <Compile Include="ambeth\proxy\DefaultSet.cs" />
+    <Compile Include="ambeth\proxy\EntityFactory.cs" />
+    <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
+    <Compile Include="ambeth\proxy\IEnhancedType.cs" />
+    <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\service\IMergeServiceExtendable.cs" />
+    <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
+    <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
+    <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />
+    <Compile Include="ambeth\service\IMergeService.cs" />
+    <Compile Include="ambeth\template\CompositeIdTemplate.cs" />
+    <Compile Include="ambeth\transfer\AbstractChangeContainer.cs" />
+    <Compile Include="ambeth\transfer\CreateContainer.cs" />
+    <Compile Include="ambeth\transfer\CUDResult.cs" />
+    <Compile Include="ambeth\transfer\DeleteContainer.cs" />
+    <Compile Include="ambeth\transfer\DirectObjRef.cs" />
+    <Compile Include="ambeth\model\EntityMetaData.cs" />
+    <Compile Include="ambeth\transfer\EntityMetaDataTransfer.cs" />
+    <Compile Include="ambeth\transfer\ObjRef.cs" />
+    <Compile Include="ambeth\transfer\OriCollection.cs" />
+    <Compile Include="ambeth\transfer\PrimitiveUpdateItem.cs" />
+    <Compile Include="ambeth\transfer\RelationUpdateItem.cs" />
+    <Compile Include="ambeth\transfer\UpdateContainer.cs" />
+    <Compile Include="ambeth\util\DirectValueHolderRef.cs" />
+    <Compile Include="ambeth\util\ICacheHelper.cs" />
+    <Compile Include="ambeth\util\IPrefetchConfig.cs" />
+    <Compile Include="ambeth\util\IPrefetchHandle.cs" />
+    <Compile Include="ambeth\util\IPrefetchHelper.cs" />
+    <Compile Include="ambeth\util\IPrefetchState.cs" />
+    <Compile Include="ambeth\util\OptimisticLockUtil.cs" />
+    <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
+    <Compile Include="ambeth\util\XmlConfigUtil.cs" />
+    <Compile Include="ioc\MergeBootstrapModule.cs" />
+    <Compile Include="ioc\ObjectCopierModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\converter\EntityMetaDataConverter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\ValueHolderRef.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\compositeid\CompositeIdTypeInfoItem.cs" />
+    <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.SL4.csproj">
+      <Project>{54A9EE0B-D950-4752-B017-030DF65E4D60}</Project>
+      <Name>Ambeth.DataChange.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL4.csproj">
+      <Project>{3E1851C7-3BAA-4757-8858-8BD7EA55F842}</Project>
+      <Name>Ambeth.Event.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL4.csproj">
+      <Project>{BDA824AF-09F2-4338-86AE-B05552CD542E}</Project>
+      <Name>Ambeth.IOC.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL4.csproj">
+      <Project>{470B5E14-25AD-448A-9C8B-50A594E84EF6}</Project>
+      <Name>Ambeth.Log.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL4.csproj">
+      <Project>{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}</Project>
+      <Name>Ambeth.Service.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL4.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL4</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

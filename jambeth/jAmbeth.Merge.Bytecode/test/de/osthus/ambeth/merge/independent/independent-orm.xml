@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityA">
+		<attributes>
+			<id name="Id" />
+			<version name="Version" />
+		</attributes>
+	</entity>
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityB">
+		<attributes>
+			<id name="Id" />
+			<version name="Version" />
+			<basic name="Name" alternate-id="true" />
+		</attributes>
+	</entity>
+
+</entity-mappings>

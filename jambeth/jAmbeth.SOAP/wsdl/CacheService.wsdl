@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions name="ICacheService"
+	targetNamespace="http://schemas.osthus.de/Ambeth" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+	xmlns:tns="http://schemas.osthus.de/Ambeth" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"
+	xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy"
+	xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract"
+	xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex"
+	xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata">
+	<wsp:Policy wsu:Id="ICacheService_ICacheService_policy">
+		<wsp:ExactlyOne>
+			<wsp:All>
+				<http:NtlmAuthentication
+					xmlns:http="http://schemas.microsoft.com/ws/06/2004/policy/http" />
+			</wsp:All>
+		</wsp:ExactlyOne>
+	</wsp:Policy>
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://schemas.osthus.de/Ambeth/Imports">
+			<xsd:import schemaLocation="CacheService.xsd"
+				namespace="http://schemas.osthus.de/Ambeth" />
+			<xsd:import schemaLocation="Serialization.xsd"
+				namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+			<xsd:import schemaLocation="SerializationArrays.xsd"
+				namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="ICacheService_GetEntities_InputMessage">
+		<wsdl:part name="parameters" element="tns:GetEntities" />
+	</wsdl:message>
+	<wsdl:message name="ICacheService_GetEntities_OutputMessage">
+		<wsdl:part name="parameters" element="tns:GetEntitiesResponse" />
+	</wsdl:message>
+	<wsdl:message name="ICacheService_GetRelations_InputMessage">
+		<wsdl:part name="parameters" element="tns:GetRelations" />
+	</wsdl:message>
+	<wsdl:message name="ICacheService_GetRelations_OutputMessage">
+		<wsdl:part name="parameters" element="tns:GetRelationsResponse" />
+	</wsdl:message>
+	<wsdl:message name="ICacheService_GetORIsForServiceRequest_InputMessage">
+		<wsdl:part name="parameters" element="tns:GetORIsForServiceRequest" />
+	</wsdl:message>
+	<wsdl:message name="ICacheService_GetORIsForServiceRequest_OutputMessage">
+		<wsdl:part name="parameters" element="tns:GetORIsForServiceRequestResponse" />
+	</wsdl:message>
+	<wsdl:portType name="ICacheService">
+		<wsdl:operation name="GetEntities">
+			<wsdl:input
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetEntities"
+				message="tns:ICacheService_GetEntities_InputMessage" />
+			<wsdl:output
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetEntitiesResponse"
+				message="tns:ICacheService_GetEntities_OutputMessage" />
+		</wsdl:operation>
+		<wsdl:operation name="GetRelations">
+			<wsdl:input
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetRelations"
+				message="tns:ICacheService_GetRelations_InputMessage" />
+			<wsdl:output
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetRelationsResponse"
+				message="tns:ICacheService_GetRelations_OutputMessage" />
+		</wsdl:operation>
+		<wsdl:operation name="GetORIsForServiceRequest">
+			<wsdl:input
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetORIsForServiceRequest"
+				message="tns:ICacheService_GetORIsForServiceRequest_InputMessage" />
+			<wsdl:output
+				wsaw:Action="http://schemas.osthus.de/Ambeth/ICacheService/GetORIsForServiceRequestResponse"
+				message="tns:ICacheService_GetORIsForServiceRequest_OutputMessage" />
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="ICacheService_ICacheService" type="tns:ICacheService">
+		<wsp:PolicyReference URI="#ICacheService_ICacheService_policy" />
+		<soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+		<wsdl:operation name="GetEntities">
+			<soap:operation
+				soapAction="http://schemas.osthus.de/Ambeth/ICacheService/GetEntities"
+				style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetRelations">
+			<soap:operation
+				soapAction="http://schemas.osthus.de/Ambeth/ICacheService/GetRelations"
+				style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+		<wsdl:operation name="GetORIsForServiceRequest">
+			<soap:operation
+				soapAction="http://schemas.osthus.de/Ambeth/ICacheService/GetORIsForServiceRequest"
+				style="document" />
+			<wsdl:input>
+				<soap:body use="literal" />
+			</wsdl:input>
+			<wsdl:output>
+				<soap:body use="literal" />
+			</wsdl:output>
+		</wsdl:operation>
+	</wsdl:binding>
+	<wsdl:service name="ICacheService">
+		<wsdl:port name="ICacheService_ICacheService" binding="tns:ICacheService_ICacheService">
+			<soap:address location="http://localhost:8000/CacheService" />
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

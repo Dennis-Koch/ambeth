@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+
+	<entity class="de.osthus.ambeth.persistence.schema.models.ParentA">
+        <table name="${database.schema.name.0}.PARENT" />
+	</entity>
+
+	<entity class="de.osthus.ambeth.persistence.schema.models.ChildA">
+        <table name="${database.schema.name.0}.CHILD" />
+	</entity>
+
+	<entity class="de.osthus.ambeth.persistence.schema.models.ParentB">
+        <table name="${database.schema.name.1}.PARENT" />
+	</entity>
+
+	<entity class="de.osthus.ambeth.persistence.schema.models.ChildB">
+        <table name="${database.schema.name.1}.CHILD" />
+	</entity>
+
+</entity-mappings>

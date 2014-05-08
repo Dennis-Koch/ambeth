@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<!-- cascade-delete="none | left | right | both", default "none" -->
+		<link source="LINK_EMPLOYEE_PRIM_ADDR_FK1" cascade-delete="right" alias="Employee-Address" />
+		<link source="LINK_ADDRESS_EMPLOYEE_FK1" cascade-delete="left" />
+		<link source="LINK_EMPLOYEE_BOAT_FK1" cascade-delete="right" />
+		<link source="LINK_EMPLOYEE_PROJECT" alias="Employee-Project" />
+		<external-link source="EMPLOYEE" source-column="GOOD_ID" target-member="Id" alias="Employee-Good" />
+	</link-mappings>
+
+	<entity-mappings>
+
+		<entity class="de.osthus.ambeth.orm20.Employee">
+			<sequence-generator name="EMPLOYEE_SEQU" />
+			<attributes>
+				<basic name="Car.Make" column="CAR_MAKE" />
+				<basic name="Car.Model" column="CAR_MODEL" />
+				<relation name="Supervisor" link="LINK_EMPLOYEE_EMPLOYEE_FK1" this="left" />
+				<relation name="PrimaryAddress" link="Employee-Address" />
+				<relation name="PrimaryProject" link="LINK_EMPLOYEE_PROJECT_FK1" />
+				<relation name="OtherAddresses" link="LINK_ADDRESS_EMPLOYEE_FK1" />
+				<relation name="Boat" link="LINK_EMPLOYEE_BOAT_FK1" />
+				<relation name="AllProjects" link="Employee-Project" />
+			</attributes>
+		</entity>
+
+		<entity class="de.osthus.ambeth.orm20.Address">
+			<attributes>
+				<relation name="Resident" link="LINK_ADDRESS_EMPLOYEE_FK1" />
+			</attributes>
+		</entity>
+
+		<entity class="de.osthus.ambeth.orm20.Project">
+			<attributes>
+				<relation name="Employees" link="LINK_EMPLOYEE_PROJECT_FK1" />
+			</attributes>
+		</entity>
+
+		<entity class="de.osthus.ambeth.orm20.Boat" />
+
+	</entity-mappings>
+
+</or-mappings>

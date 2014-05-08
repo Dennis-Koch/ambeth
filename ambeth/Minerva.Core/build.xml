@@ -1,0 +1,284 @@
+<project name="ambeth" default="jenkins">
+
+	<property environment="env" />
+
+	<property name="major.version" value="2.0" />
+	
+	<property name="env.BUILD_NUMBER" value="1" />
+	
+	<property name="version" value="${major.version}.${env.BUILD_NUMBER}" />
+	
+	<property name="env.JOB_NAME" value="Job" />
+		
+	<property name="workspace.base.dir" value=".." />
+
+	<property name="target.base.dir" value="${workspace.base.dir}" />
+
+	<property name="workspace.build.dir" value="${target.base.dir}/build" />
+
+	<property name="source.ambeth.dir" value="${target.base.dir}/Ambeth" />
+	
+	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
+	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />
+	<property name="build.dev.xml.dir" value="${workspace.build.dir}/dev_xml" />
+	<property name="build.prod.dir" value="${workspace.build.dir}/prod" />
+	<property name="build.test.dir" value="${workspace.build.dir}/test" />
+	<property name="build.junit.dir" value="${workspace.build.dir}/junit" />
+	<property name="source.junit.dir" value="${target.base.dir}/src/jUnit" />
+	<property name="source.dev.dir" value="${target.base.dir}/src/all" />
+	
+	<property name="build.dev.dirs" value="${build.dev.dir},${build.dev.job.dir},${build.dev.xml.dir}" />
+
+	<property name="target.dlls.NET4.dir" value="${target.base.dir}/dllsNET4" />
+	<property name="target.dlls.SL4.dir" value="${target.base.dir}/dllsSL4" />
+	<property name="target.dlls.SL5.dir" value="${target.base.dir}/dllsSL5" />
+	<property name="target.javadoc.dir" value="${target.base.dir}/javadoc" />
+	<property name="target.libs.NET4.dir" value="${target.base.dir}/libsNET4" />
+	<property name="target.libs.SL4.dir" value="${target.base.dir}/libsSL4" />
+	<property name="target.libs.SL5.dir" value="${target.base.dir}/libsSL5" />
+
+	<property name="target.artifacts" value="${target.base.dir}/artifacts" />
+	
+	<property name="svn.repo.url" value="https://svn02.osthus.de/osthus-intern/pavonis" />
+	
+	<property name="svn.branch.ambeth" value="branches/ambeth_1_0" />
+	
+	<property name="svn.branch.minerva" value="branches/minerva_1_0" />
+
+	<property name="ambeth-NET4.zip.name" value="ambeth-NET4-${version}.zip" />
+	<property name="ambeth-NET4-libs.zip.name" value="ambeth-NET4-libs-${version}.zip" />
+	<property name="ambeth-SL4.zip.name" value="ambeth-SL4-${version}.zip" />
+	<property name="ambeth-SL5.zip.name" value="ambeth-SL5-${version}.zip" />
+	<property name="ambeth-SL4-libs.zip.name" value="ambeth-SL4-libs-${version}.zip" />
+	<property name="ambeth-SL5-libs.zip.name" value="ambeth-SL5-libs-${version}.zip" />
+	
+	<property name="ambeth-NET4.zip" value="${target.artifacts}/${ambeth-NET4.zip.name}" />
+	<property name="ambeth-NET4-libs.zip" value="${target.artifacts}/${ambeth-NET4-libs.zip.name}" />
+	<property name="ambeth-SL4.zip" value="${target.artifacts}/${ambeth-SL4.zip.name}" />
+	<property name="ambeth-SL4-libs.zip" value="${target.artifacts}/${ambeth-SL4-libs.zip.name}" />
+	<property name="ambeth-SL5.zip" value="${target.artifacts}/${ambeth-SL5.zip.name}" />
+	<property name="ambeth-SL5-libs.zip" value="${target.artifacts}/${ambeth-SL5-libs.zip.name}" />	
+	
+	<property name="ambeth.properties.file.name" value="Ambeth.properties" />
+	
+	<property name="ambeth.properties.file" value="${target.artifacts}/${ambeth.properties.file.name}" />
+	
+	<property name="junit.report.dir" value="${target.base.dir}/junit" />
+
+	<property name="src.jar.filename" value="jAmbeth-src-${version}.jar" />
+	<property name="dev.jar.filename" value="jAmbeth-dev-${version}.jar" />
+	<property name="dev.job.jar.filename" value="jAmbeth-job-cron4j-dev-${version}.jar" />
+	<property name="dev.xml.jar.filename" value="jAmbeth-xml-dev-${version}.jar" />
+	<property name="prod.jar.filename" value="jAmbeth-${version}.jar" />
+	<property name="junit.jar.filename" value="jAmbeth-jUnit-${version}.jar" />
+
+	<property name="src.jar.file" value="${target.jars.dir}/${src.jar.filename}" />
+
+	<property name="dev.jar.file" value="${target.jars.dir}/${dev.jar.filename}" />
+	<property name="dev.job.jar.file" value="${target.jars.dir}/${dev.job.jar.filename}" />
+	<property name="dev.xml.jar.file" value="${target.jars.dir}/${dev.xml.jar.filename}" />
+
+	<property name="prod.jar.file" value="${target.jars.dir}/${prod.jar.filename}" />
+
+	<property name="junit.jar.file" value="${target.jars.dir}/${junit.jar.filename}" />
+
+	<property name="target.dir" value="${target.base.dir}/target" />
+	<property name="target" location="${build.dev.dir}" />
+	<property name="test.target" location="${target.dir}/test-classes" />
+	<property name="instr.target" location="${target.dir}/instr-classes" />
+
+	<property name="source.all.dir" value="${target.base.dir}/Ambeth_All" />
+
+	<property name="includes.sl4.path" value="*/Bin/Debug_SL4" />
+	<property name="includes.sl5.path" value="*/Bin/Debug_SL5" />
+	
+	<property name="includes.net4.path" value="*/Bin/Debug_NET4" />
+	
+	<property name="includes.winforms.path" value="*/Bin/Debug_WinForms" />
+	
+	<property name="ambeth.sln.file" value="Ambeth.Test\\Ambeth.Test.sln" />
+	
+	<property name="ambeth.sl5.includes" value="${includes.sl5.path}/Ambeth*.SL5.dll,${includes.sl5.path}/Ambeth*.SL5.pdb,${includes.sl5.path}/Minerva*.SL5.dll,${includes.sl5.path}/Minerva*.SL5.pdb" />
+	<property name="ambeth.sl4.includes" value="${includes.sl4.path}/Ambeth*.SL4.dll,${includes.sl4.path}/Ambeth*.SL4.pdb,${includes.sl4.path}/Minerva*.SL4.dll,${includes.sl4.path}/Minerva*.SL4.pdb" />
+
+	<property name="ambeth.net4.includes" value="${includes.net4.path}/Ambeth*.dll,${includes.net4.path}/Ambeth*.pdb,${includes.net4.path}/Minerva*.dll,${includes.net4.path}/Minerva*.pdb,${includes.winforms.path}/Minerva*.dll,${includes.winforms.path}/Minerva*.pdb" />
+
+	<target name="clean-dev">
+		<delete dir="${build.dev.dir}" />
+		<delete dir="${build.dev.job.dir}" />
+		<delete dir="${build.dev.xml.dir}" />
+		
+		<delete dir="${target.artifacts}" />
+		<mkdir dir="${target.artifacts}" />
+	</target>
+
+	<target name="init-dev" depends="clean-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<mkdir dir="${build.dev.dir}" />
+		<mkdir dir="${build.dev.job.dir}" />
+		<mkdir dir="${build.dev.xml.dir}" />
+	</target>
+
+	<target name="-set-revision">
+		<property name="assemblyVersion" value="[assembly: AssemblyVersion(&quot;${version}&quot;)]" />
+		<property name="assemblyFileVersion" value="[assembly: AssemblyFileVersion(&quot;${version}&quot;)]" />
+		<replace dir="${src}" value="${assemblyVersion}">
+			<include name="**/Properties/AssemblyInfo.cs" />
+			<replacetoken>[assembly: AssemblyVersion("1.0.0.0")]</replacetoken>
+			<replacevalue>
+			</replacevalue>
+		</replace>
+		<replace dir="${src}" value="${assemblyFileVersion}">
+			<include name="**/Properties/AssemblyInfo.cs" />
+			<replacetoken>[assembly: AssemblyFileVersion("1.0.0.0")]</replacetoken>
+		</replace>
+	</target>
+
+	<target name="-store-revision">
+		<exec executable="svnversion" dir="${source.ambeth.dir}/." outputproperty="ambeth.revision" />
+		<echo>Ambeth revision: ${ambeth.revision}</echo>
+	</target>
+	
+	<target name="tag-dev" depends="-store-revision">
+		<exec executable="svn" outputproperty="svn.result">
+			<arg value="copy"/>
+			<arg value="${svn.repo.url}/${svn.branch.ambeth}@${ambeth.revision}"/>
+			<arg value="${svn.repo.url}/tags/ambeth/CI_BUILD_${env.BUILD_NUMBER}"/>
+			<arg value="--non-interactive"/>
+			<arg value="--trust-server-cert"/>
+			<arg value="-m"/>
+			<arg value="Tagging last-successful Ambeth rev: ${ambeth.revision}, Minerva rev: ${minerva.revision} in Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}"/>
+		</exec>
+		<echo>SVN Result ${svn.result}</echo>
+		<exec executable="svn" outputproperty="svn.result2">
+			<arg value="copy"/>
+			<arg value="${svn.repo.url}/${svn.branch.minerva}@${minerva.revision}"/>
+			<arg value="${svn.repo.url}/tags/ambeth/CI_BUILD_${env.BUILD_NUMBER}"/>
+			<arg value="--non-interactive"/>
+			<arg value="--trust-server-cert"/>
+			<arg value="-m"/>
+			<arg value="Tagging last-successful Ambeth rev: ${ambeth.revision}, Minerva rev: ${minerva.revision} in Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}"/>
+		</exec>
+		<echo>SVN Result ${svn.result2}</echo>
+	</target>
+	
+	<target name="compile-dev" depends="init-dev">
+		<delete dir="${source.all.dir}" />
+		<mkdir dir="${source.all.dir}"/>
+
+		<copy todir="${source.all.dir}" overwrite="true" preservelastmodified="true">
+			<fileset dir="${source.ambeth.dir}" includes="**/*" />
+		</copy>
+
+		<antcall target="-set-revision">
+			<param name="src" value="${source.all.dir}"/>
+		</antcall>
+
+		<delete dir="${target.dlls.SL4.dir}" />
+		<mkdir dir="${target.dlls.SL4.dir}" />
+
+		<delete dir="${target.libs.SL4.dir}" />
+		<mkdir dir="${target.libs.SL4.dir}" />
+
+		<delete dir="${target.dlls.SL5.dir}" />
+		<mkdir dir="${target.dlls.SL5.dir}" />
+
+		<delete dir="${target.libs.SL5.dir}" />
+		<mkdir dir="${target.libs.SL5.dir}" />		
+		
+		<delete dir="${target.dlls.NET4.dir}" />
+		<mkdir dir="${target.dlls.NET4.dir}" />
+
+		<delete dir="${target.libs.NET4.dir}" />
+		<mkdir dir="${target.libs.NET4.dir}" />
+
+		<delete dir="${source.all.dir}" includes="${includes.path}"/>
+		<exec executable="${env.MSBUILD_EXE}" failonerror="true" failifexecutionfails="true" logerror="true">
+			<arg value="${source.all.dir}\\${ambeth.sln.file}"/>
+			<arg value="/p:ContinueOnError=false" />
+			<arg value="/p:StopOnFirstFailure=false" />
+		</exec>
+		
+		<copy todir="${target.dlls.SL4.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${ambeth.sl4.includes}" />
+		</copy>
+
+		<copy todir="${target.libs.SL4.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${includes.sl4.path}/*.dll,${includes.sl4.path}/*.pdb" excludes="${ambeth.sl4.includes}"/>
+		</copy>		
+		
+		<copy todir="${target.dlls.SL5.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${ambeth.sl5.includes}" />
+		</copy>
+
+		<copy todir="${target.libs.SL5.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${includes.sl5.path}/*.dll,${includes.sl5.path}/*.pdb" excludes="${ambeth.sl5.includes}"/>
+		</copy>
+
+		<copy todir="${target.dlls.NET4.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${ambeth.net4.includes}" excludes="**/*.SL.dll,**/*.SL.pdb" />
+		</copy>
+
+		<copy todir="${target.libs.NET4.dir}" overwrite="true" preservelastmodified="true" flatten="true">
+			<fileset dir="${source.all.dir}" includes="${includes.net4.path}/*.dll,${includes.net4.path}/*.pdb" excludes="${ambeth.net4.includes},**/*.SL.dll,**/*.SL.pdb" />
+		</copy>
+</target>
+
+	<target name="-deleteTargetDir">
+		<delete dir="${target.jars.dir}"/>
+	</target>
+
+	<target name="-zip-integrity">
+	        <property name="integrity.zip" value="${target.artifacts}/Ambeth-integrity.zip" />
+	        <delete file="${integrity.zip}" />
+                <zip destfile="${integrity.zip}">
+       	             <fileset dir="${workspace.base.dir}" excludes="**/.svn" />
+                </zip>
+	</target>
+
+	<target name="-zip-dlls">
+		<delete file="${ambeth-NET4.zip}" />
+		<zip destfile="${ambeth-NET4.zip}" basedir="${target.dlls.NET4.dir}" includes="**/*" />
+		<zip destfile="${ambeth-NET4.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />
+
+		<delete file="${ambeth-NET4-libs.zip}" />
+		<zip destfile="${ambeth-NET4-libs.zip}" basedir="${target.libs.NET4.dir}" includes="**/*" />
+		<zip destfile="${ambeth-NET4-libs.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />
+
+		<delete file="${ambeth-SL4.zip}" />
+		<zip destfile="${ambeth-SL4.zip}" basedir="${target.dlls.SL4.dir}" includes="**/*" />
+		<zip destfile="${ambeth-SL4.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />
+
+		<delete file="${ambeth-SL4-libs.zip}" />
+		<zip destfile="${ambeth-SL4-libs.zip}" basedir="${target.libs.SL4.dir}" includes="**/*" />
+		<zip destfile="${ambeth-SL4-libs.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />
+		
+		<delete file="${ambeth-SL5.zip}" />
+		<zip destfile="${ambeth-SL5.zip}" basedir="${target.dlls.SL5.dir}" includes="**/*" />
+		<zip destfile="${ambeth-SL5.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />
+
+		<delete file="${ambeth-SL5-libs.zip}" />
+		<zip destfile="${ambeth-SL5-libs.zip}" basedir="${target.libs.SL5.dir}" includes="**/*" />
+		<zip destfile="${ambeth-SL5-libs.zip}" basedir="${target.artifacts}" file="${ambeth.properties.file.name}" />		
+	</target>
+
+	<target name="-create-download-propfile" depends="-store-revision">
+		<delete file="${ambeth.properties.file}" />
+		<propertyfile file="${ambeth.properties.file}">
+			<entry key="ambeth.net.zip" value="${ambeth-NET4.zip.name}"/>
+			<entry key="ambeth.net.libs.zip" value="${ambeth-NET4-libs.zip.name}"/>
+			<entry key="ambeth.sl.zip" value="${ambeth-SL5.zip.name}"/>
+			<entry key="ambeth.sl.libs.zip" value="${ambeth-SL5-libs.zip.name}"/>
+			<entry key="ambeth.sl4.zip" value="${ambeth-SL4.zip.name}"/>
+			<entry key="ambeth.sl4.libs.zip" value="${ambeth-SL4-libs.zip.name}"/>			
+			<entry key="ambeth.net.test.zip" value=""/>
+			<entry key="ambeth.build" value="${env.BUILD_NUMBER}"/>
+			<entry key="ambeth.version" value="${version}"/>
+			<entry key="ambeth.revision" value="${ambeth.revision}"/>
+		</propertyfile>
+	</target>
+
+	<target name="jenkins" depends="clean-dev,tag-dev,-deleteTargetDir,compile-dev,-create-download-propfile,-zip-dlls,-zip-integrity">
+	</target>
+
+</project>

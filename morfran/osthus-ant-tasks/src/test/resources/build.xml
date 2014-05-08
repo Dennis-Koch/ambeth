@@ -1,0 +1,192 @@
+<project name="osthus-ant-task-tests" default="test-rebuild-necessary-task">
+	<property name="my.basedir" value="../../../" />
+	
+	<property name="src.main.java.dir" value="${my.basedir}/src/main/java" />
+	<property name="src.main.res.dir" value="${my.basedir}/src/main/resources" />
+	
+	<property name="classes.dir" value="${my.basedir}/target/classes" />
+
+	<path id="tasklib">
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\com\thoughtworks\xstream\xstream\1.4.5\xstream-1.4.5.jar" />
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\xmlpull\xmlpull\1.1.3.1\xmlpull-1.1.3.1.jar" />
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\xpp3\xpp3_min\1.1.4c\xpp3_min-1.1.4c.jar" />
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\commons-io\commons-io\2.4\commons-io-2.4.jar" />
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\org\apache\commons\commons-lang3\3.1\commons-lang3-3.1.jar" />
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\com\google\guava\guava\15.0\guava-15.0.jar" />
+	</path>
+
+	<!--<taskdef resource="tasks.properties" classpath="${basedir}/target/osthus-ant-tasks-0.0.1-SNAPSHOT.jar" classpathref="tasklib" />-->
+	<taskdef resource="tasks.properties" classpath="${classes.dir}" classpathref="tasklib" />
+	<typedef resource="types.properties" classpath="${classes.dir}" classpathref="tasklib" />
+
+	<property name="src.test.resources" value="${my.basedir}/src/test/resources" />
+
+	<import file="build-hooks.xml" />
+	
+	
+	<target name="test-delete-task" description="test delete task">
+		<del file="C:\dev\agrilog\prd\src\SRV\ProductDocumentDServiceClient\target - Kopie" verbose="true" />
+	</target>
+	
+	
+	<target name="test-target-exists-task" description="test-target-exists-task">
+		<target-exists target="test-delete-task" property="target.exists" />
+		<target-exists target="test-delete-task" property="target.exists">
+			<echo>yes!</echo> 
+		</target-exists>
+		<echo>target.exists: ${target.exists}</echo>		
+	</target>	
+
+
+	<target name="test">
+		<echo>${src.main.java.dir}</echo>
+		<read-dotclasspath classpathFile="${basedir}/src/test/resources/sample-1.classpath" pathid="libs" projectDir="${basedir}" />
+	</target>
+
+	<path id="library.test.foo">
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\com\thoughtworks\xstream\xstream\1.4.5\xstream-1.4.5.jar" />
+	</path>
+
+	<path id="library.test.bar">
+		<pathelement location="C:\Users\daniel.mueller\.m2\repository\org\apache\commons\commons-lang3\3.1\commons-lang3-3.1.jar" />
+	</path>
+
+	<target name="test-rebuild-necessary-task">
+		<create-classpath projectdir="${basedir}" verbose="true" />
+		<echo>start test</echo>
+		
+		<echo>${basedir}</echo>
+		
+		<sources-changed buildFile="C:\dev\osthus\osthus-ant-tasks\target\osthus-ant-tasks-0.0.2.jar" property="src.changed">
+			<fileset dir="${src.main.java.dir}" />
+			<fileset dir="${src.main.res.dir}" />
+		</sources-changed>
+		
+		<echo>${is-uptodate}</echo>
+
+		<!--
+		<record-dependencies dependencyFingerprintsFile="${basedir}/target/dependencies.crc.properties">
+			<path>
+				<path refid="library.test.foo" />
+				<path refid="test.classpath" />
+				<path refid="main.classpath" />
+				<path location="C:\Users\daniel.mueller\.m2\repository\org\apache\ant\ant\1.9.2\ant-1.9.2.jar" />
+			</path>
+			<path refid="library.test.bar" />
+		</record-dependencies>
+		-->
+
+		<dependencies-changed property="changed.dependencies" dependencyFingerprintsFile="${basedir}/target/dependencies.crc.properties">
+			<path>
+				<path refid="library.test.foo" />
+				<path refid="test.classpath" />
+				<path refid="main.classpath" />
+				<path location="C:\Users\daniel.mueller\.m2\repository\org\apache\ant\ant\1.9.2\ant-1.9.2.jar" />
+			</path>
+			<path refid="library.test.bar" />
+		</dependencies-changed>
+		
+		
+		
+		<antcall target="fake-build" />
+		<antcall target="fake-build-not" />		
+	</target>
+	
+	
+	<scriptdef name="propertyreset" language="javascript"
+	    description="Allows to assign @{property} new value">
+	    <attribute name="name"/>
+	    <attribute name="value"/>
+	        project.setProperty(attributes.get("name"), attributes.get("value"));
+	</scriptdef>	
+	
+	<resourcelink id="link.shared" local="Allotrope.Lib/lib" target="D:\temp\allotrope\lib" />
+
+	<target name="test-create-classpath-task">
+		<!--<property name="basedir" value="C:\dev\allotrope\" />-->
+		<propertyreset name="basedir" value="C:\dev\allotrope\animl\Allotrope.AnIML.Core.Impl"/>
+		
+		<property file="C:\dev\allotrope\framework\Allotrope.Lib\ant\build.properties" />
+		
+		<echo>${classes.dir}</echo>
+		
+		<create-classpath projectDir="C:\dev\allotrope\animl\Allotrope.AnIML.Core.Impl" verbose="true" useDefaultMainPath="true" useDefaultTestPath="true" classesDir="${classes.dir}">			
+			<!-- --> 
+			<matchedpath name="emma.classpath">
+				<pattern include=".*-emma.jar" />
+				<pattern exclude=".*" />
+				<path location="${classes.dir}"/>
+			</matchedpath>			
+		</create-classpath>
+	</target>
+	
+	<target name="test-hooks-before-start">
+		<execute-hook target="before-start" />
+		<execute-hook target="before-start" />
+	</target>
+	
+	<target name="test-hooks-before-compile">
+		<execute-hook target="before-compile" />
+	</target>
+	
+	<target name="test-hooks-before-jar">
+		<execute-hook target="before-jar" />
+	</target>
+	
+	<target name="test-hooks-before-test">
+		<execute-hook target="before-test" />
+	</target>	
+	
+	
+	<target name="test-hooks" depends="test-hooks-before-start,test-hooks-before-compile,test-hooks-before-jar,test-hooks-before-test">		
+		<execute-hook target="before-end" />
+	</target>
+	
+	
+	
+	
+	<url-classpath id="url.classpath" username="foo" password="bar" url="http://ci.member.osthus.de:8080/view/All Ambeth/job/jAmbeth 2.0 Head/lastSuccessfulBuild/artifact/jars/jAmbeth.properties" />
+	
+	<target name="test-url-classpath">
+		<java classname="de.osthus.ambeth.testutil.RandomUserScript" fork="true" failonerror="true" maxmemory="128m">
+			<arg value="script.create=true" />
+			<arg value="script.user.pass=citemp" />
+			<arg value="script.user.propertyfile=${citemp.properties}" />
+			<arg value="property.file=${property.file}" />
+			<classpath>				
+				<path refid="url.classpath" />
+			</classpath>
+		</java>	
+	</target>
+	
+
+	
+	
+	
+	
+	
+    <target name="scan-workspace-test">
+		<scan-workspace workspace="C:\dev\agrilog" property="workspace.projects" basedir="C:\dev\agrilog" verbose="on" />
+    	<echo>${workspace.projects}</echo>
+    	<echo>${CoreData.location}</echo>    	
+    </target>
+	
+	<target name="test-build-order-task">
+		<scan-workspace workspace="C:\dev\agrilog" property="workspace.projects" basedir="" verbose="off" />
+		<compute-build-order projects="${workspace.projects}" propertyFile="c:/agrilog.properties" />
+    </target>
+
+	
+	<target name="fake-build" if="changed.dependencies">
+		<echo>Build necessary: ${changed.dependencies}</echo>
+	</target>
+	
+	<target name="fake-build-not" unless="changed.dependencies">
+		<echo>Build NOT necessary!</echo>
+	</target>	
+
+	
+	<target name="test-sources-changed-task">
+		<sources-changed property="src.main.changed" sourceDirs="C:\dev\allotrope\animl\Allotrope.AnIML.Chromatography.API\src\main\java;C:\dev\allotrope\animl\Allotrope.AnIML.Chromatography.API\src\main\resources" classDirs="C:\dev\allotrope\animl\Allotrope.AnIML.Chromatography.API\target\classes" />
+	</target>
+</project>

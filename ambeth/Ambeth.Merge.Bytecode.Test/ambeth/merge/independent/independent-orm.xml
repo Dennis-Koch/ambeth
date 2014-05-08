@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityA">
+		<attributes>
+			<id name="Id" />
+			<basic name="Embedded.Name">
+				<column name="EMB_NAME" />
+			</basic>
+			<basic name="Embedded.Value">
+				<column name="EMB_VALUE" />
+			</basic>
+			<to-many name="Bs" target-entity="de.osthus.ambeth.merge.independent.EntityB" />
+			<version name="version" />
+		</attributes>
+	</entity>
+
+</entity-mappings>

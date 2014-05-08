@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<entity-mappings>
+		<external-entity class="de.osthus.ambeth.persistence.external.compositeid.CompositeIdEntity">
+			<attributes>
+				<id-composite>
+					<id-fragment name="Id1" />
+					<id-fragment name="Id2" />
+				</id-composite>
+				<alternate-id-composite>
+					<id-fragment name="Aid2" />
+					<id-fragment name="Aid1" />
+				</alternate-id-composite>
+				<no-version />
+			</attributes>
+		</external-entity>
+		
+		<external-entity class="de.osthus.ambeth.persistence.external.compositeid.CompositeIdEntity2">
+			<attributes>
+				<id-composite>
+					<id-fragment name="Id1" />
+					<id-fragment name="Id2.Sid" />
+				</id-composite>
+				<alternate-id-composite>
+					<id-fragment name="Aid2.Sid" />
+					<id-fragment name="Aid1" />
+				</alternate-id-composite>
+				<no-version />
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

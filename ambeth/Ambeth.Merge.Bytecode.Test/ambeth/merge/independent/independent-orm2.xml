@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings>
+
+	<entity class="de.osthus.ambeth.merge.independent.EntityB">
+		<attributes>
+			<id name="id" />
+			<basic name="name" alternate-id="true" />
+      <to-one name="A" target-entity="de.osthus.ambeth.merge.independent.EntityA" />
+      <version name="version" />
+		</attributes>
+	</entity>
+
+</entity-mappings>

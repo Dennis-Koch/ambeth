@@ -1,0 +1,247 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Merge</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\ITargetNameEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\EmbeddedEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\EntityEnhancementHint.cs" />
+    <Compile Include="ambeth\bytecode\IBytecodeEnhancer.cs" />
+    <Compile Include="ambeth\bytecode\IBytecodePrinter.cs" />
+    <Compile Include="ambeth\bytecode\IEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\AbstractCacheValue.cs" />
+    <Compile Include="ambeth\cache\CacheDirective.cs" />
+    <Compile Include="ambeth\cache\CacheModification.cs" />
+    <Compile Include="ambeth\cache\ICacheModification.cs" />
+    <Compile Include="ambeth\cache\ICacheProvider.cs" />
+    <Compile Include="ambeth\cache\IDisposableCache.cs" />
+    <Compile Include="ambeth\cache\ICacheFactory.cs" />
+    <Compile Include="ambeth\cache\ICache.cs" />
+    <Compile Include="ambeth\cache\IWritableCache.cs" />
+    <Compile Include="ambeth\cache\ValueHolderState.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdTypeInfoItem.cs" />
+    <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataAddedEvent.cs" />
+    <Compile Include="ambeth\merge\config\EntityMetaDataReader.cs" />
+    <Compile Include="ambeth\merge\config\ValueObjectConfigReader.cs" />
+    <Compile Include="ambeth\merge\ICUDResultExtendable.cs" />
+    <Compile Include="ambeth\merge\ICUDResultExtension.cs" />
+    <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataEvent.cs" />
+    <Compile Include="ambeth\merge\IMergeProcess.cs" />
+    <Compile Include="ambeth\merge\IndependentEntityMetaDataClient.cs" />
+    <Compile Include="ambeth\merge\IObjRefProvider.cs" />
+    <Compile Include="ambeth\merge\IRevertChangesSavepoint.cs" />
+    <Compile Include="ambeth\merge\IValueObjectConfigExtendable.java.cs" />
+    <Compile Include="ambeth\merge\MergeFinishedCallback.cs" />
+    <Compile Include="ambeth\merge\MergeProcess.cs" />
+    <Compile Include="ambeth\merge\MergeServiceRegistry.cs" />
+    <Compile Include="ambeth\merge\RevertChangesFinishedCallback.cs" />
+    <Compile Include="ambeth\merge\ValueObjectConfig.cs" />
+    <Compile Include="ambeth\merge\config\MergeConfigurationConstants.cs" />
+    <Compile Include="ambeth\merge\converter\EntityMetaDataConverter.cs" />
+    <Compile Include="ambeth\merge\IEntityFactory.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataExtendable.cs" />
+    <Compile Include="ambeth\merge\ICUDResultHelper.cs" />
+    <Compile Include="ambeth\merge\IObjRefHelper.cs" />
+    <Compile Include="ambeth\merge\IProxyHelper.cs" />
+    <Compile Include="ambeth\merge\EntityInitializedState.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataCache.cs" />
+    <Compile Include="ambeth\merge\IEntityChecker.cs" />
+    <Compile Include="ambeth\merge\IMergeController.cs" />
+    <Compile Include="ambeth\merge\IRevertChangesHelper.cs" />
+    <Compile Include="ambeth\merge\IUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\merge\CUDResultHelper.cs" />
+    <Compile Include="ambeth\merge\EntityCallback.cs" />
+    <Compile Include="ambeth\merge\IMergeExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeExtension.cs" />
+    <Compile Include="ambeth\merge\interceptor\MergeInterceptor.cs" />
+    <Compile Include="ambeth\merge\MergeController.cs" />
+    <Compile Include="ambeth\merge\MergeHandle.cs" />
+    <Compile Include="ambeth\merge\ORIHelper.cs" />
+    <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
+    <Compile Include="ambeth\model\EntityMetaData.cs" />
+    <Compile Include="ambeth\model\IDirectObjRef.cs" />
+    <Compile Include="ambeth\model\IPrimitiveUpdateItem.cs" />
+    <Compile Include="ambeth\model\IRelationUpdateItem.cs" />
+    <Compile Include="ambeth\orm\EntityConfig.cs" />
+    <Compile Include="ambeth\orm\ExternalLinkConfig.cs" />
+    <Compile Include="ambeth\orm\ILinkConfig.cs" />
+    <Compile Include="ambeth\orm\IndependentLinkConfig.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReader.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReaderExtendable.cs" />
+    <Compile Include="ambeth\orm\IOrmXmlReaderRegistry.cs" />
+    <Compile Include="ambeth\orm\IRelationConfig.cs" />
+    <Compile Include="ambeth\orm\LinkConfig.cs" />
+    <Compile Include="ambeth\orm\MemberConfig.cs" />
+    <Compile Include="ambeth\orm\OrmXmlReader20.cs" />
+    <Compile Include="ambeth\orm\OrmXmlReaderLegathy.cs" />
+    <Compile Include="ambeth\orm\RelationConfig20.cs" />
+    <Compile Include="ambeth\orm\RelationConfigLegathy.cs" />
+    <Compile Include="ambeth\proxy\DefaultList.cs" />
+    <Compile Include="ambeth\proxy\DefaultObservableList.cs" />
+    <Compile Include="ambeth\proxy\DefaultSet.cs" />
+    <Compile Include="ambeth\proxy\EntityFactory.cs" />
+    <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
+    <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\service\IMergeService.cs" />
+    <Compile Include="ambeth\service\IMergeServiceExtendable.cs" />
+    <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
+    <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
+    <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />
+    <Compile Include="ambeth\template\CompositeIdTemplate.cs" />
+    <Compile Include="ambeth\transfer\AbstractChangeContainer.cs" />
+    <Compile Include="ambeth\transfer\DirectObjRef.cs" />
+    <Compile Include="ambeth\transfer\CreateContainer.cs" />
+    <Compile Include="ambeth\transfer\CUDResult.cs" />
+    <Compile Include="ambeth\transfer\DeleteContainer.cs" />
+    <Compile Include="ambeth\model\IChangeContainer.cs" />
+    <Compile Include="ambeth\model\ICUDResult.cs" />
+    <Compile Include="ambeth\model\IOriCollection.cs" />
+    <Compile Include="ambeth\model\IUpdateItem.cs" />
+    <Compile Include="ambeth\transfer\EntityMetaDataTransfer.cs" />
+    <Compile Include="ambeth\transfer\ObjRef.cs" />
+    <Compile Include="ambeth\transfer\OriCollection.cs" />
+    <Compile Include="ambeth\transfer\PrimitiveUpdateItem.cs" />
+    <Compile Include="ambeth\transfer\RelationUpdateItem.cs" />
+    <Compile Include="ambeth\transfer\UpdateContainer.cs" />
+    <Compile Include="ambeth\util\DirectValueHolderRef.cs" />
+    <Compile Include="ambeth\util\ICacheHelper.cs" />
+    <Compile Include="ambeth\util\IPrefetchConfig.cs" />
+    <Compile Include="ambeth\util\IPrefetchHandle.cs" />
+    <Compile Include="ambeth\util\IPrefetchHelper.cs" />
+    <Compile Include="ambeth\util\IPrefetchState.cs" />
+    <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
+    <Compile Include="ambeth\util\ValueHolderRef.cs" />
+    <Compile Include="ambeth\util\XmlConfigUtil.cs" />
+    <Compile Include="ambeth\util\XmlValidator.cs" />
+    <Compile Include="ioc\MergeBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
+      <Project>{FD72AC81-65E4-46CE-AD09-EFDABC84F384}</Project>
+      <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\ITransactionState.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\CacheFactoryDirective.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\copy\IObjectCopier.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierExtendable.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierExtension.cs" />
+    <Compile Include="ambeth\copy\IObjectCopierState.cs" />
+    <Compile Include="ambeth\copy\ObjectCopier.cs" />
+    <Compile Include="ioc\ObjectCopierModule.cs" />
+    <Compile Include="ambeth\copy\ObjectCopierState.cs" />
+    <Compile Include="ambeth\copy\StringBuilderOCE.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IEnhancedType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\IEntityFactoryExtension.cs" />
+    <Compile Include="ambeth\merge\IEntityFactoryExtensionExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\AbstractEntityFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\orm\IOrmConfig.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\orm\IMemberConfig.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
+    <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\config\IndependentEntityMetaDataReader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\config\IEntityMetaDataReader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\OptimisticLockUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\ValueObjectMap.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

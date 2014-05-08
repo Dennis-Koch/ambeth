@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{EA8867B0-2A95-45A9-80A7-7F2BE0BC2E3A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Minerva.Test</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\datachange\DataChangeTest.cs" />
+    <Compile Include="ambeth\cache\prefetch\PrefetchTest.cs" />
+    <Compile Include="ambeth\test\AbstractHelloWorldTest.cs" />
+    <Compile Include="ambeth\test\HelloWorldTestModule.cs" />
+    <Compile Include="config\HelloWorldConfigurationConstants.cs" />
+    <Compile Include="ioc\HelloWorldModule.cs" />
+    <Compile Include="model\AbstractEntity.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="refresher\AllTest2EntitiesRefresher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="refresher\AllTestEntitiesRefresher.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="service\HelloWorldMergeMock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="service\HelloWorldServiceMock.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="service\IHelloWorldService.cs" />
+    <Compile Include="service\RandomDataGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="transfer\EmbeddedObject.cs" />
+    <Compile Include="transfer\TestEntity.cs" />
+    <Compile Include="transfer\TestEntity2.cs" />
+    <Compile Include="transfer\TestEntity3.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Bytecode\Ambeth.Bytecode.csproj">
+      <Project>{cba7ad4b-ab18-4ae9-beea-15a036cd6bc5}</Project>
+      <Name>Ambeth.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache.Bytecode\Ambeth.Cache.Bytecode.csproj">
+      <Project>{7782c99c-31ab-40e7-b113-2615018d3916}</Project>
+      <Name>Ambeth.Cache.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.CacheDataChange\Ambeth.CacheDataChange.csproj">
+      <Project>{575a599c-165f-47f1-9193-a23e884c96dd}</Project>
+      <Name>Ambeth.CacheDataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.csproj">
+      <Project>{5c497020-6155-40cd-9c97-3c273718fe2e}</Project>
+      <Name>Ambeth.Cache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
+      <Project>{fd72ac81-65e4-46ce-ad09-efdabc84f384}</Project>
+      <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{cf078f90-70fb-49bb-842f-d5b78d415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.csproj">
+      <Project>{d952e360-12c3-4ac0-8b30-dd0e0e91932e}</Project>
+      <Name>Ambeth.Filter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC.Test\Ambeth.IOC.Test.csproj">
+      <Project>{702447e8-19e6-4441-8e55-3f43e5e48fe9}</Project>
+      <Name>Ambeth.IOC.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{fb7182da-bbb9-4434-a936-10a29635e6d3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{e5a70d5c-ee4f-40fa-be23-5352d40c7b33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Mapping\Ambeth.Mapping.csproj">
+      <Project>{02859b45-2305-4fd2-b504-245de8e8595d}</Project>
+      <Name>Ambeth.Mapping</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.csproj">
+      <Project>{f9f3daf6-681c-4039-8f2b-ebb6e6a1b4d7}</Project>
+      <Name>Ambeth.Merge.Bytecode</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge.Test\Ambeth.Merge.Test.csproj">
+      <Project>{7d6f4f78-fc61-470b-ba5a-3d806723bbd7}</Project>
+      <Name>Ambeth.Merge.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{d8c0ca71-b7fc-4699-97c2-4deb72eec485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Privilege\Ambeth.Privilege.csproj">
+      <Project>{cef8a6d4-b59d-453b-9766-00169bc7dc9a}</Project>
+      <Name>Ambeth.Privilege</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.csproj">
+      <Project>{336798d1-d839-4256-b93b-b738b5bf4b3b}</Project>
+      <Name>Ambeth.Security</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service.REST\Ambeth.Service.REST.csproj">
+      <Project>{16c4ee4e-7165-4280-99e6-a6c4e4058471}</Project>
+      <Name>Ambeth.Service.REST</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{ec138571-28df-4944-8ef2-d31fb186a645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Test\Ambeth.Test.csproj">
+      <Project>{481e695b-9076-454f-87b7-ca3f5e193790}</Project>
+      <Name>Ambeth.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util.Test\Ambeth.Util.Test.csproj">
+      <Project>{7f3520b1-ee20-404e-941c-1284dc2c5f11}</Project>
+      <Name>Ambeth.Util.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Xml.Test\Ambeth.Xml.Test.csproj">
+      <Project>{4d2c52a0-79ef-420b-88fc-8ae664e65905}</Project>
+      <Name>Ambeth.Xml.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Xml\Ambeth.Xml.csproj">
+      <Project>{5693e87d-ae36-41ad-a6cc-232062ecd865}</Project>
+      <Name>Ambeth.Xml</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Minerva.Core\Minerva.Core.WPF.csproj">
+      <Project>{3def4eb6-067c-40d7-9fb2-a274ce38dff4}</Project>
+      <Name>Minerva.Core.WPF</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

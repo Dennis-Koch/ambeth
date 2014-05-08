@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CF078F90-70FB-49BB-842F-D5B78D415108}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Event</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release_NET\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\EventConfigurationConstants.cs" />
+    <Compile Include="ambeth\event\IEventPoller.cs" />
+    <Compile Include="ambeth\event\IQueuedEvent.cs" />
+    <Compile Include="ambeth\event\WaitForResumeItem.cs" />
+    <Compile Include="ambeth\event\EventListenerRegistry.cs" />
+    <Compile Include="ambeth\event\EventPoller.cs" />
+    <Compile Include="ambeth\event\IEventBatcher.cs" />
+    <Compile Include="ambeth\event\IEventBatcherExtendable.cs" />
+    <Compile Include="ambeth\event\IEventDispatcher.cs" />
+    <Compile Include="ambeth\event\IEventListener.cs" />
+    <Compile Include="ambeth\event\IEventListenerExtendable.cs" />
+    <Compile Include="ambeth\event\IEventListenerMarker.cs" />
+    <Compile Include="ambeth\event\IEventListenerRegistry.cs" />
+    <Compile Include="ambeth\event\IEventQueue.cs" />
+    <Compile Include="ambeth\event\IEventTargetEventListener.cs" />
+    <Compile Include="ambeth\event\IEventTargetExtractor.cs" />
+    <Compile Include="ambeth\event\IEventTargetExtractorExtendable.cs" />
+    <Compile Include="ambeth\event\IProcessResumeItem.cs" />
+    <Compile Include="ambeth\event\PausedEventTargetItem.cs" />
+    <Compile Include="ambeth\event\QueuedEvent.cs" />
+    <Compile Include="ambeth\model\IEventItem.cs" />
+    <Compile Include="ambeth\service\EventServiceDelegate.cs" />
+    <Compile Include="ambeth\service\EventServiceModelProvider.cs" />
+    <Compile Include="ambeth\service\IEventService.cs" />
+    <Compile Include="ambeth\service\IEventServiceWCF.cs" />
+    <Compile Include="ambeth\transfer\EventItem.cs" />
+    <Compile Include="ioc\EventBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\event\store\IEventStoreHandler.cs" />
+    <Compile Include="ambeth\event\store\IEventStoreHandlerExtendable.cs" />
+    <Compile Include="ambeth\event\store\IReplacedEvent.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\exception\EventPollException.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{fb7182da-bbb9-4434-a936-10a29635e6d3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{e5a70d5c-ee4f-40fa-be23-5352d40c7b33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{ec138571-28df-4944-8ef2-d31fb186a645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

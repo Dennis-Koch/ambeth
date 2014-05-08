@@ -1,0 +1,445 @@
+<project name="jAmbeth.Server.REST" default="build-war-LATEST">
+
+	<antversion property="antversion.ok" atleast="1.8"/>
+	
+	<fail unless="antversion.ok" message="Please execute this script with Ant 1.8+" />
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="antlibs/ant-contrib-1.0b3.jar"/>
+		</classpath>
+	</taskdef>
+		
+	<property name="ci.baseurl" value="http://ci.member.osthus.de:8080" />	
+	<property name="ci.jambeth.jobname" value="jAmbeth%202.0%20Head" />	
+	<property name="ci.jambeth.property.filename" value="jAmbeth.properties" />
+	
+	<property name="file.name" value="${project.name}.war" />
+	<property name="workspace.base.dir" value=".." />
+
+	<condition property="build.properties.usedfile" value="${build.property.file}" else="build.properties">
+		<isset property="build.property.file" />
+	</condition>
+
+	<condition property="additional.packages.scan.specified" value=";${additional.packages.scan}" else="">
+		<isset property="additional.packages.scan" />
+	</condition>
+
+	<property file="${build.properties.usedfile}" />
+
+	<property name="target.base.dir" value="${workspace.base.dir}" />
+	<property name="workspace.build.dir" value="${target.base.dir}/build" />
+
+	<property name="build.number" value="2.0.manual" />
+
+	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
+	<property name="build.rest.dir" value="${workspace.build.dir}/rest" />
+	<property name="build.app.dir" value="${workspace.build.dir}/app" />
+	<property name="build.webapp.dir" value="${workspace.build.dir}/webapp" />
+	<property name="build.webapp.libs.dir" value="${workspace.build.dir}/webapplibs" />
+	<property name="source.dev.dir" value="${target.base.dir}/src" />
+
+	<property name="target.jars.dir" value="${target.base.dir}/jars" />
+	<property name="war.dir" value="${target.base.dir}/target" />
+	<property name="war.path" value="${war.dir}/${file.name}" />
+
+	<property name="rest.jar.file" value="${target.jars.dir}/jAmbeth-dev-rest-${build.number}.jar" />
+
+	<property name="webapps.dir" value="C:/dev/apache-tomcat-7.0.25/webapps" />
+
+	<path id="ambeth.lib.classpath">
+		<pathelement location="${workspace.base.dir}/jAmbeth.Job.Cron4j/lib/cron4j-2.2.5.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Merge/lib/javax.persistence_2.0.0.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Persistence/lib/javax.transaction_1.0.0.0_1-1.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Persistence.Oracle11/lib/ojdbc6.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Server.REST/libs/jersey-core-1.11.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Server.REST/libs/jersey-server-1.11.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Util/lib/cglib/cglib-nodep-2.2.2.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/commons-lang3-3.1.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/javassist.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/servlet-api.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/xpp3-1.1.4c.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Server.REST/libs/asm-3.3.1.jar" />
+	</path>
+
+	<path id="ambeth.lib.war.classpath">
+		<pathelement location="${workspace.base.dir}/jAmbeth.Server.REST/libs/jersey-servlet-1.11.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Server.REST/libs/jsr311-api-1.1.1.jar" />
+	</path>
+
+	<path id="ambeth.libs">
+		<path refid="ambeth.lib.classpath" />
+		<path location="${dev.jar.file}" />
+	</path>
+
+	<property name="target.dir" value="${target.base.dir}/target" />
+	<property name="target" location="${build.dev.dir}" />
+
+	<path id="application.classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+		<path refid="ambeth.libs" />
+	</path>
+
+	<property name="source.relative.dirs" value="
+			${workspace.base.dir}/jAmbeth.Bytecode/src
+			:${workspace.base.dir}/jAmbeth.Cache/src
+			:${workspace.base.dir}/jAmbeth.Cache.Bytecode/src
+			:${workspace.base.dir}/jAmbeth.Cache.DataChange/src
+			:${workspace.base.dir}/jAmbeth.Cache.Server/src
+			:${workspace.base.dir}/jAmbeth.Cache.Stream/src
+			:${workspace.base.dir}/jAmbeth.DataChange/src
+			:${workspace.base.dir}/jAmbeth.Event/src
+			:${workspace.base.dir}/jAmbeth.Event.DataChange/src
+			:${workspace.base.dir}/jAmbeth.Event.Server/src
+			:${workspace.base.dir}/jAmbeth.Filter/src
+			:${workspace.base.dir}/jAmbeth.Ioc/src
+			:${workspace.base.dir}/jAmbeth.Job/src
+			:${workspace.base.dir}/jAmbeth.Job.Cron4j/src
+			:${workspace.base.dir}/jAmbeth.Log/src
+			:${workspace.base.dir}/jAmbeth.Merge/src
+			:${workspace.base.dir}/jAmbeth.Merge.Bytecode/src
+			:${workspace.base.dir}/jAmbeth.Merge.Server/src
+			:${workspace.base.dir}/jAmbeth.Persistence/src
+			:${workspace.base.dir}/jAmbeth.Persistence.JDBC/src
+			:${workspace.base.dir}/jAmbeth.Persistence.Oracle11/src
+			:${workspace.base.dir}/jAmbeth.Platform/src
+			:${workspace.base.dir}/jAmbeth.Privilege/src
+			:${workspace.base.dir}/jAmbeth.Privilege.Server/src
+			:${workspace.base.dir}/jAmbeth.Query/src
+			:${workspace.base.dir}/jAmbeth.Query.JDBC/src
+			:${workspace.base.dir}/jAmbeth.Security/src
+			:${workspace.base.dir}/jAmbeth.Security.Server/src
+			:${workspace.base.dir}/jAmbeth.Sensor/src
+			:${workspace.base.dir}/jAmbeth.Service/src
+			:${workspace.base.dir}/jAmbeth.Stream/src
+			:${workspace.base.dir}/jAmbeth.Util/src
+			:${workspace.base.dir}/jAmbeth.Util/asm_src
+			:${workspace.base.dir}/jAmbeth.Util/reflect_asm_src
+			:${workspace.base.dir}/jAmbeth.Xml/src" />
+
+	<target name="-checkProperties">
+		<fail unless="project.name" message="Property $${project.name} is not set" />
+	</target>
+
+	<target name="-test-ambeth" depends="jar-dev">
+		<delete dir="target" />
+		<mkdir dir="target/classes" />
+
+		<mkdir dir="target/jaxws/wsimport/java" />
+
+		<wsimport sourcedestdir="target/jaxws/wsimport/java" destdir="target/classes" wsdl="src/main/webapp/WEB-INF/wsdl/CacheService.wsdl" package="de.osthus.ambeth" />
+
+		<copy todir="target/classes">
+			<fileset dir="src/main/java" includes="**/*.xml">
+			</fileset>
+		</copy>
+		<javac srcdir="src:target/jaxws/wsimport/java" destdir="target/classes" classpathref="application.classpath" debug="true" />
+	</target>
+
+	<target name="genWSDL" depends="jar-dev">
+		<property name="wsdl.service.name" value="CacheService" />
+
+		<delete dir="target/wsgen" />
+		<mkdir dir="target/wsgen" />
+		<mkdir dir="target/wsgen/classes" />
+		<mkdir dir="target/wsgen/java" />
+		<mkdir dir="${wsdl.dir}" />
+
+		<wsgen sei="de.osthus.ambeth.webservice.CacheServiceWeb" destdir="target/wsgen/classes" resourcedestdir="${wsdl.dir}" sourcedestdir="target/wsgen/java" keep="true" verbose="true" genwsdl="true" protocol="Xsoap1.2" servicename="{http://schemas.osthus.de/Ambeth}${wsdl.service.name}" portname="{http://schemas.osthus.de/Ambeth}${wsdl.service.name}Port" extension="true">
+			<classpath>
+				<pathelement location="src" />
+				<pathelement location="bin" />
+				<pathelement location="${dev.jar.file}" />
+				<pathelement location="target/jaxws/wsgen" />
+				<pathelement location="libs/servlet-api.jar" />
+			</classpath>
+		</wsgen>
+	</target>
+
+	<target name="genClientNet">
+		<property name="wsdl.service.name" value="CacheService" />
+
+		<mkdir dir="target/net/wsdl" />
+		<copy todir="target/net/wsdl">
+			<fileset dir="${wsdl.dir}">
+			</fileset>
+		</copy>
+		<exec executable="C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A/Bin/x64/svcutil.exe">
+			<arg value="/language:C#" />
+			<arg value="/out:I${wsdl.service.name}.cs" />
+			<arg value="/n:*,De.Ostus.Ambeth.Webservice" />
+			<arg value="target/net/wsdl/${wsdl.service.name}.wsdl" />
+		</exec>
+	</target>
+	
+	<target name="-determine-ambeth-jar">
+		<property name="jAmbeth.properties.file" value="${target.jars.dir}/${ci.jambeth.property.filename}" />
+		<mkdir dir="${target.jars.dir}" />
+		<get dest="${jAmbeth.properties.file}" src="${ci.baseurl}/job/${ci.jambeth.jobname}/lastSuccessfulBuild/artifact/jars/${ci.jambeth.property.filename}" verbose="true" ignoreerrors="true" maxtime="5" retries="1"/>
+		<available file="${jAmbeth.properties.file}" property="jAmbeth.properties.file.available" />
+		<fail unless="jAmbeth.properties.file.available" message="No jAmbeth CI property file found: ${jAmbeth.properties.file}" />
+		
+		<property file="${jAmbeth.properties.file}" prefix="pref" />
+		
+		<property name="dev.jar.file" value="${target.jars.dir}/${pref.jAmbeth.dev.jar}" />
+		<property name="dev.job.jar.file" value="${target.jars.dir}/${pref.jAmbeth.dev.job.jar}" />
+		<property name="dev.xml.jar.file" value="${target.jars.dir}/${pref.jAmbeth.dev.xml.jar}" />
+		<get dest="${dev.jar.file}" src="${ci.baseurl}/job/${ci.jambeth.jobname}/lastSuccessfulBuild/artifact/jars/${pref.jAmbeth.dev.jar}" verbose="true" ignoreerrors="true" usetimestamp="true" maxtime="5" retries="1"/>
+		<get dest="${dev.job.jar.file}" src="${ci.baseurl}/job/${ci.jambeth.jobname}/lastSuccessfulBuild/artifact/jars/${pref.jAmbeth.dev.job.jar}" verbose="true" ignoreerrors="true" usetimestamp="true" maxtime="5" retries="1"/>
+		<get dest="${dev.xml.jar.file}" src="${ci.baseurl}/job/${ci.jambeth.jobname}/lastSuccessfulBuild/artifact/jars/${pref.jAmbeth.dev.xml.jar}" verbose="true" ignoreerrors="true" usetimestamp="true" maxtime="5" retries="1"/>
+
+		<available file="${dev.jar.file}" property="dev.jar.file.available" />
+		<fail unless="dev.jar.file.available" message="Latest jAmbeth JAR '${pref.jAmbeth.dev.jar}' not found in ${target.jars.dir}" />
+		<available file="${dev.job.jar.file}" property="dev.job.jar.file.available" />
+		<fail unless="dev.job.jar.file.available" message="Latest jAmbeth JAR '${pref.jAmbeth.dev.job.jar}' not found in ${target.jars.dir}" />
+		<available file="${dev.xml.jar.file}" property="dev.xml.jar.file.available" />
+		<fail unless="dev.xml.jar.file.available" message="Latest jAmbeth JAR '${pref.jAmbeth.dev.xml.jar}' not found in ${target.jars.dir}" />
+		<echo message="Using jAmbeth JAR '${pref.jAmbeth.dev.jar}' for further building..." />
+		<echo message="Using jAmbeth JAR '${pref.jAmbeth.dev.job.jar}' for further building..." />
+		<echo message="Using jAmbeth JAR '${pref.jAmbeth.dev.xml.jar}' for further building..." />
+	</target>
+
+	<target name="build-war" depends="jar-dev,jar-dev-rest">
+		<fail unless="project.name" message="Property $${project.name} is not set" />
+		<fail unless="properties.file" message="Property $${properties.file} is not set" />
+		<fail unless="application.src.dirs" message="Property $${application.src.dirs} is not set" />
+
+		<delete dir="${build.app.dir}" />
+		<mkdir dir="${build.app.dir}" />
+		<javac target="1.6" srcdir="${application.src.dirs}" destdir="${build.app.dir}" includeAntRuntime="false" fork="true" debug="on">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<pathelement location="${dev.jar.file}" />
+			</classpath>
+		</javac>
+		<foreach list="${application.src.dirs}" delimiter=";" target="-copyToBuildAppDir" param="application.src.dir" />
+		<copy todir="${build.app.dir}" file="${properties.file}" />
+		<delete file="${war.path}" failonerror="false" />
+
+		<property name="temp.file" value="${workspace.build.dir}/tempfile.properties" />
+		<delete file="${temp.file}" />
+		<propertyfile file="${temp.file}">
+			<entry key="property.file.name" value="${properties.file}" />
+		</propertyfile>
+		<replaceregexp file="${temp.file}" match="[^=:]+:" replace="" flags="g" />
+		<replaceregexp file="${temp.file}" match="[^=/]+/" replace="" flags="g" />
+		<replaceregexp file="${temp.file}" match="[^=\\]+\\" replace="" flags="g" />
+		<property file="${temp.file}" />
+		<echo message="Adding '${property.file.name}' to web.xml as Ambeth bootstrap property file" />
+		<delete file="${temp.file}" />
+
+		<delete dir="${build.webapp.dir}" />
+		<mkdir dir="${build.webapp.dir}" />
+		<copy todir="${build.webapp.dir}">
+			<fileset dir="webapp" />
+		</copy>
+		<property name="web.xml.path" value="${build.webapp.dir}/WEB-INF/web.xml" />
+
+		<copy file="web_template.xml" tofile="${web.xml.path}" filtering="yes" overwrite="yes">
+			<filterset>
+				<filter token="PROPERTY_FILE" value="${property.file.name}" />
+				<filter token="ADDITIONAL_PACKAGES" value="${additional.packages.scan.specified}" />
+			</filterset>
+		</copy>
+
+		<delete dir="${build.webapp.libs.dir}" />
+		<mkdir dir="${build.webapp.libs.dir}" />
+
+		<copy todir="${build.webapp.libs.dir}" flatten="true">
+			<path refid="ambeth.lib.classpath" />
+		</copy>
+		<copy todir="${build.webapp.libs.dir}" flatten="true">
+			<path refid="ambeth.lib.war.classpath" />
+		</copy>
+		<antcall target="-include-additional-libs" />
+		<delete file="${build.webapp.libs.dir}/servlet-api.jar" />
+		<antcall target="-no-additional-libs-specified" />
+		<war destfile="${war.path}" webxml="${web.xml.path}" duplicate="preserve">
+			<classes dir="${build.app.dir}" />
+			<fileset dir="webapp" />
+			<lib dir="${build.webapp.libs.dir}" />
+			<lib file="${dev.jar.file}" />
+			<lib file="${rest.jar.file}" />
+		</war>
+		<delete dir="${webapps.dir}/${project.name}" failonerror="false" />
+		<copy todir="${webapps.dir}" preservelastmodified="false">
+			<fileset dir="${war.dir}" includes="${file.name}" />
+		</copy>
+	</target>
+
+	<target name="-copyToBuildAppDir">
+		<copy todir="${build.app.dir}">
+			<fileset dir="${application.src.dir}" excludes="**/*.java" />
+		</copy>
+	</target>
+	
+	<target name="build-war-LATEST" depends="-determine-ambeth-jar,jar-dev-rest">
+		<fail unless="project.name" message="Property $${project.name} is not set" />
+		<fail unless="properties.file" message="Property $${properties.file} is not set" />
+		<fail unless="application.src.dirs" message="Property $${application.src.dirs} is not set" />
+
+		<delete dir="${build.app.dir}" />
+		<mkdir dir="${build.app.dir}" />
+		<javac target="1.6" srcdir="${application.src.dirs}" destdir="${build.app.dir}" includeAntRuntime="false" fork="true" debug="on">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<pathelement location="${dev.jar.file}" />
+				<pathelement location="${dev.job.jar.file}" />
+				<pathelement location="${dev.xml.jar.file}" />
+			</classpath>
+		</javac>
+		<foreach list="${application.src.dirs}" delimiter=";" target="-copyToBuildAppDir" param="application.src.dir" />
+		<copy todir="${build.app.dir}" file="${properties.file}" />
+		<delete file="${war.path}" failonerror="false" />
+
+		<property name="temp.file" value="${workspace.build.dir}/tempfile.properties" />
+		<delete file="${temp.file}" />
+		<propertyfile file="${temp.file}">
+			<entry key="property.file.name" value="${properties.file}" />
+		</propertyfile>
+		<replaceregexp file="${temp.file}" match="[^=:]+:" replace="" flags="g" />
+		<replaceregexp file="${temp.file}" match="[^=/]+/" replace="" flags="g" />
+		<replaceregexp file="${temp.file}" match="[^=\\]+\\" replace="" flags="g" />
+		<property file="${temp.file}" />
+		<echo message="Adding '${property.file.name}' to web.xml as Ambeth bootstrap property file" />
+		<delete file="${temp.file}" />
+
+		<delete dir="${build.webapp.dir}" />
+		<mkdir dir="${build.webapp.dir}" />
+		<copy todir="${build.webapp.dir}">
+			<fileset dir="webapp" />
+		</copy>
+		<property name="web.xml.path" value="${build.webapp.dir}/WEB-INF/web.xml" />
+
+		<copy file="web_template.xml" tofile="${web.xml.path}" filtering="yes" overwrite="yes">
+			<filterset>
+				<filter token="PROPERTY_FILE" value="${property.file.name}" />
+				<filter token="ADDITIONAL_PACKAGES" value="${additional.packages.scan.specified}" />
+			</filterset>
+		</copy>
+
+		<delete dir="${build.webapp.libs.dir}" />
+		<mkdir dir="${build.webapp.libs.dir}" />
+
+		<copy todir="${build.webapp.libs.dir}" flatten="true">
+			<path refid="ambeth.lib.classpath" />
+		</copy>
+		<copy todir="${build.webapp.libs.dir}" flatten="true">
+			<path refid="ambeth.lib.war.classpath" />
+		</copy>
+		<antcall target="-include-additional-libs" />
+		<delete file="${build.webapp.libs.dir}/servlet-api.jar" />
+		<antcall target="-no-additional-libs-specified" />
+		<war destfile="${war.path}" webxml="${web.xml.path}" duplicate="preserve">
+			<classes dir="${build.app.dir}" />
+			<fileset dir="webapp" />
+			<lib dir="${build.webapp.libs.dir}" />
+			<lib file="${dev.jar.file}" />
+			<lib file="${dev.job.jar.file}" />
+			<lib file="${dev.xml.jar.file}" />
+			<lib file="${rest.jar.file}" />
+		</war>
+		<delete dir="${webapps.dir}/${project.name}" failonerror="false" />
+		<copy todir="${webapps.dir}" preservelastmodified="false">
+			<fileset dir="${war.dir}" includes="${file.name}" />
+		</copy>
+	</target>
+
+	<target name="-include-additional-libs" if="libs.path">
+		<echo message="Including additional libs to war: ${libs.path}" />
+		<copy todir="${build.webapp.libs.dir}" flatten="true">
+			<path refid="ambeth.lib.war.classpath" />
+		</copy>
+	</target>
+
+	<target name="-no-additional-libs-specified" unless="libs.path">
+		<echo message="No additional libs specified with the optional property $${libs.path}" />
+	</target>
+
+	<target name="clean-dev">
+		<delete dir="${build.dev.dir}" />
+	</target>
+
+	<target name="init-dev" depends="clean-dev">
+		<delete dir="${build.dev.dir}" />
+		<mkdir dir="${build.dev.dir}" />
+	</target>
+
+	<target name="compile-dev" depends="init-dev">
+		<javac target="1.6" srcdir="${source.relative.dirs}" destdir="${build.dev.dir}" includeAntRuntime="false" fork="true" debug="on">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+			</classpath>
+			<exclude name="**/*Test.java" />
+		</javac>
+		<copy todir="${build.dev.dir}">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Util/src">
+				<include name="**/*.xsd" />
+				<include name="**/*.wsdl" />
+				<include name="**/*.wadl" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile-dev-rest">
+		<delete dir="${build.rest.dir}" />
+		<mkdir dir="${build.rest.dir}" />
+		<javac target="1.6" srcdir="./src" destdir="${build.rest.dir}" includeAntRuntime="false" fork="true" debug="on">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<pathelement location="${dev.jar.file}" />
+				<pathelement location="${dev.job.jar.file}" />
+				<pathelement location="${dev.xml.jar.file}" />
+			</classpath>
+		</javac>
+		<copy todir="${build.rest.dir}">
+			<fileset dir="./src" excludes="**/*.java" />
+		</copy>
+	</target>
+
+	<target name="jar-dev" depends="compile-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<property name="dev.jar.file" value="${target.jars.dir}/jAmbeth-dev-${build.number}.jar" />
+		<delete file="${dev.jar.file}" />
+		<jar basedir="${build.dev.dir}" destfile="${dev.jar.file}" />
+	</target>
+
+	<target name="jar-dev-rest" depends="compile-dev-rest">
+		<mkdir dir="${target.jars.dir}" />
+		<delete file="${rest.jar.file}" />
+		<jar basedir="${build.rest.dir}" destfile="${rest.jar.file}" />
+	</target>
+
+	<target name="jar-" depends="compile-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<delete file="${dev.jar.file}" />
+		<jar basedir="${build.dev.dir}" destfile="${dev.jar.file}" />
+	</target>
+
+	<target name="-deleteTargetDir">
+		<delete dir="${target.jars.dir}" />
+	</target>
+
+	<target name="parse-wadl">
+		<echo message="Compiling the description..." />
+		<property name="target.wadl.dir" value="target/wadl" />
+		<delete dir="${target.wadl.dir}" />
+		<mkdir dir="${target.wadl.dir}" />
+		<wjc description="http://localhost:9080/application.wadl" package="de.osthus.ambeth.webservice.client" autoSchemaPackage="false" target="${target.wadl.dir}">
+			<!--
+			<customizations dir="." includes="customization" />
+			-->
+			<produces dir="${target.wadl.dir}" includes="**/*.java" />
+			<!--
+			<depends dir="." includes="*.xsd"/>
+			<depends dir="." includes="build.xml"/>
+			-->
+			<!--
+			<depends dir="${wadl2java.dir}/bin" includes="wadl2java.jar"/>
+			-->
+		</wjc>
+	</target>
+
+</project>

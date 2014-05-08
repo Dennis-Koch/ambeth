@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.IoC</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\PropertiesPreProcessor.cs" />
+    <Compile Include="ambeth\config\PropertyAttribute.cs" />
+    <Compile Include="ambeth\debug\FlattenHierarchyProxy.cs" />
+    <Compile Include="ambeth\ioc\annotation\AutowiredAttribute.cs" />
+    <Compile Include="ambeth\ioc\config\AbstractBeanConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\BeanConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\BeanInstanceConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\BeanRuntime.cs" />
+    <Compile Include="ambeth\ioc\config\IBeanConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\IDeclarationStackTraceAware.cs" />
+    <Compile Include="ambeth\ioc\config\IPropertyConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\PrecedenceType.cs" />
+    <Compile Include="ambeth\ioc\config\PropertyEmbeddedRefConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\PropertyRefConfiguration.cs" />
+    <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
+    <Compile Include="ambeth\ioc\proxy\EmptyInterceptor.cs" />
+    <Compile Include="ambeth\ioc\exception\BeanContextDeclarationException.cs" />
+    <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />
+    <Compile Include="ambeth\ioc\exception\TempStacktraceException.cs" />
+    <Compile Include="ambeth\ioc\exception\ExtendableException.cs" />
+    <Compile Include="ambeth\ioc\exception\LinkException.cs" />
+    <Compile Include="ambeth\ioc\extendable\ExtendableBean.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\AbstractSingletonChildContextHandle.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\PrototypeContextHandle.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\DefaultChildContextFactory.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\IChildContextFactory.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\IChildContextHandle.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\IUpwakingBean.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\SingletonContextHandle.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\ThreadLocalContextHandle.cs" />
+    <Compile Include="ambeth\ioc\IPropertyLoadingBean.cs" />
+    <Compile Include="ambeth\ioc\IServiceContextIntern.cs" />
+    <Compile Include="ambeth\ioc\DefaultExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\ExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\IExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\IMapExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\MapExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\factory\BeanContextFactory.cs" />
+    <Compile Include="ambeth\ioc\factory\BeanContextInit.cs" />
+    <Compile Include="ambeth\ioc\factory\BeanContextInitializer.cs" />
+    <Compile Include="ambeth\ioc\factory\IBeanContextFactory.cs" />
+    <Compile Include="ambeth\ioc\factory\IBeanContextInitializer.cs" />
+    <Compile Include="ambeth\ioc\HandleObjectsDelegate.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\BeanContextHolder.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\NamedBeanContextHolder.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\IBeanContextHolder.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\IBeanContextHolderFactory.cs" />
+    <Compile Include="ambeth\ioc\hierarchy\SearchType.cs" />
+    <Compile Include="ambeth\ioc\IAnonymousBeanRegistry.cs" />
+    <Compile Include="ambeth\ioc\IBeanPostProcessor.cs" />
+    <Compile Include="ambeth\ioc\IBeanPreProcessor.cs" />
+    <Compile Include="ambeth\ioc\IBeanRuntime.cs" />
+    <Compile Include="ambeth\ioc\IDisposableBean.cs" />
+    <Compile Include="ambeth\ioc\IFactoryBean.cs" />
+    <Compile Include="ambeth\ioc\IInitializingBean.cs" />
+    <Compile Include="ambeth\ioc\IInitializingModule.cs" />
+    <Compile Include="ambeth\ioc\IInitializingBootstrapModule.cs" />
+    <Compile Include="ambeth\ioc\IServiceContext.cs" />
+    <Compile Include="ambeth\ioc\IStartingBean.cs" />
+    <Compile Include="ambeth\ioc\IStartingModule.cs" />
+    <Compile Include="ambeth\ioc\link\AbstractLinkContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\ExtendableRegistry.cs" />
+    <Compile Include="ambeth\ioc\extendable\IExtendableRegistry.cs" />
+    <Compile Include="ambeth\ioc\link\AbstractLinkContainerOld.cs" />
+    <Compile Include="ambeth\ioc\link\EventDelegate.cs" />
+    <Compile Include="ambeth\ioc\link\IEventDelegate.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkConfiguration.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkContainer.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkController.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkExtendable.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRegistryNeededConfiguration.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRegistryNeededRuntime.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRuntime.cs" />
+    <Compile Include="ambeth\ioc\link\ILinkRuntimeExtendable.cs" />
+    <Compile Include="ambeth\ioc\link\LateDelegate.cs" />
+    <Compile Include="ambeth\ioc\link\LinkConfiguration.cs" />
+    <Compile Include="ambeth\ioc\link\LinkContainer.cs" />
+    <Compile Include="ambeth\ioc\link\LinkContainerOld.cs" />
+    <Compile Include="ambeth\ioc\link\LinkController.cs" />
+    <Compile Include="ambeth\ioc\link\LinkRuntime.cs" />
+    <Compile Include="ambeth\ioc\link\PropertyChangedLinkContainerOld.cs" />
+    <Compile Include="ambeth\ioc\proxy\CallingProxyPostProcessor.cs" />
+    <Compile Include="ambeth\ioc\proxy\InterfaceBean.cs" />
+    <Compile Include="ambeth\ioc\proxy\Self.cs" />
+    <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
+    <Compile Include="ambeth\ioc\ServiceContext.cs" />
+    <Compile Include="ambeth\log\ILoggerCache.cs" />
+    <Compile Include="ambeth\log\LoggerInstancePreProcessor.cs" />
+    <Compile Include="ambeth\threading\UIThreadWrapper.cs" />
+    <Compile Include="ambeth\threading\GuiThreadHelper.cs" />
+    <Compile Include="ambeth\threading\ThreadPool.cs" />
+    <Compile Include="ambeth\typeinfo\MethodPropertyInfo2.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoEntry.cs" />
+    <Compile Include="ambeth\typeinfo\PropertyInfoProvider.cs" />
+    <Compile Include="ambeth\util\ClassTupleExtendableContainer.cs" />
+    <Compile Include="ambeth\util\ConversionKey.cs" />
+    <Compile Include="ambeth\util\DelegatingConversionHelper.cs" />
+    <Compile Include="ioc\IocBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271e6992-6b52-41ee-9d4c-5a56fd173c2e}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="ambeth\lifecycle\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBean.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBeanExtendable.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupController.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupController.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\extendable\ClassExtendableContainer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\IModuleProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\annotation\BootstrapModuleAttribute.cs" />
+    <Compile Include="ambeth\ioc\annotation\FrameworkModuleAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\extendable\DefEntry.cs" />
+    <Compile Include="ambeth\ioc\extendable\StrongKey.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\Def2Entry.cs" />
+    <Compile Include="ambeth\util\Strong2Key.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\log\LoggerHistory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\DedicatedConverterUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\config\AbstractPropertyConfiguration.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\config\IocConfigurationConstants.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\IBeanContextAware.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupPreProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\factory\BeanConfigState.cs" />
+    <Compile Include="ambeth\ioc\factory\OrderState.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\accessor\AccessorClassLoader.cs" />
+    <Compile Include="ambeth\accessor\AccessorTypeProvider.cs" />
+    <Compile Include="ambeth\accessor\DefaultAccessor.cs" />
+    <Compile Include="ambeth\accessor\IAccessorTypeProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\accessor\AbstractAccessor.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

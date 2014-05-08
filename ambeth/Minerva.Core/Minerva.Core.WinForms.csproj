@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C6A308BC-A9E0-434F-BD96-B6DD82DE50C7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Minerva.Core.WinForms</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_WinForms\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\WinForms\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Telerik.WinControls">
+      <HintPath>..\Lib.Telerik.WinForms\Telerik.WinControls.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.WinControls.GridView">
+      <HintPath>..\Lib.Telerik.WinForms\Telerik.WinControls.GridView.dll</HintPath>
+    </Reference>
+    <Reference Include="TelerikCommon">
+      <HintPath>..\Lib.Telerik.WinForms\TelerikCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="TelerikData">
+      <HintPath>..\Lib.Telerik.WinForms\TelerikData.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ioc\MinervaCoreBootstrapModule.cs" />
+    <Compile Include="minerva\busy\BusyController.cs" />
+    <Compile Include="minerva\busy\BusyToken.cs" />
+    <Compile Include="minerva\busy\IBusyController.cs" />
+    <Compile Include="minerva\busy\IBusyToken.cs" />
+    <Compile Include="minerva\command\AbstractControllerServiceRelatedCommand.cs" />
+    <Compile Include="minerva\command\AbstractModelContainerRelatedCommand.cs" />
+    <Compile Include="minerva\command\AssignToBeDeletedCommand.cs" />
+    <Compile Include="minerva\command\CommandBean.cs" />
+    <Compile Include="minerva\command\CommandContainer.cs" />
+    <Compile Include="minerva\command\CommandEvents.cs" />
+    <Compile Include="minerva\command\CommandRegistry.cs" />
+    <Compile Include="minerva\command\CommandRegistryFinishedCallback.cs" />
+    <Compile Include="minerva\command\IAsyncCommand.cs" />
+    <Compile Include="minerva\command\ICanExecuteStateProvider.cs" />
+    <Compile Include="minerva\command\ICommandBindingHelper.cs" />
+    <Compile Include="minerva\command\ICommandContainer.cs" />
+    <Compile Include="minerva\command\ICommandExtendable.cs" />
+    <Compile Include="minerva\command\ICommandStringParameterExtendable.cs" />
+    <Compile Include="minerva\command\IFinallyCommand.cs" />
+    <Compile Include="minerva\command\INextCommandDelegate.cs" />
+    <Compile Include="minerva\command\MultiCommand.cs" />
+    <Compile Include="minerva\command\RestorePreviousNotPersistedCommand.cs" />
+    <Compile Include="minerva\command\SaveNotPersistedCommand.cs" />
+    <Compile Include="minerva\command\SaveNotPersistedDataCommand.cs" />
+    <Compile Include="minerva\command\UndoNotPersistedChangesCommand.cs" />
+    <Compile Include="minerva\command\UndoNotPersistedCommand.cs" />
+    <Compile Include="minerva\config\MinervaCoreConfigurationConstants.cs" />
+    <Compile Include="minerva\converter\IFilterDescriptorConverter.cs" />
+    <Compile Include="minerva\converter\ISortDescriptorConverter.cs" />
+    <Compile Include="minerva\core\AbstractClientEntityInterceptor.cs" />
+    <Compile Include="minerva\core\AbstractPagingRefresher.cs" />
+    <Compile Include="minerva\core\AbstractRefresher.cs" />
+    <Compile Include="minerva\core\ClientEntityFactory.cs" />
+    <Compile Include="minerva\core\DataChangeControllerPostProcessor.cs" />
+    <Compile Include="minerva\core\DataConsumerModule.cs" />
+    <Compile Include="minerva\core\DataProvider.cs" />
+    <Compile Include="minerva\core\EmbeddedTypeInterceptor.cs" />
+    <Compile Include="minerva\core\EventsUtil.cs" />
+    <Compile Include="minerva\core\GenericViewModel.cs" />
+    <Compile Include="minerva\core\IBaseRefresher.cs" />
+    <Compile Include="minerva\core\IClientFilter.cs" />
+    <Compile Include="minerva\core\ICommitter.cs" />
+    <Compile Include="minerva\core\IDataProvider.cs" />
+    <Compile Include="minerva\core\IGenericViewModel.cs" />
+    <Compile Include="minerva\core\IModelContainer.cs" />
+    <Compile Include="minerva\core\IModelContainerRegistry.cs" />
+    <Compile Include="minerva\core\IModelMultiContainer.cs" />
+    <Compile Include="minerva\core\IModelSingleContainer.cs" />
+    <Compile Include="minerva\core\INotifyClientFilterChanged.cs" />
+    <Compile Include="minerva\core\INotifyDataAvailable.cs" />
+    <Compile Include="minerva\core\INotifyModelRegistered.cs" />
+    <Compile Include="minerva\core\INotPersistedDataContainer.cs" />
+    <Compile Include="minerva\core\INotPersistedDataContainerExtendable.cs" />
+    <Compile Include="minerva\core\IPagingRefresher.cs" />
+    <Compile Include="minerva\core\IRefresher.cs" />
+    <Compile Include="minerva\core\ISelfRegisteringControlBean.cs" />
+    <Compile Include="minerva\core\ISharedData.cs" />
+    <Compile Include="minerva\core\ISharedDataHandOn.cs" />
+    <Compile Include="minerva\core\ISharedDataHandOnExtendable.cs" />
+    <Compile Include="minerva\core\ISortDescriptorProvider.cs" />
+    <Compile Include="minerva\core\IViewModelDataChangeController.cs" />
+    <Compile Include="minerva\core\LazyBeanBinding.cs" />
+    <Compile Include="minerva\core\ModelContainerRegistry.cs" />
+    <Compile Include="minerva\core\ModelMultiContainer.cs" />
+    <Compile Include="minerva\core\ObjectRelationClientFilter.cs" />
+    <Compile Include="minerva\core\SharedData.cs" />
+    <Compile Include="minerva\core\TestClass.cs" />
+    <Compile Include="minerva\core\TestClassHandler.cs" />
+    <Compile Include="minerva\core\UserControlBean.cs" />
+    <Compile Include="minerva\core\UserControlPostProcessor.cs" />
+    <Compile Include="minerva\core\ViewModelDataChangeController.cs" />
+    <Compile Include="minerva\core\XamlBeanPropertyBinder.cs" />
+    <Compile Include="minerva\core\XamlBeanProvider.cs" />
+    <Compile Include="minerva\extendable\IRoutedEventHandlerExtendable.cs" />
+    <Compile Include="minerva\filterprovider\IFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\IMasterFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\MasterFilterDescriptorProvider.cs" />
+    <Compile Include="minerva\filterprovider\SelectedEntityFilterProvider.cs" />
+    <Compile Include="minerva\mock\AbstractMergeServiceMock.cs" />
+    <Compile Include="minerva\mock\CacheServiceMock.cs" />
+    <Compile Include="minerva\mock\IPersistenceMock.cs" />
+    <Compile Include="minerva\security\ISecurityScopeChangeExtendable.cs" />
+    <Compile Include="minerva\security\ISecurityScopeChangeListener.cs" />
+    <Compile Include="minerva\security\ISecurityScopeProvider.cs" />
+    <Compile Include="minerva\security\SecurityScopeProvider.cs" />
+    <Compile Include="minerva\util\BooleanResultDelegate.cs" />
+    <Compile Include="minerva\util\DesignTimeCheck.cs" />
+    <Compile Include="minerva\util\IGuiUtil.cs" />
+    <Compile Include="minerva\util\IWorkerUtil.cs" />
+    <Compile Include="minerva\util\WorkerUtil.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="system\componentmodel\INotifyPropertyChangedEvents.cs" />
+    <Compile Include="system\windows\controls\ChildWindowEvents.cs" />
+    <Compile Include="system\windows\controls\ContentControlEvents.cs" />
+    <Compile Include="system\windows\controls\ControlEvents.cs" />
+    <Compile Include="system\windows\controls\TextBoxEvents.cs" />
+    <Compile Include="system\windows\FrameworkElementEvents.cs" />
+    <Compile Include="system\windows\GenericViewModelEvents.cs" />
+    <Compile Include="system\windows\UIElementEvents.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Cache\Ambeth.Cache.csproj">
+      <Project>{5C497020-6155-40CD-9C97-3C273718FE2E}</Project>
+      <Name>Ambeth.Cache</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
+      <Project>{FD72AC81-65E4-46CE-AD09-EFDABC84F384}</Project>
+      <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{CF078F90-70FB-49BB-842F-D5B78D415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.csproj">
+      <Project>{D952E360-12C3-4AC0-8B30-DD0E0E91932E}</Project>
+      <Name>Ambeth.Filter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="minerva\dialogs\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

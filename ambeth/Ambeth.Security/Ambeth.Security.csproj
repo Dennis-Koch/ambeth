@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{336798D1-D839-4256-B93B-B738B5BF4B3B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth</RootNamespace>
+    <AssemblyName>Ambeth.Security</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_NET4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core, Version=1.2.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Ambeth.Util\libs\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\crypto\AESEncryption.cs" />
+    <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\security\AbstractEntityFilter.cs" />
+    <Compile Include="ambeth\security\AmbethUserHandle.cs" />
+    <Compile Include="ambeth\security\AmbethUserHandleFactory.cs" />
+    <Compile Include="ambeth\security\CallPermission.cs" />
+    <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
+    <Compile Include="ambeth\security\ISecurityManager.cs" />
+    <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
+    <Compile Include="ambeth\security\IEntityFilterExtendable.cs" />
+    <Compile Include="ambeth\security\PausedSecurityRunnable.cs" />
+    <Compile Include="ambeth\security\ReadPermission.cs" />
+    <Compile Include="ambeth\security\IEntityFilter.cs" />
+    <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
+    <Compile Include="ambeth\security\IServiceFilter.cs" />
+    <Compile Include="ambeth\security\IUseCase.cs" />
+    <Compile Include="ambeth\security\IUserHandle.cs" />
+    <Compile Include="ambeth\security\IUserHandleFactory.cs" />
+    <Compile Include="ambeth\security\SecurityActivation.cs" />
+    <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
+    <Compile Include="ambeth\security\UserIndependentAttribute.cs" />
+    <Compile Include="ambeth\service\ISecurityService.cs" />
+    <Compile Include="ambeth\service\ISecurityServiceWCF.cs" />
+    <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
+    <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
+    <Compile Include="ioc\SecurityBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
+      <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
+      <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
+      <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
+      <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
+      <Name>Ambeth.Service</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
+      <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
+      <Name>Ambeth.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

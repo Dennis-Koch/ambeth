@@ -1,0 +1,21 @@
+.classpath
+.metadata
+.project
+.settings
+.svn
+*.csproj.user
+*.launch
+*.pdsync
+*.pdsyncu
+*.testsettings
+*.vsmdi
+ambeth-log.txt
+
+/*/*/bin
+/*/*/Bin
+/*/*/obj
+/*/*/TestResults
+/*/*/Test References
+
+/ambeth-integrity/de.osthus.classbrowser.csharp/CsharpClassbrowser/CsharpClassbrowser/bin
+/ambeth-integrity/de.osthus.classbrowser.csharp/CsharpClassbrowser/CsharpClassbrowser/obj

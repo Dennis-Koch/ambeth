@@ -1,0 +1,35 @@
+<project name="checkstyle" default="checkstyle">
+
+	<target name="init-checkstyle">
+		<fail unless="checkstyle.jar.file" />
+		<fail unless="checkstyle.src.dir" />
+
+		<property name="checkstyle.file" value="checkstyle_checks.xml" />
+		
+		<property name="checkstyle.tabwidth" value="4" />
+		<property name="checkstyle.maxline" value="160" />
+
+		<taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar.file}" />
+	</target>
+	
+	<target name="-checkstyle-prop-outputfile" depends="init-checkstyle" unless="checkstyle.output.file">
+		<fail unless="target.base.dir" />
+		<property name="checkstyle.report.dir" value="${target.base.dir}/checkstyle" />
+		<mkdir dir="${checkstyle.report.dir}" />
+		<property name="checkstyle.output.file" value="${checkstyle.report.dir}/report.xml" />
+	</target>
+	
+	<target name="checkstyle" depends="init-checkstyle,-checkstyle-prop-outputfile">
+		<delete file="${checkstyle.output.file}" quiet="true" />
+
+		<checkstyle config="${checkstyle.file}" classpathref="checkstyle.auxclasspath">
+			<property key="checkstyle.severity" value="warning" />
+			<property key="checkstyle.tabwidth" value="${checkstyle.tabwidth}" />
+			<property key="checkstyle.LineLength.max" value="${checkstyle.maxline}" />
+			<fileset dir="${checkstyle.src.dir}" includes="**/*.java" />
+			<formatter type="plain" />
+			<formatter type="xml" toFile="${checkstyle.output.file}" />
+		</checkstyle>
+	</target>
+</project>
+

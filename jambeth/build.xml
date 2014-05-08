@@ -1,0 +1,758 @@
+<project name="jambeth" default="export">
+
+	<property name="morfran.home" value="../../morfran" />
+
+	<property name="antlibs.dir" value="${morfran.home}/antlibs" />
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="${antlibs.dir}/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+
+	<property environment="env" />
+
+	<condition property="emma.lib.dir" value="${env.emma.lib.dir}">
+		<isset property="env.emma.lib.dir" />
+	</condition>
+
+	<condition property="findbugs.home" value="${env.findbugs.home}">
+		<isset property="env.findbugs.home" />
+	</condition>
+
+	<condition property="checkstyle.jar.file" value="${env.checkstyle.jar.file}">
+		<isset property="env.checkstyle.jar.file" />
+	</condition>
+
+	<condition property="junit.lib.file" value="${env.junit.lib.file}">
+		<isset property="env.junit.lib.file" />
+	</condition>
+
+	<property name="junit.debug.port" value="8787" />
+
+	<property name="emma.coverage.active" value="true" />
+
+	<available file="${emma.lib.dir}" type="dir" property="emma.lib.dir.available" />
+
+	<path id="emma.lib.path">
+		<pathelement location="${emma.lib.dir}/emma.jar" />
+		<pathelement location="${emma.lib.dir}/emma_ant.jar" />
+	</path>
+
+	<path id="findbugs.lib.path">
+		<pathelement location="${findbugs.home}/lib/findbugs.jar" />
+		<pathelement location="${findbugs.home}/lib/findbugs-ant.jar" />
+	</path>
+
+	<property name="workspace.base.dir" value=".." />
+	
+	<property name="java.target.version" value="1.6" />
+
+	<property name="junit.lib.file" location="${workspace.base.dir}/jAmbeth.Util/lib/junit/junit-4.10.jar" />
+	
+	<property name="target.base.dir" value="${workspace.base.dir}" />
+
+	<property name="findbugs.report.dir" value="${target.base.dir}/findbugs" />
+
+	<property name="workspace.build.dir" value="${target.base.dir}/build" />
+
+	<property name="build.number" value="2.0.manual" />
+
+	<property name="svn.repo.url" value="https://svn02.osthus.de/osthus-intern/pavonis" />
+
+	<property name="svn.branch.jambeth" value="branches/agrilog" />
+
+	<property name="emma.instr.dir" value="${workspace.build.dir}/emma_instr" />
+	<property name="emma.coverage.dir" value="${target.base.dir}/emma" />
+
+	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
+	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />
+	<property name="build.dev.dce.persistence.dir" value="${workspace.build.dir}/dev_dce_persistence" />
+	<property name="build.dev.persistence.dir" value="${workspace.build.dir}/dev_persistence" />
+	<property name="build.dev.test.dir" value="${workspace.build.dir}/dev_test" />
+	<property name="build.dev.xml.dir" value="${workspace.build.dir}/dev_xml" />
+	<property name="build.prod.dir" value="${workspace.build.dir}/prod" />
+	<property name="build.test.dir" value="${workspace.build.dir}/test" />
+	<property name="build.junit.dir" value="${workspace.build.dir}/junit" />
+	<property name="build.addon.dir" value="${workspace.build.dir}/addon" />
+	<property name="source.dev.dir" value="${target.base.dir}/src/all" />
+	<property name="source.junit.dir" value="${target.base.dir}/src/jUnit" />
+	<property name="source.addon.dir" value="${workspace.base.dir}/jAmbeth.Test/addon" />
+
+	<property name="build.dev.dirs" value="${build.dev.dir},${build.dev.job.dir},${build.dev.dce.persistence.dir},${build.dev.persistence.dir},${build.dev.xml.dir}" />
+
+	<property name="target.jars.dir" value="${target.base.dir}/jars" />
+	<property name="target.javadoc.dir" value="${target.base.dir}/javadoc" />
+	<property name="target.libs.dir" value="${target.base.dir}/libs" />
+
+	<property name="junit.report.dir" value="${target.base.dir}/junit" />
+	<property name="checkstyle.report.dir" value="${target.base.dir}/checkstyle" />
+
+	<property name="src.jar.filename" value="jAmbeth-src-${build.number}.jar" />
+	<property name="dev.jar.filename" value="jAmbeth-dev-${build.number}.jar" />
+	<property name="dev.job.jar.filename" value="jAmbeth-job-cron4j-dev-${build.number}.jar" />
+	<property name="dev.dce.persistence.jar.filename" value="jAmbeth-dce-persistence-dev-${build.number}.jar" />
+	<property name="dev.persistence.jar.filename" value="jAmbeth-persistence-dev-${build.number}.jar" />
+	<property name="dev.xml.jar.filename" value="jAmbeth-xml-dev-${build.number}.jar" />
+	<property name="prod.jar.filename" value="jAmbeth-${build.number}.jar" />
+	<property name="junitsrc.jar.filename" value="jAmbeth-jUnitSrc-${build.number}.jar" />
+	<property name="junit.jar.filename" value="jAmbeth-jUnit-${build.number}.jar" />
+
+	<property name="src.jar.file" value="${target.jars.dir}/${src.jar.filename}" />
+	<property name="junitsrc.jar.file" value="${target.jars.dir}/${junitsrc.jar.filename}" />
+
+	<property name="dev.jar.file" value="${target.jars.dir}/${dev.jar.filename}" />
+	<property name="dev.job.jar.file" value="${target.jars.dir}/${dev.job.jar.filename}" />
+	<property name="dev.dce.persistence.jar.file" value="${target.jars.dir}/${dev.dce.persistence.jar.filename}" />
+	<property name="dev.persistence.jar.file" value="${target.jars.dir}/${dev.persistence.jar.filename}" />
+	<property name="dev.xml.jar.file" value="${target.jars.dir}/${dev.xml.jar.filename}" />
+
+	<property name="prod.jar.file" value="${target.jars.dir}/${prod.jar.filename}" />
+
+	<property name="junit.jar.file" value="${target.jars.dir}/${junit.jar.filename}" />
+
+	<path id="ambeth.lib.classpath">
+		<pathelement location="${workspace.base.dir}/jAmbeth.Job.Cron4j/lib/cron4j-2.2.5.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Merge/lib/javax.persistence_2.0.0.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Persistence/lib/javax.transaction_1.0.0.0_1-1.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Persistence.Oracle11/lib/ojdbc6.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Util/lib/cglib/cglib-nodep-2.2.2.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/commons-lang3-3.1.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/javassist.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/servlet-api.jar" />
+		<pathelement location="${workspace.base.dir}/jAmbeth.Xml/lib/xpp3-1.1.4c.jar" />
+	</path>
+
+	<property name="target.dir" value="${target.base.dir}/target" />
+	<property name="target" location="${build.dev.dir}" />
+	<property name="test.target" location="${target.dir}/test-classes" />
+	<property name="instr.target" location="${target.dir}/instr-classes" />
+
+	<path id="test.compile.classpath">
+		<path refid="ambeth.lib.classpath" />
+		<pathelement location="${junit.lib.file}" />
+		<pathelement location="${build.dev.dir}" />
+		<pathelement location="${build.dev.dce.persistence.dir}" />
+		<pathelement location="${build.dev.job.dir}" />
+		<pathelement location="${build.dev.persistence.dir}" />
+		<pathelement location="${build.dev.test.dir}" />
+		<pathelement location="${build.dev.xml.dir}" />
+	</path>
+
+	<path id="junit.classpath">
+		<path refid="test.compile.classpath" />
+		<pathelement location="${test.target}" />
+	</path>
+
+	<property name="source.relative.dirs" value="
+		${workspace.base.dir}/jAmbeth.Cache/src
+		:${workspace.base.dir}/jAmbeth.Cache.DataChange/src
+		:${workspace.base.dir}/jAmbeth.DataChange/src
+		:${workspace.base.dir}/jAmbeth.Event/src
+		:${workspace.base.dir}/jAmbeth.Filter/src
+		:${workspace.base.dir}/jAmbeth.Ioc/src
+		:${workspace.base.dir}/jAmbeth.Log/src
+		:${workspace.base.dir}/jAmbeth.Merge/src
+		:${workspace.base.dir}/jAmbeth.Security/src
+		:${workspace.base.dir}/jAmbeth.Service/src
+		:${workspace.base.dir}/jAmbeth.Util/src
+		:${workspace.base.dir}/jAmbeth.Util/asm_src
+		:${workspace.base.dir}/jAmbeth.Util/reflect_asm_src" />
+
+	<property name="source.relative.dirs.job" value="${workspace.base.dir}/jAmbeth.Job.Cron4j/src" />
+
+	<property name="source.relative.dirs.dce.persistence" value="${workspace.base.dir}/jAmbeth.DataChange.Persistence/src" />
+
+	<property name="source.relative.dirs.persistence" value="
+			${workspace.base.dir}/jAmbeth.Cache.Server/src
+			:${workspace.base.dir}/jAmbeth.Event.DataChange/src
+			:${workspace.base.dir}/jAmbeth.Event.Server/src
+			:${workspace.base.dir}/jAmbeth.Job/src
+			:${workspace.base.dir}/jAmbeth.Mapping/src
+			:${workspace.base.dir}/jAmbeth.Merge.Server/src
+			:${workspace.base.dir}/jAmbeth.Persistence/src
+			:${workspace.base.dir}/jAmbeth.Persistence.JDBC/src
+			:${workspace.base.dir}/jAmbeth.Persistence.Oracle11/src
+			:${workspace.base.dir}/jAmbeth.Privilege/src
+			:${workspace.base.dir}/jAmbeth.Privilege.Server/src
+			:${workspace.base.dir}/jAmbeth.Query/src
+			:${workspace.base.dir}/jAmbeth.Security.Server/src" />
+	
+	<property name="source.relative.dirs.test" value="
+			${workspace.base.dir}/jAmbeth.Test/src" />
+	
+	<property name="source.relative.dirs.xml" value="${workspace.base.dir}/jAmbeth.Xml/src" />
+
+	<property name="src.test.relative.dirs" value="
+		${workspace.base.dir}/jAmbeth.Test/test
+		:${workspace.base.dir}/jAmbeth.Cache/test
+		:${workspace.base.dir}/jAmbeth.Cache.DataChange/test
+		:${workspace.base.dir}/jAmbeth.Cache.Server/test
+		:${workspace.base.dir}/jAmbeth.DataChange/test
+		:${workspace.base.dir}/jAmbeth.DataChange.Persistence/test
+		:${workspace.base.dir}/jAmbeth.Event/test
+		:${workspace.base.dir}/jAmbeth.Event.DataChange/test
+		:${workspace.base.dir}/jAmbeth.Event.Server/test
+		:${workspace.base.dir}/jAmbeth.Filter/test
+		:${workspace.base.dir}/jAmbeth.Ioc/test
+		:${workspace.base.dir}/jAmbeth.Job/test
+		:${workspace.base.dir}/jAmbeth.Job.Cron4j/test
+		:${workspace.base.dir}/jAmbeth.Log/test
+		:${workspace.base.dir}/jAmbeth.Merge/test
+		:${workspace.base.dir}/jAmbeth.Merge.Server/test
+		:${workspace.base.dir}/jAmbeth.Persistence/test
+		:${workspace.base.dir}/jAmbeth.Persistence.JDBC/test
+		:${workspace.base.dir}/jAmbeth.Persistence.Oracle11/src
+		:${workspace.base.dir}/jAmbeth.Privilege/test
+		:${workspace.base.dir}/jAmbeth.Privilege.Server/test
+		:${workspace.base.dir}/jAmbeth.Query/test
+		:${workspace.base.dir}/jAmbeth.Security/test
+		:${workspace.base.dir}/jAmbeth.Security.Server/test
+		:${workspace.base.dir}/jAmbeth.Service/test
+		:${workspace.base.dir}/jAmbeth.TestUtil/src
+		:${workspace.base.dir}/jAmbeth.TestUtil/test
+		:${workspace.base.dir}/jAmbeth.Util/test
+		:${workspace.base.dir}/jAmbeth.Xml/test" />
+
+	<fileset id="nightlyOnlyTests" dir="${build.test.dir}">
+		<include name="de/osthus/ambeth/query/QueryMassdataTest.class" />
+		<include name="de/osthus/ambeth/query/isin/QueryIsInMassdataTest.class" />
+	</fileset>
+
+	<target name="clean-dev">
+		<delete dir="${build.dev.dir}" />
+		<delete dir="${build.dev.dce.persistence.dir}" />
+		<delete dir="${build.dev.job.dir}" />
+		<delete dir="${build.dev.persistence.dir}" />
+		<delete dir="${build.dev.test.dir}" />
+		<delete dir="${build.dev.xml.dir}" />
+	</target>
+
+	<target name="clean-prod">
+		<delete dir="${build.prod.dir}" />
+	</target>
+
+	<target name="clean-doc">
+		<delete dir="${target.javadoc.dir}" />
+	</target>
+
+	<target name="clean-junit">
+		<delete dir="${source.junit.dir}" />
+		<delete dir="${build.junit.dir}" />
+	</target>
+
+	<target name="clean-addon">
+		<delete dir="${build.addon.dir}" />
+	</target>
+
+	<target name="init-doc" depends="clean-doc">
+		<mkdir dir="${target.javadoc.dir}" />
+	</target>
+
+	<target name="init-dev" depends="clean-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<mkdir dir="${build.dev.dir}" />
+		<mkdir dir="${build.dev.dce.persistence.dir}" />
+		<mkdir dir="${build.dev.job.dir}" />
+		<mkdir dir="${build.dev.persistence.dir}" />			
+		<mkdir dir="${build.dev.test.dir}" />			
+		<mkdir dir="${build.dev.xml.dir}" />
+	</target>
+
+	<target name="init-prod" depends="clean-prod">
+		<mkdir dir="${target.jars.dir}" />
+		<mkdir dir="${build.prod.dir}" />
+	</target>
+
+	<target name="init-junit" depends="clean-junit">
+		<mkdir dir="${target.jars.dir}" />
+		<mkdir dir="${source.junit.dir}" />
+		<mkdir dir="${build.junit.dir}" />
+	</target>
+
+	<target name="init-addon" depends="clean-addon">
+		<mkdir dir="${build.addon.dir}" />
+	</target>
+
+	<target name="assemble-junit" depends="init-junit">
+		<copy todir="${source.junit.dir}/de/osthus/ambeth/testutil/">
+			<fileset dir="${workspace.base.dir}/jAmbeth.TestUtil/src/de/osthus/ambeth/testutil/" excludes="ExampleTest.java" />
+		</copy>
+		<copy todir="${source.junit.dir}/de/osthus/ambeth/testutil/">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test/de/osthus/ambeth/testutil/" />
+		</copy>
+		<copy todir="${source.junit.dir}/de/osthus/ambeth/test/">
+			<fileset dir="${workspace.base.dir}/jAmbeth.TestUtil/src/de/osthus/ambeth/test/" excludes="ExampleTest.java" />
+		</copy>
+		<copy todir="${source.junit.dir}/de/osthus/ambeth/test/">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test/de/osthus/ambeth/test/" />
+		</copy>
+		<copy file="${workspace.base.dir}/jAmbeth.Merge/test/de/osthus/ambeth/merge/EntityMetaDataFake.java" todir="${source.junit.dir}/de/osthus/ambeth/merge/" />
+		<copy file="${workspace.base.dir}/jAmbeth.Merge/test/de/osthus/ambeth/merge/IEntityMetaDataFiller.java" todir="${source.junit.dir}/de/osthus/ambeth/merge/" />
+	</target>
+
+	<target name="compile-dev" depends="init-dev">
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs}" destdir="${build.dev.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+			</classpath>
+		</javac>
+		<copy todir="${build.dev.dir}">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Util/src">
+				<include name="**/*.xsd" />
+				<include name="**/*.wsdl" />
+				<include name="**/*.wadl" />
+			</fileset>
+		</copy>
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs.persistence}" destdir="${build.dev.persistence.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<path location="${build.dev.dir}" />
+			</classpath>
+		</javac>
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs.dce.persistence}" destdir="${build.dev.dce.persistence.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<path location="${build.dev.dir}" />
+				<path location="${build.dev.persistence.dir}" />
+			</classpath>
+		</javac>
+		<copy todir="${build.dev.dce.persistence.dir}">
+			<fileset dir="${source.relative.dirs.dce.persistence}">
+				<include name="**/*.xml" />
+				<include name="**/*.sql" />
+			</fileset>
+		</copy>
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs.job}" destdir="${build.dev.job.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<path location="${build.dev.dir}" />
+				<path location="${build.dev.persistence.dir}" />
+			</classpath>
+		</javac>
+		<javac target="${java.target.version}" source="${java.target.version}"  srcdir="${source.relative.dirs.xml}" destdir="${build.dev.xml.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<path location="${build.dev.dir}" />
+			</classpath>
+		</javac>
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs.test}" destdir="${build.dev.test.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<exclude name="de/osthus/ambeth/platform/ConfigurationPropertiesScanner.java" />
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+				<path location="${build.dev.dir}" />
+				<path location="${build.dev.dce.persistence.dir}" />				
+				<path location="${build.dev.job.dir}" />
+				<path location="${build.dev.persistence.dir}" />
+				<path location="${build.dev.xml.dir}" />				
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-prod" depends="init-prod">
+		<javac target="${java.target.version}" source="${java.target.version}"  srcdir="${source.relative.dirs}" destdir="${build.prod.dir}" includeAntRuntime="false" fork="true" debug="off" encoding="UTF-8">
+			<classpath>
+				<path refid="ambeth.lib.classpath" />
+			</classpath>
+			<exclude name="**/*Test.java" />
+			<exclude name="de/osthus/ambeth/platform/ConfigurationPropertiesScanner.java" />
+		</javac>
+	</target>
+
+	<target name="compile-junit" depends="assemble-junit,jar-dev">
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.junit.dir}" destdir="${build.junit.dir}" classpath="${dev.jar.file};${junit.lib.file}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<classpath>
+				<path refid="test.compile.classpath" />
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="compile-addon" depends="init-addon">
+		<property name="java.tools.jar" value="${env.JAVA_HOME}/lib/tools.jar" />
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.addon.dir}" destdir="${build.addon.dir}" classpath="${java.tools.jar}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8" />
+	</target>
+
+	<target name="-emma-instrument" depends="compile-dev,-emma-instrument-intern,-no-emma-instrument-intern" />
+
+	<target name="-no-emma-instrument-intern" unless="emma.lib.dir.available">
+		<path id="test.classpath">
+			<pathelement location="${build.test.dir}" />
+			<pathelement location="${build.dev.dirs}" />
+			<path refid="junit.classpath" />
+		</path>
+	</target>
+
+	<target name="-emma-instrument-intern" if="emma.lib.dir.available">
+
+		<taskdef resource="emma_ant.properties" classpathref="emma.lib.path" />
+
+		<delete dir="${instr.target}" />
+		<mkdir dir="${instr.target}" />
+		<delete dir="${emma.coverage.dir}" />
+		<mkdir dir="${emma.coverage.dir}" />
+		<if>
+			<equals arg1="${emma.coverage.active}" arg2="true" />
+			<then>
+				<emma>
+					<instr instrpath="${build.dev.dirs}" destdir="${instr.target}" metadatafile="${emma.coverage.dir}/metadata.emma" mode="copy">
+						<filter excludes="de.osthus.ambeth.repackaged.*" />
+					</instr>
+				</emma>
+			</then>
+			<else>
+				<emma>
+					<instr instrpath="${build.dev.dirs}" destdir="${instr.target}" metadatafile="${emma.coverage.dir}/metadata.emma" mode="copy">
+						<filter excludes="*" />
+					</instr>
+				</emma>
+			</else>
+		</if>
+		<!-- Update the classpath that will run the instrumented code -->
+		<path id="test.classpath">
+			<pathelement location="${instr.target}" />
+			<pathelement location="${build.test.dir}" />
+			<pathelement location="${build.dev.dirs}" />
+			<path refid="junit.classpath" />
+			<pathelement location="${emma.lib.dir}/emma.jar" />
+		</path>
+	</target>
+
+	<target name="-emma-report" depends="export-src" if="emma.lib.dir.available">
+		<if>
+			<equals arg1="${emma.coverage.active}" arg2="true" />
+			<then>
+				<emma>
+					<report sourcepath="${source.dev.dir}">
+						<fileset dir="${emma.coverage.dir}">
+							<include name="*.*" />
+						</fileset>
+						<html outfile="${emma.coverage.dir}/coverage.html" depth="method" />
+						<xml outfile="${emma.coverage.dir}/coverage.xml" depth="method" />
+					</report>
+				</emma>
+			</then>
+		</if>
+	</target>
+
+	<target name="findbugs" depends="export-src,compile-dev">
+		<taskdef name="findbugs" classpathref="findbugs.lib.path" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" />
+
+		<fail unless="source.dev.dir" />
+		<fail unless="build.dev.dir" />
+		<fail unless="build.dev.dce.persistence.dir" />
+		<fail unless="build.dev.job.dir" />
+		<fail unless="build.dev.persistence.dir" />
+		<fail unless="build.dev.xml.dir" />
+		<fail unless="findbugs.home" />
+		<fail unless="findbugs.report.dir" />
+		<fail unless="workspace.base.dir" />
+		
+		<delete dir="${findbugs.report.dir}" />
+		<mkdir dir="${findbugs.report.dir}" />
+
+		<findbugs home="${findbugs.home}" output="xml" outputFile="${findbugs.report.dir}/findbugs.xml" effort="max" reportLevel="low" excludeFilter="./findbugs_exclude_checks.xml">
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Job.Cron4j/lib/cron4j-2.2.5.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Merge/lib/javax.persistence_2.0.0.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Persistence/lib/javax.transaction_1.0.0.0_1-1.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Persistence.Oracle11/lib/ojdbc6.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Util/lib/cglib/cglib-nodep-2.2.2.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Xml/lib/commons-lang3-3.1.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Xml/lib/javassist.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Xml/lib/servlet-api.jar" />
+			<auxClasspath location="${workspace.base.dir}/jAmbeth.Xml/lib/xpp3-1.1.4c.jar" />
+			<sourcepath location="${source.dev.dir}" />
+			<class location="${build.dev.dir}" />
+			<class location="${build.dev.dce.persistence.dir}" />
+			<class location="${build.dev.job.dir}" />
+			<class location="${build.dev.persistence.dir}" />
+			<class location="${build.dev.xml.dir}" />
+		</findbugs>
+	</target>
+
+	<target name="checkstyle" depends="export-src">
+		<taskdef resource="checkstyletask.properties" classpath="${checkstyle.jar.file}" />
+
+		<delete dir="${checkstyle.report.dir}" />
+		<mkdir dir="${checkstyle.report.dir}" />
+
+		<checkstyle config="./checkstyle_checks.xml" classpathref="ambeth.lib.classpath">
+			<property key="checkstyle.severity" value="warning" />
+			<property key="checkstyle.tabwidth" value="4" />
+			<property key="checkstyle.LineLength.max" value="160" />
+			<fileset dir="${source.dev.dir}" includes="**/*.java" />
+			<formatter type="plain" />
+			<formatter type="xml" toFile="${checkstyle.report.dir}/report.xml" />
+		</checkstyle>
+	</target>
+
+	<target name="junit-local" depends="-deleteTargetDir,jar-dev,jar-junit,junit" />
+
+	<target name="junit" depends="-junit-execute,-emma-report" />
+
+	<target name="-junit-execute" depends="compile-dev,-emma-instrument,jar-dev">
+		<delete dir="${build.test.dir}" />
+		<delete dir="${junit.report.dir}" />
+		<mkdir dir="${build.test.dir}" />
+		<mkdir dir="${junit.report.dir}" />
+		<echo message="Looking for junit.jar at: ${junit.lib.file}" />
+		<condition property="junit.file.exists">
+			<available file="${junit.lib.file}" />
+		</condition>
+		<fail unless="junit.file.exists" />
+
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${src.test.relative.dirs}" destdir="${build.test.dir}" includeAntRuntime="false" fork="true" debug="on">
+			<classpath refid="test.compile.classpath" />
+		</javac>
+		<property name="files.include" value="**/*.xml,**/*.properties,**/*.sql" />
+		<copy todir="${build.test.dir}">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Test/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache.DataChange/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache.Server/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.DataChange/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.DataChange.Persistence/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event.DataChange/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event.Server/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Filter/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Job/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Job.Cron4j/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Log/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Merge/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Merge.Server/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence.JDBC/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence.Oracle11/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Privilege/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Privilege.Server/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Query/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Security/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Security.Server/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Service/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Util/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.TestUtil/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Xml/test" includes="${files.include}" />
+		</copy>
+
+		<if>
+			<not>
+				<isset property="nightly" />
+			</not>
+			<then>
+				<delete>
+					<fileset refid="nightlyOnlyTests" />
+				</delete>
+			</then>
+		</if>
+		<property name="citemp.properties" value="citemp.properties" />
+
+		<java classname="de.osthus.ambeth.testutil.RandomUserScript" fork="true" failonerror="true" maxmemory="128m">
+			<arg value="script.create=true" />
+			<arg value="script.user.pass=citemp" />
+			<arg value="script.user.propertyfile=${citemp.properties}" />
+			<arg value="property.file=${property.file}" />
+			<classpath>
+				<path refid="test.classpath" />
+			</classpath>
+		</java>
+
+		<junit maxmemory="1024m" fork="true" haltonerror="false" failureproperty="false" filtertrace="false">
+			<jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />
+			<jvmarg value="-Demma.coverage.out.merge=true" />
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xnoagent" />
+			<jvmarg value="-Djava.compiler=NONE" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,address=${junit.debug.port},server=y,suspend=n" />
+			<syspropertyset>
+				<propertyref builtin="commandline" />
+			</syspropertyset>
+			<jvmarg value="-Dproperty.file=citemp.properties;${property.file}" />
+			<formatter type="xml" />
+			<classpath refid="test.classpath" />
+			<batchtest todir="${junit.report.dir}">
+				<fileset dir="${build.test.dir}" includes="de/osthus/**/*Test.class" excludes="**/Abstract*Test.class" />
+			</batchtest>
+		</junit>
+
+		<java classname="de.osthus.ambeth.testutil.RandomUserScript" fork="true" failonerror="false" maxmemory="128m">
+			<arg value="script.create=false" />
+			<arg value="script.user.propertyfile=${citemp.properties}" />
+			<arg value="property.file=${property.file}" />
+			<classpath>
+				<path refid="test.classpath" />
+			</classpath>
+		</java>
+
+	</target>
+
+	<target name="export-src">
+		<delete dir="${source.dev.dir}" />
+		<mkdir dir="${source.dev.dir}" />
+
+		<copy todir="${source.dev.dir}">
+			<fileset dir="${workspace.base.dir}/jAmbeth.Test/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache.DataChange/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Cache.Server/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.DataChange/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.DataChange.Persistence/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event.DataChange/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Event.Server/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Filter/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Job/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Job.Cron4j/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Log/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Mapping/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Merge/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Merge.Server/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence.JDBC/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Persistence.Oracle11/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Privilege/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Privilege.Server/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Query/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Security/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Security.Server/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Service/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Util/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.Xml/src" />
+		</copy>
+	</target>
+
+	<target name="javadoc" depends="init-doc,export-src,compile-addon">
+		<javadoc packagenames="de.osthus.ambeth.*" sourcepath="${source.dev.dir}" defaultexcludes="yes" destdir="${target.javadoc.dir}" author="true" version="true" use="true" windowtitle="jAmbeth API Build '${build.number}'">
+			<classpath refid="ambeth.lib.classpath" />
+			<taglet name="de.osthus.ambeth.javadoc.WikiTaglet" path="${build.addon.dir}" />
+		</javadoc>
+	</target>
+
+	<target name="jar-src" depends="export-src">
+		<mkdir dir="${target.jars.dir}" />
+		<jar basedir="${source.dev.dir}" destfile="${src.jar.file}" />
+		<jar basedir="${source.junit.dir}" destfile="${junitsrc.jar.file}" />
+	</target>
+
+	<target name="copy-libs">
+		<mkdir dir="${target.libs.dir}" />
+		<property name="path.separator" value="," />
+		<pathconvert property="ambeth.lib.classpath.list" pathsep="${path.separator}" refid="ambeth.lib.classpath" />
+		<foreach list="${ambeth.lib.classpath.list}" delimiter="${path.separator}" target="-copy-one-lib" param="lib.path" />
+	</target>
+
+	<target name="-copy-one-lib">
+		<copy todir="${target.libs.dir}" file="${lib.path}" preservelastmodified="true" overwrite="true" />
+	</target>
+
+	<target name="jar-dev" depends="compile-dev">
+		<mkdir dir="${target.jars.dir}" />
+		<jar basedir="${build.dev.dir}" destfile="${dev.jar.file}" />
+		<jar basedir="${build.dev.dce.persistence.dir}" destfile="${dev.dce.persistence.jar.file}" />
+		<jar basedir="${build.dev.job.dir}" destfile="${dev.job.jar.file}" />
+		<jar basedir="${build.dev.persistence.dir}" destfile="${dev.persistence.jar.file}" />
+		<jar basedir="${build.dev.xml.dir}" destfile="${dev.xml.jar.file}" />
+	</target>
+
+	<target name="jar-prod" depends="compile-prod">
+		<mkdir dir="${target.jars.dir}" />
+		<jar basedir="${build.prod.dir}" destfile="${prod.jar.file}" />
+	</target>
+
+	<target name="jar-junit" depends="compile-junit">
+		<mkdir dir="${target.jars.dir}" />
+		<jar basedir="${build.junit.dir}" destfile="${junit.jar.file}" />
+	</target>
+
+	<target name="export" depends="-deleteTargetDir,jar-dev,jar-prod,jar-src,jar-junit">
+	</target>
+
+	<target name="-deleteTargetDir">
+		<delete dir="${target.jars.dir}" />
+	</target>
+
+	<target name="-zip-jars">
+		<delete file="${target.jars.dir}/jAmbeth.zip" />
+		<delete file="${target.libs.dir}/libs.zip" />
+		<property name="schema.dir" value="${workspace.base.dir}/jAmbeth.Util/src/de/osthus/ambeth/schema" />
+		<zip destfile="${target.jars.dir}/jAmbeth.zip">
+			<fileset dir="${target.jars.dir}" includes="*.jar" />
+			<zipfileset dir="${schema.dir}" includes="ambeth_simple_types_1_2.xsd" fullpath="schema/ambeth_simple_types_1_2.xsd" />
+			<zipfileset dir="${schema.dir}" includes="ambeth_orm_1_2.xsd" fullpath="schema/ambeth_orm_1_2.xsd" />
+			<zipfileset dir="${schema.dir}" includes="ambeth_vom_1_3.xsd" fullpath="schema/ambeth_vom_1_3.xsd" />
+		</zip>
+		<zip destfile="${target.libs.dir}/libs.zip" basedir="${target.libs.dir}" includes="*.jar" />
+	</target>
+
+	<target name="-store-revision">
+		<exec executable="svnversion" dir="${workspace.base.dir}/." outputproperty="jambeth.revision" />
+		<echo>Ambeth revision: ${jambeth.revision}</echo>
+	</target>
+
+	<target name="tag-dev" depends="-store-revision">
+		<if>
+			<not>
+				<isset property="nightly" />
+			</not>
+			<then>
+				<exec executable="svn" outputproperty="svn.result">
+					<arg value="copy" />
+					<arg value="${svn.repo.url}/${svn.branch.jambeth}@${jambeth.revision}" />
+					<arg value="${svn.repo.url}/tags/jambeth/CI_BUILD_${env.BUILD_NUMBER}" />
+					<arg value="-m" />
+					<arg value="Tagging last-successful jAmbeth rev: ${jambeth.revision} in Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}" />
+				</exec>
+				<echo>SVN Result ${svn.result}</echo>
+			</then>
+		</if>
+	</target>
+
+	<target name="scan-configuration-constants">
+		<path id="properties.scanner.classpath">
+			<path location="${dev.jar.file}" />
+			<path location="${dev.dce.persistence.jar.file}" />
+			<path location="${dev.job.jar.file}" />
+			<path location="${dev.xml.jar.file}" />
+			<path refid="ambeth.lib.classpath" />
+		</path>
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs}" destdir="${build.dev.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+			<include name="de/osthus/ambeth/platform/ConfigurationPropertiesScanner.java" />
+			<classpath>
+				<path refid="properties.scanner.classpath" />
+			</classpath>
+		</javac>
+		<path id="properties.scanner.classpath.all">
+			<path refid="properties.scanner.classpath" />
+			<path location="${build.dev.dir}" />
+		</path>
+		<java fork="true" classname="de.osthus.ambeth.platform.ConfigurationPropertiesScanner" classpathref="properties.scanner.classpath.all">
+			<arg value="${target.jars.dir}/jAmbeth_config_doc.xml" />
+		</java>
+	</target>
+
+	<target name="-create-download-propfile">
+		<delete file="${target.jars.dir}/jAmbeth.properties" />
+		<propertyfile file="${target.jars.dir}/jAmbeth.properties">
+			<entry key="jAmbeth.src.jar" value="${src.jar.filename}" />
+			<entry key="jAmbeth.dev.jar" value="${dev.jar.filename}" />
+			<entry key="jAmbeth.dev.dce.persistence.jar" value="${dev.dce.persistence.jar.filename}" />
+			<entry key="jAmbeth.dev.job.jar" value="${dev.job.jar.filename}" />
+			<entry key="jAmbeth.dev.persistence.jar" value="${dev.persistence.jar.filename}" />
+			<entry key="jAmbeth.dev.xml.jar" value="${dev.xml.jar.filename}" />
+			<entry key="jAmbeth.prod.jar" value="${prod.jar.filename}" />
+			<entry key="jAmbeth.test.jar" value="${junit.jar.filename}" />
+			<entry key="jAmbeth.testsrc.jar" value="${junitsrc.jar.filename}" />
+			<entry key="jAmbeth.version" value="${build.number}" />
+			<entry key="jAmbeth.revision" value="${jambeth.revision}" />
+		</propertyfile>
+	</target>
+
+	<target name="jenkins" depends="tag-dev,-deleteTargetDir,jar-dev,jar-junit,scan-configuration-constants,jar-src,jar-prod,copy-libs,-zip-jars,-create-download-propfile,junit,findbugs,checkstyle,javadoc" />
+
+	<target name="jenkins-nightly">
+		<property name="nightly" value="true" />
+		<antcall target="jenkins" />
+	</target>
+
+</project>
