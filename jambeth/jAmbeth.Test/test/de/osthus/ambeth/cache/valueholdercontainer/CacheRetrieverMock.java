@@ -2,7 +2,6 @@ package de.osthus.ambeth.cache.valueholdercontainer;
 
 import java.util.List;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
@@ -104,50 +103,50 @@ public class CacheRetrieverMock implements IInitializingBean, ICacheRetriever, I
 	@Override
 	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public Class<?> getTargetProviderType(Class<?> clientInterface)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public Class<?> getSyncInterceptorType(Class<?> clientInterface)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public String getServiceName(Class<?> clientInterface)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	public void postProcessTargetProviderBean(String targetProviderBeanName, IBeanContextFactory beanContextFactory)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public IServiceResult getORIsForServiceRequest(IServiceDescription serviceDescription)
 	{
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 }
