@@ -30,7 +30,7 @@
 		<module>jAmbeth.Event.Server</module>
 		<module>jAmbeth.Examples</module>
 		<module>jAmbeth.Filter</module>
-		<module>jAmbeth.Ioc</module>
+		<module>jAmbeth.IoC</module>
 		<module>jAmbeth.Job</module>
 		<module>jAmbeth.Job.Cron4j</module>
 		<module>jAmbeth.Log</module>

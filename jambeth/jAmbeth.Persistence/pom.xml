@@ -35,7 +35,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Ioc</artifactId>
+			<artifactId>jAmbeth.IoC</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
