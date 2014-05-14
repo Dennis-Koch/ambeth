@@ -19,8 +19,6 @@ public class HelloWorldModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("userHandleFactory", HelloWorldUserHandleFactory.class).autowireable(IUserHandleFactory.class);
-
 		beanContextFactory.registerBean("testEntityService", HelloWorldService.class).autowireable(IHelloWorldService.class);
 
 		beanContextFactory.registerBean("randomDataGenerator", RandomDataGenerator.class);

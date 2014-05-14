@@ -150,7 +150,7 @@
 		:${workspace.base.dir}/jAmbeth.DataChange/src
 		:${workspace.base.dir}/jAmbeth.Event/src
 		:${workspace.base.dir}/jAmbeth.Filter/src
-		:${workspace.base.dir}/jAmbeth.Ioc/src
+		:${workspace.base.dir}/jAmbeth.IoC/src
 		:${workspace.base.dir}/jAmbeth.Log/src
 		:${workspace.base.dir}/jAmbeth.Merge/src
 		:${workspace.base.dir}/jAmbeth.Security/src
@@ -194,7 +194,7 @@
 		:${workspace.base.dir}/jAmbeth.Event.DataChange/test
 		:${workspace.base.dir}/jAmbeth.Event.Server/test
 		:${workspace.base.dir}/jAmbeth.Filter/test
-		:${workspace.base.dir}/jAmbeth.Ioc/test
+		:${workspace.base.dir}/jAmbeth.IoC/test
 		:${workspace.base.dir}/jAmbeth.Job/test
 		:${workspace.base.dir}/jAmbeth.Job.Cron4j/test
 		:${workspace.base.dir}/jAmbeth.Log/test
@@ -279,13 +279,13 @@
 			<fileset dir="${workspace.base.dir}/jAmbeth.TestUtil/src/de/osthus/ambeth/testutil/" excludes="ExampleTest.java" />
 		</copy>
 		<copy todir="${source.junit.dir}/de/osthus/ambeth/testutil/">
-			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test/de/osthus/ambeth/testutil/" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.IoC/test/de/osthus/ambeth/testutil/" />
 		</copy>
 		<copy todir="${source.junit.dir}/de/osthus/ambeth/test/">
 			<fileset dir="${workspace.base.dir}/jAmbeth.TestUtil/src/de/osthus/ambeth/test/" excludes="ExampleTest.java" />
 		</copy>
 		<copy todir="${source.junit.dir}/de/osthus/ambeth/test/">
-			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test/de/osthus/ambeth/test/" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.IoC/test/de/osthus/ambeth/test/" />
 		</copy>
 		<copy file="${workspace.base.dir}/jAmbeth.Merge/test/de/osthus/ambeth/merge/EntityMetaDataFake.java" todir="${source.junit.dir}/de/osthus/ambeth/merge/" />
 		<copy file="${workspace.base.dir}/jAmbeth.Merge/test/de/osthus/ambeth/merge/IEntityMetaDataFiller.java" todir="${source.junit.dir}/de/osthus/ambeth/merge/" />
@@ -515,7 +515,7 @@
 			<fileset dir="${workspace.base.dir}/jAmbeth.Event.DataChange/test" includes="${files.include}" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Event.Server/test" includes="${files.include}" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Filter/test" includes="${files.include}" />
-			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/test" includes="${files.include}" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.IoC/test" includes="${files.include}" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Job/test" includes="${files.include}" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Job.Cron4j/test" includes="${files.include}" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Log/test" includes="${files.include}" />
@@ -601,7 +601,7 @@
 			<fileset dir="${workspace.base.dir}/jAmbeth.Event.DataChange/src" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Event.Server/src" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Filter/src" />
-			<fileset dir="${workspace.base.dir}/jAmbeth.Ioc/src" />
+			<fileset dir="${workspace.base.dir}/jAmbeth.IoC/src" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Job/src" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Job.Cron4j/src" />
 			<fileset dir="${workspace.base.dir}/jAmbeth.Log/src" />

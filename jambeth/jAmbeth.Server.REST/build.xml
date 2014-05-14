@@ -94,7 +94,7 @@
 			:${workspace.base.dir}/jAmbeth.Event.DataChange/src
 			:${workspace.base.dir}/jAmbeth.Event.Server/src
 			:${workspace.base.dir}/jAmbeth.Filter/src
-			:${workspace.base.dir}/jAmbeth.Ioc/src
+			:${workspace.base.dir}/jAmbeth.IoC/src
 			:${workspace.base.dir}/jAmbeth.Job/src
 			:${workspace.base.dir}/jAmbeth.Job.Cron4j/src
 			:${workspace.base.dir}/jAmbeth.Log/src
