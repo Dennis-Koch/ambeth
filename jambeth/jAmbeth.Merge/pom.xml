@@ -35,7 +35,7 @@
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jAmbeth.Ioc</artifactId>
+			<artifactId>jAmbeth.IoC</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>compile</scope>
