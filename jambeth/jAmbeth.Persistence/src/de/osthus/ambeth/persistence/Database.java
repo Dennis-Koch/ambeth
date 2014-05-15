@@ -20,6 +20,7 @@ import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
@@ -27,8 +28,6 @@ import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfo;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -41,28 +40,35 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Connection connection;
 
+	@Autowired
 	protected IContextProvider contextProvider;
 
+	@Autowired
 	protected IDatabaseProvider databaseProvider;
 
+	@Autowired
 	protected ILoggerHistory loggerHistory;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	protected IModifyingDatabase modifyingDatabase;
 
+	@Autowired
 	protected IDatabasePool pool;
 
+	@Autowired
 	protected IRelationProvider relationProvider;
 
-	protected ISecurityScopeProvider securityScopeProvider;
-
+	@Autowired
 	protected IServiceContext serviceContext;
 
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
-
+	
 	protected Map<String, ITable> nameToTableDict = new HashMap<String, ITable>();
 	protected Map<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
 	protected Map<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
@@ -71,36 +77,18 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	protected Map<TablesMapKey, List<ILink>> tablesToLinkDict = new HashMap<TablesMapKey, List<ILink>>();
 	protected ISet<IField> fieldsMappedToLinks = new IdentityHashSet<IField>();
 
-	protected final Map<Class<?>, IEntityHandler> typeToEntityHandler;
-	protected final ArrayList<Class<?>> handledEntities;
+	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
+	protected final ArrayList<Class<?>> handledEntities = new ArrayList<Class<?>>();
 
 	protected long sessionId;
 	protected String name;
-	protected List<ITable> tables;
-	protected List<ILink> links;
-
-	public Database()
-	{
-		typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
-		handledEntities = new ArrayList<Class<?>>();
-	}
+	protected final ArrayList<ITable> tables= new ArrayList<ITable>();
+	protected final List<ILink> links = new ArrayList<ILink>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(contextProvider, "ContextProvider");
-		ParamChecker.assertNotNull(databaseProvider, "DatabaseProvider");
-		ParamChecker.assertNotNull(loggerHistory, "loggerHistory");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(pool, "Pool");
-		ParamChecker.assertNotNull(relationProvider, "RelationProvider");
-		ParamChecker.assertNotNull(securityScopeProvider, "SecurityScopeProvider");
-		ParamChecker.assertNotNull(serviceContext, "ServiceProvider");
-		ParamChecker.assertNotNull(typeInfoProvider, "TypeInfoProvider");
-
-		tables = new ArrayList<ITable>();
-		links = new ArrayList<ILink>();
+		// Intended blank
 	}
 
 	@Override
@@ -243,36 +231,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		}
 	}
 
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setContextProvider(IContextProvider contextProvider)
-	{
-		this.contextProvider = contextProvider;
-	}
-
-	public void setLoggerHistory(ILoggerHistory loggerHistory)
-	{
-		this.loggerHistory = loggerHistory;
-	}
-
-	public void setRelationProvider(IRelationProvider relationProvider)
-	{
-		this.relationProvider = relationProvider;
-	}
-
-	public void setServiceProvider(IServiceContext serviceContext)
-	{
-		this.serviceContext = serviceContext;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
 	@Override
 	public <T> T getAutowiredBeanInContext(Class<T> autowiredType)
 	{
@@ -303,34 +261,9 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		return pool;
 	}
 
-	public void setDatabaseProvider(IDatabaseProvider databaseProvider)
-	{
-		this.databaseProvider = databaseProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setPool(IDatabasePool pool)
-	{
-		this.pool = pool;
-	}
-
 	public IServiceContext getServiceProvider()
 	{
 		return serviceContext;
-	}
-
-	public void setSecurityScopeProvider(ISecurityScopeProvider securityScopeProvider)
-	{
-		this.securityScopeProvider = securityScopeProvider;
-	}
-
-	public void setServiceContext(IServiceContext serviceContext)
-	{
-		this.serviceContext = serviceContext;
 	}
 
 	public Map<Class<?>, IEntityHandler> getTypeToEntityHandler()
@@ -349,9 +282,8 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		{
 			// Intended blank
 		}
-		IUserHandle userHandle = securityScopeProvider.getUserHandle();
-		contextProvider.setCurrentUser(userHandle != null ? userHandle.getSID() : "anonymous");
-		contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));
+		contextProvider.acquired();
+		contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));		
 	}
 
 	@Override
@@ -375,7 +307,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		}
 		finally
 		{
-			contextProvider.clear();
+			clear();
 			if (pool != null)
 			{
 				pool.releaseDatabase(this, true);
@@ -398,7 +330,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		{
 			databaseLocal.remove();
 		}
-		contextProvider.clear();
+		clear();
 		if (pool != null)
 		{
 			pool.releaseDatabase(this, !errorOccured);
@@ -420,6 +352,11 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		{
 			databaseLocal.remove();
 		}
+		clear();
+	}
+	
+	protected void clear()
+	{
 		contextProvider.clear();
 	}
 
@@ -470,20 +407,10 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		return tables;
 	}
 
-	public void setTables(List<ITable> tables)
-	{
-		this.tables = tables;
-	}
-
 	@Override
 	public List<ILink> getLinks()
 	{
 		return links;
-	}
-
-	public void setLinks(List<ILink> links)
-	{
-		this.links = links;
 	}
 
 	@Override

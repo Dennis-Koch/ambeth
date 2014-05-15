@@ -142,7 +142,7 @@ public class EntityLoaderParallelInvoker implements IInitializingBean, IEntityLo
 		}
 		invokeParallel(database, items.get(0), parallelLock, exHolder, latch, alCacheSnapshots, run, true);
 		waitForParallelFinish(latch, exHolder);
-		IAlreadyLoadedCache alCache = database.getContextProvider().getCache();
+		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
 		for (int a = alCacheSnapshots.size(); a-- > 0;)
 		{
 			IAlreadyLoadedCache parallelAlCacheSnapshot = alCacheSnapshots.get(a);
@@ -225,7 +225,7 @@ public class EntityLoaderParallelInvoker implements IInitializingBean, IEntityLo
 						writePendingInitToShared(parallelDatabase, item.cascadeTypeToPendingInit, item.sharedCascadeTypeToPendingInit);
 
 						// Copy forked AlCache information back to AlCache
-						IAlreadyLoadedCache alCacheSnapshot = parallelDatabase.getContextProvider().getCache().snapshot();
+						IAlreadyLoadedCache alCacheSnapshot = parallelDatabase.getContextProvider().getAlreadyLoadedCache().snapshot();
 						alCacheSnapshots.add(alCacheSnapshot);
 					}
 					finally
