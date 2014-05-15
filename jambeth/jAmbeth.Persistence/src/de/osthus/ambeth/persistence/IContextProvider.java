@@ -1,7 +1,5 @@
 package de.osthus.ambeth.persistence;
 
-import java.util.Set;
-
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 
 public interface IContextProvider
@@ -14,9 +12,9 @@ public interface IContextProvider
 
 	void setCurrentUser(String currentUser);
 
-	IAlreadyLoadedCache getCache();
+	IAlreadyLoadedCache getAlreadyLoadedCache();
 
-	Set<Object> getAlreadyHandledSet();
-
+	void acquired();
+	
 	void clear();
 }
