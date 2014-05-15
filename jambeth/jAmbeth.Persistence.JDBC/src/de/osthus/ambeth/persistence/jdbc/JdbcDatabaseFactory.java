@@ -3,6 +3,7 @@ package de.osthus.ambeth.persistence.jdbc;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
+
 import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseFactory;
@@ -11,12 +12,12 @@ import de.osthus.ambeth.database.IDatabaseMapper;
 import de.osthus.ambeth.database.IDatabaseMapperExtendable;
 import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IBeanContextAware;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
-import de.osthus.ambeth.ioc.extendable.ExtendableContainer;
-import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -27,30 +28,35 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.persistence.parallel.ModifyingDatabase;
 import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.security.ISecurityScopeChangeListenerExtendable;
 import de.osthus.ambeth.util.AlreadyLinkedCache;
 import de.osthus.ambeth.util.AlreadyLoadedCache;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class JdbcDatabaseFactory implements IDatabaseFactory, IInitializingBean, IDatabaseMapperExtendable
+public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext serviceContext;
 
 	protected Class<?>[] additionalModules;
 
-	protected IExtendableContainer<IDatabaseMapper> databaseMapperEC;
+	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers = new DefaultExtendableContainer<IDatabaseMapper>(IDatabaseMapper.class, "databaseMapper");
 
+	@Autowired
 	protected IConnectionFactory connectionFactory;
 
+	@Autowired
 	protected IConnectionHolder connectionHolder;
 
+	@Autowired
 	protected IDatabaseProvider databaseProvider;
 
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaCacheActive, defaultValue = "false")
@@ -59,58 +65,21 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IInitializingBean,
 	// TODO JH 2012-07-10 temporary solution
 	protected volatile Map<String, Object> cachedSchemaInfos = null;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(this.connectionFactory, "ConnectionFactory");
-		ParamChecker.assertNotNull(this.connectionHolder, "ConnectionHolder");
-		ParamChecker.assertNotNull(this.databaseProvider, "DatabaseProvider");
-		ParamChecker.assertNotNull(this.serviceContext, "ServiceContext");
-		ParamChecker.assertNotNull(this.proxyFactory, "ProxyFactory");
-
-		this.databaseMapperEC = new ExtendableContainer<IDatabaseMapper>(IDatabaseMapper.class, "databaseMapper");
-	}
-
 	public void setAdditionalModules(Class<?>[] additionalModules)
 	{
 		this.additionalModules = additionalModules;
 	}
 
-	public void setConnectionFactory(IConnectionFactory connectionFactory)
-	{
-		this.connectionFactory = connectionFactory;
-	}
-
-	public void setConnectionHolder(IConnectionHolder connectionHolder)
-	{
-		this.connectionHolder = connectionHolder;
-	}
-
-	public void setDatabaseProvider(IDatabaseProvider databaseProvider)
-	{
-		this.databaseProvider = databaseProvider;
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
-		this.proxyFactory = proxyFactory;
-	}
-
-	public void setServiceProvider(IServiceContext serviceContext)
-	{
-		this.serviceContext = serviceContext;
-	}
-
 	@Override
 	public void registerDatabaseMapper(IDatabaseMapper databaseMapper)
 	{
-		this.databaseMapperEC.register(databaseMapper);
+		databaseMappers.register(databaseMapper);
 	}
 
 	@Override
 	public void unregisterDatabaseMapper(IDatabaseMapper databaseMapper)
 	{
-		this.databaseMapperEC.unregister(databaseMapper);
+		databaseMappers.unregister(databaseMapper);
 	}
 
 	@Override
@@ -167,7 +136,10 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IInitializingBean,
 						confSP.registerAutowireableBean(IModifyingDatabase.class, ModifyingDatabase.class);
 						confSP.registerAutowireableBean(IAlreadyLoadedCache.class, AlreadyLoadedCache.class);
 						confSP.registerAutowireableBean(IAlreadyLinkedCache.class, AlreadyLinkedCache.class);
-						confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
+						
+						IBeanConfiguration contextProviderBC = confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
+						confSP.link(contextProviderBC).to(ISecurityScopeChangeListenerExtendable.class);
+						
 						confSP.registerAnonymousBean(ConnectionShutdownBean.class);
 						confSP.registerExternalBean(JdbcDatabaseFactory.this.databaseProvider).autowireable(IDatabaseProvider.class);
 

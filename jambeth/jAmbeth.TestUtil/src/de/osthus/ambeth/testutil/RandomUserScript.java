@@ -17,6 +17,7 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -57,7 +58,6 @@ import de.osthus.ambeth.util.PersistenceExceptionUtil;
  */
 public class RandomUserScript implements IInitializingBean, IStartingBean
 {
-
 	public static final String SCRIPT_USER_NAME = "script.user.name";
 
 	public static final String SCRIPT_USER_PASS = "script.user.pass";
@@ -75,7 +75,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private static final String SCHEMA_DELIMITER = ":";
 
-	@LogInstance(RandomUserScript.class)
+	@LogInstance
 	private ILogger log;
 
 	@FrameworkModule
@@ -118,16 +118,22 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		}
 	}
 
+	@Autowired
 	protected IConnectionFactory connectionFactory;
 
+	@Property(name = SCRIPT_IS_CREATE)
 	protected boolean createUser;
 
+	@Property(name = SCRIPT_USER_NAME, mandatory = false)
 	protected String userName;
 
+	@Property(name = SCRIPT_USER_PASS, mandatory = false)
 	protected String userPass;
 
+	@Property(name = SCRIPT_USER_QUOTA, defaultValue = "100M")
 	protected String userQuota;
 
+	@Property(name = SCRIPT_USER_PROPERTYFILE, mandatory = false)
 	protected String userPropertyFile;
 
 	@Override
@@ -178,41 +184,6 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		return userNames;
 	}
 
-	public void setConnectionFactory(final IConnectionFactory connectionFactory)
-	{
-		this.connectionFactory = connectionFactory;
-	}
-
-	@Property(name = SCRIPT_IS_CREATE)
-	public void setCreateUser(final boolean createUser)
-	{
-		this.createUser = createUser;
-	}
-
-	@Property(name = SCRIPT_USER_NAME, mandatory = false)
-	public void setUserName(final String userName)
-	{
-		this.userName = userName;
-	}
-
-	@Property(name = SCRIPT_USER_PASS, mandatory = false)
-	public void setUserPass(final String userPass)
-	{
-		this.userPass = userPass;
-	}
-
-	@Property(name = SCRIPT_USER_QUOTA, defaultValue = "100M")
-	public void setUserQuota(final String userQuota)
-	{
-		this.userQuota = userQuota;
-	}
-
-	@Property(name = SCRIPT_USER_PROPERTYFILE, mandatory = false)
-	public void setUserPropertyFile(final String targetPropertyFile)
-	{
-		userPropertyFile = targetPropertyFile;
-	}
-
 	@Override
 	public void afterStarted() throws Throwable
 	{
@@ -225,7 +196,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 				List<String> createdUserNames = new ArrayList<String>();
 				for (String password : passwords)
 				{
-					String createdUserName = createUser(connection, password, userQuota);
+					String createdUserName = createUser(connection, userName, password, userQuota);
 					if (createdUserName != null)
 					{
 						System.out.println("[[CREATED_USERNAME]] " + createdUserName);
@@ -250,7 +221,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		}
 	}
 
-	private String createUser(final Connection connection, final String password, final String quota) throws SQLException
+	private String createUser(final Connection connection, final String username, final String password, final String quota) throws SQLException
 	{
 		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "create procedure", "create sequence", "create session", "create table", "create trigger",
 				"create type", "create view", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL", "EXECUTE ON CTXSYS.CTX_DOC",
@@ -268,7 +239,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			while (tryCount++ < tries)
 			{
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random digits
-				String randomName = "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
+				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
 				try
 				{
 					stm.execute("CREATE USER " + randomName + " IDENTIFIED BY \"" + password + "\" DEFAULT TABLESPACE \"" + userTablespace
@@ -281,6 +252,11 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 					if (firstEx == null)
 					{
 						firstEx = e;
+						if (username != null)
+						{
+							// no sense to retry because of the fixed username
+							break;
+						}
 					}
 				}
 			}

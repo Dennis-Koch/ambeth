@@ -22,14 +22,19 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseConnection)
 	protected String databaseConnection;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseUser)
 	protected String userName;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabasePass)
 	protected String userPass;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseDriver, mandatory = false)
 	protected Class<?> databaseDriver;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseRetryConnect, defaultValue = "1")
 	protected int tryCount;
 
 	protected volatile boolean isDriverRegistered;
@@ -42,38 +47,6 @@ public class ConnectionFactory extends AbstractConnectionFactory
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(databaseConnection, "databaseConnection");
-		ParamChecker.assertNotNull(userName, "userName");
-		ParamChecker.assertNotNull(userPass, "userPass");
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseConnection)
-	public void setDatabaseConnection(String databaseConnection)
-	{
-		this.databaseConnection = databaseConnection;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseUser)
-	public void setUserName(String userName)
-	{
-		this.userName = userName;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabasePass)
-	public void setUserPass(String userPass)
-	{
-		this.userPass = userPass;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseDriver, mandatory = false)
-	public void setDatabaseDriver(Class<?> databaseDriver)
-	{
-		this.databaseDriver = databaseDriver;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseRetryConnect, defaultValue = "1")
-	public void setTryCount(int tryCount)
-	{
-		this.tryCount = tryCount;
 	}
 
 	protected void registerDriverIfNeeded()
@@ -156,12 +129,5 @@ public class ConnectionFactory extends AbstractConnectionFactory
 		{
 			throw RuntimeExceptionUtil.mask(e, "Error occured while connecting to '" + databaseConnection + "' with user='" + userName + "'");
 		}
-	}
-
-	@Override
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
-	public void setSchemaName(String schemaName)
-	{
-		this.schemaName = schemaName;
 	}
 }
