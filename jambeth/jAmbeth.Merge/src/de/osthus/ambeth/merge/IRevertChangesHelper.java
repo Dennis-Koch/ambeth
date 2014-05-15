@@ -2,7 +2,7 @@ package de.osthus.ambeth.merge;
 
 public interface IRevertChangesHelper
 {
-	IRevertChangesSavepoint CreateSavepoint(Object source);
+	IRevertChangesSavepoint createSavepoint(Object source);
 
 	void revertChanges(Object objectsToRevert);
 

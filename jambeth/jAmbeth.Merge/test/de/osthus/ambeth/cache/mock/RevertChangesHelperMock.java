@@ -10,7 +10,7 @@ import de.osthus.ambeth.merge.RevertChangesFinishedCallback;
 public class RevertChangesHelperMock implements IRevertChangesHelper
 {
 	@Override
-	public IRevertChangesSavepoint CreateSavepoint(Object source)
+	public IRevertChangesSavepoint createSavepoint(Object source)
 	{
 		return null;
 	}
