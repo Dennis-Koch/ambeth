@@ -9,10 +9,18 @@ namespace De.Osthus.Ambeth.Merge
 
         void RevertChanges(Object objectsToRevert);
 
+        void RevertChanges(Object objectsToRevert, bool recursive);
+
         void RevertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback);
+
+        void RevertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, bool recursive);
 
         void RevertChangesGlobally(Object objectsToRevert);
 
+        void RevertChangesGlobally(Object objectsToRevert, bool recursive);
+
         void RevertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback);
+
+        void RevertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, bool recursive);
     }
 }
