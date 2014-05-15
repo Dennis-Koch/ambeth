@@ -13,7 +13,7 @@ public class RevertChangesHelper implements IRevertChangesHelper, IInitializingB
 	}
 
 	@Override
-	public IRevertChangesSavepoint CreateSavepoint(Object source)
+	public IRevertChangesSavepoint createSavepoint(Object source)
 	{
 		// Not yet implemented. Ignoring operation intentionally
 		return null;
