@@ -36,6 +36,9 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
+		IUserHandle userHandle = securityScopeProvider.getUserHandle();
+		String user = userHandle != null ? userHandle.getSID() : null;
+		setCurrentUser(user);
 	}
 	
 	@Override
