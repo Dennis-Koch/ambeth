@@ -25,6 +25,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
@@ -210,11 +211,23 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 	{
 		ParamChecker.assertParamNotNull(serviceDescription, "serviceDescription");
 
+		ISecurityScope[] oldSecurityScopes = null;
 		if (securityScopeProvider != null)
 		{
+			oldSecurityScopes = securityScopeProvider.getSecurityScopes();
 			securityScopeProvider.setSecurityScopes(serviceDescription.getSecurityScopes());
 		}
-		return serviceResultCache.getORIsOfService(serviceDescription, this);
+		try
+		{
+			return serviceResultCache.getORIsOfService(serviceDescription, this);
+		}
+		finally
+		{
+			if (securityScopeProvider != null)
+			{
+				securityScopeProvider.setSecurityScopes(oldSecurityScopes);
+			}
+		}
 	}
 
 	@Override

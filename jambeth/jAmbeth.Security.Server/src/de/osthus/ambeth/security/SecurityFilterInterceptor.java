@@ -3,7 +3,7 @@ package de.osthus.ambeth.security;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
@@ -11,64 +11,29 @@ import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class SecurityFilterInterceptor extends CascadedInterceptor implements IInitializingBean
+public class SecurityFilterInterceptor extends CascadedInterceptor
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IMethodLevelBehaviour<SecurityContextType> methodLevelBehaviour;
 
+	@Autowired
 	protected ISecurityActivation securityActivation;
 
+	@Autowired
 	protected ISecurityManager securityManager;
 
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
+	@Autowired(optional = true)	
 	protected ISidHelper sidHelper;
 
+	@Autowired
 	protected IUserHandleFactory userHandleFactory;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(methodLevelBehaviour, "methodLevelBehaviour");
-		ParamChecker.assertNotNull(securityActivation, "securityActivation");
-		ParamChecker.assertNotNull(securityManager, "securityManager");
-		ParamChecker.assertNotNull(securityScopeProvider, "securityScopeProvider");
-		ParamChecker.assertNotNull(userHandleFactory, "userHandleFactory");
-	}
-
-	public void setMethodLevelBehaviour(IMethodLevelBehaviour<SecurityContextType> methodLevelBehaviour)
-	{
-		this.methodLevelBehaviour = methodLevelBehaviour;
-	}
-
-	public void setSecurityActivation(ISecurityActivation securityActivation)
-	{
-		this.securityActivation = securityActivation;
-	}
-
-	public void setSecurityManager(ISecurityManager securityManager)
-	{
-		this.securityManager = securityManager;
-	}
-
-	public void setSecurityScopeProvider(ISecurityScopeProvider securityScopeProvider)
-	{
-		this.securityScopeProvider = securityScopeProvider;
-	}
-
-	public void setSidHelper(ISidHelper sidHelper)
-	{
-		this.sidHelper = sidHelper;
-	}
-
-	public void setUserHandleFactory(IUserHandleFactory userHandleFactory)
-	{
-		this.userHandleFactory = userHandleFactory;
-	}
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable

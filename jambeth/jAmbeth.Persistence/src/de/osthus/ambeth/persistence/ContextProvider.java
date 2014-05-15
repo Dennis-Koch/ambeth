@@ -1,45 +1,43 @@
 package de.osthus.ambeth.persistence;
 
-import java.util.Set;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 
-import de.osthus.ambeth.collections.IdentityHashSet;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.security.ISecurityScopeChangeListener;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ContextProvider implements IContextProvider, IInitializingBean
+public class ContextProvider implements IContextProvider, ISecurityScopeChangeListener
 {
 	protected Long currentTime;
 
 	protected String currentUser;
+	
+	protected Reference<Thread> boundThread;
+	
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
 
-	protected IAlreadyLoadedCache cache;
+	@Autowired
+	protected IAlreadyLoadedCache alreadyLoadedCache;
 
+	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
 
-	protected IInterningFeature stringIntern;
-
-	protected Set<Object> alreadyHandledSet;
-
-	public ContextProvider()
-	{
-		alreadyHandledSet = new IdentityHashSet<Object>();
-	}
+	@Autowired(optional = true)
+	protected IInterningFeature interningFeature;
 
 	@Override
-	public void afterPropertiesSet()
+	public void acquired()
 	{
-		ParamChecker.assertNotNull(cache, "Cache");
-		ParamChecker.assertNotNull(alreadyLinkedCache, "AlreadyLinkedCache");
+		boundThread = new WeakReference<Thread>(Thread.currentThread());
 	}
-
-	public void setCache(IAlreadyLoadedCache cache)
-	{
-		this.cache = cache;
-	}
-
+	
 	@Override
 	public Long getCurrentTime()
 	{
@@ -55,52 +53,54 @@ public class ContextProvider implements IContextProvider, IInitializingBean
 	@Override
 	public String getCurrentUser()
 	{
+		if (currentUser == null)
+		{
+			return "anonymous";
+		}
 		return currentUser;
 	}
 
 	@Override
 	public void setCurrentUser(String currentUser)
 	{
-		IInterningFeature stringIntern = this.stringIntern;
-		if (stringIntern != null)
+		IInterningFeature interningFeature = this.interningFeature;
+		if (interningFeature != null)
 		{
-			currentUser = stringIntern.intern(currentUser);
+			currentUser = interningFeature.intern(currentUser);
 		}
 		this.currentUser = currentUser;
 	}
 
-	public void setStringIntern(IInterningFeature stringIntern)
-	{
-		this.stringIntern = stringIntern;
-	}
-
 	@Override
-	public IAlreadyLoadedCache getCache()
+	public IAlreadyLoadedCache getAlreadyLoadedCache()
 	{
-		return cache;
-	}
-
-	@Override
-	public Set<Object> getAlreadyHandledSet()
-	{
-		return alreadyHandledSet;
-	}
-
-	public void setAlreadyHandledSet(Set<Object> alreadyHandledSet)
-	{
-		this.alreadyHandledSet = alreadyHandledSet;
-	}
-
-	public void setAlreadyLinkedCache(IAlreadyLinkedCache alreadyLinkedCache)
-	{
-		this.alreadyLinkedCache = alreadyLinkedCache;
+		return alreadyLoadedCache;
 	}
 
 	@Override
 	public void clear()
 	{
-		cache.clear();
+		alreadyLoadedCache.clear();
 		alreadyLinkedCache.clear();
-		alreadyHandledSet.clear();
+		currentTime = null;
+		currentUser = null;
+		boundThread = null;
+	}
+	
+	@Override
+	public void securityScopeChanged(IUserHandle userHandle, ISecurityScope[] securityScopes)
+	{
+		if (boundThread == null)
+		{
+			// currently inactive
+			return;
+		}
+		if (boundThread.get() != Thread.currentThread())
+		{
+			// other thread
+			return;
+		}
+		String user = userHandle != null ? userHandle.getSID() : null;
+		setCurrentUser(user);
 	}
 }
