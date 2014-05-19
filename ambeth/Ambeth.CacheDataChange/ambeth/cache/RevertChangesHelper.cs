@@ -205,37 +205,57 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual void RevertChanges(Object objectsToRevert)
         {
-            RevertChanges(objectsToRevert, null);
+            RevertChanges(objectsToRevert, null, false);
+        }
+
+        public void RevertChanges(object objectsToRevert, bool recursive)
+        {
+            RevertChanges(objectsToRevert, null, recursive);
         }
 
         public virtual void RevertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback)
+        {
+            RevertChanges(objectsToRevert, revertChangesFinishedCallback, false);
+        }
+
+        public virtual void RevertChanges(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, bool recursive)
         {
             if (objectsToRevert == null)
             {
                 return;
             }
             List<Object> revertList = new List<Object>();
-            FillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList);
+            FillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList, recursive);
             RevertChangesIntern(null, revertList, false, revertChangesFinishedCallback);
         }
 
         public virtual void RevertChangesGlobally(Object objectsToRevert)
         {
-            RevertChangesGlobally(objectsToRevert, null);
+            RevertChangesGlobally(objectsToRevert, null, false);
+        }
+
+        public virtual void RevertChangesGlobally(Object objectsToRevert, bool recursive)
+        {
+            RevertChangesGlobally(objectsToRevert, null, recursive);
         }
 
         public virtual void RevertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback)
+        {
+            RevertChangesGlobally(objectsToRevert, revertChangesFinishedCallback, false);
+        }
+
+        public virtual void RevertChangesGlobally(Object objectsToRevert, RevertChangesFinishedCallback revertChangesFinishedCallback, bool recursive)
         {
             if (objectsToRevert == null)
             {
                 return;
             }
             List<Object> revertList = new List<Object>();
-            FillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList);
+            FillRevertList(objectsToRevert, new IdentityHashSet<Object>(), revertList, recursive);
             RevertChangesIntern(null, revertList, true, revertChangesFinishedCallback);
         }
 
-        protected virtual void FillRevertList(Object obj, ISet<Object> alreadyScannedSet, IList<Object> revertList)
+        protected virtual void FillRevertList(Object obj, ISet<Object> alreadyScannedSet, IList<Object> revertList, bool recursive)
         {
             if (!alreadyScannedSet.Add(obj))
             {
@@ -246,7 +266,7 @@ namespace De.Osthus.Ambeth.Cache
                 IList list = (IList)obj;
                 for (int a = list.Count; a-- > 0; )
                 {
-                    FillRevertList(list[a], alreadyScannedSet, revertList);
+                    FillRevertList(list[a], alreadyScannedSet, revertList, recursive);
                 }
                 return;
             }
@@ -255,11 +275,21 @@ namespace De.Osthus.Ambeth.Cache
                 IEnumerator iter = ((IEnumerable)obj).GetEnumerator();
                 while (iter.MoveNext())
                 {
-                    FillRevertList(iter.Current, alreadyScannedSet, revertList);
+                    FillRevertList(iter.Current, alreadyScannedSet, revertList, recursive);
                 }
                 return;
             }
             revertList.Add(obj);
+            if (recursive)
+            {
+                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+                IRelationInfoItem[] relations = metaData.RelationMembers;
+                foreach (IRelationInfoItem relation in relations)
+                {
+                    Object value = relation.GetValue(obj);
+                    FillRevertList(value, alreadyScannedSet, revertList, recursive);
+                }
+            }
         }
 
         protected virtual void RevertChangesIntern(IRevertChangesSavepoint savepoint, IList<Object> objectsToRevert, bool globally,
