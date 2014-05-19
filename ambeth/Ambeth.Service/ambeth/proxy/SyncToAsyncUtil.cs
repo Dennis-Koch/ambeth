@@ -11,13 +11,13 @@ namespace De.Osthus.Ambeth.Service
 {
     public sealed class SyncToAsyncUtil
     {
-        protected static readonly IDictionary<MethodInfo, MethodInfo[]> syncToAsyncDict = new Dictionary<MethodInfo, MethodInfo[]>();
+        private static readonly IDictionary<MethodInfo, MethodInfo[]> syncToAsyncDict = new Dictionary<MethodInfo, MethodInfo[]>();
 
-        protected static readonly IDictionary<MethodInfo, MethodInfo> asyncToSyncDict = new Dictionary<MethodInfo, MethodInfo>();
+        private static readonly IDictionary<MethodInfo, MethodInfo> asyncToSyncDict = new Dictionary<MethodInfo, MethodInfo>();
 
-        protected static readonly Lock readLock, writeLock;
+        private static readonly Lock readLock, writeLock;
 
-        protected static readonly HashSet<Type> lowLevelSerializationTypes = new HashSet<Type>();
+        private static readonly HashSet<Type> lowLevelSerializationTypes = new HashSet<Type>();
 
         static SyncToAsyncUtil()
         {
@@ -182,7 +182,7 @@ namespace De.Osthus.Ambeth.Service
             return methodDescription;
         }
 
-        protected static Type[] GetMethodParamTypes(MethodInfo method)
+        private static Type[] GetMethodParamTypes(MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
             Type[] types = new Type[parameters.Length];

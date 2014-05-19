@@ -35,14 +35,14 @@ namespace De.Osthus.Ambeth.Log
             // Intended blank
         }
 
-        protected override void LogStream(string output)
+        protected override void LogStream(LogLevel logLevel, String output, bool autoFlush)
         {
             bool retryLog = true;
             while (retryLog)
             {
                 try
                 {
-                    base.LogStream(output);
+                    base.LogStream(logLevel, output, autoFlush);
                     retryLog = false;
                 }
                 catch (IsolatedStorageException)

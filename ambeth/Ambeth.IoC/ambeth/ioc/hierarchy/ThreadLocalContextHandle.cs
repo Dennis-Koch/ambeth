@@ -11,13 +11,6 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
 
 	    protected readonly ThreadLocal<IServiceContext> childContextTL = new ThreadLocal<IServiceContext>();
 
-        public virtual void AfterPropertiesSet()
-        {
-            base.AfterPropertiesSet();
-
-            // Intended blank
-        }
-
 	    protected override IServiceContext GetChildContext()
 	    {
 		    return childContextTL.Value;

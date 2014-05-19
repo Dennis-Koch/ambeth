@@ -286,6 +286,7 @@ public class IndependentEntityMetaDataClient extends ClassExtendableContainer<IE
 		readLock.lock();
 		try
 		{
+			ArrayList<Class<?>> notFoundEntityTypes = new ArrayList<Class<?>>();
 			for (Class<?> entityType : entityTypes)
 			{
 				IEntityMetaData metaDataItem = getExtension(entityType);
@@ -294,10 +295,20 @@ public class IndependentEntityMetaDataClient extends ClassExtendableContainer<IE
 				{
 					entityMetaData.add(metaDataItem);
 				}
-				else if (log.isWarnEnabled())
+				else
 				{
-					log.warn("No metadata found for type: " + entityType + ".");
+					notFoundEntityTypes.add(entityType);
 				}
+			}
+			if (notFoundEntityTypes.size() > 0 && log.isWarnEnabled())
+			{
+				StringBuilder sb = new StringBuilder();
+				sb.append("No metadata found for ").append(notFoundEntityTypes.size()).append(" type(s):");
+				for (Class<?> notFoundType : notFoundEntityTypes)
+				{
+					sb.append("\t\n").append(notFoundType.getName());
+				}
+				log.warn(sb);
 			}
 		}
 		finally

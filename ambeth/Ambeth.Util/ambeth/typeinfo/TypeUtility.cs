@@ -210,7 +210,6 @@ namespace De.Osthus.Ambeth.Typeinfo
 
                     return (MemberCallDelegate)getDm.CreateDelegate(typeof(MemberCallDelegate));
                 }
-#endif
                 if (tryOnly)
                 {
                     return null;
@@ -219,6 +218,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                     "Property: '{0}' of Type: '{1}' does" +
                     " not have a Public Get accessor and a Public Set accessor",
                     memberName, objectType.Name));
+#endif
             }
             FieldInfo fi = objectType.GetField(memberName);
             if (fi != null)
@@ -309,7 +309,6 @@ namespace De.Osthus.Ambeth.Typeinfo
 
                     return (MemberGetDelegate)getDm.CreateDelegate(typeof(MemberGetDelegate));
                 }
-#endif
                 if (tryOnly)
                 {
                     return null;
@@ -318,6 +317,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                     "Property: '{0}' of Type: '{1}' does" +
                     " not have a Public Get accessor and a Public Set accessor",
                     memberName, objectType.Name));
+#endif
             }
             FieldInfo fi = objectType.GetField(memberName);
             if (fi != null)
@@ -423,7 +423,6 @@ namespace De.Osthus.Ambeth.Typeinfo
 
                     return (MemberSetDelegate)setDm.CreateDelegate(typeof(MemberSetDelegate));
                 }
-#endif
                 if (tryOnly)
                 {
                     return null;
@@ -432,6 +431,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                     "Property: '{0}' of Type: '{1}' does" +
                     " not have a Public Set accessor",
                     memberName, objectType.Name));
+#endif
             }
             FieldInfo fi = objectType.GetField(memberName);
             if (fi != null)

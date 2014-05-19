@@ -76,14 +76,7 @@ namespace De.Osthus.Ambeth.Accessor
 
         public TypeBuilder CreateNewType(TypeAttributes access, String name, Type parentType, Type[] interfaces)
         {
-            try
-            {
-                return moduleBuilder.DefineType(name, access, parentType, interfaces);
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            return moduleBuilder.DefineType(name, access, parentType, interfaces);
         }
 
         public Type GetType(String typeName, TypeBuilder tb)

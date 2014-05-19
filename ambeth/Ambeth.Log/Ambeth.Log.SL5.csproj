@@ -74,6 +74,7 @@
     <Compile Include="ambeth\log\Logger.cs" />
     <Compile Include="ambeth\log\LoggerFactory.cs" />
     <Compile Include="ambeth\log\LogInstanceAttribute.cs" />
+    <Compile Include="ambeth\log\LogLevel.cs" />
     <Compile Include="ambeth\log\LogTypesUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
