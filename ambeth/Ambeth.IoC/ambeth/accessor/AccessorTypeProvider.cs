@@ -219,14 +219,7 @@ namespace De.Osthus.Ambeth.Accessor
                 }
                 mv.Emit(OpCodes.Ret);
             }
-            try
-            {
-                return loader.GetType(accessClassName, cw);
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            return loader.GetType(accessClassName, cw);
         }
 
         protected Type CreateConstructorType(AccessorClassLoader loader, String constructorClassName, Type delegateType, Type targetType)

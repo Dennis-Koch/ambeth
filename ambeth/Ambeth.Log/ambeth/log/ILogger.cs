@@ -5,8 +5,6 @@ namespace De.Osthus.Ambeth.Log
 {
     public interface ILogger
     {
-        void Status(String status);
-
         bool DebugEnabled { get; }
 
         bool InfoEnabled { get; }

@@ -29,7 +29,9 @@ public class Logger implements IConfigurableLogger
 
 	protected static Writer loggerStream;
 
-	protected static final Lock writeLock = new ReentrantLock();
+	protected static final Lock streamWriteLock = new ReentrantLock();
+	
+	protected static final Lock formatWriteLock = new ReentrantLock();
 
 	static
 	{
@@ -117,6 +119,11 @@ public class Logger implements IConfigurableLogger
 			shortSource = source;
 		}
 	}
+	
+	protected DateFormat getFormat()
+	{
+		return format;
+	}
 
 	@Override
 	public boolean isDebugEnabled()
@@ -192,23 +199,23 @@ public class Logger implements IConfigurableLogger
 	}
 
 	@Override
-	public void info(String message)
+	public void info(CharSequence message)
 	{
 		if (!isInfoEnabled())
 		{
 			return;
 		}
-		addNotification("INFO", false, message);
+		addNotification(LogLevel.INFO, message);
 	}
 
 	@Override
-	public void info(String message, Throwable e)
+	public void info(CharSequence message, Throwable e)
 	{
 		if (!isInfoEnabled())
 		{
 			return;
 		}
-		addNotification("INFO", false, message, e);
+		addNotification(LogLevel.INFO, message, e);
 	}
 
 	@Override
@@ -218,27 +225,27 @@ public class Logger implements IConfigurableLogger
 		{
 			return;
 		}
-		addNotification("INFO", false, e);
+		addNotification(LogLevel.INFO, e);
 	}
 
 	@Override
-	public void debug(String message)
+	public void debug(CharSequence message)
 	{
 		if (!isDebugEnabled())
 		{
 			return;
 		}
-		addNotification("DEBUG", false, message);
+		addNotification(LogLevel.DEBUG, message);
 	}
 
 	@Override
-	public void debug(String message, Throwable e)
+	public void debug(CharSequence message, Throwable e)
 	{
 		if (!isDebugEnabled())
 		{
 			return;
 		}
-		addNotification("DEBUG", false, message, e);
+		addNotification(LogLevel.DEBUG, message, e);
 	}
 
 	@Override
@@ -248,27 +255,27 @@ public class Logger implements IConfigurableLogger
 		{
 			return;
 		}
-		addNotification("DEBUG", false, e);
+		addNotification(LogLevel.DEBUG, e);
 	}
 
 	@Override
-	public void warn(String message)
+	public void warn(CharSequence message)
 	{
 		if (!isWarnEnabled())
 		{
 			return;
 		}
-		addNotification("WARN", true, message);
+		addNotification(LogLevel.WARN, message);
 	}
 
 	@Override
-	public void warn(String message, Throwable e)
+	public void warn(CharSequence message, Throwable e)
 	{
 		if (!isWarnEnabled())
 		{
 			return;
 		}
-		addNotification("WARN", true, message, e);
+		addNotification(LogLevel.WARN, message, e);
 	}
 
 	@Override
@@ -278,27 +285,27 @@ public class Logger implements IConfigurableLogger
 		{
 			return;
 		}
-		addNotification("WARN", true, e);
+		addNotification(LogLevel.WARN, e);
 	}
 
 	@Override
-	public void error(String message)
+	public void error(CharSequence message)
 	{
 		if (!isErrorEnabled())
 		{
 			return;
 		}
-		addNotification("ERROR", true, message);
+		addNotification(LogLevel.ERROR, message);
 	}
 
 	@Override
-	public void error(String message, Throwable e)
+	public void error(CharSequence message, Throwable e)
 	{
 		if (!isErrorEnabled())
 		{
 			return;
 		}
-		addNotification("ERROR", true, message, e);
+		addNotification(LogLevel.ERROR, message, e);
 	}
 
 	@Override
@@ -308,28 +315,28 @@ public class Logger implements IConfigurableLogger
 		{
 			return;
 		}
-		addNotification("ERROR", true, e);
+		addNotification(LogLevel.ERROR, e);
 	}
 
-	protected void addNotification(String level, boolean errorLog, Throwable e)
+	protected void addNotification(LogLevel level, Throwable e)
 	{
-		addNotification(level, errorLog, null, e);
+		addNotification(level, null, e);
 	}
 
-	protected void addNotification(String level, boolean errorLog, String message)
+	protected void addNotification(LogLevel level, CharSequence message)
 	{
-		addNotification(level, errorLog, message, (Exception) null);
+		addNotification(level, message, (Exception) null);
 	}
 
-	protected void addNotification(String level, boolean errorLog, String message, Throwable e)
+	protected void addNotification(LogLevel level, CharSequence message, Throwable e)
 	{
 		if (e != null)
 		{
-			addNotification(level, message, errorLog, e.getClass().getName() + ": " + e.getMessage(), extractFullStackTrace(e));
+			addNotification(level, message, e.getClass().getName() + ": " + e.getMessage(), extractFullStackTrace(e));
 		}
 		else
 		{
-			addNotification(level, message, errorLog, null, null);
+			addNotification(level, message, null, null);
 		}
 	}
 
@@ -378,7 +385,7 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
-	protected void addNotification(String level, String message, boolean errorLog, String errorMessage, String stackTrace)
+	protected void addNotification(LogLevel level, CharSequence message, String errorMessage, String stackTrace)
 	{
 		String newLine = SystemUtil.lineSeparator();
 		StringBuilder sb = acquireStringBuilder();
@@ -406,7 +413,7 @@ public class Logger implements IConfigurableLogger
 					sb.append(message);
 				}
 			}
-			createLogEntry(level, errorLog, sb.toString());
+			createLogEntry(level, sb.toString());
 		}
 		finally
 		{
@@ -414,7 +421,7 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
-	protected void createLogEntry(String level, boolean errorLog, String notification)
+	protected void createLogEntry(LogLevel logLevel, String notification)
 	{
 		Thread currentThread = Thread.currentThread();
 
@@ -437,9 +444,15 @@ public class Logger implements IConfigurableLogger
 		{
 			String dateString;
 			// DateFormat is not thread-safe
-			synchronized (format)
+			DateFormat format = getFormat();
+			formatWriteLock.lock();
+			try
 			{
-				dateString = format.format(date);
+				dateString = format.format(date);				
+			}
+			finally
+			{
+				formatWriteLock.unlock();
 			}
 			sb.append('[').append(currentThread.getId()).append(": ").append(threadName).append("] ");
 
@@ -460,13 +473,13 @@ public class Logger implements IConfigurableLogger
 					throw new IllegalStateException("Enum " + logSourceLevel + " not supported");
 			}
 
-			sb.append(dateString).append(' ').append(level);
+			sb.append(dateString).append(' ').append(logLevel.name());
 			if (printedSource != null)
 			{
 				sb.append(' ').append(printedSource);
 			}
 			sb.append(": ").append(notification);
-			log(errorLog, sb.toString());
+			log(logLevel, sb.toString());
 		}
 		finally
 		{
@@ -494,8 +507,9 @@ public class Logger implements IConfigurableLogger
 		localObjectCollector.dispose(sb);
 	}
 
-	protected void log(boolean errorLog, String output)
+	protected void log(LogLevel logLevel, String output)
 	{
+		boolean errorLog = LogLevel.WARN.equals(logLevel) || LogLevel.ERROR.equals(logLevel);
 		if (logToConsole)
 		{
 			if (errorLog)
@@ -509,37 +523,38 @@ public class Logger implements IConfigurableLogger
 		}
 		if (logStreamEnabled)
 		{
-			logStream(output, errorLog);
+			logStream(logLevel, output, errorLog);
 		}
 	}
 
-	protected void logStream(String output, boolean autoFlush)
+	protected void logStream(LogLevel logLevel, String output, boolean autoFlush)
 	{
 		String lineSeparator = SystemUtil.lineSeparator();
-		writeLock.lock();
+		streamWriteLock.lock();
 		try
 		{
 			Writer writer = getLoggerStream();
-			if (writer != null)
+			if (writer == null)
 			{
-				try
+				return;
+			}
+			try
+			{
+				writer.write(lineSeparator);
+				writer.write(output);
+				if (autoFlush)
 				{
-					writer.write(output);
-					writer.write(lineSeparator);
-					if (autoFlush)
-					{
-						writer.flush();
-					}
+					writer.flush();
 				}
-				catch (IOException e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 		finally
 		{
-			writeLock.unlock();
+			streamWriteLock.unlock();
 		}
 	}
 }

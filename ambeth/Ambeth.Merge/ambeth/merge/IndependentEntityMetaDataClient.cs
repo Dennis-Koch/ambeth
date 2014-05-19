@@ -264,6 +264,7 @@ namespace De.Osthus.Ambeth.Merge
             readLock.Lock();
             try
             {
+                List<Type> notFoundEntityTypes = new List<Type>();
                 foreach (Type entityType in entityTypes)
                 {
                     IEntityMetaData metaDataItem = GetExtension(entityType);
@@ -272,11 +273,21 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         entityMetaData.Add(metaDataItem);
                     }
-                    else if (Log.WarnEnabled)
+                    else
                     {
-                        Log.Warn("No metadata found for type: " + entityType + ".");
+                        notFoundEntityTypes.Add(entityType);
                     }
                 }
+			    if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
+			    {
+				    StringBuilder sb = new StringBuilder();
+				    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
+				    foreach (Type notFoundType in notFoundEntityTypes)
+				    {
+					    sb.Append("\t\n").Append(notFoundType.FullName);
+				    }
+				    Log.Warn(sb.ToString());
+			    }
             }
             finally
             {

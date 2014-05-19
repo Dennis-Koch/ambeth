@@ -79,18 +79,13 @@ namespace De.Osthus.Ambeth.Log
             ErrorEnabled = true;
         }
 
-        virtual public void Status(String status)
-        {
-            Info(status);
-        }
-
         public void Info(String message)
         {
             if (!InfoEnabled)
             {
                 return;
             }
-            AddNotification("INFO", message);
+            AddNotification(LogLevel.INFO, message);
         }
 
         public void Info(String message, Exception e)
@@ -99,7 +94,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("INFO", message, e);
+            AddNotification(LogLevel.INFO, message, e);
         }
 
         public void Info(String message, ExceptionDetail e)
@@ -108,7 +103,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("INFO", message, e);
+            AddNotification(LogLevel.INFO, message, e);
         }
 
         public void Info(Exception e)
@@ -117,7 +112,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("INFO", e);
+            AddNotification(LogLevel.INFO, e);
         }
 
         public void Info(ExceptionDetail e)
@@ -126,7 +121,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("INFO", e);
+            AddNotification(LogLevel.INFO, e);
         }
 
         public void Debug(String message)
@@ -135,7 +130,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("DEBUG", message);
+            AddNotification(LogLevel.DEBUG, message);
         }
 
         public void Debug(String message, Exception e)
@@ -144,7 +139,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             } 
-            AddNotification("DEBUG", message, e);
+            AddNotification(LogLevel.DEBUG, message, e);
         }
 
         public void Debug(String message, ExceptionDetail e)
@@ -153,7 +148,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("DEBUG", message, e);
+            AddNotification(LogLevel.DEBUG, message, e);
         }
 
         public void Debug(Exception e)
@@ -162,7 +157,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("DEBUG", e);
+            AddNotification(LogLevel.DEBUG, e);
         }
 
         public void Debug(ExceptionDetail e)
@@ -171,7 +166,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("DEBUG", e);
+            AddNotification(LogLevel.DEBUG, e);
         }
 
         public void Warn(String message)
@@ -180,7 +175,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("WARN", message);
+            AddNotification(LogLevel.WARN, message);
         }
 
         public void Warn(String message, Exception e)
@@ -189,7 +184,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             } 
-            AddNotification("WARN", message, e);
+            AddNotification(LogLevel.WARN, message, e);
         }
 
         public void Warn(String message, ExceptionDetail e)
@@ -198,7 +193,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("WARN", message, e);
+            AddNotification(LogLevel.WARN, message, e);
         }
 
         public void Warn(Exception e)
@@ -207,7 +202,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("WARN", e);
+            AddNotification(LogLevel.WARN, e);
         }
 
         public void Warn(ExceptionDetail e)
@@ -216,7 +211,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("WARN", e);
+            AddNotification(LogLevel.WARN, e);
         }
 
         public void Error(String message)
@@ -225,7 +220,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("ERROR", message);
+            AddNotification(LogLevel.ERROR, message);
         }
 
         public void Error(String message, Exception e)
@@ -234,7 +229,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("ERROR", message, e);
+            AddNotification(LogLevel.ERROR, message, e);
         }
 
         public void Error(String message, ExceptionDetail e)
@@ -243,7 +238,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("ERROR", message, e);
+            AddNotification(LogLevel.ERROR, message, e);
         }
 
         public void Error(Exception e)
@@ -252,7 +247,7 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("ERROR", e);
+            AddNotification(LogLevel.ERROR, e);
         }
 
         public void Error(ExceptionDetail e)
@@ -261,25 +256,25 @@ namespace De.Osthus.Ambeth.Log
             {
                 return;
             }
-            AddNotification("ERROR", e);
+            AddNotification(LogLevel.ERROR, e);
         }
 
-        protected virtual void AddNotification(String level, Exception e)
+        protected virtual void AddNotification(LogLevel level, Exception e)
         {
             AddNotification(level, null, e);
         }
 
-        protected virtual void AddNotification(String level, ExceptionDetail e)
+        protected virtual void AddNotification(LogLevel level, ExceptionDetail e)
         {
             AddNotification(level, null, e);
         }
 
-        protected virtual void AddNotification(String level, String message)
+        protected virtual void AddNotification(LogLevel level, String message)
         {
             AddNotification(level, message, (Exception)null);
         }
 
-        protected virtual void AddNotification(String level, String message, Exception e)
+        protected virtual void AddNotification(LogLevel level, String message, Exception e)
         {
             if (e != null)
             {
@@ -291,7 +286,7 @@ namespace De.Osthus.Ambeth.Log
             }
         }
 
-        protected virtual void AddNotification(String level, String message, ExceptionDetail e)
+        protected virtual void AddNotification(LogLevel level, String message, ExceptionDetail e)
         {
             if (e != null)
             {
@@ -320,7 +315,7 @@ namespace De.Osthus.Ambeth.Log
             return sb.ToString();
         }
 
-        protected void AddNotification(String level, String message, String errorMessage, String stackTrace)
+        protected void AddNotification(LogLevel level, String message, String errorMessage, String stackTrace)
         {
             String notification;
             if (errorMessage != null)
@@ -341,7 +336,7 @@ namespace De.Osthus.Ambeth.Log
             CreateLogEntry(level, notification);
         }
 
-        protected virtual void CreateLogEntry(String level, String notification)
+        protected virtual void CreateLogEntry(LogLevel logLevel, String notification)
         {
             Thread currentThread = Thread.CurrentThread;
 
@@ -371,16 +366,17 @@ namespace De.Osthus.Ambeth.Log
 
             String output = String.Format("[{4,2}: {5}] [{0:yyyy-MM-dd HH:mm:ss.fff}] {1,-5} {2}: {3}", new object[]
             {
-                now, level, printedSource, notification, currentThread.ManagedThreadId, threadName
+                now, logLevel.ToString(), printedSource, notification, currentThread.ManagedThreadId, threadName
             });
-            Log(output);
+            Log(logLevel, output);
         }
 
-        protected virtual void Log(String output)
+        protected virtual void Log(LogLevel logLevel, String output)
         {
+            bool errorLog = LogLevel.WARN.Equals(logLevel) || LogLevel.ERROR.Equals(logLevel);
             if (System.Diagnostics.Debugger.IsAttached)
             {
-                System.Diagnostics.Debugger.Log(5, "LOG", output + "\r\n");
+                System.Diagnostics.Debugger.Log(5, "LOG", output + Environment.NewLine);
             }
             else
             {
@@ -388,18 +384,23 @@ namespace De.Osthus.Ambeth.Log
             }
             if (LogStreamEnabled)
             {
-                LogStream(output);
+                LogStream(logLevel, output, errorLog);
             }
         }
 
-        protected virtual void LogStream(String output)
+        protected virtual void LogStream(LogLevel logLevel, String output, bool autoFlush)
         {
             lock (lockObject)
             {
                 StreamWriter writer = LoggerStream;
-                if (writer != null)
+                if (writer == null)
                 {
-                    writer.WriteLine(output);
+                    return;
+                }
+                writer.Write(Environment.NewLine);
+                writer.WriteLine(output);
+                if (autoFlush)
+                {
                     writer.Flush();
                 }
             }

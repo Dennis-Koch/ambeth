@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Log
 
         public static readonly String ambethLogPrefix = "ambeth.log";
 
-        protected static readonly Regex logLevelRegex = new Regex(@"ambeth\.log\.(" + logLevelPropertyName + "|" + logConsolePropertyName + "|" + logSourcePropertyName + @")(?:\.(.+))?");
+        private static readonly Regex logLevelRegex = new Regex(@"ambeth\.log\.(" + logLevelPropertyName + "|" + logConsolePropertyName + "|" + logSourcePropertyName + @")(?:\.(.+))?");
 
         private static Type loggerType;
 

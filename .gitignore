@@ -4,6 +4,7 @@
 .settings
 .svn
 *.csproj.user
+*.suo
 *.launch
 *.pdsync
 *.pdsyncu
