@@ -8,9 +8,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
-import junit.framework.Assert;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,7 +91,7 @@ public class ClassTupleExtendableContainerTest extends AbstractIocTest
 	}
 
 	/**
-	 * Checks that unregistering an extension from a specific type does interfere neither ith other specific types of same extension nor with other extensions
+	 * Checks that unregistering an extension from a specific type does interfere neither with other specific types of same extension nor with other extensions
 	 */
 	@Test
 	public void strongIsolated()

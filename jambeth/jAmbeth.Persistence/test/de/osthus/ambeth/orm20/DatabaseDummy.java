@@ -10,6 +10,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseDisposeHook;
 import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.ITable;
 
@@ -209,5 +210,23 @@ public class DatabaseDummy implements IDatabase
 	public List<ILink> getLinksByTables(ITable table1, ITable table2)
 	{
 		return null;
+	}
+
+	@Override
+	public void registerDisposeHook(IDatabaseDisposeHook disposeHook) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isDisposed() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

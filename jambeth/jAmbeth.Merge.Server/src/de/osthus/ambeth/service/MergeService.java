@@ -49,6 +49,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IOriCollection;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
+import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
@@ -324,8 +325,11 @@ public class MergeService implements IMergeService, IInitializingBean
 		LinkedHashMap<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap = new LinkedHashMap<CheckForPreviousParentKey, IList<IObjRef>>();
 		LinkedHashMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap = new LinkedHashMap<IncomingRelationKey, IList<IObjRef>>();
 		LinkedHashMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap = new LinkedHashMap<OutgoingRelationKey, IList<IObjRef>>();
+		HashSet<IObjRef> allAddedORIs = new HashSet<IObjRef>();
 		HashSet<EntityLinkKey> alreadyHandled = new HashSet<EntityLinkKey>();
 		HashSet<Object> alreadyPrefetched = new HashSet<Object>();
+
+		findAllNewlyReferencedORIs(allChanges, allAddedORIs);
 
 		while (true)
 		{
@@ -364,7 +368,7 @@ public class MergeService implements IMergeService, IInitializingBean
 					createCommand.configureFromContainer(createContainer, tableChange.getTable());
 					changeCommand = createCommand;
 					IList<IChangeContainer> newChanges = relationMergeService.processCreateDependencies(reference, (ITable) entityHandler,
-							createContainer.getRelations(), previousParentToMovedOrisMap);
+							createContainer.getRelations(), previousParentToMovedOrisMap, allAddedORIs);
 					changeQueue.pushAllFrom(newChanges);
 
 					Class<?> realType = reference.getRealType();
@@ -383,7 +387,7 @@ public class MergeService implements IMergeService, IInitializingBean
 					updateCommand.configureFromContainer(updateContainer, tableChange.getTable());
 					changeCommand = updateCommand;
 					IList<IChangeContainer> newChanges = relationMergeService.processUpdateDependencies(reference, (ITable) entityHandler,
-							updateContainer.getRelations(), toDeleteMap, previousParentToMovedOrisMap);
+							updateContainer.getRelations(), toDeleteMap, previousParentToMovedOrisMap, allAddedORIs);
 					changeQueue.pushAllFrom(newChanges);
 					relationMergeService.handleUpdateNotifications(reference.getRealType(), updateContainer.getRelations(), tableChangeMap);
 				}
@@ -399,7 +403,7 @@ public class MergeService implements IMergeService, IInitializingBean
 					deleteCommand.configureFromContainer(changeContainer, tableChange.getTable());
 					changeCommand = deleteCommand;
 					IList<IChangeContainer> newChanges = relationMergeService.processDeleteDependencies(reference, (ITable) entityHandler, toDeleteMap,
-							outgoingRelationToReferenceMap, incomingRelationToReferenceMap, previousParentToMovedOrisMap);
+							outgoingRelationToReferenceMap, incomingRelationToReferenceMap, previousParentToMovedOrisMap, allAddedORIs);
 					changeQueue.pushAllFrom(newChanges);
 				}
 				else if (changeContainer instanceof LinkContainer)
@@ -452,6 +456,52 @@ public class MergeService implements IMergeService, IInitializingBean
 			if (changeQueue.isEmpty())
 			{
 				break;
+			}
+		}
+	}
+
+	/**
+	 * Finds all ORIs referenced as 'added' in a RUI. Used to not cascade-delete moved entities.
+	 * 
+	 * @param allChanges
+	 *            All changes in the CUDResult.
+	 * @param allAddedORIs
+	 *            All ORIs referenced as 'added' in a RUI.
+	 */
+	protected void findAllNewlyReferencedORIs(List<IChangeContainer> allChanges, HashSet<IObjRef> allAddedORIs)
+	{
+		for (int i = allChanges.size(); i-- > 0;)
+		{
+			IChangeContainer changeContainer = allChanges.get(i);
+			if (changeContainer instanceof DeleteContainer)
+			{
+				continue;
+			}
+			IRelationUpdateItem[] relationUpdateItems;
+			if (changeContainer instanceof CreateContainer)
+			{
+				relationUpdateItems = ((CreateContainer) changeContainer).getRelations();
+			}
+			else if (changeContainer instanceof UpdateContainer)
+			{
+				relationUpdateItems = ((UpdateContainer) changeContainer).getRelations();
+			}
+			else
+			{
+				throw new IllegalArgumentException("Unknown IChangeContainer implementation: '" + changeContainer.getClass().getName() + "'");
+			}
+
+			if (relationUpdateItems == null)
+			{
+				continue;
+			}
+			for (IRelationUpdateItem relationUpdateItem : relationUpdateItems)
+			{
+				IObjRef[] addedORIs = relationUpdateItem.getAddedORIs();
+				if (addedORIs != null)
+				{
+					allAddedORIs.addAll(addedORIs);
+				}
 			}
 		}
 	}

@@ -193,19 +193,20 @@ public class Properties implements IProperties
 			String rightFromVariable = matcher.group(3);
 			ThreadLocal<HashSet<String>> cyclicKeyCheckTL = this.cyclicKeyCheckTL;
 			HashSet<String> cyclicKeyCheck = cyclicKeyCheckTL.get();
-			boolean created = false;
+			boolean created = false, added = false;
 			if (cyclicKeyCheck == null)
 			{
 				cyclicKeyCheck = new HashSet<String>();
 				cyclicKeyCheckTL.set(cyclicKeyCheck);
 				created = true;
 			}
-			if (!cyclicKeyCheck.add(variableName))
-			{
-				throw new IllegalArgumentException("Cycle detected on dynamic property resolution with name: '" + variableName + "'. This is not supported");
-			}
 			try
 			{
+				if (!cyclicKeyCheck.add(variableName))
+				{
+					throw new IllegalArgumentException("Cycle detected on dynamic property resolution with name: '" + variableName + "'. This is not supported");
+				}
+				added = true;
 				String resolvedVariable = getString(variableName);
 				if (resolvedVariable == null)
 				{
@@ -218,7 +219,10 @@ public class Properties implements IProperties
 			}
 			finally
 			{
-				cyclicKeyCheck.remove(variableName);
+				if (added)
+				{
+					cyclicKeyCheck.remove(variableName);
+				}
 				if (created)
 				{
 					cyclicKeyCheckTL.remove();

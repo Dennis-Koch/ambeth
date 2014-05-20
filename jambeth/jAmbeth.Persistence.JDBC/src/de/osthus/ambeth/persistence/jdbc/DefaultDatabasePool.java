@@ -13,11 +13,12 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseDisposeHook;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class DefaultDatabasePool extends NoopDatabasePool
+public class DefaultDatabasePool extends NoopDatabasePool implements IDatabaseDisposeHook
 {
 	@LogInstance
 	private ILogger log;
@@ -212,7 +213,12 @@ public class DefaultDatabasePool extends NoopDatabasePool
 		writeLock.unlock();
 		try
 		{
-			return super.createNewDatabase();
+			IDatabase database = super.createNewDatabase();
+			if (database != null)
+			{
+				database.registerDisposeHook(this);
+			}
+			return database;
 		}
 		catch (Exception e)
 		{
@@ -229,6 +235,11 @@ public class DefaultDatabasePool extends NoopDatabasePool
 	public void releaseDatabase(IDatabase database, boolean backToPool)
 	{
 		ParamChecker.assertParamNotNull(database, "database");
+		if (database.isDisposed())
+		{
+			// Nothing to do
+			return;
+		}
 		database.getAutowiredBeanInContext(IModifyingDatabase.class).setModifyingDatabase(false);
 		ReentrantLock writeLock = this.writeLock;
 		writeLock.lock();
@@ -267,5 +278,24 @@ public class DefaultDatabasePool extends NoopDatabasePool
 			// Intended blank
 		}
 		notifyCallbacksClosed(database);
+	}
+
+	@Override
+	public void databaseDisposed(IDatabase disposedDatabase)
+	{
+		disposedDatabase.unregisterDisposeHook(this);
+		ReentrantLock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			usedDatabases.remove(disposedDatabase);
+			unusedDatabases.remove(disposedDatabase);
+			notEmptyCond.signal();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+		notifyCallbacksClosed(disposedDatabase);
 	}
 }

@@ -3,7 +3,6 @@ package de.osthus.ambeth.relations.one.lazy.fk.reverse.none;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -125,6 +124,6 @@ public class OneLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 		prefetch.prefetch(entityB);
 
 		assertAfterPrefetch(entityB, propertyName);
-		Assert.assertNotNull(entityB.getEntityA().getName());
+		assertNotNull(entityB.getEntityA().getName());
 	}
 }

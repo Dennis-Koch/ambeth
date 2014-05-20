@@ -10,7 +10,9 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IFactoryBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.exception.ExtendableException;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
@@ -31,6 +33,23 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 	protected static final Object[] oneArgs = new Object[] { new Object() };
 
 	protected static final Class<?>[] classObjectArgs = new Class[] { Object.class };
+
+	public static IBeanConfiguration registerExtendableBean(IBeanContextFactory beanContextFactory, Class<?> providerType, Class<?> extendableType)
+	{
+		return registerExtendableBean(beanContextFactory, null, providerType, extendableType);
+	}
+
+	public static IBeanConfiguration registerExtendableBean(IBeanContextFactory beanContextFactory, String beanName, Class<?> providerType,
+			Class<?> extendableType)
+	{
+		if (beanName != null)
+		{
+			return beanContextFactory.registerBean(beanName, ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).autowireable(providerType, extendableType);
+		}
+		return beanContextFactory.registerAnonymousBean(ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).autowireable(providerType, extendableType);
+	}
 
 	@SuppressWarnings("unused")
 	@LogInstance

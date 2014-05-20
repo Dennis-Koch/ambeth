@@ -159,7 +159,12 @@ namespace De.Osthus.Ambeth.Util
                     }
                 }
             }
-            nameToTypeDict.Add(typeName, null);
+            // GN: If we add to the nameToTypeDict here, we have the problem, that we return in line 141 the next time, even if the type is available by that time.
+            // Concrete example: ValueObjectConfigReader handles the configuration of "ProcessingRequest" from the delivery domain. This entity has a relation to
+            // "ProcessingStepType" from the processing domain, hence the ValueObjectConfigReader calls this method to determine the VO type. As we are in a warehouse
+            // screen that needs no procesing entities, the type cannot be found. Now we switch to another warehouse screen that has dependencies to processing, but we
+            // return in line 141, although the assembly is now available.
+            //nameToTypeDict.Add(typeName, null);
             return null;
         }
 

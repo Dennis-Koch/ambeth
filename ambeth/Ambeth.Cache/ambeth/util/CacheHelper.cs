@@ -499,12 +499,17 @@ namespace De.Osthus.Ambeth.Util
             }
             if (obj is IEnumerable)
             {
+                var items = new List<Object>();
                 foreach (Object item in (IEnumerable)obj)
                 {
                     if (item == null)
                     {
                         continue;
                     }
+                    items.Add(item);
+                }
+                foreach (Object item in items)
+                {
                     EnsureInitializedRelationsIntern(item, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad,
                         cacheToOrisLoadedHistory, cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                 }

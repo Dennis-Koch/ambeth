@@ -5,8 +5,7 @@ import static org.junit.Assert.assertNull;
 
 import java.util.EnumSet;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;

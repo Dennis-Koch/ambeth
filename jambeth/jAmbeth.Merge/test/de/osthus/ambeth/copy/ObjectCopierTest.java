@@ -3,8 +3,7 @@ package de.osthus.ambeth.copy;
 import java.util.Arrays;
 import java.util.Date;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.ioc.ObjectCopierModule;

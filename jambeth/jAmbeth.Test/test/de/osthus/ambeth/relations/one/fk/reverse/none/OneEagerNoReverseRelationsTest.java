@@ -1,6 +1,7 @@
 package de.osthus.ambeth.relations.one.fk.reverse.none;
 
-import junit.framework.Assert;
+import org.junit.Assert;
+
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.testutil.TestProperties;
 

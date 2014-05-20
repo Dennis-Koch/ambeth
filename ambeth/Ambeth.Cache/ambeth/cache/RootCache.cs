@@ -774,6 +774,10 @@ namespace De.Osthus.Ambeth.Cache
 
         protected void ClearPendingKeysOfCurrentThread(List<IObjRef> cacheKeysToRemove)
         {
+            if (cacheKeysToRemove.Count == 0)
+            {
+                return;
+            }
             Lock pendingKeysWriteLock = this.pendingKeysWriteLock;
             pendingKeysWriteLock.Lock();
             try

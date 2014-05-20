@@ -2,8 +2,7 @@ package de.osthus.ambeth.cache;
 
 import java.util.EnumSet;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;

@@ -244,7 +244,7 @@ namespace De.Osthus.Ambeth.Cache
                         IList<Object> result = GetObjectsRetry(orisToGet, cacheDirective, out doAnotherRetry);
                         if (!doAnotherRetry)
                         {
-                            if (!cacheDirective.HasFlag(CacheDirective.FailEarly))
+                            if (!cacheDirective.HasFlag(CacheDirective.FailEarly) && !cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy))
                             {
                                 CachePathHelper.EnsureInitializedRelations(result, MembersToInitialize);
                             }
