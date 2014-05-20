@@ -183,6 +183,39 @@ public class IndependentEntityMetaDataClient extends ClassExtendableContainer<IE
 					businessObjectSaveOrder.add(boType);
 				}
 			}
+			for (Class<?> boType : boTypeToAfterBoTypes.keySet())
+			{
+				if (boTypeToBeforeBoTypes.containsKey(boType))
+				{
+					// already handled in the previous loop
+					continue;
+				}
+				boolean added = false;
+				for (int a = businessObjectSaveOrder.size(); a-- > 0;)
+				{
+					Class<?> orderedBoType = businessObjectSaveOrder.get(a);
+
+					// OrderedBoType is the type currently inserted at the correct position in the save order - as far as the keyset
+					// has been traversed, yet
+
+					ISet<Class<?>> typesBeforeOrderedType = boTypeToBeforeBoTypes.get(orderedBoType);
+
+					boolean orderedHasToBeAfterCurrent = typesBeforeOrderedType != null && typesBeforeOrderedType.contains(boType);
+
+					if (!orderedHasToBeAfterCurrent)
+					{
+						// our boType has nothing to do with the orderedBoType. So we let it be as it is
+						continue;
+					}
+					businessObjectSaveOrder.add(a, boType);
+					added = true;
+					break;
+				}
+				if (!added)
+				{
+					businessObjectSaveOrder.add(boType);
+				}
+			}
 			this.businessObjectSaveOrder = businessObjectSaveOrder.toArray(new Class[businessObjectSaveOrder.size()]);
 		}
 		finally

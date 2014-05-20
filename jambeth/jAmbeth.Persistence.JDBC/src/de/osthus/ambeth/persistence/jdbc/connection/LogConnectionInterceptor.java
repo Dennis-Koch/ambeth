@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Wrapper;
 
+import javax.sql.PooledConnection;
+
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.Property;
@@ -31,7 +33,7 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 {
 	public static final Method createStatementMethod;
 
-	public static final Method isClosedMethod, closeMethod, toStringMethod;
+	public static final Method isClosedMethod, closeMethod, pooledCloseMethod, toStringMethod;
 
 	public static final Method unwrapMethod, isWrapperForMethod;
 
@@ -43,6 +45,7 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 			createStatementMethod = Connection.class.getMethod("createStatement");
 			isClosedMethod = Connection.class.getMethod("isClosed");
 			closeMethod = Connection.class.getMethod("close");
+			pooledCloseMethod = PooledConnection.class.getMethod("close");
 			unwrapMethod = Wrapper.class.getMethod("unwrap", Class.class);
 			isWrapperForMethod = Wrapper.class.getMethod("isWrapperFor", Class.class);
 		}
@@ -118,7 +121,7 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 			{
 				return toString();
 			}
-			else if (closeMethod.equals(method))
+			else if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
 			{
 				return null;
 			}
@@ -155,7 +158,7 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 			}
 			Object result = proxy.invoke(connection, args);
 
-			if (closeMethod.equals(method))
+			if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
 			{
 				if (eventDispatcher != null)
 				{

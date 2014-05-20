@@ -17,6 +17,7 @@ import de.osthus.ambeth.change.TableChange;
 import de.osthus.ambeth.change.UpdateCommand;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -223,25 +224,25 @@ public class RelationMergeService implements IRelationMergeService, IInitializin
 
 	@Override
 	public IList<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap)
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs)
 	{
-		return processInsertAndUpdateDependencies(reference, table, ruis, null, previousParentToMovedOrisMap);
+		return processInsertAndUpdateDependencies(reference, table, ruis, null, previousParentToMovedOrisMap, allAddedORIs);
 	}
 
 	@Override
 	public IList<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, Map<IObjRef, Object> toDeleteMap,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap)
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs)
 	{
 		List<IDirectedLink> links = table.getLinks();
 		if (links.isEmpty() || ruis == null || ruis.length == 0)
 		{
 			return EmptyList.getInstance();
 		}
-		return processInsertAndUpdateDependencies(reference, table, ruis, toDeleteMap, previousParentToMovedOrisMap);
+		return processInsertAndUpdateDependencies(reference, table, ruis, toDeleteMap, previousParentToMovedOrisMap, allAddedORIs);
 	}
 
 	protected IList<IChangeContainer> processInsertAndUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis,
-			Map<IObjRef, Object> toDeleteMap, Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap)
+			Map<IObjRef, Object> toDeleteMap, Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs)
 	{
 		if (ruis == null || ruis.length == 0)
 		{
@@ -275,6 +276,11 @@ public class RelationMergeService implements IRelationMergeService, IInitializin
 					{
 						Object objectToDelete = objectsToDelete.get(b);
 						IObjRef removedORI = removedORIs[b];
+						if (allAddedORIs.contains(removedORI))
+						{
+							// Entity was not orphaned but moved
+							continue;
+						}
 						if (objectToDelete == null)
 						{
 							throw new IllegalStateException("Entity could not be retrieved: " + removedORI);
@@ -436,7 +442,7 @@ public class RelationMergeService implements IRelationMergeService, IInitializin
 	@Override
 	public IList<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table, Map<IObjRef, Object> toDeleteMap,
 			Map<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap, Map<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap)
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs)
 	{
 		List<IDirectedLink> links = table.getLinks();
 		if (links.isEmpty())

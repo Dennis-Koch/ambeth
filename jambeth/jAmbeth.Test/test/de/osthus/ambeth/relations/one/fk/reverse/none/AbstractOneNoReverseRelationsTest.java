@@ -3,7 +3,6 @@ package de.osthus.ambeth.relations.one.fk.reverse.none;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -126,17 +125,17 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 		prefetch.prefetch(entityB);
 
 		assertAfterPrefetch(entityB, propertyName);
-		Assert.assertNotNull(entityB.getEntityA().getName());
+		assertNotNull(entityB.getEntityA().getName());
 	}
 
 	protected void assertBeforePrefetch(EntityB entityB, String propertyName)
 	{
-		Assert.assertTrue(Boolean.FALSE.equals(proxyHelper.isInitialized(entityB, propertyName)));
+		assertTrue(Boolean.FALSE.equals(proxyHelper.isInitialized(entityB, propertyName)));
 	}
 
 	protected void assertAfterPrefetch(EntityB entityB, String propertyName)
 	{
-		Assert.assertTrue(Boolean.TRUE.equals(proxyHelper.isInitialized(entityB, propertyName)));
-		Assert.assertNull(proxyHelper.getObjRefs(entityB, propertyName));
+		assertTrue(Boolean.TRUE.equals(proxyHelper.isInitialized(entityB, propertyName)));
+		assertNull(proxyHelper.getObjRefs(entityB, propertyName));
 	}
 }

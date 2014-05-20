@@ -116,10 +116,8 @@ public class XmlModule implements IInitializingModule
 
 		beanContextFactory.registerBean("xmlDictionary", CyclicXmlDictionary.class).autowireable(ICyclicXmlDictionary.class);
 
-		beanContextFactory.registerBean("objectFutureHandlerExtendable", ExtendableBean.class)
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IObjectFutureHandlerExtendable.class)
-				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IObjectFutureHandlerRegistry.class)
-				.autowireable(IObjectFutureHandlerExtendable.class, IObjectFutureHandlerRegistry.class);
+		ExtendableBean.registerExtendableBean(beanContextFactory, "objectFutureHandlerExtendable", IObjectFutureHandlerRegistry.class,
+				IObjectFutureHandlerExtendable.class);
 
 		beanContextFactory.registerBean("objRefFutureHandler", ObjRefFutureHandler.class);
 		beanContextFactory.link("objRefFutureHandler").to(IObjectFutureHandlerExtendable.class).with(ObjRefFuture.class);

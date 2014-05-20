@@ -6,6 +6,7 @@ import java.util.Set;
 
 import de.osthus.ambeth.change.ILinkChangeCommand;
 import de.osthus.ambeth.change.ITableChange;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.merge.model.IChangeContainer;
@@ -19,14 +20,14 @@ public interface IRelationMergeService
 	ITableChange getTableChange(IMap<String, ITableChange> tableChangeMap, Object entityHandler, String entityHandlerName);
 
 	IList<IChangeContainer> processCreateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap);
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs);
 
 	IList<IChangeContainer> processUpdateDependencies(IObjRef reference, ITable table, IRelationUpdateItem[] ruis, Map<IObjRef, Object> toDeleteMap,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap);
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs);
 
 	IList<IChangeContainer> processDeleteDependencies(IObjRef reference, ITable table, Map<IObjRef, Object> toDeleteMap,
 			Map<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap, Map<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap,
-			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap);
+			Map<CheckForPreviousParentKey, IList<IObjRef>> previousParentToMovedOrisMap, HashSet<IObjRef> allAddedORIs);
 
 	IList<IChangeContainer> checkForPreviousParent(List<IObjRef> oris, Class<?> entityType, String memberName);
 
