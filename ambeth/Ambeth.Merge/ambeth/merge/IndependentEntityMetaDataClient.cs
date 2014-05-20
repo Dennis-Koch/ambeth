@@ -311,16 +311,16 @@ namespace De.Osthus.Ambeth.Merge
                         notFoundEntityTypes.Add(entityType);
                     }
                 }
-			    if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
-			    {
-				    StringBuilder sb = new StringBuilder();
-				    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
-				    foreach (Type notFoundType in notFoundEntityTypes)
-				    {
-					    sb.Append("\t\n").Append(notFoundType.FullName);
-				    }
-				    Log.Warn(sb.ToString());
-			    }
+                if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
+                    foreach (Type notFoundType in notFoundEntityTypes)
+                    {
+                        sb.Append("\t\n").Append(notFoundType.FullName);
+                    }
+                    Log.Warn(sb.ToString());
+                }
             }
             finally
             {
