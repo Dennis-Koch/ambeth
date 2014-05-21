@@ -14,7 +14,7 @@
 		<dependency>
 			<groupId>oracle</groupId>
 			<artifactId>oracle-driver</artifactId>
-			<version>11.2.0.3.0</version>
+			<version>11.2.0.3.1</version>
 		</dependency>
 
 		<dependency>
