@@ -24,6 +24,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
 			<version>${project.version}</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
