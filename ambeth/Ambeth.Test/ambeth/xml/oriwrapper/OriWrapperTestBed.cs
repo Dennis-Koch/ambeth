@@ -265,7 +265,8 @@ namespace De.Osthus.Ambeth.Xml.Test
 
             EntityA entityA = cache.GetObject<EntityA>(1);
             EntityB entityB = EntityFactory.CreateEntity<EntityB>();
-            entityA.EntityBs.Add(entityB);
+            IList<EntityB> entityBs = entityA.EntityBs;
+            entityBs.Add(entityB);
 
             return new TestData(xml, xmlCS, entityA);
         }
