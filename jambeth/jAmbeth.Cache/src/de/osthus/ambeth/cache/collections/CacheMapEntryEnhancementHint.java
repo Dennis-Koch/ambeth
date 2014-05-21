@@ -1,9 +1,9 @@
 package de.osthus.ambeth.cache.collections;
 
-import net.sf.cglib.asm.Type;
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class CacheMapEntryEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
 {
@@ -62,7 +62,6 @@ public class CacheMapEntryEnhancementHint implements IEnhancementHint, ITargetNa
 	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
-		return Type.getInternalName(entityType) + "$" + CacheMapEntry.class.getSimpleName() + "$"
-				+ (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : idIndex);
+		return Type.getInternalName(entityType) + "$" + CacheMapEntry.class.getSimpleName() + "$" + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : idIndex);
 	}
 }
