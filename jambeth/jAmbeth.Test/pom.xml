@@ -1,148 +1,147 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>jAmbeth.Test</name>
+	<artifactId>jambeth-test</artifactId>
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jAmbeth</artifactId>
-		<version>2.0.${build.number}</version>
+		<artifactId>jambeth-pom</artifactId>
+		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>jAmbeth.Test</artifactId>
 
  	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.Bytecode</artifactId>
+			<artifactId>jambeth-cache-bytecode</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.DataChange</artifactId>
+			<artifactId>jambeth-cache-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.Stream</artifactId>
+			<artifactId>jambeth-cache-stream</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.Server</artifactId>
+			<artifactId>jambeth-cache-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.Server</artifactId>
+			<artifactId>jambeth-cache-server</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.DataChange.Persistence</artifactId>
+			<artifactId>jambeth-datachange-persistence</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.DataChange.Persistence</artifactId>
+			<artifactId>jambeth-datachange-persistence</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Event.DataChange</artifactId>
+			<artifactId>jambeth-event-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Event.Server</artifactId>
+			<artifactId>jambeth-event-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Mapping</artifactId>
+			<artifactId>jambeth-mapping</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Merge.Bytecode</artifactId>
+			<artifactId>jambeth-merge-bytecode</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Merge.Bytecode</artifactId>
+			<artifactId>jambeth-merge-bytecode</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Merge.Server</artifactId>
+			<artifactId>jambeth-merge-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Persistence.JDBC</artifactId>
+			<artifactId>jambeth-persistence-jdbc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Persistence.Oracle11</artifactId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Privilege.Server</artifactId>
+			<artifactId>jambeth-privilege-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Query.JDBC</artifactId>
+			<artifactId>jambeth-query-jdbc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Query.JDBC</artifactId>
+			<artifactId>jambeth-query-jdbc</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Security.Server</artifactId>
+			<artifactId>jambeth-security-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.TestUtil</artifactId>
+			<artifactId>jambeth-testutil</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.TestUtil</artifactId>
+			<artifactId>jambeth-testutil</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Xml</artifactId>
+			<artifactId>jambeth-xml</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Xml</artifactId>
+			<artifactId>jambeth-xml</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>
 				
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Util</artifactId>
+			<artifactId>jambeth-util</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Service</artifactId>
+			<artifactId>jambeth-service</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>

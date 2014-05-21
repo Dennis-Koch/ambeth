@@ -1,44 +1,45 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>jAmbeth.Merge</name>
+	<artifactId>jambeth-merge</artifactId>
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jAmbeth</artifactId>
-		<version>2.0.${build.number}</version>
+		<artifactId>jambeth-pom</artifactId>
+		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>jAmbeth.Merge</artifactId>
 
 	<dependencies>
-		<!-- TODO INSERT DEPENDENCY:lib/javax.persistence_2.0.0.jar -->
 		<dependency>
 			<groupId>org.eclipse.persistence</groupId>
 			<artifactId>javax.persistence</artifactId>
 			<version>2.0.0</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.DataChange</artifactId>
+			<artifactId>jambeth-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Event</artifactId>
+			<artifactId>jambeth-event</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Service</artifactId>
+			<artifactId>jambeth-service</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>jAmbeth.IoC</artifactId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>compile</scope>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.osthus.ambeth</groupId>
-	<artifactId>jAmbeth</artifactId>
-	<version>2.0.${build.number}</version>
+	<artifactId>jambeth-pom</artifactId>
+	<version>2.0.X-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
@@ -77,6 +77,19 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
