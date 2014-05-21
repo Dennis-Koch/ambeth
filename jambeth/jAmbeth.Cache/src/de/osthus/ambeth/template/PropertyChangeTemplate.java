@@ -288,7 +288,6 @@ public class PropertyChangeTemplate
 			Object currentValue)
 	{
 		ICacheModification cacheModification = this.cacheModification;
-		boolean oldCacheModification = cacheModification.isActive();
 		PropertyEntry entry = getPropertyEntry(obj.getClass(), property);
 		currentValue = entry.getDelegate.getValue(obj);
 		try
@@ -316,7 +315,7 @@ public class PropertyChangeTemplate
 		}
 		finally
 		{
-			if (!oldCacheModification && entry.doesModifyToBeUpdated)
+			if (!cacheModification.isActiveOrFlushing() && !cacheModification.isInternalUpdate() && entry.doesModifyToBeUpdated)
 			{
 				setToBeUpdated(obj, true);
 			}

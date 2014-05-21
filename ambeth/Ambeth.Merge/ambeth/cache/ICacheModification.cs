@@ -7,6 +7,8 @@ namespace De.Osthus.Ambeth.Cache
 {
     public interface ICacheModification
     {
+        bool InternalUpdate { get; set; }
+
         bool Active { get; set; }
 
         bool ActiveOrFlushing { get; }
