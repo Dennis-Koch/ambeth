@@ -45,6 +45,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             lc4.Reference = new ObjRef(typeof(EntityB), 1, 1);
             lc4.Primitives = new Object[metaData4.PrimitiveMembers.Length];
             lc4.Relations = new IObjRef[metaData4.RelationMembers.Length][];
+            lc4.Relations[metaData4.GetIndexByRelationName("EntityA")] = new IObjRef[] { lc3.Reference };
             databaseMap.Put(lc4.Reference, lc4);
 
             lc3.Relations[metaData3.GetIndexByRelationName("EntityBs")] = new IObjRef[] { lc4.Reference };

@@ -191,7 +191,6 @@ namespace De.Osthus.Ambeth.Template
         public void FirePropertyChange(INotifyPropertyChangedSource obj, PropertyChangeSupport propertyChangeSupport, IPropertyInfo property, Object oldValue, Object currentValue)
         {
             ICacheModification cacheModification = this.CacheModification;
-            bool oldCacheModification = cacheModification.Active;
             PropertyEntry entry = GetPropertyEntry(obj.GetType(), property);
             if (currentValue == null)
             {
@@ -222,7 +221,7 @@ namespace De.Osthus.Ambeth.Template
             }
             finally
             {
-                if (!cacheModification.ActiveOrFlushing && entry.doesModifyToBeUpdated)
+                if (!cacheModification.ActiveOrFlushing && !cacheModification.InternalUpdate && entry.doesModifyToBeUpdated)
                 {
                     SetToBeUpdated(obj, true);
                 }

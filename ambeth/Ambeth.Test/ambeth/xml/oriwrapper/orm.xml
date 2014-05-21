@@ -24,7 +24,7 @@
     <attributes>
       <id name="Id" />
       <version name="Version" />
-      <to-one name="EntityBs" target-entity="de.osthus.ambeth.test.model.EntityB" />
+      <to-many name="EntityBs" target-entity="de.osthus.ambeth.test.model.EntityB" />
     </attributes>
   </entity>
 
@@ -32,6 +32,7 @@
     <attributes>
       <id name="Id" />
       <version name="Version" />
+      <to-one name="EntityA" target-entity="de.osthus.ambeth.test.model.EntityA" />
     </attributes>
   </entity>
 
