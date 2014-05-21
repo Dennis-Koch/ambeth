@@ -498,7 +498,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 			mg.pushEnum(ValueHolderState.INIT);
 			mg.ifCmp(f_initialized.getType(), GeneratorAdapter.EQ, l_initialized);
 
-			SetCacheModificationMethodCreator.cacheModificationActive(p_cacheModification, mg, new Script()
+			SetCacheModificationMethodCreator.cacheModificationInternalUpdate(p_cacheModification, mg, new Script()
 			{
 				@Override
 				public void execute(MethodGenerator mg)

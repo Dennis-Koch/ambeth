@@ -19,6 +19,8 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly ThreadLocal<int> activeTL = new ThreadLocal<int>();
 
+        protected readonly ThreadLocal<bool> internalUpdateTL = new ThreadLocal<bool>();
+
         protected readonly ThreadLocal<List<IBackgroundWorkerDelegate>> queuedEventsTL = new ThreadLocal<List<IBackgroundWorkerDelegate>>();
 
         [Autowired]
@@ -106,6 +108,18 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 Log.Info("ICacheModification.FlushWithinGui finished");
             });
+        }
+
+        public bool InternalUpdate
+        {
+            get
+            {
+                return internalUpdateTL.Value;
+            }
+            set
+            {
+                internalUpdateTL.Value = value;
+            }
         }
     }
 }
