@@ -8,8 +8,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class SetCacheModificationMethodCreator : ClassVisitor
     {
-        private static readonly MethodInstance callCacheModification = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), "CallCacheModification",
+        private static readonly MethodInstance m_callCacheModificationActive = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), "CallCacheModificationActive",
                 typeof(ICacheModification), typeof(bool), typeof(bool));
+
+        private static readonly MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), "CallCacheModificationInternalUpdate",
+        typeof(ICacheModification), typeof(bool), typeof(bool));
 
         private static readonly String cacheModificationName = "f_cacheModification";
 
@@ -42,7 +45,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mg.LoadLocal(loc_cacheModification);
             mg.LoadLocal(loc_oldActive);
             mg.Push(true);
-            mg.InvokeStatic(callCacheModification);
+            mg.InvokeStatic(m_callCacheModificationActive);
 
             mg.TryFinally(script, delegate(IMethodVisitor mv2)
                 {
@@ -50,8 +53,38 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     mv2.LoadLocal(loc_cacheModification);
                     mv2.LoadLocal(loc_oldActive);
                     mv2.Push(false);
-                    mv2.InvokeStatic(callCacheModification);
+                    mv2.InvokeStatic(m_callCacheModificationActive);
                 });
+        }
+
+        public static void CacheModificationInternalUpdate(PropertyInstance p_cacheModification, IMethodVisitor mg, Script script)
+        {
+            LocalVariableInfo loc_cacheModification = mg.NewLocal<ICacheModification>();
+            LocalVariableInfo loc_oldActive = mg.NewLocal<bool>();
+
+            // ICacheModification cacheModification = this.cacheModification;
+            mg.CallThisGetter(p_cacheModification);
+            mg.StoreLocal(loc_cacheModification);
+
+            // boolean oldInternalUpdate = cacheModification.isInternalUpdate();
+            mg.LoadLocal(loc_cacheModification);
+            mg.InvokeInterface(new MethodInstance(null, typeof(ICacheModification), "get_InternalUpdate"));
+            mg.StoreLocal(loc_oldActive);
+
+            // callModificationInternalUpdate(cacheModification, oldInternalUpdate, true)
+            mg.LoadLocal(loc_cacheModification);
+            mg.LoadLocal(loc_oldActive);
+            mg.Push(true);
+            mg.InvokeStatic(m_callCacheModificationInternalUpdate);
+
+            mg.TryFinally(script, delegate(IMethodVisitor mv2)
+            {
+                // callModificationInternalUpdate(cacheModification, oldInternalUpdate, false)
+                mv2.LoadLocal(loc_cacheModification);
+                mv2.LoadLocal(loc_oldActive);
+                mv2.Push(false);
+                mv2.InvokeStatic(m_callCacheModificationInternalUpdate);
+            });
         }
 
         public SetCacheModificationMethodCreator(IClassVisitor cv)
@@ -68,11 +101,19 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             base.VisitEnd();
         }
 
-        public static void CallCacheModification(ICacheModification cacheModification, bool oldValue, bool newValue)
+        public static void CallCacheModificationActive(ICacheModification cacheModification, bool oldValue, bool newValue)
         {
             if (!oldValue)
             {
                 cacheModification.Active = newValue;
+            }
+        }
+
+        public static void CallCacheModificationInternalUpdate(ICacheModification cacheModification, bool oldValue, bool newValue)
+        {
+            if (!oldValue)
+            {
+                cacheModification.InternalUpdate = newValue;
             }
         }
     }

@@ -447,7 +447,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     mg.PushEnum(ValueHolderState.INIT);
                     mg.IfCmp(typeof(ValueHolderState), CompareOperator.EQ, l_initialized);
 
-                    SetCacheModificationMethodCreator.CacheModificationActive(p_cacheModification, mg,
+                    SetCacheModificationMethodCreator.CacheModificationInternalUpdate(p_cacheModification, mg,
                         delegate(IMethodVisitor mv2)
                         {
                             mv2.LoadThis();

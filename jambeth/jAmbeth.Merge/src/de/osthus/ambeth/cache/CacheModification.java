@@ -16,6 +16,8 @@ public class CacheModification implements ICacheModification
 	// Intentionally no SensitiveThreadLocal
 	protected final ThreadLocal<Integer> activeTL = new ThreadLocal<Integer>();
 
+	protected final ThreadLocal<Boolean> internalUpdateTL = new ThreadLocal<Boolean>();
+
 	protected final ThreadLocal<ArrayList<IBackgroundWorkerDelegate>> queuedEventsTL = new ThreadLocal<ArrayList<IBackgroundWorkerDelegate>>();
 
 	@Override
@@ -28,6 +30,19 @@ public class CacheModification implements ICacheModification
 	public boolean isActive()
 	{
 		return ACTIVE.equals(activeTL.get());
+	}
+
+	@Override
+	public boolean isInternalUpdate()
+	{
+		Boolean internalUpdate = internalUpdateTL.get();
+		return internalUpdate != null ? internalUpdate.booleanValue() : false;
+	}
+
+	@Override
+	public void setInternalUpdate(boolean internalUpdate)
+	{
+		internalUpdateTL.set(Boolean.valueOf(internalUpdate));
 	}
 
 	@Override
