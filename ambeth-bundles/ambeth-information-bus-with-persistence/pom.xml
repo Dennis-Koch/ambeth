@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>Bundle Ambeth Information Bus</name>
+	<name>Bundle Ambeth Information Bus with Persistence</name>
 	<packaging>jar</packaging>
-	<artifactId>jambeth-information-bus</artifactId>
+	<artifactId>jambeth-information-bus-with-persistence</artifactId>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
@@ -15,97 +15,61 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
+			<artifactId>jambeth-information-bus</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
+			<artifactId>jambeth-cache-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-bytecode</artifactId>
+			<artifactId>jambeth-event-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-datachange</artifactId>
+			<artifactId>jambeth-job</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-stream</artifactId>
+			<artifactId>jambeth-job-cron4j</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+				
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-merge-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
+			<artifactId>jambeth-persistence</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
+			<artifactId>jambeth-privilege-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event-datachange</artifactId>
+			<artifactId>jambeth-query</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-mapping</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-privilege</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-sensor</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-stream</artifactId>
+			<artifactId>jambeth-security-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

@@ -12,7 +12,7 @@
  	<dependencies>
  		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus-server</artifactId>
+			<artifactId>jambeth-information-bus-with-persistence</artifactId>
 			<version>${project.version}</version>
 		</dependency> 	
  		<dependency>
