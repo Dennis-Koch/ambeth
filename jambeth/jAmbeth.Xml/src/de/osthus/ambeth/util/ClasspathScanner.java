@@ -38,7 +38,7 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 
 	public static final Pattern cutDollarPattern = Pattern.compile("([^\\$\\.]+)(?:\\$[\\.]+)?\\.(?:java|class)");
 
-	public static final Pattern subPathPattern = Pattern.compile("/[^/]+/[^/]+(/.+)");
+	public static final Pattern subPathPattern = Pattern.compile("(/[^/]+)?(/.+)");
 
 	protected IObjectCollector objectCollector;
 
@@ -80,13 +80,19 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 		{
 			ParamChecker.assertNotNull(packageFilterPatterns, "packageFilterPatterns");
 
-			String[] split = this.packageFilterPatterns.split(";");
-			packageScanPatterns = new Pattern[split.length];
+			String[] split = packageFilterPatterns.split(";");
+			ArrayList<Pattern> patterns = new ArrayList<Pattern>();
 			for (int a = split.length; a-- > 0;)
 			{
 				String packagePattern = split[a];
-				packageScanPatterns[a] = Pattern.compile(packagePattern);
+				String packagePattern1 = packagePattern.replaceAll(Pattern.quote("\\."), Matcher.quoteReplacement("/"));
+				patterns.add(Pattern.compile(packagePattern));
+				if (!packagePattern1.equals(packagePattern))
+				{
+					patterns.add(Pattern.compile(packagePattern1));
+				}
 			}
+			packageScanPatterns = patterns.toArray(Pattern.class);
 		}
 		return packageScanPatterns;
 	}
@@ -251,50 +257,82 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 		List<String> namespacePatterns = new ArrayList<String>();
 		IList<String> targetClassNames = new ArrayList<String>();
 
-		for (int a = 0, size = urls.size(); a < size; a++)
+		try
 		{
-			URL url = urls.get(a);
-			String path = url.getPath();
+			for (int a = 0, size = urls.size(); a < size; a++)
+			{
+				URL url = urls.get(a);
+				String path = url.getPath();
 
-			if (servletContext != null)
-			{
-				Matcher matcher = subPathPattern.matcher(path);
-				if (!matcher.matches())
-				{
-					throw new IllegalStateException(buildPatternFailMessage(subPathPattern, path));
-				}
-				path = matcher.group(1);
-				path = servletContext.getRealPath(path);
-			}
-			File realPathFile = new File(path);
-			try
-			{
-				pool.appendPathList(path);
-			}
-			catch (NotFoundException e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			if (realPathFile.isFile())
-			{
-				JarFile jarFile;
 				try
 				{
-					jarFile = new JarFile(realPathFile);
+					path = lookupExistingPath(path);
+					File realPathFile = new File(path);
+					pool.appendPathList(path);
+					if (realPathFile.isFile())
+					{
+						JarFile jarFile = new JarFile(realPathFile);
+						scanJarFile(jarFile, namespacePatterns, targetClassNames);
+						continue;
+					}
+					else
+					{
+						scanDirectory(realPathFile, "", targetClassNames, false);
+					}
 				}
 				catch (Throwable e)
 				{
-					throw RuntimeExceptionUtil.mask(e);
+					throw RuntimeExceptionUtil.mask(e, "Error occured while handling URL '" + url.getPath() + "'");
 				}
-				scanJarFile(jarFile, namespacePatterns, targetClassNames);
-				continue;
-			}
-			else
-			{
-				scanDirectory(realPathFile, "", targetClassNames, false);
 			}
 		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 		return targetClassNames;
+	}
+
+	protected String lookupExistingPath(String path) throws Throwable
+	{
+		if (servletContext == null)
+		{
+			return path;
+		}
+		String tempPath = path;
+		while (true)
+		{
+			Matcher matcher = subPathPattern.matcher(tempPath);
+			if (!matcher.matches())
+			{
+				throw new IllegalStateException(buildPatternFailMessage(subPathPattern, tempPath));
+			}
+			tempPath = matcher.group(2);
+			try
+			{
+				String realPath = servletContext.getRealPath(tempPath);
+				// path has been handled correctly. check if it really exists
+				File pathFile = new File(realPath);
+				if (!pathFile.exists())
+				{
+					// if (log.isWarnEnabled())
+					// {
+					// log.warn("Path '" + tempPath + "' does not exist!");
+					// }
+					throw new IllegalStateException("Path '" + realPath + "' does not exist!");
+				}
+				return realPath;
+			}
+			catch (Throwable e)
+			{
+				if (matcher.group(1) == null || matcher.group(1).length() == 0)
+				{
+					// no prefix path anymore to potentially recover from this failure
+					throw e;
+				}
+				continue;
+			}
+		}
 	}
 
 	protected void scanJarFile(JarFile jarFile, List<String> namespacePatterns, List<String> targetClassNames)
@@ -346,8 +384,8 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 						sb.append('/');
 					}
 					sb.append(cutDollarMatcher.group(1));
-					String className = sb.toString();
-					targetClassNames.add(className.replace('/', '.'));
+					String className = StringBuilderUtil.replace(sb, '/', '.').toString();
+					targetClassNames.add(className);
 				}
 			}
 		}
@@ -366,18 +404,20 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 			File[] files = dir.listFiles();
 			if (files == null)
 			{
-				throw new IllegalStateException("Directory '" + dir.getAbsolutePath() + "' not accessable");
+				throw new IllegalStateException("Directory '" + dir.getAbsolutePath() + "' not accessible");
 			}
+			sb.append(relativePath);
+			if (relativePath.length() > 0)
+			{
+				sb.append('/');
+			}
+			int sbStartLength = sb.length();
+
 			for (int a = 0, size = files.length; a < size; a++)
 			{
 				File file = files[a];
 
-				sb.setLength(0);
-				sb.append(relativePath);
-				if (relativePath.length() > 0)
-				{
-					sb.append('/');
-				}
+				sb.setLength(sbStartLength);
 				if (file.isDirectory())
 				{
 					sb.append(file.getName());
@@ -433,6 +473,7 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 					if (pathMatcher.matches())
 					{
 						targetClassNames.add(className.replace('/', '.'));
+						break;
 					}
 				}
 				//
