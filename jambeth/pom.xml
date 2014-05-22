@@ -65,6 +65,17 @@
 	<dependencies>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jAmbeth.TestUtil</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
 		<sourceDirectory>${project.basedir}/src</sourceDirectory>
 		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
@@ -76,7 +87,6 @@
 		<testResources>
 			<testResource>
 				<directory>${project.basedir}/test</directory>
-				<!-- <directory>${project.basedir}/src2/test/resources</directory> -->
 			</testResource>
 		</testResources>
 		<plugins>
@@ -103,6 +113,30 @@
 	</reporting>
 
 	<profiles>
+		<profile>
+			<!-- Excludes long-running tests for normal builds. Deactivate for nightly 
+				builds. -->
+			<id>normal-tests</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>**/BigStatementTest.java</exclude>
+								<exclude>**/QueryMassdataTest.java</exclude>
+								<exclude>**/isin/QueryIsInMassdataTest.java</exclude>
+								<exclude>**/ClassTupleExtendableContainerPerformanceTest.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 		<!-- This Profile is active when the build is executed on Jenkins CI Build 
 			Server. It activates code metrics and javadoc generation -->
 		<profile>
@@ -178,10 +212,6 @@
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
 						<version>2.11</version>
-						<!-- <dependencies> <dependency> <groupId>de.osthus.misc</groupId> 
-							<artifactId>code-analysis-config</artifactId> <version>${code-analysis-config.version}</version> 
-							</dependency> </dependencies> <configuration> <configLocation>checkstyle_checks.xml</configLocation> 
-							</configuration> -->
 						<executions>
 							<execution>
 								<phase>package</phase>
@@ -195,10 +225,6 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>findbugs-maven-plugin</artifactId>
 						<version>2.5.3</version>
-						<!-- <dependencies> <dependency> <groupId>de.osthus.misc</groupId> 
-							<artifactId>code-analysis-config</artifactId> <version>${code-analysis-config.version}</version> 
-							</dependency> </dependencies> <configuration> <findbugsXmlOutput>true</findbugsXmlOutput> 
-							<excludeFilterFile>findbugs_exclude_checks.xml</excludeFilterFile> </configuration> -->
 						<executions>
 							<execution>
 								<phase>package</phase>
@@ -208,39 +234,18 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>emma-maven-plugin</artifactId> 
-						<version>1.0-alpha-3</version> <inherited>true</inherited> <executions> <execution> 
-						<phase>process-classes</phase> <goals> <goal>instrument</goal> </goals> </execution> 
-						</executions> </plugin> -->
-					<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId> 
-						<version>2.16</version> <inherited>true</inherited> <configuration> <forkMode>once</forkMode> 
-						<reportFormat>xml</reportFormat> <classesDirectory>${project.build.directory}/generated-classes/emma/classes</classesDirectory> 
-						</configuration> </plugin> -->
-					<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>cobertura-maven-plugin</artifactId> 
-						</plugin> -->
-				</plugins>
-			</build>
-		</profile>
-
-		<profile>
-			<!-- Excludes long-running tests for normal builds. Deactivate for nightly 
-				builds. -->
-			<id>normal-tests</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<build>
-				<plugins>
 					<plugin>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<excludes>
-								<exclude>de/osthus/ambeth/persistence/jdbc/bigstatements/BigStatementTest.java</exclude>
-								<exclude>de/osthus/ambeth/query/QueryMassdataTest.java</exclude>
-								<exclude>de/osthus/ambeth/query/isin/QueryIsInMassdataTest.java</exclude>
-								<exclude>de/osthus/ambeth/util/ClassTupleExtendableContainerPerformanceTest.java</exclude>
-							</excludes>
-						</configuration>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>cobertura-maven-plugin</artifactId>
+						<version>2.6</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>cobertura</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
