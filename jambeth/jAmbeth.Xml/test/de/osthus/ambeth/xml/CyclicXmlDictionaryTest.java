@@ -26,7 +26,7 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class CyclicXmlDictionaryTest
 {
-	private static final String pathToCSharp = "c:\\dev\\Ambeth\\Ambeth.Xml\\ambeth\\xml\\CyclicXmlDictionary.cs";
+	private static final String pathToCSharp = "../../ambeth/Ambeth.Xml/ambeth/xml/CyclicXmlDictionary.cs";
 
 	CyclicXmlDictionary fixture;
 

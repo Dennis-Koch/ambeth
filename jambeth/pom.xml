@@ -91,4 +91,30 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<!-- Excludes long-running tests for normal builds. Deactivate for nightly builds. -->
+			<id>normal-tests</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>de/osthus/ambeth/persistence/jdbc/bigstatements/BigStatementTest.java</exclude>
+								<exclude>de/osthus/ambeth/query/QueryMassdataTest.java</exclude>
+								<exclude>de/osthus/ambeth/query/isin/QueryIsInMassdataTest.java</exclude>
+								<exclude>de/osthus/ambeth/util/ClassTupleExtendableContainerPerformanceTest.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
