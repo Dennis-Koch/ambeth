@@ -42,6 +42,7 @@ public class XmlPostProcessTest extends AbstractIocTest
 	@Test
 	public void testPostProcessTag()
 	{
+		testXmlPostProcessor.handledTags.clear();
 		String xml = "<root><n/><pp><test1/><test2/><test3/></pp></root>";
 		cyclicXmlHandler.read(xml);
 		assertEquals(3, testXmlPostProcessor.handledTags.size());
