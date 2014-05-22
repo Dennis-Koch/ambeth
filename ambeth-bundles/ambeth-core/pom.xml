@@ -18,17 +18,38 @@
 			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
 		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-log</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-log</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-util</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-util</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -39,10 +60,21 @@
 				<configuration>
 					<finalName>${project.artifactId}-${project.version}</finalName>
 					<appendAssemblyId>true</appendAssemblyId>
-					<!-- -->
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+						<descriptor>assembly/test-jar-with-dependencies.xml</descriptor>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<finalName>${project.artifactId}-${project.version}-tests</finalName>
+					<appendAssemblyId>true</appendAssemblyId>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
+					<classifier>tests</classifier>			
 				</configuration>
 			</plugin>
 		</plugins>

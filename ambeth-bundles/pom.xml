@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-bundles</artifactId>
+	<version>2.0.X-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.12</version>
+	</parent>
+
+	<properties>
+		<build.number>X-SNAPSHOT</build.number>
+	</properties>
+
+	<modules>
+		<module>ambeth-core</module>
+		<module>ambeth-information-bus</module>
+		<module>ambeth-information-bus-with-persistence</module>
+		<module>ambeth-server</module>
+		<module>ambeth-server-with-persistence</module>
+	</modules>
+
+	<build>
+		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

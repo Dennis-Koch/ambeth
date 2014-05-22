@@ -39,6 +39,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -81,52 +82,23 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
+	@Property(name = ConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
 
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
+	@Property(name = CacheConfigurationConstants.FirstLevelCacheType, mandatory = false)
 	protected CacheType defaultCacheType;
 
+	@Property(name = CacheConfigurationConstants.SecondLevelCacheActive, defaultValue = "true")
 	protected boolean secondLevelCacheActive;
 
-	protected boolean cacheServiceRegistryActive;
-
 	@Property(name = CacheConfigurationConstants.CacheServiceRegistryActive, defaultValue = "true")
-	public void setCacheServiceRegistryActive(boolean cacheServiceRegistryActive)
-	{
-		this.cacheServiceRegistryActive = cacheServiceRegistryActive;
-	}
-
-	@Property(name = CacheConfigurationConstants.FirstLevelCacheType, mandatory = false)
-	public void setDefaultCacheType(CacheType defaultCacheType)
-	{
-		this.defaultCacheType = defaultCacheType;
-	}
-
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	public void setNetworkClientMode(boolean isNetworkClientMode)
-	{
-		this.isNetworkClientMode = isNetworkClientMode;
-	}
-
-	@Property(name = CacheConfigurationConstants.SecondLevelCacheActive, defaultValue = "true")
-	public void setSecondLevelCacheActive(boolean secondLevelCacheActive)
-	{
-		this.secondLevelCacheActive = secondLevelCacheActive;
-	}
-
-	@Property(name = ConfigurationConstants.GenericTransferMapping, defaultValue = "false")
-	public void setGenericTransferMapping(boolean genericTransferMapping)
-	{
-		this.genericTransferMapping = genericTransferMapping;
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
-		this.proxyFactory = proxyFactory;
-	}
+	protected boolean cacheServiceRegistryActive;
 
 	@Override
 	public void applyProperties(Properties contextProperties)

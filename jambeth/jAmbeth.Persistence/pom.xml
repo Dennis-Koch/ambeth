@@ -13,6 +13,11 @@
 		<!-- TODO INSERT DEPENDENCY:lib/javax.transaction_1.0.0.0_1-1.jar -->
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 			<version>${project.version}</version>
 		</dependency>

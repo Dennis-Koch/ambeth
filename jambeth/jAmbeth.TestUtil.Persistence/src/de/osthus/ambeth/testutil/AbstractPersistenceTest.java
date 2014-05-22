@@ -54,10 +54,6 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 		public void fillProperties(Properties props)
 		{
 			// PersistenceJdbcModule
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-					+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-
 			props.put(ConfigurationConstants.NetworkClientMode, "false");
 			props.put(ConfigurationConstants.SlaveMode, "false");
 			props.put(ConfigurationConstants.LogShortNames, "true");

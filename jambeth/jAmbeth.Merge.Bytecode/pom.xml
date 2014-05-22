@@ -19,7 +19,16 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event</artifactId>
 			<version>${project.version}</version>
+		</dependency>		
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
@@ -29,8 +38,10 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 			<version>${project.version}</version>
-			<type>test-jar</type>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
+				
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-service</artifactId>

@@ -225,7 +225,7 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				{
 					fieldAccess = FieldAccess.get(type);
 				}
-				if (fieldAccess != null)
+				if (fieldAccess != null && (field.getModifiers() & Modifier.PRIVATE) == 0)
 				{
 					FieldAccess fieldAccessOfDeclaringType = FieldAccess.get(field.getDeclaringClass());
 					propertyInfo = new FieldPropertyInfoASM(type, propertyName, field, objectCollector, fieldAccessOfDeclaringType);
