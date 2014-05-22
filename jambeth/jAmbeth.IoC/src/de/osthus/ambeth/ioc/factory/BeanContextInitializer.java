@@ -76,7 +76,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 
 	protected static final IdentityHashMap<PrecedenceType, Integer> precedenceOrder = new IdentityHashMap<PrecedenceType, Integer>(0.5f);
 
-	// Intentionally no SensitiveThreadLocal. Usage will always be cleaned up immediately
+	// Intentionally no SensitiveThreadLocal. Usage will alLways be cleaned up immediately
 	protected static final ThreadLocal<BeanContextInit> currentBeanContextInitTL = new ThreadLocal<BeanContextInit>();
 
 	static
@@ -508,8 +508,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			{
 				if (autowired != null && !autowired.optional())
 				{
-					throw maskBeanBasedException("Could not resolve mandatory autowiring constraint on property '" + prop.getName() + "'", beanConfiguration,
-							null);
+					throw maskBeanBasedException("Could not resolve mandatory autowiring constraint on property '" + prop.getName() + "' of type '"
+							+ propertyType.getName() + "'", beanConfiguration, null);
 				}
 				continue;
 			}

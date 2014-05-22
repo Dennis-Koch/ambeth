@@ -19,12 +19,21 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
 			<version>${project.version}</version>
-			<type>test-jar</type>
-		</dependency>			
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+				
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
 			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>

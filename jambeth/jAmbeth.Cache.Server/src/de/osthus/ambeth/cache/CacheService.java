@@ -20,6 +20,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -49,34 +50,36 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 		}
 	};
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired
 	protected IServiceResultHolder oriResultHolder;
 
+	@Autowired(optional = true)
 	protected ISecurityScopeProvider securityScopeProvider;
 
+	@Autowired
 	protected IServiceByNameProvider serviceByNameProvider;
 
+	@Autowired
 	protected IServiceResultCache serviceResultCache;
 
+	@Autowired
 	protected IServiceResultProcessorRegistry serviceResultProcessorRegistry;
 
+	@Property(name = CacheConfigurationConstants.QueryBehavior, mandatory = false)
 	protected QueryBehaviorType defaultQueryBehaviorType;
 
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-		ParamChecker.assertNotNull(oriResultHolder, "oriResultHolder");
-		ParamChecker.assertNotNull(serviceByNameProvider, "serviceByNameProvider");
-		ParamChecker.assertNotNull(serviceResultCache, "serviceResultCache");
-		ParamChecker.assertNotNull(serviceResultProcessorRegistry, "serviceResultProcessorRegistry");
 		if (defaultQueryBehaviorType == null)
 		{
 			defaultQueryBehaviorType = QueryBehaviorType.DEFAULT;
@@ -88,52 +91,6 @@ public class CacheService implements ICacheService, IInitializingBean, ExecuteSe
 				log.debug("No securityScopeProvider found. Recovering work without security scope");
 			}
 		}
-	}
-
-	@Property(name = CacheConfigurationConstants.QueryBehavior, mandatory = false)
-	public void setDefaultQueryBehaviorType(QueryBehaviorType defaultQueryBehaviorType)
-	{
-		this.defaultQueryBehaviorType = defaultQueryBehaviorType;
-	}
-
-	public void setSecurityScopeProvider(ISecurityScopeProvider securityScopeProvider)
-	{
-		this.securityScopeProvider = securityScopeProvider;
-	}
-
-	public void setServiceByNameProvider(IServiceByNameProvider serviceByNameProvider)
-	{
-		this.serviceByNameProvider = serviceByNameProvider;
-	}
-
-	public void setOriResultHolder(IServiceResultHolder oriResultHolder)
-	{
-		this.oriResultHolder = oriResultHolder;
-	}
-
-	public void setServiceResultCache(IServiceResultCache serviceResultCache)
-	{
-		this.serviceResultCache = serviceResultCache;
-	}
-
-	public void setServiceResultProcessorRegistry(IServiceResultProcessorRegistry serviceResultProcessorRegistry)
-	{
-		this.serviceResultProcessorRegistry = serviceResultProcessorRegistry;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
 	}
 
 	@Override

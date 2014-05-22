@@ -39,6 +39,7 @@
 		<module>jAmbeth.Merge.Bytecode</module>
 		<module>jAmbeth.Merge.Server</module>
 		<module>jAmbeth.Persistence</module>
+		<module>jAmbeth.Persistence.API</module>
 		<module>jAmbeth.Persistence.JDBC</module>
 		<module>jAmbeth.Persistence.Oracle11</module>
 		<module>jAmbeth.Platform</module>
@@ -57,6 +58,7 @@
 		<module>jAmbeth.Stream</module>
 		<module>jAmbeth.Test</module>
 		<module>jAmbeth.TestUtil</module>
+		<module>jAmbeth.TestUtil.Persistence</module>
 		<module>jAmbeth.Util</module>
 		<module>jAmbeth.Xml</module>
 		<module>jAmbeth.Xml.File</module>

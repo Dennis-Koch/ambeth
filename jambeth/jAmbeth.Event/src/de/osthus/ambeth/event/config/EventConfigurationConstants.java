@@ -6,7 +6,7 @@ import de.osthus.ambeth.annotation.ConfigurationConstants;
 @ConfigurationConstants
 public final class EventConfigurationConstants
 {
-	protected EventConfigurationConstants()
+	private EventConfigurationConstants()
 	{
 	}
 
@@ -21,4 +21,8 @@ public final class EventConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String MaxWaitInterval = "event.polling.maxwaitinterval";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String EventManagerName = "event.manager.name";
+
 }

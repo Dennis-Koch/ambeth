@@ -17,7 +17,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-jdbc</artifactId>
+			<artifactId>jambeth-persistence-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

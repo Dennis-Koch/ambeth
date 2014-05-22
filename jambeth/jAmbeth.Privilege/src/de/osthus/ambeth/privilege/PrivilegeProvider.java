@@ -11,6 +11,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -21,7 +22,6 @@ import de.osthus.ambeth.privilege.service.IPrivilegeService;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrefetchConfig;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean, IDataChangeListener
 {
@@ -85,8 +85,10 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	@LogInstance
 	protected ILogger log;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired(optional = true)
 	protected IPrivilegeService privilegeService;
 
 	protected final Lock writeLock = new ReentrantLock();
@@ -96,18 +98,10 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertNotNull(oriHelper, "OriHelper");
-		ParamChecker.assertNotNull(privilegeService, "PrivilegeService");
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setPrivilegeService(IPrivilegeService privilegeService)
-	{
-		this.privilegeService = privilegeService;
+		if (privilegeService == null && log.isDebugEnabled())
+		{
+			log.debug("Privilege Service could not be resolved - Privilege functionality deactivated");
+		}
 	}
 
 	@Override

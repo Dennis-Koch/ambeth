@@ -1,29 +1,18 @@
 package de.osthus.ambeth.cache;
 
 import de.osthus.ambeth.event.IEventListener;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ServiceResultCacheClearEventListener implements IEventListener, IInitializingBean
+public class ServiceResultCacheClearEventListener implements IEventListener
 {
 	@SuppressWarnings("unused")
-	@LogInstance(ServiceResultCacheClearEventListener.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceResultCache serviceResultCache;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(serviceResultCache, "serviceResultCache");
-	}
-
-	public void setServiceResultCache(IServiceResultCache serviceResultCache)
-	{
-		this.serviceResultCache = serviceResultCache;
-	}
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
