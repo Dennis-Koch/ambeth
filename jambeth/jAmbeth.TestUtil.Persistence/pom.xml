@@ -12,30 +12,78 @@
  	<dependencies>
  		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<artifactId>jambeth-bytecode</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-cache-bytecode</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-cache</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-cache-datachange</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-cache-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-event-datachange</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-event-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<artifactId>jambeth-ioc</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-merge-bytecode</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-merge-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
-		
- 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<version>${project.version}</version>
-		</dependency>
- 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		
+				
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
@@ -54,9 +102,33 @@
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-oracle11</artifactId>
+			<artifactId>jambeth-privilege-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-sensor</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-testutil</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+ 		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-testutil</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
