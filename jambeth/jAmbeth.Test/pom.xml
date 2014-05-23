@@ -137,6 +137,11 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jAmbeth.TestUtil</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.TestUtil</artifactId>
+			<classifier>test</classifier>
+		</dependency>
 	</dependencies>
 
 </project>
