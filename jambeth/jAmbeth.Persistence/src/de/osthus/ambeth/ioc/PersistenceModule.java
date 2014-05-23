@@ -79,10 +79,7 @@ public class PersistenceModule implements IInitializingModule
 			}
 		}
 
-		beanContextFactory.registerBean("databaseLifecycleCallbackRegistry", ExtendableBean.class)
-				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IDatabaseLifecycleCallbackRegistry.class)
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IDatabaseLifecycleCallbackExtendable.class)
-				.autowireable(IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class);
+		ExtendableBean.registerExtendableBean(beanContextFactory, IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class);
 
 		beanContextFactory.registerBean("databaseProviderRegistry", DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
 				IDatabaseProviderExtendable.class);

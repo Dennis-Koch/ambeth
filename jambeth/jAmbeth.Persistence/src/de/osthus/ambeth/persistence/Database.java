@@ -13,9 +13,9 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.database.IDatabaseProvider;
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -69,16 +69,16 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 	
-	protected Map<String, ITable> nameToTableDict = new HashMap<String, ITable>();
-	protected Map<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
-	protected Map<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
-	protected Map<String, ILink> nameToLinkDict = new HashMap<String, ILink>();
-	protected Map<String, ILink> definingNameToLinkDict = new HashMap<String, ILink>();
-	protected Map<TablesMapKey, List<ILink>> tablesToLinkDict = new HashMap<TablesMapKey, List<ILink>>();
-	protected ISet<IField> fieldsMappedToLinks = new IdentityHashSet<IField>();
-
+	protected final HashMap<String, ITable> nameToTableDict = new HashMap<String, ITable>();
+	protected final HashMap<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
+	protected final HashMap<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
+	protected final HashMap<String, ILink> nameToLinkDict = new HashMap<String, ILink>();
+	protected final HashMap<String, ILink> definingNameToLinkDict = new HashMap<String, ILink>();
+	protected final HashMap<TablesMapKey, List<ILink>> tablesToLinkDict = new HashMap<TablesMapKey, List<ILink>>();
+	protected final IdentityHashSet<IField> fieldsMappedToLinks = new IdentityHashSet<IField>();
 	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
 	protected final ArrayList<Class<?>> handledEntities = new ArrayList<Class<?>>();
+	protected final DefaultExtendableContainer<IDatabaseDisposeHook> databaseDisposeHooks = new DefaultExtendableContainer<IDatabaseDisposeHook>(IDatabaseDisposeHook.class, "databaseDisposeHook");
 
 	protected long sessionId;
 	protected String name;
@@ -232,6 +232,24 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
+	public void registerDisposeHook(IDatabaseDisposeHook disposeHook)
+	{
+		databaseDisposeHooks.register(disposeHook);
+	}
+	
+	@Override
+	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook)
+	{
+		databaseDisposeHooks.unregister(disposeHook);
+	}
+
+	@Override
+	public boolean isDisposed()
+	{
+		return serviceContext.isDisposed();
+	}
+
+	@Override
 	public <T> T getAutowiredBeanInContext(Class<T> autowiredType)
 	{
 		return serviceContext.getService(autowiredType, false);
@@ -340,6 +358,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@Override
 	public void destroy() throws Throwable
 	{
+		connection = null;
 		ThreadLocal<IDatabase> databaseLocal = databaseProvider.getDatabaseLocal();
 		IDatabase currentDatabase = databaseLocal.get();
 		if (currentDatabase instanceof Factory)
@@ -353,6 +372,10 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 			databaseLocal.remove();
 		}
 		clear();
+		for (IDatabaseDisposeHook disposeHook : databaseDisposeHooks.getExtensions())
+		{
+			disposeHook.databaseDisposed(this);
+		}
 	}
 	
 	protected void clear()

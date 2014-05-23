@@ -5,6 +5,8 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Minerva.Converter;
 using AmbethIFilterDescriptor = De.Osthus.Ambeth.Filter.Model.IFilterDescriptor;
 using De.Osthus.Ambeth.Ioc.Extendable;
+using De.Osthus.Ambeth.Filter.Model;
+using System.Collections.Generic;
 
 namespace De.Osthus.Minerva.FilterProvider
 {
@@ -81,13 +83,51 @@ namespace De.Osthus.Minerva.FilterProvider
                 return;
             }
 
-            AmbethIFilterDescriptor filter = filterList[0].AmbethFilterDescriptor;
+            AmbethIFilterDescriptor filter = CopyFilterDescriptor(filterList[0].AmbethFilterDescriptor);
 
             for (int i = 1, length = filterList.Length; i < length; i++)
             {
-                filter = FilterDescriptorConverter.Compose(filter, filterList[i].AmbethFilterDescriptor);
+                filter = FilterDescriptorConverter.Compose(filter, CopyFilterDescriptor(filterList[i].AmbethFilterDescriptor));
             }
             AmbethFilterDescriptor = filter;
+        }
+
+        protected virtual AmbethIFilterDescriptor CopyFilterDescriptor(AmbethIFilterDescriptor filterToCopy)
+        {
+            if (filterToCopy == null)
+            {
+                return null;
+            }
+            if (filterToCopy is CompositeFilterDescriptor)
+            {
+                var filter = new CompositeFilterDescriptor();
+                if (filterToCopy.ChildFilterDescriptors != null)
+                {
+                    filter.ChildFilterDescriptors = new List<AmbethIFilterDescriptor>();
+                    foreach (var child in filterToCopy.ChildFilterDescriptors)
+                    {
+                        filter.ChildFilterDescriptors.Add(CopyFilterDescriptor(child));
+                    }
+                }
+                filter.LogicalOperator = filterToCopy.LogicalOperator;
+                return filter;
+            }
+            else
+            {
+                var filter = new FilterDescriptor();
+                filter.IsCaseSensitive = filterToCopy.IsCaseSensitive;
+                filter.Member = filterToCopy.Member;
+                filter.Operator = filterToCopy.Operator;
+                if (filterToCopy.Value != null)
+                {
+                    filter.Value = new List<String>();
+                    foreach (var val in filterToCopy.Value)
+                    {
+                        filter.Value.Add(val);
+                    }
+                }
+                return filter;
+            }
         }
 
         public virtual void Destroy()

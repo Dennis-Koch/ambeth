@@ -3,9 +3,8 @@ package de.osthus.ambeth.testutil.persistencerunner;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.BlockJUnit4ClassRunner;
 

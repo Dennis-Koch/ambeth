@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.behavior;
 
-import junit.framework.Assert;
+import org.junit.Assert;
+
 import de.osthus.ambeth.annotation.QueryBehavior;
 import de.osthus.ambeth.annotation.QueryBehaviorType;
 import de.osthus.ambeth.ioc.IInitializingBean;

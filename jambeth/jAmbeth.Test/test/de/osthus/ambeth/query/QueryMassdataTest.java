@@ -13,8 +13,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PessimisticLockException;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ICacheContext;

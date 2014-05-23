@@ -1,6 +1,7 @@
 package de.osthus.ambeth.relations;
 
-import junit.framework.Assert;
+import org.junit.Assert;
+
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;

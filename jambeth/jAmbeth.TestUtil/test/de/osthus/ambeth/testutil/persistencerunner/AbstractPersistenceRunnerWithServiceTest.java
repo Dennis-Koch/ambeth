@@ -1,6 +1,7 @@
 package de.osthus.ambeth.testutil.persistencerunner;
 
-import junit.framework.Assert;
+import org.junit.Assert;
+
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.model.IProjectService;
 import de.osthus.ambeth.testutil.model.Project;

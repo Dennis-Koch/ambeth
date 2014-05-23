@@ -829,6 +829,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected void clearPendingKeysOfCurrentThread(ArrayList<IObjRef> cacheKeysToRemove)
 	{
+		if (cacheKeysToRemove.isEmpty())
+		{
+			return;
+		}
 		Lock pendingKeysWriteLock = this.pendingKeysWriteLock;
 		pendingKeysWriteLock.lock();
 		try
