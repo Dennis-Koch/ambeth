@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jAmbeth</artifactId>
-		<version>2.0.${build.number}</version>
+		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>jAmbeth.Query.JDBC</artifactId>
