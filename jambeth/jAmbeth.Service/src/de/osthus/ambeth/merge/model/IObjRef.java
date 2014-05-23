@@ -6,7 +6,7 @@ import de.osthus.ambeth.annotation.XmlType;
  * Contains reference information about an Object in the cache or not loaded yet. By use of these information, a specific Object is uniquely defined and can be
  * loaded from the cache.
  * 
- * @see de.osthus.ambeth.cache.ICache#getObject(IObjRef, java.util.Set<de.osthus.ambeth.cache.CacheDirective>);
+ * @see de.osthus.ambeth.cache.ICache#getObject(IObjRef, java.util.Set)
  */
 @XmlType
 public interface IObjRef
