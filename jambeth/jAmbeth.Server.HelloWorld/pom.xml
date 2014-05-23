@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jAmbeth</artifactId>
-		<version>2.0.${build.number}</version>
+		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>jAmbeth.Server.HelloWorld</artifactId>
 
- 	<dependencies>
+	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jAmbeth.IoC</artifactId>
@@ -43,14 +43,13 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.TestUtil</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jAmbeth.Util</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jAmbeth.TestUtil</artifactId>
+		</dependency>
 	</dependencies>
 </project>
