@@ -272,7 +272,14 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 					if (realPathFile.isFile())
 					{
 						JarFile jarFile = new JarFile(realPathFile);
-						scanJarFile(jarFile, namespacePatterns, targetClassNames);
+						try
+						{
+							scanJarFile(jarFile, namespacePatterns, targetClassNames);
+						}
+						finally
+						{
+							jarFile.close();
+						}
 						continue;
 					}
 					else
