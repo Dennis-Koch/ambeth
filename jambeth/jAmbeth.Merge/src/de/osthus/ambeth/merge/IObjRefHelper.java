@@ -31,10 +31,17 @@ public interface IObjRefHelper
 	IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData, boolean forceOri);
 
 	/**
-	 * Returns all valid (key != null) references for the given entity.
+	 * Returns all valid (key != null) references for the given values.
 	 * 
-	 * @param entity
-	 * @return
+	 * @param id
+	 *            Primary ID
+	 * @param version
+	 *            Entity version
+	 * @param primitives
+	 *            Array of all primitive values
+	 * @param metaData
+	 *            Meta data of the described entity
+	 * @return All valid ORIs
 	 */
 	IList<IObjRef> entityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData);
 
@@ -42,7 +49,8 @@ public interface IObjRefHelper
 	 * Returns all valid (key != null) references for the given entity.
 	 * 
 	 * @param entity
-	 * @return
+	 *            Entity to build ORIS for
+	 * @return All valid ORIs
 	 */
 	IList<IObjRef> entityToAllObjRefs(Object entity);
 
@@ -50,8 +58,10 @@ public interface IObjRefHelper
 	 * Returns all valid (key != null) references for the given entity.
 	 * 
 	 * @param entity
+	 *            Entity to build ORIS for
 	 * @param metaData
-	 * @return
+	 *            Meta data of the given entity
+	 * @return All valid ORIs
 	 */
 	IList<IObjRef> entityToAllObjRefs(Object entity, IEntityMetaData metaData);
 }

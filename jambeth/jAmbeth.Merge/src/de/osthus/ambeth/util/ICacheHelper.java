@@ -10,24 +10,18 @@ public interface ICacheHelper
 {
 	/**
 	 * Please use <code>de.osthus.ambeth.util.IPrefetchHelper</code>
-	 * 
-	 * @return
 	 */
 	@Deprecated
 	IPrefetchConfig createPrefetch();
 
 	/**
 	 * Please use <code>de.osthus.ambeth.util.IPrefetchHelper</code>
-	 * 
-	 * @return
 	 */
 	@Deprecated
 	IPrefetchState prefetch(Object objects, IMap<Class<?>, List<String>> typeToMembersToInitialize);
 
 	/**
 	 * Please use <code>de.osthus.ambeth.util.IPrefetchHelper</code>
-	 * 
-	 * @return
 	 */
 	@Deprecated
 	IPrefetchState prefetch(Object objects);
@@ -43,10 +37,12 @@ public interface ICacheHelper
 	/**
 	 * 
 	 * @param metaData
+	 *            Meta data of obj
 	 * @param obj
+	 *            Entity to extract the relations from
 	 * @param relationValues
-	 *            out param
-	 * @return
+	 *            Actual relation values (out param)
+	 * @return ORI array for the relations
 	 */
 	IObjRef[][] extractRelations(IEntityMetaData metaData, Object obj, List<Object> relationValues);
 }
