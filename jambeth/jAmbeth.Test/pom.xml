@@ -140,7 +140,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jAmbeth.TestUtil</artifactId>
-			<classifier>test</classifier>
+			<type>test-jar</type>
 		</dependency>
 	</dependencies>
 
