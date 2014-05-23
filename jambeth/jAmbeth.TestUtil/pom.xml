@@ -11,17 +11,23 @@
 
  	<dependencies>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>jambeth-information-bus</artifactId>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 		</dependency>			
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>jambeth-information-bus</artifactId>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-log</artifactId>
+			<version>${project.version}</version>
+		</dependency>			
 				
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

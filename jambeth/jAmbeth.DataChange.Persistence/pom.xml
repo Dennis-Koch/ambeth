@@ -15,11 +15,13 @@
 			<artifactId>jambeth-event-server</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<artifactId>jambeth-persistence-jdbc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>

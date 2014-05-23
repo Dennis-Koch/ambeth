@@ -15,8 +15,8 @@ import de.osthus.ambeth.service.AllServiceTests;
 		de.osthus.ambeth.AllMergeBytecodeTests.class, de.osthus.ambeth.merge.orihelper.AllORIHelperTests.class, de.osthus.ambeth.AllPersistenceTests.class,
 		de.osthus.ambeth.persistence.jdbc.AllTests.class, de.osthus.ambeth.AllMergeTests.class, AllServiceTests.class, AllPersistenceXmlTests.class,
 		de.osthus.ambeth.orm20.AllOrm20Tests.class, de.osthus.ambeth.query.AllBundleQueryTests.class, de.osthus.ambeth.query.AllQueryTests.class,
-		de.osthus.ambeth.testutil.AllTestUtilTests.class, de.osthus.ambeth.AllUtilTests.class, de.osthus.ambeth.xml.AllXmlTests.class,
-		de.osthus.ambeth.xml.oriwrapper.AllOriWrapperTests.class, StreamingEntityTest.class })
+		de.osthus.ambeth.testutil.AllTestUtilTests.class, de.osthus.ambeth.testutil.AllTestUtilPersistenceTests.class, de.osthus.ambeth.AllUtilTests.class,
+		de.osthus.ambeth.xml.AllXmlTests.class, de.osthus.ambeth.xml.oriwrapper.AllOriWrapperTests.class, StreamingEntityTest.class })
 public class AllAmbethTests
 {
 }

@@ -131,6 +131,11 @@ public class AmbethServletListener implements ServletContextListener
 				}
 			}
 		}
+		for (int a = 5; a-- > 0;)
+		{
+			System.gc();
+			Thread.yield();
+		}
 		if (log.isInfoEnabled())
 		{
 			log.info("Shutdown completed");

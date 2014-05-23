@@ -12,12 +12,12 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>
 			<scope>test</scope>
