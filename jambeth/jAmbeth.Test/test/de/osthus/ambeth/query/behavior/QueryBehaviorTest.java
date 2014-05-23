@@ -1,7 +1,6 @@
 package de.osthus.ambeth.query.behavior;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.model.IServiceResult;

@@ -27,6 +27,11 @@ namespace De.Osthus.Minerva.Core
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        protected Object currentRequest;
+        protected Object currentRequestLock = new Object();
+
+        public SynchronizationContext SyncContext { protected get; set; }
+
         public IDictionary<Type, IList<String>> InitializedRelations { protected get; set; }
 
         public IConversionHelper ConversionHelper { protected get; set; }
@@ -536,6 +541,11 @@ namespace De.Osthus.Minerva.Core
 
         public virtual void Populate()
         {
+            var localRequest = new Object();
+            lock (currentRequestLock)
+            {
+                currentRequest = localRequest;
+            }
             if (GuiThreadHelper.IsInGuiThread())
             {
                 IFilterDescriptor filterDescriptor = GetFilterDescriptor();
@@ -549,7 +559,7 @@ namespace De.Osthus.Minerva.Core
                     CacheContext.ExecuteWithCache<Object>(CacheProvider.GetCurrentCache(), delegate()
                     {
                         ConfigureCacheWithEagerLoads(Cache);
-                        PopulateAsync(model, filterDescriptor, sortDescriptors, pagingRequest, contextInformation, Cache);
+                        PopulateAsync(model, filterDescriptor, sortDescriptors, pagingRequest, contextInformation, Cache, localRequest);
                         return null;
                     });
                 }, Model);
@@ -573,14 +583,30 @@ namespace De.Osthus.Minerva.Core
                 CacheContext.ExecuteWithCache<Object>(CacheProvider.GetCurrentCache(), delegate()
                 {
                     ConfigureCacheWithEagerLoads(Cache);
-                    PopulateAsync(Model, filterDescriptor, sortDescriptors, pagingRequest, contextInformation, Cache);
+                    PopulateAsync(Model, filterDescriptor, sortDescriptors, pagingRequest, contextInformation, Cache, localRequest);
                     return null;
                 });
             }
         }
 
-        protected virtual void PopulateAsync(GenericViewModel<T> model, IFilterDescriptor filterDescriptor, IList<ISortDescriptor> sortDescriptors, IPagingRequest pagingRequest, Object[] contextInformation, ICache cache)
+        protected virtual void PopulateAsync(GenericViewModel<T> model, IFilterDescriptor filterDescriptor, IList<ISortDescriptor> sortDescriptors, IPagingRequest pagingRequest, Object[] contextInformation, ICache cache, Object localRequest)
         {
+            lock (currentRequestLock)
+            {
+                // Early check here, but more important check in the finally-SyncContext.
+                // We will not update the ViewModel, if this request is not the current request (hence Populate was recalled
+                // since this request was initiated).
+                // An example where this is important would be a screen, where the user can enter search criteria and start
+                // a corresponding search, while the screen is still loading data from a preceeding request. In this case, the
+                // result of the second search could be retrieved before the first one, leading to wrong data in the screen.
+                //
+                // ToDo: Is there a scenario where the same VMDCC is used with multiple VMs or different Caches?
+                //       If so, localRequest and currentRequest must contain the VM and Cache references to compare them!
+                if (!Object.ReferenceEquals(localRequest, currentRequest))
+                {
+                    return;
+                }
+            }
             IList<T> initialEntities = null;
             IPagingResponse pagingResponse = null;
             try
@@ -616,6 +642,13 @@ namespace De.Osthus.Minerva.Core
             {
                 GuiThreadHelper.InvokeInGui(delegate()
                 {
+                    lock (currentRequestLock)
+                    {
+                        if (!Object.ReferenceEquals(localRequest, currentRequest))
+                        {
+                            return;
+                        }
+                    }
                     try
                     {
                         if (IsRefreshedDataValid(contextInformation))

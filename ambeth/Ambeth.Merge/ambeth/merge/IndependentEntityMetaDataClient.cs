@@ -165,6 +165,39 @@ namespace De.Osthus.Ambeth.Merge
                         businessObjectSaveOrder.Add(boType);
                     }
                 }
+                foreach (Type boType in boTypeToAfterBoTypes.KeySet())
+                {
+                    if (boTypeToBeforeBoTypes.ContainsKey(boType))
+                    {
+                        // already handled in the previous loop
+                        continue;
+                    }
+                    bool added = false;
+                    for (int a = businessObjectSaveOrder.Count; a-- > 0; )
+                    {
+                        Type orderedBoType = businessObjectSaveOrder[a];
+
+                        // OrderedBoType is the type currently inserted at the correct position in the save order - as far as the keyset
+                        // has been traversed, yet
+
+                        ISet<Type> typesBeforeOrderedType = boTypeToBeforeBoTypes.Get(orderedBoType);
+
+                        bool orderedHasToBeAfterCurrent = typesBeforeOrderedType != null && typesBeforeOrderedType.Contains(boType);
+
+                        if (!orderedHasToBeAfterCurrent)
+                        {
+                            // our boType has nothing to do with the orderedBoType. So we let it be as it is
+                            continue;
+                        }
+                        businessObjectSaveOrder.Insert(a, boType);
+                        added = true;
+                        break;
+                    }
+                    if (!added)
+                    {
+                        businessObjectSaveOrder.Add(boType);
+                    }
+                }
                 this.businessObjectSaveOrder = businessObjectSaveOrder.ToArray();
             }
             finally
@@ -278,16 +311,16 @@ namespace De.Osthus.Ambeth.Merge
                         notFoundEntityTypes.Add(entityType);
                     }
                 }
-			    if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
-			    {
-				    StringBuilder sb = new StringBuilder();
-				    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
-				    foreach (Type notFoundType in notFoundEntityTypes)
-				    {
-					    sb.Append("\t\n").Append(notFoundType.FullName);
-				    }
-				    Log.Warn(sb.ToString());
-			    }
+                if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
+                    foreach (Type notFoundType in notFoundEntityTypes)
+                    {
+                        sb.Append("\t\n").Append(notFoundType.FullName);
+                    }
+                    Log.Warn(sb.ToString());
+                }
             }
             finally
             {

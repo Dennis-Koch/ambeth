@@ -2,8 +2,7 @@ package de.osthus.ambeth.xml;
 
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.ioc.BootstrapScannerModule;

@@ -32,7 +32,8 @@ public class DefaultExtendableContainer<V> extends IdentitySmartCopySet<V> imple
 		lock.lock();
 		try
 		{
-			ParamChecker.assertTrue(add(listener), message);
+			boolean add = add(listener);
+			ParamChecker.assertTrue(add, message);
 		}
 		finally
 		{

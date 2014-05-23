@@ -13,8 +13,14 @@ import de.osthus.ambeth.util.IDisposable;
  * 
  * @author dennis.koch
  */
-public interface IDatabase extends IDisposable
+public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 {
+	/**
+	 * Returns the dispose state of the current instance
+	 * @return true if the IDatabase instance is not valid any more
+	 */
+	boolean isDisposed();
+	
 	/**
 	 * Allows to retrieve beans which are 1:1 related to the underlying database artifact. One example may be a java.sql.Connection bean for JDBC related
 	 * database handles

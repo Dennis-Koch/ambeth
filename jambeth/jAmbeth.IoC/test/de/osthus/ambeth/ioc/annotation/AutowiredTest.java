@@ -1,7 +1,6 @@
 package de.osthus.ambeth.ioc.annotation;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.ioc.IInitializingModule;

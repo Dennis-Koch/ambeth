@@ -7,8 +7,7 @@ import static org.junit.Assert.assertNull;
 import java.util.EnumSet;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.CacheDirective;

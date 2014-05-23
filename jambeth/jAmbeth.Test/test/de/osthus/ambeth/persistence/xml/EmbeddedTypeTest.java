@@ -2,8 +2,7 @@ package de.osthus.ambeth.persistence.xml;
 
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;

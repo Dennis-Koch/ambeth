@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.cache.RootCache;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -23,6 +25,24 @@ public class ThreadLocalRootCacheInterceptor implements IInitializingBean, Metho
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	private static final Method clearMethod;
+
+	static
+	{
+		try
+		{
+			clearMethod = IWritableCache.class.getMethod("clear");
+		}
+		catch (SecurityException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		catch (NoSuchMethodException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
 
@@ -91,6 +111,15 @@ public class ThreadLocalRootCacheInterceptor implements IInitializingBean, Metho
 		if (CascadedInterceptor.finalizeMethod.equals(method))
 		{
 			return null;
+		}
+		if (clearMethod.equals(method))
+		{
+			IRootCache rootCache = getCurrentRootCacheIfValid();
+			if (rootCache == null)
+			{
+				// Nothing to do
+				return null;
+			}
 		}
 		IRootCache rootCache = getCurrentRootCache();
 		return proxy.invoke(rootCache, args);
