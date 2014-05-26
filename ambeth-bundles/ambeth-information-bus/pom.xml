@@ -2,14 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>Bundle Ambeth Information Bus</name>
-	<packaging>jar</packaging>
+	<packaging>pom</packaging>
 	<artifactId>jambeth-information-bus</artifactId>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
+		<artifactId>jambeth-bundles</artifactId>
 		<version>2.0.X-SNAPSHOT</version>
-		<relativePath>../../jambeth/pom.xml</relativePath>
 	</parent>
 
 	<dependencies>
@@ -17,6 +16,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-core</artifactId>
 			<version>${project.version}</version>
+			<classifier>bundle</classifier>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -25,7 +25,20 @@
 			<classifier>tests</classifier>
 			<scope>test</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-bytecode</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-bytecode</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache</artifactId>
@@ -227,12 +240,7 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<finalName>${project.artifactId}-${project.version}</finalName>
-					<appendAssemblyId>true</appendAssemblyId>
-					<!-- -->
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
+					<skipAssembly>false</skipAssembly>
 				</configuration>
 			</plugin>
 		</plugins>
