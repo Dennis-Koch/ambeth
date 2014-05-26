@@ -12,6 +12,8 @@
 *.vsmdi
 ambeth-log.txt
 
+/*/target
+
 /*/*/bin
 /*/*/Bin
 /*/*/obj

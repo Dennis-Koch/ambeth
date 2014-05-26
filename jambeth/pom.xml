@@ -14,10 +14,7 @@
 
 	<properties>
 		<jambeth.project.test>jAmbeth.Test</jambeth.project.test>
-		<jambeth.path.test>${project.basedir}/../${jambeth.project.test}</jambeth.path.test>
-		<checkstyle.severity>warning</checkstyle.severity>
-		<checkstyle.tabwidth>4</checkstyle.tabwidth>
-		<checkstyle.LineLength.max>160</checkstyle.LineLength.max>
+		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
 	</properties>
 
 	<modules>
@@ -141,8 +138,9 @@
 							<excludes>
 								<exclude>**/BigStatementTest.java</exclude>
 								<exclude>**/QueryMassdataTest.java</exclude>
-								<exclude>**/isin/QueryIsInMassdataTest.java</exclude>
+								<exclude>**/QueryIsInMassdataTest.java</exclude>
 								<exclude>**/ClassTupleExtendableContainerPerformanceTest.java</exclude>
+								<exclude>**/ReflectAsmPerformanceTest.java</exclude>
 							</excludes>
 						</configuration>
 					</plugin>
@@ -221,23 +219,24 @@
 						</executions>
 					</plugin>
 
-<!-- 					<plugin>
+					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
 						<version>2.11</version>
+						<configuration>
+							<configLocation>${jambeth.path.test}/checkstyle_checks.xml</configLocation>
+							<propertiesLocation>${jambeth.path.test}/checkstyle.properties</propertiesLocation>
+						</configuration>
 						<executions>
 							<execution>
 								<phase>package</phase>
-								<configuration>
-									<configLocation>${jambeth.path.test}/checkstyle_checks.xml</configLocation>
-								</configuration>
 								<goals>
 									<goal>checkstyle</goal>
 								</goals>
 							</execution>
 						</executions>
 					</plugin>
- -->					<plugin>
+					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>findbugs-maven-plugin</artifactId>
 						<version>2.5.3</version>
