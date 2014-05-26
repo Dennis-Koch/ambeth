@@ -1,7 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>Bundle Ambeth Server</name>
 	<packaging>pom</packaging>
 	<artifactId>jambeth-server</artifactId>
 
@@ -16,41 +15,19 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
 			<version>${project.version}</version>
-			<classifier>bundle</classifier>
+			<type>pom</type>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-information-bus</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-
 		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-platform</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-platform</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-rest</artifactId>
 			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-server-rest</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
@@ -59,7 +36,9 @@
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<skipAssembly>false</skipAssembly>
+					<descriptors>
+						<descriptor>${project.basedir}/../assembly/jar-with-explicit-dependencies.xml</descriptor>
+					</descriptors>
 				</configuration>
 			</plugin>
 		</plugins>
