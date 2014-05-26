@@ -12,6 +12,14 @@
 		<version>0.0.12</version>
 	</parent>
 
+	<properties>
+		<jambeth.project.test>jAmbeth.Test</jambeth.project.test>
+		<jambeth.path.test>${project.basedir}/../${jambeth.project.test}</jambeth.path.test>
+		<checkstyle.severity>warning</checkstyle.severity>
+		<checkstyle.tabwidth>4</checkstyle.tabwidth>
+		<checkstyle.LineLength.max>160</checkstyle.LineLength.max>
+	</properties>
+
 	<modules>
 		<module>jAmbeth.Bytecode</module>
 		<module>jAmbeth.Cache</module>
@@ -213,45 +221,41 @@
 						</executions>
 					</plugin>
 
-					<plugin>
+<!-- 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
 						<version>2.11</version>
 						<executions>
 							<execution>
 								<phase>package</phase>
+								<configuration>
+									<configLocation>${jambeth.path.test}/checkstyle_checks.xml</configLocation>
+								</configuration>
 								<goals>
 									<goal>checkstyle</goal>
 								</goals>
 							</execution>
 						</executions>
 					</plugin>
-					<plugin>
+ -->					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>findbugs-maven-plugin</artifactId>
 						<version>2.5.3</version>
 						<executions>
 							<execution>
 								<phase>package</phase>
+								<configuration>
+									<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
+								</configuration>
 								<goals>
 									<goal>findbugs</goal>
 								</goals>
 							</execution>
 						</executions>
 					</plugin>
-					<!-- <plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>cobertura-maven-plugin</artifactId>
-						<version>2.6</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>cobertura</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin> -->
+					<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>cobertura-maven-plugin</artifactId> 
+						<version>2.6</version> <executions> <execution> <phase>package</phase> <goals> 
+						<goal>cobertura</goal> </goals> </execution> </executions> </plugin> -->
 				</plugins>
 			</build>
 		</profile>
