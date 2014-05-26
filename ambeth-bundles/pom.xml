@@ -20,34 +20,39 @@
 
 	<modules>
 		<module>ambeth-core</module>
+		<module>ambeth-core-test</module>
 		<module>ambeth-information-bus</module>
+		<module>ambeth-information-bus-test</module>
 		<module>ambeth-information-bus-with-persistence</module>
+		<module>ambeth-information-bus-with-persistence-test</module>
 		<module>ambeth-server</module>
+		<module>ambeth-server-test</module>
 		<module>ambeth-server-with-persistence</module>
+		<module>ambeth-server-with-persistence-test</module>
 	</modules>
 
 	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
-				<configuration>
-					<descriptors>
-						<descriptor>${project.basedir}/../assembly/jar-with-explicit-dependencies.xml</descriptor>
-						<descriptor>${project.basedir}/../assembly/test-jar-with-dependencies.xml</descriptor>
-					</descriptors>
-					<skipAssembly>true</skipAssembly>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<appendAssemblyId>false</appendAssemblyId>
+					</configuration>
+					<!-- 
+					<executions>
+						<execution>
+							<id>make-assembly</id>
+							<phase>package</phase>
+							<goals>
+								<goal>single</goal>
+							</goals>
+						</execution>
+					</executions>
+					 -->
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 </project>

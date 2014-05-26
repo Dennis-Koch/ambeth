@@ -248,10 +248,12 @@ public class ClassTupleExtendableContainerTest extends AbstractIocTest
 		};
 
 		Thread thread1 = new Thread(run1);
+		thread1.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		thread1.setDaemon(true);
 		thread1.start();
 
 		Thread thread2 = new Thread(run2);
+		thread2.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		thread2.setDaemon(true);
 		thread2.start();
 

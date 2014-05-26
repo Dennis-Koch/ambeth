@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<packaging>pom</packaging>
-	<artifactId>jambeth-information-bus</artifactId>
+	<artifactId>jambeth-information-bus-test</artifactId>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
@@ -13,7 +13,14 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-core</artifactId>
+			<artifactId>jambeth-information-bus</artifactId>
+			<version>${project.version}</version>
+			<scope>provided</scope>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-core-test</artifactId>
 			<version>${project.version}</version>
 			<type>pom</type>
 		</dependency>
@@ -22,96 +29,112 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-bytecode</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-bytecode</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-datachange</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-stream</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-datachange</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-mapping</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-privilege</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-sensor</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-service</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-stream</artifactId>
 			<version>${project.version}</version>
+			<classifier>tests</classifier>
 		</dependency>
 	</dependencies>
 
@@ -121,7 +144,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
 					<descriptors>
-						<descriptor>${project.basedir}/../assembly/jar-with-explicit-dependencies.xml</descriptor>
+						<descriptor>${project.basedir}/../assembly/test-jar-with-dependencies.xml</descriptor>
 					</descriptors>
 				</configuration>
 			</plugin>

@@ -9,10 +9,12 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<dependencySets>
 		<dependencySet>
+		
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>false</useProjectArtifact>
 			<useProjectAttachments>false</useProjectAttachments>
 			<useTransitiveDependencies>false</useTransitiveDependencies>
+			
 			<unpack>true</unpack>
 		</dependencySet>
 
