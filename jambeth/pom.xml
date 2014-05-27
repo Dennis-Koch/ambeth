@@ -90,24 +90,6 @@
 	</dependencyManagement>
 
 	<build>
-		<sourceDirectory>${project.basedir}/src</sourceDirectory>
-		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
-		<resources>
-			<resource>
-				<directory>${project.basedir}/src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</resource>
-		</resources>
-		<testResources>
-			<testResource>
-				<directory>${project.basedir}/test</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</testResource>
-		</testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
