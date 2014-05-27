@@ -65,6 +65,11 @@ public class MethodInstance
 		return findByTemplate(tryOnly, methodTemplate.getName(), methodTemplate.getParameters());
 	}
 
+	public static MethodInstance findByTemplate(boolean tryOnly, String methodName, Class<?>... parameters)
+	{
+		return findByTemplate(tryOnly, methodName, TypeUtil.getClassesToTypes(parameters));
+	}
+
 	public static MethodInstance findByTemplate(boolean tryOnly, String methodName, Type... parameters)
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();

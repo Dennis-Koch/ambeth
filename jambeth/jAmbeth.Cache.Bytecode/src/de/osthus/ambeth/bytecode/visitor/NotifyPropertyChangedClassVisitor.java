@@ -2,8 +2,10 @@ package de.osthus.ambeth.bytecode.visitor;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.Constructor;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
+import de.osthus.ambeth.bytecode.ConstructorInstance;
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.IValueResolveDelegate;
@@ -11,7 +13,6 @@ import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
-import de.osthus.ambeth.bytecode.TypeUtil;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.util.EnhancerUtil;
 import de.osthus.ambeth.cache.ValueHolderIEC;
@@ -77,8 +78,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 	public static final MethodInstance template_m_firePropertyChange = new MethodInstance(null, Opcodes.ACC_PROTECTED, "firePropertyChange", null, void.class,
 			PropertyChangeSupport.class, IPropertyInfo.class, Object.class, Object.class);
 
-	protected static final MethodInstance template_m_getPropertyChangeSupport = new MethodInstance(null, Opcodes.ACC_PUBLIC,
-			"use$PropertyChangeSupport", null, PropertyChangeSupport.class);
+	protected static final MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, Opcodes.ACC_PUBLIC, "use$PropertyChangeSupport", null,
+			PropertyChangeSupport.class);
 
 	public static final PropertyInstance p_propertyChangeSupport = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class, "PropertyChangeSupport",
 			false);
@@ -126,9 +127,9 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		FieldInstance f_propertyChangeSupport = getPropertyChangeSupportField();
 		PropertyInstance p_propertyChangeTemplate = getPropertyChangeTemplatePI(this);
 
-		MethodInstance m_getPropertyChangeSupport = implementGetPropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+		MethodInstance m_usePropertyChangeSupport = implementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
 
-		implementNotifyPropertyChanged(p_propertyChangeTemplate, m_getPropertyChangeSupport);
+		implementNotifyPropertyChanged(p_propertyChangeTemplate, m_usePropertyChangeSupport);
 
 		MethodInstance m_firePropertyChange = implementFirePropertyChange(p_propertyChangeTemplate);
 
@@ -136,6 +137,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 		if (properties == null)
 		{
+			implementSelfAsListener();
+
 			implementCollectionChanged(p_propertyChangeTemplate);
 			implementPropertyChanged(p_propertyChangeTemplate);
 
@@ -164,6 +167,43 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			}
 		}
 		super.visitEnd();
+	}
+
+	protected void implementSelfAsListener()
+	{
+		Class<?> currentType = getState().getCurrentType();
+		Constructor<?>[] constructors = currentType.getDeclaredConstructors();
+
+		for (Constructor<?> constructor : constructors)
+		{
+			ConstructorInstance c_method = new ConstructorInstance(constructor);
+
+			MethodGenerator mg = visitMethod(c_method);
+			mg.loadThis();
+			mg.loadArgs();
+			mg.invokeConstructor(c_method);
+
+			// if (PropertyChangeListener.class.isAssignableFrom(getClass()))
+			mg.ifThisInstanceOf(PropertyChangeListener.class, new Script()
+			{
+				@Override
+				public void execute(MethodGenerator mg)
+				{
+					MethodInstance m_addPropertyChangeListener = MethodInstance
+							.findByTemplate(false, "addPropertyChangeListener", PropertyChangeListener.class);
+					mg.loadThis();
+					mg.dup();
+					mg.invokeVirtual(m_addPropertyChangeListener);
+					//
+					// mg.callThisGetter(m_usePropertyChangeSupport);
+					// fgfg
+					// mg.pop();
+				}
+			}, null);
+
+			mg.returnValue();
+			mg.endMethod();
+		}
 	}
 
 	protected void implementPropertyChangeOnProperty(final PropertyInstance propertyInfo, MethodInstance m_firePropertyChange,
@@ -259,24 +299,10 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		mg.callThisGetter(p_setterMethodHandle);
 		// oldValue
 		mg.loadLocal(loc_oldValue);
-		if (Type.BOOLEAN_TYPE.equals(propertyType))
-		{
-			mg.invokeStatic(new MethodInstance(null, Boolean.class, "valueOf", boolean.class));
-		}
-		else if (TypeUtil.isPrimitive(propertyType))
-		{
-			mg.box(propertyType);
-		}
+		mg.box(propertyType);
 		// newValue
 		mg.loadArg(0);
-		if (Type.BOOLEAN_TYPE.equals(propertyType))
-		{
-			mg.invokeStatic(new MethodInstance(null, Boolean.class, "valueOf", boolean.class));
-		}
-		else if (TypeUtil.isPrimitive(propertyType))
-		{
-			mg.box(propertyType);
-		}
+		mg.box(propertyType);
 		// firePropertyChange(propertyChangeSupport, property, oldValue, newValue)
 		mg.invokeVirtual(m_firePropertyChange);
 
@@ -365,15 +391,15 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		return f_propertyChangeSupport;
 	}
 
-	protected MethodInstance implementGetPropertyChangeSupport(final PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
+	protected MethodInstance implementUsePropertyChangeSupport(final PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
 	{
-		MethodInstance m_getPropertyChangeSupport = MethodInstance.findByTemplate(template_m_getPropertyChangeSupport, true);
+		MethodInstance m_usePropertyChangeSupport = MethodInstance.findByTemplate(template_m_usePropertyChangeSupport, true);
 
-		if (m_getPropertyChangeSupport == null)
+		if (m_usePropertyChangeSupport == null)
 		{
 			// create field that holds propertyChangeSupport
 			f_propertyChangeSupport = implementField(f_propertyChangeSupport);
-			MethodGenerator mg = visitMethod(template_m_getPropertyChangeSupport);
+			MethodGenerator mg = visitMethod(template_m_usePropertyChangeSupport);
 			Label l_pcsValid = mg.newLabel();
 			mg.getThisField(f_propertyChangeSupport);
 			mg.dup();
@@ -396,9 +422,9 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			mg.returnValue(); // return instance already on the stack by both branches
 			mg.endMethod();
 
-			m_getPropertyChangeSupport = mg.getMethod();
+			m_usePropertyChangeSupport = mg.getMethod();
 		}
-		return m_getPropertyChangeSupport;
+		return m_usePropertyChangeSupport;
 	}
 
 	protected PropertyInstance implementNotifyPropertyChangedSource(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
@@ -496,7 +522,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		return p_pceHandlers;
 	}
 
-	protected void implementNotifyPropertyChanged(PropertyInstance p_propertyChangeTemplate, MethodInstance m_getPropertyChangeSupport)
+	protected void implementNotifyPropertyChanged(PropertyInstance p_propertyChangeTemplate, MethodInstance m_usePropertyChangeSupport)
 	{
 		// implement IPropertyChanged
 		for (java.lang.reflect.Method rMethod : INotifyPropertyChanged.class.getMethods())
@@ -510,7 +536,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			MethodGenerator mg = visitMethod(method);
 			mg.callThisGetter(p_propertyChangeTemplate);
 			// this.propertyChangeSupport
-			mg.callThisGetter(m_getPropertyChangeSupport);
+			mg.callThisGetter(m_usePropertyChangeSupport);
 			// listener
 			mg.loadArg(0);
 			if ("addPropertyChangeListener".equals(method.getName()))
