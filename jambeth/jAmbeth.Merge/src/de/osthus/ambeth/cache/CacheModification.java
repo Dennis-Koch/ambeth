@@ -42,7 +42,14 @@ public class CacheModification implements ICacheModification
 	@Override
 	public void setInternalUpdate(boolean internalUpdate)
 	{
-		internalUpdateTL.set(Boolean.valueOf(internalUpdate));
+		if (internalUpdate)
+		{
+			internalUpdateTL.set(Boolean.TRUE);
+		}
+		else
+		{
+			internalUpdateTL.remove();
+		}
 	}
 
 	@Override
