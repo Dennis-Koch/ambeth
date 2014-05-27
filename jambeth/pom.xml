@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jAmbeth</artifactId>
 	<version>2.0.X-SNAPSHOT</version>
@@ -90,6 +91,9 @@
 		<resources>
 			<resource>
 				<directory>${project.basedir}/src2/main/resources</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
 			</resource>
 		</resources>
 		<testResources>
@@ -173,7 +177,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
@@ -190,7 +193,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-source-plugin</artifactId>
@@ -205,7 +207,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-jar-plugin</artifactId>
@@ -218,7 +219,6 @@
 							</execution>
 						</executions>
 					</plugin>
-
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
@@ -240,21 +240,44 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>findbugs-maven-plugin</artifactId>
 						<version>2.5.3</version>
+						<configuration>
+							<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
+						</configuration>
 						<executions>
 							<execution>
 								<phase>package</phase>
-								<configuration>
-									<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
-								</configuration>
 								<goals>
 									<goal>findbugs</goal>
 								</goals>
 							</execution>
 						</executions>
 					</plugin>
-					<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>cobertura-maven-plugin</artifactId> 
-						<version>2.6</version> <executions> <execution> <phase>package</phase> <goals> 
-						<goal>cobertura</goal> </goals> </execution> </executions> </plugin> -->
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.7.1.201405082137</version>
+						<configuration>
+							<excludes>
+								<exclude>**/*Test.class</exclude>
+								<exclude>**/repackaged/**</exclude>
+							</excludes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>jacoco-initialize</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>jacoco-site</id>
+								<phase>package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
