@@ -381,6 +381,7 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 		for (int threadIndex = threads; threadIndex-- > 0;)
 		{
 			Thread thread = new Thread(runnable);
+			thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 			thread.start();
 		}
 

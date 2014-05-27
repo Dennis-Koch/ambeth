@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.osthus.ambeth</groupId>
-	<artifactId>jAmbeth</artifactId>
+	<artifactId>jambeth-pom</artifactId>
 	<version>2.0.X-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
@@ -41,6 +41,7 @@
 		<module>jAmbeth.Merge.Bytecode</module>
 		<module>jAmbeth.Merge.Server</module>
 		<module>jAmbeth.Persistence</module>
+		<module>jAmbeth.Persistence.API</module>
 		<module>jAmbeth.Persistence.JDBC</module>
 		<module>jAmbeth.Persistence.Oracle11</module>
 		<module>jAmbeth.Platform</module>
@@ -59,9 +60,12 @@
 		<module>jAmbeth.Stream</module>
 		<module>jAmbeth.Test</module>
 		<module>jAmbeth.TestUtil</module>
+		<module>jAmbeth.TestUtil.Persistence</module>
 		<module>jAmbeth.Util</module>
 		<module>jAmbeth.Xml</module>
+		<!-- REMOVED till migrated from other repo
 		<module>jAmbeth.Xml.File</module>
+		 -->
 	</modules>
 
 	<dependencies>
@@ -90,7 +94,7 @@
 		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
 		<resources>
 			<resource>
-				<directory>${project.basedir}/src2/main/resources</directory>
+				<directory>${project.basedir}/src</directory>
 				<excludes>
 					<exclude>**/*.java</exclude>
 				</excludes>
@@ -99,6 +103,9 @@
 		<testResources>
 			<testResource>
 				<directory>${project.basedir}/test</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
 			</testResource>
 		</testResources>
 		<plugins>
@@ -110,6 +117,19 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

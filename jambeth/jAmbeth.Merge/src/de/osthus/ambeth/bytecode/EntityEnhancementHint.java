@@ -14,4 +14,10 @@ public enum EntityEnhancementHint implements IEnhancementHint
 		}
 		return null;
 	}
+
+	@Override
+	public String toString()
+	{
+		return getClass().getName();
+	}
 }

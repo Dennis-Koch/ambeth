@@ -1,30 +1,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>jAmbeth.Persistence.Oracle11</name>
+	<artifactId>jambeth-persistence-oracle11</artifactId>
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jAmbeth</artifactId>
+		<artifactId>jambeth-pom</artifactId>
 		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>jAmbeth.Persistence.Oracle11</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>oracle</groupId>
 			<artifactId>oracle-driver</artifactId>
-			<version>11.2.0.3.1</version>
+			<version>11.2.0.3.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Persistence.JDBC</artifactId>
+			<artifactId>jambeth-persistence-jdbc</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.DataChange</artifactId>
+			<artifactId>jambeth-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

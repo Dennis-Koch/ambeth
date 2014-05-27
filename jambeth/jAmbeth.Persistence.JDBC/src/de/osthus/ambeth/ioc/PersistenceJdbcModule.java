@@ -18,6 +18,7 @@ import de.osthus.ambeth.database.IDatabaseFactory;
 import de.osthus.ambeth.database.IDatabaseMapperExtendable;
 import de.osthus.ambeth.database.IDatabaseProviderExtendable;
 import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.ITransactionState;
@@ -49,44 +50,20 @@ import de.osthus.ambeth.util.ParamChecker;
 @FrameworkModule
 public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean
 {
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, defaultValue = "true")
 	protected boolean integratedConnectionFactory;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
 	protected boolean integratedConnectionPool;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, mandatory = false)
 	protected String additionalConnectionInterfaces;
 
-	protected String additionalConnectionModules;
-
-	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, mandatory = false)
-	public void setAdditionalConnectionInterfaces(String additionalConnectionInterfaces)
-	{
-		this.additionalConnectionInterfaces = additionalConnectionInterfaces;
-	}
-
 	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, mandatory = false)
-	public void setAdditionalConnectionModules(String additionalConnectionModules)
-	{
-		this.additionalConnectionModules = additionalConnectionModules;
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
-		this.proxyFactory = proxyFactory;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, defaultValue = "true")
-	public void setOwnConnectionFactory(boolean ownConnectionFactory)
-	{
-		integratedConnectionFactory = ownConnectionFactory;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
-	public void setOwnConnectionPool(boolean ownConnectionPool)
-	{
-		integratedConnectionPool = ownConnectionPool;
-	}
+	protected String additionalConnectionModules;
 
 	@Override
 	public void applyProperties(Properties contextProperties)
@@ -95,6 +72,13 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		if (linkType == null)
 		{
 			contextProperties.put(PersistenceConfigurationConstants.LinkClass, JdbcLink.class.getName());
+		}
+		String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
+		if (databaseConnection == null)
+		{
+			contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
+					+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort
+					+ "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
 		}
 	}
 

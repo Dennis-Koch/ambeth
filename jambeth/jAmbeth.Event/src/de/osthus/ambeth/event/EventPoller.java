@@ -130,7 +130,7 @@ public class EventPoller implements IEventPoller, IOfflineListener, IStartingBea
 				}
 			}
 		});
-
+		thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		thread.setName("Event Polling");
 		thread.setDaemon(true);
 		thread.start();

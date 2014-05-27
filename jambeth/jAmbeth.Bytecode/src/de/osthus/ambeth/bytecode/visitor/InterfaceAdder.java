@@ -2,12 +2,12 @@ package de.osthus.ambeth.bytecode.visitor;
 
 import java.util.Set;
 
-import net.sf.cglib.asm.Type;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class InterfaceAdder extends ClassVisitor
 {

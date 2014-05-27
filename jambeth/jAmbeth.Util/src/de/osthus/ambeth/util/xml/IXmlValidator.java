@@ -1,5 +1,6 @@
 package de.osthus.ambeth.util.xml;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.w3c.dom.Document;
@@ -11,4 +12,6 @@ import org.xml.sax.SAXException;
 public interface IXmlValidator
 {
 	void validate(Document doc) throws SAXException, IOException;
+
+	void validate(File file) throws SAXException, IOException;
 }

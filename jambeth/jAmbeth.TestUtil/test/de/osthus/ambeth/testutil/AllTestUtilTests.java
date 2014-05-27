@@ -5,10 +5,9 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import de.osthus.ambeth.testutil.contextstore.ServiceContextStoreTest;
-import de.osthus.ambeth.testutil.persistencerunner.AllPersistenceRunnerTests;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ServiceContextStoreTest.class, AllPersistenceRunnerTests.class })
+@SuiteClasses({ ServiceContextStoreTest.class })
 public class AllTestUtilTests
 {
 }

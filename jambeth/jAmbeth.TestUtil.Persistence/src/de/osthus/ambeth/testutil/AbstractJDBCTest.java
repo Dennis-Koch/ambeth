@@ -95,10 +95,6 @@ public abstract class AbstractJDBCTest extends AbstractPersistenceAwareTest
 		public void fillProperties(Properties props)
 		{
 			// PersistenceJdbcModule
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-					+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, OracleConnection.class.getName());
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, Oracle10gConnectionModule.class.getName());
 			props.put(ConfigurationConstants.NetworkClientMode, "false");

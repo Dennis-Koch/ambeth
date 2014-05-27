@@ -26,6 +26,11 @@ public class PropertyInfoItem extends RelationInfoItem
 
 	protected FastConstructorAccess<?> constructorOfRealType;
 
+	public PropertyInfoItem()
+	{
+		// intended blank
+	}
+
 	public PropertyInfoItem(IPropertyInfo property)
 	{
 		this(property, true);

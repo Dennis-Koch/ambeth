@@ -646,8 +646,10 @@ public class RelationsTest extends AbstractPersistenceTest
 				}
 			}
 		});
+		savingThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		savingThread.setDaemon(true);
 		savingThread.setName("Save  ");
+		deletingThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		deletingThread.setDaemon(true);
 		deletingThread.setName("Delete");
 		savingThreadHolder.setValue(savingThread);
