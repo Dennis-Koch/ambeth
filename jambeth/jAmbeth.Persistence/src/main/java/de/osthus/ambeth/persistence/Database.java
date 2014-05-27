@@ -68,7 +68,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
-	
+
 	protected final HashMap<String, ITable> nameToTableDict = new HashMap<String, ITable>();
 	protected final HashMap<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
 	protected final HashMap<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
@@ -78,11 +78,12 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	protected final IdentityHashSet<IField> fieldsMappedToLinks = new IdentityHashSet<IField>();
 	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
 	protected final ArrayList<Class<?>> handledEntities = new ArrayList<Class<?>>();
-	protected final DefaultExtendableContainer<IDatabaseDisposeHook> databaseDisposeHooks = new DefaultExtendableContainer<IDatabaseDisposeHook>(IDatabaseDisposeHook.class, "databaseDisposeHook");
+	protected final DefaultExtendableContainer<IDatabaseDisposeHook> databaseDisposeHooks = new DefaultExtendableContainer<IDatabaseDisposeHook>(
+			IDatabaseDisposeHook.class, "databaseDisposeHook");
 
 	protected long sessionId;
 	protected String name;
-	protected final ArrayList<ITable> tables= new ArrayList<ITable>();
+	protected final ArrayList<ITable> tables = new ArrayList<ITable>();
 	protected final List<ILink> links = new ArrayList<ILink>();
 
 	@Override
@@ -236,7 +237,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	{
 		databaseDisposeHooks.register(disposeHook);
 	}
-	
+
 	@Override
 	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook)
 	{
@@ -301,7 +302,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 			// Intended blank
 		}
 		contextProvider.acquired();
-		contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));		
+		contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));
 	}
 
 	@Override
@@ -377,7 +378,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 			disposeHook.databaseDisposed(this);
 		}
 	}
-	
+
 	protected void clear()
 	{
 		contextProvider.clear();
