@@ -11,13 +11,13 @@ import javax.xml.bind.annotation.XmlType;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDisposableBean
 {
@@ -26,12 +26,16 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 
 	public static final String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
 
+	@Autowired
 	protected IClasspathScanner classpathScanner;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
+	@Autowired
 	protected IXmlTypeExtendable xmlTypeExtendable;
 
 	protected List<Class<?>> rootElementClasses;
@@ -41,11 +45,6 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(classpathScanner, "ClasspathScanner");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(typeInfoProvider, "TypeInfoProvider");
-		ParamChecker.assertNotNull(xmlTypeExtendable, "XmlTypeExtendable");
-
 		List<Class<?>> rootElementClasses = classpathScanner.scanClassesAnnotatedWith(XmlRootElement.class, XmlType.class,
 				de.osthus.ambeth.annotation.XmlType.class);
 		if (log.isInfoEnabled())
@@ -62,10 +61,13 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 					return o1.getName().compareTo(o2.getName());
 				}
 			});
+			StringBuilder sb = new StringBuilder();
+			sb.append("Xml entities found: ");
 			for (int a = 0, size = rootElementClasses.size(); a < size; a++)
 			{
-				log.debug("Xml entity found: " + rootElementClasses.get(a).getName());
+				sb.append("\n\t").append(rootElementClasses.get(a).getName());
 			}
+			log.debug(sb.toString());
 		}
 		for (int a = rootElementClasses.size(); a-- > 0;)
 		{
@@ -139,25 +141,5 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 		{
 			unregisterRunnables.get(a).run();
 		}
-	}
-
-	public void setClasspathScanner(IClasspathScanner classpathScanner)
-	{
-		this.classpathScanner = classpathScanner;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
-	public void setXmlTypeExtendable(IXmlTypeExtendable xmlTypeExtendable)
-	{
-		this.xmlTypeExtendable = xmlTypeExtendable;
 	}
 }

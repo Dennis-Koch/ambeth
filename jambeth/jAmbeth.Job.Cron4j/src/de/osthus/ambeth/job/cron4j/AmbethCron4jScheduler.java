@@ -88,7 +88,9 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 				stopThread.interrupt();
 			}
 		});
+		stopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		stopThread.setDaemon(true);
+		checkOfStopThread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		checkOfStopThread.setDaemon(true);
 		stopThread.start();
 		checkOfStopThread.start();

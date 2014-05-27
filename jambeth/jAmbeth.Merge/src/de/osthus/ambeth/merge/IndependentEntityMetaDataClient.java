@@ -1,6 +1,7 @@
 package de.osthus.ambeth.merge;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -335,6 +336,14 @@ public class IndependentEntityMetaDataClient extends ClassExtendableContainer<IE
 			}
 			if (notFoundEntityTypes.size() > 0 && log.isWarnEnabled())
 			{
+				Collections.sort(notFoundEntityTypes, new Comparator<Class<?>>()
+				{
+					@Override
+					public int compare(Class<?> o1, Class<?> o2)
+					{
+						return o1.getName().compareTo(o2.getName());
+					}
+				});
 				StringBuilder sb = new StringBuilder();
 				sb.append("No metadata found for ").append(notFoundEntityTypes.size()).append(" type(s):");
 				for (Class<?> notFoundType : notFoundEntityTypes)

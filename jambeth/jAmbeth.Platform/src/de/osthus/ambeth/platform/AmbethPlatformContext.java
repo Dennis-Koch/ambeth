@@ -4,7 +4,7 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.DatabaseProvider;
+import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventQueue;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -21,7 +21,6 @@ import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.util.ModuleUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -32,13 +31,6 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 			final IInitializingModule[] bootstrapModuleInstances)
 	{
 		ParamChecker.assertParamNotNull(props, "props");
-
-		if (props.get(PersistenceJdbcConfigurationConstants.DatabaseConnection) == null)
-		{
-			props.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@" + "${"
-					+ PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}" + "/"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
 
 		IServiceContext bootstrapContext = null;
 		final AmbethPlatformContext apc = new AmbethPlatformContext();
@@ -223,7 +215,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 		{
 			try
 			{
-				IDatabase database = beanContext.getService("databaseProvider", DatabaseProvider.class).tryGetInstance();
+				IDatabase database = beanContext.getService("databaseProvider", IDatabaseProvider.class).tryGetInstance();
 				if (database != null)
 				{
 					database.dispose();

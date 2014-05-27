@@ -8,7 +8,7 @@ public final class StringBuilderUtil
 	{
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -22,7 +22,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -36,7 +36,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -50,7 +50,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -64,7 +64,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -78,7 +78,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -92,7 +92,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8)
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
 		try
@@ -106,7 +106,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
 			String s9)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
@@ -122,7 +122,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
 			String s9, Object s10)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
@@ -138,7 +138,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
 			String s9, Object s10, Object s11)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
@@ -154,7 +154,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
+	public static final String concat(IObjectCollector objectCollector, Object s1, Object s2, Object s3, Object s4, Object s5, Object s6, Object s7, Object s8,
 			String s9, Object s10, Object s11, Object s12)
 	{
 		StringBuilder sb = objectCollector.create(StringBuilder.class);
@@ -170,7 +170,7 @@ public final class StringBuilderUtil
 		}
 	}
 
-	public static void appendPrintable(StringBuilder sb, Object printable)
+	public static final void appendPrintable(StringBuilder sb, Object printable)
 	{
 		if (printable == null)
 		{
@@ -190,4 +190,15 @@ public final class StringBuilderUtil
 		}
 	}
 
+	public static final StringBuilder replace(StringBuilder sb, char charToBeReplaced, char replacingChar)
+	{
+		for (int a = sb.length(); a-- > 0;)
+		{
+			if (sb.charAt(a) == charToBeReplaced)
+			{
+				sb.setCharAt(a, replacingChar);
+			}
+		}
+		return sb;
+	}
 }

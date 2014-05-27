@@ -1,45 +1,44 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>jAmbeth.Cache.Server</name>
+	<artifactId>jambeth-cache-server</artifactId>
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jAmbeth</artifactId>
+		<artifactId>jambeth-pom</artifactId>
 		<version>2.0.X-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
-	<artifactId>jAmbeth.Cache.Server</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache</artifactId>
+			<artifactId>jambeth-cache</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache</artifactId>
+			<artifactId>jambeth-cache</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Cache.DataChange</artifactId>
+			<artifactId>jambeth-cache-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.DataChange</artifactId>
+			<artifactId>jambeth-datachange</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Merge</artifactId>
+			<artifactId>jambeth-merge</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jAmbeth.Persistence</artifactId>
+			<artifactId>jambeth-persistence</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

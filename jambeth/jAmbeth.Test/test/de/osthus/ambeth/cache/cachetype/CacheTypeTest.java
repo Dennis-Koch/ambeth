@@ -176,6 +176,8 @@ public class CacheTypeTest extends AbstractPersistenceTest
 				}
 			}
 		});
+		thread1.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+		thread2.setContextClassLoader(Thread.currentThread().getContextClassLoader());
 		thread1.start();
 		thread2.start();
 

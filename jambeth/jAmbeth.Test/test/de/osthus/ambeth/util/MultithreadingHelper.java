@@ -68,7 +68,10 @@ public class MultithreadingHelper
 					}
 				}
 			};
-			threads[a] = new Thread(catchingRunnable);
+			Thread thread = new Thread(catchingRunnable);
+			thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());
+			thread.setDaemon(true);
+			threads[a] = thread;
 		}
 		for (Thread thread : threads)
 		{
