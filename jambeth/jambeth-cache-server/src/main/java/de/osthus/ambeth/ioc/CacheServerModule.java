@@ -17,6 +17,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
 import de.osthus.ambeth.persistence.IServiceUtil;
+import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheService;
 
 @FrameworkModule
@@ -39,7 +40,7 @@ public class CacheServerModule implements IInitializingModule
 
 		beanContextFactory.registerAutowireableBean(IServiceUtil.class, CacheServiceUtil.class);
 
-		beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class);
+		beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class).autowireable(ICacheRetriever.class);
 		if (!cacheServiceRegistryActive)
 		{
 			beanContextFactory.registerAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.DEFAULT_CACHE_RETRIEVER);

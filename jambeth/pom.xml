@@ -63,7 +63,7 @@
 		<module>jambeth-testutil-persistence</module>
 		<module>jambeth-util</module>
 		<module>jambeth-xml</module>
-		<module>jambeth-xml-file</module>
+		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
 	</modules>
 
 	<dependencies>

@@ -148,6 +148,9 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 		Properties baseProps = new Properties(Properties.getApplication());
 
+		// Definition was moved from properties file to PersistenceJdbcModule. But that is read to late for test setup.
+		baseProps.put("database.connection", "${database.protocol}:@${database.host}:${database.port}:${database.name}");
+
 		extendProperties(null, baseProps);
 
 		IServiceContext schemaBootstrapContext = null;

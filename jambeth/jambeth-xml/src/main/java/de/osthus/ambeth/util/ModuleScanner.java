@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.servlet.ServletContext;
-
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IModuleProvider;
@@ -19,8 +17,6 @@ public class ModuleScanner implements IInitializingBean, IModuleProvider
 	@LogInstance
 	private ILogger log;
 
-	protected ServletContext servletContext;
-
 	protected IClasspathScanner classpathScanner;
 
 	@Override
@@ -32,11 +28,6 @@ public class ModuleScanner implements IInitializingBean, IModuleProvider
 	public void setClasspathScanner(IClasspathScanner classpathScanner)
 	{
 		this.classpathScanner = classpathScanner;
-	}
-
-	public void setServletContext(ServletContext servletContext)
-	{
-		this.servletContext = servletContext;
 	}
 
 	@Override
@@ -53,10 +44,6 @@ public class ModuleScanner implements IInitializingBean, IModuleProvider
 
 	protected Class<?>[] getModules(boolean scanForFrameworkModule)
 	{
-		if (servletContext == null)
-		{
-			return new Class<?>[0];
-		}
 		if (log.isInfoEnabled())
 		{
 			log.info("Looking for " + (scanForFrameworkModule ? "Ambeth" : "Application") + " bootstrap modules in classpath...");
