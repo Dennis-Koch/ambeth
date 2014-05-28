@@ -23,6 +23,8 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.exception.ExtendableException;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.EntityMetaDataFake;
@@ -216,7 +218,17 @@ public class CacheRetrieverRegistryTest extends AbstractIocTest
 	@Test(expected = IllegalStateException.class)
 	public void testGetServiceForType_noDefaultCacheRetrievers() throws Throwable
 	{
-		fixture.setDefaultCacheRetriever(null);
+		IServiceContext childContext = beanContext.createService(new RegisterPhaseDelegate()
+		{
+			@Override
+			public void invoke(IBeanContextFactory childContextFactory)
+			{
+				childContextFactory.registerBean("cacheRetrieverRegistry", CacheRetrieverRegistry.class).autowireable(ICacheRetriever.class,
+						ICacheRetrieverExtendable.class, CacheRetrieverRegistry.class);
+			}
+		});
+		fixture = childContext.getService("cacheRetrieverRegistry", CacheRetrieverRegistry.class);
+
 		fixture.getRetrieverForType(String.class);
 	}
 
