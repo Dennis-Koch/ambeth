@@ -9,44 +9,39 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
- 	<dependencies>
+	<dependencies>
 		<!-- KEEP_DEPENDENCIES -->
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-servlet</artifactId>
 			<version>1.11</version>
 		</dependency>
-		            
+
 		<dependency>
-		    <groupId>javax.ws.rs</groupId>
-		    <artifactId>jsr311-api</artifactId>
-		    <version>1.1.1</version>
-		    <scope>compile</scope>
-		</dependency>            
-		
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+			<version>1.1.1</version>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>3.0.1</version>
-			<scope>provided</scope>
 		</dependency>
-        <!-- /KEEP_DEPENDENCIES -->    
-            
+		<!-- /KEEP_DEPENDENCIES -->
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-platform</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-privilege</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
-			<version>${project.version}</version>
 		</dependency>
-
 	</dependencies>
+
 </project>
