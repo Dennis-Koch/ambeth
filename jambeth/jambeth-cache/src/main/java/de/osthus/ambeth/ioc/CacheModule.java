@@ -127,9 +127,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 
 		if (cacheServiceRegistryActive)
 		{
-			beanContextFactory.registerBean("cacheRetrieverRegistry", CacheRetrieverRegistry.class)
-					.propertyRef("DefaultCacheRetriever", DEFAULT_CACHE_RETRIEVER)
-					.autowireable(ICacheServiceByNameExtendable.class, ICacheRetrieverExtendable.class);
+			beanContextFactory.registerBean("cacheRetrieverRegistry", CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
+					ICacheRetrieverExtendable.class);
 			beanContextFactory.registerAlias(ROOT_CACHE_RETRIEVER, "cacheRetrieverRegistry");
 		}
 
