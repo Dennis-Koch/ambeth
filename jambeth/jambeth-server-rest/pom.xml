@@ -1,7 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>jambeth-merge</artifactId>
+
+	<artifactId>jambeth-server-rest</artifactId>
+
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jambeth-pom</artifactId>
@@ -10,32 +12,37 @@
 	</parent>
 
 	<dependencies>
+		<!-- KEEP_DEPENDENCIES -->
 		<dependency>
-			<groupId>org.eclipse.persistence</groupId>
-			<artifactId>javax.persistence</artifactId>
-			<version>2.0.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-servlet</artifactId>
+			<version>1.11</version>
 		</dependency>
 
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>jsr311-api</artifactId>
+			<version>1.1.1</version>
+			<scope>compile</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+		</dependency>
+		<!-- /KEEP_DEPENDENCIES -->
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
+			<artifactId>jambeth-platform</artifactId>
 		</dependency>
-		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
+			<artifactId>jambeth-privilege</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
 		</dependency>
 	</dependencies>
 
