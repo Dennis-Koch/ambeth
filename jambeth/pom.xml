@@ -63,7 +63,7 @@
 		<module>jAmbeth.TestUtil.Persistence</module>
 		<module>jAmbeth.Util</module>
 		<module>jAmbeth.Xml</module>
-		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
+		<module>jAmbeth.Xml.File</module>
 	</modules>
 
 	<dependencies>
@@ -71,17 +71,413 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- External dependencies -->
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>2.2.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>it.sauronsoftware.cron4j</groupId>
+				<artifactId>cron4j</artifactId>
+				<version>2.2.5</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.1</version>
+			</dependency>
+
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>javax.servlet-api</artifactId>
+				<version>3.0.1</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.javassist</groupId>
+				<artifactId>javassist</artifactId>
+				<version>3.16.1-GA</version>
+			</dependency>
+
+			<dependency>
+				<groupId>javax.transaction</groupId>
+				<artifactId>jta</artifactId>
+				<version>1.1</version>
+			</dependency>
+
+			<dependency>
+				<groupId>xpp3</groupId>
+				<artifactId>xpp3</artifactId>
+				<version>1.1.4c</version>
+			</dependency>
+
+			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jAmbeth.TestUtil</artifactId>
+				<artifactId>jambeth-bytecode</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache-bytecode</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache-datachange</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache-server</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-cache-stream</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-datachange</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-datachange-persistence</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-datachange-persistence</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-event</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-event-datachange</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-event-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-filter</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-ioc</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-ioc</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>${project.groupId}</groupId>
+				<artifactId>jambeth-ioc</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-ioc</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-job</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-log</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-mapping</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-mapping</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge-bytecode</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge-bytecode</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-merge-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-api</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-jdbc</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-jdbc</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-oracle11</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-platform</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-privilege</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-privilege-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-query</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-query-jdbc</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-query-jdbc</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-query-jdbc</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-sensor</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-service</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-stream</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-testutil</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jAmbeth.TestUtil</artifactId>
+				<artifactId>jambeth-testutil</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-testutil</artifactId>
 				<version>${project.version}</version>
 				<type>test-jar</type>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-testutil-persistence</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-testutil-persistence</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-util</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-util</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-xml</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-xml</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.11</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
