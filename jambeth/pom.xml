@@ -14,56 +14,56 @@
 	</parent>
 
 	<properties>
-		<jambeth.project.test>jAmbeth.Test</jambeth.project.test>
+		<jambeth.project.test>jambeth-test</jambeth.project.test>
 		<jambeth.path.test>../${jambeth.project.test}</jambeth.path.test>
 	</properties>
 
 	<modules>
-		<module>jAmbeth.Bytecode</module>
-		<module>jAmbeth.Cache</module>
-		<module>jAmbeth.Cache.Bytecode</module>
-		<module>jAmbeth.Cache.DataChange</module>
-		<module>jAmbeth.Cache.Server</module>
-		<module>jAmbeth.Cache.Stream</module>
-		<module>jAmbeth.DataChange</module>
-		<module>jAmbeth.DataChange.Persistence</module>
-		<module>jAmbeth.Event</module>
-		<module>jAmbeth.Event.DataChange</module>
-		<module>jAmbeth.Event.Server</module>
-		<module>jAmbeth.Examples</module>
-		<module>jAmbeth.Filter</module>
-		<module>jAmbeth.IoC</module>
-		<module>jAmbeth.Job</module>
-		<module>jAmbeth.Job.Cron4j</module>
-		<module>jAmbeth.Log</module>
-		<module>jAmbeth.Mapping</module>
-		<module>jAmbeth.Merge</module>
-		<module>jAmbeth.Merge.Bytecode</module>
-		<module>jAmbeth.Merge.Server</module>
-		<module>jAmbeth.Persistence</module>
-		<module>jAmbeth.Persistence.API</module>
-		<module>jAmbeth.Persistence.JDBC</module>
-		<module>jAmbeth.Persistence.Oracle11</module>
-		<module>jAmbeth.Platform</module>
-		<module>jAmbeth.Privilege</module>
-		<module>jAmbeth.Privilege.Server</module>
-		<module>jAmbeth.Query</module>
-		<module>jAmbeth.Query.InMemory</module>
-		<module>jAmbeth.Query.JDBC</module>
-		<module>jAmbeth.Security</module>
-		<module>jAmbeth.Security.Server</module>
-		<module>jAmbeth.Sensor</module>
-		<module>jAmbeth.Server.HelloWorld</module>
-		<module>jAmbeth.Server.REST</module>
-		<module>jAmbeth.Service</module>
-		<module>jAmbeth.SOAP</module>
-		<module>jAmbeth.Stream</module>
-		<module>jAmbeth.Test</module>
-		<module>jAmbeth.TestUtil</module>
-		<module>jAmbeth.TestUtil.Persistence</module>
-		<module>jAmbeth.Util</module>
-		<module>jAmbeth.Xml</module>
-		<module>jAmbeth.Xml.File</module>
+		<module>jambeth-bytecode</module>
+		<module>jambeth-cache</module>
+		<module>jambeth-cache-bytecode</module>
+		<module>jambeth-cache-datachange</module>
+		<module>jambeth-cache-server</module>
+		<module>jambeth-cache-stream</module>
+		<module>jambeth-datachange</module>
+		<module>jambeth-datachange-persistence</module>
+		<module>jambeth-event</module>
+		<module>jambeth-event-datachange</module>
+		<module>jambeth-event-server</module>
+		<module>jambeth-examples</module>
+		<module>jambeth-filter</module>
+		<module>jambeth-ioc</module>
+		<module>jambeth-job</module>
+		<module>jambeth-job-cron4j</module>
+		<module>jambeth-log</module>
+		<module>jambeth-mapping</module>
+		<module>jambeth-merge</module>
+		<module>jambeth-merge-bytecode</module>
+		<module>jambeth-merge-server</module>
+		<module>jambeth-persistence</module>
+		<module>jambeth-persistence-api</module>
+		<module>jambeth-persistence-jdbc</module>
+		<module>jambeth-persistence-oracle11</module>
+		<module>jambeth-platform</module>
+		<module>jambeth-privilege</module>
+		<module>jambeth-privilege-server</module>
+		<module>jambeth-query</module>
+		<module>jambeth-query-inmemory</module>
+		<module>jambeth-query-jdbc</module>
+		<module>jambeth-security</module>
+		<module>jambeth-security-server</module>
+		<module>jambeth-sensor</module>
+		<module>jambeth-server-helloworld</module>
+		<module>jambeth-server-rest</module>
+		<module>jambeth-service</module>
+		<module>jambeth-soap</module>
+		<module>jambeth-stream</module>
+		<module>jambeth-test</module>
+		<module>jambeth-testutil</module>
+		<module>jambeth-testutil-persistence</module>
+		<module>jambeth-util</module>
+		<module>jambeth-xml</module>
+		<module>jambeth-xml-file</module>
 	</modules>
 
 	<dependencies>
