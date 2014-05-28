@@ -60,7 +60,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 
 	}
 
-	protected final Lock writeLock = new ReentrantLock();;
+	protected final Lock writeLock = new ReentrantLock();
 
 	protected final ClassExtendableContainer<IMergeService> typeToMergeServiceMap = new ClassExtendableContainer<IMergeService>("elementHandler", "type");
 
@@ -76,10 +76,6 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
 		ParamChecker.assertParamNotNull(log, "Log");
 		ParamChecker.assertParamNotNull(mergeController, "MergeController");
-		if (defaultMergeService == this)
-		{
-			throw new IllegalArgumentException("Property 'DefaultMergeService' is injected with 'this' which is not supported by this bean");
-		}
 	}
 
 	public void setDefaultMergeService(IMergeService defaultMergeService)
@@ -109,7 +105,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 			IMergeService registered = typeToMergeServiceMap.getExtension(handledType);
 			if (registered == null)
 			{
-				this.typeToMergeServiceMap.register(mergeService, handledType);
+				typeToMergeServiceMap.register(mergeService, handledType);
 			}
 			else if (registered.equals(mergeService))
 			{
@@ -141,7 +137,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		writeLock.lock();
 		try
 		{
-			this.typeToMergeServiceMap.unregister(mergeService, handledType);
+			typeToMergeServiceMap.unregister(mergeService, handledType);
 		}
 		finally
 		{
@@ -212,13 +208,27 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
-		return defaultMergeService.getMetaData(entityTypes);
+		if (defaultMergeService != null && defaultMergeService != this)
+		{
+			return defaultMergeService.getMetaData(entityTypes);
+		}
+		else
+		{
+			return entityMetaDataProvider.getMetaData(entityTypes);
+		}
 	}
 
 	@Override
 	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
 	{
-		return defaultMergeService.getValueObjectConfig(valueType);
+		if (defaultMergeService != null && defaultMergeService != this)
+		{
+			return defaultMergeService.getValueObjectConfig(valueType);
+		}
+		else
+		{
+			return entityMetaDataProvider.getValueObjectConfig(valueType);
+		}
 	}
 
 	protected IMergeService getServiceForType(Class<?> type)
@@ -230,7 +240,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		IMergeService mergeService = typeToMergeServiceMap.getExtension(type);
 		if (mergeService == null)
 		{
-			if (defaultMergeService != null)
+			if (defaultMergeService != null && defaultMergeService != this)
 			{
 				mergeService = defaultMergeService;
 			}
