@@ -50,6 +50,8 @@ public class PropertyChangeTemplate
 
 		public final String[] propertyNames;
 
+		public final Object[] unknownValues;
+
 		public final boolean isParentChildSetter;
 
 		public final boolean isAddedRemovedCheckNecessary;
@@ -88,7 +90,8 @@ public class PropertyChangeTemplate
 			}
 			this.propertyNames = propertyNames.toArray(String.class);
 			boolean firesToBeCreatedPCE = false;
-			for (String invokedPropertyName : propertyNames)
+			unknownValues = createArrayOfValues(UNKNOWN_VALUE, this.propertyNames.length);
+			for (String invokedPropertyName : this.propertyNames)
 			{
 				firesToBeCreatedPCE |= "ToBeCreated".equals(invokedPropertyName);
 			}
@@ -165,6 +168,9 @@ public class PropertyChangeTemplate
 
 	@Property(name = CacheConfigurationConstants.AsyncPropertyChangeActive, defaultValue = "false")
 	protected boolean asyncPropertyChangeActive;
+
+	@Property(name = CacheConfigurationConstants.FireOldPropertyValueActive, defaultValue = "false")
+	protected boolean fireOldPropertyValueActive;
 
 	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property)
 	{
@@ -310,10 +316,20 @@ public class PropertyChangeTemplate
 				}
 			}
 			String[] propertyNames = entry.propertyNames;
-			Object[] oldValues = createArrayOfValues(oldValue, propertyNames.length);
-			Object[] currentValues = createArrayOfValues(oldValue, propertyNames.length);
+			Object[] oldValues;
+			Object[] currentValues;
 
-			firePropertyChange(obj, entry.propertyNames, oldValues, currentValues);
+			if (fireOldPropertyValueActive)
+			{
+				oldValues = createArrayOfValues(oldValue, propertyNames.length);
+				currentValues = currentValue == oldValue ? oldValues : createArrayOfValues(currentValue, propertyNames.length);
+			}
+			else
+			{
+				oldValues = entry.unknownValues;
+				currentValues = oldValues;
+			}
+			firePropertyChange(obj, propertyNames, oldValues, currentValues);
 			if (entry.firesToBeCreatedPCE)
 			{
 				IDataObject dObj = (IDataObject) obj;
@@ -404,9 +420,15 @@ public class PropertyChangeTemplate
 			}
 			Object oldValue = oldValues[a];
 			Object currentValue = currentValues[a];
-			PropertyChangeEvent evnt = new PropertyChangeEvent(obj, propertyName, oldValue != UNKNOWN_VALUE ? oldValue : null,
-					currentValue != UNKNOWN_VALUE ? currentValue : null);
-			propertyChangeSupport.firePropertyChange(evnt);
+			if (oldValue == UNKNOWN_VALUE)
+			{
+				oldValue = null;
+			}
+			if (currentValue == UNKNOWN_VALUE)
+			{
+				currentValue = null;
+			}
+			propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
 		}
 	}
 }
