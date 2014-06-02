@@ -42,6 +42,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
 
 	protected String[] schemaNames;
@@ -54,12 +55,6 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 		ParamChecker.assertNotNull(schemaName, "schemaName");
 
 		schemaNames = schemaName.toUpperCase().split("[:;]");
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
-	public void setSchemaName(String schemaName)
-	{
-		this.schemaName = schemaName;
 	}
 
 	@Override
