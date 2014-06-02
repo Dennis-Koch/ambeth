@@ -57,6 +57,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.testutil.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
 import de.osthus.ambeth.util.PersistenceExceptionUtil;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
@@ -574,7 +575,49 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		Connection conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
+		Connection conn;
+		try
+		{
+			conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
+		}
+		catch (MaskingRuntimeException e)
+		{
+			if (!(e.getCause() instanceof SQLException))
+			{
+				throw e;
+			}
+			SQLException ex = (SQLException) e.getCause();
+			if (ex.getErrorCode() != 1017) // ORA-01017: invalid username/password; logon denied
+			{
+				throw e;
+			}
+			// try to recover by trying to create the necessary user with the default credentials of sys
+			try
+			{
+				IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
+				Properties createUserProps = new Properties(testProps);
+				createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
+				createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser));
+				createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass));
+				createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, "sys as sysdba");
+				createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, "developer");
+				IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
+				try
+				{
+					bootstrapContext.createService("randomUser", RandomUserModule.class, IocBootstrapModule.class);
+				}
+				finally
+				{
+					bootstrapContext.dispose();
+				}
+				conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
+			}
+			catch (Throwable t)
+			{
+				// throw the initial exception if this fails somehow
+				throw e;
+			}
+		}
 		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 		conn.setAutoCommit(false);
 		connection = conn;
