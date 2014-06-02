@@ -195,7 +195,7 @@
     <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\cache\CacheServiceRegistry.cs" />
+    <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AmbethStrongNameKey.snk" />

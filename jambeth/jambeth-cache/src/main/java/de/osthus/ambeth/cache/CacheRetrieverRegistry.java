@@ -13,7 +13,6 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
@@ -30,7 +29,7 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable, IInitializingBean
+public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -47,12 +46,6 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-	}
 
 	@Override
 	public void registerCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType)
