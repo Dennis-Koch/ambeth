@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Event;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -97,13 +98,18 @@ namespace De.Osthus.Ambeth.Collections.Specialized
 	     * @param event
 	     *            the {@code NotifyCollectionChangedEvent} to be fired
 	     */
-	    public void FirePropertyChange(Object sender, PropertyChangedEventArgs evnt)
-	    {
-		    PropertyChangedEventHandler[] listenersCopy = this.listenersCopy;
-		    foreach (PropertyChangedEventHandler listener in listenersCopy)
+        public void FirePropertyChange(Object obj, PropertyChangedEventArgs evntArg, String propertyName, Object oldValue, Object currentValue)
+        {
+            PropertyChangedEventHandler[] listenersCopy = this.listenersCopy;
+		    if (listenersCopy.Length == 0)
 		    {
-			    listener(sender, evnt);
+			    return;
 		    }
-	    }
+		    //PropertyChangeEvent evnt = new PropertyChangeEvent(obj, propertyName, oldValue, currentValue);
+            foreach (PropertyChangedEventHandler listener in listenersCopy)
+		    {
+                listener(obj, evntArg);
+		    }
+        }
     }
 }

@@ -37,7 +37,7 @@ public class PropertyInstance
 		{
 			getter = ReflectUtil.getDeclaredMethod(true, declaringType, "is" + propertyName);
 		}
-		Method setter = ReflectUtil.getDeclaredMethod(true, declaringType, "set" + propertyName, (Type[]) null);
+		Method setter = ReflectUtil.getDeclaredMethod(true, declaringType, "set" + propertyName, new Type[1]);
 		if (getter != null)
 		{
 			MethodInstance getterInstance = new MethodInstance(getter);

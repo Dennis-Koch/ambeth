@@ -53,7 +53,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public static readonly MethodInstance template_m_collectionChanged = new MethodInstance(null, typeof(INotifyCollectionChangedListener),
                 "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
 
-        public static readonly MethodInstance template_m_PropertyChanged = new MethodInstance(null, typeof(IPropertyChangeListener), "PropertyChanged", typeof(Object), typeof(PropertyChangedEventArgs));
+        public static readonly MethodInstance template_m_PropertyChanged = new MethodInstance(null, typeof(IPropertyChangedEventHandler), "PropertyChanged", typeof(Object), typeof(PropertyChangedEventArgs));
 
         public static readonly MethodInstance template_m_onPropertyChanged = new MethodInstance(null, typeof(INotifyPropertyChangedSource),
             "OnPropertyChanged", typeof(String));
