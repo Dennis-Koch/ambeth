@@ -743,8 +743,8 @@ public class ValueHolderContainerTest extends AbstractIocTest
 
 		Material parentEntity = entityFactory.createEntity(Material.class);
 		Assert.assertTrue(parentEntity instanceof IValueHolderContainer);
-		Assert.assertEquals(ValueHolderState.LAZY, ((IValueHolderContainer) parentEntity).getState(member));
-		Assert.assertEquals(0, ((IValueHolderContainer) parentEntity).getObjRefs(member).length);
+		Assert.assertEquals(ValueHolderState.LAZY, ((IValueHolderContainer) parentEntity).get__State(member));
+		Assert.assertEquals(0, ((IValueHolderContainer) parentEntity).get__ObjRefs(member).length);
 
 		parentEntity.setId(1);
 		parentEntity.setName("name1");
@@ -758,8 +758,8 @@ public class ValueHolderContainerTest extends AbstractIocTest
 		((IValueHolderContainer) parentEntity).set__TargetCache((ICacheIntern) cache);
 		proxyHelper.setObjRefs(parentEntity, member, new IObjRef[] { typeObjRef });
 
-		Assert.assertEquals(ValueHolderState.INIT, ((IValueHolderContainer) parentEntity).getState(member));
-		Assert.assertEquals(1, ((IValueHolderContainer) parentEntity).getObjRefs(member).length);
+		Assert.assertEquals(ValueHolderState.INIT, ((IValueHolderContainer) parentEntity).get__State(member));
+		Assert.assertEquals(1, ((IValueHolderContainer) parentEntity).get__ObjRefs(member).length);
 
 		Object value = valueHolderContainerTemplate.getValue(parentEntity, member);
 	}

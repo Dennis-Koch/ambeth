@@ -51,9 +51,10 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, "getObjRefs", Object.class,
 			IRelationInfoItem.class);
 
-	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IValueHolderContainer.class, "getState", IRelationInfoItem.class);
+	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IValueHolderContainer.class, "get__State",
+			IRelationInfoItem.class);
 
-	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IValueHolderContainer.class, "getObjRefs",
+	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IValueHolderContainer.class, "get__ObjRefs",
 			IRelationInfoItem.class);
 
 	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, "getSelf", Object.class, String.class);
@@ -392,7 +393,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	protected void implementSelfGetter(PropertyInstance p_valueHolderContainerTemplate)
 	{
 		Type owner = BytecodeBehaviorState.getState().getNewType();
-		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, "getSelf", String.class);
+		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, "get__Self", String.class);
 		{
 			// public IObjRelation getSelf(String memberName)
 			// {
@@ -413,7 +414,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 			// {
 			// return getSelf(member.getName());
 			// }
-			MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, "getSelf", IRelationInfoItem.class);
+			MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, "get__Self", IRelationInfoItem.class);
 			MethodGenerator mv = visitMethod(method);
 			mv.loadThis();
 			mv.loadArg(0);

@@ -2,6 +2,7 @@ package de.osthus.ambeth.template;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 import java.util.Collection;
 
 import de.osthus.ambeth.annotation.FireTargetOnPropertyChange;
@@ -35,6 +36,8 @@ import de.osthus.ambeth.util.ImmutableTypeSet;
 
 public class PropertyChangeTemplate
 {
+	public static final Object UNKNOWN_VALUE = new Object();
+
 	public class PropertyEntry
 	{
 		public final String propertyName;
@@ -46,6 +49,8 @@ public class PropertyChangeTemplate
 		public final boolean firesToBeCreatedPCE;
 
 		public final String[] propertyNames;
+
+		public final Object[] unknownValues;
 
 		public final boolean isParentChildSetter;
 
@@ -85,7 +90,8 @@ public class PropertyChangeTemplate
 			}
 			this.propertyNames = propertyNames.toArray(String.class);
 			boolean firesToBeCreatedPCE = false;
-			for (String invokedPropertyName : propertyNames)
+			unknownValues = createArrayOfValues(UNKNOWN_VALUE, this.propertyNames.length);
+			for (String invokedPropertyName : this.propertyNames)
 			{
 				firesToBeCreatedPCE |= "ToBeCreated".equals(invokedPropertyName);
 			}
@@ -99,6 +105,14 @@ public class PropertyChangeTemplate
 				getDelegate = null;
 			}
 		}
+	}
+
+	public static Object[] createArrayOfValues(Object value, int length)
+	{
+		Object[] values = new Object[length];
+		Arrays.fill(values, UNKNOWN_VALUE);
+		values[0] = value;
+		return values;
 	}
 
 	protected static void evaluateDependentProperties(Class<?> type, IPropertyInfo pi, Collection<String> propertyNames,
@@ -152,13 +166,11 @@ public class PropertyChangeTemplate
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
 
+	@Property(name = CacheConfigurationConstants.AsyncPropertyChangeActive, defaultValue = "false")
 	protected boolean asyncPropertyChangeActive;
 
-	@Property(name = CacheConfigurationConstants.AsyncPropertyChangeActive, defaultValue = "false")
-	public void setAsyncPropertyChangeActive(boolean asyncPropertyChangeActive)
-	{
-		this.asyncPropertyChangeActive = asyncPropertyChangeActive;
-	}
+	@Property(name = CacheConfigurationConstants.FireOldPropertyValueActive, defaultValue = "false")
+	protected boolean fireOldPropertyValueActive;
 
 	protected PropertyEntry getPropertyEntry(Class<?> type, IPropertyInfo property)
 	{
@@ -303,7 +315,21 @@ public class PropertyChangeTemplate
 					handleAddedItem(obj, currentValue, entry.isParentChildSetter);
 				}
 			}
-			firePropertyChange(obj, entry.propertyNames);
+			String[] propertyNames = entry.propertyNames;
+			Object[] oldValues;
+			Object[] currentValues;
+
+			if (fireOldPropertyValueActive)
+			{
+				oldValues = createArrayOfValues(oldValue, propertyNames.length);
+				currentValues = currentValue == oldValue ? oldValues : createArrayOfValues(currentValue, propertyNames.length);
+			}
+			else
+			{
+				oldValues = entry.unknownValues;
+				currentValues = oldValues;
+			}
+			firePropertyChange(obj, propertyNames, oldValues, currentValues);
 			if (entry.firesToBeCreatedPCE)
 			{
 				IDataObject dObj = (IDataObject) obj;
@@ -338,7 +364,7 @@ public class PropertyChangeTemplate
 		}
 	}
 
-	public void firePropertyChange(final INotifyPropertyChangedSource obj, final String[] propertyNames)
+	public void firePropertyChange(final INotifyPropertyChangedSource obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues)
 	{
 		final PropertyChangeSupport propertyChangeSupport = obj.getPropertyChangeSupport();
 		if (propertyChangeSupport == null)
@@ -353,15 +379,16 @@ public class PropertyChangeTemplate
 				@Override
 				public void invoke() throws Throwable
 				{
-					executeFirePropertyChange(propertyChangeSupport, obj, propertyNames);
+					executeFirePropertyChange(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 				}
 			});
 			return;
 		}
-		executeFirePropertyChange(propertyChangeSupport, obj, propertyNames);
+		executeFirePropertyChange(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 	}
 
-	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final Object obj, final String[] propertyNames)
+	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final Object obj, final String[] propertyNames,
+			final Object[] oldValues, final Object[] currentValues)
 	{
 		if (asyncPropertyChangeActive)
 		{
@@ -370,27 +397,38 @@ public class PropertyChangeTemplate
 				@Override
 				public void invoke() throws Throwable
 				{
-					executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames);
+					executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 				}
 			});
 		}
 		else
 		{
-			executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames);
+			executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 		}
 	}
 
-	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, String[] propertyNames)
+	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, String[] propertyNames, Object[] oldValues,
+			Object[] currentValues)
 	{
 		boolean debugEnabled = log.isDebugEnabled();
-		for (String propertyName : propertyNames)
+		for (int a = 0, size = propertyNames.length; a < size; a++)
 		{
+			String propertyName = propertyNames[a];
 			if (debugEnabled)
 			{
 				log.debug("Process PCE '" + propertyName + "' on " + obj);
 			}
-			PropertyChangeEvent evnt = new PropertyChangeEvent(obj, propertyName, null, null);
-			propertyChangeSupport.firePropertyChange(evnt);
+			Object oldValue = oldValues[a];
+			Object currentValue = currentValues[a];
+			if (oldValue == UNKNOWN_VALUE)
+			{
+				oldValue = null;
+			}
+			if (currentValue == UNKNOWN_VALUE)
+			{
+				currentValue = null;
+			}
+			propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
 		}
 	}
 }

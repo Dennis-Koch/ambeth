@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Cache.Config;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Collections.Specialized;
 using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
@@ -24,6 +25,8 @@ namespace De.Osthus.Ambeth.Template
 {
     public class PropertyChangeTemplate
     {
+        public static readonly Object UNKNOWN_VALUE = new Object();
+
         public class PropertyEntry
         {
             public readonly String propertyName;
@@ -37,6 +40,8 @@ namespace De.Osthus.Ambeth.Template
             public readonly bool firesToBeCreatedPCE;
 
             public readonly String[] propertyNames;
+
+            public readonly Object[] unknownValues;
 
             public readonly PropertyChangedEventArgs[] pceArgs;
 
@@ -77,8 +82,8 @@ namespace De.Osthus.Ambeth.Template
                     }
                 }
                 this.propertyNames = propertyNames.ToArray();
-
                 bool firesToBeCreatedPCE = false;
+                unknownValues = CreateArrayOfValues(UNKNOWN_VALUE, this.propertyNames.Length);
                 pceArgs = new PropertyChangedEventArgs[propertyNames.Count];
                 int index = 0;
                 foreach (String invokedPropertyName in propertyNames)
@@ -105,6 +110,17 @@ namespace De.Osthus.Ambeth.Template
                     }
                 }
             }
+        }
+
+        public static Object[] CreateArrayOfValues(Object value, int length)
+        {
+            Object[] values = new Object[length];
+            for (int a = values.Length; a-- > 0; )
+            {
+                values[a] = UNKNOWN_VALUE;
+            }
+            values[0] = value;
+            return values;
         }
 
         protected static void EvaluateDependentProperties(Type type, PropertyInfo pi, ICollection<String> propertyNames)
@@ -152,6 +168,9 @@ namespace De.Osthus.Ambeth.Template
 
         [Property(CacheConfigurationConstants.AsyncPropertyChangeActive, DefaultValue = "false")]
         public bool AsyncPropertyChangeActive { protected get; set; }
+
+        [Property(CacheConfigurationConstants.FireOldPropertyValueActive, DefaultValue = "false")]
+        public bool FireOldPropertyValueActive { protected get; set; }
 
         protected PropertyEntry GetPropertyEntry(Type type, IPropertyInfo property)
         {
@@ -209,7 +228,21 @@ namespace De.Osthus.Ambeth.Template
                         HandleAddedItem(obj, currentValue, entry.isParentChildSetter);
                     }
                 }
-                FirePropertyChange(obj, entry.pceArgs);
+                String[] propertyNames = entry.propertyNames;
+                Object[] oldValues;
+                Object[] currentValues;
+
+                if (FireOldPropertyValueActive)
+                {
+                    oldValues = CreateArrayOfValues(oldValue, propertyNames.Length);
+                    currentValues = Object.ReferenceEquals(currentValue, oldValue) ? oldValues : CreateArrayOfValues(currentValue, propertyNames.Length);
+                }
+                else
+                {
+                    oldValues = entry.unknownValues;
+                    currentValues = oldValues;
+                }
+                FirePropertyChange(obj, entry.pceArgs, propertyNames, oldValues, currentValues);
                 if (entry.firesToBeCreatedPCE)
                 {
                     IDataObject dObj = (IDataObject)obj;
@@ -244,7 +277,7 @@ namespace De.Osthus.Ambeth.Template
             }
         }
 
-        public void FirePropertyChange(INotifyPropertyChangedSource obj, PropertyChangedEventArgs[] evnts)
+        public void FirePropertyChange(INotifyPropertyChangedSource obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             PropertyChangeSupport propertyChangeSupport = obj.PropertyChangeSupport;
             if (propertyChangeSupport == null)
@@ -256,38 +289,49 @@ namespace De.Osthus.Ambeth.Template
             {
                 cacheModification.QueuePropertyChangeEvent(delegate()
                 {
-                    ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts);
+                    ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
                 });
                 return;
             }
-            ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts);
+            ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
         }
-
-        protected void ExecuteFirePropertyChange(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts)
+        
+        protected void ExecuteFirePropertyChange(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             if (AsyncPropertyChangeActive)
             {
                 GuiThreadHelper.InvokeInGui(delegate()
                 {
-                    ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts);
+                    ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
                 });
             }
             else
             {
-                ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts);
+                ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
             }
         }
 
-        protected void ExecuteFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts)
+        protected void ExecuteFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             bool debugEnabled = Log.DebugEnabled;
-            foreach (PropertyChangedEventArgs evnt in evnts)
+            for (int a = 0, size = propertyNames.Length; a < size; a++)
             {
+                String propertyName = propertyNames[a];
                 if (debugEnabled)
                 {
-                    Log.Debug("Process PCE '" + evnt.PropertyName + "' on " + obj);
+                    Log.Debug("Process PCE '" + propertyName + "' on " + obj);
                 }
-                propertyChangeSupport.FirePropertyChange(obj, evnt);
+                Object oldValue = oldValues[a];
+                Object currentValue = currentValues[a];
+                if (oldValue == UNKNOWN_VALUE)
+                {
+                    oldValue = null;
+                }
+                if (currentValue == UNKNOWN_VALUE)
+                {
+                    currentValue = null;
+                }
+                propertyChangeSupport.FirePropertyChange(obj, evnts[a], propertyName, oldValue, currentValue);
             }
         }
 
