@@ -99,6 +99,10 @@ public class AccessorClassLoader extends ClassLoader
 			{
 				return ConstructorAccess.class;
 			}
+			if (name.equals(AbstractAccessor.class.getName()))
+			{
+				return AbstractAccessor.class;
+			}
 			// All other classes come from the classloader that loaded the type we are accessing.
 			return super.loadClass(name, resolve);
 		}
@@ -119,6 +123,7 @@ public class AccessorClassLoader extends ClassLoader
 		}
 		catch (Exception ignored)
 		{
+			// intended blank
 		}
 		return defineClass(name, bytes, 0, bytes.length);
 	}
