@@ -80,8 +80,6 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerAutowireableBean(CompositeIdTemplate.class, CompositeIdTemplate.class);
 
-		beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-
 		// if (isNetworkClientMode)
 		// {
 		// metaDataClient =
@@ -95,7 +93,6 @@ public class MergeModule implements IInitializingModule
 		// }
 		beanContextFactory.registerBean("cacheModification", CacheModification.class).autowireable(ICacheModification.class);
 
-		beanContextFactory.registerBean("relationProvider", RelationProvider.class).autowireable(IRelationProvider.class);
 		beanContextFactory.registerAutowireableBean(IObjRefHelper.class, ORIHelper.class);
 		beanContextFactory.registerBean("cudResultHelper", CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
 
@@ -128,6 +125,9 @@ public class MergeModule implements IInitializingModule
 			beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
 			beanContextFactory.registerBean("ormXmlReader 2.0", OrmXmlReader20.class);
 			beanContextFactory.link("ormXmlReader 2.0").to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
+
+			beanContextFactory.registerBean("relationProvider", RelationProvider.class).autowireable(IRelationProvider.class);
+			beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 		}
 
 		Class<?> entityFactoryType = this.entityFactoryType;
