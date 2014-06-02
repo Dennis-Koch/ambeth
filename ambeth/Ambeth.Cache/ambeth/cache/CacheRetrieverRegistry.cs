@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using De.Osthus.Ambeth.Cache.Model;
 using De.Osthus.Ambeth.Collections;
-using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
@@ -16,7 +16,7 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class CacheServiceRegistry : ICacheService, ICacheRetrieverExtendable, ICacheServiceByNameExtendable, IInitializingBean
+    public class CacheRetrieverRegistry : ICacheService, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -29,20 +29,13 @@ namespace De.Osthus.Ambeth.Cache
 
         public ICacheService CacheServiceForOris { protected get; set; }
 
+        [Autowired(Optional = true)]
         public ICacheRetriever DefaultCacheRetriever { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         public IThreadPool ThreadPool { protected get; set; }
-
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            if (Object.ReferenceEquals(DefaultCacheRetriever, this))
-            {
-                throw new Exception("Property 'DefaultCacheRetriever' is injected with 'this' which is not supported by this bean");
-            }
-        }
 
         public void RegisterCacheRetriever(ICacheRetriever cacheRetriever, Type handledType)
         {
@@ -163,7 +156,7 @@ namespace De.Osthus.Ambeth.Cache
             ICacheRetriever cacheRetriever = typeToCacheRetrieverMap.GetExtension(type);
             if (cacheRetriever == null)
             {
-                if (DefaultCacheRetriever != null)
+                if (DefaultCacheRetriever != null && DefaultCacheRetriever != this)
                 {
                     cacheRetriever = DefaultCacheRetriever;
                 }

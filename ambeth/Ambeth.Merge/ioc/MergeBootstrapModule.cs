@@ -2,6 +2,7 @@
 using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Converter.Merge;
+using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Extendable;
@@ -41,24 +42,24 @@ namespace De.Osthus.Ambeth.Ioc
         public virtual bool IndependentMetaData { get; set; }
 
         [Property(MergeConfigurationConstants.EntityFactoryType, Mandatory = false)]
-	    public Type EntityFactoryType { get; set; }
+        public Type EntityFactoryType { get; set; }
 
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
             beanContextFactory.RegisterAutowireableBean<IMergeController, MergeController>();
             beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>().PropertyRefs(MERGE_CACHE_FACTORY);
-            
+
             beanContextFactory.RegisterAutowireableBean<CompositeIdTemplate, CompositeIdTemplate>();
-            
+
             beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
-            
+
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
             beanContextFactory.RegisterBean<RelationProvider>("relationProvider").Autowireable<IRelationProvider>();
             beanContextFactory.RegisterAutowireableBean<IObjRefHelper, ORIHelper>();
             beanContextFactory.RegisterBean<CUDResultHelper>("cudResultHelper").Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
 
-        	beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
+            beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
 
@@ -79,13 +80,13 @@ namespace De.Osthus.Ambeth.Ioc
             }
             else
             {
-			    beanContextFactory.RegisterBean<IndependentEntityMetaDataReader>(INDEPENDENT_META_DATA_READER);
-
                 beanContextFactory.RegisterBean<IndependentEntityMetaDataClient>("independentMetaDataProvider")
                     .PropertyRef("ValueObjectMap", valueObjectMap)
                     .Autowireable<IEntityMetaDataProvider>()
                     .Autowireable<IEntityMetaDataExtendable>()
                     .Autowireable<IValueObjectConfigExtendable>();
+
+                beanContextFactory.RegisterBean<IndependentEntityMetaDataReader>(INDEPENDENT_META_DATA_READER);
 
                 beanContextFactory.RegisterBean("ormXmlReader", typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, typeof(IOrmXmlReaderRegistry))
                         .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, typeof(IOrmXmlReaderExtendable))
@@ -94,17 +95,17 @@ namespace De.Osthus.Ambeth.Ioc
                 beanContextFactory.RegisterBean<OrmXmlReader20>("ormXmlReader_2.0");
                 beanContextFactory.Link("ormXmlReader_2.0").To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
             }
-            
+
             Type entityFactoryType = this.EntityFactoryType;
-		    if (entityFactoryType == null)
-		    {
-			    entityFactoryType = typeof(EntityFactory);
-		    }
-		    IBeanConfiguration entityFactoryBC = beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
-		    if (typeof(IEntityFactoryExtensionExtendable).IsAssignableFrom(entityFactoryType))
-		    {
-			    entityFactoryBC.Autowireable<IEntityFactoryExtensionExtendable>();
-		    }
+            if (entityFactoryType == null)
+            {
+                entityFactoryType = typeof(EntityFactory);
+            }
+            IBeanConfiguration entityFactoryBC = beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
+            if (typeof(IEntityFactoryExtensionExtendable).IsAssignableFrom(entityFactoryType))
+            {
+                entityFactoryBC.Autowireable<IEntityFactoryExtensionExtendable>();
+            }
 
             if (IsNetworkClientMode && IsMergeServiceBeanActive)
             {
