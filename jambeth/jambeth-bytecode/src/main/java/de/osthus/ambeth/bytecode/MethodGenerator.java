@@ -30,6 +30,11 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class MethodGenerator extends GeneratorAdapter
 {
+	public static final MethodInstance m_getClass = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Object.class, "getClass"));
+
+	public static final MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Class.class, "isAssignableFrom",
+			Class.class));
+
 	protected final MethodInstance method;
 	protected final ClassGenerator cg;
 
@@ -201,6 +206,19 @@ public class MethodGenerator extends GeneratorAdapter
 		invokeStatic(method.getOwner(), method.getMethod());
 	}
 
+	@Override
+	public void box(Type typeToBox)
+	{
+		if (Type.BOOLEAN_TYPE.equals(typeToBox))
+		{
+			invokeStatic(new MethodInstance(null, Boolean.class, "valueOf", boolean.class));
+		}
+		else if (TypeUtil.isPrimitive(typeToBox))
+		{
+			super.box(typeToBox);
+		}
+	}
+
 	public void callThisGetter(MethodInstance method)
 	{
 		ParamChecker.assertParamNotNull(method, "method");
@@ -334,6 +352,39 @@ public class MethodGenerator extends GeneratorAdapter
 	public void ifCmp(final Class<?> type, final int mode, final Label label)
 	{
 		ifCmp(Type.getType(type), mode, label);
+	}
+
+	public void ifThisInstanceOf(final Class<?> instanceOfType, Script executeIfTrue, Script executeIfFalse)
+	{
+		if (executeIfTrue == null && executeIfFalse == null)
+		{
+			// nothing to do
+			return;
+		}
+		push(instanceOfType);
+		callThisGetter(m_getClass);
+		invokeVirtual(m_isAssignableFrom);
+
+		if (executeIfTrue != null)
+		{
+			Label l_isFalse = newLabel();
+			ifZCmp(GeneratorAdapter.EQ, l_isFalse);
+
+			executeIfTrue.execute(this);
+
+			mark(l_isFalse);
+			if (executeIfFalse != null)
+			{
+				executeIfFalse.execute(this);
+			}
+			return;
+		}
+		Label l_isTrue = newLabel();
+		ifZCmp(GeneratorAdapter.NE, l_isTrue);
+
+		executeIfFalse.execute(this);
+
+		mark(l_isTrue);
 	}
 
 	public void smartBox(Type unboxedType)

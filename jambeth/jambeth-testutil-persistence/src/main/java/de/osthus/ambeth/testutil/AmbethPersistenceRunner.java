@@ -45,6 +45,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
@@ -70,8 +71,19 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	protected static final String MEASUREMENT_BEAN = "measurementBean";
 
 	@FrameworkModule
-	public static class AmbethPersistenceSchemaModule implements IInitializingModule
+	public static class AmbethPersistenceSchemaModule implements IInitializingModule, IPropertyLoadingBean
 	{
+		@Override
+		public void applyProperties(Properties contextProperties)
+		{
+			String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
+			if (databaseConnection == null)
+			{
+				contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
+						+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
+						+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
+			}
+		}
 
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -149,15 +161,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		Properties baseProps = new Properties(Properties.getApplication());
 
 		extendProperties(null, baseProps);
-
-		String databaseConnection = baseProps.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
-		if (databaseConnection == null)
-		{
-			// Definition moved from properties file to PersistenceJdbcModule but is also needed here
-			baseProps.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@"
-					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}"
-					+ ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-		}
 
 		IServiceContext schemaBootstrapContext = null;
 		boolean success = false;

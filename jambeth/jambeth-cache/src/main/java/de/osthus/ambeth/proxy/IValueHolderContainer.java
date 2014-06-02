@@ -8,15 +8,15 @@ import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 public interface IValueHolderContainer
 {
-	IObjRelation getSelf(IRelationInfoItem member);
+	IObjRelation get__Self(IRelationInfoItem member);
 
-	IObjRelation getSelf(String memberName);
+	IObjRelation get__Self(String memberName);
 
 	ICacheIntern get__TargetCache();
 
 	void set__TargetCache(ICacheIntern targetCache);
 
-	ValueHolderState getState(IRelationInfoItem member);
+	ValueHolderState get__State(IRelationInfoItem member);
 
-	IObjRef[] getObjRefs(IRelationInfoItem member);
+	IObjRef[] get__ObjRefs(IRelationInfoItem member);
 }

@@ -601,7 +601,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		IObjRef[] objRefs = proxyHelper.getObjRefs(vhc, member);
 		if (objRefs == null)
 		{
-			IObjRelation self = vhc.getSelf(member);
+			IObjRelation self = vhc.get__Self(member);
 			ArrayList<IObjRelation> orels = new ArrayList<IObjRelation>();
 			orels.add(self);
 			IList<IObjRelationResult> orelResults = cache.getObjRelations(orels, cache, failEarlyReturnMisses);

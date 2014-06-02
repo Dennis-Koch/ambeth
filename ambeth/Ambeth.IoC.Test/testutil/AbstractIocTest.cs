@@ -30,6 +30,7 @@ namespace De.Osthus.Ambeth.Testutil
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Bytecode.Core.BytecodeEnhancer", Value = "INFO")]
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Bytecode.Visitor.ClassWriter", Value = "INFO")]
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Bytecode.Visitor.LogImplementationsClassVisitor", Value = "INFO")]
+    [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Template.PropertyChangeTemplate", Value = "INFO")]
     public abstract class AbstractIocTest : IInitializingBean, IStartingBean, IDisposableBean
     {
         private static bool assemblyInitRan = false;

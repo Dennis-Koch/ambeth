@@ -6,7 +6,7 @@ namespace De.Osthus.Ambeth.Collections.Specialized
     /**
      * Represents the method that handles the {@link INotifyCollectionChanged} collectionChanged event
      */
-    public interface IPropertyChangeListener
+    public interface IPropertyChangedEventHandler
     {
         /**
          * This method gets called when an ObservableCollection is changed.
