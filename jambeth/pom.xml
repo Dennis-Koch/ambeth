@@ -691,4 +691,18 @@
 		</repository>
 	</distributionManagement>
 
+	<repositories>
+		<!-- Currently needed to get the osthus-pom -->
+		<repository>
+			<id>allotrope-releases</id>
+			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 </project>
