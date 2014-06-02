@@ -40,5 +40,7 @@ namespace De.Osthus.Ambeth.Cache.Config
         public const String SecondLevelCacheWeakActive = "cache.secondlevel.weak.active";
 
         public const String AsyncPropertyChangeActive = "cache.asyncpropertychange.active";
+
+        public const String FireOldPropertyValueActive = "cache.propertychange.fireoldvalue.active";        
     }
 }

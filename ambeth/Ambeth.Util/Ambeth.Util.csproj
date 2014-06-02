@@ -83,12 +83,13 @@
     <Compile Include="ambeth\collections\SetLinkedEntry.cs" />
     <Compile Include="ambeth\collections\SetLinkedIterator.cs" />
     <Compile Include="ambeth\collections\SmartCopySet.cs" />
-    <Compile Include="ambeth\collections\specialized\IPropertyChangeListener.cs" />
+    <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
     <Compile Include="ambeth\collections\specialized\UsableObservableCollection.cs" />
     <Compile Include="ambeth\collections\TempHashMap.cs" />
     <Compile Include="ambeth\collections\TempHashSet.cs" />
     <Compile Include="ambeth\config\IProperties.cs" />
     <Compile Include="ambeth\config\UtilConfigurationConstants.cs" />
+    <Compile Include="ambeth\event\PropertyChangeEvent.cs" />
     <Compile Include="ambeth\exception\EnumNotSupportedException.cs" />
     <Compile Include="ambeth\exception\MaskingRuntimeException.cs" />
     <Compile Include="ambeth\exception\RuntimeExceptionUtil.cs" />

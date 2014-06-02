@@ -92,9 +92,14 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 	 * @param event
 	 *            the {@code NotifyCollectionChangedEvent} to be fired
 	 */
-	public void firePropertyChange(PropertyChangeEvent evnt)
+	public void firePropertyChange(Object obj, String propertyName, Object oldValue, Object currentValue)
 	{
 		PropertyChangeListener[] listenersCopy = this.listenersCopy;
+		if (listenersCopy.length == 0)
+		{
+			return;
+		}
+		PropertyChangeEvent evnt = new PropertyChangeEvent(obj, propertyName, oldValue, currentValue);
 		for (PropertyChangeListener listener : listenersCopy)
 		{
 			listener.propertyChange(evnt);
