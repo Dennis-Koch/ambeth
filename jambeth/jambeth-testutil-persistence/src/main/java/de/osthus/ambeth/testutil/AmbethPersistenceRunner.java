@@ -150,6 +150,15 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 		extendProperties(null, baseProps);
 
+		String databaseConnection = baseProps.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
+		if (databaseConnection == null)
+		{
+			// Definition moved from properties file to PersistenceJdbcModule but is also needed here
+			baseProps.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol + "}:@"
+					+ "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabasePort + "}"
+					+ ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
+		}
+
 		IServiceContext schemaBootstrapContext = null;
 		boolean success = false;
 		try
