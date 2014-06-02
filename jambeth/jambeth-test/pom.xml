@@ -13,6 +13,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-bytecode</artifactId>
 		</dependency>

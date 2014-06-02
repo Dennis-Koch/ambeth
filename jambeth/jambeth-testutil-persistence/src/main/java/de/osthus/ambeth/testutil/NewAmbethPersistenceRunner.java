@@ -42,6 +42,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
@@ -69,8 +70,19 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	protected static final String MEASUREMENT_BEAN = "measurementBean";
 
 	@FrameworkModule
-	public static class AmbethPersistenceSchemaModule implements IInitializingModule
+	public static class AmbethPersistenceSchemaModule implements IInitializingModule, IPropertyLoadingBean
 	{
+		@Override
+		public void applyProperties(Properties contextProperties)
+		{
+			String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
+			if (databaseConnection == null)
+			{
+				contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
+						+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
+						+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
+			}
+		}
 
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
