@@ -272,13 +272,13 @@
   </ItemGroup>
   <!-- The following ItemGroup was manually added and should lool like this:
   <ItemGroup>
-    <EmbeddedResource Include="..\..\jambeth\jAmbeth.Util\src\de\osthus\ambeth\schema\*.*">
+    <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\de\osthus\ambeth\schema\*.*">
       <Link>ambeth\schema\%(FileName)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
   -->
   <ItemGroup>
-    <EmbeddedResource Include="..\..\jambeth\jAmbeth.Util\src\de\osthus\ambeth\schema\*.*">
+    <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\de\osthus\ambeth\schema\*.*">
       <Link>ambeth\schema\%(FileName)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
