@@ -683,4 +683,12 @@
 		</profile>
 	</profiles>
 
+	<distributionManagement>
+		<repository>
+			<id>ambeth</id>
+			<name>ambeth</name>
+			<url>http://nexus/nexus/content/repositories/ambeth/</url>
+		</repository>
+	</distributionManagement>
+
 </project>
