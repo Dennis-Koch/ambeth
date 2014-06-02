@@ -48,4 +48,7 @@ public final class CacheConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String AsyncPropertyChangeActive = "cache.asyncpropertychange.active";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String FireOldPropertyValueActive = "cache.propertychange.fireoldvalue.active";
 }

@@ -25,7 +25,8 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.accessor.AccessorTypeProvider", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "WARN"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.ClassWriter", value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.LogImplementationsClassVisitor", value = "INFO") })
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.LogImplementationsClassVisitor", value = "INFO"),
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.template.PropertyChangeTemplate", value = "INFO") })
 public abstract class AbstractIocTest implements IInitializingBean, IDisposableBean
 {
 	@Autowired

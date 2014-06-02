@@ -103,7 +103,7 @@
     <Compile Include="ambeth\collections\AbstractTuple2KeyHashMap.cs" />
     <Compile Include="ambeth\collections\CHashSet.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
-    <Compile Include="ambeth\collections\specialized\IPropertyChangeListener.cs" />
+    <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
     <Compile Include="ambeth\collections\specialized\PropertyChangeSupport.cs" />
     <Compile Include="ambeth\collections\specialized\UsableObservableCollection.cs" />
     <Compile Include="ambeth\collections\TempHashSet.cs" />
@@ -142,6 +142,7 @@
     <Compile Include="ambeth\collections\WeakHashSet.cs" />
     <Compile Include="ambeth\config\IProperties.cs" />
     <Compile Include="ambeth\config\UtilConfigurationConstants.cs" />
+    <Compile Include="ambeth\event\PropertyChangeEvent.cs" />
     <Compile Include="ambeth\exception\EnumNotSupportedException.cs" />
     <Compile Include="ambeth\exception\MaskingRuntimeException.cs" />
     <Compile Include="ambeth\exception\RuntimeExceptionUtil.cs" />
