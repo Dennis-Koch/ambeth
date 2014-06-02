@@ -109,12 +109,12 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
 			<classifier>tests</classifier>
-			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
