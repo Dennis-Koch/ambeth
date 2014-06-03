@@ -64,7 +64,7 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 
 	public static final int NO_VALID_DISTANCE = -1;
 
-	private static final Object alreadyHandled = new Object();
+	protected static final Object alreadyHandled = new Object();
 
 	protected volatile ClassEntry<V> classEntry = new ClassEntry<V>();
 
