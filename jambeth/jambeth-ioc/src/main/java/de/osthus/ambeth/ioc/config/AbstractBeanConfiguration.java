@@ -21,6 +21,7 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 		ignoreClassNames.add(AbstractPropertyConfiguration.class.getName());
 		ignoreClassNames.add(BeanConfiguration.class.getName());
 		ignoreClassNames.add(BeanContextFactory.class.getName());
+		ignoreClassNames.add(BeanRuntime.class.getName());
 		ignoreClassNames.add(BeanInstanceConfiguration.class.getName());
 		ignoreClassNames.add(LinkConfiguration.class.getName());
 		ignoreClassNames.add(LinkController.class.getName());

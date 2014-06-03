@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Ioc.Factory;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Config;
 
 namespace De.Osthus.Ambeth.Ioc.Config
 {
@@ -38,7 +39,8 @@ namespace De.Osthus.Ambeth.Ioc.Config
         protected virtual BeanConfiguration CreateBeanConfiguration(Type beanType)
 	    {
 		    IProxyFactory proxyFactory = serviceContext.GetService<IProxyFactory>(false);
-		    return new BeanConfiguration(beanType, null, proxyFactory, null);
+            IProperties props = serviceContext.GetService<IProperties>(true);
+            return new BeanConfiguration(beanType, null, proxyFactory, props);
 	    }
 
         public V Finish()

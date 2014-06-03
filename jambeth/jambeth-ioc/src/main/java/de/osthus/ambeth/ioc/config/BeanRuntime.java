@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc.config;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.ServiceContext;
@@ -39,7 +40,8 @@ public class BeanRuntime<V> implements IBeanRuntime<V>
 	protected BeanConfiguration createBeanConfiguration(Class<?> beanType)
 	{
 		IProxyFactory proxyFactory = serviceContext.getService(IProxyFactory.class, false);
-		return new BeanConfiguration(beanType, null, proxyFactory, null);
+		IProperties props = serviceContext.getService(IProperties.class, true);
+		return new BeanConfiguration(beanType, null, proxyFactory, props);
 	}
 
 	@SuppressWarnings("unchecked")

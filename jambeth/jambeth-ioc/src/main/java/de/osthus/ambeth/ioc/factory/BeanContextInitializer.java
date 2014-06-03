@@ -801,7 +801,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				if (property == null)
 				{
 					Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(beanType, propertyName);
-					if (fields == null)
+					if (fields.length == 0)
 					{
 						throw maskBeanBasedException("Bean property " + beanType.getName() + "." + propertyName + " not found", null, propertyConf);
 					}

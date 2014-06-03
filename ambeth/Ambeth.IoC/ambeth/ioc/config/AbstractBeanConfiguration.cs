@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Ioc.Link;
 
 namespace De.Osthus.Ambeth.Ioc.Config
 {
@@ -14,8 +16,13 @@ namespace De.Osthus.Ambeth.Ioc.Config
         {
             //ignoreClassNames.Add(Thread.class.getName());
             ignoreClassNames.Add(typeof(AbstractBeanConfiguration).FullName);
+		    ignoreClassNames.Add(typeof(AbstractPropertyConfiguration).FullName);
             ignoreClassNames.Add(typeof(BeanConfiguration).FullName);
+    		ignoreClassNames.Add(typeof(BeanContextFactory).FullName);
             ignoreClassNames.Add(typeof(BeanInstanceConfiguration).FullName);
+		    ignoreClassNames.Add(typeof(BeanRuntime<>).FullName);
+		    ignoreClassNames.Add(typeof(LinkConfiguration<>).FullName);
+		    ignoreClassNames.Add(typeof(LinkController).FullName);
         }
 
         protected readonly String beanName;
