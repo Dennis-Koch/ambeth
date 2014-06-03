@@ -169,6 +169,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void IfThisInstanceOf(Type instanceOfType, Script executeIfTrue, Script executeIfFalse)
+        {
+            if (mv != null)
+            {
+                mv.IfThisInstanceOf(instanceOfType, executeIfTrue, executeIfFalse);
+            }
+        }
+
         public virtual void IfZCmp(CompareOperator compareOperator, Label label)
         {
             if (mv != null)
