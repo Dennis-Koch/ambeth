@@ -1,15 +1,8 @@
 package de.osthus.ambeth.merge.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IdentityHashMap;
@@ -19,7 +12,6 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.ReflectUtil;
 
 public class EntityMetaData implements IEntityMetaData
 {
@@ -43,7 +35,7 @@ public class EntityMetaData implements IEntityMetaData
 
 	public static final IRelationInfoItem[] emptyRelationInfoItems = new IRelationInfoItem[0];
 
-	// private static final NamedItemComparator typeInfoItemComparator = new NamedItemComparator();
+	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
 
 	protected Class<?> entityType;
 
@@ -57,9 +49,7 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected final HashSet<Class<?>> cascadeDeleteTypes = new HashSet<Class<?>>(0.5f);
 
-	protected Method[] postLoadMethods;
-
-	protected Method[] prePersistMethods;
+	protected IEntityLifecycleExtension[] entityLifecycleExtensions = emptyEntityLifecycleExtensions;
 
 	protected IRelationInfoItem[] relationMembers = emptyRelationInfoItems;
 
@@ -413,15 +403,35 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public Method[] getPostLoadMethods()
+	public void postLoad(Object entity)
 	{
-		return postLoadMethods;
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
+		{
+			entityLifecycleExtension.postLoad(entity);
+		}
 	}
 
 	@Override
-	public Method[] getPrePersistMethods()
+	public void prePersist(Object entity)
 	{
-		return prePersistMethods;
+		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
+		{
+			entityLifecycleExtension.prePersist(entity);
+		}
+	}
+
+	public IEntityLifecycleExtension[] getEntityLifecycleExtensions()
+	{
+		return entityLifecycleExtensions;
+	}
+
+	public void setEntityLifecycleExtensions(IEntityLifecycleExtension[] entityLifecycleExtensions)
+	{
+		if (entityLifecycleExtensions == null || entityLifecycleExtensions.length == 0)
+		{
+			entityLifecycleExtensions = emptyEntityLifecycleExtensions;
+		}
+		this.entityLifecycleExtensions = entityLifecycleExtensions;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -574,15 +584,6 @@ public class EntityMetaData implements IEntityMetaData
 			// realType property is new, support migration of old projects
 			throw new IllegalArgumentException("realType is null");
 		}
-
-		ArrayList<Method> prePersistMethods = new ArrayList<Method>();
-		fillMethodsAnnotatedWith(realType, prePersistMethods, PrePersist.class);
-
-		ArrayList<Method> postLoadMethods = new ArrayList<Method>();
-		fillMethodsAnnotatedWith(realType, postLoadMethods, PostLoad.class);
-
-		this.prePersistMethods = prePersistMethods.toArray(Method.class);
-		this.postLoadMethods = postLoadMethods.toArray(Method.class);
 		if (getCreatedByMember() != null)
 		{
 			changeInterningBehavior(getCreatedByMember(), true);
@@ -590,34 +591,6 @@ public class EntityMetaData implements IEntityMetaData
 		if (getUpdatedByMember() != null)
 		{
 			changeInterningBehavior(getUpdatedByMember(), true);
-		}
-	}
-
-	protected void fillMethodsAnnotatedWith(Class<?> type, List<Method> methods, Class<? extends Annotation>... annotations)
-	{
-		if (type == null || Object.class.equals(type))
-		{
-			return;
-		}
-		fillMethodsAnnotatedWith(type.getSuperclass(), methods, annotations);
-		Method[] allMethodsOfThisType = ReflectUtil.getDeclaredMethods(type);
-		for (int a = 0, size = allMethodsOfThisType.length; a < size; a++)
-		{
-			Method currentMethod = allMethodsOfThisType[a];
-			for (int b = annotations.length; b-- > 0;)
-			{
-				if (!currentMethod.isAnnotationPresent(annotations[b]))
-				{
-					continue;
-				}
-				if (currentMethod.getParameterTypes().length != 0)
-				{
-					throw new IllegalArgumentException("It is not allowed to annotated methods without " + annotations[b].getName() + " having 0 arguments: "
-							+ currentMethod.toString());
-				}
-				currentMethod.setAccessible(true);
-				methods.add(currentMethod);
-			}
 		}
 	}
 

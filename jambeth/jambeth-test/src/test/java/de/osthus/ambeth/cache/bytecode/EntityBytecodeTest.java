@@ -28,6 +28,7 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -35,11 +36,11 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
-import de.osthus.ambeth.merge.IndependentEntityMetaDataClient;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
 import de.osthus.ambeth.merge.model.ICUDResult;
+import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IOriCollection;
@@ -91,10 +92,10 @@ public class EntityBytecodeTest extends AbstractIocTest
 			});
 			IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
 			beanContextFactory
-					.registerBean("independantMetaDataProvider", IndependentEntityMetaDataClient.class)
+					.registerBean("independantMetaDataProvider", EntityMetaDataProvider.class)
 					.propertyRef("ValueObjectMap", valueObjectMap)
 					.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityMetaDataExtendable.class,
-							IndependentEntityMetaDataClient.class);
+							IEntityLifecycleExtendable.class, EntityMetaDataProvider.class);
 			beanContextFactory.registerBean(MergeModule.INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
 			beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
 			beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);

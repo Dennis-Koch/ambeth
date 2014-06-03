@@ -908,18 +908,7 @@ namespace De.Osthus.Ambeth.Cache
                 cacheObject = targetCache.CreateCacheValueInstance(metaData, null);
                 UpdateExistingObject(metaData, cacheValue, cacheObject, targetCache);
 
-                MethodInfo[] postLoadMethods = metaData.PostLoadMethods;
-                for (int a = 0, size = postLoadMethods.Length; a < size; a++)
-                {
-                    try
-                    {
-                        postLoadMethods[a].Invoke(cacheObject, (Object[])null);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Error occured while handling PostLoad method of entity type " + metaData.EntityType.FullName, e);
-                    }
-                }
+                metaData.PostLoad(cacheObject);
                 return cacheObject;
             }
             finally

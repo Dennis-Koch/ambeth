@@ -30,7 +30,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
 
-            beanContextFactory.RegisterBean("independentMetaDataProvider", typeof(IndependentEntityMetaDataClient))
+            beanContextFactory.RegisterBean("independentMetaDataProvider", typeof(EntityMetaDataProvider))
                     .PropertyRef("ValueObjectMap", valueObjectMap)
                     .Autowireable(typeof(IEntityMetaDataProvider))
                     .Autowireable<IEntityMetaDataExtendable>()

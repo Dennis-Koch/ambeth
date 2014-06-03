@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -970,18 +969,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			cacheObject = targetCache.createCacheValueInstance(metaData, null);
 			updateExistingObject(metaData, cacheValue, cacheObject, targetCache);
 
-			Method[] postLoadMethods = metaData.getPostLoadMethods();
-			for (int a = 0, size = postLoadMethods.length; a < size; a++)
-			{
-				try
-				{
-					postLoadMethods[a].invoke(cacheObject);
-				}
-				catch (Exception e)
-				{
-					throw RuntimeExceptionUtil.mask(e, "Error occured while handling PostLoad method of entity type " + metaData.getEntityType().getName());
-				}
-			}
+			metaData.postLoad(cacheObject);
 			return cacheObject;
 		}
 		finally
