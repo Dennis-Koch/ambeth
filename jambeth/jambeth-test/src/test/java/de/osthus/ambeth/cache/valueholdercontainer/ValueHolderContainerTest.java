@@ -19,6 +19,8 @@ import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ObservableArrayList;
+import de.osthus.ambeth.databinding.IPropertyChangeExtendable;
+import de.osthus.ambeth.databinding.IPropertyChangeExtension;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
@@ -571,6 +573,7 @@ public class ValueHolderContainerTest extends AbstractIocTest
 
 			obj.setId(1);
 			((IDataObject) obj).setToBeUpdated(false);
+			waitForUI();
 
 			((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
 
@@ -583,6 +586,57 @@ public class ValueHolderContainerTest extends AbstractIocTest
 			Assert.assertEquals(2, pceCounter.size());
 			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
 			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("HasPendingChanges"));
+		}
+	}
+
+	@Test
+	public void test_PropertyChange_Registration_With_Listener()
+	{
+		HashMap<String, Integer> pceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> extensionPceCounter = new HashMap<String, Integer>();
+		HashMap<String, Integer> extensionPceCounter2 = new HashMap<String, Integer>();
+		PropertyChangeListener handler = getPropertyChangeHandler(pceCounter);
+		IPropertyChangeExtension pcExtension = new PropertyChangeExtensionMock(extensionPceCounter);
+		IPropertyChangeExtension pcExtension2 = new PropertyChangeExtensionMock(extensionPceCounter2);
+
+		beanContext.getService(IPropertyChangeExtendable.class).registerPropertyChangeExtension(pcExtension, AbstractMaterial.class);
+		beanContext.getService(IPropertyChangeExtendable.class).registerPropertyChangeExtension(pcExtension2, Material.class);
+		try
+		{
+			Material obj = entityFactory.createEntity(Material.class);
+
+			Assert.assertTrue(obj instanceof INotifyPropertyChanged);
+			Assert.assertTrue(obj instanceof INotifyPropertyChangedSource);
+			Assert.assertTrue(obj instanceof IDataObject);
+
+			obj.setId(1);
+			((IDataObject) obj).setToBeUpdated(false);
+			waitForUI();
+
+			((INotifyPropertyChanged) obj).addPropertyChangeListener(handler);
+
+			pceCounter.clear();
+			Assert.assertTrue(obj.getNames() instanceof ObservableArrayList);
+			obj.getNames().add("Item1");
+			obj.getNames().add("Item2");
+			waitForUI();
+
+			Assert.assertEquals(2, pceCounter.size());
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("ToBeUpdated"));
+			Assert.assertEquals(Integer.valueOf(1), pceCounter.get("HasPendingChanges"));
+
+			Assert.assertEquals(2, extensionPceCounter.size());
+			Assert.assertEquals(Integer.valueOf(1), extensionPceCounter.get("ToBeUpdated"));
+			Assert.assertEquals(Integer.valueOf(1), extensionPceCounter.get("HasPendingChanges"));
+
+			Assert.assertEquals(2, extensionPceCounter2.size());
+			Assert.assertEquals(Integer.valueOf(1), extensionPceCounter2.get("ToBeUpdated"));
+			Assert.assertEquals(Integer.valueOf(1), extensionPceCounter2.get("HasPendingChanges"));
+		}
+		finally
+		{
+			beanContext.getService(IPropertyChangeExtendable.class).unregisterPropertyChangeExtension(pcExtension2, Material.class);
+			beanContext.getService(IPropertyChangeExtendable.class).unregisterPropertyChangeExtension(pcExtension, AbstractMaterial.class);
 		}
 	}
 

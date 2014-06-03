@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="ambeth\cache\valueholdercontainer\AbstractMaterial.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\CacheRetrieverMock.cs" />
+    <Compile Include="ambeth\cache\valueholdercontainer\PropertyChangeExtensionMock.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\EmbeddedMaterial.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\EmbeddedMaterial2.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\Material.cs" />

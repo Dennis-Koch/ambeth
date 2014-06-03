@@ -198,6 +198,10 @@
     <Compile Include="ambeth\cache\collections\DefaultCacheMapEntryFactory.cs" />
     <Compile Include="ambeth\cache\collections\ICacheMapEntryFactory.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\propertychange\IPropertyChangeExtendable.cs" />
+    <Compile Include="ambeth\propertychange\IPropertyChangeExtension.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

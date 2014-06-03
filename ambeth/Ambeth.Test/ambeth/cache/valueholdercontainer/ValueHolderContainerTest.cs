@@ -17,6 +17,7 @@ using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using De.Osthus.Ambeth.Propertychange;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 {
@@ -534,6 +535,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
                 obj.Id = 1;
                 ((IDataObject)obj).ToBeUpdated = false;
+                WaitForUI();
 
                 ((INotifyPropertyChanged)obj).PropertyChanged += handler;
 
@@ -546,6 +548,57 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                 Assert.AreEqual(2, pceCounter.Count);
                 Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
                 Assert.AreEqual(1, pceCounter.Get("HasPendingChanges"));
+            }
+        }
+
+        [TestMethod]
+        public void test_PropertyChange_Registration_With_Listener()
+        {
+            HashMap<String, int> pceCounter = new HashMap<String, int>();
+            HashMap<String, int> extensionPceCounter = new HashMap<String, int>();
+            HashMap<String, int> extensionPceCounter2 = new HashMap<String, int>();
+            PropertyChangedEventHandler handler = GetPropertyChangeHandler(pceCounter);
+            IPropertyChangeExtension pcExtension = new PropertyChangeExtensionMock(extensionPceCounter);
+            IPropertyChangeExtension pcExtension2 = new PropertyChangeExtensionMock(extensionPceCounter2);
+
+            BeanContext.GetService<IPropertyChangeExtendable>().RegisterPropertyChangeExtension(pcExtension, typeof(AbstractMaterial));
+            BeanContext.GetService<IPropertyChangeExtendable>().RegisterPropertyChangeExtension(pcExtension2, typeof(Material));
+            try
+            {
+                Material obj = EntityFactory.CreateEntity<Material>();
+
+                Assert.IsInstanceOfType(obj, typeof(INotifyPropertyChanged));
+                Assert.IsInstanceOfType(obj, typeof(INotifyPropertyChangedSource));
+                Assert.IsInstanceOfType(obj, typeof(IDataObject));
+
+                obj.Id = 1;
+                ((IDataObject)obj).ToBeUpdated = false;
+                WaitForUI();
+
+                ((INotifyPropertyChanged)obj).PropertyChanged += handler;
+
+                pceCounter.Clear();
+                Assert.IsInstanceOfType(obj.Names, typeof(ObservableCollection<String>));
+                obj.Names.Add("Item1");
+                obj.Names.Add("Item2");
+                WaitForUI();
+
+                Assert.AreEqual(2, pceCounter.Count);
+                Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
+                Assert.AreEqual(1, pceCounter.Get("HasPendingChanges"));
+
+                Assert.AreEqual(2, extensionPceCounter.Count);
+                Assert.AreEqual(1, extensionPceCounter.Get("ToBeUpdated"));
+                Assert.AreEqual(1, extensionPceCounter.Get("HasPendingChanges"));
+
+                Assert.AreEqual(2, extensionPceCounter2.Count);
+                Assert.AreEqual(1, extensionPceCounter2.Get("ToBeUpdated"));
+                Assert.AreEqual(1, extensionPceCounter2.Get("HasPendingChanges"));
+            }
+            finally
+            {
+                BeanContext.GetService<IPropertyChangeExtendable>().UnregisterPropertyChangeExtension(pcExtension2, typeof(Material));
+                BeanContext.GetService<IPropertyChangeExtendable>().UnregisterPropertyChangeExtension(pcExtension, typeof(AbstractMaterial));
             }
         }
 
