@@ -121,5 +121,13 @@ namespace De.Osthus.Ambeth.Cache
                 internalUpdateTL.Value = value;
             }
         }
+
+        public bool ActiveOrFlushingOrInternalUpdate
+        {
+            get
+            {
+                return ActiveOrFlushing || InternalUpdate;
+            }
+        }
     }
 }
