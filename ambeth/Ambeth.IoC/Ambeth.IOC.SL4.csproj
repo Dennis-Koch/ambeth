@@ -105,6 +105,7 @@
     <Compile Include="ambeth\ioc\exception\LinkException.cs" />
     <Compile Include="ambeth\ioc\exception\TempStacktraceException.cs" />
     <Compile Include="ambeth\ioc\extendable\ClassExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\extendable\ClassExtendableListContainer.cs" />
     <Compile Include="ambeth\ioc\extendable\DefEntry.cs" />
     <Compile Include="ambeth\ioc\extendable\ExtendableBean.cs" />
     <Compile Include="ambeth\ioc\extendable\ExtendableContainer.cs" />

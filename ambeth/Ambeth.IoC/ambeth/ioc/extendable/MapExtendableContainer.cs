@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Exceptions;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Exceptions;
 
 namespace De.Osthus.Ambeth.Ioc.Extendable
 {
@@ -66,27 +67,34 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             ParamChecker.AssertParamNotNull(extension, message);
             ParamChecker.AssertParamNotNull(key, keyMessage);
 
-            Object writeLock = GetWriteLock();
-            lock (writeLock)
+            try
             {
-                if (!multiValue)
+                Object writeLock = GetWriteLock();
+                lock (writeLock)
                 {
-                    ParamChecker.AssertTrue(RemoveIfValue(key, extension), message);
-                }
-                else
-                {
-                    List<V> values = (List<V>)Get(key);
-                    ParamChecker.AssertNotNull(values, message);
-                    ParamChecker.AssertTrue(values.Remove(extension), message);
-                    if (values.Count == 0)
+                    if (!multiValue)
                     {
-                        Remove(key);
+                        ParamChecker.AssertTrue(RemoveIfValue(key, extension), message);
+                    }
+                    else
+                    {
+                        List<V> values = (List<V>)Get(key);
+                        ParamChecker.AssertNotNull(values, message);
+                        ParamChecker.AssertTrue(values.Remove(extension), message);
+                        if (values.Count == 0)
+                        {
+                            Remove(key);
+                        }
                     }
                 }
             }
+            catch (Exception)
+            {
+                throw new ExtendableException("Provided extension is not registered at key '" + key + "'. Extension: " + extension);
+            }
         }
 
-        public IList<V> GetExtensions(K key)
+        public virtual IList<V> GetExtensions(K key)
         {
             ParamChecker.AssertParamNotNull(key, "key");
             Object item = Get(key);

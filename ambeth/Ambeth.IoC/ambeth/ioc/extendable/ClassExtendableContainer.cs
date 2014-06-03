@@ -277,7 +277,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             }
         }
 
-        protected void TypeToDefEntryMapChanged(ClassEntry<V> classEntry, Type key)
+        protected virtual void TypeToDefEntryMapChanged(ClassEntry<V> classEntry, Type key)
 	    {
 		    Object obj = classEntry.typeToDefEntryMap.Get(key);
 		    if (obj == null)
