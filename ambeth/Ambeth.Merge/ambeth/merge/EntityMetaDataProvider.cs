@@ -9,19 +9,26 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml;
+using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Event;
+using System.Reflection;
+using De.Osthus.Ambeth.Annotation;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class IndependentEntityMetaDataClient : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IValueObjectConfigExtendable, IEntityMetaDataExtendable
+    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
         [Autowired]
-        public ValueObjectMap ValueObjectMap { protected get; set; }
+        public IServiceContext BeanContext { protected get; set; }
 
         [Autowired(Optional = true)]
         public IEntityFactory EntityFactory { protected get; set; }
+
+        [Autowired]
+        public IEventDispatcher EventDispatcher { protected get; set; }
 
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
@@ -32,18 +39,35 @@ namespace De.Osthus.Ambeth.Merge
         [Autowired]
         public IXmlTypeHelper XmlTypeHelper { protected get; set; }
 
+        [Autowired]
+        public ValueObjectMap ValueObjectMap { protected get; set; }
+
         protected Type[] businessObjectSaveOrder;
 
         protected readonly IMap<Type, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Type, IMap<String, ITypeInfoItem>>();
 
-        protected readonly Lock readLock, writeLock;
+        protected readonly ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<IEntityLifecycleExtension>(
+            "entityLifecycleExtension", "entityType");
 
-        public IndependentEntityMetaDataClient()
+        public EntityMetaDataProvider()
             : base("entity meta data", "entity class")
         {
-            ReadWriteLock rwLock = new ReadWriteLock();
-            readLock = rwLock.ReadLock;
-            writeLock = rwLock.WriteLock;
+            // Intended blank
+        }
+
+        public void AfterPropertiesSet()
+        {
+        }
+
+        protected void AddTypeRelatedByTypes(IMap<Type, IISet<Type>> typeRelatedByTypes, Type relating, Type relatedTo)
+        {
+            IISet<Type> relatedByTypes = typeRelatedByTypes.Get(relatedTo);
+            if (relatedByTypes == null)
+            {
+                relatedByTypes = new CHashSet<Type>();
+                typeRelatedByTypes.Put(relatedTo, relatedByTypes);
+            }
+            relatedByTypes.Add(relating);
         }
 
         protected void Initialize()
@@ -69,11 +93,234 @@ namespace De.Osthus.Ambeth.Merge
             }
         }
 
+        public IEntityMetaData GetMetaData(Type entityType)
+        {
+            return GetMetaData(entityType, false);
+        }
+
+        public IEntityMetaData GetMetaData(Type entityType, bool tryOnly)
+        {
+            IEntityMetaData metaDataItem = GetExtension(entityType);
+
+            if (metaDataItem == null)
+            {
+                if (tryOnly)
+                {
+                    return null;
+                }
+                throw new ArgumentException("No metadata found for entity of type " + entityType);
+            }
+            return metaDataItem;
+        }
+
+        public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
+        {
+            List<IEntityMetaData> entityMetaData = new List<IEntityMetaData>(entityTypes.Count);
+            List<Type> notFoundEntityTypes = new List<Type>();
+            foreach (Type entityType in entityTypes)
+            {
+                IEntityMetaData metaDataItem = GetExtension(entityType);
+
+                if (metaDataItem != null)
+                {
+                    entityMetaData.Add(metaDataItem);
+                }
+                else
+                {
+                    notFoundEntityTypes.Add(entityType);
+                }
+            }
+            if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
+            {
+                notFoundEntityTypes.Sort();
+                StringBuilder sb = new StringBuilder();
+                sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
+                foreach (Type notFoundType in notFoundEntityTypes)
+                {
+                    sb.Append("\t\n").Append(notFoundType.FullName);
+                }
+                Log.Warn(sb.ToString());
+            }
+            return entityMetaData;
+        }
+
+        public void RegisterValueObjectConfig(IValueObjectConfig config)
+        {
+            ValueObjectMap.Register(config, config.ValueType);
+        }
+
+        public void UnregisterValueObjectConfig(IValueObjectConfig config)
+        {
+            ValueObjectMap.Unregister(config, config.ValueType);
+        }
+
+        public IValueObjectConfig GetValueObjectConfig(Type valueType)
+        {
+            return ValueObjectMap.GetExtension(valueType);
+        }
+
+        public IValueObjectConfig GetValueObjectConfig(String xmlTypeName)
+        {
+            Type valueType = XmlTypeHelper.GetType(xmlTypeName);
+            return GetValueObjectConfig(valueType);
+        }
+
+        public IList<Type> GetValueObjectTypesByEntityType(Type entityType)
+        {
+            IList<Type> valueObjectTypes = ValueObjectMap.GetValueObjectTypesByEntityType(entityType);
+            if (valueObjectTypes == null)
+            {
+                valueObjectTypes = Type.EmptyTypes;
+            }
+            return valueObjectTypes;
+        }
+
+        public void RegisterEntityMetaData(IEntityMetaData entityMetaData)
+        {
+            RegisterEntityMetaData(entityMetaData, entityMetaData.EntityType);
+        }
+
+        public void RegisterEntityMetaData(IEntityMetaData entityMetaData, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                Register(entityMetaData, entityType);
+                Initialize();
+            }
+            EventDispatcher.DispatchEvent(new EntityMetaDataAddedEvent(entityType));
+        }
+
+        public void UnregisterEntityMetaData(IEntityMetaData entityMetaData)
+        {
+            UnregisterEntityMetaData(entityMetaData, entityMetaData.EntityType);
+        }
+
+        public void UnregisterEntityMetaData(IEntityMetaData entityMetaData, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                Unregister(entityMetaData, entityType);
+                Initialize();
+            }
+            EventDispatcher.DispatchEvent(new EntityMetaDataRemovedEvent(entityType));
+        }
+
+        public override void Register(IEntityMetaData extension, Type key)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                base.Register(extension, key);
+                UpdateEntityMetaDataWithLifecycleExtensions(extension);
+            }
+        }
+
+        public override void Unregister(IEntityMetaData extension, Type key)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                base.Unregister(extension, key);
+                CleanEntityMetaDataFromLifecycleExtensions(extension);
+            }
+        }
+
+        public void RegisterEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                entityLifecycleExtensions.Register(entityLifecycleExtension, entityType);
+                UpdateAllEntityMetaDataWithLifecycleExtensions();
+            }
+        }
+
+        public void UnregisterEntityLifecycleExtension(IEntityLifecycleExtension entityLifecycleExtension, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                entityLifecycleExtensions.Unregister(entityLifecycleExtension, entityType);
+                UpdateAllEntityMetaDataWithLifecycleExtensions();
+            }
+        }
+
+        protected void CleanEntityMetaDataFromLifecycleExtensions(IEntityMetaData entityMetaData)
+        {
+            ((EntityMetaData)entityMetaData).EntityLifecycleExtensions = null;
+        }
+
+        protected void UpdateEntityMetaDataWithLifecycleExtensions(IEntityMetaData entityMetaData)
+        {
+            IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.GetExtensions(entityMetaData.EntityType);
+            List<IEntityLifecycleExtension> allExtensions = new List<IEntityLifecycleExtension>();
+            if (extensionList != null)
+            {
+                allExtensions.AddRange(extensionList);
+            }
+            List<MethodInfo> prePersistMethods = new List<MethodInfo>();
+            FillMethodsAnnotatedWith(entityMetaData.RealType, prePersistMethods, typeof(PrePersistAttribute));
+
+            List<MethodInfo> postLoadMethods = new List<MethodInfo>();
+            FillMethodsAnnotatedWith(entityMetaData.RealType, postLoadMethods, typeof(PostLoadAttribute));
+
+            foreach (MethodInfo prePersistMethod in prePersistMethods)
+            {
+                PrePersistMethodLifecycleExtension extension = BeanContext.RegisterAnonymousBean<PrePersistMethodLifecycleExtension>()
+                        .PropertyValue("Method", prePersistMethod).Finish();
+                allExtensions.Add(extension);
+            }
+            foreach (MethodInfo postLoadMethod in postLoadMethods)
+            {
+                PostLoadMethodLifecycleExtension extension = BeanContext.RegisterAnonymousBean<PostLoadMethodLifecycleExtension>()
+                        .PropertyValue("Method", postLoadMethod).Finish();
+                allExtensions.Add(extension);
+            }
+            ((EntityMetaData)entityMetaData).EntityLifecycleExtensions = allExtensions.ToArray();
+        }
+
+        protected void UpdateAllEntityMetaDataWithLifecycleExtensions()
+        {
+            ILinkedMap<Type, IEntityMetaData> typeToMetaDataMap = GetExtensions();
+            foreach (Entry<Type, IEntityMetaData> entry in typeToMetaDataMap)
+            {
+                UpdateEntityMetaDataWithLifecycleExtensions(entry.Value);
+            }
+        }
+
+        protected void FillMethodsAnnotatedWith(Type type, IList<MethodInfo> methods, params Type[] annotations)
+        {
+            if (type == null || typeof(Object).Equals(type))
+            {
+                return;
+            }
+            FillMethodsAnnotatedWith(type.BaseType, methods, annotations);
+            MethodInfo[] allMethodsOfThisType = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic);
+            for (int a = 0, size = allMethodsOfThisType.Length; a < size; a++)
+            {
+                MethodInfo currentMethod = allMethodsOfThisType[a];
+                for (int b = annotations.Length; b-- > 0; )
+                {
+                    if (AnnotationUtil.GetAnnotation(annotations[b], currentMethod, false) == null)
+                    {
+                        continue;
+                    }
+                    if (currentMethod.GetParameters().Length != 0)
+                    {
+                        throw new Exception("It is not allowed to annotated methods without " + annotations[b].FullName + " having 0 arguments: "
+                                + currentMethod.ToString());
+                    }
+                    methods.Add(currentMethod);
+                }
+            }
+        }
+
         protected void InitializeValueObjectMapping()
         {
-            Lock writeLock = this.writeLock;
-            writeLock.Lock();
-            try
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
             {
                 this.businessObjectSaveOrder = null;
 
@@ -200,10 +447,6 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 this.businessObjectSaveOrder = businessObjectSaveOrder.ToArray();
             }
-            finally
-            {
-                writeLock.Unlock();
-            }
         }
 
         protected void AddBoTypeBefore(Type boType, Type beforeBoType, IMap<Type, IISet<Type>> boTypeToBeforeBoTypes,
@@ -248,85 +491,6 @@ namespace De.Osthus.Ambeth.Merge
                     AddBoTypeAfter(beforeBoType, afterBoType, boTypeBeforeBoTypes, boTypeToAfterBoTypes);
                 }
             }
-        }
-
-        protected static void AddTypeRelatedByTypes(IMap<Type, IISet<Type>> typeRelatedByTypes, Type relating, Type relatedTo)
-        {
-            IISet<Type> relatedByTypes = typeRelatedByTypes.Get(relatedTo);
-            if (relatedByTypes == null)
-            {
-                relatedByTypes = new CHashSet<Type>();
-                typeRelatedByTypes.Put(relatedTo, relatedByTypes);
-            }
-            relatedByTypes.Add(relating);
-        }
-
-        public IEntityMetaData GetMetaData(Type entityType)
-        {
-            return GetMetaData(entityType, false);
-        }
-
-        public IEntityMetaData GetMetaData(Type entityType, bool tryOnly)
-        {
-            IEntityMetaData metaDataItem;
-            Lock readLock = this.readLock;
-            readLock.Lock();
-            try
-            {
-                metaDataItem = GetExtension(entityType);
-            }
-            finally
-            {
-                readLock.Unlock();
-            }
-            if (metaDataItem == null)
-            {
-                if (tryOnly)
-                {
-                    return null;
-                }
-                throw new ArgumentException("No metadata found for entity of type " + entityType);
-            }
-            return metaDataItem;
-        }
-
-        public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
-        {
-            List<IEntityMetaData> entityMetaData = new List<IEntityMetaData>(entityTypes.Count);
-            Lock readLock = this.readLock;
-            readLock.Lock();
-            try
-            {
-                List<Type> notFoundEntityTypes = new List<Type>();
-                foreach (Type entityType in entityTypes)
-                {
-                    IEntityMetaData metaDataItem = GetExtension(entityType);
-
-                    if (metaDataItem != null)
-                    {
-                        entityMetaData.Add(metaDataItem);
-                    }
-                    else
-                    {
-                        notFoundEntityTypes.Add(entityType);
-                    }
-                }
-                if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
-                    foreach (Type notFoundType in notFoundEntityTypes)
-                    {
-                        sb.Append("\t\n").Append(notFoundType.FullName);
-                    }
-                    Log.Warn(sb.ToString());
-                }
-            }
-            finally
-            {
-                readLock.Unlock();
-            }
-            return entityMetaData;
         }
 
         public IList<Type> FindMappableEntityTypes()
@@ -400,80 +564,9 @@ namespace De.Osthus.Ambeth.Merge
             typeInfoMap.Put(boSpecifiedName, voSpecifiedMember);
         }
 
-        public void RegisterEntityMetaData(IEntityMetaData entityMetaData)
-        {
-            RegisterEntityMetaData(entityMetaData, entityMetaData.EntityType);
-        }
-
-        public void RegisterEntityMetaData(IEntityMetaData entityMetaData, Type entityType)
-        {
-            Lock writeLock = this.writeLock;
-            writeLock.Lock();
-            try
-            {
-                Register(entityMetaData, entityType);
-                Initialize();
-            }
-            finally
-            {
-                writeLock.Unlock();
-            }
-        }
-
-        public void UnregisterEntityMetaData(IEntityMetaData entityMetaData)
-        {
-            UnregisterEntityMetaData(entityMetaData, entityMetaData.EntityType);
-        }
-
-        public void UnregisterEntityMetaData(IEntityMetaData entityMetaData, Type entityType)
-        {
-            Lock writeLock = this.writeLock;
-            writeLock.Lock();
-            try
-            {
-                Unregister(entityMetaData, entityType);
-                Initialize();
-            }
-            finally
-            {
-                writeLock.Unlock();
-            }
-        }
-
-        public void RegisterValueObjectConfig(IValueObjectConfig config)
-        {
-            ValueObjectMap.Register(config, config.ValueType);
-        }
-
-        public void UnregisterValueObjectConfig(IValueObjectConfig config)
-        {
-            ValueObjectMap.Unregister(config, config.ValueType);
-        }
-
-        public IValueObjectConfig GetValueObjectConfig(Type valueType)
-        {
-            return ValueObjectMap.GetExtension(valueType);
-        }
-
-        public IValueObjectConfig GetValueObjectConfig(String xmlTypeName)
-        {
-            Type valueType = XmlTypeHelper.GetType(xmlTypeName);
-            return GetValueObjectConfig(valueType);
-        }
-
         public Type[] GetEntityPersistOrder()
         {
             return businessObjectSaveOrder;
-        }
-
-        public IList<Type> GetValueObjectTypesByEntityType(Type entityType)
-        {
-            IList<Type> valueObjectTypes = ValueObjectMap.GetValueObjectTypesByEntityType(entityType);
-            if (valueObjectTypes == null)
-            {
-                valueObjectTypes = Type.EmptyTypes;
-            }
-            return valueObjectTypes;
         }
     }
 }
