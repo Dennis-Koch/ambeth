@@ -12,6 +12,8 @@ namespace De.Osthus.Ambeth.Cache
         bool Active { get; set; }
 
         bool ActiveOrFlushing { get; }
+
+        bool ActiveOrFlushingOrInternalUpdate { get; }
         
         void QueuePropertyChangeEvent(IBackgroundWorkerDelegate task);
     }

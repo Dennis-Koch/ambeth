@@ -14,5 +14,7 @@ public interface ICacheModification
 
 	boolean isActiveOrFlushing();
 
+	boolean isActiveOrFlushingOrInternalUpdate();
+
 	void queuePropertyChangeEvent(IBackgroundWorkerDelegate task);
 }

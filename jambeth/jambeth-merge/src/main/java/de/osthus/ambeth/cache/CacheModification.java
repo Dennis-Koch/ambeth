@@ -40,6 +40,12 @@ public class CacheModification implements ICacheModification
 	}
 
 	@Override
+	public boolean isActiveOrFlushingOrInternalUpdate()
+	{
+		return isActiveOrFlushing() || isInternalUpdate();
+	}
+
+	@Override
 	public void setInternalUpdate(boolean internalUpdate)
 	{
 		if (internalUpdate)
