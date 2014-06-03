@@ -9,6 +9,9 @@ import de.osthus.ambeth.util.IDisposable;
 
 public class TargetingInterceptor implements MethodInterceptor
 {
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	protected ITargetProvider targetProvider;
 
 	public void setTargetProvider(ITargetProvider targetProvider)
@@ -24,7 +27,7 @@ public class TargetingInterceptor implements MethodInterceptor
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

@@ -8,7 +8,6 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.CUDResultHelper;
-import de.osthus.ambeth.merge.EntityMetaDataClient;
 import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.ICUDResultExtendable;
 import de.osthus.ambeth.merge.ICUDResultHelper;
@@ -55,23 +54,13 @@ public class MergeModule implements IInitializingModule
 
 	public static final String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
 
+	@Property(name = ConfigurationConstants.IndependentMetaData, defaultValue = "false")
 	protected boolean independentMetaData;
 
-	protected EntityMetaDataClient metaDataClient;
-
+	@Property(name = MergeConfigurationConstants.EntityFactoryType, mandatory = false)
 	protected Class<?> entityFactoryType;
 
-	@Property(name = MergeConfigurationConstants.EntityFactoryType, mandatory = false)
-	public void setEntityFactoryType(Class<?> entityFactoryType)
-	{
-		this.entityFactoryType = entityFactoryType;
-	}
-
-	@Property(name = ConfigurationConstants.IndependentMetaData, defaultValue = "false")
-	public void setIndependentMetaData(boolean independentMetaData)
-	{
-		this.independentMetaData = independentMetaData;
-	}
+	// protected EntityMetaDataClient metaDataClient;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable

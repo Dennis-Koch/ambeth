@@ -8,51 +8,33 @@ import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheContextInterceptor extends CascadedInterceptor implements IInitializingBean
+public class CacheContextInterceptor extends CascadedInterceptor
 {
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	@SuppressWarnings("unused")
-	@LogInstance(CacheContextInterceptor.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected ICacheContext cacheContext;
 
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
 	protected ICacheProvider cacheProvider;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(cacheContext, "cacheContext");
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(cacheProvider, "cacheProvider");
-	}
-
-	public void setCacheContext(ICacheContext cacheContext)
-	{
-		this.cacheContext = cacheContext;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCacheProvider(ICacheProvider cacheProvider)
-	{
-		this.cacheProvider = cacheProvider;
-	}
 
 	@Override
 	public Object intercept(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

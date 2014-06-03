@@ -21,7 +21,7 @@ import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.SortDescriptor;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -30,9 +30,8 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class QueryInterceptor extends CascadedInterceptor implements IInitializingBean
+public class QueryInterceptor extends CascadedInterceptor
 {
 	protected static final AnnotationCache<Find> findCache = new AnnotationCache<Find>(Find.class)
 	{
@@ -52,51 +51,29 @@ public class QueryInterceptor extends CascadedInterceptor implements IInitializi
 		}
 	};
 
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IFilterToQueryBuilder filterToQueryBuilder;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(filterToQueryBuilder, "filterToQueryBuilder");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setFilterToQueryBuilder(IFilterToQueryBuilder filterToQueryBuilder)
-	{
-		this.filterToQueryBuilder = filterToQueryBuilder;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

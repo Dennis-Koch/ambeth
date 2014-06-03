@@ -15,7 +15,7 @@ import de.osthus.ambeth.cache.ISingleCacheParamRunnable;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -23,13 +23,8 @@ import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheProviderInterceptor implements MethodInterceptor, IInitializingBean, ICacheProviderExtendable, ICacheProvider, ICacheContext,
-		IThreadLocalCleanupBean
+public class CacheProviderInterceptor implements MethodInterceptor, ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	public static class SingleCacheProvider implements ICacheProvider
 	{
 
@@ -55,6 +50,9 @@ public class CacheProviderInterceptor implements MethodInterceptor, IInitializin
 
 	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
 
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	static
 	{
 		try
@@ -68,30 +66,19 @@ public class CacheProviderInterceptor implements MethodInterceptor, IInitializin
 		}
 	}
 
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
+
 	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
 
 	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<Stack<ICacheProvider>>();
 
+	@Autowired
 	protected ICacheProvider threadLocalCacheProvider;
 
+	@Autowired
 	protected IRootCache rootCache;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(rootCache, "rootCache");
-		ParamChecker.assertNotNull(threadLocalCacheProvider, "threadLocalCacheProvider");
-	}
-
-	public void setRootCache(IRootCache rootCache)
-	{
-		this.rootCache = rootCache;
-	}
-
-	public void setThreadLocalCacheProvider(ICacheProvider threadLocalCacheProvider)
-	{
-		this.threadLocalCacheProvider = threadLocalCacheProvider;
-	}
 
 	@Override
 	public void cleanupThreadLocal()
@@ -226,7 +213,7 @@ public class CacheProviderInterceptor implements MethodInterceptor, IInitializin
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

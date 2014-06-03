@@ -6,10 +6,10 @@ import de.osthus.ambeth.cache.ISecondLevelCacheManager;
 import de.osthus.ambeth.cache.ITransactionalRootCache;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInterceptor implements ITransactionalRootCache, ISecondLevelCacheManager
 {
@@ -17,22 +17,10 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IRootCache committedRootCache;
 
 	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new SensitiveThreadLocal<Boolean>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(committedRootCache, "CommittedRootCache");
-	}
-
-	public void setCommittedRootCache(IRootCache committedRootCache)
-	{
-		this.committedRootCache = committedRootCache;
-	}
 
 	@Override
 	public void cleanupThreadLocal()
