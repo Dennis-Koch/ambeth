@@ -82,34 +82,42 @@ public class MapExtendableContainer<K, V> extends SmartCopyMap<K, Object> implem
 	{
 		ParamChecker.assertParamNotNull(extension, message);
 		ParamChecker.assertParamNotNull(key, keyMessage);
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
+
 		try
 		{
-			if (!multiValue)
+			Lock writeLock = getWriteLock();
+			writeLock.lock();
+			try
 			{
-				ParamChecker.assertTrue(removeIfValue(key, extension), message);
-			}
-			else
-			{
-				@SuppressWarnings("unchecked")
-				ArrayList<V> values = (ArrayList<V>) get(key);
-				values = new ArrayList<V>(values);
-				ParamChecker.assertNotNull(values, message);
-				ParamChecker.assertTrue(values.remove(extension), message);
-				if (values.isEmpty())
+				if (!multiValue)
 				{
-					remove(key);
+					ParamChecker.assertTrue(removeIfValue(key, extension), message);
 				}
 				else
 				{
-					put(key, values);
+					@SuppressWarnings("unchecked")
+					ArrayList<V> values = (ArrayList<V>) get(key);
+					values = new ArrayList<V>(values);
+					ParamChecker.assertNotNull(values, message);
+					ParamChecker.assertTrue(values.remove(extension), message);
+					if (values.isEmpty())
+					{
+						remove(key);
+					}
+					else
+					{
+						put(key, values);
+					}
 				}
 			}
+			finally
+			{
+				writeLock.unlock();
+			}
 		}
-		finally
+		catch (RuntimeException e)
 		{
-			writeLock.unlock();
+			throw new ExtendableException("Provided extension is not registered at key '" + key + "'. Extension: " + extension);
 		}
 	}
 
