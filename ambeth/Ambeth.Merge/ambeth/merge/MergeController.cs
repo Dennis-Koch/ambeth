@@ -438,18 +438,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
             }
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
-            MethodInfo[] prePersistMethods = metaData.PrePersistMethods;
-            for (int a = 0, size = prePersistMethods.Length; a < size; a++)
-            {
-                try
-                {
-                    prePersistMethods[a].Invoke(obj, (Object[])null);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Error occured while handling PrePersist method of entity type " + metaData.EntityType.FullName, e);
-                }
-            }
+            metaData.PrePersist(obj);
             Object key = metaData.IdMember.GetValue(obj, false);
             if (key == null)
             {
