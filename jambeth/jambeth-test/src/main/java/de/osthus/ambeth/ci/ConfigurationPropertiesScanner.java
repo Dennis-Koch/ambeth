@@ -20,7 +20,7 @@ import de.osthus.ambeth.util.ClasspathScanner;
 import de.osthus.ambeth.util.IClasspathScanner;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 
-public class ConfigurationPropertiesScanner
+public final class ConfigurationPropertiesScanner
 {
 	public static void main(String[] args) throws Exception
 	{
@@ -122,5 +122,10 @@ public class ConfigurationPropertiesScanner
 		}
 		System.out.println("Finished successfully. Found " + fields.size() + " properties");
 		System.out.println("Wrote properties to file '" + configOverviewFile.getAbsolutePath() + "'");
+	}
+
+	private ConfigurationPropertiesScanner()
+	{
+		// Intended blank
 	}
 }

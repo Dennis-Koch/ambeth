@@ -100,7 +100,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             if (IsCacheServiceRegistryActive)
             {
-                beanContextFactory.RegisterBean<CacheServiceRegistry>("cacheServiceRegistry").PropertyRef("DefaultCacheRetriever", DEFAULT_CACHE_RETRIEVER)
+                beanContextFactory.RegisterBean<CacheRetrieverRegistry>("cacheServiceRegistry")
                         .PropertyRef("CacheServiceForOris", EXTERNAL_CACHE_SERVICE).Autowireable(typeof(ICacheService), typeof(ICacheServiceByNameExtendable), typeof(ICacheRetrieverExtendable));
             }
 

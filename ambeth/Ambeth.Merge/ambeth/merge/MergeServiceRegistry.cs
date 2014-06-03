@@ -1,23 +1,19 @@
-using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Ioc.Threadlocal;
-using De.Osthus.Ambeth.Log;
-using System.Threading;
-using De.Osthus.Ambeth.Util;
 using System;
-using De.Osthus.Ambeth.Config;
-using De.Osthus.Ambeth.Service;
-using De.Osthus.Ambeth.Ioc.Extendable;
-using System.Collections.Generic;
-using De.Osthus.Ambeth.Cache.Model;
-using De.Osthus.Ambeth.Merge.Model;
-using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Collections;
-using De.Osthus.Ambeth.Merge;
-using De.Osthus.Ambeth.Merge.Transfer;
 using System.Collections;
-using De.Osthus.Ambeth.Threading;
-using De.Osthus.Ambeth.Merge.Config;
+using System.Collections.Generic;
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Event;
+using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Ioc.Extendable;
+using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Service;
+using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -37,6 +33,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected IMapExtendableContainer<Type, IMergeService> typeToMergeServiceMap = new ClassExtendableContainer<IMergeService>("elementHandler", "type");
         
+        [Autowired(Optional = true)]
         public IMergeService DefaultMergeService { protected get; set; }
 
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
@@ -54,10 +51,6 @@ namespace De.Osthus.Ambeth.Cache
             ParamChecker.AssertNotNull(GuiThreadHelper, "GuiThreadHelper");
             ParamChecker.AssertNotNull(Log, "Log");
             ParamChecker.AssertNotNull(MergeController, "MergeController");
-            if (Object.ReferenceEquals(DefaultMergeService, this))
-            {
-                throw new Exception("Property 'DefaultMergeService' is injected with 'this' which is not supported by this bean");
-            }
         }
 
         public void RegisterMergeService(IMergeService mergeService, Type handledType)
@@ -175,12 +168,26 @@ namespace De.Osthus.Ambeth.Cache
 
         public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
-            return DefaultMergeService.GetMetaData(entityTypes);
+            if (DefaultMergeService != null && DefaultMergeService != this)
+            {
+                return DefaultMergeService.GetMetaData(entityTypes);
+            }
+            else
+            {
+                return EntityMetaDataProvider.GetMetaData(entityTypes);
+            }
         }
 
         public virtual IValueObjectConfig GetValueObjectConfig(Type valueType)
         {
-            return DefaultMergeService.GetValueObjectConfig(valueType);
+            if (DefaultMergeService != null && DefaultMergeService != this)
+            {
+                return DefaultMergeService.GetValueObjectConfig(valueType);
+            }
+            else
+            {
+                return EntityMetaDataProvider.GetValueObjectConfig(valueType);
+            }
         }
 
         protected IMergeService GetServiceForType(Type type)
@@ -192,7 +199,7 @@ namespace De.Osthus.Ambeth.Cache
             IMergeService mergeService = typeToMergeServiceMap.GetExtension(type);
             if (mergeService == null)
             {
-                if (DefaultMergeService != null)
+                if (DefaultMergeService != null && DefaultMergeService != this)
                 {
                     mergeService = DefaultMergeService;
                 }
