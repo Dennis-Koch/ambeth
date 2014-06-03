@@ -11,7 +11,9 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
+import de.osthus.ambeth.testutil.TestRebuildContext;
 
+@TestRebuildContext
 public class AutowiredTest extends AbstractIocTest
 {
 	public static class Bean1
@@ -105,19 +107,7 @@ public class AutowiredTest extends AbstractIocTest
 	@Test(expected = BeanContextInitException.class)
 	public void testAutowiredNotOptional()
 	{
-		IServiceContext beanContext = this.beanContext.createService(AutowiredTestModule2.class);
-		try
-		{
-			Bean1 bean1 = beanContext.getService(bean1Name, Bean1.class);
-			Assert.assertNull(bean1.bean2);
-			Assert.assertNull(bean1.bean2Autowired);
-			Assert.assertNull(bean1.bean3);
-			Assert.assertNull(bean1.bean3Autowired);
-		}
-		finally
-		{
-			beanContext.dispose();
-		}
+		beanContext.createService(AutowiredTestModule2.class);
 	}
 
 	@Test
