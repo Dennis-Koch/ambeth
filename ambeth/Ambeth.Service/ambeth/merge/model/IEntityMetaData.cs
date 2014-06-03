@@ -8,6 +8,8 @@ namespace De.Osthus.Ambeth.Merge.Model
     {
         Type EntityType { get; }
 
+        Type RealType { get; }
+
         bool LocalEntity { get; }
 
         ITypeInfoItem IdMember { get; }

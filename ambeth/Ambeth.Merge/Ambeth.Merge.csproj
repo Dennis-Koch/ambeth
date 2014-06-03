@@ -64,15 +64,16 @@
     <Compile Include="ambeth\cache\ValueHolderState.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdTypeInfoItem.cs" />
     <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
-    <Compile Include="ambeth\merge\EntityMetaDataAddedEvent.cs" />
+    <Compile Include="ambeth\event\EntityMetaDataRemovedEvent.cs" />
+    <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
     <Compile Include="ambeth\merge\config\EntityMetaDataReader.cs" />
     <Compile Include="ambeth\merge\config\ValueObjectConfigReader.cs" />
     <Compile Include="ambeth\merge\ICUDResultExtendable.cs" />
     <Compile Include="ambeth\merge\ICUDResultExtension.cs" />
     <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />
-    <Compile Include="ambeth\merge\IEntityMetaDataEvent.cs" />
+    <Compile Include="ambeth\event\IEntityMetaDataEvent.cs" />
     <Compile Include="ambeth\merge\IMergeProcess.cs" />
-    <Compile Include="ambeth\merge\IndependentEntityMetaDataClient.cs" />
+    <Compile Include="ambeth\merge\EntityMetaDataProvider.cs" />
     <Compile Include="ambeth\merge\IObjRefProvider.cs" />
     <Compile Include="ambeth\merge\IRevertChangesSavepoint.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfigExtendable.java.cs" />
@@ -104,10 +105,10 @@
     <Compile Include="ambeth\merge\MergeHandle.cs" />
     <Compile Include="ambeth\merge\ORIHelper.cs" />
     <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
-    <Compile Include="ambeth\model\EntityMetaData.cs" />
-    <Compile Include="ambeth\model\IDirectObjRef.cs" />
-    <Compile Include="ambeth\model\IPrimitiveUpdateItem.cs" />
-    <Compile Include="ambeth\model\IRelationUpdateItem.cs" />
+    <Compile Include="ambeth\merge\model\EntityMetaData.cs" />
+    <Compile Include="ambeth\merge\model\IDirectObjRef.cs" />
+    <Compile Include="ambeth\merge\model\IPrimitiveUpdateItem.cs" />
+    <Compile Include="ambeth\merge\model\IRelationUpdateItem.cs" />
     <Compile Include="ambeth\orm\EntityConfig.cs" />
     <Compile Include="ambeth\orm\ExternalLinkConfig.cs" />
     <Compile Include="ambeth\orm\ILinkConfig.cs" />
@@ -139,10 +140,10 @@
     <Compile Include="ambeth\transfer\CreateContainer.cs" />
     <Compile Include="ambeth\transfer\CUDResult.cs" />
     <Compile Include="ambeth\transfer\DeleteContainer.cs" />
-    <Compile Include="ambeth\model\IChangeContainer.cs" />
-    <Compile Include="ambeth\model\ICUDResult.cs" />
-    <Compile Include="ambeth\model\IOriCollection.cs" />
-    <Compile Include="ambeth\model\IUpdateItem.cs" />
+    <Compile Include="ambeth\merge\model\IChangeContainer.cs" />
+    <Compile Include="ambeth\merge\model\ICUDResult.cs" />
+    <Compile Include="ambeth\merge\model\IOriCollection.cs" />
+    <Compile Include="ambeth\merge\model\IUpdateItem.cs" />
     <Compile Include="ambeth\transfer\EntityMetaDataTransfer.cs" />
     <Compile Include="ambeth\transfer\ObjRef.cs" />
     <Compile Include="ambeth\transfer\OriCollection.cs" />
@@ -235,6 +236,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\merge\ValueObjectMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\model\PostLoadMethodLifecycleExtension.cs" />
+    <Compile Include="ambeth\merge\model\PrePersistMethodLifecycleExtension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

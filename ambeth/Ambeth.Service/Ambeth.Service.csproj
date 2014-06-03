@@ -59,7 +59,7 @@
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />
-    <Compile Include="ambeth\model\IObjRef.cs" />
+    <Compile Include="ambeth\merge\model\IObjRef.cs" />
     <Compile Include="ambeth\model\IObjRelation.cs" />
     <Compile Include="ambeth\model\IObjRelationResult.cs" />
     <Compile Include="ambeth\model\ISecurityScope.cs" />
@@ -81,8 +81,8 @@
     <Compile Include="ambeth\service\IProcessService.cs" />
     <Compile Include="ambeth\service\DefaultServiceUrlProvider.cs" />
     <Compile Include="ambeth\service\IClientServiceFactory.cs" />
-    <Compile Include="ambeth\service\IEntityMetaData.cs" />
-    <Compile Include="ambeth\service\IEntityMetaDataProvider.cs" />
+    <Compile Include="ambeth\merge\model\IEntityMetaData.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataProvider.cs" />
     <Compile Include="ambeth\service\IExceptionHandler.cs" />
     <Compile Include="ambeth\service\interceptor\SyncCallInterceptor.cs" />
     <Compile Include="ambeth\service\IOfflineListener.cs" />
@@ -135,6 +135,11 @@
   <ItemGroup>
     <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
     <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\model\AbstractMethodLifecycleExtension.cs" />
+    <Compile Include="ambeth\merge\model\IEntityLifecycleExtendable.cs" />
+    <Compile Include="ambeth\merge\model\IEntityLifecycleExtension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
