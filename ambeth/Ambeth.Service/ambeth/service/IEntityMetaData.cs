@@ -54,9 +54,9 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         bool IsCascadeDelete(Type other);
 
-        MethodInfo[] PostLoadMethods { get; }
+        void PostLoad(Object entity);
 
-        MethodInfo[] PrePersistMethods { get; }
+        void PrePersist(Object entity);
 
         Object NewInstance();
     }

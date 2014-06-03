@@ -1,7 +1,5 @@
 package de.osthus.ambeth.merge.model;
 
-import java.lang.reflect.Method;
-
 import de.osthus.ambeth.annotation.XmlType;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -69,9 +67,9 @@ public interface IEntityMetaData
 
 	void changeInterningBehavior(ITypeInfoItem primitiveMember, boolean state);
 
-	Method[] getPostLoadMethods();
+	void postLoad(Object entity);
 
-	Method[] getPrePersistMethods();
+	void prePersist(Object entity);
 
 	Object newInstance();
 }
