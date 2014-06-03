@@ -6,7 +6,7 @@ import java.util.Collection;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.LogTypesUtil;
@@ -15,9 +15,8 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class LogInterceptor extends CascadedInterceptor implements IInitializingBean
+public class LogInterceptor extends CascadedInterceptor
 {
 	public static class IntContainer
 	{
@@ -33,51 +32,29 @@ public class LogInterceptor extends CascadedInterceptor implements IInitializing
 		};
 	};
 
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IProperties properties;
 
+	@Property(name = ConfigurationConstants.LogShortNames, defaultValue = "false")
 	protected boolean printShortStringNames;
 
-	protected boolean isClientLogger;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(properties, "Properties");
-	}
-
-	@Property(name = ConfigurationConstants.LogShortNames, defaultValue = "false")
-	public void setPrintShortStringNames(boolean printShortStringNames)
-	{
-		this.printShortStringNames = printShortStringNames;
-	}
-
 	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	public void setIsClientLogger(boolean isClientLogger)
-	{
-		this.isClientLogger = isClientLogger;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setProperties(IProperties properties)
-	{
-		this.properties = properties;
-	}
+	protected boolean isClientLogger;
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

@@ -15,17 +15,12 @@ import de.osthus.ambeth.query.ISqlJoin;
 
 public class QueryBuilderInterceptor implements MethodInterceptor
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	protected static final Method disposeMethod;
 
 	protected static final HashSet<Method> cleanupMethods = new HashSet<Method>();
-
-	protected IQueryBuilder<?> queryBuilder;
-
-	protected boolean finalized = false;
 
 	static
 	{
@@ -47,6 +42,14 @@ public class QueryBuilderInterceptor implements MethodInterceptor
 		}
 	}
 
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
+
+	protected IQueryBuilder<?> queryBuilder;
+
+	protected boolean finalized = false;
+
 	public QueryBuilderInterceptor(IQueryBuilder<?> queryBuilder)
 	{
 		this.queryBuilder = queryBuilder;
@@ -64,7 +67,7 @@ public class QueryBuilderInterceptor implements MethodInterceptor
 	@Override
 	public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}
