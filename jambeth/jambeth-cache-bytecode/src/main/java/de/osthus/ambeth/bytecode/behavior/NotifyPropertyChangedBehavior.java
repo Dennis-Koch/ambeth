@@ -12,6 +12,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
+import de.osthus.ambeth.template.IPropertyChangeTemplateAware;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
 /**
@@ -53,7 +54,7 @@ public class NotifyPropertyChangedBehavior extends AbstractBehavior
 						// NotifyPropertyChangedBehavior executes in this cascade
 						// add IPropertyChanged
 						visitor = new InterfaceAdder(visitor, INotifyPropertyChanged.class, INotifyPropertyChangedSource.class, PropertyChangeListener.class,
-								INotifyCollectionChangedListener.class);
+								INotifyCollectionChangedListener.class, IPropertyChangeTemplateAware.class);
 						visitor = beanContext.registerWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, null)).finish();
 						return visitor;
 					}

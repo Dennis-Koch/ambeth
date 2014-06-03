@@ -2,10 +2,8 @@ package de.osthus.ambeth.bytecode.visitor;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.Constructor;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
-import de.osthus.ambeth.bytecode.ConstructorInstance;
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.IValueResolveDelegate;
@@ -137,8 +135,6 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 		if (properties == null)
 		{
-			implementSelfAsListener();
-
 			implementCollectionChanged(p_propertyChangeTemplate);
 			implementPropertyChanged(p_propertyChangeTemplate);
 
@@ -167,43 +163,6 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			}
 		}
 		super.visitEnd();
-	}
-
-	protected void implementSelfAsListener()
-	{
-		Class<?> currentType = getState().getCurrentType();
-		Constructor<?>[] constructors = currentType.getDeclaredConstructors();
-
-		for (Constructor<?> constructor : constructors)
-		{
-			ConstructorInstance c_method = new ConstructorInstance(constructor);
-
-			MethodGenerator mg = visitMethod(c_method);
-			mg.loadThis();
-			mg.loadArgs();
-			mg.invokeConstructor(c_method);
-
-			// if (PropertyChangeListener.class.isAssignableFrom(getClass()))
-			mg.ifThisInstanceOf(PropertyChangeListener.class, new Script()
-			{
-				@Override
-				public void execute(MethodGenerator mg)
-				{
-					MethodInstance m_addPropertyChangeListener = MethodInstance
-							.findByTemplate(false, "addPropertyChangeListener", PropertyChangeListener.class);
-					mg.loadThis();
-					mg.dup();
-					mg.invokeVirtual(m_addPropertyChangeListener);
-					//
-					// mg.callThisGetter(m_usePropertyChangeSupport);
-					// fgfg
-					// mg.pop();
-				}
-			}, null);
-
-			mg.returnValue();
-			mg.endMethod();
-		}
 	}
 
 	protected void implementPropertyChangeOnProperty(final PropertyInstance propertyInfo, MethodInstance m_firePropertyChange,

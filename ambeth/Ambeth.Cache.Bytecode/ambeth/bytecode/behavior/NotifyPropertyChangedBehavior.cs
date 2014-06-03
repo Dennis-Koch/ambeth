@@ -35,8 +35,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             {
                 // NotifyPropertyChangedBehavior executes in this cascade
                 // add IPropertyChanged
-                visitor = new InterfaceAdder(visitor, typeof(INotifyPropertyChanged), typeof(INotifyPropertyChangedSource),
-                    typeof(IPropertyChangedEventHandler), typeof(INotifyCollectionChangedListener));
+                visitor = new InterfaceAdder(visitor, typeof(INotifyPropertyChanged), typeof(INotifyPropertyChangedSource), typeof(INotifyCollectionChangedListener));
                 visitor = BeanContext.RegisterWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, null)).Finish();
                 return visitor;
             }

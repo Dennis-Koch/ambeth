@@ -125,6 +125,8 @@
     <Compile Include="ambeth\config\CacheNamedBeans.cs" />
     <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
+    <Compile Include="ambeth\propertychange\IPropertyChangeExtendable.cs" />
+    <Compile Include="ambeth\propertychange\IPropertyChangeExtension.cs" />
     <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
     <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
     <Compile Include="ambeth\proxy\CachePostProcessor.cs" />
