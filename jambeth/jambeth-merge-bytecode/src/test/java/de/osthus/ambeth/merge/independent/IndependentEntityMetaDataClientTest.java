@@ -15,8 +15,8 @@ import org.junit.Test;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CompositeIdModule;
 import de.osthus.ambeth.ioc.EventModule;
+import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.IValueObjectConfig;
-import de.osthus.ambeth.merge.IndependentEntityMetaDataClient;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
@@ -30,9 +30,9 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 		@TestProperties(name = ConfigurationConstants.valueObjectFile, value = "de/osthus/ambeth/merge/independent/independent-vo-config.xml") })
 public class IndependentEntityMetaDataClientTest extends AbstractIocTest
 {
-	private IndependentEntityMetaDataClient fixture;
+	private EntityMetaDataProvider fixture;
 
-	public void setFixture(IndependentEntityMetaDataClient fixture)
+	public void setFixture(EntityMetaDataProvider fixture)
 	{
 		this.fixture = fixture;
 	}

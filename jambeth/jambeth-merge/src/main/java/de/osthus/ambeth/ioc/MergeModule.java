@@ -117,7 +117,7 @@ public class MergeModule implements IInitializingModule
 		// }
 		// else
 		// {
-		// beanContextFactory.registerBean("indipendantMetaDataProvider", IndependentEntityMetaDataClient.class).autowireable(
+		// beanContextFactory.registerBean("independentMetaDataProvider", EntityMetaDataProvider.class).autowireable(
 		// IEntityMetaDataProvider.class, IEntityMetaDataProviderExtendable.class);
 		// beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class);
 		// }

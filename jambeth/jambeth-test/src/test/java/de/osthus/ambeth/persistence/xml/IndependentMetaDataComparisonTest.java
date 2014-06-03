@@ -29,17 +29,18 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.DefaultProxyHelper;
+import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
-import de.osthus.ambeth.merge.IndependentEntityMetaDataClient;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.config.EntityMetaDataReader;
 import de.osthus.ambeth.merge.config.IEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
+import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -90,8 +91,11 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 		{
 			IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
 
-			beanContextFactory.registerBean("independantMetaDataProvider", IndependentEntityMetaDataClient.class).propertyRef("ValueObjectMap", valueObjectMap)
-					.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityMetaDataExtendable.class);
+			beanContextFactory
+					.registerBean("independentMetaDataProvider", EntityMetaDataProvider.class)
+					.propertyRef("ValueObjectMap", valueObjectMap)
+					.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityLifecycleExtendable.class,
+							IEntityMetaDataExtendable.class);
 			beanContextFactory.registerBean(MergeModule.INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
 			beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 			beanContextFactory.registerBean("proxyHelper", DefaultProxyHelper.class).autowireable(IProxyHelper.class);
@@ -263,8 +267,7 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 	{
 		Assert.assertEquals(message, expected.length, actual.length);
 
-		outerLoop:
-		for (ITypeInfoItem actualItem : actual)
+		outerLoop: for (ITypeInfoItem actualItem : actual)
 		{
 			for (ITypeInfoItem expectedItem : expected)
 			{

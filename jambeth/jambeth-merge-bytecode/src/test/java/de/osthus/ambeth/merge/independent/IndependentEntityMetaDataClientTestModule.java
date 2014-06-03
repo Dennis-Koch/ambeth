@@ -8,16 +8,17 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.DefaultProxyHelper;
+import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
-import de.osthus.ambeth.merge.IndependentEntityMetaDataClient;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.config.EntityMetaDataReader;
 import de.osthus.ambeth.merge.config.IEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
+import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
@@ -43,10 +44,10 @@ public class IndependentEntityMetaDataClientTestModule implements IInitializingM
 
 		IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
 		beanContextFactory
-				.registerBean("independantMetaDataProvider", IndependentEntityMetaDataClient.class)
+				.registerBean("independantMetaDataProvider", EntityMetaDataProvider.class)
 				.propertyRef("ValueObjectMap", valueObjectMap)
-				.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityMetaDataExtendable.class,
-						IndependentEntityMetaDataClient.class);
+				.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityLifecycleExtendable.class,
+						IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
 		beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 		beanContextFactory.registerBean(MergeModule.INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
 		beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
