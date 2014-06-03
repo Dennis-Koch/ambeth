@@ -1,7 +1,6 @@
 package de.osthus.ambeth.merge;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -23,7 +22,6 @@ import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -559,18 +557,7 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 			}
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
-		Method[] prePersistMethods = metaData.getPrePersistMethods();
-		for (int a = 0, size = prePersistMethods.length; a < size; a++)
-		{
-			try
-			{
-				prePersistMethods[a].invoke(obj);
-			}
-			catch (Exception e)
-			{
-				throw RuntimeExceptionUtil.mask(e, "Error occured while handling PrePersist method of entity type " + metaData.getEntityType().getName());
-			}
-		}
+		metaData.prePersist(obj);
 		Object key = metaData.getIdMember().getValue(obj, false);
 		if (key == null)
 		{
