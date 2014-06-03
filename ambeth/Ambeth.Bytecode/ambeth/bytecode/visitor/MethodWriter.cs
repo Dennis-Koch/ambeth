@@ -16,6 +16,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class MethodWriter : IMethodVisitor
     {
+        public static readonly MethodInstance m_getClass = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Object), "GetType"));
+
+	    public static readonly MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Type), "IsAssignableFrom",
+			typeof(Type)));
+        
         public static readonly MethodInfo getTypeFromHandleMI = typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
 
         public static readonly MethodInfo getMethodFromHandleMI = typeof(MethodBase).GetMethod(
@@ -376,6 +381,39 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void IfNull(Label label)
         {
             gen.Emit(OpCodes.Brfalse_S, label);
+        }
+
+        public virtual void IfThisInstanceOf(Type instanceOfType, Script executeIfTrue, Script executeIfFalse)
+        {
+            if (executeIfTrue == null && executeIfFalse == null)
+            {
+                // nothing to do
+                return;
+            }
+            Push(instanceOfType);
+            CallThisGetter(m_getClass);
+            InvokeVirtual(m_isAssignableFrom);
+
+            if (executeIfTrue != null)
+            {
+                Label l_isFalse = NewLabel();
+                IfZCmp(CompareOperator.EQ, l_isFalse);
+
+                executeIfTrue(this);
+
+                Mark(l_isFalse);
+                if (executeIfFalse != null)
+                {
+                    executeIfFalse(this);
+                }
+                return;
+            }
+            Label l_isTrue = NewLabel();
+            IfZCmp(CompareOperator.NE, l_isTrue);
+
+            executeIfFalse(this);
+
+            Mark(l_isTrue);
         }
 
         public virtual void IfZCmp(CompareOperator compareOperator, Label label)

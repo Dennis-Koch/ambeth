@@ -23,6 +23,11 @@ namespace De.Osthus.Ambeth.Bytecode
             return FindByTemplate(tryOnly, methodTemplate.Name, methodTemplate.Parameters);
         }
 
+        public static MethodInstance FindByTemplate(bool tryOnly, String methodName, params Type[] parameters)
+	    {
+		    return FindByTemplate(tryOnly, methodName, TypeUtil.GetClassesToTypes(parameters));
+	    }
+
         public static MethodInstance FindByTemplate(bool tryOnly, String methodName, params NewType[] parameters)
         {
             IBytecodeBehaviorState state = BytecodeBehaviorState.State;
