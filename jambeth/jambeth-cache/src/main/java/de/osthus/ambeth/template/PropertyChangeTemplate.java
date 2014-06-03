@@ -195,7 +195,7 @@ public class PropertyChangeTemplate
 
 	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj, PropertyChangeEvent evnt)
 	{
-		if (cacheModification.isActiveOrFlushing())
+		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
 		{
 			return;
 		}
