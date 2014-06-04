@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-libs-pom</artifactId>
+	<version>2.0.X-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.12</version>
+	</parent>
+
+	<modules>
+		<module>jambeth-weblib-extjs</module>
+		<module>jambeth-weblib-teechart</module>
+	</modules>
+
+	<distributionManagement>
+		<repository>
+			<id>ambeth</id>
+			<name>ambeth</name>
+			<url>http://nexus/nexus/content/repositories/ambeth/</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<!-- Currently needed to get the osthus-pom -->
+		<repository>
+			<id>allotrope-releases</id>
+			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+</project>

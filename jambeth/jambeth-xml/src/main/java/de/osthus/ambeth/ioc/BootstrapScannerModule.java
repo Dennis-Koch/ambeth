@@ -13,13 +13,14 @@ public class BootstrapScannerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("classpathScanner", ClasspathScanner.class).autowireable(IClasspathScanner.class);
+		IBeanConfiguration classpathScannerBC = beanContextFactory.registerAnonymousBean(ClasspathScanner.class).autowireable(IClasspathScanner.class);
 
-		IBeanConfiguration moduleScannerBC = beanContextFactory.registerBean("moduleScanner", ModuleScanner.class);
+		beanContextFactory.registerAnonymousBean(ModuleScanner.class);
+
 		ServletContext servletContext = getServletContext();
 		if (servletContext != null)
 		{
-			moduleScannerBC.propertyValue("ServletContext", servletContext);
+			classpathScannerBC.propertyValue("ServletContext", servletContext);
 		}
 	}
 

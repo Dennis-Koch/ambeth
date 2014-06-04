@@ -8,6 +8,7 @@ import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
@@ -19,6 +20,9 @@ public class InterfaceEntityInterceptor implements IInitializingBean, MethodInte
 	private static final Method hashCodeMethod;
 
 	private static final Method equalsMethod;
+
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -37,6 +41,7 @@ public class InterfaceEntityInterceptor implements IInitializingBean, MethodInte
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected HashMap<Method, Integer> methodToIndex;
 
 	protected Object[] propertyArray;
@@ -48,15 +53,10 @@ public class InterfaceEntityInterceptor implements IInitializingBean, MethodInte
 		propertyArray = new Object[methodToIndex.size() / 2]; // 2 entries per property
 	}
 
-	public void setMethodToIndex(HashMap<Method, Integer> methodToIndex)
-	{
-		this.methodToIndex = methodToIndex;
-	}
-
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -26,6 +27,9 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 	public static final Method addBatchMethod;
 
 	public static final HashSet<Method> setIndexMethods = new HashSet<Method>(0.5f);
+
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -64,6 +68,7 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 
 	protected String sql;
 
+	@Autowired(optional = true)
 	protected IPreparedStatementParamLogger paramLogger; // optional for debugging
 
 	@Override
@@ -73,11 +78,6 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 
 		ParamChecker.assertNotNull(preparedStatement, "preparedStatement");
 		ParamChecker.assertNotNull(sql, "sql");
-	}
-
-	public void setParamLogger(IPreparedStatementParamLogger paramLogger)
-	{
-		this.paramLogger = paramLogger;
 	}
 
 	public void setPreparedStatement(PreparedStatement preparedStatement)
@@ -99,7 +99,7 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

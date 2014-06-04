@@ -63,7 +63,7 @@
 		<module>jambeth-testutil-persistence</module>
 		<module>jambeth-util</module>
 		<module>jambeth-xml</module>
-		<!-- <module>jambeth-xml-file</module> -->
+		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
 	</modules>
 
 	<dependencies>
@@ -507,6 +507,21 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+							<goal>test-jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -682,5 +697,27 @@
 			</build>
 		</profile>
 	</profiles>
+
+	<distributionManagement>
+		<repository>
+			<id>ambeth</id>
+			<name>ambeth</name>
+			<url>http://nexus/nexus/content/repositories/ambeth/</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<!-- Currently needed to get the osthus-pom -->
+		<repository>
+			<id>allotrope-releases</id>
+			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 
 </project>

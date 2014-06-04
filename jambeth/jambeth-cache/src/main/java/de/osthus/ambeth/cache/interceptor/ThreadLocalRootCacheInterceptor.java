@@ -9,8 +9,8 @@ import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.cache.RootCache;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -18,13 +18,11 @@ import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ThreadLocalRootCacheInterceptor implements IInitializingBean, MethodInterceptor, IThreadLocalCleanupBean
+public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThreadLocalCleanupBean
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	private static final Method clearMethod;
 
@@ -44,35 +42,20 @@ public class ThreadLocalRootCacheInterceptor implements IInitializingBean, Metho
 		}
 	}
 
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
+
 	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
 
-	protected ICacheRetriever storedCacheRetriever;
-
+	@Autowired(optional = true)
 	protected IOfflineListenerExtendable offlineListenerExtendable;
 
+	@Autowired
 	protected IServiceContext serviceContext;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(serviceContext, "ServiceContext");
-		ParamChecker.assertNotNull(storedCacheRetriever, "StoredCacheRetriever");
-	}
-
-	public void setOfflineListenerExtendable(IOfflineListenerExtendable offlineListenerExtendable)
-	{
-		this.offlineListenerExtendable = offlineListenerExtendable;
-	}
-
-	public void setServiceContext(IServiceContext serviceContext)
-	{
-		this.serviceContext = serviceContext;
-	}
-
-	public void setStoredCacheRetriever(ICacheRetriever storedCacheRetriever)
-	{
-		this.storedCacheRetriever = storedCacheRetriever;
-	}
+	@Autowired
+	protected ICacheRetriever storedCacheRetriever;
 
 	protected IRootCache getCurrentRootCache()
 	{
@@ -108,7 +91,7 @@ public class ThreadLocalRootCacheInterceptor implements IInitializingBean, Metho
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="ambeth\cache\CachedAttribute.cs" />
     <Compile Include="ambeth\cache\CacheKey.cs" />
-    <Compile Include="ambeth\cache\CacheServiceRegistry.cs" />
+    <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
     <Compile Include="ambeth\cache\ChildCache.cs" />
     <Compile Include="ambeth\cache\AbstractCache.cs" />
     <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />

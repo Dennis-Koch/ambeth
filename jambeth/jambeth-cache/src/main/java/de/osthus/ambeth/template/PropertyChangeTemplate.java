@@ -207,7 +207,7 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 
 	public void handleParentChildPropertyChange(INotifyPropertyChangedSource obj, PropertyChangeEvent evnt)
 	{
-		if (cacheModification.isActiveOrFlushing() || cacheModification.isInternalUpdate())
+		if (cacheModification.isActiveOrFlushingOrInternalUpdate())
 		{
 			return;
 		}

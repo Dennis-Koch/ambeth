@@ -10,53 +10,35 @@ import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.util.IDisposable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class PersistenceContextInterceptor extends CascadedInterceptor implements IInitializingBean
+public class PersistenceContextInterceptor extends CascadedInterceptor
 {
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IDatabaseProviderRegistry databaseProviderRegistry;
 
+	@Autowired
 	protected ITransaction transaction;
 
+	@Autowired
 	protected IMethodLevelBehaviour<PersistenceContextType> methodLevelBehaviour;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(databaseProviderRegistry, "DatabaseProviderRegistry");
-		ParamChecker.assertNotNull(methodLevelBehaviour, "MethodLevelBehaviour");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-	}
-
-	public void setDatabaseProviderRegistry(IDatabaseProviderRegistry databaseProviderRegistry)
-	{
-		this.databaseProviderRegistry = databaseProviderRegistry;
-	}
-
-	public void setMethodLevelBehaviour(IMethodLevelBehaviour<PersistenceContextType> methodLevelBehaviour)
-	{
-		this.methodLevelBehaviour = methodLevelBehaviour;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
 
 	@Override
 	public Object intercept(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}
