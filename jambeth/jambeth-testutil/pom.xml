@@ -20,7 +20,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>

@@ -13,7 +13,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
@@ -29,7 +29,7 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable, IInitializingBean
+public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -41,30 +41,11 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	protected final MapExtendableContainer<String, ICacheService> nameToCacheServiceMap = new MapExtendableContainer<String, ICacheService>("cacheService",
 			"serviceName");
 
+	@Autowired(optional = true)
 	protected ICacheRetriever defaultCacheRetriever;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-
-		if (defaultCacheRetriever == this)
-		{
-			throw new Exception("Property 'DefaultCacheRetriever' is injected with 'this' which is not supported by this bean");
-		}
-	}
-
-	public void setDefaultCacheRetriever(ICacheRetriever defaultCacheRetriever)
-	{
-		this.defaultCacheRetriever = defaultCacheRetriever;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
 
 	@Override
 	public void registerCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType)
@@ -141,7 +122,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		ICacheRetriever cacheRetriever = typeToCacheRetrieverMap.getExtension(type);
 		if (cacheRetriever == null)
 		{
-			if (defaultCacheRetriever != null)
+			if (defaultCacheRetriever != null && defaultCacheRetriever != this)
 			{
 				cacheRetriever = defaultCacheRetriever;
 			}

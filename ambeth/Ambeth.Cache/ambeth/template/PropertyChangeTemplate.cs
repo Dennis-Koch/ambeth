@@ -434,7 +434,7 @@ namespace De.Osthus.Ambeth.Template
 
         public void HandleParentChildPropertyChange(INotifyPropertyChangedSource obj, Object child, PropertyChangedEventArgs evnt)
         {
-            if (CacheModification.ActiveOrFlushing)
+            if (CacheModification.ActiveOrFlushingOrInternalUpdate)
             {
                 return;
             }

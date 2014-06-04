@@ -13,6 +13,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.LogTypesUtil;
@@ -41,6 +42,9 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	public static final Method executeQueryMethod;
 
 	public static final Method executeBatchMethod;
+
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -72,20 +76,27 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Statement statement;
 
+	@Autowired
 	protected Connection connection;
 
+	@Autowired(optional = true)
 	protected IModifyingDatabase modifyingDatabase;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IPersistenceExceptionUtil persistenceExceptionUtil;
 
 	protected int identityHashCode;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.JdbcLogExceptionActive, defaultValue = "false")
 	protected boolean isLogExceptionActive;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.JdbcTraceActive, defaultValue = "true")
 	protected boolean isJdbcTraceActive;
 
 	protected int batchCount;
@@ -100,48 +111,8 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(persistenceExceptionUtil, "PersistenceExceptionUtil");
 		ParamChecker.assertNotNull(statement, "Statement");
 		identityHashCode = System.identityHashCode(statement);
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setModifyingDatabase(IModifyingDatabase modifyingDatabase)
-	{
-		this.modifyingDatabase = modifyingDatabase;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setPersistenceExceptionUtil(IPersistenceExceptionUtil persistenceExceptionUtil)
-	{
-		this.persistenceExceptionUtil = persistenceExceptionUtil;
-	}
-
-	public void setStatement(Statement statement)
-	{
-		this.statement = statement;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.JdbcTraceActive, defaultValue = "true")
-	public void setJdbcTraceActive(boolean isJdbcTraceActive)
-	{
-		this.isJdbcTraceActive = isJdbcTraceActive;
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.JdbcLogExceptionActive, defaultValue = "false")
-	public void setLogExceptionActive(boolean isLogExceptionActive)
-	{
-		this.isLogExceptionActive = isLogExceptionActive;
 	}
 
 	protected ILogger getLog()
@@ -165,7 +136,7 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

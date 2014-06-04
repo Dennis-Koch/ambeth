@@ -14,6 +14,9 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class SecurityFilterInterceptor extends CascadedInterceptor
 {
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	@LogInstance
 	private ILogger log;
 
@@ -29,7 +32,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
-	@Autowired(optional = true)	
+	@Autowired(optional = true)
 	protected ISidHelper sidHelper;
 
 	@Autowired
@@ -38,7 +41,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

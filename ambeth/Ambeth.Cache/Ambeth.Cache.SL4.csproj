@@ -21,6 +21,7 @@
   </PropertyGroup>
   <!-- This property group is only here to support building this project using the 
        MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+<<<<<<< HEAD
        to set the TargetFrameworkVersion to v3.5 -->
   <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
@@ -213,6 +214,198 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+=======
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>AmbethStrongNameKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\AbstractCache.cs" />
+    <Compile Include="ambeth\cache\CacheContext.cs" />
+    <Compile Include="ambeth\cache\CachedAttribute.cs" />
+    <Compile Include="ambeth\cache\CacheEventTargetExtractor.cs" />
+    <Compile Include="ambeth\cache\CacheFactory.cs" />
+    <Compile Include="ambeth\cache\CacheKey.cs" />
+    <Compile Include="ambeth\cache\CacheProvider.cs" />
+    <Compile Include="ambeth\cache\CacheType.cs" />
+    <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\cache\ChildCache.cs" />
+    <Compile Include="ambeth\cache\collections\CacheHashMap.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapEntry.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapEntryEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapEntryTypeProvider.cs" />
+    <Compile Include="ambeth\cache\collections\CacheMapIterator.cs" />
+    <Compile Include="ambeth\cache\collections\DefaultCacheMapEntry.cs" />
+    <Compile Include="ambeth\cache\collections\DefaultCacheMapEntryFactory.cs" />
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryAware.cs" />
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryFactory.cs" />
+    <Compile Include="ambeth\cache\collections\ICacheMapEntryTypeProvider.cs" />
+    <Compile Include="ambeth\cache\FirstLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\FlcEntry.cs" />
+    <Compile Include="ambeth\cache\IFirstLevelCacheExtendable.cs" />
+    <Compile Include="ambeth\cache\IFirstLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\interceptor\ThreadLocalRootCacheInterceptor.cs" />
+    <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
+    <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
+    <Compile Include="ambeth\cache\IRootCache.cs" />
+    <Compile Include="ambeth\cache\ISecondLevelCacheManager.cs" />
+    <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
+    <Compile Include="ambeth\cache\ICacheIntern.cs" />
+    <Compile Include="ambeth\cache\ITransactionalRootCache.cs" />
+    <Compile Include="ambeth\cache\RootCacheBridge.cs" />
+    <Compile Include="ambeth\cache\ICacheContext.cs" />
+    <Compile Include="ambeth\cache\ICacheProviderExtendable.cs" />
+    <Compile Include="ambeth\cache\interceptor\CacheContextInterceptor.cs" />
+    <Compile Include="ambeth\cache\interceptor\CacheProviderInterceptor.cs" />
+    <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
+    <Compile Include="ambeth\cache\PendingValueHolders.cs" />
+    <Compile Include="ambeth\cache\EntityCallback.cs" />
+    <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
+    <Compile Include="ambeth\cache\IServiceResultCache.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValue.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValue.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueEnhancementHint.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\ServiceResultCache.cs" />
+    <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
+    <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
+    <Compile Include="ambeth\config\CacheNamedBeans.cs" />
+    <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
+    <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
+    <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
+    <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
+    <Compile Include="ambeth\proxy\CachePostProcessor.cs" />
+    <Compile Include="ambeth\proxy\IEntityEquals.cs" />
+    <Compile Include="ambeth\service\CacheServiceDelegate.cs" />
+    <Compile Include="ambeth\service\CacheServiceModelProvider.cs" />
+    <Compile Include="ambeth\service\ICacheRetrieverExtendable.cs" />
+    <Compile Include="ambeth\service\ICacheRetriever.cs" />
+    <Compile Include="ambeth\service\ICacheServiceByNameExtendable.cs" />
+    <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
+    <Compile Include="ambeth\service\ICacheService.cs" />
+    <Compile Include="ambeth\cache\RootCache.cs" />
+    <Compile Include="ambeth\template\DataObjectTemplate.cs" />
+    <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
+    <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
+    <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
+    <Compile Include="ambeth\transfer\LoadContainer.cs" />
+    <Compile Include="ambeth\transfer\ObjRelation.cs" />
+    <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
+    <Compile Include="ambeth\util\CacheHelper.cs" />
+    <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
+    <Compile Include="ambeth\util\CachePath.cs" />
+    <Compile Include="ambeth\util\CascadeLoadItem.cs" />
+    <Compile Include="ambeth\util\ICachePathHelper.cs" />
+    <Compile Include="ambeth\util\IndirectValueHolderRef.cs" />
+    <Compile Include="ambeth\util\PrefetchState.cs" />
+    <Compile Include="ambeth\util\PrefetchConfig.cs" />
+    <Compile Include="ambeth\util\PrefetchHandle.cs" />
+    <Compile Include="ambeth\ValueHolderIEC.cs" />
+    <Compile Include="ioc\CacheBootstrapModule.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL4.csproj">
+      <Project>{3E1851C7-3BAA-4757-8858-8BD7EA55F842}</Project>
+      <Name>Ambeth.Event.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Filter\Ambeth.Filter.SL4.csproj">
+      <Project>{A962E253-09EA-4311-8A0A-E298AAD81204}</Project>
+      <Name>Ambeth.Filter.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL4.csproj">
+      <Project>{BDA824AF-09F2-4338-86AE-B05552CD542E}</Project>
+      <Name>Ambeth.IOC.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL4.csproj">
+      <Project>{470B5E14-25AD-448A-9C8B-50A594E84EF6}</Project>
+      <Name>Ambeth.Log.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL4.csproj">
+      <Project>{BA00BDE1-75CB-438F-85B6-3BA2A6F0F6D3}</Project>
+      <Name>Ambeth.Merge.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.SL4.csproj">
+      <Project>{6B20E123-53AA-4B41-A16E-6634CA212691}</Project>
+      <Name>Ambeth.Security.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL4.csproj">
+      <Project>{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}</Project>
+      <Name>Ambeth.Service.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL4.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL4</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AmbethStrongNameKey.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IValueHolderContainer.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+>>>>>>> develop
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

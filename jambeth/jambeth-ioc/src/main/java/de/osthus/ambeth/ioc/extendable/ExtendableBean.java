@@ -10,6 +10,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IFactoryBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.exception.ExtendableException;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -22,6 +23,9 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodInterceptor
 {
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
 	public static final String P_PROVIDER_TYPE = "ProviderType";
 
 	public static final String P_EXTENDABLE_TYPE = "ExtendableType";
@@ -55,8 +59,10 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IExtendableRegistry extendableRegistry;
 
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
 	protected Class<?> providerType;
@@ -81,8 +87,6 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(extendableRegistry, "ExtendableRegistry");
-		ParamChecker.assertNotNull(proxyFactory, "ProxyFactory");
 		ParamChecker.assertNotNull(providerType, "ProviderType");
 		ParamChecker.assertNotNull(extendableType, "ExtendableType");
 
@@ -166,16 +170,6 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 		}
 	}
 
-	public void setExtendableRegistry(IExtendableRegistry extendableRegistry)
-	{
-		this.extendableRegistry = extendableRegistry;
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
-		this.proxyFactory = proxyFactory;
-	}
-
 	public void setProviderType(Class<?> providerType)
 	{
 		this.providerType = providerType;
@@ -214,7 +208,7 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}

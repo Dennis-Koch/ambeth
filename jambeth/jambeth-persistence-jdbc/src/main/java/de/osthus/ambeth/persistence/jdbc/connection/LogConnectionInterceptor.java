@@ -15,7 +15,6 @@ import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -27,15 +26,17 @@ import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.IPrintable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class LogConnectionInterceptor implements MethodInterceptor, IInitializingBean
+public class LogConnectionInterceptor implements MethodInterceptor
 {
 	public static final Method createStatementMethod;
 
 	public static final Method isClosedMethod, closeMethod, pooledCloseMethod, toStringMethod;
 
 	public static final Method unwrapMethod, isWrapperForMethod;
+
+	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
+	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -68,10 +69,13 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected Connection connection;
 
+	@Property(name = PersistenceConfigurationConstants.FetchSize, defaultValue = "100")
 	protected int fetchSize;
 
 	protected final IConnectionKeyHandle connectionKeyHandle;
@@ -81,33 +85,15 @@ public class LogConnectionInterceptor implements MethodInterceptor, IInitializin
 		this.connectionKeyHandle = connectionKeyHandle;
 	}
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(connection, "connection");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
 	public void setConnection(Connection connection)
 	{
 		this.connection = connection;
 	}
 
-	@Property(name = PersistenceConfigurationConstants.FetchSize, defaultValue = "100")
-	public void setFetchSize(int fetchSize)
-	{
-		this.fetchSize = fetchSize;
-	}
-
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (CascadedInterceptor.finalizeMethod.equals(method))
+		if (finalizeMethod.equals(method))
 		{
 			return null;
 		}
