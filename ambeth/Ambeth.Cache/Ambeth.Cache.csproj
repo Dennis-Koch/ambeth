@@ -199,13 +199,9 @@
     <Compile Include="ambeth\cache\collections\ICacheMapEntryFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\propertychange\IPropertyChangeExtendable.cs" />
-    <Compile Include="ambeth\propertychange\IPropertyChangeExtension.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\databinding\ICollectionChangeExtendable.cs" />
+    <Compile Include="ambeth\databinding\ICollectionChangeExtensionExtendable.cs" />
     <Compile Include="ambeth\databinding\ICollectionChangeExtension.cs" />
-    <Compile Include="ambeth\databinding\IPropertyChangeExtendable.cs" />
+    <Compile Include="ambeth\databinding\IPropertyChangeExtensionExtendable.cs" />
     <Compile Include="ambeth\databinding\IPropertyChangeExtension.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

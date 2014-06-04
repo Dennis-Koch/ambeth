@@ -79,6 +79,7 @@
     <Compile Include="ambeth\cache\CacheFactory.cs" />
     <Compile Include="ambeth\cache\CacheKey.cs" />
     <Compile Include="ambeth\cache\CacheProvider.cs" />
+    <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
     <Compile Include="ambeth\cache\CacheType.cs" />
     <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
     <Compile Include="ambeth\cache\ChildCache.cs" />
@@ -123,6 +124,10 @@
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
     <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
     <Compile Include="ambeth\config\CacheNamedBeans.cs" />
+    <Compile Include="ambeth\databinding\ICollectionChangeExtension.cs" />
+    <Compile Include="ambeth\databinding\ICollectionChangeExtensionExtendable.cs" />
+    <Compile Include="ambeth\databinding\IPropertyChangeExtension.cs" />
+    <Compile Include="ambeth\databinding\IPropertyChangeExtensionExtendable.cs" />
     <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
     <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
@@ -193,9 +198,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\cache\CacheServiceRegistry.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AmbethStrongNameKey.snk" />

@@ -2,7 +2,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Databinding
 {
-    public interface IPropertyChangeExtendable
+    public interface IPropertyChangeExtensionExtendable
     {
         void RegisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Type entityType);
 

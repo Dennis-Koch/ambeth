@@ -2,7 +2,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Databinding
 {
-    public interface ICollectionChangeExtendable
+    public interface ICollectionChangeExtensionExtendable
     {
         void RegisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Type entityType);
 

@@ -23,9 +23,9 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly Lock writeLock = new ReadWriteLock().WriteLock;
 
-        protected IMapExtendableContainer<Type, ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<ICacheRetriever>("cacheRetriever", "entityType");
+        protected readonly ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<ICacheRetriever>("cacheRetriever", "entityType");
 
-        protected IMapExtendableContainer<String, ICacheService> nameToCacheServiceMap = new MapExtendableContainer<String, ICacheService>("cacheService", "serviceName");
+        protected readonly MapExtendableContainer<String, ICacheService> nameToCacheServiceMap = new MapExtendableContainer<String, ICacheService>("cacheService", "serviceName");
 
         public ICacheService CacheServiceForOris { protected get; set; }
 
