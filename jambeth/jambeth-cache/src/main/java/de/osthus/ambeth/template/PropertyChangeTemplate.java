@@ -388,7 +388,7 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 	{
 		final PropertyChangeSupport propertyChangeSupport = obj.getPropertyChangeSupport();
 		final IList<IPropertyChangeExtension> extensions = propertyChangeExtensions.getExtensions(obj.getClass());
-		if (propertyChangeSupport == null && extensions == null)
+		if (propertyChangeSupport == null && extensions == null && !(obj instanceof PropertyChangeListener))
 		{
 			return;
 		}
@@ -433,6 +433,8 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 	{
 		boolean debugEnabled = log.isDebugEnabled();
 
+		PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
+
 		for (int a = 0, size = propertyNames.length; a < size; a++)
 		{
 			String propertyName = propertyNames[a];
@@ -449,6 +451,11 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 			if (currentValue == UNKNOWN_VALUE)
 			{
 				currentValue = null;
+			}
+			if (pcl != null && (oldValue != null || currentValue != null))
+			{
+				// called only in "non-technical" PCEs
+				pcl.propertyChange(new PropertyChangeEvent(obj, propertyName, oldValue, currentValue));
 			}
 			if (propertyChangeSupport != null)
 			{
