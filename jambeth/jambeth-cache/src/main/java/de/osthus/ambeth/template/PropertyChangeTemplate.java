@@ -12,20 +12,14 @@ import de.osthus.ambeth.annotation.ParentChild;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.specialized.INotifyCollectionChanged;
 import de.osthus.ambeth.collections.specialized.NotifyCollectionChangedEvent;
 import de.osthus.ambeth.collections.specialized.PropertyChangeSupport;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.databinding.ICollectionChangeExtendable;
-import de.osthus.ambeth.databinding.ICollectionChangeExtension;
-import de.osthus.ambeth.databinding.IPropertyChangeExtendable;
-import de.osthus.ambeth.databinding.IPropertyChangeExtension;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.IDataObject;
@@ -40,7 +34,7 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
-public class PropertyChangeTemplate implements IPropertyChangeExtendable, ICollectionChangeExtendable
+public class PropertyChangeTemplate
 {
 	public static final Object UNKNOWN_VALUE = new Object();
 
@@ -159,12 +153,6 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 
 	protected final SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<IPropertyInfo, PropertyEntry>();
 
-	protected final ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<IPropertyChangeExtension>(
-			"propertyChangeExtension", "entityType");
-
-	protected final ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions = new ClassExtendableListContainer<ICollectionChangeExtension>(
-			"collectionChangeExtension", "entityType");
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -249,14 +237,6 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 				default:
 					throw RuntimeExceptionUtil.createEnumNotSupportedException(evnt.getAction());
 			}
-			IList<ICollectionChangeExtension> extensions = collectionChangeExtensions.getExtensions(obj.getClass());
-			if (extensions != null)
-			{
-				for (int a = 0, size = extensions.size(); a < size; a++)
-				{
-					extensions.get(a).collectionChanged(obj, evnt);
-				}
-			}
 		}
 		finally
 		{
@@ -339,16 +319,16 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 			Object[] oldValues;
 			Object[] currentValues;
 
-			// if (fireOldPropertyValueActive)
+			if (fireOldPropertyValueActive)
 			{
 				oldValues = createArrayOfValues(oldValue, propertyNames.length);
 				currentValues = currentValue == oldValue ? oldValues : createArrayOfValues(currentValue, propertyNames.length);
 			}
-			// else
-			// {
-			// oldValues = entry.unknownValues;
-			// currentValues = oldValues;
-			// }
+			else
+			{
+				oldValues = entry.unknownValues;
+				currentValues = oldValues;
+			}
 			firePropertyChange(obj, propertyNames, oldValues, currentValues);
 			if (entry.firesToBeCreatedPCE)
 			{
@@ -361,7 +341,7 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 		}
 		finally
 		{
-			if (entry.doesModifyToBeUpdated && !cacheModification.isActiveOrFlushingOrInternalUpdate())
+			if (!cacheModification.isActiveOrFlushing() && !cacheModification.isInternalUpdate() && entry.doesModifyToBeUpdated)
 			{
 				setToBeUpdated(obj, true);
 			}
@@ -400,16 +380,16 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 				@Override
 				public void invoke() throws Throwable
 				{
-					executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+					executeFirePropertyChange(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 				}
 			});
 			return;
 		}
-		executeFirePropertyChange(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+		executeFirePropertyChange(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 	}
 
-	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final IList<IPropertyChangeExtension> extensions,
-			final Object obj, final String[] propertyNames, final Object[] oldValues, final Object[] currentValues)
+	protected void executeFirePropertyChange(final PropertyChangeSupport propertyChangeSupport, final Object obj, final String[] propertyNames,
+			final Object[] oldValues, final Object[] currentValues)
 	{
 		if (asyncPropertyChangeActive)
 		{
@@ -418,21 +398,20 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 				@Override
 				public void invoke() throws Throwable
 				{
-					executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+					executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 				}
 			});
 		}
 		else
 		{
-			executeFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, propertyNames, oldValues, currentValues);
+			executeFirePropertyChangeIntern(propertyChangeSupport, obj, propertyNames, oldValues, currentValues);
 		}
 	}
 
-	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj,
-			String[] propertyNames, Object[] oldValues, Object[] currentValues)
+	protected void executeFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, String[] propertyNames, Object[] oldValues,
+			Object[] currentValues)
 	{
 		boolean debugEnabled = log.isDebugEnabled();
-
 		PropertyChangeListener pcl = (PropertyChangeListener) (obj instanceof PropertyChangeListener ? obj : null);
 
 		for (int a = 0, size = propertyNames.length; a < size; a++)
@@ -469,29 +448,5 @@ public class PropertyChangeTemplate implements IPropertyChangeExtendable, IColle
 				}
 			}
 		}
-	}
-
-	@Override
-	public void registerPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType)
-	{
-		propertyChangeExtensions.register(propertyChangeExtension, entityType);
-	}
-
-	@Override
-	public void unregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Class<?> entityType)
-	{
-		propertyChangeExtensions.unregister(propertyChangeExtension, entityType);
-	}
-
-	@Override
-	public void registerCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType)
-	{
-		collectionChangeExtensions.register(collectionChangeExtension, entityType);
-	}
-
-	@Override
-	public void unregisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Class<?> entityType)
-	{
-		collectionChangeExtensions.unregister(collectionChangeExtension, entityType);
 	}
 }

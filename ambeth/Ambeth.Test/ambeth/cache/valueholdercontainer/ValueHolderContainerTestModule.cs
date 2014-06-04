@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(Material));
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(MaterialType));
 
-            if (dispatcherThread == null)
+            if (dispatcherThread != null)
             {
                 Log.Info("Create SyncContext...");
                 CreateDispatcherThread(beanContextFactory);

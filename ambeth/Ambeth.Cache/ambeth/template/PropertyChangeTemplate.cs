@@ -8,10 +8,8 @@ using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
-using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Propertychange;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -25,7 +23,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Template
 {
-    public class PropertyChangeTemplate : IPropertyChangeExtendable
+    public class PropertyChangeTemplate
     {
         public static readonly Object UNKNOWN_VALUE = new Object();
 
@@ -153,14 +151,11 @@ namespace De.Osthus.Ambeth.Template
                 }
             }
         }
-        
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
         protected readonly SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<IPropertyInfo, PropertyEntry>();
-
-        protected readonly ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<IPropertyChangeExtension>(
-			"propertyChangeExtension", "entityType");
 
         [Autowired]
         public ICacheModification CacheModification { protected get; set; }
@@ -259,7 +254,7 @@ namespace De.Osthus.Ambeth.Template
             }
             finally
             {
-                if (entry.doesModifyToBeUpdated && !cacheModification.ActiveOrFlushingOrInternalUpdate)
+                if (!cacheModification.ActiveOrFlushing && !cacheModification.InternalUpdate && entry.doesModifyToBeUpdated)
                 {
                     SetToBeUpdated(obj, true);
                 }
@@ -319,8 +314,6 @@ namespace De.Osthus.Ambeth.Template
         protected void ExecuteFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             bool debugEnabled = Log.DebugEnabled;
-            IList<IPropertyChangeExtension> extensions = propertyChangeExtensions.GetExtensions(obj.GetType());
-
             for (int a = 0, size = propertyNames.Length; a < size; a++)
             {
                 String propertyName = propertyNames[a];
@@ -339,13 +332,6 @@ namespace De.Osthus.Ambeth.Template
                     currentValue = null;
                 }
                 propertyChangeSupport.FirePropertyChange(obj, evnts[a], propertyName, oldValue, currentValue);
-                if (extensions != null)
-                {
-                    for (int b = 0, sizeB = extensions.Count; b < sizeB; b++)
-                    {
-                        extensions[b].PropertyChanged(obj, propertyName, oldValue, currentValue);
-                    }
-                }
             }
         }
 
@@ -434,23 +420,11 @@ namespace De.Osthus.Ambeth.Template
 
         public void HandleParentChildPropertyChange(INotifyPropertyChangedSource obj, Object child, PropertyChangedEventArgs evnt)
         {
-            if (CacheModification.ActiveOrFlushingOrInternalUpdate)
+            if (CacheModification.ActiveOrFlushing)
             {
                 return;
             }
             SetToBeUpdated(obj, true);
-        }
-
-        public NotifyCollectionChangedEventHandler CreateCollectionEventHandler(Object entity)
-        {
-            //typeof(INotifyCollectionChangedListener);
-            //MethodInfo method = ReflectUtil.GetDeclaredMethod(false, entity.GetType(), "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
-            return (NotifyCollectionChangedEventHandler)Delegate.CreateDelegate(typeof(NotifyCollectionChangedEventHandler), entity, "CollectionChanged");
-        }
-
-        public PropertyChangedEventHandler CreateParentChildEventHandler(Object entity)
-        {
-            return (PropertyChangedEventHandler)Delegate.CreateDelegate(typeof(PropertyChangedEventHandler), entity, "PropertyChanged");
         }
 
         public void HandleCollectionChange(INotifyPropertyChangedSource obj, Object sender, NotifyCollectionChangedEventArgs evnt)
@@ -517,16 +491,6 @@ namespace De.Osthus.Ambeth.Template
                 return property;
             }
             throw new Exception("Property not found: " + obj.GetType().FullName + "." + propertyName);
-        }
-
-        public void RegisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Type entityType)
-        {
-            propertyChangeExtensions.Register(propertyChangeExtension, entityType);
-        }
-
-        public void UnregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Type entityType)
-        {
-            propertyChangeExtensions.Unregister(propertyChangeExtension, entityType);
         }
     }
 }
