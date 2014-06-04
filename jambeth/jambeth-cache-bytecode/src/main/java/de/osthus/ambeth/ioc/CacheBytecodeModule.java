@@ -10,8 +10,6 @@ import de.osthus.ambeth.bytecode.behavior.LazyRelationsBehavior;
 import de.osthus.ambeth.bytecode.behavior.NotifyPropertyChangedBehavior;
 import de.osthus.ambeth.bytecode.behavior.ParentCacheHardRefBehavior;
 import de.osthus.ambeth.bytecode.behavior.RootCacheValueBehavior;
-import de.osthus.ambeth.databinding.ICollectionChangeExtendable;
-import de.osthus.ambeth.databinding.IPropertyChangeExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.template.DataObjectTemplate;
@@ -44,8 +42,7 @@ public class CacheBytecodeModule implements IInitializingModule
 
 		beanContextFactory.registerAnonymousBean(DataObjectTemplate.class).autowireable(DataObjectTemplate.class);
 		beanContextFactory.registerAnonymousBean(EmbeddedTypeTemplate.class).autowireable(EmbeddedTypeTemplate.class);
-		beanContextFactory.registerAnonymousBean(PropertyChangeTemplate.class).autowireable(PropertyChangeTemplate.class, IPropertyChangeExtendable.class,
-				ICollectionChangeExtendable.class);
+		beanContextFactory.registerAnonymousBean(PropertyChangeTemplate.class).autowireable(PropertyChangeTemplate.class);
 		beanContextFactory.registerAnonymousBean(ValueHolderContainerTemplate.class).autowireable(ValueHolderContainerTemplate.class);
 	}
 }

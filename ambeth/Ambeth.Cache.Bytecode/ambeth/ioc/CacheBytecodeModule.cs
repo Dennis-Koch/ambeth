@@ -1,7 +1,6 @@
 using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Factory;
-using De.Osthus.Ambeth.Propertychange;
 using De.Osthus.Ambeth.Template;
 
 namespace De.Osthus.Ambeth.Ioc
@@ -30,7 +29,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterAnonymousBean<DataObjectTemplate>().Autowireable<DataObjectTemplate>();
             beanContextFactory.RegisterAnonymousBean<EmbeddedTypeTemplate>().Autowireable<EmbeddedTypeTemplate>();
-            beanContextFactory.RegisterAnonymousBean<PropertyChangeTemplate>().Autowireable<PropertyChangeTemplate>().Autowireable<IPropertyChangeExtendable>();
+            beanContextFactory.RegisterAnonymousBean<PropertyChangeTemplate>().Autowireable<PropertyChangeTemplate>();
             beanContextFactory.RegisterAnonymousBean<ValueHolderContainerTemplate>().Autowireable<ValueHolderContainerTemplate>();
         }
     }
