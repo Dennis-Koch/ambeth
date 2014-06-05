@@ -16,7 +16,7 @@
 
 	<property name="workspace.build.dir" value="${target.base.dir}/build" />
 
-	<property name="source.ambeth.dir" value="${target.base.dir}/osthus-ambeth/ambeth" />
+	<property name="source.ambeth.dir" value="${target.base.dir}/ambeth" />
 	
 	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
 	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />
