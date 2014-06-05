@@ -107,6 +107,10 @@
       <Project>{C5578625-B948-4A25-9712-ACE10E075C82}</Project>
       <Name>Ambeth.Merge.SL5</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.SL5.csproj">
+      <Project>{e7a4e157-0cfb-4f55-a6dc-631134d89096}</Project>
+      <Name>Ambeth.Security.SL5</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL5.csproj">
       <Project>{0E9CB1B1-CB78-4B7E-A404-8F223665B4E3}</Project>
       <Name>Ambeth.Service.SL5</Name>

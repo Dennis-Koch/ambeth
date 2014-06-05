@@ -5,7 +5,7 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtendable;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
 import de.osthus.ambeth.privilege.IPrivilegeRegistry;
 import de.osthus.ambeth.privilege.service.IPrivilegeService;
 import de.osthus.ambeth.privilege.service.PrivilegeService;
@@ -23,8 +23,8 @@ public class PrivilegeServerModule implements IInitializingModule
 		beanContextFactory.registerBean("privilegeService", PrivilegeService.class).autowireable(IPrivilegeService.class);
 
 		beanContextFactory.registerBean("privilegeRegistry", ExtendableBean.class)
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IPrivilegeProviderExtendable.class)
+				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IPrivilegeProviderExtensionExtendable.class)
 				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IPrivilegeRegistry.class)
-				.autowireable(IPrivilegeRegistry.class, IPrivilegeProviderExtendable.class);
+				.autowireable(IPrivilegeRegistry.class, IPrivilegeProviderExtensionExtendable.class);
 	}
 }

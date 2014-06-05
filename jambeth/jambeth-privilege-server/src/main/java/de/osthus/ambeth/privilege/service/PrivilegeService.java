@@ -15,28 +15,27 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
 import de.osthus.ambeth.privilege.IPrivilegeRegistry;
 import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
-import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
+import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
-public class PrivilegeService implements IPrivilegeService, IInitializingBean
+public class PrivilegeService implements IPrivilegeService
 {
 	public static class PrivilegeServiceCall implements ISingleCacheRunnable<List<PrivilegeResult>>
 	{
@@ -66,98 +65,38 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 
 	private static final PrivilegeEnum[] emptyPrivileges = new PrivilegeEnum[0];
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected ICacheContext cacheContext;
 
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
-	protected ICacheHelper cacheHelper;
-
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired
+	protected IPrefetchHelper prefetchHelper;
+
+	@Autowired
 	protected IPrivilegeRegistry privilegeRegistry;
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
 
+	@Property(name = SecurityConfigurationConstants.DefaultReadPrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultReadPrivilege;
 
+	@Property(name = SecurityConfigurationConstants.DefaultUpdatePrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultUpdatePrivilege;
 
+	@Property(name = SecurityConfigurationConstants.DefaultDeletePrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultDeletePrivilege;
 
-	protected boolean isDefaultCreatePrivilege;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(cache, "Cache");
-		ParamChecker.assertNotNull(cacheContext, "CacheContext");
-		ParamChecker.assertNotNull(cacheFactory, "CacheFactory");
-		ParamChecker.assertNotNull(cacheHelper, "CacheHelper");
-		ParamChecker.assertNotNull(oriHelper, "OriHelper");
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-		ParamChecker.assertNotNull(privilegeRegistry, "PrivilegeRegistry");
-	}
-
 	@Property(name = SecurityConfigurationConstants.DefaultCreatePrivilegeActive, defaultValue = "true")
-	public void setDefaultCreatePrivilege(boolean isDefaultCreatePrivilege)
-	{
-		this.isDefaultCreatePrivilege = isDefaultCreatePrivilege;
-	}
-
-	@Property(name = SecurityConfigurationConstants.DefaultDeletePrivilegeActive, defaultValue = "true")
-	public void setDefaultDeletePrivilege(boolean isDefaultDeletePrivilege)
-	{
-		this.isDefaultDeletePrivilege = isDefaultDeletePrivilege;
-	}
-
-	@Property(name = SecurityConfigurationConstants.DefaultReadPrivilegeActive, defaultValue = "true")
-	public void setDefaultReadPrivilege(boolean isDefaultReadPrivilege)
-	{
-		this.isDefaultReadPrivilege = isDefaultReadPrivilege;
-	}
-
-	@Property(name = SecurityConfigurationConstants.DefaultUpdatePrivilegeActive, defaultValue = "true")
-	public void setDefaultUpdatePrivilege(boolean isDefaultUpdatePrivilege)
-	{
-		this.isDefaultUpdatePrivilege = isDefaultUpdatePrivilege;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCacheContext(ICacheContext cacheContext)
-	{
-		this.cacheContext = cacheContext;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCacheHelper(ICacheHelper cacheHelper)
-	{
-		this.cacheHelper = cacheHelper;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setPrivilegeRegistry(IPrivilegeRegistry privilegeRegistry)
-	{
-		this.privilegeRegistry = privilegeRegistry;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
+	protected boolean isDefaultCreatePrivilege;
 
 	public boolean isCreateAllowed(Object entity, ISecurityScope[] securityScopes)
 	{
@@ -220,7 +159,7 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 
 	protected List<PrivilegeResult> getPrivilegesIntern(IObjRef[] objRefs, ISecurityScope[] securityScopes)
 	{
-		ICacheHelper cacheHelper = this.cacheHelper;
+		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		IPrivilegeRegistry privilegeRegistry = this.privilegeRegistry;
 		HashSet<Class<?>> requestedTypes = new HashSet<Class<?>>();
 		IList<Object> entitiesToCheck = null;
@@ -236,10 +175,10 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 			Class<?> realType = objRef.getRealType();
 			requestedTypes.add(realType);
 		}
-		IPrefetchConfig prefetchConfig = cacheHelper.createPrefetch();
+		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
 		for (Class<?> requestedType : requestedTypes)
 		{
-			IPrivilegeProvider privilegeProviderExtension = privilegeRegistry.getExtension(requestedType);
+			IPrivilegeProviderExtension privilegeProviderExtension = privilegeRegistry.getExtension(requestedType);
 			if (privilegeProviderExtension == null)
 			{
 				continue;
@@ -251,7 +190,6 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
 		ArrayList<PrivilegeResult> privilegeResults = new ArrayList<PrivilegeResult>(4);
 
-		ISecurityScope[] currentSecurityScope = new ISecurityScope[1];
 		for (int a = 0, size = objRefs.length; a < size; a++)
 		{
 			IObjRef objRef = objRefs[a];
@@ -262,12 +200,12 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 			Object entity = entitiesToCheck.get(a);
 			Class<?> realType = objRef.getRealType();
 
-			IPrivilegeProvider privilegeProviderExtension = privilegeRegistry.getExtension(realType);
+			IPrivilegeProviderExtension privilegeProviderExtension = privilegeRegistry.getExtension(realType);
 			for (int b = securityScopes.length; b-- > 0;)
 			{
-				currentSecurityScope[0] = securityScopes[b];
+				ISecurityScope currentSecurityScope = securityScopes[b];
 
-				ArrayList<PrivilegeEnum> privilegeEnums = new ArrayList<PrivilegeEnum>();
+				ArrayList<PrivilegeEnum> privilegeEnums = new ArrayList<PrivilegeEnum>(4);
 				if (privilegeProviderExtension != null)
 				{
 					if (privilegeProviderExtension.isReadAllowed(entity, currentSecurityScope))
@@ -315,10 +253,10 @@ public class PrivilegeService implements IPrivilegeService, IInitializingBean
 
 				PrivilegeResult privilegeResult = new PrivilegeResult();
 				privilegeResult.setReference(objRef);
-				privilegeResult.setSecurityScope(currentSecurityScope[0]);
+				privilegeResult.setSecurityScope(currentSecurityScope);
 				if (privilegeEnums.size() > 0)
 				{
-					privilegeResult.setPrivileges(privilegeEnums.toArray(new PrivilegeEnum[privilegeEnums.size()]));
+					privilegeResult.setPrivileges(privilegeEnums.toArray(PrivilegeEnum.class));
 				}
 				else
 				{

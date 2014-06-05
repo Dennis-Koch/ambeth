@@ -71,6 +71,10 @@
       <Project>{D8C0CA71-B7FC-4699-97C2-4DEB72EEC485}</Project>
       <Name>Ambeth.Merge</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Security\Ambeth.Security.csproj">
+      <Project>{336798d1-d839-4256-b93b-b738b5bf4b3b}</Project>
+      <Name>Ambeth.Security</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
       <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
       <Name>Ambeth.Service</Name>
