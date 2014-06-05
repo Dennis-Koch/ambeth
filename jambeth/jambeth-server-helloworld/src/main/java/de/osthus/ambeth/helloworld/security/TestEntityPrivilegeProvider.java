@@ -1,40 +1,17 @@
 package de.osthus.ambeth.helloworld.security;
 
-import java.util.List;
-
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.helloworld.transfer.TestEntity;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.IPrivilegeItem;
-import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
-public class TestEntityPrivilegeProvider implements IPrivilegeProvider, IInitializingBean
+public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-	}
-
-	@Override
-	public IList<IPrivilegeItem> getPrivileges(List<IObjRef> objRefs, ISecurityScope... securityScopes)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public IPrivilegeItem getPrivileges(Object entity, ISecurityScope... securityScopes)
-	{
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	public void buildPrefetchConfig(Class<?> entityType, IPrefetchConfig prefetchConfig)

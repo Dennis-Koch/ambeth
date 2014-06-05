@@ -1,6 +1,6 @@
 package de.osthus.ambeth.query.isin;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.PersistenceContext;
@@ -8,28 +8,17 @@ import de.osthus.ambeth.proxy.Service;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.util.ParamChecker;
 
 @Service(IChildService.class)
 @PersistenceContext
-public class ChildService implements IChildService, IInitializingBean
+public class ChildService implements IChildService
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(queryBuilderFactory, "queryBuilderFactory");
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
-	}
 
 	@Override
 	public void searchForParentWithEquals(int parentId)

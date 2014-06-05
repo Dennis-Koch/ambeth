@@ -6,51 +6,30 @@ import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class QueryBean<T> implements IInitializingBean, IQuery<T>
+public class QueryBean<T> implements IQuery<T>
 {
 	@SuppressWarnings("unused")
-	@LogInstance(QueryBean.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Class<T> entityType;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
+	@Autowired
 	protected IQueryCreator queryCreator;
 
 	protected Reference<IQuery<T>> queryRef;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityType, "entityType");
-		ParamChecker.assertNotNull(queryBuilderFactory, "QueryBuilderFactory");
-		ParamChecker.assertNotNull(queryCreator, "QueryCreator");
-	}
-
-	public void setEntityType(Class<T> entityType)
-	{
-		this.entityType = entityType;
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
-	}
-
-	public void setQueryCreator(IQueryCreator queryCreator)
-	{
-		this.queryCreator = queryCreator;
-	}
 
 	@Override
 	public void dispose()

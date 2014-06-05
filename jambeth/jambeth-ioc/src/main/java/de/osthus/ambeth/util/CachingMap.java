@@ -66,10 +66,6 @@ public class CachingMap<K, V> extends ThreadLocal<LocalMap<K, V>> implements ILi
 		{
 			beanContext.link(this).to(IThreadLocalCleanupBeanExtendable.class);
 		}
-		else
-		{
-			System.out.println();
-		}
 	}
 
 	/**
@@ -89,10 +85,6 @@ public class CachingMap<K, V> extends ThreadLocal<LocalMap<K, V>> implements ILi
 		else if (beanContext != null)
 		{
 			beanContext.link(this).to(IThreadLocalCleanupBeanExtendable.class);
-		}
-		else
-		{
-			System.out.println();
 		}
 	}
 

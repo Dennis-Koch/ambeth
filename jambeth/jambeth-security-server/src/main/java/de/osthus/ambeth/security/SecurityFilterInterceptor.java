@@ -82,7 +82,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			}
 			if (userHandle == null || !userHandle.isValid())
 			{
-				if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
+				if (SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 				{
 					// It is not expected for this method, that the user is be valid
 				}
@@ -104,13 +104,15 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		try
 		{
 			// Check for authorized access if requested
-			securityManager.checkServiceAccess(method, args, behaviourOfMethod, userHandle);
+			if (SecurityContextType.AUTHORIZED.equals(behaviourOfMethod))
+			{
+				securityManager.checkServiceAccess(method, args, behaviourOfMethod, userHandle);
+			}
 			Object unfilteredResult = invokeTarget(obj, method, args, proxy);
-			if (!securityActivation.isFilterActivated())
+			if (!SecurityContextType.AUTHORIZED.equals(behaviourOfMethod) || !securityActivation.isFilterActivated())
 			{
 				return unfilteredResult;
 			}
-			// Filter result
 			return securityManager.filterValue(unfilteredResult);
 		}
 		finally

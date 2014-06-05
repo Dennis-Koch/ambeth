@@ -10,7 +10,7 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.BootstrapModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.job.IJobExtendable;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtendable;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
 import de.osthus.ambeth.security.IUserHandleFactory;
 
 @BootstrapModule
@@ -25,6 +25,6 @@ public class HelloWorldModule implements IInitializingModule
 		beanContextFactory.link("randomDataGenerator").to(IJobExtendable.class).with("randomDataGenerator", "* * * * *");
 
 		beanContextFactory.registerBean("testEntityPPE", TestEntityPrivilegeProvider.class);
-		beanContextFactory.link("testEntityPPE").to(IPrivilegeProviderExtendable.class).with(TestEntity.class);
+		beanContextFactory.link("testEntityPPE").to(IPrivilegeProviderExtensionExtendable.class).with(TestEntity.class);
 	}
 }

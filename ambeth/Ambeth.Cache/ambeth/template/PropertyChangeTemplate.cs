@@ -4,10 +4,12 @@ using De.Osthus.Ambeth.Cache.Config;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Collections.Specialized;
 using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Databinding;
 using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Threading;
@@ -23,7 +25,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Template
 {
-    public class PropertyChangeTemplate
+    public class PropertyChangeTemplate : IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
     {
         public static readonly Object UNKNOWN_VALUE = new Object();
 
@@ -57,7 +59,7 @@ namespace De.Osthus.Ambeth.Template
                 PropertyInfo prop = type.GetProperty(propertyName);
                 doesModifyToBeUpdated = !AnnotationUtil.IsAnnotationPresent<IgnoreToBeUpdated>(prop, false);
                 isParentChildSetter = AnnotationUtil.IsAnnotationPresent<ParentChild>(prop, false);
-			    isAddedRemovedCheckNecessary = !prop.PropertyType.IsPrimitive && ImmutableTypeSet.GetUnwrappedType(prop.PropertyType) == null
+                isAddedRemovedCheckNecessary = !prop.PropertyType.IsPrimitive && ImmutableTypeSet.GetUnwrappedType(prop.PropertyType) == null
                     && !typeof(String).Equals(prop.PropertyType) && !prop.PropertyType.IsValueType;
 
                 EvaluateDependentProperties(type, prop, propertyNames);
@@ -157,6 +159,12 @@ namespace De.Osthus.Ambeth.Template
 
         protected readonly SmartCopyMap<IPropertyInfo, PropertyEntry> propertyToEntryMap = new SmartCopyMap<IPropertyInfo, PropertyEntry>();
 
+        protected readonly ClassExtendableListContainer<IPropertyChangeExtension> propertyChangeExtensions = new ClassExtendableListContainer<IPropertyChangeExtension>(
+            "propertyChangeExtension", "entityType");
+
+        protected readonly ClassExtendableListContainer<ICollectionChangeExtension> collectionChangeExtensions = new ClassExtendableListContainer<ICollectionChangeExtension>(
+            "collectionChangeExtension", "entityType");
+
         [Autowired]
         public ICacheModification CacheModification { protected get; set; }
 
@@ -254,7 +262,7 @@ namespace De.Osthus.Ambeth.Template
             }
             finally
             {
-                if (!cacheModification.ActiveOrFlushing && !cacheModification.InternalUpdate && entry.doesModifyToBeUpdated)
+                if (entry.doesModifyToBeUpdated && !cacheModification.ActiveOrFlushingOrInternalUpdate)
                 {
                     SetToBeUpdated(obj, true);
                 }
@@ -280,40 +288,43 @@ namespace De.Osthus.Ambeth.Template
         public void FirePropertyChange(INotifyPropertyChangedSource obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             PropertyChangeSupport propertyChangeSupport = obj.PropertyChangeSupport;
-            if (propertyChangeSupport == null)
-            {
-                return;
-            }
+            IList<IPropertyChangeExtension> extensions = propertyChangeExtensions.GetExtensions(obj.GetType());
+		    if (propertyChangeSupport == null && extensions == null && !(obj is IPropertyChangedEventHandler))
+		    {
+			    return;
+		    }
             ICacheModification cacheModification = this.CacheModification;
             if (cacheModification.Active)
             {
                 cacheModification.QueuePropertyChangeEvent(delegate()
                 {
-                    ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
+                    ExecuteFirePropertyChange(propertyChangeSupport, extensions, obj, evnts, propertyNames, oldValues, currentValues);
                 });
                 return;
             }
-            ExecuteFirePropertyChange(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
+            ExecuteFirePropertyChange(propertyChangeSupport, extensions, obj, evnts, propertyNames, oldValues, currentValues);
         }
-        
-        protected void ExecuteFirePropertyChange(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
+
+        protected void ExecuteFirePropertyChange(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             if (AsyncPropertyChangeActive)
             {
                 GuiThreadHelper.InvokeInGui(delegate()
                 {
-                    ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
+                    ExecuteFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, evnts, propertyNames, oldValues, currentValues);
                 });
             }
             else
             {
-                ExecuteFirePropertyChangeIntern(propertyChangeSupport, obj, evnts, propertyNames, oldValues, currentValues);
+                ExecuteFirePropertyChangeIntern(propertyChangeSupport, extensions, obj, evnts, propertyNames, oldValues, currentValues);
             }
         }
 
-        protected void ExecuteFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
+        protected void ExecuteFirePropertyChangeIntern(PropertyChangeSupport propertyChangeSupport, IList<IPropertyChangeExtension> extensions, Object obj, PropertyChangedEventArgs[] evnts, String[] propertyNames, Object[] oldValues, Object[] currentValues)
         {
             bool debugEnabled = Log.DebugEnabled;
+            IPropertyChangedEventHandler pcl = (IPropertyChangedEventHandler)(obj is IPropertyChangedEventHandler ? obj : null);
+
             for (int a = 0, size = propertyNames.Length; a < size; a++)
             {
                 String propertyName = propertyNames[a];
@@ -331,7 +342,22 @@ namespace De.Osthus.Ambeth.Template
                 {
                     currentValue = null;
                 }
-                propertyChangeSupport.FirePropertyChange(obj, evnts[a], propertyName, oldValue, currentValue);
+                if (pcl != null && (oldValue != null || currentValue != null))
+                {
+                    // called only in "non-technical" PCEs
+                    pcl.PropertyChanged(obj, evnts[a]);
+                }
+                if (propertyChangeSupport != null)
+                {
+                    propertyChangeSupport.FirePropertyChange(obj, evnts[a], propertyName, oldValue, currentValue);
+                }
+                if (extensions != null)
+                {
+                    for (int b = 0, sizeB = extensions.Count; b < sizeB; b++)
+                    {
+                        extensions[b].PropertyChanged(obj, propertyName, oldValue, currentValue);
+                    }
+                }
             }
         }
 
@@ -420,7 +446,7 @@ namespace De.Osthus.Ambeth.Template
 
         public void HandleParentChildPropertyChange(INotifyPropertyChangedSource obj, Object child, PropertyChangedEventArgs evnt)
         {
-            if (CacheModification.ActiveOrFlushingOrInternalUpdate)
+            if (CacheModification.ActiveOrFlushing)
             {
                 return;
             }
@@ -464,6 +490,14 @@ namespace De.Osthus.Ambeth.Template
                     default:
                         throw RuntimeExceptionUtil.CreateEnumNotSupportedException(evnt.Action);
                 }
+                IList<ICollectionChangeExtension> extensions = collectionChangeExtensions.GetExtensions(obj.GetType());
+                if (extensions != null)
+                {
+                    for (int a = 0, size = extensions.Count; a < size; a++)
+                    {
+                        extensions[a].CollectionChanged(obj, evnt);
+                    }
+                }
             }
             finally
             {
@@ -491,6 +525,26 @@ namespace De.Osthus.Ambeth.Template
                 return property;
             }
             throw new Exception("Property not found: " + obj.GetType().FullName + "." + propertyName);
+        }
+
+        public void RegisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Type entityType)
+        {
+            propertyChangeExtensions.Register(propertyChangeExtension, entityType);
+        }
+
+        public void UnregisterPropertyChangeExtension(IPropertyChangeExtension propertyChangeExtension, Type entityType)
+        {
+            propertyChangeExtensions.Unregister(propertyChangeExtension, entityType);
+        }
+
+        public void RegisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Type entityType)
+        {
+            collectionChangeExtensions.Register(collectionChangeExtension, entityType);
+        }
+
+        public void UnregisterCollectionChangeExtension(ICollectionChangeExtension collectionChangeExtension, Type entityType)
+        {
+            collectionChangeExtensions.Unregister(collectionChangeExtension, entityType);
         }
     }
 }

@@ -55,6 +55,6 @@ public abstract class Parent extends AbstractEntity implements PropertyChangeLis
 	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
-		System.out.println();
+		System.out.println("PCE called");
 	}
 }
