@@ -8,15 +8,26 @@ import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 
 public class MethodPropertyInfoASM extends MethodPropertyInfo
 {
-	protected final MethodAccess methodAccess;
+	protected MethodAccess methodAccess;
 
-	protected final int getterIndex, setterIndex;
+	protected int getterIndex, setterIndex;
 
 	public MethodPropertyInfoASM(Class<?> entityType, String propertyName, Method getter, Method setter, IThreadLocalObjectCollector objectCollector,
 			MethodAccess methodAccess)
 	{
 		super(entityType, propertyName, getter, setter, objectCollector);
 		this.methodAccess = methodAccess;
+		getterIndex = getter != null ? methodAccess.getIndex(getter.getName(), getter.getParameterTypes()) : -1;
+		setterIndex = setter != null ? methodAccess.getIndex(setter.getName(), setter.getParameterTypes()) : -1;
+		this.readable = getterIndex != -1;
+		this.writable = setterIndex != -1;
+	}
+
+	@Override
+	public void refreshAccessors(Class<?> realType)
+	{
+		super.refreshAccessors(realType);
+		this.methodAccess = MethodAccess.get(realType);
 		getterIndex = getter != null ? methodAccess.getIndex(getter.getName(), getter.getParameterTypes()) : -1;
 		setterIndex = setter != null ? methodAccess.getIndex(setter.getName(), setter.getParameterTypes()) : -1;
 		this.readable = getterIndex != -1;

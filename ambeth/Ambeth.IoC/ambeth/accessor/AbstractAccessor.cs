@@ -9,9 +9,9 @@ namespace De.Osthus.Ambeth.Accessor
 		    // Intended blank
 	    }
 
-        public abstract bool CanRead();
+        public abstract bool CanRead { get; }
 
-        public abstract bool CanWrite();
+        public abstract bool CanWrite { get; }
 
 	    public abstract Object GetValue(Object obj);
 

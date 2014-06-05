@@ -74,6 +74,11 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 		}
 	}
 
+	public void refreshAccessors(Class<?> realType)
+	{
+		// intended blank
+	}
+
 	@Override
 	public Class<?> getEntityType()
 	{

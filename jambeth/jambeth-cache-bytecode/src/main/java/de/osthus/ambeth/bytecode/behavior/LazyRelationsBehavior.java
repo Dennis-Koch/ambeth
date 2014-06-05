@@ -80,7 +80,8 @@ public class LazyRelationsBehavior extends AbstractBehavior
 					continue;
 				}
 				MethodPropertyInfo prop = (MethodPropertyInfo) ((PropertyInfoItem) member).getProperty();
-				if (state.hasMethod(new MethodInstance(prop.getGetter())) || state.hasMethod(new MethodInstance(prop.getSetter())))
+				if ((prop.getGetter() != null && state.hasMethod(new MethodInstance(prop.getGetter())))
+						|| (prop.getSetter() != null && state.hasMethod(new MethodInstance(prop.getSetter()))))
 				{
 					// Handle this behavior in the next iteration
 					cascadePendingBehaviors.add(this);

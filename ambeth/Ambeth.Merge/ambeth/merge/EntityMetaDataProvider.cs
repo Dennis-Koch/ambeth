@@ -13,6 +13,8 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Event;
 using System.Reflection;
 using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Accessor;
+using De.Osthus.Ambeth.Bytecode;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -22,7 +24,13 @@ namespace De.Osthus.Ambeth.Merge
         public ILogger Log { private get; set; }
 
         [Autowired]
+        public IAccessorTypeProvider AccessorTypeProvider { protected get; set; }
+
+        [Autowired]
         public IServiceContext BeanContext { protected get; set; }
+
+        [Autowired]
+        public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
 
         [Autowired(Optional = true)]
         public IEntityFactory EntityFactory { protected get; set; }
@@ -83,15 +91,50 @@ namespace De.Osthus.Ambeth.Merge
             }
             foreach (IEntityMetaData metaData in extensions)
             {
-                IISet<Type> relatedByTypes = typeRelatedByTypes.Get(metaData.EntityType);
+                Type entityType = metaData.EntityType;
+                IISet<Type> relatedByTypes = typeRelatedByTypes.Get(entityType);
                 if (relatedByTypes == null)
                 {
                     relatedByTypes = new CHashSet<Type>();
                 }
                 ((EntityMetaData)metaData).TypesRelatingToThis = relatedByTypes.ToArray();
+                ((EntityMetaData)metaData).RealType = BytecodeEnhancer.GetEnhancedType(entityType, EntityEnhancementHint.HOOK);
+
+                RefreshMembers(metaData);
+
                 ((EntityMetaData)metaData).Initialize(EntityFactory);
             }
         }
+
+        protected void RefreshMembers(IEntityMetaData metaData)
+	    {
+		    foreach (ITypeInfoItem member in metaData.RelationMembers)
+		    {
+			    RefreshMember(metaData, member);
+		    }
+		    foreach (ITypeInfoItem member in metaData.PrimitiveMembers)
+		    {
+			    RefreshMember(metaData, member);
+		    }
+		    RefreshMember(metaData, metaData.IdMember);
+		    RefreshMember(metaData, metaData.VersionMember);
+	    }
+
+        protected void RefreshMember(IEntityMetaData metaData, ITypeInfoItem member)
+	    {
+		    if (!(member is PropertyInfoItem))
+		    {
+			    return;
+		    }
+		    PropertyInfoItem pMember = (PropertyInfoItem) member;
+		    AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.Property;
+		    propertyInfo.RefreshAccessors(metaData.RealType);
+		    if (propertyInfo is MethodPropertyInfoASM2)
+		    {
+			    AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(metaData.RealType, member.Name);
+			    ((MethodPropertyInfoASM2) propertyInfo).SetAccessor(accessor);
+		    }
+	    }
 
         public IEntityMetaData GetMetaData(Type entityType)
         {
@@ -137,7 +180,7 @@ namespace De.Osthus.Ambeth.Merge
                 sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
                 foreach (Type notFoundType in notFoundEntityTypes)
                 {
-                    sb.Append("\t\n").Append(notFoundType.FullName);
+                    sb.Append("\n\t").Append(notFoundType.FullName);
                 }
                 Log.Warn(sb.ToString());
             }

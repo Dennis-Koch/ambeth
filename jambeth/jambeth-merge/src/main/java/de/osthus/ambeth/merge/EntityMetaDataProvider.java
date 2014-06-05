@@ -11,6 +11,10 @@ import java.util.concurrent.locks.Lock;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
+import de.osthus.ambeth.accessor.AbstractAccessor;
+import de.osthus.ambeth.accessor.IAccessorTypeProvider;
+import de.osthus.ambeth.bytecode.EntityEnhancementHint;
+import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -35,11 +39,14 @@ import de.osthus.ambeth.merge.model.IEntityLifecycleExtension;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
+import de.osthus.ambeth.typeinfo.AbstractPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
+import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM2;
+import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
@@ -53,7 +60,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	private ILogger log;
 
 	@Autowired
+	protected IAccessorTypeProvider accessorTypeProvider;
+
+	@Autowired
 	protected IServiceContext beanContext;
+
+	@Autowired
+	protected IBytecodeEnhancer bytecodeEnhancer;
 
 	@Autowired(optional = true)
 	protected IEntityFactory entityFactory;
@@ -114,13 +127,49 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		for (IEntityMetaData metaData : extensions)
 		{
-			ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(metaData.getEntityType());
+			Class<?> entityType = metaData.getEntityType();
+			ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(entityType);
 			if (relatedByTypes == null)
 			{
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
+			((EntityMetaData) metaData).setRealType(bytecodeEnhancer.getEnhancedType(entityType, EntityEnhancementHint.HOOK));
+
+			refreshMembers(metaData);
+
 			((EntityMetaData) metaData).initialize(entityFactory);
+
+		}
+	}
+
+	protected void refreshMembers(IEntityMetaData metaData)
+	{
+		for (ITypeInfoItem member : metaData.getRelationMembers())
+		{
+			refreshMember(metaData, member);
+		}
+		for (ITypeInfoItem member : metaData.getPrimitiveMembers())
+		{
+			refreshMember(metaData, member);
+		}
+		refreshMember(metaData, metaData.getIdMember());
+		refreshMember(metaData, metaData.getVersionMember());
+	}
+
+	protected void refreshMember(IEntityMetaData metaData, ITypeInfoItem member)
+	{
+		if (!(member instanceof PropertyInfoItem))
+		{
+			return;
+		}
+		PropertyInfoItem pMember = (PropertyInfoItem) member;
+		AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.getProperty();
+		propertyInfo.refreshAccessors(metaData.getRealType());
+		if (propertyInfo instanceof MethodPropertyInfoASM2)
+		{
+			AbstractAccessor accessor = accessorTypeProvider.getAccessorType(metaData.getRealType(), member.getName());
+			((MethodPropertyInfoASM2) propertyInfo).setAccessor(accessor);
 		}
 	}
 
@@ -178,7 +227,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			sb.append("No metadata found for ").append(notFoundEntityTypes.size()).append(" type(s):");
 			for (Class<?> notFoundType : notFoundEntityTypes)
 			{
-				sb.append("\t\n").append(notFoundType.getName());
+				sb.append("\n\t").append(notFoundType.getName());
 			}
 			log.warn(sb);
 		}

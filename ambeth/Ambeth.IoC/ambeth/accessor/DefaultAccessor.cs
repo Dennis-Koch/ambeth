@@ -33,14 +33,20 @@ namespace De.Osthus.Ambeth.Accessor
             writable = setter != null && setter.IsPublic;
         }
 
-        public override bool CanRead()
+        public override bool CanRead
         {
-            return readable;
+            get
+            {
+                return readable;
+            }
         }
 
-        public override bool CanWrite()
+        public override bool CanWrite
         {
-            return writable;
+            get
+            {
+                return writable;
+            }
         }
 
         public override Object GetValue(Object obj)

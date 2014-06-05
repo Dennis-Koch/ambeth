@@ -93,7 +93,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                     }
                     IRelationInfoItem cMember = ((EmbeddedRelationInfoItem)member).ChildMember;
                     MethodPropertyInfo prop = (MethodPropertyInfo)((PropertyInfoItem)cMember).Property;
-                    if (state.HasMethod(new MethodInstance(prop.Getter)) || state.HasMethod(new MethodInstance(prop.Setter)))
+                    if ((prop.Getter != null && state.HasMethod(new MethodInstance(prop.Getter))) || (prop.Setter != null && state.HasMethod(new MethodInstance(prop.Setter))))
                     {
                         // Handle this behavior in the next iteration
                         cascadePendingBehaviors.Add(this);

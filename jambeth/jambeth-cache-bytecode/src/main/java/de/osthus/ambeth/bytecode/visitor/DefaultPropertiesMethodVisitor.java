@@ -1,6 +1,7 @@
 package de.osthus.ambeth.bytecode.visitor;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
@@ -33,13 +34,21 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 	{
 		for (IPropertyInfo propertyInfo : propertyInfos)
 		{
-			if (!propertyInfo.isWritable() || !propertyInfo.isReadable())
-			{
-				continue;
-			}
-			MethodInstance m_setterTemplate = new MethodInstance(((MethodPropertyInfo) propertyInfo).getSetter());
+			Method getter = ((MethodPropertyInfo) propertyInfo).getGetter();
+			Method setter = ((MethodPropertyInfo) propertyInfo).getSetter();
+			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
+			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
+			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 			MethodInstance m_setter = MethodInstance.findByTemplate(m_setterTemplate, true);
 
+			if (m_getter != null || m_setter != null)
+			{
+				// at least one of the accessors is explicitly implemented
+				if (!propertyInfo.isWritable() || !propertyInfo.isReadable())
+				{
+					continue;
+				}
+			}
 			FieldInstance f_backingField = null;
 			if (m_setter == null)
 			{
@@ -48,12 +57,14 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				{
 					continue;
 				}
+				if (m_setterTemplate == null)
+				{
+					m_setterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "set" + propertyInfo.getName(), null, Type.VOID_TYPE,
+							f_backingField.getType());
+				}
 				// implement setter
 				implementSetter(m_setterTemplate, f_backingField);
 			}
-
-			MethodInstance m_getterTemplate = new MethodInstance(((MethodPropertyInfo) propertyInfo).getGetter());
-			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 
 			if (m_getter == null)
 			{
@@ -64,6 +75,10 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				if (f_backingField == null)
 				{
 					continue;
+				}
+				if (m_getterTemplate == null)
+				{
+					m_getterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "get" + propertyInfo.getName(), null, f_backingField.getType());
 				}
 				// implement getter
 				implementGetter(m_getterTemplate, f_backingField);

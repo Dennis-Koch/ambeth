@@ -14,7 +14,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 {
 	protected static final Object[] EMPTY_ARGS = new Object[0];
 
-	protected final Method getter, setter;
+	protected Method getter, setter;
 
 	protected boolean writable, readable;
 
@@ -141,6 +141,16 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 		}
 		declaringType = backingField != null ? backingField.getDeclaringClass() : getter != null ? getter.getDeclaringClass() : setter.getDeclaringClass();
 		super.init(objectCollector);
+	}
+
+	@Override
+	public void refreshAccessors(Class<?> realType)
+	{
+		super.refreshAccessors(realType);
+		getter = ReflectUtil.getDeclaredMethod(true, realType, "get" + getName());
+		setter = ReflectUtil.getDeclaredMethod(true, realType, "set" + getName(), getPropertyType());
+		writable = this.setter != null && (Modifier.isPublic(this.setter.getModifiers()) || Modifier.isProtected(this.setter.getModifiers()));
+		readable = this.getter != null && (Modifier.isPublic(this.getter.getModifiers()) || Modifier.isProtected(this.getter.getModifiers()));
 	}
 
 	@Override

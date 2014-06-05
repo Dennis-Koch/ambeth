@@ -136,7 +136,7 @@
     <Compile Include="ambeth\threading\UIThreadWrapper.cs" />
     <Compile Include="ambeth\threading\GuiThreadHelper.cs" />
     <Compile Include="ambeth\threading\ThreadPool.cs" />
-    <Compile Include="ambeth\typeinfo\MethodPropertyInfo2.cs" />
+    <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM2.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoEntry.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoProvider.cs" />
     <Compile Include="ambeth\util\ClassTupleExtendableContainer.cs" />

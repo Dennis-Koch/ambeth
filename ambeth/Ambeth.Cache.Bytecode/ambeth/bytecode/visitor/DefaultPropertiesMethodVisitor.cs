@@ -19,12 +19,21 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             foreach (IPropertyInfo propertyInfo in propertyInfos)
             {
-                if (!propertyInfo.IsWritable || !propertyInfo.IsReadable)
-                {
-                    continue;
-                }
-                MethodInstance m_setterTemplate = new MethodInstance(((MethodPropertyInfo)propertyInfo).Setter);
+                MethodInfo getter = ((MethodPropertyInfo)propertyInfo).Getter;
+                MethodInfo setter = ((MethodPropertyInfo)propertyInfo).Setter;
+                MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
+                MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
+                MethodInstance m_getter = MethodInstance.FindByTemplate(m_getterTemplate, true);
                 MethodInstance m_setter = MethodInstance.FindByTemplate(m_setterTemplate, true);
+
+                if (m_getter != null || m_setter != null)
+                {
+                    // at least one of the accessors is explicitly implemented
+                    if (!propertyInfo.IsWritable || !propertyInfo.IsReadable)
+                    {
+                        continue;
+                    }
+                }
 
                 FieldInstance f_backingField = null;
                 if (m_setter == null)
@@ -34,12 +43,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     {
                         continue;
                     }
+                    if (m_setterTemplate == null)
+                    {
+                        m_setterTemplate = new MethodInstance(null, MethodAttributes.Public, "set_" + propertyInfo.Name, null, NewType.VOID_TYPE,
+                                f_backingField.Type);
+                    }
                     // implement setter
                     ImplementSetter(m_setterTemplate, f_backingField);
                 }
-
-                MethodInstance m_getterTemplate = new MethodInstance(((MethodPropertyInfo)propertyInfo).Getter);
-                MethodInstance m_getter = MethodInstance.FindByTemplate(m_getterTemplate, true);
 
                 if (m_getter == null)
                 {
@@ -50,6 +61,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     if (f_backingField == null)
                     {
                         continue;
+                    }
+                    if (m_getterTemplate == null)
+                    {
+                        m_getterTemplate = new MethodInstance(null, MethodAttributes.Public, "get_" + propertyInfo.Name, null, f_backingField.Type);
                     }
                     // implement getter
                     ImplementGetter(m_getterTemplate, f_backingField);
