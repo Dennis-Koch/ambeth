@@ -22,10 +22,12 @@ import de.osthus.ambeth.ioc.MergeServerModule;
 import de.osthus.ambeth.ioc.ObjectCopierModule;
 import de.osthus.ambeth.ioc.PersistenceJdbcModule;
 import de.osthus.ambeth.ioc.PersistenceModule;
+import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
 import de.osthus.ambeth.ioc.SecurityModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.ServiceModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -38,12 +40,12 @@ import de.osthus.ambeth.query.ioc.SQLQueryModule;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest.PersistencePropertiesProvider;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
-		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeServerModule.class,
-		SecurityModule.class, SecurityServerModule.class, Oracle10gModule.class, SQLQueryModule.class, FilterPersistenceModule.class })
+		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
+		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, Oracle10gModule.class, SQLQueryModule.class,
+		FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethPersistenceRunner.class)
 public abstract class AbstractPersistenceTest extends AbstractIocTest
@@ -66,66 +68,26 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 		}
 	}
 
+	@Autowired
 	protected IConnectionFactory connectionFactory;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IEntityFactory entityFactory;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IMeasurement measurement;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
+	@Autowired
 	protected ITransaction transaction;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(connectionFactory, "ConnectionFactory");
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(entityFactory, "EntityFactory");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(queryBuilderFactory, "QueryBuilderFactory");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-	}
-
-	public void setConnectionFactory(IConnectionFactory connectionFactory)
-	{
-		this.connectionFactory = connectionFactory;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
-		this.entityFactory = entityFactory;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setMeasurement(IMeasurement measurement)
-	{
-		this.measurement = measurement;
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
 
 	public void assertProxyEquals(Object expected, Object actual)
 	{

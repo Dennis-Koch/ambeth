@@ -14,6 +14,9 @@ using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Security.Transfer;
 using De.Osthus.Ambeth.Privilege.Model;
 using De.Osthus.Ambeth.Privilege.Transfer;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Security;
+using System.Security;
 
 namespace De.Osthus.Ambeth.Privilege
 {
@@ -29,27 +32,30 @@ namespace De.Osthus.Ambeth.Privilege
 
             public String SecurityScope;
 
+            public String userSID;
+
             public PrivilegeKey()
             {
                 // Intended blank
             }
 
-            public PrivilegeKey(Type entityType, sbyte IdIndex, Object id)
+            public PrivilegeKey(Type entityType, sbyte IdIndex, Object id, String userSID)
             {
                 this.EntityType = entityType;
                 this.IdIndex = IdIndex;
                 this.Id = id;
+                this.userSID = userSID;
             }
 
             public override int GetHashCode()
             {
                 if (SecurityScope == null)
                 {
-                    return EntityType.GetHashCode() ^ Id.GetHashCode();
+                    return EntityType.GetHashCode() ^ Id.GetHashCode() ^ userSID.GetHashCode();
                 }
                 else
                 {
-                    return EntityType.GetHashCode() ^ Id.GetHashCode() ^ SecurityScope.GetHashCode();
+                    return EntityType.GetHashCode() ^ Id.GetHashCode() ^ userSID.GetHashCode() ^ SecurityScope.GetHashCode();
                 }
             }
 
@@ -67,6 +73,7 @@ namespace De.Osthus.Ambeth.Privilege
                 return Object.Equals(Id, other.Id)
                     && Object.Equals(EntityType, other.EntityType)
                     && IdIndex == other.IdIndex
+                    && Object.Equals(userSID, other.userSID)
                     && Object.Equals(SecurityScope, other.SecurityScope);
             }
 
@@ -79,11 +86,16 @@ namespace De.Osthus.Ambeth.Privilege
         [LogInstance]
 		public ILogger Log { private get; set; }
 
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
+        [Autowired]
         public IPrivilegeService PrivilegeService { protected get; set; }
 
-        protected readonly IDictionary<PrivilegeKey, PrivilegeEnum[]> privilegeCache = new Dictionary<PrivilegeKey, PrivilegeEnum[]>();
+        [Autowired]
+        public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
+
+        protected readonly Dictionary<PrivilegeKey, PrivilegeEnum[]> privilegeCache = new Dictionary<PrivilegeKey, PrivilegeEnum[]>();
 
         public virtual void AfterPropertiesSet()
         {
@@ -129,15 +141,21 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<IPrivilegeItem> GetPrivileges(IList<IObjRef> objRefs, params ISecurityScope[] securityScopes)
         {
+            IUserHandle userHandle = SecurityScopeProvider.UserHandle;
+            if (userHandle == null)
+            {
+                throw new SecurityException("User must be authenticated to be able to check for privileges");
+            }
             List<IObjRef> missingObjRefs = new List<IObjRef>();
             lock (privilegeCache)
             {
-                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs);
+                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, userHandle);
                 if (missingObjRefs.Count == 0)
                 {
                     return result;
                 }
             }
+            String userSID = userHandle.SID;
             IList<PrivilegeResult> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
             lock (privilegeCache)
             {
@@ -145,7 +163,7 @@ namespace De.Osthus.Ambeth.Privilege
                 {
                     IObjRef reference = privilegeResult.Reference;
 
-                    PrivilegeKey privilegeKey = new PrivilegeKey(reference.RealType, reference.IdNameIndex, reference.Id);
+                    PrivilegeKey privilegeKey = new PrivilegeKey(reference.RealType, reference.IdNameIndex, reference.Id, userSID);
                     privilegeKey.SecurityScope = privilegeResult.SecurityScope.Name;
                     
                     PrivilegeEnum[] privilegeEnums = privilegeResult.Privileges;
@@ -188,15 +206,17 @@ namespace De.Osthus.Ambeth.Privilege
                     }
                     privilegeCache[privilegeKey] = indexedPrivilegeEnums;
                 }
-                return CreateResult(objRefs, securityScopes, null);
+                return CreateResult(objRefs, securityScopes, null, userHandle);
             }
         }
 
-        protected IList<IPrivilegeItem> CreateResult(IList<IObjRef> objRefs, ISecurityScope[] securityScopes, IList<IObjRef> missingObjRefs)
+        protected IList<IPrivilegeItem> CreateResult(IList<IObjRef> objRefs, ISecurityScope[] securityScopes, IList<IObjRef> missingObjRefs,
+            IUserHandle userHandle)
         {
             PrivilegeKey privilegeKey = null;
 
             IList<IPrivilegeItem> result = new List<IPrivilegeItem>(objRefs.Count);
+            String userSID = userHandle.SID;
 
             foreach (IObjRef objRef in objRefs)
             {
@@ -207,7 +227,8 @@ namespace De.Osthus.Ambeth.Privilege
                 privilegeKey.EntityType = objRef.RealType;
                 privilegeKey.IdIndex = objRef.IdNameIndex;
                 privilegeKey.Id = objRef.Id;
-                
+                privilegeKey.userSID = userSID;
+
                 PrivilegeEnum[] mergedPrivilegeValues = null;
                 for (int a = securityScopes.Length; a-- > 0; )
                 {

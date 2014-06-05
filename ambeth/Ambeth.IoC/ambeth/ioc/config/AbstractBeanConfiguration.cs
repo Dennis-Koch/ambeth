@@ -23,6 +23,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
 		    ignoreClassNames.Add(typeof(BeanRuntime<>).FullName);
 		    ignoreClassNames.Add(typeof(LinkConfiguration<>).FullName);
 		    ignoreClassNames.Add(typeof(LinkController).FullName);
+            ignoreClassNames.Add(typeof(ServiceContext).FullName);
         }
 
         protected readonly String beanName;

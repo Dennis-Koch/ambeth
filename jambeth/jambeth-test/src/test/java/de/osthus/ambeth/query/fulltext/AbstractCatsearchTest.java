@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
@@ -20,7 +21,6 @@ import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("/de/osthus/ambeth/query/Query_data.sql")
 @TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml"),
@@ -39,33 +39,15 @@ public abstract class AbstractCatsearchTest extends AbstractPersistenceTest
 	protected static final String propertyName4 = "Content";
 	protected static final String propertyName5 = "Name1";
 
+	@Autowired
 	protected IQueryBuilderFactory qbf;
 
 	protected IQueryBuilder<QueryEntity> qb;
 
 	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 
-	protected String value;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(qbf, "Qbf");
-	}
-
 	@Property(name = "abc", defaultValue = "abc0")
-	public void setValue(String value)
-	{
-		this.value = value;
-	}
-
-	public void setQbf(IQueryBuilderFactory qbf)
-	{
-		this.qbf = qbf;
-	}
+	protected String value;
 
 	@Before
 	public void setUp() throws Exception

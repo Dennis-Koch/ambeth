@@ -99,7 +99,11 @@ public class PropertyChangeSupport extends ArrayList<PropertyChangeListener> imp
 		{
 			return;
 		}
-		PropertyChangeEvent evnt = new PropertyChangeEvent(obj, propertyName, oldValue, currentValue);
+		firePropertyChange(new PropertyChangeEvent(obj, propertyName, oldValue, currentValue));
+	}
+
+	public void firePropertyChange(PropertyChangeEvent evnt)
+	{
 		for (PropertyChangeListener listener : listenersCopy)
 		{
 			listener.propertyChange(evnt);

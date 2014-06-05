@@ -4,8 +4,8 @@ import org.junit.Assert;
 
 import de.osthus.ambeth.annotation.QueryBehavior;
 import de.osthus.ambeth.annotation.QueryBehaviorType;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.Material;
@@ -13,10 +13,9 @@ import de.osthus.ambeth.proxy.Service;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.util.ParamChecker;
 
 @Service(IQueryBehaviorService.class)
-public class QueryBehaviorService implements IInitializingBean, IStartingBean, IQueryBehaviorService
+public class QueryBehaviorService implements IStartingBean, IQueryBehaviorService
 {
 	private static final String QueryParamKey = "Key";
 
@@ -24,6 +23,7 @@ public class QueryBehaviorService implements IInitializingBean, IStartingBean, I
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	protected IQuery<Material> getMaterialByIdQuery;
@@ -31,12 +31,6 @@ public class QueryBehaviorService implements IInitializingBean, IStartingBean, I
 	protected IQuery<Material> getAllMaterialsQuery;
 
 	protected IQuery<Material> getMaterialByNameQuery;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(queryBuilderFactory, "QueryBuilderFactory");
-	}
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -50,11 +44,6 @@ public class QueryBehaviorService implements IInitializingBean, IStartingBean, I
 		IQueryBuilder<Material> getMaterialByNameQB = queryBuilderFactory.create(Material.class);
 		getMaterialByNameQuery = getMaterialByNameQB.build(getMaterialByNameQB.isEqualTo(getMaterialByNameQB.property("Name"),
 				getMaterialByNameQB.valueName(QueryParamKey)));
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
 	}
 
 	@Override

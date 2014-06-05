@@ -14,8 +14,8 @@ import de.osthus.ambeth.filter.model.IFilterDescriptor;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.LogicalOperator;
 import de.osthus.ambeth.filter.model.SortDirection;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.PersistenceContext;
@@ -25,45 +25,24 @@ import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class FilterToQueryBuilder implements IInitializingBean, IFilterToQueryBuilder
+public class FilterToQueryBuilder implements IFilterToQueryBuilder
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	protected final Lock writeLock = new ReentrantLock();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(queryBuilderFactory, "queryBuilderFactory");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
-	}
 
 	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)

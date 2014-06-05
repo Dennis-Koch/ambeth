@@ -80,7 +80,7 @@ namespace De.Osthus.Ambeth.Ioc
             }
             else
             {
-                beanContextFactory.RegisterBean<IndependentEntityMetaDataClient>("independentMetaDataProvider")
+                beanContextFactory.RegisterBean<EntityMetaDataProvider>("independentMetaDataProvider")
                     .PropertyRef("ValueObjectMap", valueObjectMap)
                     .Autowireable<IEntityMetaDataProvider>()
                     .Autowireable<IEntityMetaDataExtendable>()

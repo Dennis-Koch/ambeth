@@ -58,7 +58,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	public <T> T filterValue(T value)
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
-		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle());
+		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), entityFilters.getExtensions());
 	}
 
 	protected Class<?> getTypeOfValue(Object value)
@@ -71,7 +71,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle)
+	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
 	{
 		Collection<Object> cloneCollection;
 		try
@@ -89,7 +89,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 			{
 				continue;
 			}
-			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle);
+			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
 			if (filteredItem == item)
 			{
 				// Filtering ok and unchanged
@@ -105,8 +105,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		return cloneCollection;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle)
+	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
 	{
 		if (value == null)
 		{
@@ -124,11 +123,11 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		}
 		if (value instanceof List)
 		{
-			return filterList((List<?>) value, alreadyProcessedMap, userHandle);
+			return filterList((List<?>) value, alreadyProcessedMap, userHandle, entityFilters);
 		}
 		else if (value instanceof Collection)
 		{
-			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle);
+			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, entityFilters);
 		}
 		else if (value.getClass().isArray())
 		{
@@ -137,7 +136,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 			for (int a = 0, size = length; a < size; a++)
 			{
 				Object item = Array.get(value, a);
-				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle);
+				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
 				if (filteredItem == item)
 				{
 					// Filtering ok and unchanged
@@ -160,7 +159,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		Class<?> type = getTypeOfValue(value);
 		if (entityMetaDataProvider.getMetaData(type, true) != null)
 		{
-			ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, userHandle);
+			ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, userHandle, entityFilters);
 			switch (readPermission)
 			{
 				case PARTLY_ALLOWED:
@@ -176,7 +175,8 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterCollection(Collection<?> value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle)
+	protected Object filterCollection(Collection<?> value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
+			IEntityFilter[] entityFilters)
 	{
 		Iterator<?> iter = value.iterator();
 
@@ -197,7 +197,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 			{
 				continue;
 			}
-			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle);
+			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
 			if (filteredItem == item)
 			{
 				// Filtering ok and unchanged
@@ -218,7 +218,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 
 	}
 
-	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle)
+	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
 	{
 		ReadPermission cachedPermission = alreadyProcessedMap.get(entity);
 		if (cachedPermission != null)
@@ -226,7 +226,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 			return cachedPermission;
 		}
 		ReadPermission restrictiveReadPermission = ReadPermission.ALLOWED;
-		for (IEntityFilter entityFilter : entityFilters.getExtensions())
+		for (IEntityFilter entityFilter : entityFilters)
 		{
 			ReadPermission readPermission = entityFilter.checkReadPermissionOnEntity(entity, userHandle);
 			switch (readPermission)
@@ -271,8 +271,9 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		CallPermission callPermission = filterService(method, arguments, securityContextType, userHandle);
 		if (callPermission == CallPermission.FORBIDDEN)
 		{
-			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector, "For current user with sid '", userHandle.getSID(),
-					"' it is not permitted to call service ", method.getDeclaringClass().getName(), ".", method.getName()));
+			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector, "For current user with sid '",
+					userHandle != null ? userHandle.getSID() : "n/a", "' it is not permitted to call service ", method.getDeclaringClass().getName(), ".",
+					method.getName()));
 		}
 	}
 

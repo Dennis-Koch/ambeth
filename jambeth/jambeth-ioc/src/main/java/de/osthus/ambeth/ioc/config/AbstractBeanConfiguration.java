@@ -5,6 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.IProperties;
+import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.link.LinkConfiguration;
 import de.osthus.ambeth.ioc.link.LinkController;
@@ -25,6 +26,7 @@ public abstract class AbstractBeanConfiguration implements IBeanConfiguration
 		ignoreClassNames.add(BeanInstanceConfiguration.class.getName());
 		ignoreClassNames.add(LinkConfiguration.class.getName());
 		ignoreClassNames.add(LinkController.class.getName());
+		ignoreClassNames.add(ServiceContext.class.getName());
 	}
 
 	protected final String beanName;
