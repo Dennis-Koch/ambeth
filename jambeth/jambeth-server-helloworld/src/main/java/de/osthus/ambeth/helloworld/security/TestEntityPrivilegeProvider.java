@@ -23,25 +23,25 @@ public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 	}
 
 	@Override
-	public boolean isCreateAllowed(Object entity, ISecurityScope... securityScopes)
+	public boolean isCreateAllowed(Object entity, ISecurityScope securityScopes)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean isDeleteAllowed(Object entity, ISecurityScope... securityScopes)
+	public boolean isDeleteAllowed(Object entity, ISecurityScope securityScopes)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean isReadAllowed(Object entity, ISecurityScope... securityScopes)
+	public boolean isReadAllowed(Object entity, ISecurityScope securityScopes)
 	{
 		return true;
 	}
 
 	@Override
-	public boolean isUpdateAllowed(Object entity, ISecurityScope... securityScopes)
+	public boolean isUpdateAllowed(Object entity, ISecurityScope securityScopes)
 	{
 		return true;
 	}
