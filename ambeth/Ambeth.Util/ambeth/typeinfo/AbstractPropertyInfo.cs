@@ -93,6 +93,11 @@ namespace De.Osthus.Ambeth.Typeinfo
             }
         }
 
+        public virtual void RefreshAccessors(Type realType)
+	    {
+		    // intended blank
+	    }
+
         public Attribute[] GetAnnotations()
         {
             ILinkedMap<Type, Attribute[]> annotations = this.annotations;

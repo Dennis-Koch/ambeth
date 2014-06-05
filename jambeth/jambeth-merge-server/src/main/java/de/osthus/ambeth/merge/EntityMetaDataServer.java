@@ -54,10 +54,9 @@ public class EntityMetaDataServer extends EntityMetaDataProvider implements IDat
 				{
 					continue;
 				}
-				Class<?> realType = proxyHelper.getRealType(entityType);
 				EntityMetaData metaData = new EntityMetaData();
 				metaData.setEntityType(entityType);
-				metaData.setRealType(realType);
+				metaData.setRealType(null);
 				metaData.setIdMember(table.getIdField().getMember());
 				alreadyHandledFields.add(table.getIdField());
 				IField versionField = table.getVersionField();

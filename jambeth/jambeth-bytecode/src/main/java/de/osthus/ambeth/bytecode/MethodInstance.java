@@ -57,11 +57,19 @@ public class MethodInstance
 
 	public static MethodInstance findByTemplate(java.lang.reflect.Method methodTemplate, boolean tryOnly)
 	{
+		if (methodTemplate == null && tryOnly)
+		{
+			return null;
+		}
 		return findByTemplate(new MethodInstance(methodTemplate), tryOnly);
 	}
 
 	public static MethodInstance findByTemplate(MethodInstance methodTemplate, boolean tryOnly)
 	{
+		if (methodTemplate == null && tryOnly)
+		{
+			return null;
+		}
 		return findByTemplate(tryOnly, methodTemplate.getName(), methodTemplate.getParameters());
 	}
 

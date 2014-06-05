@@ -10,12 +10,12 @@ namespace De.Osthus.Ambeth.Bytecode
 {
     public class PropertyInstance
     {
-        public static PropertyInstance FindByTemplate(PropertyInfo propertyTemplate)
+        public static PropertyInstance FindByTemplate(IPropertyInfo propertyTemplate)
         {
             return FindByTemplate(propertyTemplate, false);
         }
 
-        public static PropertyInstance FindByTemplate(PropertyInfo propertyTemplate, bool tryOnly)
+        public static PropertyInstance FindByTemplate(IPropertyInfo propertyTemplate, bool tryOnly)
         {
             return FindByTemplate(propertyTemplate.Name, tryOnly);
         }

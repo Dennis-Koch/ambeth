@@ -286,8 +286,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     continue;
                 }
                 String propertyName = relationMember.Name;
-                MethodInstance m_get = new MethodInstance(((MethodPropertyInfo)((PropertyInfoItem)relationMember).Property).Getter);
-                MethodInstance m_set = new MethodInstance(((MethodPropertyInfo)((PropertyInfoItem)relationMember).Property).Setter);
+                PropertyInstance prop = PropertyInstance.FindByTemplate(((PropertyInfoItem)relationMember).Property);
+                MethodInstance m_get = prop.Getter;
+                MethodInstance m_set = prop.Setter;
 
                 FieldInstance f_objRefs = GetObjRefsFieldByPropertyName(propertyName);
                 FieldInstance f_objRefs_existing = State.GetAlreadyImplementedField(f_objRefs.Name);

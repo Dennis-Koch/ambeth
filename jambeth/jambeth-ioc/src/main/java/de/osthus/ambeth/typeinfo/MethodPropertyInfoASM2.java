@@ -7,12 +7,17 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 
 public class MethodPropertyInfoASM2 extends MethodPropertyInfo
 {
-	protected final AbstractAccessor accessor;
+	protected AbstractAccessor accessor;
 
 	public MethodPropertyInfoASM2(Class<?> entityType, String propertyName, Method getter, Method setter, IThreadLocalObjectCollector objectCollector,
 			AbstractAccessor accessor)
 	{
 		super(entityType, propertyName, getter, setter, objectCollector);
+		setAccessor(accessor);
+	}
+
+	public void setAccessor(AbstractAccessor accessor)
+	{
 		this.accessor = accessor;
 		readable = accessor.canRead();
 		writable = accessor.canWrite();

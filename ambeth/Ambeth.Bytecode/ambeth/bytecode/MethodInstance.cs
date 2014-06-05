@@ -15,11 +15,19 @@ namespace De.Osthus.Ambeth.Bytecode
 
         public static MethodInstance FindByTemplate(MethodInfo methodTemplate, bool tryOnly)
         {
+            if (methodTemplate == null && tryOnly)
+            {
+                return null;
+            }
             return FindByTemplate(new MethodInstance(methodTemplate), tryOnly);
         }
 
         public static MethodInstance FindByTemplate(MethodInstance methodTemplate, bool tryOnly)
         {
+            if (methodTemplate == null && tryOnly)
+            {
+                return null;
+            }
             return FindByTemplate(tryOnly, methodTemplate.Name, methodTemplate.Parameters);
         }
 
