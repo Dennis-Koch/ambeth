@@ -1329,7 +1329,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 				String tableName = rs.getString("TABLE_NAME");
 				if (!binTableName.matcher(tableName).matches())
 				{
-					allTableNames.add(schemaName + "." + tableName);
+					allTableNames.add("\"" + schemaName + "\".\"" + tableName + "\"");
 				}
 			}
 		}
