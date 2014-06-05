@@ -2,11 +2,11 @@
 
 	<property environment="env" />
 
-	<property name="major.version" value="2.0" />
+	<property name="version.major" value="2" />
+	<property name="version.minor" value="0" />
+	<property name="ambeth_build_number" value="1" />
 	
-	<property name="env.BUILD_NUMBER" value="1" />
-	
-	<property name="version" value="${major.version}.${env.BUILD_NUMBER}" />
+	<property name="version" value="${version.major}.${version.minor}.${ambeth_build_number}" />
 	
 	<property name="env.JOB_NAME" value="Job" />
 		
