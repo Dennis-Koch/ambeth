@@ -44,24 +44,18 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		{
 			throw new UnsupportedOperationException("No bytecodeEnhancer specified");
 		}
-		StringBuilder newTypeNameSB = new StringBuilder();
 		StringBuilder nameSB = new StringBuilder();
-		newTypeNameSB.append(entityType.getName());
-		newTypeNameSB.append("_cid");
 		// order does matter here
 		for (int a = 0, size = idMembers.length; a < size; a++)
 		{
 			String name = idMembers[a].getName();
-			newTypeNameSB.append('_');
-			newTypeNameSB.append(CompositeIdTypeInfoItem.filterEmbeddedFieldName(name));
 			if (a > 0)
 			{
 				nameSB.append('&');
 			}
 			nameSB.append(name);
 		}
-		String newTypeName = newTypeNameSB.toString();
-		Class<?> compositeIdType = bytecodeEnhancer.getEnhancedType(Object.class, newTypeName, new CompositeIdEnhancementHint(idMembers));
+		Class<?> compositeIdType = bytecodeEnhancer.getEnhancedType(Object.class, new CompositeIdEnhancementHint(idMembers));
 		try
 		{
 			return new CompositeIdTypeInfoItem(entityType, compositeIdType, nameSB.toString(), idMembers);
