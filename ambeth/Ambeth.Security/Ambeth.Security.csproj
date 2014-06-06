@@ -25,7 +25,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>Bin\Release_NET4\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -46,8 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\PrivilegeEnum.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProviderExtension.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProviderExtensionExtendable.cs" />
+    <Compile Include="ambeth\privilege\PrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\AbstractEntityFilter.cs" />
     <Compile Include="ambeth\security\AmbethUserHandle.cs" />
     <Compile Include="ambeth\security\AmbethUserHandleFactory.cs" />
@@ -68,14 +77,27 @@
     <Compile Include="ambeth\security\SecurityActivation.cs" />
     <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\UserIndependentAttribute.cs" />
+    <Compile Include="ambeth\service\IPrivilegeService.cs" />
+    <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
     <Compile Include="ambeth\service\ISecurityServiceWCF.cs" />
+    <Compile Include="ambeth\service\PrivilegeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
+    <Compile Include="ambeth\privilege\transfer\PrivilegeResult.cs" />
+    <Compile Include="ioc\PrivilegeModule.cs" />
     <Compile Include="ioc\SecurityBootstrapModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
+      <Project>{fd72ac81-65e4-46ce-ad09-efdabc84f384}</Project>
+      <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
+      <Project>{cf078f90-70fb-49bb-842f-d5b78d415108}</Project>
+      <Name>Ambeth.Event</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
       <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
       <Name>Ambeth.IOC</Name>
@@ -83,6 +105,10 @@
     <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
       <Project>{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}</Project>
       <Name>Ambeth.Log</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{d8c0ca71-b7fc-4699-97c2-4deb72eec485}</Project>
+      <Name>Ambeth.Merge</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.csproj">
       <Project>{EC138571-28DF-4944-8EF2-D31FB186A645}</Project>
@@ -92,6 +118,10 @@
       <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
       <Name>Ambeth.Util</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\model\ModifyPermission.cs" />
+    <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

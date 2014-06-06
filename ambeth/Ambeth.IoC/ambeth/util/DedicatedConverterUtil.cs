@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Factory;
 using System;
 
@@ -15,5 +16,11 @@ namespace De.Osthus.Ambeth.Util
             beanContextFactory.Link(listenerBeanName).To<IDedicatedConverterExtendable>().With(fromType, toType);
             beanContextFactory.Link(listenerBeanName).To<IDedicatedConverterExtendable>().With(toType, fromType);
         }
+
+        public static void BiLink(IBeanContextFactory beanContextFactory, IBeanConfiguration listenerBC, Type fromType, Type toType)
+	    {
+		    beanContextFactory.Link(listenerBC).To<IDedicatedConverterExtendable>().With(fromType, toType);
+            beanContextFactory.Link(listenerBC).To<IDedicatedConverterExtendable>().With(toType, fromType);
+	    }
     }
 }

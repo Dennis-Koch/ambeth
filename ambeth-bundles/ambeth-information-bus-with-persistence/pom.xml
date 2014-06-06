@@ -62,12 +62,6 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-privilege-server</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query</artifactId>
 			<version>${project.version}</version>
 		</dependency>

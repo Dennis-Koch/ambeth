@@ -3,6 +3,7 @@ package de.osthus.ambeth.ioc.extendable;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IListElem;
 import de.osthus.ambeth.collections.InterfaceFastList;
@@ -26,7 +27,7 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 	{
 		if (key == null)
 		{
-			return null;
+			return EmptyList.<V> getInstance();
 		}
 		Object extension = classEntry.get(key);
 		if (extension == null)
@@ -48,7 +49,7 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 					extension = classEntry.get(key);
 					if (extension == null)
 					{
-						return null;
+						return EmptyList.<V> getInstance();
 					}
 				}
 			}
@@ -60,7 +61,7 @@ public class ClassExtendableListContainer<V> extends ClassExtendableContainer<V>
 		if (extension == alreadyHandled)
 		{
 			// Already tried
-			return null;
+			return EmptyList.<V> getInstance();
 		}
 		return (IList<V>) extension;
 	}

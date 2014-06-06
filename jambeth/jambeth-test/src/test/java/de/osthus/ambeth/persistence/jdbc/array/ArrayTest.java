@@ -338,7 +338,7 @@ public class ArrayTest extends AbstractPersistenceTest
 	public void selectStringArray()
 	{
 		createStringArray();
-		arrayObject = new ArrayObject();
+		arrayObject = entityFactory.createEntity(ArrayObject.class);
 		createStringArray();
 
 		IQueryBuilder<ArrayObject> queryBuilder = queryBuilderFactory.create(ArrayObject.class);

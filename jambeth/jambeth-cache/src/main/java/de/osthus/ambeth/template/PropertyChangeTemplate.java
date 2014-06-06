@@ -19,10 +19,10 @@ import de.osthus.ambeth.collections.specialized.INotifyCollectionChanged;
 import de.osthus.ambeth.collections.specialized.NotifyCollectionChangedEvent;
 import de.osthus.ambeth.collections.specialized.PropertyChangeSupport;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.databinding.ICollectionChangeExtensionExtendable;
 import de.osthus.ambeth.databinding.ICollectionChangeExtension;
-import de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable;
+import de.osthus.ambeth.databinding.ICollectionChangeExtensionExtendable;
 import de.osthus.ambeth.databinding.IPropertyChangeExtension;
+import de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
@@ -460,12 +460,9 @@ public class PropertyChangeTemplate implements IPropertyChangeExtensionExtendabl
 			{
 				propertyChangeSupport.firePropertyChange(obj, propertyName, oldValue, currentValue);
 			}
-			if (extensions != null)
+			for (int b = 0, sizeB = extensions.size(); b < sizeB; b++)
 			{
-				for (int b = 0, sizeB = extensions.size(); b < sizeB; b++)
-				{
-					extensions.get(b).propertyChanged(obj, propertyName, oldValue, currentValue);
-				}
+				extensions.get(b).propertyChanged(obj, propertyName, oldValue, currentValue);
 			}
 		}
 	}

@@ -1,7 +1,6 @@
 package de.osthus.ambeth.helloworld.ioc;
 
 import de.osthus.ambeth.helloworld.RandomDataGenerator;
-import de.osthus.ambeth.helloworld.security.HelloWorldUserHandleFactory;
 import de.osthus.ambeth.helloworld.security.TestEntityPrivilegeProvider;
 import de.osthus.ambeth.helloworld.service.HelloWorldService;
 import de.osthus.ambeth.helloworld.service.IHelloWorldService;
@@ -11,7 +10,6 @@ import de.osthus.ambeth.ioc.annotation.BootstrapModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.job.IJobExtendable;
 import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
-import de.osthus.ambeth.security.IUserHandleFactory;
 
 @BootstrapModule
 public class HelloWorldModule implements IInitializingModule

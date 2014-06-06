@@ -45,8 +45,6 @@
 		<module>jambeth-persistence-jdbc</module>
 		<module>jambeth-persistence-oracle11</module>
 		<module>jambeth-platform</module>
-		<module>jambeth-privilege</module>
-		<module>jambeth-privilege-server</module>
 		<module>jambeth-query</module>
 		<module>jambeth-query-inmemory</module>
 		<module>jambeth-query-jdbc</module>
@@ -338,18 +336,6 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-platform</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-privilege</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-privilege-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

@@ -26,6 +26,9 @@ public class PropertyInfoTest extends AbstractIocTest
 	static final String[] propNames = { "Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter", "Modifiers", "Name",
 			"PropertyType", "Readable", "Setter", "Writable" };
 
+	static final String[] propNamesASM2 = { "Annotations", "BackingField", "DeclaringType", "ElementType", "EntityType", "Getter", "Modifiers", "Name",
+			"PropertyType", "Readable", "Setter", "Writable", "Accessor" };
+
 	private IMap<String, IPropertyInfo> fixture;
 
 	private IPropertyInfoProvider propertyInfoProvider;
@@ -276,7 +279,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyClassString()
 	{
-		isPropertyArrayOK(propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+		isPropertyArrayOK(propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -294,7 +297,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertiesClass()
 	{
-		isPropertyArrayOK(propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+		isPropertyArrayOK(propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -303,7 +306,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertiesObject()
 	{
-		isPropertyArrayOK(propertyInfoProvider.getProperties(this.fixture.get("Name")));
+		isPropertyArrayOK(propNamesASM2, propertyInfoProvider.getProperties(this.fixture.get("Name")));
 	}
 
 	/**
@@ -312,7 +315,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyMapClass()
 	{
-		isPropertyMapOK(propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
+		isPropertyMapOK(propNames, propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -321,7 +324,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyMapObject()
 	{
-		isPropertyMapOK(propertyInfoProvider.getPropertyMap(this.fixture.get("Name")));
+		isPropertyMapOK(propNamesASM2, propertyInfoProvider.getPropertyMap(this.fixture.get("Name")));
 	}
 
 	/**
@@ -355,7 +358,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	 * @param actual
 	 * @return
 	 */
-	private void isPropertyArrayOK(IPropertyInfo[] actual)
+	public static void isPropertyArrayOK(String[] propNames, IPropertyInfo[] actual)
 	{
 		assertEquals("Wrong number of properties!", propNames.length, actual.length);
 
@@ -372,7 +375,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	 * @param actual
 	 * @return
 	 */
-	private void isPropertyMapOK(Map<String, IPropertyInfo> actual)
+	public static void isPropertyMapOK(String[] propNames, Map<String, IPropertyInfo> actual)
 	{
 		assertEquals("Wrong number of properties!", propNames.length, actual.size());
 
@@ -382,6 +385,6 @@ public class PropertyInfoTest extends AbstractIocTest
 			assertTrue("Unknown property: " + name, propNameList.contains(name));
 		}
 
-		isPropertyArrayOK(actual.values().toArray(new MethodPropertyInfo[propNames.length]));
+		isPropertyArrayOK(propNames, actual.values().toArray(new MethodPropertyInfo[propNames.length]));
 	}
 }

@@ -21,7 +21,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
         {
             if (key == null)
             {
-                return null;
+                return EmptyList.Empty<V>();
             }
             Object extension = this.classEntry.Get(key);
             if (extension == null)
@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                         extension = classEntry.Get(key);
                         if (extension == null)
                         {
-                            return null;
+                            return EmptyList.Empty<V>();
                         }
                     }
                 }
@@ -50,7 +50,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             if (Object.ReferenceEquals(extension, alreadyHandled))
             {
                 // Already tried
-                return null;
+                return EmptyList.Empty<V>();
             }
             return (IList<V>)extension;
         }

@@ -14,8 +14,8 @@ import com.sun.jersey.spi.resource.Singleton;
 
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.service.IPrivilegeService;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
+import de.osthus.ambeth.service.IPrivilegeService;
 
 @Path("/PrivilegeService")
 @Consumes({ MediaType.TEXT_PLAIN })
