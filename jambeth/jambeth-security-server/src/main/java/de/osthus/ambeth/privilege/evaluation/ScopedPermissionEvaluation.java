@@ -1,10 +1,16 @@
 package de.osthus.ambeth.privilege.evaluation;
 
-
 public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, IScopedPermissionEvaluationReadStep, IScopedPermissionEvaluationUpdateStep,
 		IScopedPermissionEvaluationDeleteStep
 {
 	protected Boolean create, read, update, delete;
+
+	protected final PermissionEvaluation permissionEvaluation;
+
+	public ScopedPermissionEvaluation(PermissionEvaluation permissionEvaluation)
+	{
+		this.permissionEvaluation = permissionEvaluation;
+	}
 
 	public Boolean getCreate()
 	{
@@ -95,38 +101,40 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	}
 
 	@Override
-	public void allowDelete()
+	public IPermissionEvaluationResult allowDelete()
 	{
 		delete = Boolean.TRUE;
+		return permissionEvaluation;
 	}
 
 	@Override
-	public void skipDelete()
+	public IPermissionEvaluationResult skipDelete()
 	{
-		// intended blank
+		return permissionEvaluation;
 	}
 
 	@Override
-	public void denyDelete()
+	public IPermissionEvaluationResult denyDelete()
 	{
 		delete = Boolean.FALSE;
+		return permissionEvaluation;
 	}
 
 	@Override
-	public void allowEach()
+	public IPermissionEvaluationResult allowEach()
 	{
-		allowCreate().allowRead().allowUpdate().allowDelete();
+		return allowCreate().allowRead().allowUpdate().allowDelete();
 	}
 
 	@Override
-	public void skipEach()
+	public IPermissionEvaluationResult skipEach()
 	{
-		// intended blank
+		return skipCreate().skipRead().skipUpdate().skipDelete();
 	}
 
 	@Override
-	public void denyEach()
+	public IPermissionEvaluationResult denyEach()
 	{
-		denyCreate().denyRead().denyUpdate().denyDelete();
+		return denyCreate().denyRead().denyUpdate().denyDelete();
 	}
 }

@@ -4,6 +4,8 @@ import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 
 public class PrivilegeItem implements IPrivilegeItem
 {
+	public static final PrivilegeItem DENY_ALL = new PrivilegeItem(new PrivilegeEnum[4]);
+
 	public static final int CREATE_INDEX = 0;
 
 	public static final int UPDATE_INDEX = 1;

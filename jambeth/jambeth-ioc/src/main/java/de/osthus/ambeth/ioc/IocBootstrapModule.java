@@ -46,6 +46,7 @@ public class IocBootstrapModule implements IInitializingModule
 
 		IBeanConfiguration stringToPatternConverterBC = beanContextFactory.registerAnonymousBean(StringToPatternConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern[].class);
 
 		beanContextFactory.registerBean("interningFeature", InterningFeature.class).autowireable(IInterningFeature.class);
 

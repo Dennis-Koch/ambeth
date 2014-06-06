@@ -174,6 +174,10 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		{
 			throw new SecurityException("User must be authenticated to be able to check for privileges");
 		}
+		if (securityScopes.length == 0)
+		{
+			throw new IllegalArgumentException("No " + ISecurityScope.class.getSimpleName() + " provided to check privileges against");
+		}
 		ArrayList<IObjRef> missingObjRefs = new ArrayList<IObjRef>();
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
@@ -308,7 +312,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 				}
 				else
 				{
-					result.add(new PrivilegeItem(mergedPrivilegeValues));
+					result.add(PrivilegeItem.DENY_ALL);
 				}
 				continue;
 			}

@@ -103,7 +103,7 @@ namespace De.Osthus.Ambeth.Util
             ITypeInfoItem member = metaData.GetMemberByName(memberName);
             if (member == null)
             {
-                throw new Exception("Member " + entityType + "." + memberName + " not found");
+                throw new Exception("Member " + entityType.FullName + "." + memberName + " not found");
             }
             CachePath newCachePath = new CachePath();
             newCachePath.memberType = member.ElementType;

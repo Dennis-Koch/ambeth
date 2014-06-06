@@ -5,7 +5,7 @@ import java.util.Arrays;
 import de.osthus.ambeth.model.ISecurityScope;
 
 public class PermissionEvaluation implements IPermissionEvaluation, IPermissionEvaluationReadStep, IPermissionEvaluationUpdateStep,
-		IPermissionEvaluationDeleteStep
+		IPermissionEvaluationDeleteStep, IPermissionEvaluationResult
 {
 	protected final ISecurityScope[] scopes;
 
@@ -69,7 +69,7 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 				ScopedPermissionEvaluation spe = spes[a];
 				if (spe == null)
 				{
-					spe = new ScopedPermissionEvaluation();
+					spe = new ScopedPermissionEvaluation(this);
 					spes[a] = spe;
 				}
 				return spe;
@@ -139,21 +139,23 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	}
 
 	@Override
-	public void allowDelete()
+	public IPermissionEvaluationResult allowDelete()
 	{
 		delete = Boolean.TRUE;
+		return this;
 	}
 
 	@Override
-	public void skipDelete()
+	public IPermissionEvaluationResult skipDelete()
 	{
-		// intended blank
+		return this;
 	}
 
 	@Override
-	public void denyDelete()
+	public IPermissionEvaluationResult denyDelete()
 	{
 		delete = Boolean.FALSE;
+		return this;
 	}
 
 	@Override
