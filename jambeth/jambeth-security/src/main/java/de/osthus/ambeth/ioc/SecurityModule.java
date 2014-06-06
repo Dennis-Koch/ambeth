@@ -14,8 +14,9 @@ public class SecurityModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("securityActivation", SecurityActivation.class).autowireable(ISecurityActivation.class);
+		beanContextFactory.registerAnonymousBean(SecurityActivation.class).autowireable(ISecurityActivation.class);
 
-		beanContextFactory.registerBean("securityScopeProvider", SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
+		beanContextFactory.registerAnonymousBean(SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class,
+				ISecurityScopeChangeListenerExtendable.class);
 	}
 }

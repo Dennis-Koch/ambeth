@@ -3,13 +3,14 @@ using De.Osthus.Ambeth.Crypto;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Remote;
+using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Service;
 
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class SecurityBootstrapModule : IInitializingBootstrapModule
+    public class SecurityModule : IInitializingModule
     {
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsNetworkClientMode { get; set; }
@@ -19,6 +20,10 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
+       		beanContextFactory.RegisterAnonymousBean<SecurityActivation>().Autowireable<ISecurityActivation>();
+
+    		beanContextFactory.RegisterAnonymousBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
+
             if (IsNetworkClientMode && IsSecurityBeanActive)
             {
                 beanContextFactory.RegisterBean<ClientServiceBean>("securityServiceWCF")

@@ -94,7 +94,10 @@
     <Compile Include="ambeth\security\IEntityFilter.cs" />
     <Compile Include="ambeth\security\IEntityFilterExtendable.cs" />
     <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
+    <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
     <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\IServiceFilter.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
@@ -102,6 +105,7 @@
     <Compile Include="ambeth\security\IUserHandle.cs" />
     <Compile Include="ambeth\security\IUserHandleFactory.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
+    <Compile Include="ambeth\security\SecurityActivation.cs" />
     <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\transfer\Country.cs" />
     <Compile Include="ambeth\security\transfer\Observable.cs" />
@@ -119,7 +123,7 @@
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
     <Compile Include="ioc\PrivilegeModule.cs" />
-    <Compile Include="ioc\SecurityBootstrapModule.cs" />
+    <Compile Include="ioc\SecurityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

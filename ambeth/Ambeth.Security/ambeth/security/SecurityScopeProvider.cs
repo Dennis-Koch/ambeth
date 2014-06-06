@@ -8,10 +8,13 @@ using System.Threading;
 #endif
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Security
 {
-    public class SecurityScopeProvider : ISecurityScopeProvider
+    public class SecurityScopeProvider : IThreadLocalCleanupBean, ISecurityScopeProvider, ISecurityScopeChangeListenerExtendable
     {
         public class SecurityScopeHandle
         {
@@ -20,25 +23,43 @@ namespace De.Osthus.Ambeth.Security
             public IUserHandle userHandle;
         }
 
-        protected ThreadLocal<SecurityScopeHandle> securityScopeLocal = new ThreadLocal<SecurityScopeHandle>(delegate()
+        public static readonly ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
+
+        protected ThreadLocal<SecurityScopeHandle> securityScopeTL = new ThreadLocal<SecurityScopeHandle>();
+
+        protected readonly DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners = new DefaultExtendableContainer<ISecurityScopeChangeListener>(
+            "securityScopeChangeListener");
+
+        public void CleanupThreadLocal()
         {
-            return new SecurityScopeHandle();
-        });
+            securityScopeTL.Value = null;
+        }
 
-        public ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
-
-        public ISecurityScope[] SecurityScopes {
-            get {
-                SecurityScopeHandle securityScopeHandle = securityScopeLocal.Value;
+        public ISecurityScope[] SecurityScopes
+        {
+            get
+            {
+                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
+                if (securityScopeHandle == null)
+                {
+                    return defaultSecurityScopes;
+                }
                 if (securityScopeHandle.securityScopes == null)
                 {
                     return defaultSecurityScopes;
                 }
                 return securityScopeHandle.securityScopes;
             }
-            set {
-                SecurityScopeHandle securityScopeHandle = securityScopeLocal.Value;
+            set
+            {
+                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
+                if (securityScopeHandle == null)
+                {
+                    securityScopeHandle = new SecurityScopeHandle();
+                    securityScopeTL.Value = securityScopeHandle;
+                }
                 securityScopeHandle.securityScopes = value;
+                NotifySecurityScopeChangeListeners(securityScopeHandle);
             }
         }
 
@@ -46,14 +67,46 @@ namespace De.Osthus.Ambeth.Security
         {
             get
             {
-                SecurityScopeHandle securityScopeHandle = securityScopeLocal.Value;
+                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
                 return securityScopeHandle.userHandle;
             }
             set
             {
-                SecurityScopeHandle securityScopeHandle = securityScopeLocal.Value;
+                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
                 securityScopeHandle.userHandle = value;
             }
+        }
+
+        public R ExecuteWithSecurityScopes<R>(IResultingBackgroundWorkerDelegate<R> runnable, params ISecurityScope[] securityScopes)
+        {
+            ISecurityScope[] oldSecurityScopes = SecurityScopes;
+            try
+            {
+                SecurityScopes = securityScopes;
+                return runnable();
+            }
+            finally
+            {
+                SecurityScopes = oldSecurityScopes;
+            }
+        }
+
+        protected void NotifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle)
+        {
+	        foreach (ISecurityScopeChangeListener securityScopeChangeListener in securityScopeChangeListeners.GetExtensions())
+	        {
+		        securityScopeChangeListener.SecurityScopeChanged(securityScopeHandle.userHandle, securityScopeHandle.securityScopes);
+	        }
+        }
+
+        public void RegisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener)
+        {
+            securityScopeChangeListeners.Register(securityScopeChangeListener);
+        }
+
+        public void UnregisterSecurityScopeChangeListener(ISecurityScopeChangeListener securityScopeChangeListener)
+        {
+            securityScopeChangeListeners.Unregister(securityScopeChangeListener);
         }
     }
 }

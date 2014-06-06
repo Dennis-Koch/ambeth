@@ -66,7 +66,6 @@
     <Compile Include="ambeth\security\ISecurityManager.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
     <Compile Include="ambeth\security\IEntityFilterExtendable.cs" />
-    <Compile Include="ambeth\security\PausedSecurityRunnable.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
     <Compile Include="ambeth\security\IEntityFilter.cs" />
     <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
@@ -86,7 +85,7 @@
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\privilege\transfer\PrivilegeResult.cs" />
     <Compile Include="ioc\PrivilegeModule.cs" />
-    <Compile Include="ioc\SecurityBootstrapModule.cs" />
+    <Compile Include="ioc\SecurityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -122,6 +121,13 @@
   <ItemGroup>
     <Compile Include="ambeth\privilege\model\ModifyPermission.cs" />
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\ISecurityActivation.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,39 +1,73 @@
 ﻿using System.Threading;
-#if !SILVERLIGHT
-using Castle.DynamicProxy;
-#else
-using Castle.Core.Interceptor;
-#endif
 using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Threading;
+#if SILVERLIGHT
+using De.Osthus.Ambeth.Util;
+#endif
 
 namespace De.Osthus.Ambeth.Security
 {
-    public class SecurityActivation
+    public class SecurityActivation : ISecurityActivation
     {
-        protected static readonly ThreadLocal<bool> securityActiveTL = new ThreadLocal<bool>(delegate()
-            {
-                return true;
-            });
+        [LogInstance]
+        public ILogger Log { private get; set; }
 
-        public static bool IsSecured
+        protected readonly ThreadLocal<bool?> securityActiveTL = new ThreadLocal<bool?>();
+
+        protected readonly ThreadLocal<bool?> filterActiveTL = new ThreadLocal<bool?>();
+
+        public bool Secured
         {
             get
             {
-                return securityActiveTL.Value;
+                bool? value = securityActiveTL.Value;
+                if (value == null)
+                {
+                    return true;
+                }
+                return value.Value;
             }
         }
 
-        public static void ExecuteWithoutSecurity(PausedSecurityRunnable pausedSecurityRunnable)
+        public bool FilterActivated
         {
-            bool oldSecurityActive = securityActiveTL.Value;
+            get
+            {
+                bool? value = filterActiveTL.Value;
+                if (value == null)
+                {
+                    return true;
+                }
+                return value.Value;
+            }
+        }
+
+        public R ExecuteWithoutSecurity<R>(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable)
+        {
+            bool? oldSecurityActive = securityActiveTL.Value;
             securityActiveTL.Value = false;
             try
             {
-                pausedSecurityRunnable.Invoke();
+                return pausedSecurityRunnable();
             }
             finally
             {
                 securityActiveTL.Value = oldSecurityActive;
+            }
+        }
+
+        public R ExecuteWithoutFiltering<R>(IResultingBackgroundWorkerDelegate<R> noFilterRunnable)
+        {
+            bool? oldFilterActive = filterActiveTL.Value;
+            filterActiveTL.Value = false;
+            try
+            {
+                return noFilterRunnable();
+            }
+            finally
+            {
+                filterActiveTL.Value = oldFilterActive;
             }
         }
     }
