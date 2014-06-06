@@ -2,11 +2,11 @@
 
 	<property environment="env" />
 
-	<property name="major.version" value="2.0" />
+	<property name="version.major" value="2" />
+	<property name="version.minor" value="0" />
+	<property name="ambeth_build_number" value="1" />
 	
-	<property name="env.BUILD_NUMBER" value="1" />
-	
-	<property name="version" value="${major.version}.${env.BUILD_NUMBER}" />
+	<property name="version" value="${version.major}.${version.minor}.${ambeth_build_number}" />
 	
 	<property name="env.JOB_NAME" value="Job" />
 		
@@ -16,7 +16,7 @@
 
 	<property name="workspace.build.dir" value="${target.base.dir}/build" />
 
-	<property name="source.ambeth.dir" value="${target.base.dir}/osthus-ambeth/ambeth" />
+	<property name="source.ambeth.dir" value="${target.base.dir}/ambeth" />
 	
 	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
 	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />

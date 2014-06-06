@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.13</version>
 	</parent>
 
 	<properties>
@@ -509,6 +509,27 @@
 				</executions>
 			</plugin>
 		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>2.11</version>
+					<configuration>
+						<configLocation>${jambeth.path.test}/checkstyle_checks.xml</configLocation>
+						<propertiesLocation>${jambeth.path.test}/checkstyle.properties</propertiesLocation>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>findbugs-maven-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 	</build>
 
 	<reporting>
@@ -550,136 +571,6 @@
 						</plugin>
 					</plugins>
 				</pluginManagement>
-			</build>
-		</profile>
-
-		<!-- This Profile is active when the build is executed on Jenkins CI Build 
-			Server. It activates code metrics and javadoc generation -->
-		<profile>
-			<id>jenkins</id>
-			<activation>
-				<property>
-					<name>env.JENKINS_HOME</name>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-pmd-plugin</artifactId>
-						<version>3.0.1</version>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>pmd</goal>
-									<goal>cpd</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>2.9.1</version>
-						<configuration>
-							<stylesheet>maven</stylesheet>
-						</configuration>
-						<executions>
-							<execution>
-								<id>attach-javadocs</id>
-								<goals>
-									<goal>jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>2.2.1</version>
-						<executions>
-							<execution>
-								<id>attach-sources</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>jar-no-fork</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jar-plugin</artifactId>
-						<version>2.4</version>
-						<executions>
-							<execution>
-								<goals>
-									<goal>test-jar</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>2.11</version>
-						<configuration>
-							<configLocation>${jambeth.path.test}/checkstyle_checks.xml</configLocation>
-							<propertiesLocation>${jambeth.path.test}/checkstyle.properties</propertiesLocation>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>checkstyle</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
-						<artifactId>findbugs-maven-plugin</artifactId>
-						<version>2.5.3</version>
-						<configuration>
-							<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
-						</configuration>
-						<executions>
-							<execution>
-								<phase>package</phase>
-								<goals>
-									<goal>findbugs</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-					<plugin>
-						<groupId>org.jacoco</groupId>
-						<artifactId>jacoco-maven-plugin</artifactId>
-						<version>0.7.1.201405082137</version>
-						<configuration>
-							<excludes>
-								<exclude>**/*Test.class</exclude>
-								<exclude>**/repackaged/**</exclude>
-							</excludes>
-						</configuration>
-						<executions>
-							<execution>
-								<id>jacoco-initialize</id>
-								<goals>
-									<goal>prepare-agent</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>jacoco-site</id>
-								<phase>package</phase>
-								<goals>
-									<goal>report</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
 			</build>
 		</profile>
 	</profiles>
