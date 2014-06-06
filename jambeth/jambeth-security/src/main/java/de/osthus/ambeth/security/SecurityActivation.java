@@ -8,7 +8,7 @@ import de.osthus.ambeth.threading.SensitiveThreadLocal;
 public class SecurityActivation implements ISecurityActivation
 {
 	@SuppressWarnings("unused")
-	@LogInstance(SecurityActivation.class)
+	@LogInstance
 	private ILogger log;
 
 	protected final ThreadLocal<Boolean> securityActiveTL = new SensitiveThreadLocal<Boolean>();
