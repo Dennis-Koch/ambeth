@@ -63,7 +63,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	public final void testGetPropertiesObject()
 	{
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNamesASM2, propertyInfoProvider.getProperties(subject));
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(subject));
 	}
 
 	/**
@@ -82,7 +82,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	public final void testGetPropertyMapObject()
 	{
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNamesASM2, propertyInfoProvider.getPropertyMap(subject));
+		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames, propertyInfoProvider.getPropertyMap(subject));
 	}
 
 	/**

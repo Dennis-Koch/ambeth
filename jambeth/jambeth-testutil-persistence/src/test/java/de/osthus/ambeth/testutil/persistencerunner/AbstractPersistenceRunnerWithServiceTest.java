@@ -37,7 +37,7 @@ public abstract class AbstractPersistenceRunnerWithServiceTest extends AbstractP
 	void insertData(Integer alternateKey)
 	{
 		Assert.assertNotNull(alternateKey);
-		Project project = new Project();
+		Project project = entityFactory.createEntity(Project.class);
 		project.setAlternateKey(alternateKey);
 		project.setName("Project " + alternateKey);
 		projectService.saveProject(project);
