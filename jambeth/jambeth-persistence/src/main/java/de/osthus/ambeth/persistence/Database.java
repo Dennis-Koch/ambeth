@@ -4,10 +4,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
@@ -163,7 +163,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 					}
 					if (!elementType.isAssignableFrom(toType))
 					{
-						if (List.class.isAssignableFrom(elementType) || Set.class.isAssignableFrom(elementType))
+						if (Collection.class.isAssignableFrom(elementType))
 						{
 							// No generic info at runtime, so we guess by name.
 							if (typeNamePluralLower == null)

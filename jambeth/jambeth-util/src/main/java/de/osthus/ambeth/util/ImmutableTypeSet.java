@@ -3,13 +3,14 @@ package de.osthus.ambeth.util;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 
 public final class ImmutableTypeSet
 {
-	protected static final HashSet<Class<?>> valueTypeSet = new HashSet<Class<?>>(0.5f);
+	protected static final HashSet<Class<?>> immutableTypeSet = new HashSet<Class<?>>(0.5f);
 
 	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap = new HashMap<Class<?>, Class<?>>(0.5f);
 
@@ -24,37 +25,38 @@ public final class ImmutableTypeSet
 		wrapperTypesMap.put(Byte.class, Byte.TYPE);
 		wrapperTypesMap.put(Boolean.class, Boolean.TYPE);
 
-		valueTypeSet.add(Integer.class);
-		valueTypeSet.add(Integer.TYPE);
-		valueTypeSet.add(Long.class);
-		valueTypeSet.add(Long.TYPE);
-		valueTypeSet.add(Double.class);
-		valueTypeSet.add(Double.TYPE);
-		valueTypeSet.add(Float.class);
-		valueTypeSet.add(Float.TYPE);
-		valueTypeSet.add(Short.class);
-		valueTypeSet.add(Short.TYPE);
-		valueTypeSet.add(Character.class);
-		valueTypeSet.add(Character.TYPE);
-		valueTypeSet.add(Byte.class);
-		valueTypeSet.add(Byte.TYPE);
-		valueTypeSet.add(Boolean.class);
-		valueTypeSet.add(Boolean.TYPE);
-		valueTypeSet.add(String.class);
-		valueTypeSet.add(Class.class);
-		valueTypeSet.add(void.class);
-		valueTypeSet.add(BigInteger.class);
-		valueTypeSet.add(BigDecimal.class);
+		immutableTypeSet.add(Integer.class);
+		immutableTypeSet.add(Integer.TYPE);
+		immutableTypeSet.add(Long.class);
+		immutableTypeSet.add(Long.TYPE);
+		immutableTypeSet.add(Double.class);
+		immutableTypeSet.add(Double.TYPE);
+		immutableTypeSet.add(Float.class);
+		immutableTypeSet.add(Float.TYPE);
+		immutableTypeSet.add(Short.class);
+		immutableTypeSet.add(Short.TYPE);
+		immutableTypeSet.add(Character.class);
+		immutableTypeSet.add(Character.TYPE);
+		immutableTypeSet.add(Byte.class);
+		immutableTypeSet.add(Byte.TYPE);
+		immutableTypeSet.add(Boolean.class);
+		immutableTypeSet.add(Boolean.TYPE);
+		immutableTypeSet.add(String.class);
+		immutableTypeSet.add(Class.class);
+		immutableTypeSet.add(void.class);
+		immutableTypeSet.add(BigInteger.class);
+		immutableTypeSet.add(BigDecimal.class);
+		immutableTypeSet.add(Pattern.class);
 	}
 
 	public static void addImmutableTypesTo(Collection<Class<?>> collection)
 	{
-		collection.addAll(valueTypeSet);
+		collection.addAll(immutableTypeSet);
 	}
 
 	public static boolean isImmutableType(Class<?> type)
 	{
-		return type.isPrimitive() || type.isEnum() || valueTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type);
+		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type);
 	}
 
 	private ImmutableTypeSet()

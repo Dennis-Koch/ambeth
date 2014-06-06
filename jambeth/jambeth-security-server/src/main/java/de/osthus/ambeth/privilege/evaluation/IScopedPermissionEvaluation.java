@@ -8,9 +8,9 @@ public interface IScopedPermissionEvaluation
 
 	IScopedPermissionEvaluationReadStep denyCreate();
 
-	void allowEach();
+	IPermissionEvaluationResult allowEach();
 
-	void skipEach();
+	IPermissionEvaluationResult skipEach();
 
-	void denyEach();
+	IPermissionEvaluationResult denyEach();
 }
