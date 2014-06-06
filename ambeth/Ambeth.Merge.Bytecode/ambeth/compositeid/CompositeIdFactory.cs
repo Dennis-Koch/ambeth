@@ -41,33 +41,18 @@ namespace De.Osthus.Ambeth.CompositeId
             {
                 throw new NotSupportedException("No bytecodeEnhancer specified");
             }
-            StringBuilder newTypeNameSB = new StringBuilder();
             StringBuilder nameSB = new StringBuilder();
-            newTypeNameSB.Append(entityType.FullName);
-            newTypeNameSB.Append("_cid");
             // order does matter here
             for (int a = 0, size = idMembers.Length; a < size; a++)
             {
                 String name = idMembers[a].Name;
-                newTypeNameSB.Append('_');
-                newTypeNameSB.Append(CompositeIdTypeInfoItem.FilterEmbeddedFieldName(name));
                 if (a > 0)
                 {
                     nameSB.Append('&');
                 }
                 nameSB.Append(name);
             }
-            String newTypeName = newTypeNameSB.ToString();
-            Type compositeIdType = BytecodeEnhancer.GetEnhancedType(typeof(Object), newTypeName, new CompositeIdEnhancementHint(idMembers));
-            //FieldAccess fa = FieldAccess.get(compositeIdType);
-            //int[] indexOfMembers = new int[idMembers.length];
-            //for (int a = idMembers.length; a-- > 0;)
-            //{
-            //    int index = fa.getIndex(CompositeIdTypeInfoItem.filterEmbeddedFieldName(idMembers[a].getName()));
-            //    indexOfMembers[a] = index;
-            //}
-            //compositeIdType.getField(CompositeIdCreator.FIELD_ACCESS_FLD).set(null, fa);
-            //compositeIdType.getField(CompositeIdCreator.FIELD_INDEX_OF_MEMBERS_FLD).set(null, indexOfMembers);
+            Type compositeIdType = BytecodeEnhancer.GetEnhancedType(typeof(Object), new CompositeIdEnhancementHint(idMembers));
             return new CompositeIdTypeInfoItem(entityType, compositeIdType, nameSB.ToString(), idMembers);
         }
 
