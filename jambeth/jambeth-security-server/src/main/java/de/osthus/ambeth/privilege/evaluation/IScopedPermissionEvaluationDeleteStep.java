@@ -2,9 +2,9 @@ package de.osthus.ambeth.privilege.evaluation;
 
 public interface IScopedPermissionEvaluationDeleteStep
 {
-	void allowDelete();
+	IPermissionEvaluationResult allowDelete();
 
-	void skipDelete();
+	IPermissionEvaluationResult skipDelete();
 
-	void denyDelete();
+	IPermissionEvaluationResult denyDelete();
 }

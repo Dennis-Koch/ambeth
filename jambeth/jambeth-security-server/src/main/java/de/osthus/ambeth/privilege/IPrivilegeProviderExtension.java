@@ -3,6 +3,7 @@ package de.osthus.ambeth.privilege;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluation;
+import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluationResult;
 import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
@@ -17,5 +18,6 @@ public interface IPrivilegeProviderExtension
 	 */
 	void buildPrefetchConfig(Class<?> entityType, IPrefetchConfig prefetchConfig);
 
-	void evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes, IPermissionEvaluation permissionEvaluation);
+	IPermissionEvaluationResult evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+			IPermissionEvaluation permissionEvaluation);
 }
