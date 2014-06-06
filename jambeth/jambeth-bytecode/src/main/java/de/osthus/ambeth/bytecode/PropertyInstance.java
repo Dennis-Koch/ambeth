@@ -32,10 +32,10 @@ public class PropertyInstance
 
 	public static PropertyInstance findByTemplate(Class<?> declaringType, String propertyName, boolean tryOnly)
 	{
-		Method getter = ReflectUtil.getDeclaredMethod(true, declaringType, "get" + propertyName);
+		Method getter = ReflectUtil.getDeclaredMethod(true, declaringType, "get" + propertyName, new Type[0]);
 		if (getter == null)
 		{
-			getter = ReflectUtil.getDeclaredMethod(true, declaringType, "is" + propertyName);
+			getter = ReflectUtil.getDeclaredMethod(true, declaringType, "is" + propertyName, new Type[0]);
 		}
 		Method setter = ReflectUtil.getDeclaredMethod(true, declaringType, "set" + propertyName, new Type[1]);
 		if (getter != null)
