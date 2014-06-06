@@ -1,6 +1,10 @@
 package de.osthus.ambeth.ioc;
 
+import java.util.regex.Pattern;
+
+import de.osthus.ambeth.converter.StringToPatternConverter;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -39,6 +43,9 @@ public class IocBootstrapModule implements IInitializingModule
 
 		beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
+
+		IBeanConfiguration stringToPatternConverterBC = beanContextFactory.registerAnonymousBean(StringToPatternConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern.class);
 
 		beanContextFactory.registerBean("interningFeature", InterningFeature.class).autowireable(IInterningFeature.class);
 

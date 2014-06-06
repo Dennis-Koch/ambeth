@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2010
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Test", "Ambeth.Test.csproj", "{481E695B-9076-454F-87B7-CA3F5E193790}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Util", "..\Ambeth.Util\Ambeth.Util.csproj", "{271E6992-6B52-41EE-9D4C-5A56FD173C2E}"
@@ -40,8 +40,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Mapping", "..\Ambeth.Mapping\Ambeth.Mapping.csproj", "{02859B45-2305-4FD2-B504-245DE8E8595D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Privilege", "..\Ambeth.Privilege\Ambeth.Privilege.csproj", "{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Service.REST", "..\Ambeth.Service.REST\Ambeth.Service.REST.csproj", "{16C4EE4E-7165-4280-99E6-A6C4E4058471}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Minerva.Core.WinForms", "..\Minerva.Core\Minerva.Core.WinForms.csproj", "{C6A308BC-A9E0-434F-BD96-B6DD82DE50C7}"
@@ -69,8 +67,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Mapping.SL5", "..\Ambeth.Mapping\Ambeth.Mapping.SL5.csproj", "{77313FCA-26D7-47C8-8A99-9D3DAE56A937}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Merge.SL5", "..\Ambeth.Merge\Ambeth.Merge.SL5.csproj", "{C5578625-B948-4A25-9712-ACE10E075C82}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Privilege.SL5", "..\Ambeth.Privilege\Ambeth.Privilege.SL5.csproj", "{B23149E6-7589-4BD9-9B84-5B8B49757196}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Security.SL5", "..\Ambeth.Security\Ambeth.Security.SL5.csproj", "{E7A4E157-0CFB-4F55-A6DC-631134D89096}"
 EndProject
@@ -128,8 +124,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Merge.SL4", "..\Ambe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Merge.Bytecode.SL4", "..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.SL4.csproj", "{6A7FA105-F422-4CBC-84A4-A71BF98204A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Privilege.SL4", "..\Ambeth.Privilege\Ambeth.Privilege.SL4.csproj", "{A2460565-1E93-4D85-AE03-DBB7A2E98910}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Security.SL4", "..\Ambeth.Security\Ambeth.Security.SL4.csproj", "{6B20E123-53AA-4B41-A16E-6634CA212691}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Service.SL4", "..\Ambeth.Service\Ambeth.Service.SL4.csproj", "{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}"
@@ -151,9 +145,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Merge.Bytecode.Test", "..\Ambeth.Merge.Bytecode.Test\Ambeth.Merge.Bytecode.Test.csproj", "{24808615-D225-4378-B691-3454625A841A}"
 EndProject
 Global
-	GlobalSection(PowerDesigner) = preSolution
-		HasSWS = 1
-	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Ambeth.Test.vsmdi
 	EndGlobalSection
@@ -326,16 +317,6 @@ Global
 		{02859B45-2305-4FD2-B504-245DE8E8595D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{02859B45-2305-4FD2-B504-245DE8E8595D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{02859B45-2305-4FD2-B504-245DE8E8595D}.Release|x86.ActiveCfg = Release|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{CEF8A6D4-B59D-453B-9766-00169BC7DC9A}.Release|x86.ActiveCfg = Release|Any CPU
 		{16C4EE4E-7165-4280-99E6-A6C4E4058471}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{16C4EE4E-7165-4280-99E6-A6C4E4058471}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{16C4EE4E-7165-4280-99E6-A6C4E4058471}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -476,16 +457,6 @@ Global
 		{C5578625-B948-4A25-9712-ACE10E075C82}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{C5578625-B948-4A25-9712-ACE10E075C82}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C5578625-B948-4A25-9712-ACE10E075C82}.Release|x86.ActiveCfg = Release|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B23149E6-7589-4BD9-9B84-5B8B49757196}.Release|x86.ActiveCfg = Release|Any CPU
 		{E7A4E157-0CFB-4F55-A6DC-631134D89096}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7A4E157-0CFB-4F55-A6DC-631134D89096}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7A4E157-0CFB-4F55-A6DC-631134D89096}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -766,16 +737,6 @@ Global
 		{6A7FA105-F422-4CBC-84A4-A71BF98204A6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6A7FA105-F422-4CBC-84A4-A71BF98204A6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6A7FA105-F422-4CBC-84A4-A71BF98204A6}.Release|x86.ActiveCfg = Release|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A2460565-1E93-4D85-AE03-DBB7A2E98910}.Release|x86.ActiveCfg = Release|Any CPU
 		{6B20E123-53AA-4B41-A16E-6634CA212691}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6B20E123-53AA-4B41-A16E-6634CA212691}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B20E123-53AA-4B41-A16E-6634CA212691}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
@@ -879,5 +840,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(PowerDesigner) = preSolution
+		HasSWS = 1
 	EndGlobalSection
 EndGlobal

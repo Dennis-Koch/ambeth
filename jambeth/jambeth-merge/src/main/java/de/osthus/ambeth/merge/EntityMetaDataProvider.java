@@ -155,6 +155,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		refreshMember(metaData, metaData.getIdMember());
 		refreshMember(metaData, metaData.getVersionMember());
+
+		updateEntityMetaDataWithLifecycleExtensions(metaData);
 	}
 
 	protected void refreshMember(IEntityMetaData metaData, ITypeInfoItem member)
@@ -389,11 +391,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	protected void updateEntityMetaDataWithLifecycleExtensions(IEntityMetaData entityMetaData)
 	{
 		IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.getExtensions(entityMetaData.getEntityType());
-		ArrayList<IEntityLifecycleExtension> allExtensions = new ArrayList<IEntityLifecycleExtension>();
-		if (extensionList != null)
-		{
-			allExtensions.addAll(extensionList);
-		}
+		ArrayList<IEntityLifecycleExtension> allExtensions = new ArrayList<IEntityLifecycleExtension>(extensionList);
 		ArrayList<Method> prePersistMethods = new ArrayList<Method>();
 		fillMethodsAnnotatedWith(entityMetaData.getRealType(), prePersistMethods, PrePersist.class);
 

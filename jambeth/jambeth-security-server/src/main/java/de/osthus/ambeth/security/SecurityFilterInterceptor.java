@@ -82,16 +82,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			}
 			if (userHandle == null || !userHandle.isValid())
 			{
-				if (SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
+				if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 				{
-					// It is not expected for this method, that the user is be valid
-				}
-				else
-				{
-					if (log.isInfoEnabled())
-					{
-						log.info("User is not a registered user. '" + userName + "' with SID '" + databaseSid + "'");
-					}
+					throw new SecurityException("User is not a valid user. '" + userName + "' with SID '" + databaseSid + "'");
 				}
 			}
 		}

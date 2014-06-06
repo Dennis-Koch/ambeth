@@ -6,10 +6,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.exceptions.ServiceCallForbiddenException;
@@ -18,19 +22,31 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.IMergeSecurityManager;
+import de.osthus.ambeth.merge.model.ICUDResult;
+import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.model.IMethodDescription;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.privilege.IPrivilegeItem;
+import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
+import de.osthus.ambeth.privilege.model.ReadPermission;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class SecurityManager implements ISecurityManager, IServiceFilterExtendable, IEntityFilterExtendable
+public class SecurityManager implements ISecurityManager, IMergeSecurityManager, IPrivilegeProviderExtensionExtendable, IServiceFilterExtendable,
+		IEntityFilterExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final DefaultExtendableContainer<IEntityFilter> entityFilters = new DefaultExtendableContainer<IEntityFilter>(IEntityFilter.class, "entityFilter");
+	// protected final DefaultExtendableContainer<IEntityFilter> entityFilters = new DefaultExtendableContainer<IEntityFilter>(IEntityFilter.class,
+	// "entityFilter");
 
 	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<IServiceFilter>(IServiceFilter.class,
 			"serviceFilter");
@@ -42,6 +58,9 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IPrivilegeProvider privilegeProvider;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -58,7 +77,8 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	public <T> T filterValue(T value)
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
-		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), entityFilters.getExtensions());
+
+		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), securityScopeProvider.getSecurityScopes(), null);
 	}
 
 	protected Class<?> getTypeOfValue(Object value)
@@ -71,7 +91,8 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
+	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes,
+			IEntityFilter[] entityFilters)
 	{
 		Collection<Object> cloneCollection;
 		try
@@ -82,30 +103,51 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		if (list.size() == 0)
+		{
+			return cloneCollection;
+		}
+		Object firstItem = list.get(0);
+		IList<IPrivilegeItem> privileges;
+		if (firstItem instanceof IObjRef)
+		{
+			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) list, securityScopes);
+		}
+		else
+		{
+			privileges = privilegeProvider.getPrivileges(list, securityScopes);
+		}
 		for (int a = 0, size = list.size(); a < size; a++)
 		{
 			Object item = list.get(a);
 			if (item == null)
 			{
+				cloneCollection.add(null);
 				continue;
 			}
-			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
-			if (filteredItem == item)
+			IPrivilegeItem privilege = privileges.get(a);
+			if (privilege.isReadAllowed())
 			{
-				// Filtering ok and unchanged
-				cloneCollection.add(filteredItem);
-				continue;
+				cloneCollection.add(item);
 			}
-			// Item got replaced
-			if (item != null)
-			{
-				cloneCollection.add(filteredItem);
-			}
+			// Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
+			// if (filteredItem == item)
+			// {
+			// // Filtering ok and unchanged
+			// cloneCollection.add(filteredItem);
+			// continue;
+			// }
+			// // Item got replaced
+			// if (item != null)
+			// {
+			// cloneCollection.add(filteredItem);
+			// }
 		}
 		return cloneCollection;
 	}
 
-	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
+	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes,
+			IEntityFilter[] entityFilters)
 	{
 		if (value == null)
 		{
@@ -123,11 +165,11 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		}
 		if (value instanceof List)
 		{
-			return filterList((List<?>) value, alreadyProcessedMap, userHandle, entityFilters);
+			return filterList((List<?>) value, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
 		}
 		else if (value instanceof Collection)
 		{
-			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, entityFilters);
+			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
 		}
 		else if (value.getClass().isArray())
 		{
@@ -136,7 +178,7 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 			for (int a = 0, size = length; a < size; a++)
 			{
 				Object item = Array.get(value, a);
-				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
+				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
 				if (filteredItem == item)
 				{
 					// Filtering ok and unchanged
@@ -175,40 +217,60 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterCollection(Collection<?> value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
-			IEntityFilter[] entityFilters)
+	protected Object filterCollection(Collection<?> coll, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
+			ISecurityScope[] securityScopes, IEntityFilter[] entityFilters)
 	{
-		Iterator<?> iter = value.iterator();
-
 		Collection<Object> cloneCollection;
 		try
 		{
-			cloneCollection = value.getClass().newInstance();
+			cloneCollection = coll.getClass().newInstance();
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-
+		Iterator<?> iter = coll.iterator();
+		if (!iter.hasNext())
+		{
+			return cloneCollection;
+		}
+		Object firstItem = iter.next();
+		IList<IPrivilegeItem> privileges;
+		if (firstItem instanceof IObjRef)
+		{
+			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) coll, securityScopes);
+		}
+		else
+		{
+			privileges = privilegeProvider.getPrivileges(coll, securityScopes);
+		}
+		int index = -1;
 		while (iter.hasNext())
 		{
 			Object item = iter.next();
+			index++;
 			if (item == null)
 			{
+				cloneCollection.add(null);
 				continue;
 			}
-			Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
-			if (filteredItem == item)
+			IPrivilegeItem privilege = privileges.get(index);
+			if (privilege.isReadAllowed())
 			{
-				// Filtering ok and unchanged
-				cloneCollection.add(filteredItem);
-				continue;
+				cloneCollection.add(item);
 			}
-			// Item got replaced
-			if (item != null)
-			{
-				cloneCollection.add(filteredItem);
-			}
+			// Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, entityFilters);
+			// if (filteredItem == item)
+			// {
+			// // Filtering ok and unchanged
+			// cloneCollection.add(filteredItem);
+			// continue;
+			// }
+			// // Item got replaced
+			// if (item != null)
+			// {
+			// cloneCollection.add(filteredItem);
+			// }
 		}
 		if (iter instanceof IDisposable)
 		{
@@ -277,6 +339,37 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 		}
 	}
 
+	@Override
+	public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription)
+	{
+		IMap<Class<?>, List<IChangeContainer>> typeToChanges = buildTypeToChanges(cudResult.getAllChanges());
+
+		for (Entry<Class<?>, List<IChangeContainer>> entry : typeToChanges)
+		{
+			Class<?> entityType = entry.getKey();
+
+		}
+	}
+
+	protected IMap<Class<?>, List<IChangeContainer>> buildTypeToChanges(List<IChangeContainer> allChanges)
+	{
+		HashMap<Class<?>, List<IChangeContainer>> typeToChanges = new HashMap<Class<?>, List<IChangeContainer>>();
+
+		for (int a = allChanges.size(); a-- > 0;)
+		{
+			IChangeContainer changeContainer = allChanges.get(a);
+			IObjRef objRef = changeContainer.getReference();
+			List<IChangeContainer> changes = typeToChanges.get(objRef.getRealType());
+			if (changes == null)
+			{
+				changes = new ArrayList<IChangeContainer>();
+				typeToChanges.put(objRef.getRealType(), changes);
+			}
+			changes.add(changeContainer);
+		}
+		return typeToChanges;
+	}
+
 	protected CallPermission filterService(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
 	{
 		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
@@ -299,15 +392,25 @@ public class SecurityManager implements ISecurityManager, IServiceFilterExtendab
 	}
 
 	@Override
+	public void registerPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
+	{
+	}
+
+	@Override
+	public void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
+	{
+	}
+
+	@Override
 	public void registerEntityFilter(IEntityFilter entityFilter)
 	{
-		entityFilters.register(entityFilter);
+		// entityFilters.register(entityFilter);
 	}
 
 	@Override
 	public void unregisterEntityFilter(IEntityFilter entityFilter)
 	{
-		entityFilters.unregister(entityFilter);
+		// entityFilters.unregister(entityFilter);
 	}
 
 	@Override

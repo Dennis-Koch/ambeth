@@ -351,12 +351,9 @@ namespace De.Osthus.Ambeth.Template
                 {
                     propertyChangeSupport.FirePropertyChange(obj, evnts[a], propertyName, oldValue, currentValue);
                 }
-                if (extensions != null)
+                for (int b = 0, sizeB = extensions.Count; b < sizeB; b++)
                 {
-                    for (int b = 0, sizeB = extensions.Count; b < sizeB; b++)
-                    {
-                        extensions[b].PropertyChanged(obj, propertyName, oldValue, currentValue);
-                    }
+                    extensions[b].PropertyChanged(obj, propertyName, oldValue, currentValue);
                 }
             }
         }
@@ -491,12 +488,9 @@ namespace De.Osthus.Ambeth.Template
                         throw RuntimeExceptionUtil.CreateEnumNotSupportedException(evnt.Action);
                 }
                 IList<ICollectionChangeExtension> extensions = collectionChangeExtensions.GetExtensions(obj.GetType());
-                if (extensions != null)
+                for (int a = 0, size = extensions.Count; a < size; a++)
                 {
-                    for (int a = 0, size = extensions.Count; a < size; a++)
-                    {
-                        extensions[a].CollectionChanged(obj, evnt);
-                    }
+                    extensions[a].CollectionChanged(obj, evnt);
                 }
             }
             finally

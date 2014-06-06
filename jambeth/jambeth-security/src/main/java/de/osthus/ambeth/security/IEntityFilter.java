@@ -1,6 +1,8 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.privilege.model.ModifyPermission;
+import de.osthus.ambeth.privilege.model.ReadPermission;
 
 public interface IEntityFilter
 {

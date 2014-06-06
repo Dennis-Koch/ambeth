@@ -118,6 +118,8 @@ namespace De.Osthus.Ambeth.Merge
 		    }
 		    RefreshMember(metaData, metaData.IdMember);
 		    RefreshMember(metaData, metaData.VersionMember);
+
+            UpdateEntityMetaDataWithLifecycleExtensions(metaData);
 	    }
 
         protected void RefreshMember(IEntityMetaData metaData, ITypeInfoItem member)

@@ -5,9 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.Test;
 
@@ -37,7 +34,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyClassString()
 	{
-		isPropertyArrayOK(propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -56,7 +53,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertiesClass()
 	{
-		isPropertyArrayOK(propertyInfoProvider.getProperties(MethodPropertyInfo.class));
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNames, propertyInfoProvider.getProperties(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -66,7 +63,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	public final void testGetPropertiesObject()
 	{
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		isPropertyArrayOK(propertyInfoProvider.getProperties(subject));
+		PropertyInfoTest.isPropertyArrayOK(PropertyInfoTest.propNamesASM2, propertyInfoProvider.getProperties(subject));
 	}
 
 	/**
@@ -75,7 +72,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyMapClass()
 	{
-		isPropertyMapOK(propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
+		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNames, propertyInfoProvider.getPropertyMap(MethodPropertyInfo.class));
 	}
 
 	/**
@@ -85,7 +82,7 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 	public final void testGetPropertyMapObject()
 	{
 		IPropertyInfo subject = propertyInfoProvider.getProperty(MethodPropertyInfo.class, "Name");
-		isPropertyMapOK(propertyInfoProvider.getPropertyMap(subject));
+		PropertyInfoTest.isPropertyMapOK(PropertyInfoTest.propNamesASM2, propertyInfoProvider.getPropertyMap(subject));
 	}
 
 	/**
@@ -111,41 +108,5 @@ public class PropertyInfoProviderTest extends AbstractIocTest
 
 		method = MethodPropertyInfo.class.getMethod("setValue", Object.class, Object.class);
 		assertTrue("Wrong name!", propertyInfoProvider.getPropertyNameFor(method).isEmpty());
-	}
-
-	/**
-	 * If changes are made to the PropertyInfo class this might need an update.
-	 * 
-	 * @param actual
-	 * @return
-	 */
-	private void isPropertyArrayOK(IPropertyInfo[] actual)
-	{
-		assertEquals("Wrong number of properties!", PropertyInfoTest.propNames.length, actual.length);
-
-		List<String> propNameList = Arrays.asList(PropertyInfoTest.propNames);
-		for (int i = actual.length; i-- > 0;)
-		{
-			assertTrue("Unknown property: " + actual[i].getName(), propNameList.contains(actual[i].getName()));
-		}
-	}
-
-	/**
-	 * If changes are made to the PropertyInfo class this might need an update.
-	 * 
-	 * @param actual
-	 * @return
-	 */
-	private void isPropertyMapOK(Map<String, IPropertyInfo> actual)
-	{
-		assertEquals("Wrong number of properties!", PropertyInfoTest.propNames.length, actual.size());
-
-		List<String> propNameList = Arrays.asList(PropertyInfoTest.propNames);
-		for (String name : actual.keySet())
-		{
-			assertTrue("Unknown property: " + name, propNameList.contains(name));
-		}
-
-		isPropertyArrayOK(actual.values().toArray(new MethodPropertyInfo[PropertyInfoTest.propNames.length]));
 	}
 }

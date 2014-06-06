@@ -3,8 +3,11 @@ package de.osthus.ambeth.helloworld.security;
 import de.osthus.ambeth.helloworld.transfer.TestEntity;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
+import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluation;
+import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
 public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
@@ -23,26 +26,9 @@ public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 	}
 
 	@Override
-	public boolean isCreateAllowed(Object entity, ISecurityScope... securityScopes)
+	public void evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+			IPermissionEvaluation permissionEvaluation)
 	{
-		return true;
-	}
-
-	@Override
-	public boolean isDeleteAllowed(Object entity, ISecurityScope... securityScopes)
-	{
-		return false;
-	}
-
-	@Override
-	public boolean isReadAllowed(Object entity, ISecurityScope... securityScopes)
-	{
-		return true;
-	}
-
-	@Override
-	public boolean isUpdateAllowed(Object entity, ISecurityScope... securityScopes)
-	{
-		return true;
+		permissionEvaluation.allowCreate().allowRead().allowUpdate().denyDelete();
 	}
 }

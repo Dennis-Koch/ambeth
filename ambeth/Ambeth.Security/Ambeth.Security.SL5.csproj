@@ -40,7 +40,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>Bin\Release</OutputPath>
+    <OutputPath>Bin\Release_SL5\</OutputPath>
     <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <NoConfig>true</NoConfig>
@@ -72,8 +72,20 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProviderExtension.cs" />
+    <Compile Include="ambeth\privilege\IPrivilegeProviderExtensionExtendable.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeResult.cs" />
+    <Compile Include="ambeth\privilege\model\ModifyPermission.cs" />
+    <Compile Include="ambeth\privilege\model\PrivilegeEnum.cs" />
+    <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
+    <Compile Include="ambeth\privilege\PrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\transfer\PrivilegeResult.cs" />
     <Compile Include="ambeth\security\AbstractEntityFilter.cs" />
     <Compile Include="ambeth\security\AmbethUserHandle.cs" />
     <Compile Include="ambeth\security\AmbethUserHandleFactory.cs" />
@@ -99,14 +111,26 @@
     <Compile Include="ambeth\security\transfer\UseCase.cs" />
     <Compile Include="ambeth\security\transfer\User.cs" />
     <Compile Include="ambeth\security\UserIndependentAttribute.cs" />
+    <Compile Include="ambeth\service\IPrivilegeService.cs" />
+    <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityServiceWCF.cs" />
+    <Compile Include="ambeth\service\PrivilegeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
+    <Compile Include="ioc\PrivilegeModule.cs" />
     <Compile Include="ioc\SecurityBootstrapModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.SL5.csproj">
+      <Project>{a57f807f-8214-4bd4-a3e3-8eba065d4d37}</Project>
+      <Name>Ambeth.DataChange.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.SL5.csproj">
+      <Project>{5f63dba2-bda5-4cec-937e-71438f68060d}</Project>
+      <Name>Ambeth.Event.SL5</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL5.csproj">
       <Project>{19A96089-734E-47F9-983C-298DD17A4517}</Project>
       <Name>Ambeth.IOC.SL5</Name>
@@ -114,6 +138,10 @@
     <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL5.csproj">
       <Project>{2C44A82D-C27F-4B46-8700-DF4C130E9176}</Project>
       <Name>Ambeth.Log.SL5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL5.csproj">
+      <Project>{c5578625-b948-4a25-9712-ace10e075c82}</Project>
+      <Name>Ambeth.Merge.SL5</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL5.csproj">
       <Project>{0E9CB1B1-CB78-4B7E-A404-8F223665B4E3}</Project>
