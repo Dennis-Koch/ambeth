@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class ServiceBootstrapModule : IInitializingBootstrapModule, IStartingModule
+    public class ServiceModule : IInitializingModule, IStartingModule
     {
         [LogInstance]
 		public ILogger Log { private get; set; }

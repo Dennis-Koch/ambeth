@@ -13,7 +13,7 @@ using De.Osthus.Ambeth.Xml.Typehandler;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class XmlBootstrapModule : IInitializingBootstrapModule
+    public class XmlModule : IInitializingModule
     {
         [LogInstance]
         public ILogger Log { private get; set; }

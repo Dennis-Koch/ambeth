@@ -294,7 +294,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	{
 		if (isRegistered(keyType))
 		{
-			return (Class<? extends T>) bytecodeEnhancer.getEnhancedType(keyType, ImplementAbstractObjectContext.INSTANCE);
+			return (Class<? extends T>) bytecodeEnhancer.getEnhancedType(keyType, ImplementAbstractObjectEnhancementHint.ImplementAbstractObjectEnhancementHint);
 		}
 		throw new IllegalArgumentException(keyType.getName() + " is not a registered type");
 	}

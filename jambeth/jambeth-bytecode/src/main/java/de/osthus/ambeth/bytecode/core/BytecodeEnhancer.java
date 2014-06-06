@@ -119,14 +119,30 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		return type;
 	}
 
-	protected Class<?> getEnhancedTypeIntern(Class<?> entityType, IEnhancementHint bytecodeEnhancementContext)
+	protected Class<?> getEnhancedTypeIntern(Class<?> entityType, IEnhancementHint enhancementHint)
 	{
+		Reference<Class<?>> existingBaseTypeR = extendedTypeToType.get(entityType);
+		if (existingBaseTypeR != null)
+		{
+			Class<?> existingBaseType = existingBaseTypeR.get();
+			if (existingBaseType != null)
+			{
+				// there is already an enhancement of the given baseType. Now we check if the existing enhancement is made with the same enhancementHint
+				ValueType valueType = typeToExtendedType.get(existingBaseType);
+				if (valueType != null && valueType.containsKey(enhancementHint))
+				{
+					// do nothing: the given entity is already the result of the enhancement of the existingBaseType with the given enhancementHint
+					// it is not possible to enhance the same two times
+					return entityType;
+				}
+			}
+		}
 		ValueType valueType = typeToExtendedType.get(entityType);
 		if (valueType == null)
 		{
 			return null;
 		}
-		Reference<Class<?>> extendedTypeR = valueType.get(bytecodeEnhancementContext);
+		Reference<Class<?>> extendedTypeR = valueType.get(enhancementHint);
 		if (extendedTypeR == null)
 		{
 			return null;

@@ -11,7 +11,6 @@ import java.util.concurrent.locks.Lock;
 import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
-import de.osthus.ambeth.accessor.AbstractAccessor;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.bytecode.EntityEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
@@ -45,7 +44,6 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM2;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
@@ -134,7 +132,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
-			((EntityMetaData) metaData).setRealType(bytecodeEnhancer.getEnhancedType(entityType, EntityEnhancementHint.HOOK));
+
+			Class<?> typeToEnhance = metaData.getRealType();
+			if (typeToEnhance == null)
+			{
+				typeToEnhance = metaData.getEntityType();
+			}
+			((EntityMetaData) metaData).setRealType(bytecodeEnhancer.getEnhancedType(typeToEnhance, EntityEnhancementHint.EntityEnhancementHint));
 
 			refreshMembers(metaData);
 
@@ -167,11 +171,17 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		PropertyInfoItem pMember = (PropertyInfoItem) member;
 		AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.getProperty();
-		propertyInfo.refreshAccessors(metaData.getRealType());
-		if (propertyInfo instanceof MethodPropertyInfoASM2)
+		// if (propertyInfo instanceof MethodPropertyInfo && !(propertyInfo instanceof MethodPropertyInfoASM2))
+		// {
+		// MethodPropertyInfo mPropertyInfo = (MethodPropertyInfo) propertyInfo;
+		// AbstractAccessor accessor = accessorTypeProvider.getAccessorType(metaData.getRealType(), member.getName());
+		// MethodPropertyInfoASM2 propertyInfoASM2 = new MethodPropertyInfoASM2(propertyInfo.getEntityType(), propertyInfo.getName(),
+		// mPropertyInfo.getGetter(), mPropertyInfo.getSetter(), null, accessor);
+		// pMember.setProperty(propertyInfoASM2);
+		// }
+		// else
 		{
-			AbstractAccessor accessor = accessorTypeProvider.getAccessorType(metaData.getRealType(), member.getName());
-			((MethodPropertyInfoASM2) propertyInfo).setAccessor(accessor);
+			propertyInfo.refreshAccessors(metaData.getRealType());
 		}
 	}
 

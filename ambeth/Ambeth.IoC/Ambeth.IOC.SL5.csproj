@@ -144,7 +144,6 @@
     <Compile Include="ambeth\ioc\IDisposableBean.cs" />
     <Compile Include="ambeth\ioc\IFactoryBean.cs" />
     <Compile Include="ambeth\ioc\IInitializingBean.cs" />
-    <Compile Include="ambeth\ioc\IInitializingBootstrapModule.cs" />
     <Compile Include="ambeth\ioc\IInitializingModule.cs" />
     <Compile Include="ambeth\ioc\IModuleProvider.cs" />
     <Compile Include="ambeth\ioc\IPropertyLoadingBean.cs" />
@@ -192,7 +191,7 @@
     <Compile Include="ambeth\util\DedicatedConverterUtil.cs" />
     <Compile Include="ambeth\util\Def2Entry.cs" />
     <Compile Include="ambeth\util\Strong2Key.cs" />
-    <Compile Include="ioc\IocBootstrapModule.cs" />
+    <Compile Include="ioc\IocModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

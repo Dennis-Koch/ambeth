@@ -91,6 +91,11 @@ public class PropertyInfoItem extends RelationInfoItem
 		return property;
 	}
 
+	public void setProperty(IPropertyInfoIntern property)
+	{
+		this.property = property;
+	}
+
 	@Override
 	public void setElementType(Class<?> elementType)
 	{

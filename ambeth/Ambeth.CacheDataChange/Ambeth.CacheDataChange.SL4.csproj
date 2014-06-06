@@ -81,7 +81,7 @@
     <Compile Include="ambeth\cache\ServiceResultCacheDCL.cs" />
     <Compile Include="ambeth\datachange\CacheChangeItem.cs" />
     <Compile Include="ambeth\datachange\CacheDataChangeListener.cs" />
-    <Compile Include="ioc\CacheDataChangeBootstrapModule.cs" />
+    <Compile Include="ioc\CacheDataChangeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

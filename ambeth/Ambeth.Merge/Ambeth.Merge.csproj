@@ -160,7 +160,7 @@
     <Compile Include="ambeth\util\ValueHolderRef.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
     <Compile Include="ambeth\util\XmlValidator.cs" />
-    <Compile Include="ioc\MergeBootstrapModule.cs" />
+    <Compile Include="ioc\MergeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

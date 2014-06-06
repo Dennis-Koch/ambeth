@@ -144,7 +144,7 @@
     <Compile Include="ambeth\xml\XmlTypeNotFoundException.cs" />
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs" />
     <Compile Include="ioc\BootstrapScannerModule.cs" />
-    <Compile Include="ioc\XmlBootstrapModule.cs" />
+    <Compile Include="ioc\XmlModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -8,7 +8,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class DataChangeBootstrapModule : IInitializingBootstrapModule
+    public class DataChangeModule : IInitializingModule
     {
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {

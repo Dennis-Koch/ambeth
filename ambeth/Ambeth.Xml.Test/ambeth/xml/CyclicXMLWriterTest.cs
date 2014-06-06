@@ -52,7 +52,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             Properties props = new Properties();
             IServiceContext bootstrapContext = BeanContextFactory.CreateBootstrap(props);
 
-            beanContext = bootstrapContext.CreateService(typeof(XmlBootstrapTestModule), typeof(IocBootstrapModule), typeof(XmlBootstrapModule));
+            beanContext = bootstrapContext.CreateService(typeof(XmlTestModule), typeof(IocModule), typeof(XmlModule));
         }
 
         [ClassCleanup]

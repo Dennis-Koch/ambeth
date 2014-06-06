@@ -211,7 +211,7 @@ namespace De.Osthus.Ambeth.Proxy
 		    {
 			    if (BytecodeEnhancer != null)
 			    {
-				    entityType = BytecodeEnhancer.GetEnhancedType(entityType, EntityEnhancementHint.HOOK);
+				    entityType = BytecodeEnhancer.GetEnhancedType(entityType, EntityEnhancementHint.Instance);
 			    }
 			    if (!entityType.IsInterface)
 			    {

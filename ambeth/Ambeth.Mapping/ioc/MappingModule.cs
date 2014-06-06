@@ -9,7 +9,7 @@ using De.Osthus.Ambeth.Merge.Config;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class MappingBootstrapModule : IInitializingBootstrapModule
+    public class MappingModule : IInitializingModule
     {
         [Property(ServiceConfigurationConstants.GenericTransferMapping, DefaultValue = "false")]
         public virtual bool GenericTransferMapping { get; set; }

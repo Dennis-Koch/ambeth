@@ -4,7 +4,7 @@ namespace De.Osthus.Ambeth.Bytecode
 {
     public sealed class EntityEnhancementHint : IEnhancementHint
     {
-        public static readonly EntityEnhancementHint HOOK = new EntityEnhancementHint();
+        public static readonly EntityEnhancementHint Instance = new EntityEnhancementHint();
 
         private EntityEnhancementHint()
         {

@@ -98,8 +98,14 @@ namespace De.Osthus.Ambeth.Merge
                     relatedByTypes = new CHashSet<Type>();
                 }
                 ((EntityMetaData)metaData).TypesRelatingToThis = relatedByTypes.ToArray();
-                ((EntityMetaData)metaData).RealType = BytecodeEnhancer.GetEnhancedType(entityType, EntityEnhancementHint.HOOK);
-
+                
+                Type typeToEnhance = metaData.RealType;
+			    if (typeToEnhance == null)
+			    {
+				    typeToEnhance = metaData.EntityType;
+			    }
+			    ((EntityMetaData) metaData).RealType = BytecodeEnhancer.GetEnhancedType(typeToEnhance, EntityEnhancementHint.Instance);
+                
                 RefreshMembers(metaData);
 
                 ((EntityMetaData)metaData).Initialize(EntityFactory);
@@ -131,11 +137,11 @@ namespace De.Osthus.Ambeth.Merge
 		    PropertyInfoItem pMember = (PropertyInfoItem) member;
 		    AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.Property;
 		    propertyInfo.RefreshAccessors(metaData.RealType);
-		    if (propertyInfo is MethodPropertyInfoASM2)
-		    {
-			    AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(metaData.RealType, member.Name);
-			    ((MethodPropertyInfoASM2) propertyInfo).SetAccessor(accessor);
-		    }
+            //if (propertyInfo is MethodPropertyInfoASM2)
+            //{
+            //    AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(metaData.RealType, member.Name);
+            //    ((MethodPropertyInfoASM2) propertyInfo).SetAccessor(accessor);
+            //}
 	    }
 
         public IEntityMetaData GetMetaData(Type entityType)

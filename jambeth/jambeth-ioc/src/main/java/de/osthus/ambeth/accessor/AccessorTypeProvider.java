@@ -2,12 +2,16 @@ package de.osthus.ambeth.accessor;
 
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.INVOKESTATIC;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -43,7 +47,29 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	@LogInstance
 	private ILogger log;
 
-	protected final Tuple2KeyHashMap<Class<?>, String, AbstractAccessor> typeToAccessorMap = new Tuple2KeyHashMap<Class<?>, String, AbstractAccessor>();
+	protected final Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>> typeToAccessorMap = new Tuple2KeyHashMap<Class<?>, String, Reference<AbstractAccessor>>()
+	{
+		@Override
+		protected void resize(int newCapacity)
+		{
+			ArrayList<Object[]> removeKeys = new ArrayList<Object[]>();
+			for (Tuple2KeyEntry<Class<?>, String, Reference<AbstractAccessor>> entry : this)
+			{
+				if (entry.getValue().get() == null)
+				{
+					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
+				}
+			}
+			for (Object[] removeKey : removeKeys)
+			{
+				remove((Class<?>) removeKey[0], (String) removeKey[1]);
+			}
+			if (size() >= threshold)
+			{
+				super.resize(2 * table.length);
+			}
+		}
+	};
 
 	protected final HashMap<Class<?>, Object> typeToConstructorMap = new HashMap<Class<?>, Object>();
 
@@ -58,7 +84,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	@Override
 	public AbstractAccessor getAccessorType(Class<?> type, String propertyName)
 	{
-		AbstractAccessor accessor = typeToAccessorMap.get(type, propertyName);
+		Reference<AbstractAccessor> accessorR = typeToAccessorMap.get(type, propertyName);
+		AbstractAccessor accessor = accessorR != null ? accessorR.get() : null;
 		if (accessor != null)
 		{
 			return accessor;
@@ -68,7 +95,8 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		try
 		{
 			// concurrent thread might have been faster
-			accessor = typeToAccessorMap.get(type, propertyName);
+			accessorR = typeToAccessorMap.get(type, propertyName);
+			accessor = accessorR != null ? accessorR.get() : null;
 			if (accessor != null)
 			{
 				return accessor;
@@ -94,7 +122,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 				// something serious happened during enhancement: continue with a fallback
 				accessor = ci.newInstance(type, propertyName);
 			}
-			typeToAccessorMap.put(type, propertyName, accessor);
+			typeToAccessorMap.put(type, propertyName, new WeakReference<AbstractAccessor>(accessor));
 			return accessor;
 		}
 		catch (Throwable e)

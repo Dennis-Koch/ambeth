@@ -9,7 +9,7 @@ using System;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class IocBootstrapModule : IInitializingBootstrapModule
+    public class IocModule : IInitializingModule
     {
         [LogInstance]
 		public ILogger Log { private get; set; }

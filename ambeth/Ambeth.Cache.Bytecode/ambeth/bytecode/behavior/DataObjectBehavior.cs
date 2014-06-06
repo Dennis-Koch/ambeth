@@ -94,7 +94,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 cascadePendingBehaviors.Add(this);
                 return visitor;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(state.OriginalType, true);
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(state.OriginalType);
 
             visitor = new GetIdMethodCreator(visitor, metaData);
             visitor = new SetBeanContextMethodCreator(visitor);

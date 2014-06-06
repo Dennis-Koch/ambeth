@@ -2,7 +2,7 @@ package de.osthus.ambeth.bytecode;
 
 public enum EntityEnhancementHint implements IEnhancementHint
 {
-	HOOK;
+	EntityEnhancementHint;
 
 	@SuppressWarnings("unchecked")
 	@Override

@@ -209,7 +209,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	{
 		try
 		{
-			entityType = bytecodeEnhancer.getEnhancedType(entityType, EntityEnhancementHint.HOOK);
+			entityType = bytecodeEnhancer.getEnhancedType(entityType, EntityEnhancementHint.EntityEnhancementHint);
 			if (!entityType.isInterface())
 			{
 				Constructor<?> constructor = getConstructor(typeToConstructorMap, entityType);

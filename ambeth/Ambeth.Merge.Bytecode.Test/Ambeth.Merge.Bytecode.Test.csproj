@@ -59,7 +59,7 @@
     <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClient20Test.cs" />
     <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClientTest.cs" />
     <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClientTestModule.cs" />
-    <Compile Include="ioc\MergeBytecodeBootstrapTestModule.cs" />
+    <Compile Include="ioc\MergeBytecodeTestModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

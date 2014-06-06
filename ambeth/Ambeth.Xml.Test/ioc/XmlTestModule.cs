@@ -15,8 +15,7 @@ using De.Osthus.Ambeth.Xml;
 
 namespace De.Osthus.Ambeth.Ioc
 {
-    [FrameworkModule]
-    public class XmlBootstrapTestModule : IInitializingBootstrapModule
+    public class XmlTestModule : IInitializingModule
     {
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
