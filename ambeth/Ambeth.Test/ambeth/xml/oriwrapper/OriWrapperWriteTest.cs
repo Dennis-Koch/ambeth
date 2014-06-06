@@ -10,7 +10,7 @@ namespace De.Osthus.Ambeth.Xml.Test
     [TestClass]
     [TestProperties(File = "ambeth/xml/oriwrapper/OriWrapperTestData.properties")]
     [TestProperties(Name = ServiceConfigurationConstants.MappingFile, Value = "ambeth/xml/oriwrapper/orm.xml")]
-    [TestModule(typeof(OriWrapperTestModule), typeof(XmlBootstrapModule))]
+    [TestModule(typeof(OriWrapperTestModule), typeof(XmlModule))]
     public class OriWrapperWriteTest : AbstractIndependentClientTest
     {
         [Autowired]

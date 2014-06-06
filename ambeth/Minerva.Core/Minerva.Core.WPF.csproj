@@ -92,7 +92,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ioc\MinervaCoreBootstrapModule.cs" />
+    <Compile Include="ioc\MinervaCoreModule.cs" />
     <Compile Include="minerva\busy\BusyController.cs" />
     <Compile Include="minerva\busy\BusyToken.cs" />
     <Compile Include="minerva\busy\IBusyController.cs" />

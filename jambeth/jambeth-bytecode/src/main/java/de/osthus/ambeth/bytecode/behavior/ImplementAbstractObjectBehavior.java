@@ -4,7 +4,7 @@ import java.util.List;
 
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.abstractobject.IImplementAbstractObjectFactory;
-import de.osthus.ambeth.bytecode.abstractobject.ImplementAbstractObjectContext;
+import de.osthus.ambeth.bytecode.abstractobject.ImplementAbstractObjectEnhancementHint;
 import de.osthus.ambeth.bytecode.visitor.InterfaceAdder;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -89,7 +89,7 @@ public class ImplementAbstractObjectBehavior extends AbstractBehavior implements
 
 	protected IEnhancementHint getContext(IEnhancementHint hint)
 	{
-		return hint.unwrap(ImplementAbstractObjectContext.class);
+		return hint.unwrap(ImplementAbstractObjectEnhancementHint.class);
 	}
 
 	/**

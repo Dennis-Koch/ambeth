@@ -139,7 +139,7 @@
     <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
     <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
     <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
-    <Compile Include="ioc\ServiceBootstrapModule.cs" />
+    <Compile Include="ioc\ServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

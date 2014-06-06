@@ -13,9 +13,9 @@ namespace De.Osthus.Ambeth.Testutil
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
             beanContextFactory.RegisterBean<DummyService>(DUMMY_CACHE_SERVICE).Autowireable(typeof(IClientServiceFactory), typeof(IMergeService), typeof(ICacheRetriever));
-            beanContextFactory.RegisterAlias(CacheBootstrapModule.EXTERNAL_CACHE_SERVICE, DUMMY_CACHE_SERVICE);
+            beanContextFactory.RegisterAlias(CacheModule.EXTERNAL_CACHE_SERVICE, DUMMY_CACHE_SERVICE);
 
-            beanContextFactory.RegisterAlias(CacheBootstrapModule.ROOT_CACHE_RETRIEVER, "cacheServiceRegistry");
+            beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, "cacheServiceRegistry");
         }
     }
 }

@@ -68,7 +68,7 @@
     <Compile Include="ambeth\service\IEventService.cs" />
     <Compile Include="ambeth\service\IEventServiceWCF.cs" />
     <Compile Include="ambeth\transfer\EventItem.cs" />
-    <Compile Include="ioc\EventBootstrapModule.cs" />
+    <Compile Include="ioc\EventModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace De.Osthus.Ambeth.Ioc
 {
-    public class MergeBootstrapTestModule : IInitializingBootstrapModule
+    public class MergeBytecodeTestModule : IInitializingModule
     {
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {

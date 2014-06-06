@@ -118,7 +118,7 @@
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ioc\XmlBootstrapModule.cs" />
+    <Compile Include="ioc\XmlModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">

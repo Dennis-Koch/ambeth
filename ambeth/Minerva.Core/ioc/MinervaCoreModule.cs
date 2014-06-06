@@ -23,7 +23,7 @@ using De.Osthus.Ambeth.Merge;
 namespace De.Osthus.Minerva.Ioc
 {
     [FrameworkModule]
-    public class MinervaCoreBootstrapModule : IInitializingBootstrapModule
+    public class MinervaCoreModule : IInitializingModule
     {
         [LogInstance]
 		public ILogger Log { private get; set; }

@@ -7,7 +7,7 @@ using De.Osthus.Ambeth.Template;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class CacheBytecodeModule : IInitializingBootstrapModule
+    public class CacheBytecodeModule : IInitializingModule
     {
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {

@@ -208,7 +208,7 @@
     <Compile Include="ambeth\util\OptimisticLockUtil.cs" />
     <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
-    <Compile Include="ioc\MergeBootstrapModule.cs" />
+    <Compile Include="ioc\MergeModule.cs" />
     <Compile Include="ioc\ObjectCopierModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

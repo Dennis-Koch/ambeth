@@ -11,7 +11,7 @@ using De.Osthus.Ambeth.Ioc.Factory;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class BytecodeModule : IInitializingBootstrapModule
+    public class BytecodeModule : IInitializingModule
     {
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {

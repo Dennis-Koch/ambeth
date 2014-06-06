@@ -159,7 +159,7 @@
     <Compile Include="ambeth\util\PrefetchConfig.cs" />
     <Compile Include="ambeth\util\PrefetchHandle.cs" />
     <Compile Include="ambeth\ValueHolderIEC.cs" />
-    <Compile Include="ioc\CacheBootstrapModule.cs" />
+    <Compile Include="ioc\CacheModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

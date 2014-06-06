@@ -120,7 +120,7 @@ public class DataObjectBehavior extends AbstractBehavior
 			cascadePendingBehaviors.add(this);
 			return visitor;
 		}
-		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(state.getOriginalType(), true);
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(state.getOriginalType());
 
 		visitor = new GetIdMethodCreator(visitor, metaData);
 

@@ -64,7 +64,7 @@
     <Compile Include="ambeth\xml\Material.cs" />
     <Compile Include="ambeth\xml\MaterialGroup.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommandTest.cs" />
-    <Compile Include="ioc\XmlBootstrapTestModule.cs" />
+    <Compile Include="ioc\XmlTestModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

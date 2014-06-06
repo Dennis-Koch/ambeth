@@ -23,7 +23,7 @@ using De.Osthus.Ambeth.Util.Xml;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class MergeBootstrapModule : IInitializingBootstrapModule
+    public class MergeModule : IInitializingModule
     {
         public static readonly String MERGE_CACHE_FACTORY = "cacheFactory.merge";
 

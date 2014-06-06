@@ -170,6 +170,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ioc\MinervaCoreModule.cs" />
     <Compile Include="minerva\busy\BusyController.cs" />
     <Compile Include="minerva\busy\BusyToken.cs" />
     <Compile Include="minerva\busy\IBusyController.cs" />
@@ -290,7 +291,6 @@
     <Compile Include="minerva\util\GuiUtil.cs" />
     <Compile Include="minerva\util\IWorkerUtil.cs" />
     <Compile Include="minerva\util\WorkerUtil.cs" />
-    <Compile Include="ioc\MinervaCoreBootstrapModule.cs" />
     <Compile Include="system\windows\controls\ContentControlEvents.cs" />
     <Compile Include="telerik\windows\controls\HeaderedContentControlEvents.cs" />
     <Compile Include="telerik\windows\controls\WindowBaseEvents.cs" />

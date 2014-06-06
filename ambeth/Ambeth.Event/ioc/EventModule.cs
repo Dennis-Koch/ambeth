@@ -10,7 +10,7 @@ using De.Osthus.Ambeth.Service;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class EventBootstrapModule : IInitializingBootstrapModule
+    public class EventModule : IInitializingModule
     {
         [LogInstance]
 		public ILogger Log { private get; set; }

@@ -8,7 +8,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.osthus.ambeth.accessor.AbstractAccessor;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.annotation.PropertyAccessor;
 import de.osthus.ambeth.collections.HashMap;
@@ -194,9 +193,9 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				}
 				if (methodAccess != null)
 				{
-					AbstractAccessor accessor = accessorTypeProvider.getAccessorType(type, propertyName);
-					propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, objectCollector, accessor);
-					// propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter, objectCollector, methodAccess);
+					// AbstractAccessor accessor = accessorTypeProvider.getAccessorType(type, propertyName);
+					// propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, objectCollector, accessor);
+					propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter, objectCollector, methodAccess);
 				}
 				else
 				{

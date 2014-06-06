@@ -6,7 +6,7 @@ import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
@@ -18,9 +18,8 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class LoggerInstancePreProcessor extends SmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, IInitializingBean, ILoggerCache
+public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, IInitializingBean, ILoggerCache
 {
-
 	protected final AnnotationCache<LogInstance> logInstanceCache = new AnnotationCache<LogInstance>(LogInstance.class)
 	{
 		@Override
@@ -39,8 +38,8 @@ public class LoggerInstancePreProcessor extends SmartCopyMap<Class<?>, ILogger> 
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Class<?> beanType,
+			List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
 	{
 		scanForLogField(props, service, beanType, service.getClass());
 	}

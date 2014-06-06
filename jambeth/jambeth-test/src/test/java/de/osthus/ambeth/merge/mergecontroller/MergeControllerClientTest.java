@@ -304,7 +304,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 	@Test
 	public void testGenericElementOfList() throws Throwable
 	{
-		Class<?> parentType = bytecodeEnhancer.getEnhancedType(Parent.class, EntityEnhancementHint.HOOK);
+		Class<?> parentType = bytecodeEnhancer.getEnhancedType(Parent.class, EntityEnhancementHint.EntityEnhancementHint);
 		{
 			Method originalMethod = Parent.class.getMethod("getOtherChildren");
 			Method method = parentType.getMethod("getOtherChildren");

@@ -25,7 +25,7 @@ using De.Osthus.Ambeth.Cache.Rootcachevalue;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class CacheBootstrapModule : IInitializingBootstrapModule, IPropertyLoadingBean
+    public class CacheModule : IInitializingModule, IPropertyLoadingBean
     {
         public static readonly String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
@@ -124,7 +124,7 @@ namespace De.Osthus.Ambeth.Ioc
                 // One single root cache instance for whole context
                 beanContextFactory.RegisterBean<RootCache>(COMMITTED_ROOT_CACHE).PropertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER)
                         .Autowireable<RootCache>();
-                beanContextFactory.Link(CacheBootstrapModule.COMMITTED_ROOT_CACHE).To<IOfflineListenerExtendable>();
+                beanContextFactory.Link(CacheModule.COMMITTED_ROOT_CACHE).To<IOfflineListenerExtendable>();
             }
             else
             {
@@ -133,18 +133,18 @@ namespace De.Osthus.Ambeth.Ioc
                 // request. Effectively this means that the root cache itself only lives per-request and does not hold a longer state
                 IInterceptor threadLocalRootCacheInterceptor = (IInterceptor)beanContextFactory
                         .RegisterBean<ThreadLocalRootCacheInterceptor>("threadLocalRootCacheInterceptor")
-                        .PropertyRef("StoredCacheRetriever", CacheBootstrapModule.ROOT_CACHE_RETRIEVER).GetInstance();
+                        .PropertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER).GetInstance();
 
                 RootCache rootCacheProxy = ProxyFactory.CreateProxy<RootCache>(threadLocalRootCacheInterceptor);
 
-                beanContextFactory.RegisterExternalBean(CacheBootstrapModule.COMMITTED_ROOT_CACHE, rootCacheProxy).Autowireable<RootCache>();
+                beanContextFactory.RegisterExternalBean(CacheModule.COMMITTED_ROOT_CACHE, rootCacheProxy).Autowireable<RootCache>();
             }
             beanContextFactory.RegisterBean<CacheEventTargetExtractor>("cacheEventTargetExtractor");
             beanContextFactory.Link("cacheEventTargetExtractor").To<IEventTargetExtractorExtendable>().With(typeof(ICache));
 
             beanContextFactory.RegisterBean<CacheFactory>("cacheFactory").Autowireable<ICacheFactory>();
 
-            beanContextFactory.RegisterAlias(MergeBootstrapModule.MERGE_CACHE_FACTORY, "cacheFactory");
+            beanContextFactory.RegisterAlias(MergeModule.MERGE_CACHE_FACTORY, "cacheFactory");
 
             IInterceptor cacheProviderInterceptor = (IInterceptor)beanContextFactory
                     .RegisterBean<CacheProviderInterceptor>("cacheProviderInterceptor")
@@ -196,13 +196,13 @@ namespace De.Osthus.Ambeth.Ioc
 
             if (IsNetworkClientMode && IsCacheServiceBeanActive)
             {
-                beanContextFactory.RegisterBean<ClientServiceBean>(CacheBootstrapModule.EXTERNAL_CACHE_SERVICE)
+                beanContextFactory.RegisterBean<ClientServiceBean>(CacheModule.EXTERNAL_CACHE_SERVICE)
                     .PropertyValue("Interface", typeof(ICacheService))
                     .PropertyValue("SyncRemoteInterface", typeof(ICacheServiceWCF))
                     .PropertyValue("AsyncRemoteInterface", typeof(ICacheClient));
 
-                beanContextFactory.RegisterAlias(CacheBootstrapModule.DEFAULT_CACHE_RETRIEVER, CacheBootstrapModule.EXTERNAL_CACHE_SERVICE);
-                beanContextFactory.RegisterAlias(CacheBootstrapModule.ROOT_CACHE_RETRIEVER, CacheBootstrapModule.EXTERNAL_CACHE_SERVICE);
+                beanContextFactory.RegisterAlias(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
+                beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
                 //beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
             }
         }

@@ -5,15 +5,15 @@ import de.osthus.ambeth.bytecode.IEnhancementHint;
 /**
  * The context for the {@link ImplementAbstractObjectFactory}
  */
-public enum ImplementAbstractObjectContext implements IEnhancementHint
+public enum ImplementAbstractObjectEnhancementHint implements IEnhancementHint
 {
-	INSTANCE;
+	ImplementAbstractObjectEnhancementHint;
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends IEnhancementHint> T unwrap(Class<T> includedContextType)
 	{
-		if (ImplementAbstractObjectContext.class.isAssignableFrom(includedContextType))
+		if (ImplementAbstractObjectEnhancementHint.class.isAssignableFrom(includedContextType))
 		{
 			return (T) this;
 		}

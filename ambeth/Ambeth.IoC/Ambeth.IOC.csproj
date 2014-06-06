@@ -101,7 +101,6 @@
     <Compile Include="ambeth\ioc\IFactoryBean.cs" />
     <Compile Include="ambeth\ioc\IInitializingBean.cs" />
     <Compile Include="ambeth\ioc\IInitializingModule.cs" />
-    <Compile Include="ambeth\ioc\IInitializingBootstrapModule.cs" />
     <Compile Include="ambeth\ioc\IServiceContext.cs" />
     <Compile Include="ambeth\ioc\IStartingBean.cs" />
     <Compile Include="ambeth\ioc\IStartingModule.cs" />
@@ -142,7 +141,7 @@
     <Compile Include="ambeth\util\ClassTupleExtendableContainer.cs" />
     <Compile Include="ambeth\util\ConversionKey.cs" />
     <Compile Include="ambeth\util\DelegatingConversionHelper.cs" />
-    <Compile Include="ioc\IocBootstrapModule.cs" />
+    <Compile Include="ioc\IocModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -13,7 +13,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class CacheDataChangeBootstrapModule : IInitializingBootstrapModule
+    public class CacheDataChangeModule : IInitializingModule
     {        
 	    public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
 	    {
@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Ioc
 				.PropertyRefs("serviceResultCache");
     		beanContextFactory.Link(serviceResultCacheClearEventListenerBC).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
-	    	IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.RegisterAnonymousBean<RootCacheClearEventListener>().PropertyRefs(CacheBootstrapModule.COMMITTED_ROOT_CACHE);
+	    	IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.RegisterAnonymousBean<RootCacheClearEventListener>().PropertyRefs(CacheModule.COMMITTED_ROOT_CACHE);
 		    beanContextFactory.Link(rootCacheClearEventListenerBC).To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
 		    IBeanConfiguration serviceResultCacheDCL = beanContextFactory.RegisterAnonymousBean<UnfilteredDataChangeListener>().PropertyRef(

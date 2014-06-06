@@ -53,7 +53,7 @@
     <Compile Include="ambeth\datachange\model\ILoadedDataChangeEntry.cs" />
     <Compile Include="ambeth\datachange\TypeFilteredDataChangeListener.cs" />
     <Compile Include="ambeth\datachange\UnfilteredDataChangeListener.cs" />
-    <Compile Include="ioc\DataChangeBootstrapModule.cs" />
+    <Compile Include="ioc\DataChangeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
