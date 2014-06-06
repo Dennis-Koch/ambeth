@@ -306,7 +306,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertiesObject()
 	{
-		isPropertyArrayOK(propNamesASM2, propertyInfoProvider.getProperties(this.fixture.get("Name")));
+		isPropertyArrayOK(propNames, propertyInfoProvider.getProperties(this.fixture.get("Name")));
 	}
 
 	/**
@@ -324,7 +324,7 @@ public class PropertyInfoTest extends AbstractIocTest
 	@Test
 	public final void testGetPropertyMapObject()
 	{
-		isPropertyMapOK(propNamesASM2, propertyInfoProvider.getPropertyMap(this.fixture.get("Name")));
+		isPropertyMapOK(propNames, propertyInfoProvider.getPropertyMap(this.fixture.get("Name")));
 	}
 
 	/**
