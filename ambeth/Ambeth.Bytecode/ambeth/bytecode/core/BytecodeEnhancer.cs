@@ -92,16 +92,32 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             }
         }
 
-        protected Type GetEnhancedTypeIntern(Type entityType, IEnhancementHint bytecodeEnhancementContext)
+        protected Type GetEnhancedTypeIntern(Type entityType, IEnhancementHint enhancementHint)
         {
             lock (writeLock)
             {
+                WeakReference existingBaseTypeR = DictionaryExtension.ValueOrDefault(extendedTypeToType, entityType);
+		        if (existingBaseTypeR != null)
+		        {
+			        Type existingBaseType = (Type) existingBaseTypeR.Target;
+			        if (existingBaseType != null)
+			        {
+				        // there is already an enhancement of the given baseType. Now we check if the existing enhancement is made with the same enhancementHint
+				        ValueType valueType2 = DictionaryExtension.ValueOrDefault(typeToExtendedType, existingBaseType);
+				        if (valueType2 != null && valueType2.ContainsKey(enhancementHint))
+				        {
+					        // do nothing: the given entity is already the result of the enhancement of the existingBaseType with the given enhancementHint
+					        // it is not possible to enhance the same two times
+					        return entityType;
+				        }
+			        }
+		        }
                 ValueType valueType = DictionaryExtension.ValueOrDefault(typeToExtendedType, entityType);
                 if (valueType == null)
                 {
                     return null;
                 }
-                WeakReference extendedTypeR = valueType.Get(bytecodeEnhancementContext);
+                WeakReference extendedTypeR = valueType.Get(enhancementHint);
                 if (extendedTypeR == null)
                 {
                     return null;

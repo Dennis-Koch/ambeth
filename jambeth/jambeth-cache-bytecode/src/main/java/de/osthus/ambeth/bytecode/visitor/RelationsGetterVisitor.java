@@ -28,7 +28,9 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
 import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
+import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
+import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.INamed;
 
@@ -330,9 +332,10 @@ public class RelationsGetterVisitor extends ClassGenerator
 				continue;
 			}
 			String propertyName = relationMember.getName();
-			PropertyInstance prop = PropertyInstance.findByTemplate(((PropertyInfoItem) relationMember).getProperty());
-			MethodInstance m_get = prop.getGetter();
-			MethodInstance m_set = prop.getSetter();
+			IPropertyInfo propertyInfo = ((PropertyInfoItem) relationMember).getProperty();
+			PropertyInstance prop = PropertyInstance.findByTemplate(propertyInfo, true);
+			MethodInstance m_get = prop != null ? prop.getGetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getGetter());
+			MethodInstance m_set = prop != null ? prop.getSetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getSetter());
 
 			FieldInstance f_objRefs = getObjRefsFieldByPropertyName(propertyName);
 			FieldInstance f_objRefs_existing = getState().getAlreadyImplementedField(f_objRefs.getName());

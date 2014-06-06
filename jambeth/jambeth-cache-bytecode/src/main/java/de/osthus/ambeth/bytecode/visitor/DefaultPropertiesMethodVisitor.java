@@ -14,6 +14,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
+import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
 
 public class DefaultPropertiesMethodVisitor extends ClassGenerator
@@ -36,6 +37,16 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 		{
 			Method getter = ((MethodPropertyInfo) propertyInfo).getGetter();
 			Method setter = ((MethodPropertyInfo) propertyInfo).getSetter();
+			if (getter == null)
+			{
+				// look for abstract definition of the getter
+				getter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), "get" + propertyInfo.getName());
+			}
+			if (setter == null)
+			{
+				// look for abstract definition of the setter
+				setter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), "set" + propertyInfo.getName(), propertyInfo.getPropertyType());
+			}
 			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
 			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
 			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
@@ -44,45 +55,27 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 			if (m_getter != null || m_setter != null)
 			{
 				// at least one of the accessors is explicitly implemented
-				if (!propertyInfo.isWritable() || !propertyInfo.isReadable())
-				{
-					continue;
-				}
+				continue;
 			}
-			FieldInstance f_backingField = null;
-			if (m_setter == null)
+			FieldInstance f_backingField = ensureBackingField(propertyInfo);
+			if (f_backingField == null)
 			{
-				f_backingField = ensureBackingField(propertyInfo);
-				if (f_backingField == null)
-				{
-					continue;
-				}
-				if (m_setterTemplate == null)
-				{
-					m_setterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "set" + propertyInfo.getName(), null, Type.VOID_TYPE,
-							f_backingField.getType());
-				}
-				// implement setter
-				implementSetter(m_setterTemplate, f_backingField);
+				continue;
 			}
+			if (m_setterTemplate == null)
+			{
+				m_setterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "set" + propertyInfo.getName(), null,
+						m_setterTemplate != null ? m_setterTemplate.getReturnType() : Type.VOID_TYPE, f_backingField.getType());
+			}
+			// implement setter
+			implementSetter(m_setterTemplate, f_backingField);
 
-			if (m_getter == null)
+			if (m_getterTemplate == null)
 			{
-				if (f_backingField == null)
-				{
-					f_backingField = ensureBackingField(propertyInfo);
-				}
-				if (f_backingField == null)
-				{
-					continue;
-				}
-				if (m_getterTemplate == null)
-				{
-					m_getterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "get" + propertyInfo.getName(), null, f_backingField.getType());
-				}
-				// implement getter
-				implementGetter(m_getterTemplate, f_backingField);
+				m_getterTemplate = new MethodInstance(null, Opcodes.ACC_PUBLIC, "get" + propertyInfo.getName(), null, f_backingField.getType());
 			}
+			// implement getter
+			implementGetter(m_getterTemplate, f_backingField);
 		}
 		super.visitEnd();
 	}
