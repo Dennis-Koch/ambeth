@@ -7,6 +7,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
 import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluation;
+import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluationResult;
 import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
@@ -26,9 +27,9 @@ public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 	}
 
 	@Override
-	public void evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
 			IPermissionEvaluation permissionEvaluation)
 	{
-		permissionEvaluation.allowCreate().allowRead().allowUpdate().denyDelete();
+		return permissionEvaluation.allowCreate().allowRead().allowUpdate().denyDelete();
 	}
 }

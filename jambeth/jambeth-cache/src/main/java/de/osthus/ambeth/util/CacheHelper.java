@@ -126,7 +126,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		ITypeInfoItem member = metaData.getMemberByName(memberName);
 		if (member == null)
 		{
-			throw new IllegalArgumentException("Member " + entityType + "." + memberName + " not found");
+			throw new IllegalArgumentException("Member " + entityType.getName() + "." + memberName + " not found");
 		}
 		CachePath newCachePath = new CachePath(member.getElementType(), metaData.getIndexByRelationName(memberName), memberName);
 		cachePaths.add(newCachePath);
@@ -316,8 +316,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(rcv.getEntityType());
 							int relationIndex = metaData.getIndexByRelation(member);
 							IObjRef[] objRefs = rcv.getRelation(relationIndex);
-							obj = valueHolderContainerTemplate.getValue(rcv, member, valueHolderKey.getRootCache(), objRefs,
-									CacheDirective.failEarly());
+							obj = valueHolderContainerTemplate.getValue(rcv, member, valueHolderKey.getRootCache(), objRefs, CacheDirective.failEarly());
 						}
 						else
 						{

@@ -4,8 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 public final class TypeInfoItemUtil
 {
@@ -15,7 +14,7 @@ public final class TypeInfoItemUtil
 		{
 			return propertyType.getComponentType();
 		}
-		else if (List.class.isAssignableFrom(propertyType) || Set.class.isAssignableFrom(propertyType))
+		else if (Collection.class.isAssignableFrom(propertyType))
 		{
 			if (!(genericType instanceof ParameterizedType))
 			{

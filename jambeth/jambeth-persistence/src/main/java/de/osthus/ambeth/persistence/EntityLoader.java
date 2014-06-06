@@ -901,54 +901,57 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				// Set version number to ORI explicitly here. It is not known earlier...
 				loadContainer.getReference().setVersion(version);
 
-				for (int a = cursorFields.length; a-- > 0;)
+				if (fieldToDirectedLinkIndex.size() > 0)
 				{
-					Object dbValue = cursorValues[a];
-					IField field = cursorFields[a];
+					for (int a = cursorFields.length; a-- > 0;)
+					{
+						Object dbValue = cursorValues[a];
+						IField field = cursorFields[a];
 
-					Integer dirLinkIndex = fieldToDirectedLinkIndex.get(field);
-					if (dirLinkIndex == null)
-					{
-						continue;
-					}
-					if (dbValue == null)
-					{
-						relations[dirLinkIndex.intValue()] = ObjRef.EMPTY_ARRAY;
-						continue;
-					}
-					IDirectedLink columnBasedDirectedLink = directedLinks[dirLinkIndex.intValue()];
-					IField toField = columnBasedDirectedLink.getToField();
-					Class<?> targetType;
-					if (toField != null)
-					{
-						targetType = toField.getFieldType();
-					}
-					else
-					{
-						targetType = columnBasedDirectedLink.getToMember().getRealType();
-					}
-					dbValue = conversionHelper.convertValueToType(targetType, dbValue);
-					if (interningFeature != null && doInternId)
-					{
-						dbValue = interningFeature.intern(dbValue);
-					}
-					Class<?> toEntityType = columnBasedDirectedLink.getToEntityType();
-					ITypeInfoItem toMember = columnBasedDirectedLink.getToMember();
-					IEntityMetaData toEntityMetaData = entityMetaDataProvider.getMetaData(toEntityType);
-					byte toIdIndex = toEntityMetaData.getIdIndexByMemberName(toMember.getName());
+						Integer dirLinkIndex = fieldToDirectedLinkIndex.get(field);
+						if (dirLinkIndex == null)
+						{
+							continue;
+						}
+						if (dbValue == null)
+						{
+							relations[dirLinkIndex.intValue()] = ObjRef.EMPTY_ARRAY;
+							continue;
+						}
+						IDirectedLink columnBasedDirectedLink = directedLinks[dirLinkIndex.intValue()];
+						IField toField = columnBasedDirectedLink.getToField();
+						Class<?> targetType;
+						if (toField != null)
+						{
+							targetType = toField.getFieldType();
+						}
+						else
+						{
+							targetType = columnBasedDirectedLink.getToMember().getRealType();
+						}
+						dbValue = conversionHelper.convertValueToType(targetType, dbValue);
+						if (interningFeature != null && doInternId)
+						{
+							dbValue = interningFeature.intern(dbValue);
+						}
+						Class<?> toEntityType = columnBasedDirectedLink.getToEntityType();
+						ITypeInfoItem toMember = columnBasedDirectedLink.getToMember();
+						IEntityMetaData toEntityMetaData = entityMetaDataProvider.getMetaData(toEntityType);
+						byte toIdIndex = toEntityMetaData.getIdIndexByMemberName(toMember.getName());
 
-					IObjRef toOri = alreadyLoadedCache.getRef(toIdIndex, dbValue, toEntityType);
-					if (toOri == null)
-					{
-						Class<?> expectedType = toMember.getRealType();
+						IObjRef toOri = alreadyLoadedCache.getRef(toIdIndex, dbValue, toEntityType);
+						if (toOri == null)
+						{
+							Class<?> expectedType = toMember.getRealType();
 
-						Object idOfObject = conversionHelper.convertValueToType(expectedType, dbValue);
-						toOri = new ObjRef(toEntityType, toIdIndex, idOfObject, null);
-						alreadyLoadedCache.add(toIdIndex, dbValue, toEntityType, toOri);
+							Object idOfObject = conversionHelper.convertValueToType(expectedType, dbValue);
+							toOri = new ObjRef(toEntityType, toIdIndex, idOfObject, null);
+							alreadyLoadedCache.add(toIdIndex, dbValue, toEntityType, toOri);
+						}
+						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
+						Collection<Object> cascadePendingInit = getEnsurePendingInit(toEntityMetaData, cascadeTypeToPendingInit, toIdIndex);
+						cascadePendingInit.add(dbValue);
 					}
-					relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
-					Collection<Object> cascadePendingInit = getEnsurePendingInit(toEntityMetaData, cascadeTypeToPendingInit, toIdIndex);
-					cascadePendingInit.add(dbValue);
 				}
 			}
 		}
@@ -1173,6 +1176,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		IField fromField = link.getFromField();
 		byte fromIdIndex = fromField.getIdIndex();
 		Class<?> fromIdType = fromField.getFieldType();
+
+		// entityMetaDataProvider.getMetaData(link.getFromEntityType()).getIdMemberByIdIndex(idIndex)
+		// linkedEntityMetaData.getIdIndexByMemberName(memberName)
 
 		byte toIdIndex;
 		Class<?> toIdType;
