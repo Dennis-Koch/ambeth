@@ -222,7 +222,8 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 		if (!typeToServiceDict.putIfNotExists(autowireableType, bean))
 		{
-			throw new IllegalArgumentException("A bean instance is already specified to autowired type " + autowireableType.getName());
+			throw new IllegalArgumentException("A bean instance is already specified to autowired type " + autowireableType.getName() + ".\nBean 1: " + bean
+					+ "\nBean 2: " + typeToServiceDict.get(autowireableType));
 		}
 	}
 

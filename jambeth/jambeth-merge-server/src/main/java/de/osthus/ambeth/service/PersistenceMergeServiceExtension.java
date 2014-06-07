@@ -34,12 +34,13 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
+import de.osthus.ambeth.merge.IMergeServiceExtension;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.model.ICUDResult;
@@ -68,107 +69,47 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.OptimisticLockUtil;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
 @PersistenceContext
-public class MergeService implements IMergeService, IInitializingBean
+public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 {
 	@LogInstance
 	private ILogger log;
 
-	protected IRelationMergeService relationMergeService;
+	@Autowired
+	protected IServiceContext beanContext;
 
-	protected IServiceContext serviceContext;
-
+	@Autowired
 	protected ICacheContext cacheContext;
 
-	protected ICompositeIdFactory compositeIdFactory;
-
-	protected IConversionHelper conversionHelper;
-
-	protected IDatabase database;
-
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	protected IThreadLocalObjectCollector objectCollector;
-
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
+	protected ICompositeIdFactory compositeIdFactory;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IDatabase database;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired(optional = true)
 	protected IMergeSecurityManager mergeSecurityManager;
 
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(relationMergeService, "relationMergeService");
-		ParamChecker.assertNotNull(serviceContext, "serviceContext");
-		ParamChecker.assertNotNull(cacheContext, "cacheContext");
-		ParamChecker.assertNotNull(compositeIdFactory, "compositeIdFactory");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-	}
-
-	public void setRelationMergeService(IRelationMergeService relationMergeService)
-	{
-		this.relationMergeService = relationMergeService;
-	}
-
-	public void setServiceContext(IServiceContext serviceContext)
-	{
-		this.serviceContext = serviceContext;
-	}
-
-	public void setCacheContext(ICacheContext cacheContext)
-	{
-		this.cacheContext = cacheContext;
-	}
-
-	public void setCompositeIdFactory(ICompositeIdFactory compositeIdFactory)
-	{
-		this.compositeIdFactory = compositeIdFactory;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setMergeSecurityManager(IMergeSecurityManager mergeSecurityManager)
-	{
-		this.mergeSecurityManager = mergeSecurityManager;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
+	@Autowired
+	protected IRelationMergeService relationMergeService;
 
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
@@ -622,7 +563,7 @@ public class MergeService implements IMergeService, IInitializingBean
 		}
 		modifyingDatabase.setModifyingDatabase(true);
 
-		IChangeAggregator changeAggregator = serviceContext.registerAnonymousBean(ChangeAggregator.class).finish();
+		IChangeAggregator changeAggregator = beanContext.registerAnonymousBean(ChangeAggregator.class).finish();
 		IList<ITableChange> tableChangeList = tableChangeMap.values();
 		long start = System.currentTimeMillis();
 

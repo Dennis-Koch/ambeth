@@ -5,6 +5,7 @@ import java.util.Collection;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.privilege.model.IPrivilegeItem;
 
 public interface IPrivilegeProvider
 {

@@ -15,46 +15,39 @@ import de.osthus.ambeth.merge.EntityMetaDataServer;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
-import de.osthus.ambeth.merge.MergeServiceRegistry;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
-import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.service.IMergeServiceExtendable;
 import de.osthus.ambeth.service.IRelationMergeService;
-import de.osthus.ambeth.service.MergeService;
+import de.osthus.ambeth.service.PersistenceMergeServiceExtension;
 import de.osthus.ambeth.service.RelationMergeService;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 
 @FrameworkModule
 public class MergeServerModule implements IInitializingModule
 {
+	public static final String MERGE_SERVICE_SERVER = "mergeservice.server";
+
 	@SuppressWarnings("unused")
-	@LogInstance(MergeServerModule.class)
+	@LogInstance
 	private ILogger log;
 
-	protected boolean genericTransferMapping;
-
 	@Property(name = ConfigurationConstants.GenericTransferMapping, defaultValue = "false")
-	public void setGenericTransferMapping(boolean genericTransferMapping)
-	{
-		this.genericTransferMapping = genericTransferMapping;
-	}
+	protected boolean genericTransferMapping;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
 		IBeanConfiguration beanConfig = beanContextFactory.registerBean("entityMetaDataProvider", EntityMetaDataServer.class)
-				.propertyRef("ValueObjectMap", valueObjectMap).autowireable(IEntityMetaDataProvider.class, IEntityMetaDataExtendable.class);
+				.propertyRef("ValueObjectMap", valueObjectMap).propertyRef("PersistenceMergeServiceExtension", MERGE_SERVICE_SERVER)
+				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataExtendable.class);
 		if (genericTransferMapping)
 		{
 			beanConfig.autowireable(IValueObjectConfigExtendable.class);
 		}
 
 		beanContextFactory.registerBean("relationMergeService", RelationMergeService.class).autowireable(IRelationMergeService.class);
-		beanContextFactory.registerBean("mergeService", MergeService.class).propertyRefs(MergeModule.MERGE_CACHE_FACTORY);
-		beanContextFactory.registerBean("mergeServiceRegistry", MergeServiceRegistry.class).propertyRefs("mergeService")
-				.autowireable(IMergeService.class, IMergeServiceExtendable.class);
+		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
 
 		beanContextFactory.registerBean("localToPublicDispatcher", LocalToPublicDispatcher.class);
 

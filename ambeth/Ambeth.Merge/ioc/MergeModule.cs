@@ -25,8 +25,6 @@ namespace De.Osthus.Ambeth.Ioc
     [FrameworkModule]
     public class MergeModule : IInitializingModule
     {
-        public static readonly String MERGE_CACHE_FACTORY = "cacheFactory.merge";
-
         public static readonly String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
@@ -47,7 +45,7 @@ namespace De.Osthus.Ambeth.Ioc
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
             beanContextFactory.RegisterAutowireableBean<IMergeController, MergeController>();
-            beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>().PropertyRefs(MERGE_CACHE_FACTORY);
+            beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>();
 
             beanContextFactory.RegisterAutowireableBean<CompositeIdTemplate, CompositeIdTemplate>();
 
@@ -60,6 +58,8 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<CUDResultHelper>("cudResultHelper").Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
 
             beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
+
+            beanContextFactory.RegisterAnonymousBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable));
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
 
@@ -112,13 +112,8 @@ namespace De.Osthus.Ambeth.Ioc
                 beanContextFactory.RegisterBean<ClientServiceBean>("mergeServiceWCF")
                     .PropertyValue("Interface", typeof(IMergeService))
                     .PropertyValue("SyncRemoteInterface", typeof(IMergeServiceWCF))
-                    .PropertyValue("AsyncRemoteInterface", typeof(IMergeClient))
-                    .Autowireable<IMergeService>();
+                    .PropertyValue("AsyncRemoteInterface", typeof(IMergeClient));
                 // beanContextFactory.registerBean<MergeServiceDelegate>("mergeService").autowireable<IMergeService>();
-            }
-            else if (IsNetworkClientMode)
-            {
-                beanContextFactory.RegisterBean<MergeServiceRegistry>("mergeService").IgnoreProperties("DefaultMergeService").Autowireable(typeof(IMergeService), typeof(IMergeServiceExtendable));
             }
         }
     }

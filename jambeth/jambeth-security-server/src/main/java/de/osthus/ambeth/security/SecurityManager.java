@@ -6,14 +6,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.exceptions.ServiceCallForbiddenException;
@@ -26,27 +27,24 @@ import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.merge.model.IRelationUpdateItem;
+import de.osthus.ambeth.merge.transfer.CreateContainer;
+import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.privilege.IPrivilegeItem;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
+import de.osthus.ambeth.privilege.model.IPrivilegeItem;
 import de.osthus.ambeth.privilege.model.ReadPermission;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class SecurityManager implements ISecurityManager, IMergeSecurityManager, IPrivilegeProviderExtensionExtendable, IServiceFilterExtendable,
-		IEntityFilterExtendable
+public class SecurityManager implements ISecurityManager, IMergeSecurityManager, IServiceFilterExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	// protected final DefaultExtendableContainer<IEntityFilter> entityFilters = new DefaultExtendableContainer<IEntityFilter>(IEntityFilter.class,
-	// "entityFilter");
 
 	protected final DefaultExtendableContainer<IServiceFilter> serviceFilters = new DefaultExtendableContainer<IServiceFilter>(IServiceFilter.class,
 			"serviceFilter");
@@ -78,22 +76,32 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
 
-		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), securityScopeProvider.getSecurityScopes(), null);
-	}
-
-	protected Class<?> getTypeOfValue(Object value)
-	{
-		if (value instanceof IObjRef)
-		{
-			return ((IObjRef) value).getRealType();
-		}
-		return value.getClass();
+		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), securityScopeProvider.getSecurityScopes());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes,
-			IEntityFilter[] entityFilters)
+	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes)
 	{
+		if (list.size() == 0)
+		{
+			// nothing to filter
+			return list;
+		}
+		Object firstItem = list.get(0);
+		IList<IPrivilegeItem> privileges;
+		if (firstItem instanceof IObjRef)
+		{
+			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) list, securityScopes);
+		}
+		else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null)
+		{
+			privileges = privilegeProvider.getPrivileges(list, securityScopes);
+		}
+		else
+		{
+			// nothing to filter
+			return list;
+		}
 		Collection<Object> cloneCollection;
 		try
 		{
@@ -102,20 +110,6 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		if (list.size() == 0)
-		{
-			return cloneCollection;
-		}
-		Object firstItem = list.get(0);
-		IList<IPrivilegeItem> privileges;
-		if (firstItem instanceof IObjRef)
-		{
-			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) list, securityScopes);
-		}
-		else
-		{
-			privileges = privilegeProvider.getPrivileges(list, securityScopes);
 		}
 		for (int a = 0, size = list.size(); a < size; a++)
 		{
@@ -146,8 +140,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		return cloneCollection;
 	}
 
-	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes,
-			IEntityFilter[] entityFilters)
+	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes)
 	{
 		if (value == null)
 		{
@@ -165,11 +158,11 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		}
 		if (value instanceof List)
 		{
-			return filterList((List<?>) value, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
+			return filterList((List<?>) value, alreadyProcessedMap, userHandle, securityScopes);
 		}
 		else if (value instanceof Collection)
 		{
-			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
+			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, securityScopes);
 		}
 		else if (value.getClass().isArray())
 		{
@@ -178,7 +171,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			for (int a = 0, size = length; a < size; a++)
 			{
 				Object item = Array.get(value, a);
-				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, securityScopes, entityFilters);
+				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, securityScopes);
 				if (filteredItem == item)
 				{
 					// Filtering ok and unchanged
@@ -198,28 +191,52 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			}
 			return cloneArray;
 		}
-		Class<?> type = getTypeOfValue(value);
-		if (entityMetaDataProvider.getMetaData(type, true) != null)
+		if (!(value instanceof IObjRef) && entityMetaDataProvider.getMetaData(value.getClass(), true) == null)
 		{
-			ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, userHandle, entityFilters);
-			switch (readPermission)
-			{
-				case PARTLY_ALLOWED:
-
-					// Fall through intended
-				case ALLOWED:
-					return value;
-				default:
-					return null;
-			}
+			// not an entity. So nothing to filter
+			return value;
 		}
-		return value;
+		ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, userHandle, securityScopes);
+		switch (readPermission)
+		{
+			case PARTLY_ALLOWED:
+				// Fall through intended
+			case ALLOWED:
+				return value;
+			default:
+				return null;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
 	protected Object filterCollection(Collection<?> coll, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
-			ISecurityScope[] securityScopes, IEntityFilter[] entityFilters)
+			ISecurityScope[] securityScopes)
 	{
+		if (coll.size() == 0)
+		{
+			// nothing to filter
+			return coll;
+		}
+		Iterator<?> iter = coll.iterator();
+		if (!iter.hasNext())
+		{
+			throw new IllegalStateException("Must never happen");
+		}
+		Object firstItem = iter.next();
+		IList<IPrivilegeItem> privileges;
+		if (firstItem instanceof IObjRef)
+		{
+			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) coll, securityScopes);
+		}
+		else if (firstItem != null && entityMetaDataProvider.getMetaData(firstItem.getClass(), true) != null)
+		{
+			privileges = privilegeProvider.getPrivileges(coll, securityScopes);
+		}
+		else
+		{
+			// nothing to filter
+			return coll;
+		}
 		Collection<Object> cloneCollection;
 		try
 		{
@@ -228,21 +245,6 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
-		}
-		Iterator<?> iter = coll.iterator();
-		if (!iter.hasNext())
-		{
-			return cloneCollection;
-		}
-		Object firstItem = iter.next();
-		IList<IPrivilegeItem> privileges;
-		if (firstItem instanceof IObjRef)
-		{
-			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) coll, securityScopes);
-		}
-		else
-		{
-			privileges = privilegeProvider.getPrivileges(coll, securityScopes);
 		}
 		int index = -1;
 		while (iter.hasNext())
@@ -280,36 +282,21 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 	}
 
-	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, IEntityFilter[] entityFilters)
+	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
+			ISecurityScope[] securityScopes)
 	{
-		ReadPermission cachedPermission = alreadyProcessedMap.get(entity);
-		if (cachedPermission != null)
+		IPrivilegeItem privilege = privilegeProvider.getPrivilege(entity, securityScopes);
+		ReadPermission rp;
+		if (privilege == null || privilege.isReadAllowed())
 		{
-			return cachedPermission;
+			rp = ReadPermission.ALLOWED;
 		}
-		ReadPermission restrictiveReadPermission = ReadPermission.ALLOWED;
-		for (IEntityFilter entityFilter : entityFilters)
+		else
 		{
-			ReadPermission readPermission = entityFilter.checkReadPermissionOnEntity(entity, userHandle);
-			switch (readPermission)
-			{
-				case UNDEFINED:
-					break;
-				case FORBIDDEN:
-					// Forbid and return if one filter forbids
-					return ReadPermission.FORBIDDEN;
-				case PARTLY_ALLOWED:
-					// Restrict partly if one filter retricts
-					restrictiveReadPermission = readPermission;
-					break;
-				case ALLOWED:
-					break;
-				default:
-					throw RuntimeExceptionUtil.createEnumNotSupportedException(readPermission);
-			}
+			rp = ReadPermission.FORBIDDEN;
 		}
-		alreadyProcessedMap.put(entity, restrictiveReadPermission);
-		return restrictiveReadPermission;
+		alreadyProcessedMap.put(entity, rp);
+		return rp;
 	}
 
 	// protected void FilterEntityChildren(Object entity, IDictionary<Object, ReadPermission> alreadyProcessedSet, IUserHandle userHandle)
@@ -342,12 +329,129 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	@Override
 	public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
-		IMap<Class<?>, List<IChangeContainer>> typeToChanges = buildTypeToChanges(cudResult.getAllChanges());
+		ISet<IObjRef> relatedObjRefs = scanForAllObjRefs(cudResult);
 
-		for (Entry<Class<?>, List<IChangeContainer>> entry : typeToChanges)
+		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();
+		IList<IPrivilegeItem> privilegeItems = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
+		IdentityHashMap<IObjRef, IPrivilegeItem> objRefToPrivilege = IdentityHashMap.<IObjRef, IPrivilegeItem> create(relatedObjRefsList.size());
+
+		for (int a = relatedObjRefsList.size(); a-- > 0;)
 		{
-			Class<?> entityType = entry.getKey();
+			IObjRef objRef = relatedObjRefsList.get(a);
+			IPrivilegeItem privilegeItem = privilegeItems.get(a);
+			objRefToPrivilege.put(objRef, privilegeItem);
+		}
+		evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege);
+	}
 
+	protected ISet<IObjRef> scanForAllObjRefs(ICUDResult cudResult)
+	{
+		HashSet<IObjRef> relatedObjRefs = new HashSet<IObjRef>();
+
+		List<IChangeContainer> allChanges = cudResult.getAllChanges();
+		for (int a = allChanges.size(); a-- > 0;)
+		{
+			IChangeContainer changeContainer = allChanges.get(a);
+			IObjRef reference = changeContainer.getReference();
+			relatedObjRefs.add(reference);
+
+			IRelationUpdateItem[] ruis = null;
+			if (changeContainer instanceof CreateContainer)
+			{
+				ruis = ((CreateContainer) changeContainer).getRelations();
+			}
+			else if (changeContainer instanceof UpdateContainer)
+			{
+				ruis = ((UpdateContainer) changeContainer).getRelations();
+			}
+			if (ruis == null)
+			{
+				continue;
+			}
+			for (IRelationUpdateItem rui : ruis)
+			{
+				addRelatedObjRefs(rui.getAddedORIs(), relatedObjRefs);
+				addRelatedObjRefs(rui.getRemovedORIs(), relatedObjRefs);
+			}
+		}
+		return relatedObjRefs;
+	}
+
+	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilegeItem> objRefToPrivilege)
+	{
+		List<IChangeContainer> allChanges = cudResult.getAllChanges();
+		for (int a = allChanges.size(); a-- > 0;)
+		{
+			IChangeContainer changeContainer = allChanges.get(a);
+			IObjRef reference = changeContainer.getReference();
+
+			IPrivilegeItem privilege = objRefToPrivilege.get(reference);
+
+			if (!privilege.isReadAllowed())
+			{
+				// just for robustness
+				throw new SecurityException("Current user has no permssion to read entity and is therefore not allowed to imply any change: " + reference);
+			}
+
+			IRelationUpdateItem[] ruis = null;
+			if (changeContainer instanceof CreateContainer)
+			{
+				if (!privilege.isCreateAllowed())
+				{
+					throw new SecurityException("Current user has no permssion to create entity: " + reference);
+				}
+				ruis = ((CreateContainer) changeContainer).getRelations();
+			}
+			else if (changeContainer instanceof UpdateContainer)
+			{
+				if (!privilege.isUpdateAllowed())
+				{
+					throw new SecurityException("Current user has no permssion to update entity: " + reference);
+				}
+				ruis = ((UpdateContainer) changeContainer).getRelations();
+			}
+			else if (!privilege.isDeleteAllowed())
+			{
+				throw new SecurityException("Current user has no permssion to delete entity: " + reference);
+			}
+			if (ruis == null)
+			{
+				continue;
+			}
+			for (IRelationUpdateItem rui : ruis)
+			{
+				evaulatePermissionOnRelatedObjRefs(rui.getAddedORIs(), objRefToPrivilege);
+				evaulatePermissionOnRelatedObjRefs(rui.getRemovedORIs(), objRefToPrivilege);
+			}
+		}
+	}
+
+	protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs)
+	{
+		if (objRefs == null)
+		{
+			return;
+		}
+		relatedObjRefs.addAll(objRefs);
+	}
+
+	protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs, Map<IObjRef, IPrivilegeItem> objRefToPrivilege)
+	{
+		if (objRefs == null)
+		{
+			return;
+		}
+		for (IObjRef objRef : objRefs)
+		{
+			IPrivilegeItem privilege = objRefToPrivilege.get(objRef);
+
+			if (!privilege.isReadAllowed())
+			{
+				// just for robustness
+				throw new SecurityException(
+						"Current user has no permssion to read entity and is therefore not allowed to imply any change where this entity is involved: "
+								+ objRef);
+			}
 		}
 	}
 
@@ -389,28 +493,6 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			}
 		}
 		return restrictiveCallPermission;
-	}
-
-	@Override
-	public void registerPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
-	{
-	}
-
-	@Override
-	public void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
-	{
-	}
-
-	@Override
-	public void registerEntityFilter(IEntityFilter entityFilter)
-	{
-		// entityFilters.register(entityFilter);
-	}
-
-	@Override
-	public void unregisterEntityFilter(IEntityFilter entityFilter)
-	{
-		// entityFilters.unregister(entityFilter);
 	}
 
 	@Override

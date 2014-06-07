@@ -172,7 +172,8 @@ namespace De.Osthus.Ambeth.Ioc
             }
             if (typeToServiceDict.ContainsKey(autowireableType))
             {
-                throw new ArgumentException("A bean instance is already specified to autowired type " + autowireableType.FullName);
+                throw new ArgumentException("A bean instance is already specified to autowired type " + autowireableType.Name + ".\nBean 1: " + bean
+                    + "\nBean 2: " + typeToServiceDict.Get(autowireableType));
             }
             typeToServiceDict.Put(autowireableType, bean);
         }
@@ -1156,7 +1157,7 @@ namespace De.Osthus.Ambeth.Ioc
             ToString(sb);
             return sb.ToString();
         }
-        
+
         public void ToString(StringBuilder sb)
         {
             PrintContent(sb);

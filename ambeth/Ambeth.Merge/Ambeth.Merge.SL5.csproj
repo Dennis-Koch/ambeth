@@ -111,6 +111,8 @@
     <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />
     <Compile Include="ambeth\merge\IEntityFactoryExtension.cs" />
     <Compile Include="ambeth\merge\IEntityFactoryExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
+    <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\merge\IObjRefHelper.cs" />
     <Compile Include="ambeth\merge\IObjRefProvider.cs" />
     <Compile Include="ambeth\merge\ITransactionState.cs" />
@@ -182,7 +184,6 @@
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\IEnhancedType.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
-    <Compile Include="ambeth\service\IMergeServiceExtendable.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
     <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />

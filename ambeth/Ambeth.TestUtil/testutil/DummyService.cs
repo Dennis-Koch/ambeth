@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Service;
+using De.Osthus.Ambeth.Merge;
 
 namespace De.Osthus.Ambeth.Testutil
 {
-    class DummyService : ICacheRetriever, ICacheService, IClientServiceFactory, IMergeService
+    class DummyService : ICacheRetriever, ICacheService, IClientServiceFactory, IMergeServiceExtension
     {
         public IList<Cache.Model.ILoadContainer> GetEntities(IList<Merge.Model.IObjRef> orisToLoad)
         {

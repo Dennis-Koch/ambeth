@@ -34,17 +34,12 @@ import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
-import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.config.IndependentEntityMetaDataReader;
 import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
-import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
-import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.merge.model.IOriCollection;
-import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.objectcollector.ByteBuffer65536CollectableController;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -52,7 +47,6 @@ import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
@@ -112,27 +106,6 @@ public class EntityBytecodeTest extends AbstractIocTest
 
 			IBeanConfiguration byteBufferCC = beanContextFactory.registerAnonymousBean(ByteBuffer65536CollectableController.class);
 			beanContextFactory.link(byteBufferCC).to(ICollectableControllerExtendable.class).with(ByteBuffer.class);
-
-			beanContextFactory.registerExternalBean(new IMergeService()
-			{
-				@Override
-				public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
-				{
-					throw new UnsupportedOperationException();
-				}
-			}).autowireable(IMergeService.class);
 		}
 	}
 

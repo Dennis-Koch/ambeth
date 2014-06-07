@@ -11,8 +11,6 @@ namespace De.Osthus.Ambeth.Privilege
 {
     public interface IPrivilegeProvider
     {
-        void BuildPrefetchConfig(Type entityType, IPrefetchConfig prefetchConfig);
-
         bool IsCreateAllowed(Object entity, params ISecurityScope[] securityScopes);
 
         bool IsUpdateAllowed(Object entity, params ISecurityScope[] securityScopes);
@@ -21,8 +19,26 @@ namespace De.Osthus.Ambeth.Privilege
 
         bool IsReadAllowed(Object entity, params ISecurityScope[] securityScopes);
 
-        IPrivilegeItem GetPrivileges(Object entity, params ISecurityScope[] securityScopes);
+        IPrivilegeItem GetPrivilege(Object entity, params ISecurityScope[]  securityScopes);
 
-        IList<IPrivilegeItem> GetPrivileges(IList<IObjRef> objRefs, params ISecurityScope[] securityScopes);
+	    IPrivilegeItem GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[]  securityScopes);
+        
+        /// <summary>
+        /// Result correlates by-index with the given objRefs
+        /// </summary>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="entities"></param>
+        /// <param name="securityScopes"></param>
+        /// <returns></returns>
+	    IList<IPrivilegeItem> GetPrivileges<V>(IEnumerable<V> entities, params ISecurityScope[] securityScopes);
+
+        /// <summary>
+        /// Result correlates by-index with the given objRefs
+        /// </summary>
+        /// <typeparam name="V"></typeparam>
+        /// <param name="objRefs"></param>
+        /// <param name="securityScopes"></param>
+        /// <returns></returns>
+        IList<IPrivilegeItem> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef;
     }
 }

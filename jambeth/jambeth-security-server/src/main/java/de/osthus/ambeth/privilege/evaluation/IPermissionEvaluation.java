@@ -6,15 +6,13 @@ public interface IPermissionEvaluation
 {
 	IScopedPermissionEvaluation scope(ISecurityScope scope);
 
-	IPermissionEvaluationReadStep allowCreate();
+	IPermissionEvaluationCreateStep allowRead();
 
-	IPermissionEvaluationReadStep skipCreate();
+	IPermissionEvaluationResult denyRead();
 
-	IPermissionEvaluationReadStep denyCreate();
+	IPermissionEvaluationResult allowEach();
 
-	void allowEach();
+	IPermissionEvaluationResult skipEach();
 
-	void skipEach();
-
-	void denyEach();
+	IPermissionEvaluationResult denyEach();
 }

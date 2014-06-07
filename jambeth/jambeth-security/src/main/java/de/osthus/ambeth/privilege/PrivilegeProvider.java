@@ -10,6 +10,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -17,7 +18,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.privilege.model.IPrivilegeItem;
 import de.osthus.ambeth.privilege.model.PrivilegeEnum;
+import de.osthus.ambeth.privilege.model.PrivilegeItem;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserHandle;
@@ -83,7 +86,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		@Override
 		public String toString()
 		{
-			return "CacheKey: " + entityType.getName() + "(" + idIndex + "," + id + ") SecurityScope: '" + securityScope + "'";
+			return "PrivilegeKey: " + entityType.getName() + "(" + idIndex + "," + id + ") SecurityScope: '" + securityScope + "',SID:" + userSID;
 		}
 	}
 
@@ -91,7 +94,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	protected ILogger log;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IObjRefHelper objRefHelper;
 
 	@Autowired(optional = true)
 	protected IPrivilegeService privilegeService;
@@ -139,7 +142,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	@Override
 	public IPrivilegeItem getPrivilege(Object entity, ISecurityScope... securityScopes)
 	{
-		IList<IObjRef> objRefs = oriHelper.extractObjRefList(entity, null);
+		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entity, null);
 		IList<IPrivilegeItem> result = getPrivileges(objRefs, securityScopes);
 		if (result.size() == 0)
 		{
@@ -162,7 +165,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	@Override
 	public IList<IPrivilegeItem> getPrivileges(Collection<?> entities, ISecurityScope... securityScopes)
 	{
-		IList<IObjRef> objRefs = oriHelper.extractObjRefList(entities, null);
+		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entities, null);
 		return getPrivilegesByObjRef(objRefs, securityScopes);
 	}
 
@@ -241,7 +244,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 								break;
 							}
 							default:
-								throw new IllegalStateException(PrivilegeEnum.class.getName() + " not supported: " + privilegeEnum);
+								throw RuntimeExceptionUtil.createEnumNotSupportedException(privilegeEnum);
 						}
 					}
 				}

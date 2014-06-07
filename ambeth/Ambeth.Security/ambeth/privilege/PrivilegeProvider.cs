@@ -17,6 +17,8 @@ using De.Osthus.Ambeth.Privilege.Transfer;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Security;
 using System.Security;
+using De.Osthus.Ambeth.Exceptions;
+using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Privilege
 {
@@ -79,15 +81,15 @@ namespace De.Osthus.Ambeth.Privilege
 
             public override String ToString()
             {
-                return "CacheKey: " + EntityType.FullName + "(" + IdIndex + "," + Id + ") SecurityScope: '" + SecurityScope + "'";
+                return "PrivilegeKey: " + EntityType.FullName + "(" + IdIndex + "," + Id + ") SecurityScope: '" + SecurityScope + "',SID:" + userSID;
             }
         }
 
         [LogInstance]
-		public ILogger Log { private get; set; }
+        public ILogger Log { private get; set; }
 
         [Autowired]
-        public IObjRefHelper OriHelper { protected get; set; }
+        public IObjRefHelper ObjRefHelper { protected get; set; }
 
         [Autowired]
         public IPrivilegeService PrivilegeService { protected get; set; }
@@ -95,42 +97,41 @@ namespace De.Osthus.Ambeth.Privilege
         [Autowired]
         public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
 
-        protected readonly Dictionary<PrivilegeKey, PrivilegeEnum[]> privilegeCache = new Dictionary<PrivilegeKey, PrivilegeEnum[]>();
+        protected readonly HashMap<PrivilegeKey, PrivilegeEnum[]> privilegeCache = new HashMap<PrivilegeKey, PrivilegeEnum[]>();
+
+        protected readonly Object writeLock = new Object();
 
         public virtual void AfterPropertiesSet()
         {
-            ParamChecker.AssertNotNull(OriHelper, "OriHelper");
-            ParamChecker.AssertNotNull(PrivilegeService, "PrivilegeService");
-        }
-
-        public void BuildPrefetchConfig(Type entityType, IPrefetchConfig prefetchConfig)
-        {
-            // Intended blank
+            if (PrivilegeService == null && Log.DebugEnabled)
+            {
+                Log.Debug("Privilege Service could not be resolved - Privilege functionality deactivated");
+            }
         }
 
         public bool IsCreateAllowed(Object entity, params ISecurityScope[] securityScopes)
         {
-            return GetPrivileges(entity, securityScopes).IsCreateAllowed();
+            return GetPrivilege(entity, securityScopes).CreateAllowed;
         }
 
         public bool IsUpdateAllowed(Object entity, params ISecurityScope[] securityScopes)
         {
-            return GetPrivileges(entity, securityScopes).IsUpdateAllowed();
+            return GetPrivilege(entity, securityScopes).UpdateAllowed;
         }
 
         public bool IsDeleteAllowed(Object entity, params ISecurityScope[] securityScopes)
         {
-            return GetPrivileges(entity, securityScopes).IsDeleteAllowed();
+            return GetPrivilege(entity, securityScopes).DeleteAllowed;
         }
 
         public bool IsReadAllowed(Object entity, params ISecurityScope[] securityScopes)
         {
-            return GetPrivileges(entity, securityScopes).IsReadAllowed();
+            return GetPrivilege(entity, securityScopes).ReadAllowed;
         }
 
-        public IPrivilegeItem GetPrivileges(Object entity, params ISecurityScope[] securityScopes)
+        public IPrivilegeItem GetPrivilege(Object entity, params ISecurityScope[] securityScopes)
         {
-            IList<IObjRef> objRefs = OriHelper.ExtractObjRefList(entity, null);
+            IList<IObjRef> objRefs = ObjRefHelper.ExtractObjRefList(entity, null);
             IList<IPrivilegeItem> result = GetPrivileges(objRefs, securityScopes);
             if (result.Count == 0)
             {
@@ -139,15 +140,35 @@ namespace De.Osthus.Ambeth.Privilege
             return result[0];
         }
 
-        public IList<IPrivilegeItem> GetPrivileges(IList<IObjRef> objRefs, params ISecurityScope[] securityScopes)
+        public IPrivilegeItem GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[] securityScopes)
+        {
+            IList<IPrivilegeItem> result = GetPrivilegesByObjRef(new List<IObjRef>(new IObjRef[] { objRef }), securityScopes);
+            if (result.Count == 0)
+            {
+                return new PrivilegeItem(new PrivilegeEnum[4]);
+            }
+            return result[0];
+        }
+
+        public IList<IPrivilegeItem> GetPrivileges<V>(IEnumerable<V> entities, params ISecurityScope[] securityScopes)
+        {
+            IList<IObjRef> objRefs = ObjRefHelper.ExtractObjRefList(entities, null);
+            return GetPrivilegesByObjRef(objRefs, securityScopes);
+        }
+
+        public IList<IPrivilegeItem> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
         {
             IUserHandle userHandle = SecurityScopeProvider.UserHandle;
             if (userHandle == null)
             {
                 throw new SecurityException("User must be authenticated to be able to check for privileges");
             }
+            if (securityScopes.Length == 0)
+            {
+                throw new ArgumentException("No " + typeof(ISecurityScope).Name + " provided to check privileges against");
+            }
             List<IObjRef> missingObjRefs = new List<IObjRef>();
-            lock (privilegeCache)
+            lock (writeLock)
             {
                 IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, userHandle);
                 if (missingObjRefs.Count == 0)
@@ -157,65 +178,67 @@ namespace De.Osthus.Ambeth.Privilege
             }
             String userSID = userHandle.SID;
             IList<PrivilegeResult> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
-            lock (privilegeCache)
+            lock (writeLock)
             {
-                foreach (PrivilegeResult privilegeResult in privilegeResults)
+                for (int a = 0, size = privilegeResults.Count; a < size; a++)
                 {
+                    PrivilegeResult privilegeResult = privilegeResults[a];
                     IObjRef reference = privilegeResult.Reference;
 
                     PrivilegeKey privilegeKey = new PrivilegeKey(reference.RealType, reference.IdNameIndex, reference.Id, userSID);
                     privilegeKey.SecurityScope = privilegeResult.SecurityScope.Name;
-                    
+
                     PrivilegeEnum[] privilegeEnums = privilegeResult.Privileges;
 
                     PrivilegeEnum[] indexedPrivilegeEnums = new PrivilegeEnum[4];
                     if (privilegeEnums != null)
                     {
-                        foreach (PrivilegeEnum privilegeEnum in privilegeEnums)
+                        for (int b = privilegeEnums.Length; b-- > 0; )
                         {
+                            PrivilegeEnum privilegeEnum = privilegeEnums[b];
                             switch (privilegeEnum)
                             {
                                 case PrivilegeEnum.NONE:
-                                {
-                                    break;
-                                }
+                                    {
+                                        break;
+                                    }
                                 case PrivilegeEnum.CREATE_ALLOWED:
-                                {
-                                    indexedPrivilegeEnums[PrivilegeItem.CREATE_INDEX] = privilegeEnum;
-                                    break;
-                                }
+                                    {
+                                        indexedPrivilegeEnums[PrivilegeItem.CREATE_INDEX] = privilegeEnum;
+                                        break;
+                                    }
                                 case PrivilegeEnum.UPDATE_ALLOWED:
-                                {
-                                    indexedPrivilegeEnums[PrivilegeItem.UPDATE_INDEX] = privilegeEnum;
-                                    break;
-                                }
+                                    {
+                                        indexedPrivilegeEnums[PrivilegeItem.UPDATE_INDEX] = privilegeEnum;
+                                        break;
+                                    }
                                 case PrivilegeEnum.DELETE_ALLOWED:
-                                {
-                                    indexedPrivilegeEnums[PrivilegeItem.DELETE_INDEX] = privilegeEnum;
-                                    break;
-                                }
+                                    {
+                                        indexedPrivilegeEnums[PrivilegeItem.DELETE_INDEX] = privilegeEnum;
+                                        break;
+                                    }
                                 case PrivilegeEnum.READ_ALLOWED:
-                                {
-                                    indexedPrivilegeEnums[PrivilegeItem.READ_INDEX] = privilegeEnum;
-                                    break;
-                                }
+                                    {
+                                        indexedPrivilegeEnums[PrivilegeItem.READ_INDEX] = privilegeEnum;
+                                        break;
+                                    }
                                 default:
-                                    throw new Exception(typeof(PrivilegeEnum).FullName + " not supported: " + privilegeEnum);
+                                    throw RuntimeExceptionUtil.CreateEnumNotSupportedException(privilegeEnum);
                             }
                         }
                     }
-                    privilegeCache[privilegeKey] = indexedPrivilegeEnums;
+                    privilegeCache.Put(privilegeKey, indexedPrivilegeEnums);
                 }
                 return CreateResult(objRefs, securityScopes, null, userHandle);
             }
         }
 
-        protected IList<IPrivilegeItem> CreateResult(IList<IObjRef> objRefs, ISecurityScope[] securityScopes, IList<IObjRef> missingObjRefs,
-            IUserHandle userHandle)
+        protected IList<IPrivilegeItem> CreateResult<V>(IEnumerable<V> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
+                IUserHandle userHandle) where V : IObjRef
         {
             PrivilegeKey privilegeKey = null;
 
-            IList<IPrivilegeItem> result = new List<IPrivilegeItem>(objRefs.Count);
+            List<IPrivilegeItem> result = new List<IPrivilegeItem>();
             String userSID = userHandle.SID;
 
             foreach (IObjRef objRef in objRefs)
@@ -234,7 +257,7 @@ namespace De.Osthus.Ambeth.Privilege
                 {
                     privilegeKey.SecurityScope = securityScopes[a].Name;
 
-                    PrivilegeEnum[] existingPrivilegeValues = DictionaryExtension.ValueOrDefault(privilegeCache, privilegeKey);
+                    PrivilegeEnum[] existingPrivilegeValues = privilegeCache.Get(privilegeKey);
                     if (existingPrivilegeValues == null)
                     {
                         mergedPrivilegeValues = null;
@@ -243,18 +266,18 @@ namespace De.Osthus.Ambeth.Privilege
                     if (mergedPrivilegeValues == null)
                     {
                         // Take first existing privilege as a start
-                        mergedPrivilegeValues = new PrivilegeEnum[4];
-                        existingPrivilegeValues.CopyTo(mergedPrivilegeValues, 0);
+                        mergedPrivilegeValues = new PrivilegeEnum[existingPrivilegeValues.Length];
+                        Array.Copy(existingPrivilegeValues, 0, mergedPrivilegeValues, 0, existingPrivilegeValues.Length);
                     }
                     else
                     {
                         // Merge all other existing privileges by boolean OR
-                        for (int b = mergedPrivilegeValues.Length; b-- > 0; )
+                        for (int c = mergedPrivilegeValues.Length; c-- > 0; )
                         {
-                            PrivilegeEnum existingPrivilegeValue = existingPrivilegeValues[b];
+                            PrivilegeEnum existingPrivilegeValue = existingPrivilegeValues[c];
                             if (!PrivilegeEnum.NONE.Equals(existingPrivilegeValue))
                             {
-                                mergedPrivilegeValues[b] = existingPrivilegeValue;
+                                mergedPrivilegeValues[c] = existingPrivilegeValue;
                             }
                         }
                     }
@@ -265,12 +288,13 @@ namespace De.Osthus.Ambeth.Privilege
                     {
                         missingObjRefs.Add(objRef);
                     }
+                    else
+                    {
+                        result.Add(PrivilegeItem.DENY_ALL);
+                    }
                     continue;
                 }
-                privilegeKey.SecurityScope = null;
-
                 result.Add(new PrivilegeItem(mergedPrivilegeValues));
-                privilegeKey = null;
             }
             return result;
         }
@@ -281,7 +305,7 @@ namespace De.Osthus.Ambeth.Privilege
             {
                 return;
             }
-            lock (privilegeCache)
+            lock (writeLock)
             {
                 privilegeCache.Clear();
             }

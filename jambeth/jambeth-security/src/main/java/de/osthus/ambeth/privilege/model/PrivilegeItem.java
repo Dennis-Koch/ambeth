@@ -1,6 +1,5 @@
-package de.osthus.ambeth.privilege;
+package de.osthus.ambeth.privilege.model;
 
-import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 
 public class PrivilegeItem implements IPrivilegeItem
 {
