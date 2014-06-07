@@ -2,15 +2,13 @@ package de.osthus.ambeth.merge;
 
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityHashMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -24,28 +22,26 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.OriCollection;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.service.IMergeServiceExtendable;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class MergeServiceRegistry implements IMergeService, IMergeServiceExtendable, IInitializingBean
+public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensionExtendable
 {
-	@LogInstance
-	private ILogger log;
-
 	public static class MergeOperation
 	{
-		protected IMergeService mergeService;
+		protected IMergeServiceExtension mergeServiceExtension;
 
 		protected IList<IChangeContainer> changeContainer;
 
-		public void setMergeService(IMergeService mergeService)
+		public void setMergeServiceExtension(IMergeServiceExtension mergeServiceExtension)
 		{
-			this.mergeService = mergeService;
+			this.mergeServiceExtension = mergeServiceExtension;
 		}
 
-		public IMergeService getMergeService()
+		public IMergeServiceExtension getMergeServiceExtension()
 		{
-			return mergeService;
+			return mergeServiceExtension;
 		}
 
 		public void setChangeContainer(IList<IChangeContainer> changeContainer)
@@ -57,92 +53,33 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		{
 			return changeContainer;
 		}
-
 	}
 
-	protected final Lock writeLock = new ReentrantLock();
+	@LogInstance
+	private ILogger log;
 
-	protected final ClassExtendableContainer<IMergeService> typeToMergeServiceMap = new ClassExtendableContainer<IMergeService>("elementHandler", "type");
-
-	protected IMergeService defaultMergeService;
-
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IGuiThreadHelper guiThreadHelper;
+
+	@Autowired
 	protected IMergeController mergeController;
 
+	protected final ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions = new ClassExtendableContainer<IMergeServiceExtension>(
+			"mergeServiceExtension", "entityType");
+
 	@Override
-	public void afterPropertiesSet()
+	public void registerMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Class<?> entityType)
 	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertParamNotNull(log, "Log");
-		ParamChecker.assertParamNotNull(mergeController, "MergeController");
-	}
-
-	public void setDefaultMergeService(IMergeService defaultMergeService)
-	{
-		this.defaultMergeService = defaultMergeService;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setMergeController(IMergeController mergeController)
-	{
-		this.mergeController = mergeController;
+		mergeServiceExtensions.register(mergeServiceExtension, entityType);
 	}
 
 	@Override
-	public void registerMergeService(IMergeService mergeService, Class<?> handledType)
+	public void unregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Class<?> entityType)
 	{
-		ParamChecker.assertParamNotNull(mergeService, "mergeService");
-		ParamChecker.assertParamNotNull(handledType, "handledType");
-
-		writeLock.lock();
-		try
-		{
-			IMergeService registered = typeToMergeServiceMap.getExtension(handledType);
-			if (registered == null)
-			{
-				typeToMergeServiceMap.register(mergeService, handledType);
-			}
-			else if (registered.equals(mergeService))
-			{
-				if (log.isInfoEnabled())
-				{
-					log.info("Duplicate registration of same service object for " + handledType);
-				}
-			}
-			else
-			{
-				if (log.isInfoEnabled())
-				{
-					log.info("There is already a CacheService mapped to " + handledType);
-				}
-			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public void unregisterMergeService(IMergeService mergeService, Class<?> handledType)
-	{
-		ParamChecker.assertParamNotNull(mergeService, "mergeService");
-		ParamChecker.assertParamNotNull(handledType, "handledType");
-
-		writeLock.lock();
-		try
-		{
-			typeToMergeServiceMap.unregister(mergeService, handledType);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		mergeServiceExtensions.unregister(mergeServiceExtension, entityType);
 	}
 
 	@Override
@@ -169,7 +106,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		for (int a = 0, size = mergeOperationSequence.size(); a < size; a++)
 		{
 			MergeOperation mergeOperation = mergeOperationSequence.get(a);
-			IMergeService mergeService = mergeOperation.getMergeService();
+			IMergeServiceExtension mergeServiceExtension = mergeOperation.getMergeServiceExtension();
 			IList<IChangeContainer> changesForMergeService = mergeOperation.getChangeContainer();
 
 			Object[] msOriginalRefs = new Object[changesForMergeService.size()];
@@ -182,7 +119,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 				}
 			}
 			CUDResult msCudResult = new CUDResult(changesForMergeService, new ArrayList<Object>(msOriginalRefs));
-			IOriCollection msOriCollection = mergeService.merge(msCudResult, methodDescription);
+			IOriCollection msOriCollection = mergeServiceExtension.merge(msCudResult, methodDescription);
 
 			postProcessOriCollection(msCudResult, msOriCollection);
 
@@ -208,49 +145,47 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
-		if (defaultMergeService != null && defaultMergeService != this)
+		IdentityHashMap<IMergeServiceExtension, List<Class<?>>> mseToEntityTypes = new IdentityHashMap<IMergeServiceExtension, List<Class<?>>>();
+
+		for (int a = entityTypes.size(); a-- > 0;)
 		{
-			return defaultMergeService.getMetaData(entityTypes);
+			Class<?> entityType = entityTypes.get(a);
+			IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.getExtension(entityType);
+			List<Class<?>> groupedEntityTypes = mseToEntityTypes.get(mergeServiceExtension);
+			if (groupedEntityTypes == null)
+			{
+				groupedEntityTypes = new ArrayList<Class<?>>();
+				mseToEntityTypes.put(mergeServiceExtension, groupedEntityTypes);
+			}
+			groupedEntityTypes.add(entityType);
 		}
-		else
+		ArrayList<IEntityMetaData> metaDataResult = new ArrayList<IEntityMetaData>(entityTypes.size());
+		for (Entry<IMergeServiceExtension, List<Class<?>>> entry : mseToEntityTypes)
 		{
-			return entityMetaDataProvider.getMetaData(entityTypes);
+			List<IEntityMetaData> groupedMetaData = entry.getKey().getMetaData(entry.getValue());
+			metaDataResult.addAll(groupedMetaData);
 		}
+		return metaDataResult;
 	}
 
 	@Override
 	public IValueObjectConfig getValueObjectConfig(Class<?> valueType)
 	{
-		if (defaultMergeService != null && defaultMergeService != this)
-		{
-			return defaultMergeService.getValueObjectConfig(valueType);
-		}
-		else
-		{
-			return entityMetaDataProvider.getValueObjectConfig(valueType);
-		}
+		return entityMetaDataProvider.getValueObjectConfig(valueType);
 	}
 
-	protected IMergeService getServiceForType(Class<?> type)
+	protected IMergeServiceExtension getServiceForType(Class<?> type)
 	{
 		if (type == null)
 		{
 			return null;
 		}
-		IMergeService mergeService = typeToMergeServiceMap.getExtension(type);
-		if (mergeService == null)
+		IMergeServiceExtension mse = mergeServiceExtensions.getExtension(type);
+		if (mse == null)
 		{
-			if (defaultMergeService != null && defaultMergeService != this)
-			{
-				mergeService = defaultMergeService;
-			}
-			else
-			{
-				throw new IllegalArgumentException("No merge service found to handle entity type '" + type.getName() + "'");
-			}
+			throw new IllegalArgumentException("No " + IMergeServiceExtension.class.getSimpleName() + " found to handle entity type '" + type.getName() + "'");
 		}
-
-		return mergeService;
+		return mse;
 	}
 
 	protected IMap<Class<?>, IList<IChangeContainer>> bucketSortChanges(List<IChangeContainer> allChanges)
@@ -319,9 +254,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 				{
 					sortedChanges.put(orderedEntityType, insertsAndUpdates);
 				}
-				IMergeService mergeService = getServiceForType(orderedEntityType);
+				IMergeServiceExtension mergeServiceExtension = getServiceForType(orderedEntityType);
 				MergeOperation mergeOperation = new MergeOperation();
-				mergeOperation.setMergeService(mergeService);
+				mergeOperation.setMergeServiceExtension(mergeServiceExtension);
 				mergeOperation.setChangeContainer(removes);
 
 				mergeOperations.add(mergeOperation);
@@ -353,9 +288,9 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 				// and
 				// this type of entity has to be inserted in a global order
 				sortedChanges.remove(orderedEntityType);
-				IMergeService mergeService = getServiceForType(orderedEntityType);
+				IMergeServiceExtension mergeServiceExtension = getServiceForType(orderedEntityType);
 				MergeOperation mergeOperation = new MergeOperation();
-				mergeOperation.setMergeService(mergeService);
+				mergeOperation.setMergeServiceExtension(mergeServiceExtension);
 				mergeOperation.setChangeContainer(changes);
 
 				mergeOperations.add(mergeOperation);
@@ -369,12 +304,12 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		{
 			Class<?> type = entry.getKey();
 			IList<IChangeContainer> unorderedChanges = entry.getValue();
-			IMergeService mergeService = getServiceForType(type);
+			IMergeServiceExtension mergeServiceExtension = getServiceForType(type);
 
 			boolean cont = false;
 			for (MergeOperation existingMergeOperation : mergeOperations)
 			{
-				if (existingMergeOperation.getMergeService() == mergeService)
+				if (existingMergeOperation.getMergeServiceExtension() == mergeServiceExtension)
 				{
 					IList<IChangeContainer> orderedChanges = existingMergeOperation.getChangeContainer();
 					for (int b = unorderedChanges.size(); b-- > 0;)
@@ -390,7 +325,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 				continue;
 			}
 			MergeOperation mergeOperation = new MergeOperation();
-			mergeOperation.setMergeService(mergeService);
+			mergeOperation.setMergeServiceExtension(mergeServiceExtension);
 			mergeOperation.setChangeContainer(unorderedChanges);
 
 			mergeOperations.add(mergeOperation);
@@ -398,9 +333,17 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtenda
 		return mergeOperations;
 	}
 
-	protected void postProcessOriCollection(ICUDResult cudResult, IOriCollection oriCollection)
+	protected void postProcessOriCollection(final ICUDResult cudResult, final IOriCollection oriCollection)
 	{
-		mergeController.applyChangesToOriginals(cudResult.getOriginalRefs(), oriCollection.getAllChangeORIs(), oriCollection.getChangedOn(),
-				oriCollection.getChangedBy());
+		guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
+		{
+
+			@Override
+			public void invoke() throws Throwable
+			{
+				mergeController.applyChangesToOriginals(cudResult.getOriginalRefs(), oriCollection.getAllChangeORIs(), oriCollection.getChangedOn(),
+						oriCollection.getChangedBy());
+			}
+		});
 	}
 }

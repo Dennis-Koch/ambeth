@@ -30,6 +30,6 @@ public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
 			IPermissionEvaluation permissionEvaluation)
 	{
-		return permissionEvaluation.allowCreate().allowRead().allowUpdate().denyDelete();
+		return permissionEvaluation.allowRead().allowCreate().allowUpdate().denyDelete();
 	}
 }

@@ -129,8 +129,9 @@
     <Compile Include="ambeth\proxy\EntityFactory.cs" />
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
-    <Compile Include="ambeth\service\IMergeServiceExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
     <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />

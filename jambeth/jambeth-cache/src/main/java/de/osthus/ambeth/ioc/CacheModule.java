@@ -171,9 +171,7 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		beanContextFactory.registerBean("cacheEventTargetExtractor", CacheEventTargetExtractor.class);
 		beanContextFactory.link("cacheEventTargetExtractor").to(IEventTargetExtractorExtendable.class).with(ICache.class).optional();
 
-		beanContextFactory.registerBean("cacheFactory", CacheFactory.class).autowireable(ICacheFactory.class);
-
-		beanContextFactory.registerAlias(MergeModule.MERGE_CACHE_FACTORY, "cacheFactory");
+		beanContextFactory.registerAnonymousBean(CacheFactory.class).autowireable(ICacheFactory.class);
 
 		MethodInterceptor cacheProviderInterceptor = (MethodInterceptor) beanContextFactory
 				.registerBean("cacheProviderInterceptor", CacheProviderInterceptor.class)

@@ -10,6 +10,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
+import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -21,17 +22,35 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
-public class EntityMetaDataServer extends EntityMetaDataProvider implements IDatabaseMappedListener
+public class EntityMetaDataServer extends EntityMetaDataProvider implements IDatabaseMappedListener, IDisposableBean
 {
+	private static final Class<?>[] EMPTY_TYPES = new Class[0];
+
 	@LogInstance
 	private ILogger log;
 
-	private static final Class<?>[] EMPTY_TYPES = new Class[0];
+	protected final ArrayList<Class<?>> registeredEntityTypes = new ArrayList<Class<?>>();
 
 	protected boolean firstMapping = true;
 
 	@Autowired
+	protected IMergeServiceExtension persistenceMergeServiceExtension;
+
+	@Autowired
+	protected IMergeServiceExtensionExtendable mergeServiceExtensionExtendable;
+
+	@Autowired
 	protected IProxyHelper proxyHelper;
+
+	@Override
+	public void destroy() throws Throwable
+	{
+		for (int a = registeredEntityTypes.size(); a-- > 0;)
+		{
+			Class<?> registeredEntityType = registeredEntityTypes.remove(a);
+			mergeServiceExtensionExtendable.unregisterMergeServiceExtension(persistenceMergeServiceExtension, registeredEntityType);
+		}
+	}
 
 	@Override
 	public synchronized void databaseMapped(IDatabase database)
@@ -180,6 +199,12 @@ public class EntityMetaDataServer extends EntityMetaDataProvider implements IDat
 		}
 		if (newEntityTypes.size() > 0)
 		{
+			for (int a = 0, size = newEntityTypes.size(); a < size; a++)
+			{
+				Class<?> newEntityType = newEntityTypes.get(a);
+				mergeServiceExtensionExtendable.registerMergeServiceExtension(persistenceMergeServiceExtension, newEntityType);
+				registeredEntityTypes.add(newEntityType);
+			}
 			eventDispatcher.dispatchEvent(new EntityMetaDataAddedEvent(newEntityTypes.toArray(new Class<?>[newEntityTypes.size()])));
 		}
 	}

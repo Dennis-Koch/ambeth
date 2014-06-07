@@ -17,11 +17,11 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtendable, IInitializingBean
+    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable
     {
         public class MergeOperation
         {
-            public IMergeService MergeService { get; set; }
+            public IMergeServiceExtension MergeServiceExtension { get; set; }
 
             public IList<IChangeContainer> ChangeContainer { get; set; }
         }
@@ -29,78 +29,28 @@ namespace De.Osthus.Ambeth.Cache
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        protected readonly Lock writeLock = new ReadWriteLock().WriteLock;
-
-        protected IMapExtendableContainer<Type, IMergeService> typeToMergeServiceMap = new ClassExtendableContainer<IMergeService>("elementHandler", "type");
-        
-        [Autowired(Optional = true)]
-        public IMergeService DefaultMergeService { protected get; set; }
-
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IEventDispatcher EventDispatcher { protected get; set; }
 
+        [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
+        [Autowired]
         public IMergeController MergeController { protected get; set; }
-        
-        public virtual void AfterPropertiesSet()
+
+        protected readonly ClassExtendableContainer<IMergeServiceExtension> mergeServiceExtensions = new ClassExtendableContainer<IMergeServiceExtension>("mergeServiceExtension", "entityType");
+
+        public void RegisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
         {
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(EventDispatcher, "EventDispatcher");
-            ParamChecker.AssertNotNull(GuiThreadHelper, "GuiThreadHelper");
-            ParamChecker.AssertNotNull(Log, "Log");
-            ParamChecker.AssertNotNull(MergeController, "MergeController");
+            mergeServiceExtensions.Register(mergeServiceExtension, entityType);
         }
 
-        public void RegisterMergeService(IMergeService mergeService, Type handledType)
+        public void UnregisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)
         {
-            ParamChecker.AssertParamNotNull(mergeService, "mergeService");
-            ParamChecker.AssertParamNotNull(handledType, "handledType");
-
-            writeLock.Lock();
-            try
-            {
-                IMergeService registered = typeToMergeServiceMap.GetExtension(handledType);
-                if (registered == null)
-                {
-                    this.typeToMergeServiceMap.Register(mergeService, handledType);
-                }
-                else if (registered.Equals(mergeService))
-                {
-                    if (Log.InfoEnabled)
-                    {
-                        Log.Info("Duplicat registration of same service object for " + handledType);
-                    }
-                }
-                else
-                {
-                    if (Log.InfoEnabled)
-                    {
-                        Log.Info("There is already a CacheService mapped to " + handledType);
-                    }
-                }
-            }
-            finally
-            {
-                writeLock.Unlock();
-            }
-        }
-
-        public void UnregisterMergeService(IMergeService mergeService, Type handledType)
-        {
-            ParamChecker.AssertParamNotNull(mergeService, "mergeService");
-            ParamChecker.AssertParamNotNull(handledType, "handledType");
-
-            writeLock.Lock();
-            try
-            {
-                this.typeToMergeServiceMap.Unregister(mergeService, handledType);
-            }
-            finally
-            {
-                writeLock.Unlock();
-            }
+            mergeServiceExtensions.Unregister(mergeServiceExtension, entityType);
         }
 
         public IOriCollection Merge(ICUDResult cudResult, IMethodDescription methodDescription)
@@ -130,7 +80,7 @@ namespace De.Osthus.Ambeth.Cache
                 for (int a = 0, size = mergeOperationSequence.Count; a < size; a++)
                 {
                     MergeOperation mergeOperation = mergeOperationSequence[a];
-                    IMergeService mergeService = mergeOperation.MergeService;
+                    IMergeServiceExtension mergeServiceExtension = mergeOperation.MergeServiceExtension;
                     IList<IChangeContainer> changesForMergeService = mergeOperation.ChangeContainer;
 
                     Object[] msOriginalRefs = new Object[changesForMergeService.Count];
@@ -140,7 +90,7 @@ namespace De.Osthus.Ambeth.Cache
                         msOriginalRefs[b] = originalRefs[index];
                     }
                     CUDResult msCudResult = new CUDResult(changesForMergeService, msOriginalRefs);
-                    IOriCollection msOriCollection = mergeService.Merge(msCudResult, methodDescription);
+                    IOriCollection msOriCollection = mergeServiceExtension.Merge(msCudResult, methodDescription);
 
                     // Store the result of the merge operation as a hard ref. as long as we maintain the ref, the rootcache will
                     // NOT loose related information due to any GC
@@ -168,48 +118,46 @@ namespace De.Osthus.Ambeth.Cache
 
         public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
-            if (DefaultMergeService != null && DefaultMergeService != this)
-            {
-                return DefaultMergeService.GetMetaData(entityTypes);
-            }
-            else
-            {
-                return EntityMetaDataProvider.GetMetaData(entityTypes);
-            }
+            IdentityHashMap<IMergeServiceExtension, IList<Type>> mseToEntityTypes = new IdentityHashMap<IMergeServiceExtension, IList<Type>>();
+
+		    for (int a = entityTypes.Count; a-- > 0;)
+		    {
+			    Type entityType = entityTypes[a];
+			    IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.GetExtension(entityType);
+			    IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
+			    if (groupedEntityTypes == null)
+			    {
+				    groupedEntityTypes = new List<Type>();
+				    mseToEntityTypes.Put(mergeServiceExtension, groupedEntityTypes);
+			    }
+			    groupedEntityTypes.Add(entityType);
+		    }
+		    List<IEntityMetaData> metaDataResult = new List<IEntityMetaData>(entityTypes.Count);
+		    foreach (Entry<IMergeServiceExtension, IList<Type>> entry in mseToEntityTypes)
+		    {
+			    IList<IEntityMetaData> groupedMetaData = entry.Key.GetMetaData(entry.Value);
+			    metaDataResult.AddRange(groupedMetaData);
+		    }
+		    return metaDataResult;
         }
 
         public virtual IValueObjectConfig GetValueObjectConfig(Type valueType)
         {
-            if (DefaultMergeService != null && DefaultMergeService != this)
-            {
-                return DefaultMergeService.GetValueObjectConfig(valueType);
-            }
-            else
-            {
-                return EntityMetaDataProvider.GetValueObjectConfig(valueType);
-            }
+            return EntityMetaDataProvider.GetValueObjectConfig(valueType);
         }
 
-        protected IMergeService GetServiceForType(Type type)
+        protected IMergeServiceExtension GetServiceForType(Type type)
         {
             if (type == null)
             {
                 return null;
             }
-            IMergeService mergeService = typeToMergeServiceMap.GetExtension(type);
-            if (mergeService == null)
+            IMergeServiceExtension mse = mergeServiceExtensions.GetExtension(type);
+            if (mse == null)
             {
-                if (DefaultMergeService != null && DefaultMergeService != this)
-                {
-                    mergeService = DefaultMergeService;
-                }
-                else
-                {
-                    throw new Exception("No merge service found to handle entity type '" + type.FullName + "'");
-                }
+                throw new Exception("No merge service found to handle entity type '" + type.FullName + "'");
             }
-
-            return mergeService;
+            return mse;
         }
 
         protected IDictionary<Type, IList<IChangeContainer>> BucketSortChanges(IList<IChangeContainer> allChanges)
@@ -275,9 +223,9 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         sortedChanges[orderedEntityType] = insertsAndUpdates;
                     }
-                    IMergeService mergeService = GetServiceForType(orderedEntityType);
+                    IMergeServiceExtension mergeServiceExtension = GetServiceForType(orderedEntityType);
                     MergeOperation mergeOperation = new MergeOperation();
-                    mergeOperation.MergeService = mergeService;
+                    mergeOperation.MergeServiceExtension = mergeServiceExtension;
                     mergeOperation.ChangeContainer = removes;
 
                     mergeOperations.Add(mergeOperation);
@@ -309,9 +257,9 @@ namespace De.Osthus.Ambeth.Cache
                     // Remove batch of changes where at least 1 new entity occured and
                     // this type of entity has to be inserted in a global order
                     sortedChanges.Remove(orderedEntityType);
-                    IMergeService mergeService = GetServiceForType(orderedEntityType);
+                    IMergeServiceExtension mergeServiceExtension = GetServiceForType(orderedEntityType);
                     MergeOperation mergeOperation = new MergeOperation();
-                    mergeOperation.MergeService = mergeService;
+                    mergeOperation.MergeServiceExtension = mergeServiceExtension;
                     mergeOperation.ChangeContainer = changes;
 
                     mergeOperations.Add(mergeOperation);
@@ -321,11 +269,11 @@ namespace De.Osthus.Ambeth.Cache
             // Everything which is left in the sortedChanges map can be merged without global order, so batch together as much as possible
             DictionaryExtension.Loop(sortedChanges, delegate(Type type, IList<IChangeContainer> unorderedChanges)
             {
-                IMergeService mergeService = GetServiceForType(type);
+                IMergeServiceExtension mergeServiceExtension = GetServiceForType(type);
 
                 foreach (MergeOperation existingMergeOperation in mergeOperations)
                 {
-                    if (Object.ReferenceEquals(existingMergeOperation.MergeService, mergeService))
+                    if (Object.ReferenceEquals(existingMergeOperation.MergeServiceExtension, mergeServiceExtension))
                     {
                         IList<IChangeContainer> orderedChanges = existingMergeOperation.ChangeContainer;
                         for (int b = unorderedChanges.Count; b-- > 0; )
@@ -336,7 +284,7 @@ namespace De.Osthus.Ambeth.Cache
                     }
                 }
                 MergeOperation mergeOperation = new MergeOperation();
-                mergeOperation.MergeService = mergeService;
+                mergeOperation.MergeServiceExtension = mergeServiceExtension;
                 mergeOperation.ChangeContainer = unorderedChanges;
 
                 mergeOperations.Add(mergeOperation);

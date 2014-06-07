@@ -29,7 +29,10 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.ioc.MergeServerModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.IMergeServiceExtension;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.model.ICUDResult;
@@ -60,7 +63,6 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("../persistence/xml/Relations_data.sql")
 @SQLStructure("../persistence/xml/Relations_structure.sql")
@@ -70,30 +72,30 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestModule(TestServicesModule.class)
 public class MergeServiceTest extends AbstractPersistenceTest
 {
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
 	protected ICache cache;
 
-	protected IMergeService fixtureProxy;
+	protected IMergeServiceExtension fixtureProxy;
 
-	protected MergeService fixture;
+	protected PersistenceMergeServiceExtension fixture;
 
 	protected ChildCache childCache;
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(proxyHelper, "proxyHelper");
 
-		fixtureProxy = beanContext.getService("mergeService", IMergeService.class);
+		fixtureProxy = beanContext.getService(MergeServerModule.MERGE_SERVICE_SERVER, IMergeServiceExtension.class);
 		Factory proxy = (Factory) fixtureProxy;
 		ICascadedInterceptor inter = (ICascadedInterceptor) proxy.getCallbacks()[0];
-		fixture = (MergeService) inter.getTarget();
+		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
 		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
 	}

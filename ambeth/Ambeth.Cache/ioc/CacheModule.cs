@@ -142,9 +142,7 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<CacheEventTargetExtractor>("cacheEventTargetExtractor");
             beanContextFactory.Link("cacheEventTargetExtractor").To<IEventTargetExtractorExtendable>().With(typeof(ICache));
 
-            beanContextFactory.RegisterBean<CacheFactory>("cacheFactory").Autowireable<ICacheFactory>();
-
-            beanContextFactory.RegisterAlias(MergeModule.MERGE_CACHE_FACTORY, "cacheFactory");
+            beanContextFactory.RegisterAnonymousBean<CacheFactory>().Autowireable<ICacheFactory>();
 
             IInterceptor cacheProviderInterceptor = (IInterceptor)beanContextFactory
                     .RegisterBean<CacheProviderInterceptor>("cacheProviderInterceptor")

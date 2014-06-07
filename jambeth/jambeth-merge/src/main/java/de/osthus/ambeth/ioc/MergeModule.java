@@ -17,6 +17,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.MergeController;
@@ -38,7 +39,6 @@ import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.service.IMergeServiceExtendable;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.template.CompositeIdTemplate;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
@@ -50,8 +50,6 @@ import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 @FrameworkModule
 public class MergeModule implements IInitializingModule
 {
-	public static final String MERGE_CACHE_FACTORY = "cacheFactory.merge";
-
 	public static final String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
 
 	@Property(name = ConfigurationConstants.IndependentMetaData, defaultValue = "false")
@@ -66,7 +64,7 @@ public class MergeModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		beanContextFactory.registerAutowireableBean(IMergeController.class, MergeController.class);
-		beanContextFactory.registerAutowireableBean(IMergeProcess.class, MergeProcess.class).propertyRefs(MERGE_CACHE_FACTORY);
+		beanContextFactory.registerAutowireableBean(IMergeProcess.class, MergeProcess.class);
 
 		beanContextFactory.registerAutowireableBean(CompositeIdTemplate.class, CompositeIdTemplate.class);
 
@@ -88,6 +86,8 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 
+		beanContextFactory.registerAnonymousBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class);
+
 		if (!independentMetaData)
 		{
 			beanContextFactory.registerBean("entityMetaDataConverter", EntityMetaDataConverter.class);
@@ -95,9 +95,6 @@ public class MergeModule implements IInitializingModule
 		}
 		else
 		{
-			beanContextFactory.registerBean("mergeServiceRegistry", MergeServiceRegistry.class)
-					.autowireable(IMergeService.class, IMergeServiceExtendable.class);
-
 			IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
 			beanContextFactory
 					.registerBean("independantMetaDataProvider", EntityMetaDataProvider.class)

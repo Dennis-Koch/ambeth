@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import de.osthus.ambeth.model.ISecurityScope;
 
-public class PermissionEvaluation implements IPermissionEvaluation, IPermissionEvaluationReadStep, IPermissionEvaluationUpdateStep,
+public class PermissionEvaluation implements IPermissionEvaluation, IPermissionEvaluationCreateStep, IPermissionEvaluationUpdateStep,
 		IPermissionEvaluationDeleteStep, IPermissionEvaluationResult
 {
 	protected final ISecurityScope[] scopes;
@@ -79,42 +79,39 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	}
 
 	@Override
-	public IPermissionEvaluationReadStep allowCreate()
+	public IPermissionEvaluationUpdateStep allowCreate()
 	{
 		create = Boolean.TRUE;
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationReadStep skipCreate()
+	public IPermissionEvaluationUpdateStep skipCreate()
 	{
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationReadStep denyCreate()
+	public IPermissionEvaluationUpdateStep denyCreate()
 	{
 		create = Boolean.FALSE;
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationUpdateStep allowRead()
+	public IPermissionEvaluationCreateStep allowRead()
 	{
 		read = Boolean.TRUE;
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationUpdateStep skipRead()
-	{
-		return this;
-	}
-
-	@Override
-	public IPermissionEvaluationUpdateStep denyRead()
+	public IPermissionEvaluationResult denyRead()
 	{
 		read = Boolean.FALSE;
+		create = Boolean.FALSE;
+		update = Boolean.FALSE;
+		delete = Boolean.FALSE;
 		return this;
 	}
 
@@ -159,20 +156,20 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	}
 
 	@Override
-	public void allowEach()
+	public IPermissionEvaluationResult allowEach()
 	{
-		allowCreate().allowRead().allowUpdate().allowDelete();
+		return allowRead().allowCreate().allowUpdate().allowDelete();
 	}
 
 	@Override
-	public void skipEach()
+	public IPermissionEvaluationResult skipEach()
 	{
-		// intended blank
+		return this;
 	}
 
 	@Override
-	public void denyEach()
+	public IPermissionEvaluationResult denyEach()
 	{
-		denyCreate().denyRead().denyUpdate().denyDelete();
+		return denyRead();
 	}
 }

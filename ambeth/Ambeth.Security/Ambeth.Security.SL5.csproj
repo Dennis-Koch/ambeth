@@ -75,7 +75,7 @@
     <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
-    <Compile Include="ambeth\privilege\IPrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\model\IPrivilegeItem.cs" />
     <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
     <Compile Include="ambeth\privilege\IPrivilegeProviderExtension.cs" />
     <Compile Include="ambeth\privilege\IPrivilegeProviderExtensionExtendable.cs" />
@@ -83,16 +83,13 @@
     <Compile Include="ambeth\privilege\model\ModifyPermission.cs" />
     <Compile Include="ambeth\privilege\model\PrivilegeEnum.cs" />
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
-    <Compile Include="ambeth\privilege\PrivilegeItem.cs" />
+    <Compile Include="ambeth\privilege\model\PrivilegeItem.cs" />
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\privilege\transfer\PrivilegeResult.cs" />
-    <Compile Include="ambeth\security\AbstractEntityFilter.cs" />
     <Compile Include="ambeth\security\AmbethUserHandle.cs" />
     <Compile Include="ambeth\security\AmbethUserHandleFactory.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
-    <Compile Include="ambeth\security\IEntityFilter.cs" />
-    <Compile Include="ambeth\security\IEntityFilterExtendable.cs" />
     <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
     <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />

@@ -7,7 +7,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
-import de.osthus.ambeth.security.IEntityFilterExtendable;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
@@ -31,7 +30,7 @@ public class SecurityServerModule implements IInitializingModule
 			beanContextFactory.registerBean("securityPostProcessor", SecurityPostProcessor.class);
 
 			beanContextFactory.registerBean("securityManager", de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
-					IMergeSecurityManager.class, IEntityFilterExtendable.class, IServiceFilterExtendable.class);
+					IMergeSecurityManager.class, IServiceFilterExtendable.class);
 
 			beanContextFactory.registerBean("defaultServiceFilter", DefaultServiceFilter.class);
 			beanContextFactory.link("defaultServiceFilter").to(IServiceFilterExtendable.class);
