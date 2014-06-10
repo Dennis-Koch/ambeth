@@ -10,10 +10,16 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class CyclicXMLHandler implements ICyclicXMLHandler, ICyclicXmlWriter, ICyclicXmlReader
+public class CyclicXmlHandler implements ICyclicXMLHandler, ICyclicXmlWriter, ICyclicXmlReader, ITypeBasedHandlerExtendable, INameBasedHandlerExtendable
 {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected INameBasedHandlerExtendable nameBasedHandlerExtendable;
+
+	@Autowired
+	protected ITypeBasedHandlerExtendable typeBasedHandlerExtendable;
 
 	@Autowired
 	protected ICyclicXmlReader cyclicXmlReader;
@@ -67,5 +73,29 @@ public class CyclicXMLHandler implements ICyclicXMLHandler, ICyclicXmlWriter, IC
 	public Object readFromChannel(ReadableByteChannel byteChannel)
 	{
 		return cyclicXmlReader.readFromChannel(byteChannel);
+	}
+
+	@Override
+	public void registerElementHandler(ITypeBasedHandler elementHandler, Class<?> type)
+	{
+		typeBasedHandlerExtendable.registerElementHandler(elementHandler, type);
+	}
+
+	@Override
+	public void unregisterElementHandler(ITypeBasedHandler elementHandler, Class<?> type)
+	{
+		typeBasedHandlerExtendable.unregisterElementHandler(elementHandler, type);
+	}
+
+	@Override
+	public void registerNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName)
+	{
+		nameBasedHandlerExtendable.registerNameBasedElementHandler(nameBasedElementHandler, elementName);
+	}
+
+	@Override
+	public void unregisterNameBasedElementHandler(INameBasedHandler nameBasedElementHandler, String elementName)
+	{
+		nameBasedHandlerExtendable.unregisterNameBasedElementHandler(nameBasedElementHandler, elementName);
 	}
 }

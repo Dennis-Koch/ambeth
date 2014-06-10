@@ -30,7 +30,7 @@ public class Logger implements IConfigurableLogger
 	protected static Writer loggerStream;
 
 	protected static final Lock streamWriteLock = new ReentrantLock();
-	
+
 	protected static final Lock formatWriteLock = new ReentrantLock();
 
 	static
@@ -119,7 +119,7 @@ public class Logger implements IConfigurableLogger
 			shortSource = source;
 		}
 	}
-	
+
 	protected DateFormat getFormat()
 	{
 		return format;
@@ -448,7 +448,7 @@ public class Logger implements IConfigurableLogger
 			formatWriteLock.lock();
 			try
 			{
-				dateString = format.format(date);				
+				dateString = format.format(date);
 			}
 			finally
 			{
@@ -474,6 +474,10 @@ public class Logger implements IConfigurableLogger
 			}
 
 			sb.append(dateString).append(' ').append(logLevel.name());
+			for (int a = logLevel.name().length(); a < 5; a++)
+			{
+				sb.append(' ');
+			}
 			if (printedSource != null)
 			{
 				sb.append(' ').append(printedSource);

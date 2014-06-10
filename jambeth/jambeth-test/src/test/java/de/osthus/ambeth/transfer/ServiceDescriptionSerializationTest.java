@@ -13,6 +13,7 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.MaterialGroup;
 import de.osthus.ambeth.objectcollector.IObjectCollector;
@@ -25,7 +26,6 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 @SQLStructure("../service/ProcessServiceTest_structure.sql")
@@ -33,43 +33,17 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class })
 public class ServiceDescriptionSerializationTest extends AbstractPersistenceTest
 {
-	private ICache cache;
+	@Autowired
+	protected ICache cache;
 
-	private ICacheFactory cacheFactory;
+	@Autowired
+	protected ICacheFactory cacheFactory;
 
-	private ICyclicXMLHandler cyclicXMLHandler;
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
+	protected ICyclicXMLHandler cyclicXMLHandler;
 
-	private IObjectCollector objectCollector;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(cyclicXMLHandler, "CyclicXMLHandler");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCyclicXMLHandler(ICyclicXMLHandler cyclicXMLHandler)
-	{
-		this.cyclicXMLHandler = cyclicXMLHandler;
-	}
-
-	public void setObjectCollector(IObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
+	@Autowired
+	protected IObjectCollector objectCollector;
 
 	@Test
 	public void testNoParamNoReturn() throws Exception

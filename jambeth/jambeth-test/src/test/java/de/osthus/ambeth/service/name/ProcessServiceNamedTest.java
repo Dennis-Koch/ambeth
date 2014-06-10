@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
@@ -17,7 +18,6 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.transfer.ServiceDescription;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 import de.osthus.ambeth.xml.IXmlTypeExtendable;
 
@@ -28,44 +28,17 @@ public class ProcessServiceNamedTest extends AbstractPersistenceTest
 {
 	private static final Object[] NO_PARAMS = {};
 
+	@Autowired
 	private IProcessService fixture;
 
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	private ICyclicXMLHandler cyclicXMLHandler;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IXmlTypeExtendable xmlTypeExtendable;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(fixture, "ProcessService");
-		ParamChecker.assertNotNull(cyclicXMLHandler, "CyclicXMLHandler");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(xmlTypeExtendable, "XmlTypeExtendable");
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setProcessService(IProcessService processService)
-	{
-		fixture = processService;
-	}
-
-	public void setCyclicXMLHandler(ICyclicXMLHandler cyclicXMLHandler)
-	{
-		this.cyclicXMLHandler = cyclicXMLHandler;
-	}
-
-	public void setXmlTypeExtendable(IXmlTypeExtendable xmlTypeExtendable)
-	{
-		this.xmlTypeExtendable = xmlTypeExtendable;
-	}
 
 	@Test
 	public void testCallToService() throws Exception

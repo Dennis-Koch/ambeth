@@ -3,32 +3,21 @@ package de.osthus.ambeth.xml.pending;
 import java.util.Collection;
 
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class CommandBuilder implements ICommandBuilder, IInitializingBean
+public class CommandBuilder implements ICommandBuilder
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
 
 	@Override
 	public IObjectCommand build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture, Object parent, Object... optionals)

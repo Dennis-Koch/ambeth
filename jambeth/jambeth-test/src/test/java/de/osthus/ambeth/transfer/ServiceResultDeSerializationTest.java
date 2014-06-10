@@ -11,6 +11,7 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.MaterialGroup;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
@@ -20,7 +21,6 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 @SQLStructure("../service/ProcessServiceTest_structure.sql")
@@ -28,28 +28,11 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class })
 public class ServiceResultDeSerializationTest extends AbstractPersistenceTest
 {
-	private ICache cache;
+	@Autowired
+	protected ICache cache;
 
-	private ICyclicXMLHandler cyclicXMLHandler;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(cyclicXMLHandler, "CyclicXMLHandler");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCyclicXMLHandler(ICyclicXMLHandler cyclicXMLHandler)
-	{
-		this.cyclicXMLHandler = cyclicXMLHandler;
-	}
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
+	protected ICyclicXMLHandler cyclicXMLHandler;
 
 	@Test
 	public void testNoReturn() throws Exception

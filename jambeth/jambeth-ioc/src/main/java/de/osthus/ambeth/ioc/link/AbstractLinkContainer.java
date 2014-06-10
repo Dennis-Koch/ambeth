@@ -1,5 +1,7 @@
 package de.osthus.ambeth.ioc.link;
 
+import java.util.Arrays;
+
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -247,7 +249,8 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 			if (declarationStackTrace != null)
 			{
 				throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener)
-						+ " to " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry) + "\n" + declarationStackTrace, e, this);
+						+ " to " + (registryBeanName != null ? "'" + registryBeanName + "'" : registry) + "\n" + Arrays.toString(declarationStackTrace), e,
+						this);
 			}
 			throw new LinkException("An error occured while trying to link " + (listenerBeanName != null ? "'" + listenerBeanName + "'" : listener) + " to "
 					+ (registryBeanName != null ? "'" + registryBeanName + "'" : registry), e, this);

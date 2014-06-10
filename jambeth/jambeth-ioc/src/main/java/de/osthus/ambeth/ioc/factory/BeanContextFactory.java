@@ -525,7 +525,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 					IBeanConfiguration existingBeanConfiguration = nameToBeanConfMap.get(beanName);
 					if (!existingBeanConfiguration.isOverridesExisting())
 					{
-						throw new IllegalArgumentException("A bean with name '" + beanName + "' is already registered in this context");
+						throw ServiceContext.createDuplicateBeanNameException(beanName, beanConfiguration, existingBeanConfiguration);
 					}
 					// Existing config requests precedence over every other bean config. This is no error
 					return;

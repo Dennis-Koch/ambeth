@@ -32,7 +32,7 @@ import de.osthus.ambeth.xml.pending.IObjectFuture;
 import de.osthus.ambeth.xml.pending.IObjectFutureHandlerRegistry;
 import de.osthus.ambeth.xml.postprocess.IPostProcessReader;
 
-public class SimpleXMLReader implements ICyclicXmlReader
+public class SimpleXmlReader implements ICyclicXmlReader
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -292,10 +292,10 @@ public class SimpleXMLReader implements ICyclicXmlReader
 			DefaultXmlReader pullParserReader = new DefaultXmlReader(xmlReader, xmlController, objectFutureHandlerRegistry);
 			pullParserReader.nextTag();
 			readPrefix(pullParserReader);
-			Object object = pullParserReader.readObject();
-			object = postProcess(object, pullParserReader);
+			Object obj = pullParserReader.readObject();
+			obj = postProcess(obj, pullParserReader);
 			readPostfix(pullParserReader);
-			return object;
+			return obj;
 		}
 		catch (XmlTypeNotFoundException e)
 		{
@@ -322,21 +322,21 @@ public class SimpleXMLReader implements ICyclicXmlReader
 		//
 	}
 
-	protected Object postProcess(Object object, IPostProcessReader postProcessReader)
+	protected Object postProcess(Object obj, IPostProcessReader postProcessReader)
 	{
-		if (object instanceof IObjectFuture)
+		if (obj instanceof IObjectFuture)
 		{
-			IObjectFuture objectFuture = (IObjectFuture) object;
+			IObjectFuture objectFuture = (IObjectFuture) obj;
 			ICommandTypeRegistry commandTypeRegistry = postProcessReader.getCommandTypeRegistry();
 			IObjectCommand objectCommand = commandBuilder.build(commandTypeRegistry, objectFuture, null);
 			postProcessReader.addObjectCommand(objectCommand);
 			postProcessReader.executeObjectCommands();
-			object = objectFuture.getValue();
+			obj = objectFuture.getValue();
 		}
 		else
 		{
 			postProcessReader.executeObjectCommands();
 		}
-		return object;
+		return obj;
 	}
 }

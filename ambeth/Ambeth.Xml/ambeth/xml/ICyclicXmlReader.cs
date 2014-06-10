@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -9,6 +10,8 @@ namespace De.Osthus.Ambeth.Xml
 
 	    Object ReadFromStream(Stream inputStream);
 
-	    Object ReadFromReader(TextReader reader);
+        Object ReadFromStream(Stream inputStream, Encoding encoding);
+
+        Object ReadFromReader(TextReader reader);
     }
 }

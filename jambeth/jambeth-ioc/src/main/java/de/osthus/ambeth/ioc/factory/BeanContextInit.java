@@ -5,6 +5,7 @@ import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 
@@ -23,4 +24,6 @@ public class BeanContextInit
 	public IdentityLinkedSet<Object> allLifeCycledBeansSet;
 
 	public ArrayList<Object> initializedOrdering;
+
+	public ArrayList<IDisposableBean> toDestroyOnError = new ArrayList<IDisposableBean>();
 }

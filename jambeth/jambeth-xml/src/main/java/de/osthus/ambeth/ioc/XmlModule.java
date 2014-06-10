@@ -8,15 +8,12 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.objectcollector.ByteBuffer65536CollectableController;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
-import de.osthus.ambeth.xml.CyclicXMLHandler;
-import de.osthus.ambeth.xml.CyclicXMLReader;
-import de.osthus.ambeth.xml.CyclicXMLWriter;
 import de.osthus.ambeth.xml.CyclicXmlController;
 import de.osthus.ambeth.xml.CyclicXmlDictionary;
-import de.osthus.ambeth.xml.ICyclicXMLHandler;
+import de.osthus.ambeth.xml.CyclicXmlHandler;
+import de.osthus.ambeth.xml.CyclicXmlReader;
+import de.osthus.ambeth.xml.CyclicXmlWriter;
 import de.osthus.ambeth.xml.ICyclicXmlDictionary;
-import de.osthus.ambeth.xml.ICyclicXmlReader;
-import de.osthus.ambeth.xml.ICyclicXmlWriter;
 import de.osthus.ambeth.xml.INameBasedHandlerExtendable;
 import de.osthus.ambeth.xml.ITypeBasedHandlerExtendable;
 import de.osthus.ambeth.xml.IXmlTypeExtendable;
@@ -42,6 +39,9 @@ import de.osthus.ambeth.xml.pending.PrefetchFutureHandler;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessorExtendable;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
 import de.osthus.ambeth.xml.postprocess.merge.MergeXmlPostProcessor;
+import de.osthus.ambeth.xml.simple.SimpleXmlController;
+import de.osthus.ambeth.xml.simple.SimpleXmlReader;
+import de.osthus.ambeth.xml.simple.SimpleXmlWriter;
 import de.osthus.ambeth.xml.typehandler.AbstractHandler;
 import de.osthus.ambeth.xml.typehandler.NumberTypeHandler;
 import de.osthus.ambeth.xml.typehandler.ObjectTypeHandler;
@@ -49,68 +49,87 @@ import de.osthus.ambeth.xml.typehandler.ObjectTypeHandler;
 @FrameworkModule
 public class XmlModule implements IInitializingModule
 {
+	public static final String CYCLIC_XML_HANDLER = "cyclicXmlHandler";
+
+	public static final String SIMPLE_XML_HANDLER = "simpleXmlHandler";
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("xmlTypeRegistry", XmlTypeRegistry.class).autowireable(IXmlTypeRegistry.class, IXmlTypeExtendable.class);
+		{
+			IBeanConfiguration cyclicXmlControllerBC = beanContextFactory.registerAnonymousBean(CyclicXmlController.class).parent("abstractElementHandler");
 
-		beanContextFactory.registerBean("cyclicXmlReader", CyclicXMLReader.class).propertyRefs("xmlController");
+			IBeanConfiguration cyclicXmlReaderBC = beanContextFactory.registerAnonymousBean(CyclicXmlReader.class).propertyRefs(cyclicXmlControllerBC);
 
-		beanContextFactory.registerBean("cyclicXmlWriter", CyclicXMLWriter.class).propertyRefs("xmlController");
+			IBeanConfiguration cyclicXmlWriterBC = beanContextFactory.registerAnonymousBean(CyclicXmlWriter.class).propertyRefs(cyclicXmlControllerBC);
 
-		beanContextFactory.registerBean("abstractElementHandler", AbstractHandler.class).propertyRef("ClassElementHandler", "classElementHandler").template();
+			beanContextFactory.registerBean(CYCLIC_XML_HANDLER, CyclicXmlHandler.class).propertyRefs(cyclicXmlReaderBC, cyclicXmlWriterBC,
+					cyclicXmlControllerBC);
+		}
+		{
+			IBeanConfiguration simpleXmlControllerBC = beanContextFactory.registerAnonymousBean(SimpleXmlController.class);
 
-		beanContextFactory.registerBean("arrayElementHandler", ArrayNameHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("arrayElementHandler").to(INameBasedHandlerExtendable.class).with("a");
+			IBeanConfiguration simpleXmlReaderBC = beanContextFactory.registerAnonymousBean(SimpleXmlReader.class).propertyRefs(simpleXmlControllerBC);
 
-		beanContextFactory.registerBean("enumElementHandler", EnumNameHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("enumElementHandler").to(INameBasedHandlerExtendable.class).with("e");
+			IBeanConfiguration simpleXmlWriterBC = beanContextFactory.registerAnonymousBean(SimpleXmlWriter.class).propertyRefs(simpleXmlControllerBC);
 
-		beanContextFactory.registerBean("xmlController", CyclicXmlController.class).parent("abstractElementHandler")
-				.autowireable(ITypeBasedHandlerExtendable.class, INameBasedHandlerExtendable.class);
+			beanContextFactory.registerBean(SIMPLE_XML_HANDLER, CyclicXmlHandler.class).propertyRefs(simpleXmlReaderBC, simpleXmlWriterBC,
+					simpleXmlControllerBC);
+		}
 
-		beanContextFactory.registerBean("classElementHandler", ClassNameHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("classElementHandler").to(INameBasedHandlerExtendable.class).with("c");
+		beanContextFactory.registerAnonymousBean(XmlTypeRegistry.class).autowireable(IXmlTypeRegistry.class, IXmlTypeExtendable.class);
 
-		beanContextFactory.registerBean("objectElementHandler", ObjectTypeHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("objectElementHandler").to(ITypeBasedHandlerExtendable.class).with(Object.class);
+		beanContextFactory.registerAnonymousBean(CommandBuilder.class).autowireable(ICommandBuilder.class);
 
-		beanContextFactory.registerBean("objRefElementHandler", ObjRefElementHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("objRefElementHandler").to(INameBasedHandlerExtendable.class).with("or");
+		IBeanConfiguration classElementHandlerBC = beanContextFactory.registerAnonymousBean(ClassNameHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(classElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("c");
 
-		beanContextFactory.registerBean("stringElementHandler", StringNameHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("stringElementHandler").to(INameBasedHandlerExtendable.class).with("s");
+		IBeanConfiguration objectElementHandlerBC = beanContextFactory.registerAnonymousBean(ObjectTypeHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(objectElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Object.class);
 
-		beanContextFactory.registerBean("oriWrapperElementHandler", OriWrapperElementHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("oriWrapperElementHandler").to(INameBasedHandlerExtendable.class).with("ow");
+		IBeanConfiguration objRefElementHandlerBC = beanContextFactory.registerAnonymousBean(ObjRefElementHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(objRefElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("or");
 
-		beanContextFactory.registerBean("numberElementHandler", NumberTypeHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Byte.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Short.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Integer.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Long.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Float.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Double.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Boolean.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Character.class);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Byte.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Short.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Integer.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Long.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Float.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Double.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Boolean.TYPE);
-		beanContextFactory.link("numberElementHandler").to(ITypeBasedHandlerExtendable.class).with(Character.TYPE);
+		IBeanConfiguration stringElementHandlerBC = beanContextFactory.registerAnonymousBean(StringNameHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(stringElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("s");
 
-		beanContextFactory.registerBean("dateTypeHandler", DateElementHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("dateTypeHandler").to(INameBasedHandlerExtendable.class).with("d");
+		IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.registerAnonymousBean(OriWrapperElementHandler.class).parent(
+				"abstractElementHandler");
+		beanContextFactory.link(oriWrapperElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("ow");
 
-		beanContextFactory.registerBean("collectionElementHandler", CollectionElementHandler.class).parent("abstractElementHandler");
-		beanContextFactory.link("collectionElementHandler").to(INameBasedHandlerExtendable.class).with("l");
-		beanContextFactory.link("collectionElementHandler").to(INameBasedHandlerExtendable.class).with("set");
+		IBeanConfiguration numberElementHandlerBC = beanContextFactory.registerAnonymousBean(NumberTypeHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Byte.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Short.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Integer.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Long.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Float.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Double.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Boolean.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Character.class);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Byte.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Short.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Integer.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Long.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Float.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Double.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Boolean.TYPE);
+		beanContextFactory.link(numberElementHandlerBC).to(CYCLIC_XML_HANDLER, ITypeBasedHandlerExtendable.class).with(Character.TYPE);
 
-		beanContextFactory.registerBean("cyclicXmlHandler", CyclicXMLHandler.class).propertyRefs("cyclicXmlReader", "cyclicXmlWriter")
-				.autowireable(ICyclicXMLHandler.class, ICyclicXmlWriter.class, ICyclicXmlReader.class);
+		IBeanConfiguration dateTypeHandlerBC = beanContextFactory.registerAnonymousBean(DateElementHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(dateTypeHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("d");
+
+		IBeanConfiguration collectionElementHandlerBC = beanContextFactory.registerAnonymousBean(CollectionElementHandler.class).parent(
+				"abstractElementHandler");
+		beanContextFactory.link(collectionElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("l");
+		beanContextFactory.link(collectionElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("set");
+
+		beanContextFactory.registerBean("abstractElementHandler", AbstractHandler.class).propertyRef("ClassElementHandler", classElementHandlerBC).template();
+
+		IBeanConfiguration arrayElementHandlerBC = beanContextFactory.registerAnonymousBean(ArrayNameHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(arrayElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("a");
+
+		IBeanConfiguration enumElementHandlerBC = beanContextFactory.registerAnonymousBean(EnumNameHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(enumElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("e");
 
 		beanContextFactory.registerBean("xmlTransferScanner", XmlTransferScanner.class);
 
@@ -125,12 +144,8 @@ public class XmlModule implements IInitializingModule
 		beanContextFactory.registerBean("prefetchFutureHandler", PrefetchFutureHandler.class);
 		beanContextFactory.link("prefetchFutureHandler").to(IObjectFutureHandlerExtendable.class).with(PrefetchFuture.class);
 
-		beanContextFactory.registerBean("commandBuilder", CommandBuilder.class).autowireable(ICommandBuilder.class);
-
-		beanContextFactory.registerBean("xmlPostProcessorRegistry", ExtendableBean.class)
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IXmlPostProcessorExtendable.class)
-				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IXmlPostProcessorRegistry.class).propertyValue("ArgumentTypes", new Class<?>[] { String.class })
-				.autowireable(IXmlPostProcessorExtendable.class, IXmlPostProcessorRegistry.class);
+		ExtendableBean.registerExtendableBean(beanContextFactory, "xmlPostProcessorRegistry", IXmlPostProcessorRegistry.class,
+				IXmlPostProcessorExtendable.class).propertyValue("ArgumentTypes", new Class<?>[] { String.class });
 
 		beanContextFactory.registerBean("mergeXmlPostProcessor", MergeXmlPostProcessor.class);
 		beanContextFactory.link("mergeXmlPostProcessor").to(IXmlPostProcessorExtendable.class).with("merge");

@@ -55,6 +55,8 @@ namespace De.Osthus.Ambeth.Ioc.Config
 
         IBeanConfiguration PropertyRef(IBeanConfiguration bean);
 
+        IBeanConfiguration PropertyRefs(params IBeanConfiguration[] beans);
+
         IBeanConfiguration PropertyValue(String propertyName, Object value);
 
         IBeanConfiguration IgnoreProperties(String propertyName);

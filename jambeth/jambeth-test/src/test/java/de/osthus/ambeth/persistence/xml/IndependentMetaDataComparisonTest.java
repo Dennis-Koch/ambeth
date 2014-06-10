@@ -111,8 +111,8 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class)
 					.propertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
 			beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
-			beanContextFactory.registerBean("ormXmlReader 2.0", OrmXmlReader20.class);
-			beanContextFactory.link("ormXmlReader 2.0").to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
+			IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
+			beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
 		}
 	}
 

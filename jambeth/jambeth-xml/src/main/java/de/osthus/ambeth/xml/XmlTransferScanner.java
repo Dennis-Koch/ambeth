@@ -26,7 +26,7 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 
 	public static final String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IClasspathScanner classpathScanner;
 
 	@Autowired
@@ -45,6 +45,14 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
+		if (classpathScanner == null)
+		{
+			if (log.isInfoEnabled())
+			{
+				log.info("Skipped scanning for XML transfer types. Reason: No instance of " + IClasspathScanner.class.getName() + " resolved");
+			}
+			return;
+		}
 		List<Class<?>> rootElementClasses = classpathScanner.scanClassesAnnotatedWith(XmlRootElement.class, XmlType.class,
 				de.osthus.ambeth.annotation.XmlType.class);
 		if (log.isInfoEnabled())
@@ -121,6 +129,10 @@ public class XmlTransferScanner implements IInitializingBean, IStartingBean, IDi
 	@Override
 	public void afterStarted() throws Throwable
 	{
+		if (rootElementClasses == null)
+		{
+			return;
+		}
 		// Eager fetch all meta data. Even if some of the classes are NOT an entity this is not a problem
 		List<Class<?>> types = new ArrayList<Class<?>>();
 		for (Class<?> type : rootElementClasses)

@@ -173,6 +173,19 @@ namespace De.Osthus.Ambeth.Ioc.Config
             return this;
         }
 
+        public IBeanConfiguration PropertyRefs(params IBeanConfiguration[] beans)
+        {
+            if (beans == null || beans.Length == 0)
+            {
+                throw new Exception("Array of beanNames must have a length of at least 1");
+            }
+            for (int a = 0, size = beans.Length; a < size; a++)
+            {
+                PropertyRefs(beans[a]);
+            }
+            return this;
+        }
+
         public IBeanConfiguration PropertyValue(String propertyName, Object value)
         {
             ParamChecker.AssertParamNotNull(propertyName, "propertyName");

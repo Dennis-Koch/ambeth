@@ -7,37 +7,20 @@ import org.junit.Test;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 import de.osthus.ambeth.xml.XmlTestModule;
 
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, XmlTestModule.class, XmlPostProcessTestModule.class })
 public class XmlPostProcessTest extends AbstractIocTest
 {
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	protected ICyclicXMLHandler cyclicXmlHandler;
 
+	@Autowired
 	protected TestXmlPostProcessor testXmlPostProcessor;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cyclicXmlHandler, "CyclicXmlHandler");
-		ParamChecker.assertNotNull(testXmlPostProcessor, "TestXmlPostProcessor");
-	}
-
-	public void setCyclicXmlHandler(ICyclicXMLHandler cyclicXmlHandler)
-	{
-		this.cyclicXmlHandler = cyclicXmlHandler;
-	}
-
-	public void setTestXmlPostProcessor(TestXmlPostProcessor testXmlPostProcessor)
-	{
-		this.testXmlPostProcessor = testXmlPostProcessor;
-	}
 
 	@Test
 	public void testPostProcessTag()

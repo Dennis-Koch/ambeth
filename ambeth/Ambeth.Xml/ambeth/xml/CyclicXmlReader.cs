@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.Pending;
 using De.Osthus.Ambeth.Xml.PostProcess;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -51,6 +52,11 @@ namespace De.Osthus.Ambeth.Xml
 
         public virtual Object ReadFromStream(Stream inputStream)
         {
+            return ReadFromStream(inputStream, Encoding.UTF8);
+        }
+
+        public virtual Object ReadFromStream(Stream inputStream, Encoding encoding)
+        {
             //Stream memoryStream = new MemoryStream();
             //int b;
             //while ((b = inputStream.ReadByte()) != -1)
@@ -67,7 +73,7 @@ namespace De.Osthus.Ambeth.Xml
             //settings.ValidationType = ValidationType.None;
             settings.XmlResolver = null;
 
-            XmlReader reader = XmlReader.Create(inputStream, settings);
+            XmlReader reader = XmlReader.Create(new StreamReader(inputStream, encoding), settings);
 
             try
             {

@@ -11,7 +11,7 @@ namespace De.Osthus.Ambeth.Xml
     {
         protected readonly IAppendable appendable;
 
-        protected readonly CyclicXmlController objectElementHandler;
+        protected readonly ICyclicXmlController xmlController;
 
         protected readonly IDictionary<Object, int> mutableToIdMap = new IdentityDictionary<Object, int>();
         protected readonly IDictionary<Object, int> immutableToIdMap = new Dictionary<Object, int>();
@@ -47,10 +47,10 @@ namespace De.Osthus.Ambeth.Xml
             }
         }
 
-        public DefaultXmlWriter(IAppendable appendable, CyclicXmlController objectElementHandler)
+        public DefaultXmlWriter(IAppendable appendable, ICyclicXmlController xmlController)
         {
             this.appendable = appendable;
-            this.objectElementHandler = objectElementHandler;
+            this.xmlController = xmlController;
         }
 
         public void WriteEscapedXml(String unescapedString)
@@ -159,7 +159,7 @@ namespace De.Osthus.Ambeth.Xml
 
         public void WriteObject(Object obj)
         {
-            objectElementHandler.WriteObject(obj, this);
+            xmlController.WriteObject(obj, this);
         }
 
         public void WriteEmptyElement(String elementName)
