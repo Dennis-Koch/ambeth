@@ -5,21 +5,18 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Xml.Pending
 {
-    public class CommandBuilder : ICommandBuilder, IInitializingBean
+    public class CommandBuilder : ICommandBuilder
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Autowired]
         public IServiceContext BeanContext { protected get; set; }
-
-        public void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(BeanContext, "BeanContext");
-        }
-
+        
         public IObjectCommand Build(ICommandTypeRegistry commandTypeRegistry, IObjectFuture objectFuture, Object parent, params Object[] optionals)
         {
             IObjectCommand command;

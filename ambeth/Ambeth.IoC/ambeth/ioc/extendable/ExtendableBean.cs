@@ -7,6 +7,8 @@ using De.Osthus.Ambeth.Ioc.Exceptions;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Ioc.Config;
 #if SILVERLIGHT
 using Castle.Core.Interceptor;
 #endif
@@ -26,6 +28,23 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
         protected static readonly Type[] classObjectArgs = new Type[] { typeof(Object) };
 
         protected static readonly Type[] stringArgs = new Type[] { typeof(String) };
+
+        public static IBeanConfiguration RegisterExtendableBean(IBeanContextFactory beanContextFactory, Type providerType, Type extendableType)
+        {
+            return RegisterExtendableBean(beanContextFactory, null, providerType, extendableType);
+        }
+
+        public static IBeanConfiguration RegisterExtendableBean(IBeanContextFactory beanContextFactory, String beanName, Type providerType,
+                Type extendableType)
+        {
+            if (beanName != null)
+            {
+                return beanContextFactory.RegisterBean(beanName, typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+                        .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).Autowireable(providerType, extendableType);
+            }
+            return beanContextFactory.RegisterAnonymousBean(typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+                    .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).Autowireable(providerType, extendableType);
+        }
 
         [LogInstance]
         public ILogger Log { private get; set; }

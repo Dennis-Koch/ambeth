@@ -13,7 +13,7 @@ namespace De.Osthus.Ambeth.Xml
     {
         protected readonly XmlReader xmlReader;
 
-        protected readonly CyclicXmlController xmlController;
+        protected readonly ICyclicXmlController xmlController;
 
         protected readonly IObjectFutureHandlerRegistry objectFutureHandlerRegistry;
 
@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Xml
 
         protected readonly IMapExtendableContainer<Type, Type> commandTypeExtendable = new MapExtendableContainer<Type, Type>("Overriding command type", "Original command type");
 
-        public DefaultXmlReader(XmlReader xmlReader, CyclicXmlController xmlController, IObjectFutureHandlerRegistry objectFutureHandlerRegistry)
+        public DefaultXmlReader(XmlReader xmlReader, ICyclicXmlController xmlController, IObjectFutureHandlerRegistry objectFutureHandlerRegistry)
         {
             this.xmlReader = xmlReader;
             this.xmlController = xmlController;

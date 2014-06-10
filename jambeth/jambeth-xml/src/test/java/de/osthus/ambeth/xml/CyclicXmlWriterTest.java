@@ -22,14 +22,15 @@ import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.xml.transfer.TestEnum;
 import de.osthus.ambeth.xml.transfer.TestXmlObject;
 
-@TestModule({ BootstrapScannerModule.class, XmlModule.class,
-		XmlTestModule.class })
-public class CyclicXmlWriterTest extends AbstractIocTest {
-	@Autowired
+@TestModule({ BootstrapScannerModule.class, XmlModule.class, XmlTestModule.class })
+public class CyclicXmlWriterTest extends AbstractIocTest
+{
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	protected ICyclicXMLHandler cyclicXmlHandler;
 
 	@Test
-	public void writeSimpleCudResult() {
+	public void writeSimpleCudResult()
+	{
 		CUDResult cudResult = new CUDResult();
 
 		String xml = cyclicXmlHandler.write(cudResult);
@@ -38,7 +39,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void writeEntityMetaData() {
+	public void writeEntityMetaData()
+	{
 		EntityMetaDataTransfer entityMetaData = new EntityMetaDataTransfer();
 
 		String xml = cyclicXmlHandler.write(entityMetaData);
@@ -47,7 +49,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void readWriteSimpleCudResult() {
+	public void readWriteSimpleCudResult()
+	{
 		CUDResult cudResult = new CUDResult();
 
 		String xml = cyclicXmlHandler.write(cudResult);
@@ -59,7 +62,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void writeClass() {
+	public void writeClass()
+	{
 		Object[] array = new Object[3];
 
 		array[0] = Class.class;
@@ -79,7 +83,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void readWriteEnum() {
+	public void readWriteEnum()
+	{
 		Object[] array = new Object[3];
 
 		array[0] = TestEnum.VALUE_1;
@@ -100,7 +105,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 
 	@Test
 	@Ignore
-	public void readWriteSet() {
+	public void readWriteSet()
+	{
 		Set<?>[] array = new Set[3];
 
 		array[0] = new HashSet<Object>();
@@ -114,17 +120,15 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 		Set<?>[] result = (Set[]) obj;
 		Assert.assertEquals("Wrong size", array.length, result.length);
 		Assert.assertSame(result[1], result[2]);
-		Assert.assertEquals("Wrong set size at 0", array[0].size(),
-				result[0].size());
-		Assert.assertEquals("Wrong set size at 1", array[1].size(),
-				result[1].size());
-		Assert.assertEquals("Wrong set size at 2", array[2].size(),
-				result[2].size());
+		Assert.assertEquals("Wrong set size at 0", array[0].size(), result[0].size());
+		Assert.assertEquals("Wrong set size at 1", array[1].size(), result[1].size());
+		Assert.assertEquals("Wrong set size at 2", array[2].size(), result[2].size());
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[5], xml);
 	}
 
 	@Test
-	public void readWriteList() {
+	public void readWriteList()
+	{
 		List<?>[] array = new List[3];
 
 		array[0] = new ArrayList<Object>();
@@ -138,17 +142,15 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 		List<?>[] result = (List[]) obj;
 		Assert.assertEquals("Wrong size", array.length, result.length);
 		Assert.assertSame(result[1], result[2]);
-		Assert.assertEquals("Wrong set size at 0", array[0].size(),
-				result[0].size());
-		Assert.assertEquals("Wrong set size at 1", array[1].size(),
-				result[1].size());
-		Assert.assertEquals("Wrong set size at 2", array[2].size(),
-				result[2].size());
+		Assert.assertEquals("Wrong set size at 0", array[0].size(), result[0].size());
+		Assert.assertEquals("Wrong set size at 1", array[1].size(), result[1].size());
+		Assert.assertEquals("Wrong set size at 2", array[2].size(), result[2].size());
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[6], xml);
 	}
 
 	@Test
-	public void writeObjRefs() {
+	public void writeObjRefs()
+	{
 		IObjRef[] allOris = new IObjRef[4];
 
 		ObjRef ori = new ObjRef(String.class, 2, 4);
@@ -188,13 +190,15 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 		Assert.assertEquals(allOris.getClass(), actual.getClass());
 		IObjRef[] actualArray = (IObjRef[]) actual;
 		Assert.assertEquals(allOris.length, actualArray.length);
-		for (int i = 0; i < allOris.length; i++) {
+		for (int i = 0; i < allOris.length; i++)
+		{
 			assertObjRefEquals((ObjRef) allOris[i], (ObjRef) actualArray[i]);
 		}
 	}
 
 	@Test
-	public void nativeInteger() {
+	public void nativeInteger()
+	{
 		int[] array = new int[3];
 
 		array[0] = Integer.MAX_VALUE;
@@ -214,7 +218,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeLong() {
+	public void nativeLong()
+	{
 		long[] array = new long[3];
 
 		array[0] = Long.MAX_VALUE;
@@ -234,7 +239,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeDouble() {
+	public void nativeDouble()
+	{
 		double[] array = new double[3];
 
 		array[0] = Double.MAX_VALUE;
@@ -254,7 +260,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeFloat() {
+	public void nativeFloat()
+	{
 		float[] array = new float[3];
 
 		array[0] = Float.MAX_VALUE;
@@ -274,7 +281,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeShort() {
+	public void nativeShort()
+	{
 		short[] array = new short[3];
 
 		array[0] = Short.MAX_VALUE;
@@ -294,7 +302,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeByte() {
+	public void nativeByte()
+	{
 		byte[] array = new byte[3];
 
 		array[0] = Byte.MAX_VALUE;
@@ -314,7 +323,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeCharacter() {
+	public void nativeCharacter()
+	{
 		char[] array = new char[3];
 
 		array[0] = Character.MAX_VALUE;
@@ -334,7 +344,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void nativeBoolean() {
+	public void nativeBoolean()
+	{
 		boolean[] array = new boolean[3];
 		array[0] = Boolean.TRUE;
 		array[1] = Boolean.FALSE;
@@ -353,7 +364,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicString() {
+	public void cyclicString()
+	{
 		String[] array = new String[4];
 		array[0] = "HalloEinfach]]";
 		array[1] = "Hall\n\to]]>MeinTest]]>AB]]AB]>AB";
@@ -365,13 +377,15 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicString2() {
+	public void cyclicString2()
+	{
 		String xml = "<root><a i=\"1\" s=\"2\" ti=\"2\" n=\"Object\"><o i=\"3\" ti=\"4\" n=\"CUDResult\" m=\"AllChanges\"><l i=\"5\" s=\"2\" ti=\"6\" n=\"IChangeContainer\"><o i=\"7\" ti=\"8\" n=\"CreateContainer\" m=\"Primitives Reference Relations\"><a i=\"9\" s=\"4\" ti=\"10\" n=\"IPUI\"><o i=\"11\" ti=\"12\" n=\"PrimitiveUpdateItem\" m=\"NewValue MemberName\"><e i=\"13\" ti=\"14\" n=\"OrderStateType\" ns=\"Comtrack\" v=\"OPEN\"/><s i=\"15\"><![CDATA[State]]></s></o><o i=\"16\" ti=\"12\" m=\"NewValue MemberName\"><e i=\"17\" ti=\"18\" n=\"OrderType\" ns=\"Comtrack\" v=\"FTE\"/><s i=\"19\"><![CDATA[OrderType]]></s></o><o i=\"20\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"21\"/><s i=\"22\"><![CDATA[Workgroup]]></s></o><o i=\"23\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"24\"><![CDATA[test4]]></s><s i=\"25\"><![CDATA[Supplier]]></s></o></a><o i=\"26\" ti=\"27\" n=\"DirectObjRef\" m=\"RealType IdNameIndex CreateContainerIndex\"><c i=\"28\" n=\"Ordr\" ns=\"Comtrack\"/><o i=\"29\" ti=\"30\" n=\"ByteN\" v=\"-1\"/><o i=\"31\" ti=\"32\" n=\"Int32N\" v=\"1\"/></o><a i=\"33\" s=\"1\" ti=\"34\" n=\"IRUI\"><o i=\"35\" ti=\"36\" n=\"RelationUpdateItem\" m=\"AddedORIs MemberName\"><a i=\"37\" s=\"1\" ti=\"38\" n=\"IObjRef\"><o i=\"39\" ti=\"27\"><c i=\"40\" n=\"Compound\" ns=\"Comtrack\"/><r i=\"29\"/><r i=\"31\"/></o></a><s i=\"41\"><![CDATA[Compounds]]></s></o></a></o><o i=\"42\" ti=\"8\" m=\"Primitives Reference Relations\"><a i=\"43\" s=\"3\" ti=\"10\"><o i=\"44\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"45\"><![CDATA[test4]]></s><s i=\"46\"><![CDATA[Description]]></s></o><o i=\"47\" ti=\"12\" m=\"NewValue MemberName\"><e i=\"48\" ti=\"49\" n=\"CompoundStateType\" ns=\"Comtrack\" v=\"INITIALIZED\"/><s i=\"50\"><![CDATA[State]]></s></o><o i=\"51\" ti=\"12\" m=\"NewValue MemberName\"><o ti=\"52\" n=\"Int64\" v=\"1\"/><s i=\"53\"><![CDATA[DetailNumber]]></s></o></a><r i=\"39\"/><a i=\"54\" s=\"1\" ti=\"34\"><o i=\"55\" ti=\"36\" m=\"AddedORIs MemberName\"><a i=\"56\" s=\"1\" ti=\"38\"><r i=\"26\"/></a><s i=\"57\"><![CDATA[Order]]></s></o></a></o></l></o><o i=\"58\" ti=\"59\" n=\"MethodDescription\" m=\"ServiceType ParamTypes MethodName\"><c i=\"60\" n=\"IOrderService\"/><a i=\"61\" s=\"2\" ti=\"62\" n=\"Class\"><c i=\"63\" n=\"Ordr[]\" ns=\"Comtrack\"/><r i=\"63\"/></a><s i=\"64\"><![CDATA[Save]]></s></o></a></root>";
 		cyclicXmlHandler.read(xml);
 	}
 
 	@Test
-	public void cyclicBoolean() {
+	public void cyclicBoolean()
+	{
 		Boolean[] array = new Boolean[3];
 		array[0] = Boolean.TRUE;
 		array[1] = Boolean.FALSE;
@@ -382,7 +396,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicByte() {
+	public void cyclicByte()
+	{
 		Byte[] array = new Byte[3];
 		array[0] = Byte.valueOf((byte) 10);
 		array[1] = Byte.valueOf((byte) 20);
@@ -393,7 +408,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicCharacter() {
+	public void cyclicCharacter()
+	{
 		Character[] array = new Character[3];
 		array[0] = Character.valueOf('A');
 		array[1] = Character.valueOf('&');
@@ -404,7 +420,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicShort() {
+	public void cyclicShort()
+	{
 		Short[] array = new Short[3];
 		array[0] = Short.MAX_VALUE;
 		array[1] = Short.MIN_VALUE;
@@ -415,7 +432,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicFloat() {
+	public void cyclicFloat()
+	{
 		Float[] array = new Float[3];
 		array[0] = Float.MAX_VALUE;
 		array[1] = Float.MIN_VALUE;
@@ -426,7 +444,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicInteger() {
+	public void cyclicInteger()
+	{
 		Integer[] array = new Integer[3];
 		array[0] = Integer.MAX_VALUE;
 		array[1] = Integer.MIN_VALUE;
@@ -437,7 +456,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicDouble() {
+	public void cyclicDouble()
+	{
 		Double[] array = new Double[3];
 		array[0] = Double.MAX_VALUE;
 		array[1] = Double.MIN_VALUE;
@@ -448,7 +468,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicLong() {
+	public void cyclicLong()
+	{
 		Long[] array = new Long[3];
 		array[0] = Long.MAX_VALUE;
 		array[1] = Long.MIN_VALUE;
@@ -459,7 +480,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicDate() {
+	public void cyclicDate()
+	{
 		Date[] array = new Date[3];
 		array[0] = new Date(50000000L);
 		array[1] = new Date(35000000L);
@@ -470,7 +492,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@Test
-	public void cyclicTestXmlObject() {
+	public void cyclicTestXmlObject()
+	{
 		TestXmlObject[] array = new TestXmlObject[3];
 		array[0] = new TestXmlObject();
 		array[1] = new TestXmlObject();
@@ -486,7 +509,8 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 		Assert.assertNull(result[2].getTransientField2());
 	}
 
-	protected void fillTestXmlObject(TestXmlObject obj, int baseNumber) {
+	protected void fillTestXmlObject(TestXmlObject obj, int baseNumber)
+	{
 		obj.setTransientField1(new Object());
 		obj.setTransientField2(new Object());
 		obj.setValueBoolean(true);
@@ -507,28 +531,28 @@ public class CyclicXmlWriterTest extends AbstractIocTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> T checkCyclic(Object[] targetArray, Class<T> type) {
+	protected <T> T checkCyclic(Object[] targetArray, Class<T> type)
+	{
 		String xml = cyclicXmlHandler.write(targetArray);
 		Object obj = cyclicXmlHandler.read(xml);
 
 		Assert.assertSame("Wrong class", type, obj.getClass());
 		Object[] result = (Object[]) obj;
 		Assert.assertEquals("Wrong size", targetArray.length, result.length);
-		for (int a = 0, size = targetArray.length; a < size; a++) {
+		for (int a = 0, size = targetArray.length; a < size; a++)
+		{
 			Assert.assertEquals(targetArray[a], result[a]);
 		}
 		return (T) result;
 	}
 
-	protected void assertObjRefEquals(ObjRef expected, ObjRef actual) {
+	protected void assertObjRefEquals(ObjRef expected, ObjRef actual)
+	{
 		Assert.assertNotNull(expected);
 		Assert.assertTrue(expected.equals(actual));
-		Assert.assertEquals("Wrong RealType", expected.getRealType(),
-				actual.getRealType());
-		Assert.assertEquals("Wrong IdNameIndex", expected.getIdNameIndex(),
-				actual.getIdNameIndex());
+		Assert.assertEquals("Wrong RealType", expected.getRealType(), actual.getRealType());
+		Assert.assertEquals("Wrong IdNameIndex", expected.getIdNameIndex(), actual.getIdNameIndex());
 		Assert.assertEquals("Wrong Id", expected.getId(), actual.getId());
-		Assert.assertEquals("Wrong Version", expected.getVersion(),
-				actual.getVersion());
+		Assert.assertEquals("Wrong Version", expected.getVersion(), actual.getVersion());
 	}
 }

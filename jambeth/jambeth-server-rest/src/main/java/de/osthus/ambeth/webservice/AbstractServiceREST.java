@@ -27,6 +27,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
@@ -157,9 +158,14 @@ public abstract class AbstractServiceREST
 		return getServiceContext().getService(serviceType);
 	}
 
+	protected <T> T getService(String beanName, Class<T> serviceType)
+	{
+		return getServiceContext().getService(beanName, serviceType);
+	}
+
 	protected Object[] getArguments(InputStream is)
 	{
-		ICyclicXMLHandler cyclicXmlHandler = getService(ICyclicXMLHandler.class);
+		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
 		return (Object[]) cyclicXmlHandler.readFromStream(is);
 	}
 
@@ -179,7 +185,7 @@ public abstract class AbstractServiceREST
 
 	protected StreamingOutput createResult(final Object result)
 	{
-		final ICyclicXMLHandler cyclicXmlHandler = getService(ICyclicXMLHandler.class);
+		final ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
 		return new StreamingOutput()
 		{
 			@Override

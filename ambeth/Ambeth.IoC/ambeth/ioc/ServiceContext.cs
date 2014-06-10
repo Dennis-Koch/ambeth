@@ -16,7 +16,17 @@ namespace De.Osthus.Ambeth.Ioc
 {
     public class ServiceContext : IServiceContext, IServiceContextIntern, IDisposable, IPrintable
     {
-        protected HashMap<String, Object> nameToServiceDict;
+        public static Exception CreateDuplicateAutowireableException(Type autowireableType, Object bean1, Object bean2)
+	    {
+		    return new ArgumentException("A bean is already bound to type " + autowireableType.FullName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	    }
+
+	    public static Exception CreateDuplicateBeanNameException(String beanName, Object bean1, Object bean2)
+	    {
+		    return new ArgumentException("A bean is already bound to name " + beanName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	    }
+
+        protected LinkedHashMap<String, Object> nameToServiceDict;
         protected readonly HashMap<Type, Object> typeToServiceDict = new HashMap<Type, Object>();
 
         protected IList<ILinkContainer> linkContainers;
@@ -140,11 +150,11 @@ namespace De.Osthus.Ambeth.Ioc
             ParamChecker.AssertParamNotNull(bean, "bean");
             if (nameToServiceDict == null)
             {
-                nameToServiceDict = new HashMap<String, Object>();
+                nameToServiceDict = new LinkedHashMap<String, Object>();
             }
             if (nameToServiceDict.ContainsKey(beanName))
             {
-                throw new System.Exception("A bean with name '" + beanName + "' is already specified");
+                throw CreateDuplicateBeanNameException(beanName, bean, nameToServiceDict.Get(beanName));
             }
             if (beanName.Contains("&") || beanName.Contains("*") || beanName.Contains(" ") || beanName.Contains("\t"))
             {
@@ -170,12 +180,10 @@ namespace De.Osthus.Ambeth.Ioc
                             + autowireableType.FullName);
                 }
             }
-            if (typeToServiceDict.ContainsKey(autowireableType))
+            if (!typeToServiceDict.PutIfNotExists(autowireableType, bean))
             {
-                throw new ArgumentException("A bean instance is already specified to autowired type " + autowireableType.Name + ".\nBean 1: " + bean
-                    + "\nBean 2: " + typeToServiceDict.Get(autowireableType));
+                throw CreateDuplicateAutowireableException(autowireableType, bean, typeToServiceDict.Get(autowireableType));
             }
-            typeToServiceDict.Put(autowireableType, bean);
         }
 
         public IList<ILinkContainer> GetLinkContainers()
@@ -843,6 +851,11 @@ namespace De.Osthus.Ambeth.Ioc
 
         public I GetServiceIntern<I>(String serviceName, SearchType searchType)
         {
+            return (I) GetServiceIntern(serviceName, typeof(I), searchType);
+        }
+
+        public Object GetServiceIntern(String serviceName, Type serviceType, SearchType searchType)
+        {
             String realServiceName = serviceName;
             bool factoryContentRequest = true, parentOnlyRequest = false;
             while (true)
@@ -887,7 +900,7 @@ namespace De.Osthus.Ambeth.Ioc
                 if (factoryResult == null)
                 {
                     throw new BeanContextInitException("Factory bean '" + serviceName + "' of type " + service.GetType().FullName
-                            + " returned null for service type " + typeof(I).FullName
+                            + " returned null for service type " + serviceType.FullName
                             + ". Possibly a cyclic relationship from the factory to its cascaded dependencies and back");
                 }
                 service = factoryResult;
@@ -897,18 +910,18 @@ namespace De.Osthus.Ambeth.Ioc
                 if (parentOnlyRequest)
                 {
                     // Reconstruct factory bean prefix if necessary
-                    return parent.GetService<I>(factoryContentRequest ? "&" + realServiceName : realServiceName, false);
+                    return parent.GetService(factoryContentRequest ? "&" + realServiceName : realServiceName, false);
                 }
                 else if (!SearchType.CURRENT.Equals(searchType))
                 {
-                    return parent.GetService<I>(serviceName, false);
+                    return parent.GetService(serviceName, false);
                 }
             }
-            if (service != null && !typeof(I).IsAssignableFrom(service.GetType()))
+            if (service != null && !serviceType.IsAssignableFrom(service.GetType()))
             {
-                throw new Exception("Bean with name '" + serviceName + "' not assignable to type '" + typeof(I).FullName + "'");
+                throw new Exception("Bean with name '" + serviceName + "' not assignable to type '" + serviceType.FullName + "'");
             }
-            return (I)service;
+            return service;
         }
 
         public Object GetService(Type autowiredType)

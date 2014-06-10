@@ -13,6 +13,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -147,7 +148,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         protected IList<IBeanConfiguration> beanConfigurations;
 
-        protected IDictionary<String, IBeanConfiguration> nameToBeanConfMap;
+        protected HashMap<String, IBeanConfiguration> nameToBeanConfMap;
 
         protected IList<Object> disposableObjects;
 
@@ -239,7 +240,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 return null;
             }
-            IBeanConfiguration beanConf = DictionaryExtension.ValueOrDefault(nameToBeanConfMap, beanName);
+            IBeanConfiguration beanConf = nameToBeanConfMap.Get(beanName);
             if (beanConf == null)
             {
                 if (aliasToBeanNameMap != null)
@@ -247,7 +248,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     String aliasName = DictionaryExtension.ValueOrDefault(aliasToBeanNameMap, beanName);
                     if (aliasName != null)
                     {
-                        beanConf = DictionaryExtension.ValueOrDefault(nameToBeanConfMap, aliasName);
+                        beanConf = nameToBeanConfMap.Get(aliasName);
                     }
                 }
             }
@@ -371,17 +372,30 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 if (nameToBeanConfMap == null)
                 {
-                    nameToBeanConfMap = new Dictionary<String, IBeanConfiguration>();
+                    nameToBeanConfMap = new HashMap<String, IBeanConfiguration>();
                 }
                 if (aliasToBeanNameMap != null && aliasToBeanNameMap.ContainsKey(beanName))
                 {
-                    throw new System.Exception("An alias with the name '" + beanName + "' of this bean is already registered in this context");
+                    throw new Exception("An alias with the name '" + beanName + "' of this bean is already registered in this context");
                 }
-                if (nameToBeanConfMap.ContainsKey(beanName))
+                if (!beanConfiguration.IsOverridesExisting())
                 {
-                    throw new System.Exception("A bean with name '" + beanName + "' is already registered in this context");
+                    if (!nameToBeanConfMap.PutIfNotExists(beanName, beanConfiguration))
+                    {
+                        IBeanConfiguration existingBeanConfiguration = nameToBeanConfMap.Get(beanName);
+                        if (!existingBeanConfiguration.IsOverridesExisting())
+                        {
+                            throw ServiceContext.CreateDuplicateBeanNameException(beanName, beanConfiguration, existingBeanConfiguration);
+                        }
+                        // Existing config requests precedence over every other bean config. This is no error
+                        return;
+                    }
                 }
-                nameToBeanConfMap.Add(beanName, beanConfiguration);
+                else
+                {
+                    // Intentionally put the configuration in the map unaware of an existing entry
+                    nameToBeanConfMap.Put(beanName, beanConfiguration);
+                }
             }
             if (beanConfigurations == null)
             {

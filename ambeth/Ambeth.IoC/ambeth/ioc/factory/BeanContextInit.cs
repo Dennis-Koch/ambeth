@@ -2,6 +2,7 @@ using De.Osthus.Ambeth.Config;
 using System;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Collections;
+using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -18,6 +19,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         public IISet<Object> allLifeCycledBeansSet;
 
-        public System.Collections.Generic.IList<Object> initializedOrdering;
+        public IList<Object> initializedOrdering;
+
+        public List<IDisposableBean> toDestroyOnError = new List<IDisposableBean>();
     }
 }

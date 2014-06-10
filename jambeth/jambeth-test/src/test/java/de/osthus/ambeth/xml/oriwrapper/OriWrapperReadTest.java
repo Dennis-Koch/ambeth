@@ -33,7 +33,7 @@ import de.osthus.ambeth.xml.oriwrapper.OriWrapperTestBed.TestData;
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class, OriWrapperTestModule.class })
 public class OriWrapperReadTest extends AbstractPersistenceTest
 {
-	@Autowired
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	protected ICyclicXMLHandler cyclicXmlHandler;
 
 	@Autowired

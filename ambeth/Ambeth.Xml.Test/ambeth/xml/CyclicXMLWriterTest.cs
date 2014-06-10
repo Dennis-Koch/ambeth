@@ -73,7 +73,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         [TestInitialize]
         public virtual void SetUp()
         {
-            cyclicXmlHandler = beanContext.GetService<ICyclicXmlHandler>();
+            cyclicXmlHandler = beanContext.GetService<ICyclicXmlHandler>(XmlModule.CYCLIC_XML_HANDLER);
         }
 
         [TestCleanup]

@@ -3,14 +3,8 @@ using System.IO;
 
 namespace De.Osthus.Ambeth.Xml
 {
-    public interface ICyclicXmlHandler
+    public interface ICyclicXmlHandler :  ICyclicXmlReader, ICyclicXmlWriter
     {
-        String Write(Object obj);
-
-	    void WriteToStream(Stream outputStream, Object obj);
-
-	    Object Read(String cyclicXmlContent);
-
-        Object ReadFromStream(Stream inputStream);
+        // intended blank
     }
 }

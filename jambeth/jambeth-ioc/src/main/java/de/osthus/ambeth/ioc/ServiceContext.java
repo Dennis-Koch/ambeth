@@ -60,6 +60,16 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 	}
 
+	public static RuntimeException createDuplicateAutowireableException(Class<?> autowireableType, Object bean1, Object bean2)
+	{
+		return new IllegalArgumentException("A bean is already bound to type " + autowireableType.getName() + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	}
+
+	public static RuntimeException createDuplicateBeanNameException(String beanName, Object bean1, Object bean2)
+	{
+		return new IllegalArgumentException("A bean is already bound to name " + beanName + ".\nBean 1: " + bean1 + "\nBean 2: " + bean2);
+	}
+
 	protected LinkedHashMap<String, Object> nameToServiceDict;
 
 	protected LinkedHashMap<Class<?>, Object> typeToServiceDict;
@@ -197,10 +207,15 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		{
 			nameToServiceDict = new LinkedHashMap<String, Object>();
 		}
-		if (!nameToServiceDict.putIfNotExists(beanName, bean))
+		if (nameToServiceDict.containsKey(beanName))
 		{
-			throw new IllegalStateException("A bean with name '" + beanName + "' is already specified");
+			throw createDuplicateBeanNameException(beanName, bean, nameToServiceDict.get(beanName));
 		}
+		if (beanName.contains("&") || beanName.contains("*") || beanName.contains(" ") || beanName.contains("\t"))
+		{
+			throw new IllegalArgumentException("Bean name '" + beanName + "'  must not contain any of the following characters: '&', '*' or any whitespace");
+		}
+		nameToServiceDict.put(beanName, bean);
 	}
 
 	public void addAutowiredBean(Class<?> autowireableType, Object bean)
@@ -222,8 +237,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 		if (!typeToServiceDict.putIfNotExists(autowireableType, bean))
 		{
-			throw new IllegalArgumentException("A bean instance is already specified to autowired type " + autowireableType.getName() + ".\nBean 1: " + bean
-					+ "\nBean 2: " + typeToServiceDict.get(autowireableType));
+			throw createDuplicateAutowireableException(autowireableType, bean, typeToServiceDict.get(autowireableType));
 		}
 	}
 

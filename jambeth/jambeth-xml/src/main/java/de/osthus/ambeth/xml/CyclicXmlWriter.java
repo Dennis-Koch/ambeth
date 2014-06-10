@@ -7,9 +7,9 @@ import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessor;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
-import de.osthus.ambeth.xml.simple.SimpleXMLWriter;
+import de.osthus.ambeth.xml.simple.SimpleXmlWriter;
 
-public class CyclicXMLWriter extends SimpleXMLWriter
+public class CyclicXmlWriter extends SimpleXmlWriter
 {
 	@Autowired
 	protected ICyclicXmlDictionary xmlDictionary;

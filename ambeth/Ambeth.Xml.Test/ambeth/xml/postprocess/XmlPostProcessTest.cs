@@ -16,18 +16,12 @@ namespace De.Osthus.Ambeth.Xml.Test
     [TestModule(typeof(XmlBootstrapModule), typeof(XmlBootstrapTestModule), typeof(OriWrapperTestModule), typeof(XmlPostProcessTestModule))]
     public class XmlPostProcessTest : AbstractIocTest
     {
+        [Autowired]
         public ICyclicXMLHandler CyclicXmlHandler { protected get; set; }
 
+        [Autowired]
         public TestXmlPostProcessor TestXmlPostProcessor { protected get; set; }
-
-        public void AfterPropertiesSet()
-        {
-            base.AfterPropertiesSet();
-
-            ParamChecker.assertNotNull(cyclicXmlHandler, "CyclicXmlHandler");
-            ParamChecker.assertNotNull(testXmlPostProcessor, "TestXmlPostProcessor");
-        }
-
+        
         [TestMethod]
         public void testPostProcessTag()
         {

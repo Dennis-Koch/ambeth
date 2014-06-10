@@ -16,7 +16,7 @@ import de.osthus.ambeth.xml.ICyclicXmlWriter;
 import de.osthus.ambeth.xml.IWriter;
 import de.osthus.ambeth.xml.appendable.ByteBufferAppendable;
 
-public class SimpleXMLWriter implements ICyclicXmlWriter
+public class SimpleXmlWriter implements ICyclicXmlWriter
 {
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;

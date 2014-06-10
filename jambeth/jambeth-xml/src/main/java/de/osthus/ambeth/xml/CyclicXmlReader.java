@@ -6,9 +6,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.xml.postprocess.IPostProcessReader;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessor;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessorRegistry;
-import de.osthus.ambeth.xml.simple.SimpleXMLReader;
+import de.osthus.ambeth.xml.simple.SimpleXmlReader;
 
-public class CyclicXMLReader extends SimpleXMLReader
+public class CyclicXmlReader extends SimpleXmlReader
 {
 	@SuppressWarnings("unused")
 	@LogInstance

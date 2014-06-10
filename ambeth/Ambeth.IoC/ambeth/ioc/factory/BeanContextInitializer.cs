@@ -195,6 +195,15 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 }
                 PublishMonitorableBeans(beanContextInit, initializedOrdering);
             }
+            catch (Exception)
+            {
+                List<IDisposableBean> toDestroyOnError = beanContextInit.toDestroyOnError;
+                for (int a = 0, size = toDestroyOnError.Count; a < size; a++)
+                {
+                    toDestroyOnError[a].Destroy();
+                }
+                throw;
+            }
             finally
             {
                 currentBeanContextInitTL.Value = oldBeanContextInit;
@@ -388,7 +397,12 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     // Handle fields only if they are explicitly annotated
                     continue;
                 }
-                Object refBean = ResolveBean(propertyType, highPriorityBean, beanContextInit);
+                String beanName = autowired != null ? autowired.Value : null;
+                if (beanName != null && beanName.Length == 0)
+                {
+                    beanName = null;
+                }
+                Object refBean = ResolveBean(beanName, propertyType, highPriorityBean, beanContextInit);
                 if (refBean == null)
                 {
                     if (autowired != null && !autowired.Optional)
@@ -402,16 +416,20 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             }
         }
 
-        protected Object ResolveBean(Type propertyType, bool isHighPriorityBean, BeanContextInit beanContextInit)
+        protected Object ResolveBean(String beanName, Type propertyType, bool isHighPriorityBean, BeanContextInit beanContextInit)
         {
             ServiceContext beanContext = beanContextInit.beanContext;
             ILinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
             // Module beans are only allowed to demand beans from the parent
             // context
-            Object refBean = beanContext.GetDirectBean(propertyType);
+            Object refBean = beanName != null ? beanContext.GetDirectBean(beanName) : beanContext.GetDirectBean(propertyType);
             if (refBean != null && objectToBeanConfigurationMap != null && objectToBeanConfigurationMap.ContainsKey(refBean))
             {
                 InitializeBean(beanContextInit, refBean);
+            }
+            if (beanName != null)
+            {
+                return beanContext.GetServiceIntern(beanName, propertyType, isHighPriorityBean ? SearchType.PARENT : SearchType.CASCADE);
             }
             return beanContext.GetServiceIntern(propertyType, isHighPriorityBean ? SearchType.PARENT : SearchType.CASCADE);
         }

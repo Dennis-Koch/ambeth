@@ -71,6 +71,7 @@
     <Compile Include="ambeth\xml\pending\ObjRefFutureHandler.cs" />
     <Compile Include="ambeth\xml\pending\PrefetchFuture.cs" />
     <Compile Include="ambeth\xml\pending\ResolveObjectCommand.cs" />
+    <Compile Include="ambeth\xml\simple\ExtendedStreamReader.cs" />
     <Compile Include="ambeth\xml\XmlTypeNotFoundException.cs" />
     <Compile Include="ambeth\xml\CyclicXmlDictionary.cs">
       <SubType>Code</SubType>
@@ -176,6 +177,15 @@
     <Compile Include="ambeth\xml\postprocess\IXmlPostProcessorRegistry.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeXmlPostProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\simple\SimpleXmlController.cs" />
+    <Compile Include="ambeth\xml\simple\SimpleXmlReader.cs" />
+    <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\simple\AppendableStreamEncoder.cs" />
+    <Compile Include="ambeth\xml\simple\AppendableStringBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

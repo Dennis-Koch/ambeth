@@ -7,27 +7,15 @@ import org.junit.Test;
 
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, XmlTestModule.class })
 public class CyclicXmlReaderTest extends AbstractIocTest
 {
+	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	protected ICyclicXMLHandler cyclicXmlHandler;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cyclicXmlHandler, "CyclicXmlHandler");
-	}
-
-	public void setCyclicXmlHandler(ICyclicXMLHandler cyclicXmlHandler)
-	{
-		this.cyclicXmlHandler = cyclicXmlHandler;
-	}
 
 	@SuppressWarnings("unchecked")
 	@Test
