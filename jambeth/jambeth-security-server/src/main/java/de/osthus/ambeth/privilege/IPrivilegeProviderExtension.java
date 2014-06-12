@@ -18,6 +18,6 @@ public interface IPrivilegeProviderExtension<T>
 	 */
 	void buildPrefetchConfig(Class<? extends T> entityType, IPrefetchConfig prefetchConfig);
 
-	IPermissionEvaluationResult evaluatePermission(IObjRef objRef, T entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+	IPermissionEvaluationResult evaluatePermission(IObjRef objRef, T entity, IUserHandle currentUser, ISecurityScope[] securityScopes,
 			IPermissionEvaluation permissionEvaluation);
 }
