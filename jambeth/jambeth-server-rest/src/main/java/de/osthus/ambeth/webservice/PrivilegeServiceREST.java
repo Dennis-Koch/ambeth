@@ -3,14 +3,13 @@ package de.osthus.ambeth.webservice;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
-
-import com.sun.jersey.spi.resource.Singleton;
 
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
