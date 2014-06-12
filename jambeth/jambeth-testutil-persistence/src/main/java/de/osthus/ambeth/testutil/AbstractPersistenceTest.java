@@ -47,7 +47,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, Oracle10gModule.class, SQLQueryModule.class,
 		FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
-@RunWith(AmbethPersistenceRunner.class)
+@RunWith(NewAmbethPersistenceRunner.class)
 public abstract class AbstractPersistenceTest extends AbstractIocTest
 {
 	public static class PersistencePropertiesProvider implements IPropertiesProvider
