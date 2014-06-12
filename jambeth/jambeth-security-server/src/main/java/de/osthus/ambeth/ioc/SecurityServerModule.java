@@ -2,14 +2,18 @@ package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
+import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
 import de.osthus.ambeth.security.DefaultServiceFilter;
+import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
+import de.osthus.ambeth.security.privilegeprovider.ActionPermissionPrivilegeProviderExtension;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
 @FrameworkModule
@@ -31,6 +35,9 @@ public class SecurityServerModule implements IInitializingModule
 
 			beanContextFactory.registerBean("securityManager", de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
 					IMergeSecurityManager.class, IServiceFilterExtendable.class);
+
+			IBeanConfiguration actionPermissionExtensionBC = beanContextFactory.registerAnonymousBean(ActionPermissionPrivilegeProviderExtension.class);
+			beanContextFactory.link(actionPermissionExtensionBC).to(IPrivilegeProviderExtensionExtendable.class).with(IActionPermission.class);
 
 			beanContextFactory.registerBean("defaultServiceFilter", DefaultServiceFilter.class);
 			beanContextFactory.link("defaultServiceFilter").to(IServiceFilterExtendable.class);

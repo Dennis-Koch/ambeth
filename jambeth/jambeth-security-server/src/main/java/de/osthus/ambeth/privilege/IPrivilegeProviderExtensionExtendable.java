@@ -1,9 +1,8 @@
 package de.osthus.ambeth.privilege;
 
-
 public interface IPrivilegeProviderExtensionExtendable
 {
-	void registerPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType);
+	<T> void registerPrivilegeProviderExtension(IPrivilegeProviderExtension<? super T> privilegeProviderExtension, Class<T> entityType);
 
-	void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType);
+	<T> void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension<? super T> privilegeProviderExtension, Class<T> entityType);
 }

@@ -129,13 +129,18 @@ namespace De.Osthus.Ambeth.Privilege
             return GetPrivilege(entity, securityScopes).ReadAllowed;
         }
 
+        public bool IsExecutionAllowed(Object entity, params ISecurityScope[] securityScopes)
+        {
+            return GetPrivilege(entity, securityScopes).ExecutionAllowed;
+        }
+
         public IPrivilegeItem GetPrivilege(Object entity, params ISecurityScope[] securityScopes)
         {
             IList<IObjRef> objRefs = ObjRefHelper.ExtractObjRefList(entity, null);
             IList<IPrivilegeItem> result = GetPrivileges(objRefs, securityScopes);
             if (result.Count == 0)
             {
-                return new PrivilegeItem(new PrivilegeEnum[4]);
+                return PrivilegeItem.DENY_ALL;
             }
             return result[0];
         }
@@ -145,7 +150,7 @@ namespace De.Osthus.Ambeth.Privilege
             IList<IPrivilegeItem> result = GetPrivilegesByObjRef(new List<IObjRef>(new IObjRef[] { objRef }), securityScopes);
             if (result.Count == 0)
             {
-                return new PrivilegeItem(new PrivilegeEnum[4]);
+                return PrivilegeItem.DENY_ALL;
             }
             return result[0];
         }
@@ -190,7 +195,7 @@ namespace De.Osthus.Ambeth.Privilege
 
                     PrivilegeEnum[] privilegeEnums = privilegeResult.Privileges;
 
-                    PrivilegeEnum[] indexedPrivilegeEnums = new PrivilegeEnum[4];
+                    PrivilegeEnum[] indexedPrivilegeEnums = new PrivilegeEnum[5];
                     if (privilegeEnums != null)
                     {
                         for (int b = privilegeEnums.Length; b-- > 0; )
@@ -220,6 +225,11 @@ namespace De.Osthus.Ambeth.Privilege
                                 case PrivilegeEnum.READ_ALLOWED:
                                     {
                                         indexedPrivilegeEnums[PrivilegeItem.READ_INDEX] = privilegeEnum;
+                                        break;
+                                    }
+                                case PrivilegeEnum.EXECUTE_ALLOWED:
+                                    {
+                                        indexedPrivilegeEnums[PrivilegeItem.EXECUTION_INDEX] = privilegeEnum;
                                         break;
                                     }
                                 default:

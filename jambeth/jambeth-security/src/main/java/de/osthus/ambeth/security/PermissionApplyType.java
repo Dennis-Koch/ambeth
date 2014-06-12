@@ -1,6 +1,6 @@
 package de.osthus.ambeth.security;
 
-public enum UsecaseApplyType
+public enum PermissionApplyType
 {
 	ALLOW, DENY
 }

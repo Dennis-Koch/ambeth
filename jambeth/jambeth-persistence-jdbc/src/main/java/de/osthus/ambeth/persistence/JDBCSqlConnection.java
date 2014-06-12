@@ -15,6 +15,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
@@ -24,7 +25,6 @@ import de.osthus.ambeth.sensor.ISensor;
 import de.osthus.ambeth.sensor.Sensor;
 import de.osthus.ambeth.sql.IResultSet;
 import de.osthus.ambeth.sql.SqlConnection;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class JDBCSqlConnection extends SqlConnection
 {
@@ -32,39 +32,17 @@ public class JDBCSqlConnection extends SqlConnection
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Connection connection;
 
+	@Autowired
 	protected IConnectionExtension connectionExtension;
 
+	@Autowired
 	protected IDatabase database;
 
 	@Sensor(name = JDBCResultSet.SENSOR_NAME)
 	protected ISensor jdbcResultSetSensor;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(connectionExtension, "ConnectionExtension");
-		ParamChecker.assertNotNull(database, "Database");
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setConnectionExtension(IConnectionExtension connectionExtension)
-	{
-		this.connectionExtension = connectionExtension;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
 
 	@Override
 	public void directSql(String sql)

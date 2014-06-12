@@ -47,7 +47,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 	@LogInstance
 	private ILogger log;
 
-	protected final ClassExtendableListContainer<IPrivilegeProviderExtension> privilegeProviderExtensions = new ClassExtendableListContainer<IPrivilegeProviderExtension>(
+	protected final ClassExtendableListContainer<IPrivilegeProviderExtension<?>> privilegeProviderExtensions = new ClassExtendableListContainer<IPrivilegeProviderExtension<?>>(
 			"privilegeProviderExtension", "entityType");
 
 	@Autowired
@@ -79,6 +79,9 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 
 	@Property(name = SecurityConfigurationConstants.DefaultDeletePrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultDeletePrivilege;
+
+	@Property(name = SecurityConfigurationConstants.DefaultExecutePrivilegeActive, defaultValue = "true")
+	protected boolean isDefaultExecutePrivilege;
 
 	@Property(name = SecurityConfigurationConstants.DefaultCreatePrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultCreatePrivilege;
@@ -142,6 +145,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected List<PrivilegeResult> getPrivilegesIntern(IObjRef[] objRefs, ISecurityScope[] securityScopes)
 	{
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
@@ -162,10 +166,11 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
 		for (Class<?> requestedType : requestedTypes)
 		{
-			IList<IPrivilegeProviderExtension> extensions = privilegeProviderExtensions.getExtensions(requestedType);
+			IList<IPrivilegeProviderExtension<?>> extensions = privilegeProviderExtensions.getExtensions(requestedType);
 			for (int a = 0, size = extensions.size(); a < size; a++)
 			{
-				extensions.get(a).buildPrefetchConfig(requestedType, prefetchConfig);
+				IPrivilegeProviderExtension extension = extensions.get(a);
+				extension.buildPrefetchConfig(requestedType, prefetchConfig);
 			}
 		}
 		entitiesToCheck = cache.getObjects(objRefs, CacheDirective.returnMisses());
@@ -186,7 +191,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 			}
 			Object entity = entitiesToCheck.get(a);
 
-			IList<IPrivilegeProviderExtension> extensions = privilegeProviderExtensions.getExtensions(objRef.getRealType());
+			IList<IPrivilegeProviderExtension<?>> extensions = privilegeProviderExtensions.getExtensions(objRef.getRealType());
 
 			pe.reset();
 			for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
@@ -211,13 +216,14 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 	protected PrivilegeResult buildPrivilegeResult(IObjRef objRef, PermissionEvaluation pe, ISecurityScope scope, ScopedPermissionEvaluation spe,
 			ArrayList<PrivilegeEnum> privilegeEnums)
 	{
-		Boolean create = null, read = null, update = null, delete = null;
+		Boolean create = null, read = null, update = null, delete = null, execute = null;
 		if (spe != null)
 		{
 			create = spe.getCreate();
 			read = spe.getRead();
 			update = spe.getUpdate();
 			delete = spe.getDelete();
+			execute = spe.getExecute();
 		}
 		if (create == null)
 		{
@@ -235,6 +241,10 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		{
 			delete = pe.getDelete();
 		}
+		if (execute == null)
+		{
+			execute = pe.getExecute();
+		}
 		if (create == null)
 		{
 			create = Boolean.valueOf(isDefaultCreatePrivilege);
@@ -250,6 +260,10 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		if (delete == null)
 		{
 			delete = Boolean.valueOf(isDefaultDeletePrivilege);
+		}
+		if (execute == null)
+		{
+			execute = Boolean.valueOf(isDefaultExecutePrivilege);
 		}
 		privilegeEnums.clear();
 		if (create.booleanValue())
@@ -268,6 +282,10 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		{
 			privilegeEnums.add(PrivilegeEnum.DELETE_ALLOWED);
 		}
+		if (execute.booleanValue())
+		{
+			privilegeEnums.add(PrivilegeEnum.EXECUTE_ALLOWED);
+		}
 
 		PrivilegeResult privilegeResult = new PrivilegeResult();
 		privilegeResult.setReference(objRef);
@@ -285,14 +303,14 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public void registerPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
+	public <T> void registerPrivilegeProviderExtension(IPrivilegeProviderExtension<? super T> privilegeProviderExtension, Class<T> entityType)
 	{
 		privilegeProviderExtensions.register(privilegeProviderExtension, entityType);
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension privilegeProviderExtension, Class<?> entityType)
+	public <T> void unregisterPrivilegeProviderExtension(IPrivilegeProviderExtension<? super T> privilegeProviderExtension, Class<T> entityType)
 	{
 		privilegeProviderExtensions.unregister(privilegeProviderExtension, entityType);
 	}

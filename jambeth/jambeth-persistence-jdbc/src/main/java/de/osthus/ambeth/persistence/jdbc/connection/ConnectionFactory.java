@@ -15,7 +15,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class ConnectionFactory extends AbstractConnectionFactory
 {
@@ -40,14 +39,6 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	protected volatile boolean isDriverRegistered;
 
 	protected final Lock writeLock = new ReentrantLock();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(databaseConnection, "databaseConnection");
-	}
 
 	protected void registerDriverIfNeeded()
 	{

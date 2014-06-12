@@ -19,6 +19,8 @@ namespace De.Osthus.Ambeth.Privilege
 
         bool IsReadAllowed(Object entity, params ISecurityScope[] securityScopes);
 
+        bool IsExecutionAllowed(Object entity, params ISecurityScope[] securityScopes);
+
         IPrivilegeItem GetPrivilege(Object entity, params ISecurityScope[]  securityScopes);
 
 	    IPrivilegeItem GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[]  securityScopes);

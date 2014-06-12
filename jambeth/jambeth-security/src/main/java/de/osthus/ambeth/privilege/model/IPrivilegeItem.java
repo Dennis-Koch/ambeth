@@ -9,4 +9,6 @@ public interface IPrivilegeItem
 	boolean isUpdateAllowed();
 
 	boolean isDeleteAllowed();
+
+	boolean isExecutionAllowed();
 }

@@ -9,6 +9,6 @@ namespace De.Osthus.Ambeth.Privilege.Model
     [XmlType(Name = "PrivilegeEnum", Namespace = "http://schemas.osthus.de/Ambeth")]
     public enum PrivilegeEnum
     {
-	    NONE, CREATE_ALLOWED, UPDATE_ALLOWED, DELETE_ALLOWED, READ_ALLOWED
+        NONE, CREATE_ALLOWED, UPDATE_ALLOWED, DELETE_ALLOWED, READ_ALLOWED, EXECUTE_ALLOWED
     }
 }

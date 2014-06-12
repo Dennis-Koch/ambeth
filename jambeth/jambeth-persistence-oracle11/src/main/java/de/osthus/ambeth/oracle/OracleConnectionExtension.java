@@ -3,45 +3,29 @@ package de.osthus.ambeth.oracle;
 import java.sql.Array;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Set;
 
 import oracle.jdbc.OracleConnection;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class OracleConnectionExtension implements IConnectionExtension, IInitializingBean
+public class OracleConnectionExtension implements IConnectionExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	private Set<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>> asList(byte.class, Byte.class, Short.class, Integer.class, Long.class));
-
+	@Autowired
 	protected IConnectionDialect connectionDialect;
 
+	@Autowired
 	protected OracleConnection oracleConnection;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionDialect, "ConnectionDialect");
-		ParamChecker.assertNotNull(oracleConnection, "OracleConnection");
-	}
-
-	public void setConnectionDialect(IConnectionDialect connectionDialect)
-	{
-		this.connectionDialect = connectionDialect;
-	}
-
-	public void setOracleConnection(OracleConnection oracleConnection)
-	{
-		this.oracleConnection = oracleConnection;
-	}
+	protected final HashSet<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>> asList(byte.class, Byte.class, Short.class, Integer.class,
+			Long.class));
 
 	@Override
 	public Array createJDBCArray(Class<?> expectedComponentType, Object javaArray)

@@ -1,9 +1,8 @@
 package de.osthus.ambeth.privilege.model;
 
-
 public class PrivilegeItem implements IPrivilegeItem
 {
-	public static final PrivilegeItem DENY_ALL = new PrivilegeItem(new PrivilegeEnum[4]);
+	public static final PrivilegeItem DENY_ALL = new PrivilegeItem(new PrivilegeEnum[5]);
 
 	public static final int CREATE_INDEX = 0;
 
@@ -12,6 +11,8 @@ public class PrivilegeItem implements IPrivilegeItem
 	public static final int DELETE_INDEX = 2;
 
 	public static final int READ_INDEX = 3;
+
+	public static final int EXECUTION_INDEX = 4;
 
 	protected final PrivilegeEnum[] privileges;
 
@@ -42,5 +43,11 @@ public class PrivilegeItem implements IPrivilegeItem
 	public boolean isReadAllowed()
 	{
 		return PrivilegeEnum.READ_ALLOWED.equals(privileges[READ_INDEX]);
+	}
+
+	@Override
+	public boolean isExecutionAllowed()
+	{
+		return PrivilegeEnum.EXECUTE_ALLOWED.equals(privileges[EXECUTION_INDEX]);
 	}
 }

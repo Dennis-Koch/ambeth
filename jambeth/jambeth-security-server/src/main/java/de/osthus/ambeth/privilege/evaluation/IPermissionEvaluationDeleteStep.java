@@ -2,9 +2,9 @@ package de.osthus.ambeth.privilege.evaluation;
 
 public interface IPermissionEvaluationDeleteStep
 {
-	IPermissionEvaluationResult allowDelete();
+	IPermissionEvaluationExecuteStep allowDelete();
 
-	IPermissionEvaluationResult skipDelete();
+	IPermissionEvaluationExecuteStep skipDelete();
 
-	IPermissionEvaluationResult denyDelete();
+	IPermissionEvaluationExecuteStep denyDelete();
 }

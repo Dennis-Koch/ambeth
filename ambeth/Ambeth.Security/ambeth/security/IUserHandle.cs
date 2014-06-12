@@ -14,6 +14,8 @@ namespace De.Osthus.Ambeth.Security
 
         ISecurityScope[] SecurityScopes { get; }
 
-        IUseCase[] UseCases { get; }
+        IServicePermission[] GetServicePermissions(ISecurityScope[] securityScopes);
+
+        bool HasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes);
     }
 }
