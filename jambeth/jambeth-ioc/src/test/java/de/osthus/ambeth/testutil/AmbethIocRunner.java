@@ -217,11 +217,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		childContextFactory.registerExternalBean(new TestContext(this)).autowireable(ITestContext.class);
 	}
 
-	protected Statement withBeforeClassesWithinContext(Statement statement)
-	{
-		return super.withBeforeClasses(statement);
-	}
-
 	@Override
 	protected final Statement withAfterClasses(Statement statement)
 	{
