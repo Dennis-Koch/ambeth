@@ -10,5 +10,7 @@ public interface IUserHandle
 
 	ISecurityScope[] getSecurityScopes();
 
-	IUseCase[] getUseCases();
+	IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes);
+
+	boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes);
 }

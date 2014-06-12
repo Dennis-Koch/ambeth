@@ -2,9 +2,9 @@ package de.osthus.ambeth.security;
 
 import java.util.regex.Pattern;
 
-public interface IUseCase
+public interface IServicePermission
 {
 	Pattern[] getPatterns();
 
-	UsecaseApplyType getApplyType();
+	PermissionApplyType getApplyType();
 }

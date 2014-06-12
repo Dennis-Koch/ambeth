@@ -18,6 +18,8 @@ public final class SecurityConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultDeletePrivilegeActive = "security.privilege.default.delete";
 
+	public static final String DefaultExecutePrivilegeActive = "security.privilege.default.execute";
+
 	private SecurityConfigurationConstants()
 	{
 		// Intended blank

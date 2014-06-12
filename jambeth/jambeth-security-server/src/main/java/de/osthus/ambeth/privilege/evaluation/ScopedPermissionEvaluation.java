@@ -1,9 +1,9 @@
 package de.osthus.ambeth.privilege.evaluation;
 
 public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, IScopedPermissionEvaluationReadStep, IScopedPermissionEvaluationUpdateStep,
-		IScopedPermissionEvaluationDeleteStep
+		IScopedPermissionEvaluationDeleteStep, IScopedPermissionEvaluationExecuteStep
 {
-	protected Boolean create, read, update, delete;
+	protected Boolean create, read, update, delete, execute = null;
 
 	protected final PermissionEvaluation permissionEvaluation;
 
@@ -32,12 +32,18 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 		return delete;
 	}
 
+	public Boolean getExecute()
+	{
+		return execute;
+	}
+
 	public void reset()
 	{
 		create = null;
 		read = null;
 		update = null;
 		delete = null;
+		execute = null;
 	}
 
 	@Override
@@ -101,40 +107,60 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	}
 
 	@Override
-	public IPermissionEvaluationResult allowDelete()
+	public IScopedPermissionEvaluationExecuteStep allowDelete()
 	{
 		delete = Boolean.TRUE;
-		return permissionEvaluation;
+		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationResult skipDelete()
+	public IScopedPermissionEvaluationExecuteStep skipDelete()
 	{
-		return permissionEvaluation;
+		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationResult denyDelete()
+	public IScopedPermissionEvaluationExecuteStep denyDelete()
 	{
 		delete = Boolean.FALSE;
+		return this;
+	}
+
+	@Override
+	public IPermissionEvaluationResult allowExecute()
+	{
+		execute = Boolean.TRUE;
+		return permissionEvaluation;
+	}
+
+	@Override
+	public IPermissionEvaluationResult skipExecute()
+	{
+		return permissionEvaluation;
+	}
+
+	@Override
+	public IPermissionEvaluationResult denyExecute()
+	{
+		execute = Boolean.FALSE;
 		return permissionEvaluation;
 	}
 
 	@Override
 	public IPermissionEvaluationResult allowEach()
 	{
-		return allowCreate().allowRead().allowUpdate().allowDelete();
+		return allowCreate().allowRead().allowUpdate().allowDelete().allowExecute();
 	}
 
 	@Override
 	public IPermissionEvaluationResult skipEach()
 	{
-		return skipCreate().skipRead().skipUpdate().skipDelete();
+		return skipCreate().skipRead().skipUpdate().skipDelete().skipExecute();
 	}
 
 	@Override
 	public IPermissionEvaluationResult denyEach()
 	{
-		return denyCreate().denyRead().denyUpdate().denyDelete();
+		return denyCreate().denyRead().denyUpdate().denyDelete().denyExecute();
 	}
 }

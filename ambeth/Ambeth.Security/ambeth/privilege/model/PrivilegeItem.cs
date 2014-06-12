@@ -14,6 +14,8 @@ namespace De.Osthus.Ambeth.Privilege.Model
 
         public const int READ_INDEX = 3;
 
+        public const int EXECUTION_INDEX = 4;
+
         protected readonly PrivilegeEnum[] privileges;
 
         public PrivilegeItem(PrivilegeEnum[] privileges)
@@ -50,6 +52,14 @@ namespace De.Osthus.Ambeth.Privilege.Model
             get
             {
                 return PrivilegeEnum.READ_ALLOWED.Equals(privileges[READ_INDEX]);
+            }
+        }
+
+        public bool ExecutionAllowed
+        {
+            get
+            {
+                return PrivilegeEnum.EXECUTE_ALLOWED.Equals(privileges[EXECUTION_INDEX]);
             }
         }
     }

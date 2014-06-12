@@ -86,10 +86,9 @@
     <Compile Include="ambeth\privilege\model\PrivilegeItem.cs" />
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\privilege\transfer\PrivilegeResult.cs" />
-    <Compile Include="ambeth\security\AmbethUserHandle.cs" />
-    <Compile Include="ambeth\security\AmbethUserHandleFactory.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
+    <Compile Include="ambeth\security\IActionPermission.cs" />
     <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
     <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
@@ -98,9 +97,10 @@
     <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\IServiceFilter.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
-    <Compile Include="ambeth\security\IUseCase.cs" />
+    <Compile Include="ambeth\security\IServicePermission.cs" />
     <Compile Include="ambeth\security\IUserHandle.cs" />
     <Compile Include="ambeth\security\IUserHandleFactory.cs" />
+    <Compile Include="ambeth\security\PermissionApplyType.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
     <Compile Include="ambeth\security\SecurityActivation.cs" />
     <Compile Include="ambeth\security\SecurityScopeProvider.cs" />

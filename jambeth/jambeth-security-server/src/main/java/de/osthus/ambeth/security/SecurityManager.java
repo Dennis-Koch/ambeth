@@ -476,10 +476,11 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 	protected CallPermission filterService(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
 	{
+		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
 		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
 		for (IServiceFilter serviceFilter : serviceFilters.getExtensions())
 		{
-			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments, securityContextType, userHandle);
+			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments, securityContextType, userHandle, securityScopes);
 			switch (callPermission)
 			{
 				case UNDEFINED:

@@ -11,14 +11,14 @@ import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluationResult;
 import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
-public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
+public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension<TestEntity>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void buildPrefetchConfig(Class<?> entityType, IPrefetchConfig prefetchConfig)
+	public void buildPrefetchConfig(Class<? extends TestEntity> entityType, IPrefetchConfig prefetchConfig)
 	{
 		// TestEntity.Relation is needed for security checks, this greatly increased security processing with
 		// lists of entities, because all necessary valueholders can be initialized with the least possible database
@@ -27,9 +27,9 @@ public class TestEntityPrivilegeProvider implements IPrivilegeProviderExtension
 	}
 
 	@Override
-	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, Object entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, TestEntity entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
 			IPermissionEvaluation permissionEvaluation)
 	{
-		return permissionEvaluation.allowRead().allowCreate().allowUpdate().denyDelete();
+		return permissionEvaluation.allowRead().allowCreate().allowUpdate().denyDelete().denyExecute();
 	}
 }

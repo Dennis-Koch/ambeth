@@ -11,6 +11,7 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 @FrameworkModule
 public class Oracle11gModule implements IInitializingModule
 {
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseChangeNotificationActive, defaultValue = "false")
 	protected boolean databaseChangeNotificationActive;
 
 	@Override
@@ -24,11 +25,5 @@ public class Oracle11gModule implements IInitializingModule
 					"oracleDatabaseChangeListener");
 			beanContextFactory.link("oracleDatabaseChangeRegistration").to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
 		}
-	}
-
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseChangeNotificationActive, defaultValue = "false")
-	public void setDatabaseChangeNotificationActive(boolean databaseChangeNotificationActive)
-	{
-		this.databaseChangeNotificationActive = databaseChangeNotificationActive;
 	}
 }

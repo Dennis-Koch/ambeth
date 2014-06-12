@@ -29,7 +29,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
@@ -43,11 +43,10 @@ import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-public class Oracle10gDialect implements IConnectionDialect, IInitializingBean
+public class Oracle10gDialect implements IConnectionDialect
 {
 	public static class ConnectionKeyValue
 	{
@@ -124,17 +123,26 @@ public class Oracle10gDialect implements IConnectionDialect, IInitializingBean
 
 	protected final WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue> connectionToConstraintSqlMap = new WeakHashMap<IConnectionKeyHandle, ConnectionKeyValue>();
 
-	protected boolean externalTransactionManager;
-
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected ILoggerHistory loggerHistory;
 
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
-	protected boolean autoIndexForeignKeys, autoArrayTypes;
+	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
+	protected boolean externalTransactionManager;
 
-	protected IThreadLocalObjectCollector objectCollector;
+	@Property(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, defaultValue = "false")
+	protected boolean autoIndexForeignKeys;
+
+	@Property(name = PersistenceConfigurationConstants.AutoArrayTypes, defaultValue = "true")
+	protected boolean autoArrayTypes;
 
 	protected final Lock readLock, writeLock;
 
@@ -143,52 +151,6 @@ public class Oracle10gDialect implements IConnectionDialect, IInitializingBean
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(loggerHistory, "loggerHistory");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-	}
-
-	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
-	public void setExternalTransactionManager(boolean externalTransactionManager)
-	{
-		this.externalTransactionManager = externalTransactionManager;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setLoggerHistory(ILoggerHistory loggerHistory)
-	{
-		this.loggerHistory = loggerHistory;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setTransactionState(ITransactionState transactionState)
-	{
-		this.transactionState = transactionState;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, defaultValue = "false")
-	public void setAutoIndexForeignKeys(boolean autoIndexForeignKeys)
-	{
-		this.autoIndexForeignKeys = autoIndexForeignKeys;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.AutoArrayTypes, defaultValue = "true")
-	public void setAutoArrayTypes(boolean autoArrayTypes)
-	{
-		this.autoArrayTypes = autoArrayTypes;
 	}
 
 	@Override

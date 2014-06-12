@@ -17,6 +17,8 @@ public interface IPrivilegeProvider
 
 	boolean isDeleteAllowed(Object entity, ISecurityScope... securityScopes);
 
+	boolean isExecutionAllowed(Object entity, ISecurityScope... securityScopes);
+
 	IPrivilegeItem getPrivilege(Object entity, ISecurityScope... securityScopes);
 
 	IPrivilegeItem getPrivilegeByObjRef(IObjRef objRef, ISecurityScope... securityScopes);

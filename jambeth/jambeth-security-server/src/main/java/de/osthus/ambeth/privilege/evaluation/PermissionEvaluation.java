@@ -5,13 +5,13 @@ import java.util.Arrays;
 import de.osthus.ambeth.model.ISecurityScope;
 
 public class PermissionEvaluation implements IPermissionEvaluation, IPermissionEvaluationCreateStep, IPermissionEvaluationUpdateStep,
-		IPermissionEvaluationDeleteStep, IPermissionEvaluationResult
+		IPermissionEvaluationDeleteStep, IPermissionEvaluationExecuteStep, IPermissionEvaluationResult
 {
 	protected final ISecurityScope[] scopes;
 
 	protected final ScopedPermissionEvaluation[] spes;
 
-	protected Boolean create, read, update, delete;
+	protected Boolean create, read, update, delete, execute;
 
 	public PermissionEvaluation(ISecurityScope[] scopes)
 	{
@@ -42,6 +42,11 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	public Boolean getDelete()
 	{
 		return delete;
+	}
+
+	public Boolean getExecute()
+	{
+		return execute;
 	}
 
 	public void reset()
@@ -136,29 +141,49 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	}
 
 	@Override
-	public IPermissionEvaluationResult allowDelete()
+	public IPermissionEvaluationExecuteStep allowDelete()
 	{
 		delete = Boolean.TRUE;
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationResult skipDelete()
+	public IPermissionEvaluationExecuteStep skipDelete()
 	{
 		return this;
 	}
 
 	@Override
-	public IPermissionEvaluationResult denyDelete()
+	public IPermissionEvaluationExecuteStep denyDelete()
 	{
 		delete = Boolean.FALSE;
 		return this;
 	}
 
 	@Override
+	public IPermissionEvaluationResult allowExecute()
+	{
+		execute = Boolean.TRUE;
+		return this;
+	}
+
+	@Override
+	public IPermissionEvaluationResult skipExecute()
+	{
+		return this;
+	}
+
+	@Override
+	public IPermissionEvaluationResult denyExecute()
+	{
+		execute = Boolean.FALSE;
+		return this;
+	}
+
+	@Override
 	public IPermissionEvaluationResult allowEach()
 	{
-		return allowRead().allowCreate().allowUpdate().allowDelete();
+		return allowRead().allowCreate().allowUpdate().allowDelete().allowExecute();
 	}
 
 	@Override

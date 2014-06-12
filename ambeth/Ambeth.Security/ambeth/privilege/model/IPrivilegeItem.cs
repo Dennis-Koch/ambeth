@@ -10,5 +10,7 @@ namespace De.Osthus.Ambeth.Privilege.Model
         bool UpdateAllowed { get; }
 
         bool DeleteAllowed { get; }
+
+        bool ExecutionAllowed { get; }
     }
 }

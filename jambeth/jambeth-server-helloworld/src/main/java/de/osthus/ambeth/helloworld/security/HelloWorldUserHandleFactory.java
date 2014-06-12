@@ -7,10 +7,10 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.security.IUseCase;
+import de.osthus.ambeth.security.IServicePermission;
 import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.security.IUserHandleFactory;
-import de.osthus.ambeth.security.UsecaseApplyType;
+import de.osthus.ambeth.security.PermissionApplyType;
 
 public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitializingBean
 {
@@ -34,7 +34,7 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 
 		final Pattern[] denyPatterns = new Pattern[] { denyForbiddenMethodPattern };
 
-		final IUseCase[] usecases = new IUseCase[] { new IUseCase()
+		final IServicePermission[] servicePermissions = new IServicePermission[] { new IServicePermission()
 		{
 			@Override
 			public Pattern[] getPatterns()
@@ -43,12 +43,12 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 			}
 
 			@Override
-			public UsecaseApplyType getApplyType()
+			public PermissionApplyType getApplyType()
 			{
-				return UsecaseApplyType.ALLOW;
+				return PermissionApplyType.ALLOW;
 			}
 
-		}, new IUseCase()
+		}, new IServicePermission()
 		{
 			@Override
 			public Pattern[] getPatterns()
@@ -57,9 +57,9 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 			}
 
 			@Override
-			public UsecaseApplyType getApplyType()
+			public PermissionApplyType getApplyType()
 			{
-				return UsecaseApplyType.DENY;
+				return PermissionApplyType.DENY;
 			}
 
 		} };
@@ -73,9 +73,9 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 			}
 
 			@Override
-			public IUseCase[] getUseCases()
+			public IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes)
 			{
-				return usecases;
+				return servicePermissions;
 			}
 
 			@Override
@@ -88,6 +88,12 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 			public ISecurityScope[] getSecurityScopes()
 			{
 				return securityScopes;
+			}
+
+			@Override
+			public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes)
+			{
+				return false;
 			}
 		};
 	}

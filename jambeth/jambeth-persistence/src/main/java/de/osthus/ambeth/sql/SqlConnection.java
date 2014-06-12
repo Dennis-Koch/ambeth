@@ -11,17 +11,15 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.IDisposable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public abstract class SqlConnection implements ISqlConnection, IInitializingBean, IDisposable
+public abstract class SqlConnection implements ISqlConnection
 {
 	// RegEx to add field aliases to paging subselects, e.g. S_A."ID":
 	// outer sql: "S_A.ID"
@@ -34,56 +32,20 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected int maxInClauseBatchThreshold;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(persistenceHelper, "persistenceHelper");
-		ParamChecker.assertNotNull(sqlBuilder, "sqlBuilder");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-	}
-
-	@Override
-	public void dispose()
-	{
-		// Intended blank
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
-	{
-		this.persistenceHelper = persistenceHelper;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
 	@Property(name = PersistenceConfigurationConstants.MaxInClauseBatchThreshold, defaultValue = "8000")
-	public void setMaxInClauseBatchThreshold(int maxInClauseBatchThreshold)
-	{
-		this.maxInClauseBatchThreshold = maxInClauseBatchThreshold;
-	}
+	protected int maxInClauseBatchThreshold;
 
 	public void directSql(String sql)
 	{

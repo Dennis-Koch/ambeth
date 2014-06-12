@@ -140,13 +140,19 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	}
 
 	@Override
+	public boolean isExecutionAllowed(Object entity, ISecurityScope... securityScopes)
+	{
+		return getPrivilege(entity, securityScopes).isExecutionAllowed();
+	}
+
+	@Override
 	public IPrivilegeItem getPrivilege(Object entity, ISecurityScope... securityScopes)
 	{
 		IList<IObjRef> objRefs = objRefHelper.extractObjRefList(entity, null);
 		IList<IPrivilegeItem> result = getPrivileges(objRefs, securityScopes);
 		if (result.size() == 0)
 		{
-			return new PrivilegeItem(new PrivilegeEnum[4]);
+			return PrivilegeItem.DENY_ALL;
 		}
 		return result.get(0);
 	}
@@ -157,7 +163,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		IList<IPrivilegeItem> result = getPrivilegesByObjRef(new ArrayList<IObjRef>(new IObjRef[] { objRef }), securityScopes);
 		if (result.size() == 0)
 		{
-			return new PrivilegeItem(new PrivilegeEnum[4]);
+			return PrivilegeItem.DENY_ALL;
 		}
 		return result.get(0);
 	}
@@ -211,7 +217,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 
 				PrivilegeEnum[] privilegeEnums = privilegeResult.getPrivileges();
 
-				PrivilegeEnum[] indexedPrivilegeEnums = new PrivilegeEnum[4];
+				PrivilegeEnum[] indexedPrivilegeEnums = new PrivilegeEnum[5];
 				if (privilegeEnums != null)
 				{
 					for (int b = privilegeEnums.length; b-- > 0;)
@@ -241,6 +247,11 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 							case READ_ALLOWED:
 							{
 								indexedPrivilegeEnums[PrivilegeItem.READ_INDEX] = privilegeEnum;
+								break;
+							}
+							case EXECUTE_ALLOWED:
+							{
+								indexedPrivilegeEnums[PrivilegeItem.EXECUTION_INDEX] = privilegeEnum;
 								break;
 							}
 							default:
