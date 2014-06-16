@@ -7,32 +7,31 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class RootCacheBridge : IInitializingBean, ICacheRetriever
+    public class RootCacheBridge : ICacheRetriever
     {
         protected static readonly CacheDirective committedRootCacheCD = CacheDirective.FailEarly | CacheDirective.ReturnMisses |
                 CacheDirective.LoadContainerResult;
 
         protected static readonly CacheDirective loadContainerResultCD = CacheDirective.LoadContainerResult;
 
+        [Autowired]
         public IRootCache CommittedRootCache { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public ICacheRetriever UncommittedCacheRetriever { protected get; set; }
 
+        [Autowired(Optional = true)]
         public IInterningFeature InterningFeature { protected get; set; }
 
+        [Autowired(Optional = true)]
         public ITransactionState TransactionState { protected get; set; }
-
-        public void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(CommittedRootCache, "CommittedRootCache");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(UncommittedCacheRetriever, "UncommittedCacheRetriever");
-        }
 
         public IList<ILoadContainer> GetEntities(IList<IObjRef> orisToLoad)
         {

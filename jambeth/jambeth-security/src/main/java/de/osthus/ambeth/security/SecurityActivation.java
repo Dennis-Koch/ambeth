@@ -29,6 +29,10 @@ public class SecurityActivation implements ISecurityActivation
 	@Override
 	public boolean isFilterActivated()
 	{
+		if (!isSecured())
+		{
+			return Boolean.FALSE;
+		}
 		Boolean value = filterActiveTL.get();
 		if (value == null)
 		{

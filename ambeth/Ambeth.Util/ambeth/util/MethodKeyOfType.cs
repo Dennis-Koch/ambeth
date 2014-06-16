@@ -1,8 +1,9 @@
 using System;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Util
 {
-    public class MethodKeyOfType
+    public class MethodKeyOfType : IPrintable
     {
         protected readonly String methodName;
 
@@ -60,5 +61,26 @@ namespace De.Osthus.Ambeth.Util
             }
             return true;
         }
+
+	    public override String ToString()
+	    {
+		    StringBuilder sb = new StringBuilder();
+		    ToString(sb);
+		    return sb.ToString();
+	    }
+
+	    public void ToString(StringBuilder sb)
+	    {
+            sb.Append("MethodKey: ").Append(methodName).Append('(');
+		    for (int a = 0, size = parameterTypes.Length; a < size; a++)
+		    {
+			    if (a > 0)
+			    {
+                    sb.Append(", ");
+			    }
+                sb.Append(parameterTypes[a].ClassName);
+		    }
+            sb.Append(')');
+	    }
     }
 }

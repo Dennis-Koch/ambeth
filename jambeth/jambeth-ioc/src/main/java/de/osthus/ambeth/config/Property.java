@@ -11,7 +11,7 @@ public @interface Property
 {
 	public static final String DEFAULT_VALUE = "##unspecified##";
 
-	String name();
+	String name() default DEFAULT_VALUE;
 
 	boolean mandatory() default true;
 
