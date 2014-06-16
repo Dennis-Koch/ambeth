@@ -40,7 +40,7 @@ public class OneLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	{
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
-		EntityA entityA = new EntityA();
+		EntityA entityA = entityFactory.createEntity(EntityA.class);
 		entityA.setName("new EntityA");
 		entityB.setEntityA(entityA);
 		relationsService.save(entityB);
@@ -56,7 +56,7 @@ public class OneLazyFkNoReverseRelationsTest extends AbstractRelationsTest
 	{
 		EntityB entityB = cache.getObject(EntityB.class, 11);
 
-		EntityA entityA = new EntityA();
+		EntityA entityA = entityFactory.createEntity(EntityA.class);
 		entityA.setName("new EntityA");
 		relationsService.save(entityA);
 
