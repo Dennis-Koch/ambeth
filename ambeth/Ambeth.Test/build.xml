@@ -1,7 +1,8 @@
 <project name="ambeth-tests" default="run-all-tests"> <!-- basedir="C:\dev\pavonis\ambeth\Ambeth.Test" -->
 
-        <property environment="env"/>
+	<property environment="env"/>
 	<property name="lib.dir" value="${basedir}\ant-lib" />
+	<property name="dll.folder" value="/bin/Debug_NET4" />
 
 	<condition property="MSTEST_EXE" value="${env.MSTEST_EXE}" else="${MSTEST_EXE}">
 		<isset property="env.MSTEST_EXE" />
@@ -15,14 +16,13 @@
 	
 	<property name="testresults.dir" value="${basedir}/TestResults" />
 
-        <target name="clean" >
-                <delete dir="${testresults.dir}"/>
-                <mkdir dir="${testresults.dir}"/>
-        </target>
+	<target name="clean" >
+		<delete dir="${testresults.dir}"/>
+		<mkdir dir="${testresults.dir}"/>
+	</target>
 
 	<target name="run-all-tests" depends="-load-ant-contrib,clean,-discover-tests,test-project">
 		<!--<foreach list="${test.containers}" delimiter="," target="test-project" param="test.container" />-->
-
 	</target>
 
 
@@ -38,7 +38,7 @@
 	</target>
 
 	<target name="-discover-tests">
-		<fileset id="tests" dir="${basedir}" includes="/bin/Debug/*.Test.dll" casesensitive="false" />
+		<fileset id="tests" dir="${basedir}" includes="${dll.folder}/*.Test.dll" casesensitive="false" />
 		<pathconvert dirsep="/" pathsep="," property="test.containers" refid="tests" />
 		<pathconvert dirsep="/" pathsep='" /testcontainer:"' property="path.concatenated" refid="tests" />
 		<property name="test.containers.arg" value='/testcontainer:"${path.concatenated}"' />
