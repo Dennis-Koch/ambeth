@@ -31,15 +31,9 @@ namespace De.Osthus.Ambeth.Testutil
             return beanContext;
         }
 
-        public Statement WithBeforeClasses(Statement statement)
+        public virtual Statement WithBeforeClasses(Statement statement)
         {
-            Statement withBeforeClasses = WithBeforeClassesWithinContext(statement);
-            return new Statement(delegate()
-            {
-                RebuildContext(null);
-
-                withBeforeClasses.Invoke();
-            });
+            return statement;
         }
 
         public void DisposeContext()
@@ -144,15 +138,9 @@ namespace De.Osthus.Ambeth.Testutil
             // Intended blank
         }
 
-        protected Statement WithBeforeClassesWithinContext(Statement statement)
-        {
-            //return super.withBeforeClasses(statement);
-            return statement;
-        }
-
         protected Statement WithAfterClasses(Statement statement)
         {
-            Statement withAfterClasses = WithAfterClassesWithinContext(statement);
+            Statement withAfterClasses = WithAfterClasses(statement);
 
             return new Statement(delegate()
             {

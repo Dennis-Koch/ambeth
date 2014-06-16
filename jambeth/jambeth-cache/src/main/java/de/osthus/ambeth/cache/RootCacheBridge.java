@@ -9,7 +9,7 @@ import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -17,55 +17,26 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IInterningFeature;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class RootCacheBridge implements IInitializingBean, ICacheRetriever
+public class RootCacheBridge implements ICacheRetriever
 {
 	protected static final Set<CacheDirective> committedRootCacheCD = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses,
 			CacheDirective.LoadContainerResult);
 
+	@Autowired
 	protected IRootCache committedRootCache;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected ICacheRetriever uncommittedCacheRetriever;
 
+	@Autowired(optional = true)
 	protected IInterningFeature interningFeature;
 
+	@Autowired(optional = true)
 	protected ITransactionState transactionState;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(committedRootCache, "CommittedRootCache");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(uncommittedCacheRetriever, "UncommittedCacheRetriever");
-	}
-
-	public void setCommittedRootCache(IRootCache committedRootCache)
-	{
-		this.committedRootCache = committedRootCache;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setInterningFeature(IInterningFeature interningFeature)
-	{
-		this.interningFeature = interningFeature;
-	}
-
-	public void setTransactionState(ITransactionState transactionState)
-	{
-		this.transactionState = transactionState;
-	}
-
-	public void setUncommittedCacheRetriever(ICacheRetriever uncommittedCacheRetriever)
-	{
-		this.uncommittedCacheRetriever = uncommittedCacheRetriever;
-	}
 
 	@Override
 	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)

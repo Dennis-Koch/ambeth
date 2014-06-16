@@ -31,6 +31,9 @@ using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
+using De.Osthus.Ambeth.Privilege;
+using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Privilege.Model;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -98,6 +101,15 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired]
         public IRootCacheValueTypeProvider RootCacheValueTypeProvider { protected get; set; }
+
+        [Autowired(Optional = true)]
+	    public ISecurityActivation SecurityActivation { protected get; set; }
+
+	    [Autowired(Optional = true)]
+	    public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
+
+        [Autowired(Optional = true)]
+	    public IPrivilegeProvider PrivilegeProvider { protected get; set; }
 
         [Autowired]
         public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
@@ -815,6 +827,22 @@ namespace De.Osthus.Ambeth.Cache
             }
             try
             {
+                if (PrivilegeProvider != null && SecurityActivation.FilterActivated)
+                {
+                    IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(orisToGet, SecurityScopeProvider.SecurityScopes);
+                    List<IObjRef> permittedObjRefs = new List<IObjRef>(orisToGet.Count);
+                    for (int a = 0, size = orisToGet.Count; a < size; a++)
+                    {
+                        IPrivilegeItem privilege = privileges[a];
+                        if (!privilege.ReadAllowed)
+                        {
+                            permittedObjRefs.Add(null);
+                            continue;
+                        }
+                        permittedObjRefs.Add(orisToGet[a]);
+                    }
+                    orisToGet = permittedObjRefs;
+                }
                 List<Object> result = new List<Object>();
                 List<IObjRef> tempObjRefList = null;
                 IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityDictionary<IObjRef, ObjRef>();

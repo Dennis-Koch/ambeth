@@ -219,7 +219,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	}
 
 	@Override
-	protected org.junit.runners.model.Statement withBeforeClassesWithinContext(org.junit.runners.model.Statement statement)
+	protected org.junit.runners.model.Statement withBeforeClasses(org.junit.runners.model.Statement statement)
 	{
 		checkOS();
 		// riverManager.registerDriver((Driver)
@@ -228,7 +228,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		// beforeClass();
 		rebuildStructure(null);
 
-		final org.junit.runners.model.Statement parentStatement = super.withBeforeClassesWithinContext(statement);
+		final org.junit.runners.model.Statement parentStatement = super.withBeforeClasses(statement);
 		return new org.junit.runners.model.Statement()
 		{
 

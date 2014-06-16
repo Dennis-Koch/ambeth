@@ -1,11 +1,13 @@
 package de.osthus.ambeth.cache.bytecode;
 
 import java.nio.ByteBuffer;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.bytecode.EntityBytecodeTest.EntityBytecodeTestModule;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
@@ -113,6 +115,9 @@ public class EntityBytecodeTest extends AbstractIocTest
 	protected ILogger log;
 
 	@Autowired
+	protected IRootCache rootCache;
+
+	@Autowired
 	protected IEntityFactory entityFactory;
 
 	@Autowired
@@ -152,6 +157,21 @@ public class EntityBytecodeTest extends AbstractIocTest
 	public void testInterfaceEntity() throws Exception
 	{
 		ITestEntity2 testEntity = entityFactory.createEntity(ITestEntity2.class);
+
+		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithProtectedField"));
+	}
+
+	@Test
+	public void testInterfaceEntityReadDate() throws Exception
+	{
+		ITestEntity2 testEntity = entityFactory.createEntity(ITestEntity2.class);
+
+		testEntity.setMyDate(new Date(System.currentTimeMillis()));
+
+		testEntity.setId(1);
+		testEntity.setVersion(1);
+
+		rootCache.put(testEntity);
 
 		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithProtectedField"));
 	}

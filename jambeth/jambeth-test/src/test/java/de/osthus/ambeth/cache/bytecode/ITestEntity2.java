@@ -1,5 +1,6 @@
 package de.osthus.ambeth.cache.bytecode;
 
+import java.util.Date;
 import java.util.List;
 
 public interface ITestEntity2
@@ -11,6 +12,10 @@ public interface ITestEntity2
 	int getVersion();
 
 	void setVersion(int version);
+
+	Date getMyDate();
+
+	void setMyDate(Date myDate);
 
 	List<ITestEntity2> getChildrenWithProtectedField();
 

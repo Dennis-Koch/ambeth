@@ -34,6 +34,10 @@ namespace De.Osthus.Ambeth.Security
         {
             get
             {
+                if (!Secured)
+                {
+                    return false;
+                }
                 bool? value = filterActiveTL.Value;
                 if (value == null)
                 {

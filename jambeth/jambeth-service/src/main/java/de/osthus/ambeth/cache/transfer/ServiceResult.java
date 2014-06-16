@@ -8,18 +8,12 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import de.osthus.ambeth.cache.model.IServiceResult;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 
 @XmlRootElement(name = "ServiceResult", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ServiceResult implements IServiceResult
 {
-	@SuppressWarnings("unused")
-	@LogInstance(ServiceResult.class)
-	private ILogger log;
-
 	@XmlElement
 	protected List<IObjRef> objRefs;
 

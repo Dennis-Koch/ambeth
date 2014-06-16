@@ -23,13 +23,8 @@ import de.osthus.ambeth.service.ICacheService;
 @FrameworkModule
 public class CacheServerModule implements IInitializingModule
 {
-	protected boolean cacheServiceRegistryActive;
-
 	@Property(name = CacheConfigurationConstants.CacheServiceRegistryActive, defaultValue = "true")
-	public void setCacheServiceRegistryActive(boolean cacheServiceRegistryActive)
-	{
-		this.cacheServiceRegistryActive = cacheServiceRegistryActive;
-	}
+	protected boolean cacheServiceRegistryActive;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable

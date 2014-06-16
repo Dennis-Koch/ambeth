@@ -28,11 +28,13 @@ import de.osthus.ambeth.privilege.evaluation.PermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.ScopedPermissionEvaluation;
 import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserHandle;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
@@ -67,6 +69,9 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
+
+	@Autowired
+	protected ISecurityActivation securityActivation;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -145,8 +150,20 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		}
 	}
 
+	protected List<PrivilegeResult> getPrivilegesIntern(final IObjRef[] objRefs, final ISecurityScope[] securityScopes) throws Throwable
+	{
+		return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<PrivilegeResult>>()
+		{
+			@Override
+			public List<PrivilegeResult> invoke() throws Throwable
+			{
+				return getPrivilegesIntern2(objRefs, securityScopes);
+			}
+		});
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected List<PrivilegeResult> getPrivilegesIntern(IObjRef[] objRefs, ISecurityScope[] securityScopes)
+	protected List<PrivilegeResult> getPrivilegesIntern2(IObjRef[] objRefs, ISecurityScope[] securityScopes)
 	{
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		HashSet<Class<?>> requestedTypes = new HashSet<Class<?>>();
