@@ -1,6 +1,8 @@
 package de.osthus.ambeth.privilege.model;
 
-public class PrivilegeItem implements IPrivilegeItem
+import de.osthus.ambeth.util.IPrintable;
+
+public class PrivilegeItem implements IPrivilegeItem, IPrintable
 {
 	public static final PrivilegeItem DENY_ALL = new PrivilegeItem(new PrivilegeEnum[5]);
 
@@ -49,5 +51,23 @@ public class PrivilegeItem implements IPrivilegeItem
 	public boolean isExecutionAllowed()
 	{
 		return PrivilegeEnum.EXECUTE_ALLOWED.equals(privileges[EXECUTION_INDEX]);
+	}
+
+	@Override
+	public final String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append(isReadAllowed() ? "+R" : "-R");
+		sb.append(isCreateAllowed() ? "+C" : "-C");
+		sb.append(isUpdateAllowed() ? "+U" : "-U");
+		sb.append(isDeleteAllowed() ? "+D" : "-D");
+		sb.append(isExecutionAllowed() ? "+X" : "-X");
 	}
 }

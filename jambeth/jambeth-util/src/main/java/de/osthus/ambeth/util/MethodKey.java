@@ -2,7 +2,7 @@ package de.osthus.ambeth.util;
 
 import java.util.Arrays;
 
-public class MethodKey
+public class MethodKey implements IPrintable
 {
 	protected final String methodName;
 
@@ -55,5 +55,28 @@ public class MethodKey
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append("MethodKey: ").append(methodName).append('(');
+		for (int a = 0, size = parameterTypes.length; a < size; a++)
+		{
+			if (a > 0)
+			{
+				sb.append(", ");
+			}
+			sb.append(parameterTypes[a].getName());
+		}
+		sb.append(')');
 	}
 }

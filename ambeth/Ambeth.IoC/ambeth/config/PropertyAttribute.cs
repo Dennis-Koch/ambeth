@@ -7,6 +7,11 @@ namespace De.Osthus.Ambeth.Config
     {
         public const String DEFAULT_VALUE = "##unspecified##";
 
+        public PropertyAttribute() : this(DEFAULT_VALUE)
+        {
+            // intended blank
+        }
+
         public PropertyAttribute(String name)
         {
             Name = name;
