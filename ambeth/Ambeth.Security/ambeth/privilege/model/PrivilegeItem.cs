@@ -1,8 +1,10 @@
-﻿using System;
+﻿using De.Osthus.Ambeth.Util;
+using System;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Privilege.Model
 {
-    public class PrivilegeItem : IPrivilegeItem
+    public class PrivilegeItem : IPrivilegeItem, IPrintable
     {
         public static readonly PrivilegeItem DENY_ALL = new PrivilegeItem(new PrivilegeEnum[4]);
 
@@ -61,6 +63,22 @@ namespace De.Osthus.Ambeth.Privilege.Model
             {
                 return PrivilegeEnum.EXECUTE_ALLOWED.Equals(privileges[EXECUTION_INDEX]);
             }
+        }
+
+        public override String ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            ToString(sb);
+            return sb.ToString();
+        }
+
+        public void ToString(StringBuilder sb)
+        {
+            sb.Append(ReadAllowed ? "+R" : "-R");
+            sb.Append(CreateAllowed ? "+C" : "-C");
+            sb.Append(UpdateAllowed ? "+U" : "-U");
+            sb.Append(DeleteAllowed ? "+D" : "-D");
+            sb.Append(ExecutionAllowed ? "+X" : "-X");
         }
     }
 }

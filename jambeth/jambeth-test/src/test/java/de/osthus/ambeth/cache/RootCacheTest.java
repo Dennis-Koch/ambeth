@@ -25,8 +25,8 @@ import de.osthus.ambeth.ObjectMother;
 import de.osthus.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.ILoadContainer;
-import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.rootcachevalue.DefaultRootCacheValue;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -41,6 +41,7 @@ import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.CompositeIdModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.ServiceModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -56,7 +57,6 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
 import de.osthus.ambeth.util.DirectValueHolderRef;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheWeakActive, value = "false"),
@@ -66,65 +66,26 @@ import de.osthus.ambeth.util.ReflectUtil;
 @TestRebuildContext
 public class RootCacheTest extends AbstractIocTest
 {
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
 	protected IEntityFactory entityFactory;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IFirstLevelCacheManager firstLevelCacheManager;
 
+	@Autowired(CacheModule.COMMITTED_ROOT_CACHE)
 	protected RootCache fixture;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(entityFactory, "entityFactory");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(firstLevelCacheManager, "firstLevelCacheManager");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-		ParamChecker.assertNotNull(proxyHelper, "proxyHelper");
-
-		fixture = beanContext.getService(CacheModule.COMMITTED_ROOT_CACHE, RootCache.class);
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
-		this.entityFactory = entityFactory;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setFirstLevelCacheManager(IFirstLevelCacheManager firstLevelCacheManager)
-	{
-		this.firstLevelCacheManager = firstLevelCacheManager;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
 
 	@Test
 	public final void testSize()
@@ -282,7 +243,8 @@ public class RootCacheTest extends AbstractIocTest
 		material1.setUnit(unit);
 
 		IObjRef material1ObjRef = oriHelper.entityToObjRef(material1);
-		List<IObjRef> orisToGet = new ArrayList<IObjRef>(new IObjRef[] { material1ObjRef, oriHelper.entityToObjRef(material2), new ObjRef(Material.class, 2, 1) });
+		List<IObjRef> orisToGet = new ArrayList<IObjRef>(
+				new IObjRef[] { material1ObjRef, oriHelper.entityToObjRef(material2), new ObjRef(Material.class, 2, 1) });
 
 		CacheRetrieverFake cacheRetriever = new CacheRetrieverFake();
 		cacheRetriever.entities.put(material1ObjRef, entityToLoadContainer(material1));

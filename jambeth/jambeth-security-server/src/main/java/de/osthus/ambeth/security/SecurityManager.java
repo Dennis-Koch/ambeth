@@ -315,7 +315,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	// }
 
 	@Override
-	public void checkServiceAccess(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
+	public void checkMethodAccess(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
 	{
 		CallPermission callPermission = filterService(method, arguments, securityContextType, userHandle);
 		if (callPermission == CallPermission.FORBIDDEN)

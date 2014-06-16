@@ -223,10 +223,10 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	}
 
 	@Override
-	protected org.junit.runners.model.Statement withBeforeClassesWithinContext(final org.junit.runners.model.Statement statement)
+	protected org.junit.runners.model.Statement withBeforeClasses(org.junit.runners.model.Statement statement)
 	{
 		checkOS();
-		return super.withBeforeClassesWithinContext(statement);
+		return super.withBeforeClasses(statement);
 	}
 
 	@Override

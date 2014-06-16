@@ -59,23 +59,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		rebuildContext(null);
 	}
 
-	@Override
-	protected final Statement withBeforeClasses(Statement statement)
-	{
-		final Statement withBeforeClasses = withBeforeClassesWithinContext(statement);
-		return new Statement()
-		{
-
-			@Override
-			public void evaluate() throws Throwable
-			{
-				rebuildContext(null);
-
-				withBeforeClasses.evaluate();
-			}
-		};
-	}
-
 	public void disposeContext()
 	{
 		if (testClassLevelContext != null)
@@ -234,11 +217,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		childContextFactory.registerExternalBean(new TestContext(this)).autowireable(ITestContext.class);
 	}
 
-	protected Statement withBeforeClassesWithinContext(Statement statement)
-	{
-		return super.withBeforeClasses(statement);
-	}
-
 	@Override
 	protected final Statement withAfterClasses(Statement statement)
 	{
@@ -265,14 +243,25 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	protected Object createTest() throws Exception
 	{
 		Class<?> javaClass = getTestClass().getJavaClass();
-		if (IRunnerAware.class.isAssignableFrom(javaClass))
+		return javaClass.newInstance();
+	}
+
+	@Override
+	protected Statement methodInvoker(FrameworkMethod method, Object test)
+	{
+		if (beanContext == null)
 		{
-			return beanContext.registerAnonymousBean(javaClass).propertyValue("Runner", this).finish();
+			rebuildContext(method);
+		}
+		if (IRunnerAware.class.isAssignableFrom(test.getClass()))
+		{
+			test = beanContext.registerWithLifecycle(test).propertyValue("Runner", this).finish();
 		}
 		else
 		{
-			return beanContext.registerAnonymousBean(javaClass).finish();
+			test = beanContext.registerWithLifecycle(test).finish();
 		}
+		return super.methodInvoker(method, test);
 	}
 
 	@Override

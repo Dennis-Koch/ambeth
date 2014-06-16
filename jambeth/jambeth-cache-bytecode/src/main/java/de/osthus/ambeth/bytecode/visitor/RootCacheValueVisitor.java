@@ -16,6 +16,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class RootCacheValueVisitor extends ClassGenerator
 {
@@ -216,6 +217,8 @@ public class RootCacheValueVisitor extends ClassGenerator
 		{
 			final FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
+			ITypeInfoItem member = primitiveMembers[primitiveIndex];
+			final Class<?> originalType = member.getRealType();
 
 			Label l_itemIsNull = mv.newLabel();
 			Label l_finish = mv.newLabel();
@@ -234,7 +237,31 @@ public class RootCacheValueVisitor extends ClassGenerator
 				public void execute(MethodGenerator mg)
 				{
 					mg.loadLocal(loc_item);
-					mg.unbox(f_primitive.getType());
+					if (java.util.Date.class.equals(originalType))
+					{
+						// simple unboxing would result in a ClassCast with Date beeing casted to Number
+						// to deal with this specific case:
+						mg.ifThisInstanceOf(java.util.Date.class, new Script()
+						{
+							@Override
+							public void execute(MethodGenerator mg)
+							{
+								mg.checkCast(java.util.Date.class);
+								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, java.util.Date.class, "getTime")));
+							}
+						}, new Script()
+						{
+							@Override
+							public void execute(MethodGenerator mg)
+							{
+								mg.unbox(f_primitive.getType());
+							}
+						});
+					}
+					else
+					{
+						mg.unbox(f_primitive.getType());
+					}
 				}
 			});
 

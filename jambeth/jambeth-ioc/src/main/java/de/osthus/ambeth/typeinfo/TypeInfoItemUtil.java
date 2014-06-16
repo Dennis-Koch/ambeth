@@ -18,6 +18,10 @@ public final class TypeInfoItemUtil
 		{
 			if (!(genericType instanceof ParameterizedType))
 			{
+				if (genericType instanceof Class)
+				{
+					return (Class<?>) genericType;
+				}
 				return Object.class;
 			}
 			ParameterizedType castedType = (ParameterizedType) genericType;
@@ -29,9 +33,14 @@ public final class TypeInfoItemUtil
 				{
 					propertyType = (Class<?>) ((ParameterizedType) actualType).getRawType();
 				}
-				else if (actualType instanceof TypeVariable || actualType instanceof WildcardType)
+				else if (actualType instanceof TypeVariable)
 				{
 					return Object.class;
+				}
+				else if (actualType instanceof WildcardType)
+				{
+					Type[] upperBounds = ((WildcardType) actualType).getUpperBounds();
+					return getElementTypeUsingReflection(propertyType, upperBounds[0]);
 				}
 				else
 				{
