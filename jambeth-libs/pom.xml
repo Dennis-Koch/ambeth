@@ -10,10 +10,11 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.13</version>
 	</parent>
 
 	<modules>
+		<module>jambeth-junit-categories</module>
 		<module>jambeth-weblib-extjs</module>
 		<module>jambeth-weblib-teechart</module>
 	</modules>
