@@ -1,4 +1,4 @@
-package de.osthus.ambeth.relations.one.lazy.fk.reverse.none;
+package de.osthus.ambeth.relations.one.lazy.fk.forward.none;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -16,12 +16,12 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/reverse/none/orm.xml")
-public class OneLazyFkNoReverseRelationsTest extends AbstractRelationsTest
+@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/forward/none/orm.xml")
+public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 {
-	protected static final int ENTITY_A_ID = 1;
+	protected static final int ENTITY_A_ID = 11;
 
-	protected static final int ENTITY_B_ID = 11;
+	protected static final int ENTITY_B_ID = 1;
 
 	@Test
 	public void testRetrieve()

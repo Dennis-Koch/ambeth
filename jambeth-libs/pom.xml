@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.13</version>
+		<version>0.0.15</version>
 	</parent>
 
 	<modules>
@@ -19,19 +19,11 @@
 		<module>jambeth-weblib-teechart</module>
 	</modules>
 
-	<distributionManagement>
-		<repository>
-			<id>ambeth</id>
-			<name>ambeth</name>
-			<url>http://nexus/nexus/content/repositories/ambeth/</url>
-		</repository>
-	</distributionManagement>
-
 	<repositories>
-		<!-- Currently needed to get the osthus-pom -->
+		<!-- Location of the osthus-pom -->
 		<repository>
-			<id>allotrope-releases</id>
-			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<id>ambeth-releases</id>
+			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
