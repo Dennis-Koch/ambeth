@@ -6,8 +6,6 @@ import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.category.PerformanceTests;
@@ -19,10 +17,6 @@ public class IocPerformanceTest extends AbstractIocTest
 	public static final String count_prop = "count_prop";
 
 	private static final int count = 100000;
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Test
 	@TestProperties(name = IocPerformanceTest.count_prop, value = "" + count)

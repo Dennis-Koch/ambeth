@@ -5,8 +5,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ de.osthus.ambeth.persistence.noversion.NoVersionTest.class })
+@SuiteClasses({ de.osthus.ambeth.persistence.noversion.NoVersionTest.class, //
+		de.osthus.ambeth.persistence.find.FinderTest.class })
 public class AllTestPersistenceTests
 {
-
 }
