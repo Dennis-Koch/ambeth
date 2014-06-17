@@ -15,6 +15,7 @@ import javax.persistence.PessimisticLockException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
@@ -58,10 +59,12 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.threading.ProcessIdHelper;
 import de.osthus.ambeth.util.MeasurementUtil;
 import de.osthus.ambeth.util.ParamHolder;
 
+@Category(PerformanceTests.class)
 @TestModule({ TestServicesModule.class, QueryMassDataModule.class })
 @SQLDataRebuild(false)
 @SQLData("QueryMassdata_data.sql")
