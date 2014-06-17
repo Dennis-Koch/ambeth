@@ -28,6 +28,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.service.AllServiceTests.class, //
 		de.osthus.ambeth.testutil.AllTestUtilTests.class, //
 		de.osthus.ambeth.testutil.AllTestUtilPersistenceTests.class, //
+		de.osthus.ambeth.util.LongIdTest.class, //
 		de.osthus.ambeth.xml.AllXmlTests.class, //
 		de.osthus.ambeth.xml.oriwrapper.AllOriWrapperTests.class })
 public class AllAmbethTests
