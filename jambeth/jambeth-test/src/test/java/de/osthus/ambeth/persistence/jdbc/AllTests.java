@@ -32,7 +32,7 @@ import de.osthus.ambeth.persistence.xml.RelationsTest;
 		ConnectionTest.class, ConnectionHandlingTest.class, CompositeIdExternalEntityTest.class, IgnoreTableTest.class, InterfaceEntityTest.class,
 		JDBCDatabaseTest.class, MapperTest.class, MapperPerformanceTest.class, MasterDetailTest.class, MultiEventTest.class, OptimisticLockTest.class,
 		RelationsTest.class, RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class, RootCacheInvalidationTest.class,
-		SecondLevelCacheTest.class, SplitLoadingTest.class, SynonymTest.class })
+		SecondLevelCacheTest.class, SplitLoadingTest.class, SqlInjectionTest.class, SynonymTest.class })
 public class AllTests
 {
 

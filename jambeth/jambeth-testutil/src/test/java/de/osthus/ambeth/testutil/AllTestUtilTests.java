@@ -7,7 +7,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import de.osthus.ambeth.testutil.contextstore.ServiceContextStoreTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ ServiceContextStoreTest.class })
+@SuiteClasses({ ServiceContextStoreTest.class, TestContextTest.class })
 public class AllTestUtilTests
 {
 }

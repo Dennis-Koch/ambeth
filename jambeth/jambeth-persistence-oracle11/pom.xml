@@ -28,4 +28,11 @@
 		</dependency>
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>allotrope-releases</id>
+			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+		</repository>
+	</repositories>
+
 </project>

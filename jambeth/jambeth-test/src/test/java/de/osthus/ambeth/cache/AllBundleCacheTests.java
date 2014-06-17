@@ -10,7 +10,8 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.cache.RootCacheTest.class, //
 		de.osthus.ambeth.cache.ChildCacheTest.class, //
 		de.osthus.ambeth.cache.cacheretriever.CacheRetrieverRegistryTest.class, //
-		de.osthus.ambeth.cache.directobjref.ChildCacheDirectObjRefTest.class })
+		de.osthus.ambeth.cache.directobjref.ChildCacheDirectObjRefTest.class, //
+		de.osthus.ambeth.cache.valueholdercontainer.ValueHolderContainerTest.class })
 public class AllBundleCacheTests
 {
 
