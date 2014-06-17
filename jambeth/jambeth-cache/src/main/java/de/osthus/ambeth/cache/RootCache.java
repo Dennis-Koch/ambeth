@@ -49,7 +49,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
-import de.osthus.ambeth.privilege.model.IPrivilegeItem;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.ICacheRetriever;
@@ -865,7 +864,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			ICacheIntern targetCache, boolean checkVersion)
 	{
 		boolean loadContainerResult = cacheDirective.contains(CacheDirective.LoadContainerResult);
-		boolean cacheValueResult = cacheDirective.contains(CacheDirective.CacheValueResult) || (targetCache == this);
+		boolean cacheValueResult = cacheDirective.contains(CacheDirective.CacheValueResult) || targetCache == this;
 		if (targetCache == null && !loadContainerResult && !cacheValueResult)
 		{
 			return null;
@@ -882,22 +881,22 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		try
 		{
-			if (privilegeProvider != null && securityActivation.isFilterActivated())
-			{
-				IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(orisToGet, securityScopeProvider.getSecurityScopes());
-				ArrayList<IObjRef> permittedObjRefs = new ArrayList<IObjRef>(orisToGet.size());
-				for (int a = 0, size = orisToGet.size(); a < size; a++)
-				{
-					IPrivilegeItem privilege = privileges.get(a);
-					if (!privilege.isReadAllowed())
-					{
-						permittedObjRefs.add(null);
-						continue;
-					}
-					permittedObjRefs.add(orisToGet.get(a));
-				}
-				orisToGet = permittedObjRefs;
-			}
+			// if (privilegeProvider != null && securityActivation.isFilterActivated())
+			// {
+			// IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(orisToGet, securityScopeProvider.getSecurityScopes());
+			// ArrayList<IObjRef> permittedObjRefs = new ArrayList<IObjRef>(orisToGet.size());
+			// for (int a = 0, size = orisToGet.size(); a < size; a++)
+			// {
+			// IPrivilegeItem privilege = privileges.get(a);
+			// if (!privilege.isReadAllowed())
+			// {
+			// permittedObjRefs.add(null);
+			// continue;
+			// }
+			// permittedObjRefs.add(orisToGet.get(a));
+			// }
+			// orisToGet = permittedObjRefs;
+			// }
 			ArrayList<Object> result = new ArrayList<Object>();
 			ArrayList<IObjRef> tempObjRefList = null;
 			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
