@@ -38,9 +38,6 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
-import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.config.IBeanConfiguration;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -48,8 +45,6 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
-import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.query.QueryMassdataTest.QueryMassDataModule;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
@@ -103,33 +98,6 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 	public static final String QUERY_PAGE_SIZE = "QueryMassdataTest.query.pagesize";
 
 	public static final String ROW_COUNT = "QueryMassdataTest.rowcount";
-
-	public static class QueryMassDataModule implements IInitializingModule
-	{
-		protected IProxyFactory proxyFactory;
-
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAnonymousBean(IQueryEntityCRUD.class).autowireable(IQueryEntityCRUD.class);
-
-			IBeanConfiguration queryBeanBC = beanContextFactory.registerBean("myQuery1", QueryBean.class);
-			queryBeanBC.propertyValue("EntityType", QueryEntity.class);
-			queryBeanBC.propertyValue("QueryCreator", new IQueryCreator()
-			{
-				@Override
-				public <T> IQuery<T> createCustomQuery(IQueryBuilder<T> qb)
-				{
-					return qb.build();
-				}
-			});
-		}
-
-		public void setProxyFactory(IProxyFactory proxyFactory)
-		{
-			this.proxyFactory = proxyFactory;
-		}
-	}
 
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
