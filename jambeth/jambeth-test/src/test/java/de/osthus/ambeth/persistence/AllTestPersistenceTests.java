@@ -11,6 +11,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.persistence.schema.RandomUserTest.class, //
 		de.osthus.ambeth.persistence.schema.SingleRandomUserTest.class, //
 		de.osthus.ambeth.persistence.validation.PropertyMappingValidationTest.class, //
+		de.osthus.ambeth.persistence.jdbc.bigstatements.BigStatementTest.class,//
 		de.osthus.ambeth.persistence.jdbc.setup.TestSetupTest.class, //
 		de.osthus.ambeth.persistence.find.FinderTest.class })
 public class AllTestPersistenceTests

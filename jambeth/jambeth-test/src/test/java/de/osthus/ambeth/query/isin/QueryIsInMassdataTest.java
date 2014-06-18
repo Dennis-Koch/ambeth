@@ -4,10 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.query.isin.QueryIsInMassdataTest.QueryIsInMassdataTestModule;
 import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
@@ -41,17 +38,6 @@ import de.osthus.ambeth.util.ParamChecker;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.MergeService", value = "INFO") })
 public class QueryIsInMassdataTest extends AbstractPersistenceTest
 {
-	public static class QueryIsInMassdataTestModule implements IInitializingModule
-	{
-
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAnonymousBean(ChildService.class).autowireable(IChildService.class);
-		}
-
-	}
-
 	protected static long timeForEquals = 0;
 
 	protected static long timeForIsIn = 0;

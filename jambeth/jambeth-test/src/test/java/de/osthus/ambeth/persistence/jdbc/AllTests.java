@@ -35,5 +35,4 @@ import de.osthus.ambeth.persistence.xml.RelationsTest;
 		SecondLevelCacheTest.class, SplitLoadingTest.class, SqlInjectionTest.class, SynonymTest.class })
 public class AllTests
 {
-
 }
