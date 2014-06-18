@@ -15,20 +15,16 @@ import java.util.List;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import de.osthus.ambeth.cache.CacheRetrieverRegistryTest.CacheRetrieverTestModule;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.transfer.ObjRelation;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.exception.ExtendableException;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.merge.EntityMetaDataFake;
-import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.service.ICacheRetriever;
@@ -36,51 +32,13 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestRebuildContext;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule(CacheRetrieverTestModule.class)
 @TestRebuildContext(true)
 public class CacheRetrieverRegistryTest extends AbstractIocTest
 {
-	public static class CacheRetrieverTestModule implements IInitializingModule
-	{
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			EntityMetaDataFake entityMetaDataProvider = new EntityMetaDataFake();
-			entityMetaDataProvider.addMetaData(Date.class, new PropertyInfoItem(new MethodPropertyInfo(Date.class, "Time", Date.class.getMethod("getTime"),
-					Date.class.getMethod("setTime", long.class))), null, new ITypeInfoItem[0], new IRelationInfoItem[0]);
-
-			beanContextFactory.registerWithLifecycle(entityMetaDataProvider).autowireable(IEntityMetaDataProvider.class);
-
-			beanContextFactory.registerBean("cacheRetrieverRegistry", CacheRetrieverRegistry.class).propertyRef("DefaultCacheRetriever", "cr1")
-					.autowireable(ICacheRetriever.class, ICacheRetrieverExtendable.class, CacheRetrieverRegistry.class);
-
-			CacheRetrieverFake cr1 = new CacheRetrieverFake();
-			CacheRetrieverFake cr2 = new CacheRetrieverFake();
-
-			for (int i = 0; i < 2; i++)
-			{
-				cr1.entities.put(objRefs[i], new LoadContainerFake(objRefs[i], null, null));
-			}
-			for (int i = 2; i < 4; i++)
-			{
-				cr2.entities.put(objRefs[i], new LoadContainerFake(objRefs[i], null, null));
-			}
-
-			beanContextFactory.registerWithLifecycle("cr1", cr1);
-			beanContextFactory.registerWithLifecycle("cr2", cr2);
-
-			beanContextFactory.link("cr2").to(ICacheRetrieverExtendable.class).with(Integer.class);
-			beanContextFactory.link("cr2").to(ICacheRetrieverExtendable.class).with(Date.class);
-		}
-	}
-
-	private static final IObjRef[] objRefs = { new ObjRef(String.class, 1, 1), new ObjRef(String.class, 2, 1), new ObjRef(Integer.class, 1, 1),
+	static final IObjRef[] objRefs = { new ObjRef(String.class, 1, 1), new ObjRef(String.class, 2, 1), new ObjRef(Integer.class, 1, 1),
 			new ObjRef(Date.class, 4, 1), };
 
 	private static final IObjRelation[] objRels = { new ObjRelation(new IObjRef[] { objRefs[0] }, "Member1"),
@@ -147,7 +105,7 @@ public class CacheRetrieverRegistryTest extends AbstractIocTest
 		fixture.registerCacheRetriever(cacheRetriever2, Integer.class);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = ExtendableException.class)
 	public void testUnregisterCacheRetriever_wrongService()
 	{
 		fixture.unregisterCacheRetriever(cacheRetriever1, Integer.class);
