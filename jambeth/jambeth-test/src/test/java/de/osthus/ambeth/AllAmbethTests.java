@@ -1,10 +1,14 @@
 package de.osthus.ambeth;
 
+import org.junit.experimental.categories.Categories.ExcludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import de.osthus.ambeth.testutil.category.SlowTests;
+
 @RunWith(Suite.class)
+@ExcludeCategory(SlowTests.class)
 @SuiteClasses({ de.osthus.ambeth.cache.AllBundleCacheTests.class, //
 		de.osthus.ambeth.bytecode.AllBytecodeTests.class, //
 		de.osthus.ambeth.AllCacheServerTests.class, //

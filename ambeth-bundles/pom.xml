@@ -7,13 +7,11 @@
 	<packaging>pom</packaging>
 	<version>2.1.X-SNAPSHOT</version>
 
-<!-- 
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.17</version>
 	</parent>
-  -->
   
  	<properties>
 		<build.number>X-SNAPSHOT</build.number>
