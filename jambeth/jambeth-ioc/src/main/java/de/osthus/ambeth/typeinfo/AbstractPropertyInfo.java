@@ -55,8 +55,8 @@ public abstract class AbstractPropertyInfo implements IPropertyInfoIntern, IPrin
 		if (obj instanceof Method)
 		{
 			Class<?> baseType = ((Method) obj).getDeclaringClass().getSuperclass();
-			Method overriddenMethod = baseType != null ? ReflectUtil.getDeclaredMethod(true, baseType, ((Method) obj).getName(),
-					((Method) obj).getParameterTypes()) : null;
+			Method overriddenMethod = baseType != null ? ReflectUtil.getDeclaredMethod(true, baseType, ((Method) obj).getReturnType(),
+					((Method) obj).getName(), ((Method) obj).getParameterTypes()) : null;
 			if (overriddenMethod != null)
 			{
 				putAnnotations(overriddenMethod);

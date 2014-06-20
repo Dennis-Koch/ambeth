@@ -98,6 +98,10 @@
       <Project>{fd72ac81-65e4-46ce-ad09-efdabc84f384}</Project>
       <Name>Ambeth.DataChange</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event.DataChange\Ambeth.Event.DataChange.csproj">
+      <Project>{1ec86005-0bf5-46ee-bc69-172adabdb858}</Project>
+      <Name>Ambeth.Event.DataChange</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
       <Project>{cf078f90-70fb-49bb-842f-d5b78d415108}</Project>
       <Name>Ambeth.Event</Name>

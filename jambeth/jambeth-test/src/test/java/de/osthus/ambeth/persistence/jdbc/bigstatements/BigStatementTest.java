@@ -12,6 +12,7 @@ import org.junit.Test;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.merge.IMergeProcess;
@@ -23,7 +24,6 @@ import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
@@ -31,7 +31,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "orm.xml"),
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.JdbcTable", value = "INFO") })

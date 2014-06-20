@@ -1,9 +1,9 @@
 package de.osthus.ambeth.relations.one.lazy.fk.reverse.none;
 
-import de.osthus.ambeth.service.config.ConfigurationConstants;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.testutil.TestProperties;
 
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/reverse/none/other-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/reverse/none/other-orm.xml")
 public class OtherOneLazyFkNoReverseRelationsTest extends OneLazyFkNoReverseRelationsTest
 {
 	@Override

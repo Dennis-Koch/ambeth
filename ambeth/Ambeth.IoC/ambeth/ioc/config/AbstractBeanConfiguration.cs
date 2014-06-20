@@ -5,6 +5,7 @@ using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Link;
+using System.Diagnostics;
 
 namespace De.Osthus.Ambeth.Ioc.Config
 {
@@ -42,7 +43,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
 
         protected PrecedenceType precedenceValue = PrecedenceType.DEFAULT;
 
-        protected String declarationStackTrace;
+        protected StackFrame[] declarationStackTrace;
 
         public AbstractBeanConfiguration(String beanName, IProperties props)
         {
@@ -51,7 +52,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
             declarationStackTrace = AbstractPropertyConfiguration.GetCurrentStackTraceCompact(ignoreClassNames, props);
         }
 
-        public String GetDeclarationStackTrace()
+        public StackFrame[] GetDeclarationStackTrace()
         {
             return declarationStackTrace;
         }
@@ -181,7 +182,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
             }
             for (int a = 0, size = beans.Length; a < size; a++)
             {
-                PropertyRefs(beans[a]);
+                PropertyRef(beans[a]);
             }
             return this;
         }

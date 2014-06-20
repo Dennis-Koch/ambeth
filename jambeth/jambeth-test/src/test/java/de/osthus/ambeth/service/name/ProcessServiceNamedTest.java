@@ -6,13 +6,13 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -22,7 +22,7 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 import de.osthus.ambeth.xml.IXmlTypeExtendable;
 
 @SQLStructure("../ProcessServiceTest_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceNamedTestModule.class })
 public class ProcessServiceNamedTest extends AbstractPersistenceTest
 {

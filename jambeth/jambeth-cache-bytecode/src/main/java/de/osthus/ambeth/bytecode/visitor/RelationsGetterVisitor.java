@@ -15,6 +15,7 @@ import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ValueHolderIEC;
 import de.osthus.ambeth.cache.ValueHolderIEC.ValueHolderContainerEntry;
 import de.osthus.ambeth.cache.ValueHolderState;
+import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -44,33 +45,34 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	private static final Type stateType = Type.getType(ValueHolderState.class);
 
-	private static final PropertyInstance p_template_targetCache = PropertyInstance.findByTemplate(IValueHolderContainer.class, "__TargetCache", false);
+	private static final PropertyInstance p_template_targetCache = PropertyInstance.findByTemplate(IValueHolderContainer.class, "__TargetCache",
+			ICacheIntern.class, false);
 
-	private static final MethodInstance m_vhce_getState_Member = new MethodInstance(null, ValueHolderContainerEntry.class, "getState", Object.class,
+	private static final MethodInstance m_vhce_getState_Member = new MethodInstance(null, ValueHolderContainerEntry.class, ValueHolderState.class, "getState",
+			Object.class, IRelationInfoItem.class);
+
+	private static final MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, IObjRef[].class, "getObjRefs",
+			Object.class, IRelationInfoItem.class);
+
+	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IValueHolderContainer.class, ValueHolderState.class,
+			"get__State", IRelationInfoItem.class);
+
+	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IValueHolderContainer.class, IObjRef[].class, "get__ObjRefs",
 			IRelationInfoItem.class);
 
-	private static final MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, "getObjRefs", Object.class,
-			IRelationInfoItem.class);
+	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, IObjRelation.class, "getSelf", Object.class, String.class);
 
-	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IValueHolderContainer.class, "get__State",
-			IRelationInfoItem.class);
-
-	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IValueHolderContainer.class, "get__ObjRefs",
-			IRelationInfoItem.class);
-
-	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, "getSelf", Object.class, String.class);
-
-	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, "getValue", Object.class, IRelationInfoItem[].class,
-			int.class, ICacheIntern.class, IObjRef[].class);
+	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, Object.class, "getValue", Object.class,
+			IRelationInfoItem[].class, int.class, ICacheIntern.class, IObjRef[].class);
 
 	public static PropertyInstance getValueHolderContainerTemplatePI(ClassGenerator cv)
 	{
-		PropertyInstance pi = getState().getProperty(templatePropertyName);
+		Object bean = getState().getBeanContext().getService(templateType);
+		PropertyInstance pi = getState().getProperty(templatePropertyName, bean.getClass());
 		if (pi != null)
 		{
 			return pi;
 		}
-		Object bean = getState().getBeanContext().getService(templateType);
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
@@ -396,7 +398,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	protected void implementSelfGetter(PropertyInstance p_valueHolderContainerTemplate)
 	{
 		Type owner = BytecodeBehaviorState.getState().getNewType();
-		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, "get__Self", String.class);
+		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", String.class);
 		{
 			// public IObjRelation getSelf(String memberName)
 			// {
@@ -417,11 +419,11 @@ public class RelationsGetterVisitor extends ClassGenerator
 			// {
 			// return getSelf(member.getName());
 			// }
-			MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, "get__Self", IRelationInfoItem.class);
+			MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", IRelationInfoItem.class);
 			MethodGenerator mv = visitMethod(method);
 			mv.loadThis();
 			mv.loadArg(0);
-			mv.invokeInterface(new MethodInstance(null, INamed.class, "getName"));
+			mv.invokeInterface(new MethodInstance(null, INamed.class, String.class, "getName"));
 			mv.invokeVirtual(m_getSelf);
 			mv.returnValue();
 			mv.endMethod();
@@ -471,7 +473,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			PropertyInstance p_cacheModification = SetCacheModificationMethodCreator.getCacheModificationPI(this);
 			final MethodInstance m_getMethod_scoped = new MethodInstance(BytecodeBehaviorState.getState().getNewType(),
-					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, m_getMethod_template.getName() + "$getValue", null, Type.VOID_TYPE);
+					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, Type.VOID_TYPE, m_getMethod_template.getName() + "$getValue", null);
 			{
 				MethodGenerator mg = super.visitMethod(m_getMethod_scoped);
 
@@ -526,7 +528,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			MethodInstance m_getNoInit = m_getMethod_template.deriveName(ValueHolderIEC.getGetterNameOfRelationPropertyWithNoInit(propertyName));
 			MethodGenerator mg = super.visitMethod(m_getNoInit);
-			PropertyInstance p_getNoInit = PropertyInstance.findByTemplate(propertyName + ValueHolderIEC.getNoInitSuffix(), false);
+			PropertyInstance p_getNoInit = PropertyInstance.findByTemplate(propertyName + ValueHolderIEC.getNoInitSuffix(), m_getNoInit.getReturnType(), false);
 			p_getNoInit.addAnnotation(c_fireThisOPC, propertyName);
 			p_getNoInit.addAnnotation(c_fireTargetOPC, propertyName);
 			mg.loadThis();

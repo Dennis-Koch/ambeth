@@ -6,6 +6,8 @@ using De.Osthus.Ambeth.Ioc.Link;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 
 namespace De.Osthus.Ambeth.Ioc.Config
@@ -27,12 +29,12 @@ namespace De.Osthus.Ambeth.Ioc.Config
             ignoreClassNames.AddAll(AbstractBeanConfiguration.ignoreClassNames);
         }
 
-        public static String GetCurrentStackTraceCompact()
+        public static StackFrame[] GetCurrentStackTraceCompact()
         {
             return GetCurrentStackTraceCompactIntern(null);
         }
 
-        public static String GetCurrentStackTraceCompact(ISet<String> ignoreClassNames, IProperties props)
+        public static StackFrame[] GetCurrentStackTraceCompact(ISet<String> ignoreClassNames, IProperties props)
         {
             if (props == null || !Boolean.Parse(props.GetString(IocConfigurationConstants.TrackDeclarationTrace, "false")))
             {
@@ -42,70 +44,53 @@ namespace De.Osthus.Ambeth.Ioc.Config
             return GetCurrentStackTraceCompactIntern(ignoreClassNames);
         }
 
-        protected static String GetCurrentStackTraceCompactIntern(ISet<String> ignoreClassNames)
+        protected static StackFrame[] GetCurrentStackTraceCompactIntern(ISet<String> ignoreClassNames)
         {
-            try
+            StackFrame[] stes = new StackTrace().GetFrames();
+            int start = 0, end = stes.Length;
+            if (ignoreClassNames != null && ignoreClassNames.Count > 0)
             {
-                throw new TempStacktraceException();
+                for (int a = 0, size = stes.Length; a < size; a++)
+                {
+                    StackFrame ste = stes[a];
+                    if (!ignoreClassNames.Contains(ste.GetMethod().DeclaringType.FullName))
+                    {
+                        start = a;
+                        break;
+                    }
+                }
             }
-            catch (TempStacktraceException e)
+            StringBuilder sb = new StringBuilder();
+            for (int a = start, size = stes.Length; a < size; a++)
             {
-                return e.StackTrace;
+                StackFrame ste = stes[a];
+                String fileName = ste.GetMethod().DeclaringType.FullName;
+                if (fileName.StartsWith("org.eclipse.jdt"))
+                {
+                    end = a;
+                    break;
+                }
+                if (a != start)
+                {
+                    sb.Append('\n');
+                }
+                sb.Append(fileName).Append('.').Append(ste.GetMethod().Name);
+                //if (ste.GetMethod().is.isNativeMethod())
+                //{
+                //    sb.Append("(Native Method)");
+                //}
+                if (ste.GetFileLineNumber() >= 0)
+                {
+                    sb.Append(':').Append(ste.GetFileLineNumber()).Append(')');
+                }
+                sb.Append(ste);
             }
-            //StackTraceElement[] stes = Thread.currentThread().getStackTrace();
-            //int start = 0, end = stes.length;
-            //if (ignoreClassNames != null && ignoreClassNames.size() > 0)
-            //{
-            //    for (int a = 0, size = stes.length; a < size; a++)
-            //    {
-            //        StackTraceElement ste = stes[a];
-            //        if (!ignoreClassNames.contains(ste.getClassName()))
-            //        {
-            //            start = a;
-            //            break;
-            //        }
-            //    }
-            //}
-            //StringBuilder sb = new StringBuilder();
-            //for (int a = start, size = stes.length; a < size; a++)
-            //{
-            //    StackTraceElement ste = stes[a];
-            //    if (ste.getClassName().startsWith("org.eclipse.jdt"))
-            //    {
-            //        end = a;
-            //        break;
-            //    }
-            //    if (a != start)
-            //    {
-            //        sb.append('\n');
-            //    }
-            //    sb.append(ste.getClassName()).append('.').append(ste.getMethodName());
-            //    if (ste.isNativeMethod())
-            //    {
-            //        sb.append("(Native Method)");
-            //    }
-            //    else if (ste.getFileName() != null)
-            //    {
-            //        sb.append('(').append(ste.getFileName());
-            //        if (ste.getLineNumber() >= 0)
-            //        {
-            //            sb.append(':').append(ste.getLineNumber()).append(')');
-            //        }
-            //        else
-            //        {
-            //            sb.append(')');
-            //        }
-            //    }
-            //    else
-            //    {
-            //        sb.append("(Unknown Source)");
-            //    }
-            //    sb.append(ste);
-            //}
-            //return Arrays.copyOfRange(stes, start, end);
+            StackFrame[] newFrame = new StackFrame[end - start];
+            Array.Copy(stes, start, newFrame, 0, end - start);
+            return newFrame;
         }
 
-        protected String declarationStackTrace;
+        protected StackFrame[] declarationStackTrace;
 
         protected IBeanConfiguration beanConfiguration;
 
@@ -124,7 +109,7 @@ namespace De.Osthus.Ambeth.Ioc.Config
 
         public abstract Object GetValue();
 
-        public String GetDeclarationStackTrace()
+        public StackFrame[] GetDeclarationStackTrace()
         {
             return declarationStackTrace;
         }

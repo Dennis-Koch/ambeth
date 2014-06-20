@@ -12,11 +12,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly String templatePropertyName = templateType.Name;
 
-        public static readonly PropertyInstance t_p_Parent = PropertyInstance.FindByTemplate(typeof(IEmbeddedType), "Parent", false);
+        public static readonly PropertyInstance t_p_Parent = PropertyInstance.FindByTemplate(typeof(IEmbeddedType), "Parent", typeof(Object), false);
 
-        public static readonly PropertyInstance t_p_Root = PropertyInstance.FindByTemplate(typeof(IEmbeddedType), "Root", false);
+        public static readonly PropertyInstance t_p_Root = PropertyInstance.FindByTemplate(typeof(IEmbeddedType), "Root", typeof(Object), false);
 
-        public static readonly MethodInstance m_getRoot = new MethodInstance(null, templateType, "GetRoot", typeof(IEmbeddedType));
+        public static readonly MethodInstance m_getRoot = new MethodInstance(null, templateType, typeof(Object), "GetRoot", typeof(IEmbeddedType));
 
         private static readonly String parentFieldName = "f_" + t_p_Parent.Name;
 
@@ -51,12 +51,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static PropertyInstance GetEmbeddedTypeTemplateProperty(IClassVisitor cv)
         {
-            PropertyInstance p_embeddedTypeTemplate = PropertyInstance.FindByTemplate(templatePropertyName, true);
+            Object bean = State.BeanContext.GetService<EmbeddedTypeTemplate>();
+            PropertyInstance p_embeddedTypeTemplate = PropertyInstance.FindByTemplate(templatePropertyName, NewType.GetType(bean.GetType()), true);
             if (p_embeddedTypeTemplate != null)
             {
                 return p_embeddedTypeTemplate;
             }
-            Object bean = State.BeanContext.GetService<EmbeddedTypeTemplate>();
             return cv.ImplementAssignedReadonlyProperty(templatePropertyName, bean);
         }
 

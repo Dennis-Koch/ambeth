@@ -7,9 +7,9 @@ namespace De.Osthus.Ambeth.Ioc
     {
 	    public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
 	    {
-		    beanContextFactory.RegisterBean<ClasspathScanner>("classpathScanner").Autowireable<IClasspathScanner>();
+            beanContextFactory.RegisterAnonymousBean<ClasspathScanner>().Autowireable<IClasspathScanner>();
 
-		    beanContextFactory.RegisterBean<ModuleScanner>("moduleScanner");
+		    beanContextFactory.RegisterAnonymousBean<ModuleScanner>();
 	    }
     }
 }

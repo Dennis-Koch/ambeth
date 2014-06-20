@@ -42,6 +42,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -56,6 +57,16 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\bytecode\AbstractEntity.cs" />
+    <Compile Include="ambeth\bytecode\EntityA.cs" />
+    <Compile Include="ambeth\bytecode\EntityB.cs" />
+    <Compile Include="ambeth\bytecode\EntityC.cs" />
+    <Compile Include="ambeth\bytecode\IBaseEntity.cs" />
+    <Compile Include="ambeth\bytecode\IEntityA.cs" />
+    <Compile Include="ambeth\bytecode\IEntityB.cs" />
+    <Compile Include="ambeth\bytecode\IEntityC.cs" />
+    <Compile Include="ambeth\bytecode\PublicConstructorVisitorTest.cs" />
+    <Compile Include="ambeth\bytecode\PublicConstructorVisitorTestModule.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\AbstractMaterial.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\CacheRetrieverMock.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\EmbeddedMaterial.cs" />
@@ -64,8 +75,26 @@
     <Compile Include="ambeth\cache\valueholdercontainer\MaterialType.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\ValueHolderContainerTest.cs" />
     <Compile Include="ambeth\cache\valueholdercontainer\ValueHolderContainerTestModule.cs" />
+    <Compile Include="ambeth\merge\independent\BaseEntity.cs" />
+    <Compile Include="ambeth\merge\independent\Embedded.cs" />
+    <Compile Include="ambeth\merge\independent\EntityA.cs" />
+    <Compile Include="ambeth\merge\independent\EntityAType.cs" />
+    <Compile Include="ambeth\merge\independent\EntityB.cs" />
+    <Compile Include="ambeth\merge\independent\EntityBType1.cs" />
+    <Compile Include="ambeth\merge\independent\EntityBType2.cs" />
+    <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClient20Test.cs" />
+    <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClientTest.cs" />
+    <Compile Include="ambeth\merge\independent\IndependentEntityMetaDataClientTestModule.cs" />
     <Compile Include="ambeth\test\AbstractRemoteTest.cs" />
     <Compile Include="ambeth\test\RemoteTestModule.cs" />
+    <Compile Include="ambeth\xml\CacheFactoryMock.cs" />
+    <Compile Include="ambeth\xml\CacheMock.cs" />
+    <Compile Include="ambeth\xml\CyclicXMLWriterTest.cs" />
+    <Compile Include="ambeth\xml\EmptyDummy.cs" />
+    <Compile Include="ambeth\xml\EntityFactoryMock.cs" />
+    <Compile Include="ambeth\xml\EntityMetaDataProviderMock.cs" />
+    <Compile Include="ambeth\xml\Material.cs" />
+    <Compile Include="ambeth\xml\MaterialGroup.cs" />
     <Compile Include="ambeth\xml\oriwrapper\BaseEntity.cs" />
     <Compile Include="ambeth\xml\oriwrapper\CacheRetrieverMock.cs" />
     <Compile Include="ambeth\xml\oriwrapper\EntityA.cs" />
@@ -75,6 +104,18 @@
     <Compile Include="ambeth\xml\oriwrapper\OriWrapperTestBed.cs" />
     <Compile Include="ambeth\xml\oriwrapper\OriWrapperTestModule.cs" />
     <Compile Include="ambeth\xml\oriwrapper\OriWrapperWriteTest.cs" />
+    <Content Include="ambeth\xml\postprocess\TestXmlPostProcessor.cs" />
+    <Content Include="ambeth\xml\postprocess\XmlPostProcessTest.cs" />
+    <Content Include="ambeth\xml\postprocess\XmlPostProcessTestModule.cs" />
+    <Compile Include="ambeth\xml\transfer\Compound.cs" />
+    <Compile Include="ambeth\xml\transfer\CompoundStateType.cs" />
+    <Compile Include="ambeth\xml\transfer\IOrderService.cs" />
+    <Compile Include="ambeth\xml\transfer\OrderStateType.cs" />
+    <Compile Include="ambeth\xml\transfer\OrderType.cs" />
+    <Compile Include="ambeth\xml\transfer\Ordr.cs" />
+    <Compile Include="ambeth\xml\transfer\TestEnum.cs" />
+    <Compile Include="ambeth\xml\transfer\TestXmlObject.cs" />
+    <Compile Include="ambeth\xml\XmlTestConstants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +138,10 @@
     <ProjectReference Include="..\Ambeth.DataChange\Ambeth.DataChange.csproj">
       <Project>{fd72ac81-65e4-46ce-ad09-efdabc84f384}</Project>
       <Name>Ambeth.DataChange</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Event.DataChange\Ambeth.Event.DataChange.csproj">
+      <Project>{1ec86005-0bf5-46ee-bc69-172adabdb858}</Project>
+      <Name>Ambeth.Event.DataChange</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Event\Ambeth.Event.csproj">
       <Project>{cf078f90-70fb-49bb-842f-d5b78d415108}</Project>
@@ -121,10 +166,6 @@
     <ProjectReference Include="..\Ambeth.Mapping\Ambeth.Mapping.csproj">
       <Project>{02859b45-2305-4fd2-b504-245de8e8595d}</Project>
       <Name>Ambeth.Mapping</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Ambeth.Merge.Bytecode.Test\Ambeth.Merge.Bytecode.Test.csproj">
-      <Project>{24808615-D225-4378-B691-3454625A841A}</Project>
-      <Name>Ambeth.Merge.Bytecode.Test</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Merge.Bytecode\Ambeth.Merge.Bytecode.csproj">
       <Project>{f9f3daf6-681c-4039-8f2b-ebb6e6a1b4d7}</Project>
@@ -185,6 +226,41 @@
     <EmbeddedResource Include="..\..\jambeth\jambeth-test\src\test\resources\de\osthus\ambeth\xml\oriwrapper\OriWrapperTestData.properties">
       <Link>ambeth\xml\oriwrapper\OriWrapperTestData.properties</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\testutil\AbstractInformationBusTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\ConstructorBytecodeTest.cs" />
+    <EmbeddedResource Include="ambeth\bytecode\orm.xml" />
+    <Compile Include="ambeth\bytecode\TestEntityWithNonDefaultConstructor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\bytecode\ConstructorBytecodeTest-orm.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-orm.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-orm2.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-orm20.2.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-orm20.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-vo-config.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ambeth\merge\independent\independent-vo-config2.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\xml\CyclicXmlReaderTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\transfer\Assert.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

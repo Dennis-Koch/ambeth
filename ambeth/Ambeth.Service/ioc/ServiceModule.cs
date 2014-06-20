@@ -41,12 +41,6 @@ namespace De.Osthus.Ambeth.Ioc
             {
                 TypeInfoProviderType = typeof(TypeInfoProvider);
             }
-            if (ServiceRemoteInterceptorType == null)
-            {
-                ServiceRemoteInterceptorType = typeof(SyncClientServiceInterceptorBuilder);
-            }
-            beanContextFactory.RegisterBean("clientServiceInterceptorBuilder", ServiceRemoteInterceptorType).Autowireable<IClientServiceInterceptorBuilder>();
-
             if (IsNetworkClientMode)
             {
                 beanContextFactory.RegisterBean<ServiceFactory>("serviceFactory");
@@ -56,6 +50,11 @@ namespace De.Osthus.Ambeth.Ioc
                     // Register default service url provider
                     beanContextFactory.RegisterBean<DefaultServiceUrlProvider>("serviceUrlProvider").Autowireable(typeof(IServiceUrlProvider), typeof(IOfflineListenerExtendable));
                 }
+                if (ServiceRemoteInterceptorType == null)
+                {
+                    ServiceRemoteInterceptorType = typeof(SyncClientServiceInterceptorBuilder);
+                }
+                beanContextFactory.RegisterBean("clientServiceInterceptorBuilder", ServiceRemoteInterceptorType).Autowireable<IClientServiceInterceptorBuilder>();
             }
             else if (!IsOfflineModeSupported)
             {

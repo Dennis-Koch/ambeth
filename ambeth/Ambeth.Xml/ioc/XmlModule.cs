@@ -16,9 +16,9 @@ namespace De.Osthus.Ambeth.Ioc
     [FrameworkModule]
     public class XmlModule : IInitializingModule
     {
-        public static readonly String CYCLIC_XML_HANDLER = "cyclicXmlHandler";
+        public const String CYCLIC_XML_HANDLER = "cyclicXmlHandler";
 
-        public static readonly String SIMPLE_XML_HANDLER = "simpleXmlHandler";
+        public const String SIMPLE_XML_HANDLER = "simpleXmlHandler";
 
         [LogInstance]
         public ILogger Log { private get; set; }

@@ -5,8 +5,7 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.MergeModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.service.ICacheService;
+import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 
 public class ValueHolderContainerTestModule implements IInitializingModule
 {
@@ -16,9 +15,7 @@ public class ValueHolderContainerTestModule implements IInitializingModule
 		IBeanConfiguration cacheRetrieverMockBC = beanContextFactory.registerBean(CacheModule.EXTERNAL_CACHE_SERVICE, CacheRetrieverMock.class).propertyRef(
 				"reader", MergeModule.INDEPENDENT_META_DATA_READER);
 
-		cacheRetrieverMockBC.autowireable(ICacheRetriever.class);
-		cacheRetrieverMockBC.autowireable(ICacheService.class);
-
-		beanContextFactory.registerAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
+		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class).with(Material.class);
+		beanContextFactory.link(cacheRetrieverMockBC).to(ICacheRetrieverExtendable.class).with(MaterialType.class);
 	}
 }

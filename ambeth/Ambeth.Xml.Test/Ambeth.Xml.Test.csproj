@@ -55,14 +55,6 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\xml\CacheFactoryMock.cs" />
-    <Compile Include="ambeth\xml\CacheMock.cs" />
-    <Compile Include="ambeth\xml\CyclicXMLWriterTest.cs" />
-    <Compile Include="ambeth\xml\EmptyDummy.cs" />
-    <Compile Include="ambeth\xml\EntityFactoryMock.cs" />
-    <Compile Include="ambeth\xml\EntityMetaDataProviderMock.cs" />
-    <Compile Include="ambeth\xml\Material.cs" />
-    <Compile Include="ambeth\xml\MaterialGroup.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommandTest.cs" />
     <Compile Include="ioc\XmlTestModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -106,26 +98,6 @@
   </ItemGroup>
   <ItemGroup>
     <Shadow Include="Test References\Ambeth.Xml.accessor" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\xml\transfer\TestEnum.cs" />
-    <Compile Include="ambeth\xml\transfer\TestXmlObject.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\xml\XmlTestConstants.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\xml\transfer\Compound.cs" />
-    <Compile Include="ambeth\xml\transfer\CompoundStateType.cs" />
-    <Compile Include="ambeth\xml\transfer\IOrderService.cs" />
-    <Compile Include="ambeth\xml\transfer\OrderStateType.cs" />
-    <Compile Include="ambeth\xml\transfer\OrderType.cs" />
-    <Compile Include="ambeth\xml\transfer\Ordr.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ambeth\xml\postprocess\TestXmlPostProcessor.cs" />
-    <Content Include="ambeth\xml\postprocess\XmlPostProcessTest.cs" />
-    <Content Include="ambeth\xml\postprocess\XmlPostProcessTestModule.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

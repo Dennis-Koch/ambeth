@@ -34,7 +34,6 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionHolderRegistry;
 import de.osthus.ambeth.persistence.jdbc.JdbcDatabaseFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcLink;
 import de.osthus.ambeth.persistence.jdbc.NoopDatabasePool;
-import de.osthus.ambeth.persistence.jdbc.TestRelationProvider;
 import de.osthus.ambeth.persistence.jdbc.array.ArrayConverter;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
@@ -43,7 +42,6 @@ import de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction;
 import de.osthus.ambeth.persistence.jdbc.lob.LobConversionHelper;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.sql.ISqlConnection;
-import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -146,8 +144,6 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		{
 			beanContextFactory.registerBean("connectionFactory", DataSourceConnectionFactory.class).autowireable(IConnectionFactory.class);
 		}
-		beanContextFactory.registerAutowireableBean(IRelationProvider.class, TestRelationProvider.class);
-
 		beanContextFactory.registerAutowireableBean(ISqlConnection.class, JDBCSqlConnection.class);
 
 		beanContextFactory.registerBean("arrayConverter", ArrayConverter.class);

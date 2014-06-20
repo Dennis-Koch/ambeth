@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IBytecodeBehaviorState state = State;
             if (state != null)
             {
-                MethodInstance method = new MethodInstance(state.NewType, access, name, returnType, parameters);
+                MethodInstance method = new MethodInstance(state.NewType, access, returnType, name, parameters);
                 ((BytecodeBehaviorState)state).MethodImplemented(method);
             }
             return base.VisitMethod(access, name, returnType, parameters);

@@ -4,6 +4,7 @@ import java.util.List;
 
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.EntityEnhancementHint;
+import de.osthus.ambeth.bytecode.abstractobject.ImplementAbstractObjectEnhancementHint;
 import de.osthus.ambeth.bytecode.visitor.DefaultPropertiesMethodVisitor;
 import de.osthus.ambeth.bytecode.visitor.InterfaceAdder;
 import de.osthus.ambeth.collections.HashMap;
@@ -31,7 +32,8 @@ public class DefaultPropertiesBehavior extends AbstractBehavior
 	public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
 			List<IBytecodeBehavior> cascadePendingBehaviors)
 	{
-		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null)
+		if (state.getContext(EntityEnhancementHint.class) == null && state.getContext(EmbeddedEnhancementHint.class) == null
+				&& state.getContext(ImplementAbstractObjectEnhancementHint.class) == null)
 		{
 			return visitor;
 		}

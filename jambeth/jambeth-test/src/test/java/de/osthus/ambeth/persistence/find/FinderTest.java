@@ -10,12 +10,12 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.filter.model.FilterDescriptor;
 import de.osthus.ambeth.filter.model.FilterOperator;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.ISortDescriptor;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 @SQLStructure("FinderTest_structure.sql")
 @SQLData("FinderTest_data.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/find/FinderTest_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/find/FinderTest_orm.xml")
 @TestModule(FinderTestModule.class)
 public class FinderTest extends AbstractPersistenceTest
 {

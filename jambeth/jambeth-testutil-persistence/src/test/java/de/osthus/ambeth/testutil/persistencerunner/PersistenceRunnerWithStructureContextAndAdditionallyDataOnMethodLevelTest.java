@@ -5,7 +5,7 @@ import java.util.Arrays;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-import de.osthus.ambeth.service.config.ConfigurationConstants;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -20,7 +20,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
  * <p>
  * Attention: this test class relies on the test method order (which is not guaranteed)
  */
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
 @SQLStructure("testutil_test_structure.sql")
 @SQLData("testutil_test_data_0.sql")
 @SQLDataRebuild(value = false)

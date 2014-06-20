@@ -3,13 +3,13 @@ package de.osthus.ambeth.query.isin;
 import org.junit.Assert;
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.query.isin.QueryIsInMassdataTest.QueryIsInMassdataTestModule;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.TestModule;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestPropertiesList({
 		@TestProperties(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, value = "false"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "20"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/isin/QueryIsInMassdata_orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/isin/QueryIsInMassdata_orm.xml"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.cache.DefaultPersistenceCacheRetriever", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.filter.PagingQuery", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.orm.XmlDatabaseMapper", value = "INFO"),

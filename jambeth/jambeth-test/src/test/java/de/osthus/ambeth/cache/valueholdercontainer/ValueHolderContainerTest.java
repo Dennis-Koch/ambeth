@@ -19,15 +19,7 @@ import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ObservableArrayList;
-import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CacheBytecodeModule;
-import de.osthus.ambeth.ioc.CacheDataChangeModule;
-import de.osthus.ambeth.ioc.CacheModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
-import de.osthus.ambeth.ioc.EventModule;
-import de.osthus.ambeth.ioc.MergeModule;
-import de.osthus.ambeth.ioc.ObjectCopierModule;
-import de.osthus.ambeth.ioc.ServiceModule;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -44,9 +36,8 @@ import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
-import de.osthus.ambeth.testutil.AbstractIocTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -56,14 +47,11 @@ import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ReflectUtil;
 
-@TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.CacheServiceRegistryActive, value = "false"),
-		@TestProperties(name = CacheConfigurationConstants.AsyncPropertyChangeActive, value = "false"),
-		@TestProperties(name = ConfigurationConstants.IndependentMetaData, value = "true"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/cache/valueholdercontainer/orm.xml") })
-@TestFrameworkModule({ ValueHolderContainerTestModule.class, BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class,
-		CompositeIdModule.class, EventModule.class, MergeModule.class, ObjectCopierModule.class, ServiceModule.class })
+@TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.AsyncPropertyChangeActive, value = "false"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/cache/valueholdercontainer/orm.xml") })
+@TestFrameworkModule(ValueHolderContainerTestModule.class)
 @TestRebuildContext
-public class ValueHolderContainerTest extends AbstractIocTest
+public class ValueHolderContainerTest extends AbstractInformationBusTest
 {
 	public static final String getIdName = "get__Id";
 
@@ -504,7 +492,7 @@ public class ValueHolderContainerTest extends AbstractIocTest
 		objNull2.setName("name3");
 		objNull2.setVersion(1);
 
-		Assert.assertTrue(!objNull1.equals(objNull2));
+		Assert.assertNotEquals(objNull1, objNull2);
 
 		MaterialType obj1 = entityFactory.createEntity(MaterialType.class);
 		obj1.setId(1);
@@ -528,14 +516,14 @@ public class ValueHolderContainerTest extends AbstractIocTest
 
 		Object value1 = obj1.getClass().getMethod(getIdName).invoke(obj1, new Object[0]);
 		Object value2 = obj2.getClass().getMethod(getIdName).invoke(obj2, new Object[0]);
-		Assert.assertTrue(!obj1.equals(obj2));
+		Assert.assertNotEquals(obj1, obj2);
 
 		Material mat2 = entityFactory.createEntity(Material.class);
 		mat2.setId(2);
 		mat2.setName("name2");
 		mat2.setVersion(1);
 
-		Assert.assertTrue(!mat2.equals(obj2));
+		Assert.assertNotEquals(mat2, obj2);
 	}
 
 	@Test

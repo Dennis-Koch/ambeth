@@ -41,6 +41,8 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected Class<?> realType;
 
+	protected Class<?> enhancedType;
+
 	protected boolean localEntity = true;
 
 	protected Class<?>[] typesRelatingToThis = emptyTypes;
@@ -115,6 +117,17 @@ public class EntityMetaData implements IEntityMetaData
 	public Class<?> getRealType()
 	{
 		return realType;
+	}
+
+	public void setEnhancedType(Class<?> enhancedType)
+	{
+		this.enhancedType = enhancedType;
+	}
+
+	@Override
+	public Class<?> getEnhancedType()
+	{
+		return enhancedType;
 	}
 
 	@Override
@@ -577,12 +590,6 @@ public class EntityMetaData implements IEntityMetaData
 		if (typesRelatingToThis != null && typesRelatingToThis.length > 0)
 		{
 			typesRelatingToThisSet.addAll(Arrays.asList(typesRelatingToThis));
-		}
-
-		if (realType == null)
-		{
-			// realType property is new, support migration of old projects
-			throw new IllegalArgumentException("realType is null");
 		}
 		if (getCreatedByMember() != null)
 		{

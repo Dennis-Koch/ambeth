@@ -8,12 +8,13 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Xml;
+using De.Osthus.Ambeth.Exceptions;
 
 namespace De.Osthus.Ambeth.Orm
 {
     public class OrmXmlReader20 : IOrmXmlReader, IInitializingBean
     {
-        public const String ORM_XML_NS = "http://www.osthus.de/ambeth/ambeth_orm_2_0";
+        public const String ORM_XML_NS = "http://osthus.de/ambeth/ambeth_orm_2_0";
 
         private static readonly String[] XSD_FILE_NAMES = { "ambeth/schema/ambeth_simple_types_2_0.xsd", "ambeth/schema/ambeth_orm_2_0.xsd" };
 
@@ -42,69 +43,32 @@ namespace De.Osthus.Ambeth.Orm
 
         public void LoadFromDocument(XDocument doc, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities)
         {
-            ValidateDocument(doc); // TODO
+            ValidateDocument(doc);
 
-            IMap<String, ILinkConfig> nameToLinkMap = new HashMap<String, ILinkConfig>();
+            HashMap<String, ILinkConfig> nameToLinkMap = new HashMap<String, ILinkConfig>();
 
-            IDictionary<String, IList<XElement>> mappings = XmlConfigUtil.ChildrenToElementMap(doc.Root);
-
-            IList<XElement> linkMappings = DictionaryExtension.ValueOrDefault( mappings,XmlConstants.LINK_MAPPINGS.LocalName);
-            if (linkMappings != null)
+            List<ILinkConfig> links = new List<ILinkConfig>();
+            IList<XElement> linkElements = GetDescendants(doc, XmlConstants.LINK);
+            IList<XElement> eLinkElements =  GetDescendants(doc, XmlConstants.EXTERNAL_LINK);
+            IList<XElement> iLinkElements =  GetDescendants(doc, XmlConstants.INDEPENDENT_LINK);
+            for (int i = linkElements.Count; i-- > 0; )
             {
-                MapLinks(linkMappings[0], nameToLinkMap);
+                XElement linkTag = linkElements[i];
+                ILinkConfig link = ReadLinkConfig(linkTag);
+                links.Add(link);
             }
-
-            IList<XElement> entityMappings = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.ENTITY_MAPPINGS.LocalName);
-            if (entityMappings != null)
+            for (int i = eLinkElements.Count; i-- > 0; )
             {
-                MapEntities(entityMappings[0], localEntities, externalEntities, nameToLinkMap);
+                XElement linkTag = eLinkElements[i];
+                ILinkConfig link = ReadExternalLinkConfig(linkTag);
+                links.Add(link);
             }
-        }
-
-        protected void ValidateDocument(XDocument doc)
-        {
-            // Silverlight does not support xml validation agains xsd
-#if !SILVERLIGHT
-            validator.Validate(doc);
-#endif
-        }
-
-        protected void MapLinks(XElement linkMappings, IMap<string, ILinkConfig> nameToLinkMap)
-        {
-            IDictionary<String, IList<XElement>> mappings = XmlConfigUtil.ChildrenToElementMap(linkMappings);
-
-            IList<ILinkConfig> links = new List<ILinkConfig>();
-            IList<XElement> linkElements = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.LINK.LocalName);
-            if (linkElements != null)
+            for (int i = iLinkElements.Count; i-- > 0; )
             {
-                for (int i = linkElements.Count; i-- > 0; )
-                {
-                    XElement linkTag = linkElements[i];
-                    ILinkConfig link = ReadLinkConfig(linkTag);
-                    links.Add(link);
-                }
+                XElement linkTag = iLinkElements[i];
+                ILinkConfig link = ReadIndependentLinkConfig(linkTag);
+                links.Add(link);
             }
-            IList<XElement> eLinkElements = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.EXTERNAL_LINK.LocalName);
-            if (eLinkElements != null)
-            {
-                for (int i = eLinkElements.Count; i-- > 0; )
-                {
-                    XElement linkTag = eLinkElements[i];
-                    ILinkConfig link = ReadExternalLinkConfig(linkTag);
-                    links.Add(link);
-                }
-            }
-            IList<XElement> iLinkElements = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.EXTERNAL_LINK.LocalName);
-            if (iLinkElements != null)
-            {
-                for (int i = iLinkElements.Count; i-- > 0; )
-                {
-                    XElement linkTag = iLinkElements[i];
-                    ILinkConfig link = ReadIndependentLinkConfig(linkTag);
-                    links.Add(link);
-                }
-            }
-
             for (int i = links.Count; i-- > 0; )
             {
                 ILinkConfig link = links[i];
@@ -124,30 +88,17 @@ namespace De.Osthus.Ambeth.Orm
                     }
                 }
             }
-        }
 
-        protected void MapEntities(XElement entityMappings, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities, IMap<string, ILinkConfig> nameToLinkMap)
-        {
-            IDictionary<String, IList<XElement>> mappings = XmlConfigUtil.ChildrenToElementMap(entityMappings);
-
-            List<XElement> entityElements = new List<XElement>();
-            IList<XElement> localElements = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.ENTITY.LocalName);
-            if (localElements != null)
-            {
-                entityElements.AddRange(localElements);
-            }
-            IList<XElement> externalElements = DictionaryExtension.ValueOrDefault(mappings, XmlConstants.ENTITY.LocalName);
-            if (externalElements != null)
-            {
-                entityElements.AddRange(externalElements);
-            }
+            List<XElement> entityElements = GetDescendants(doc, XmlConstants.ENTITY);
+            IList<XElement> externalEntityElements = GetDescendants(doc, XmlConstants.EXTERNAL_ENTITY);
+            entityElements.AddRange(externalEntityElements);
             for (int i = entityElements.Count; i-- > 0; )
             {
                 XElement entityTag = entityElements[i];
                 EntityConfig entityConfig = ReadEntityConfig(entityTag, nameToLinkMap);
                 if (localEntities.Contains(entityConfig) || externalEntities.Contains(entityConfig))
                 {
-                    throw new Exception("Duplicate orm configuration for entity '" + entityConfig.EntityType.Name + "'");
+                    throw new Exception("Duplicate orm configuration for entity '" + entityConfig.EntityType.FullName + "'");
                 }
                 if (entityConfig.Local)
                 {
@@ -160,6 +111,23 @@ namespace De.Osthus.Ambeth.Orm
             }
         }
 
+        protected List<XElement> GetDescendants(XContainer element, XName name)
+        {
+            return new List<XElement>(element.Descendants(XName.Get(name.LocalName, ORM_XML_NS)));
+        }
+
+        protected void ValidateDocument(XDocument doc)
+        {
+            try
+            {
+                validator.Validate(doc);
+            }
+            catch (Exception e)
+            {
+                throw RuntimeExceptionUtil.Mask(e, "Error during xml document validation");
+            }
+        }
+
         protected LinkConfig ReadLinkConfig(XElement linkTag)
         {
             String source = XmlConfigUtil.GetRequiredAttribute(linkTag, XmlConstants.SOURCE);
@@ -168,8 +136,7 @@ namespace De.Osthus.Ambeth.Orm
             String cascadeDeleteRaw = XmlConfigUtil.GetAttribute(linkTag, XmlConstants.CASCADE_DELETE);
             if (cascadeDeleteRaw.Length > 0)
             {
-                CascadeDeleteDirection cascadeDelete;
-                Enum.TryParse<CascadeDeleteDirection>(cascadeDeleteRaw, true, out cascadeDelete);
+                CascadeDeleteDirection cascadeDelete = (CascadeDeleteDirection)Enum.Parse(typeof(CascadeDeleteDirection), cascadeDeleteRaw, true);
                 link.CascadeDeleteDirection = cascadeDelete;
             }
 
@@ -206,8 +173,7 @@ namespace De.Osthus.Ambeth.Orm
             String cascadeDeleteRaw = XmlConfigUtil.GetAttribute(linkTag, XmlConstants.CASCADE_DELETE);
             if (cascadeDeleteRaw.Length > 0)
             {
-                CascadeDeleteDirection cascadeDelete;
-                Enum.TryParse<CascadeDeleteDirection>(cascadeDeleteRaw, true, out cascadeDelete);
+                CascadeDeleteDirection cascadeDelete = (CascadeDeleteDirection)Enum.Parse(typeof(CascadeDeleteDirection), cascadeDeleteRaw, true);
                 link.CascadeDeleteDirection = cascadeDelete;
             }
 
@@ -240,34 +206,67 @@ namespace De.Osthus.Ambeth.Orm
                 bool localEntity = !entityTag.Name.Equals(XmlConstants.EXTERNAL_ENTITY);
                 entityConfig.Local = localEntity;
 
-                IDictionary<String, IList<XElement>> attributeMap = null;
+                IMap<String, IList<XElement>> attributeMap = null;
 
-                IDictionary<String, IList<XElement>> entityDefs = XmlConfigUtil.ChildrenToElementMap(entityTag);
+                IMap<String, IList<XElement>> entityDefs = XmlConfigUtil.ChildrenToElementMap(entityTag);
                 if (entityDefs.ContainsKey(XmlConstants.TABLE.LocalName))
                 {
-                    String specifiedTableName = XmlConfigUtil.GetRequiredAttribute(entityDefs[XmlConstants.TABLE.LocalName][0], XmlConstants.NAME);
+                    String specifiedTableName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.TABLE.LocalName)[0], XmlConstants.NAME);
                     entityConfig.TableName = specifiedTableName;
                 }
                 if (entityDefs.ContainsKey(XmlConstants.SEQ.LocalName))
                 {
-                    String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs[XmlConstants.SEQ.LocalName][0], XmlConstants.NAME);
+                    String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.SEQ.LocalName)[0], XmlConstants.NAME);
                     entityConfig.SequenceName = sequenceName;
                 }
                 if (entityDefs.ContainsKey(XmlConstants.ATTR.LocalName))
                 {
-                    attributeMap = XmlConfigUtil.ChildrenToElementMap(entityDefs[XmlConstants.ATTR.LocalName][0]);
+                    attributeMap = XmlConfigUtil.ToElementMap(entityDefs.Get(XmlConstants.ATTR.LocalName)[0].Elements());
                 }
                 bool versionRequired = true;
                 if (attributeMap != null)
                 {
+                    IMap<String, MemberConfig> allIdMemberConfigs = new HashMap<String, MemberConfig>();
                     if (attributeMap.ContainsKey(XmlConstants.ID.LocalName))
                     {
                         MemberConfig idMemberConfig = ReadUniqueMemberConfig(XmlConstants.ID.LocalName, attributeMap);
+                        entityConfig.IdMemberConfig = idMemberConfig;
+                        allIdMemberConfigs.Put(idMemberConfig.Name, idMemberConfig);
+                    }
+                    else if (attributeMap.ContainsKey(XmlConstants.ID_COMP.LocalName))
+                    {
+                        XElement memberElement = attributeMap.Get(XmlConstants.ID_COMP.LocalName)[0];
+                        IMemberConfig idMemberConfig = ReadCompositeMemberConfig(memberElement, allIdMemberConfigs);
                         entityConfig.IdMemberConfig = idMemberConfig;
                     }
                     else if (!localEntity)
                     {
                         throw new ArgumentException("ID member name has to be set on external entities");
+                    }
+
+                    if (attributeMap.ContainsKey(XmlConstants.ALT_ID.LocalName))
+                    {
+                        IList<XElement> altIds = attributeMap.Get(XmlConstants.ALT_ID.LocalName);
+                        for (int j = altIds.Count; j-- > 0; )
+                        {
+                            XElement memberElement = altIds[j];
+                            MemberConfig memberConfig = ReadMemberConfig(memberElement);
+                            memberConfig.AlternateId = true;
+                            entityConfig.AddMemberConfig(memberConfig);
+                            allIdMemberConfigs.Put(memberConfig.Name, memberConfig);
+                        }
+                    }
+
+                    if (attributeMap.ContainsKey(XmlConstants.ALT_ID_COMP.LocalName))
+                    {
+                        IList<XElement> altIdsComp = attributeMap.Get(XmlConstants.ALT_ID_COMP.LocalName);
+                        for (int j = altIdsComp.Count; j-- > 0; )
+                        {
+                            XElement memberElement = altIdsComp[j];
+                            CompositeMemberConfig memberConfig = ReadCompositeMemberConfig(memberElement, allIdMemberConfigs);
+                            memberConfig.AlternateId = true;
+                            entityConfig.AddMemberConfig(memberConfig);
+                        }
                     }
 
                     if (attributeMap.ContainsKey(XmlConstants.VERSION.LocalName))
@@ -284,42 +283,30 @@ namespace De.Osthus.Ambeth.Orm
                         throw new ArgumentException("Version member name has to be set on external entities");
                     }
 
-                    if (attributeMap.ContainsKey(XmlConstants.ALT_ID.LocalName))
-                    {
-                        IList<XElement> altIds = attributeMap[XmlConstants.ALT_ID.LocalName];
-                        for (int j = altIds.Count; j-- > 0; )
-                        {
-                            XElement memberElement = altIds[j];
-                            MemberConfig memberConfig = ReadMemberConfig(memberElement);
-                            memberConfig.AlternateId = true;
-                            entityConfig.AddMemberConfig(memberConfig);
-                        }
-                    }
-
                     if (attributeMap.ContainsKey(XmlConstants.CREATED_BY.LocalName))
                     {
-                        MemberConfig createdByMemberConfig = ReadUniqueMemberConfig(XmlConstants.CREATED_BY, attributeMap);
+                        MemberConfig createdByMemberConfig = ReadUniqueMemberConfig(XmlConstants.CREATED_BY.LocalName, attributeMap);
                         entityConfig.CreatedByMemberConfig = createdByMemberConfig;
                     }
                     if (attributeMap.ContainsKey(XmlConstants.CREATED_ON.LocalName))
                     {
-                        MemberConfig createdOnMemberConfig = ReadUniqueMemberConfig(XmlConstants.CREATED_ON, attributeMap);
+                        MemberConfig createdOnMemberConfig = ReadUniqueMemberConfig(XmlConstants.CREATED_ON.LocalName, attributeMap);
                         entityConfig.CreatedOnMemberConfig = createdOnMemberConfig;
                     }
                     if (attributeMap.ContainsKey(XmlConstants.UPDATED_BY.LocalName))
                     {
-                        MemberConfig updatedByMemberConfig = ReadUniqueMemberConfig(XmlConstants.UPDATED_BY, attributeMap);
+                        MemberConfig updatedByMemberConfig = ReadUniqueMemberConfig(XmlConstants.UPDATED_BY.LocalName, attributeMap);
                         entityConfig.UpdatedByMemberConfig = updatedByMemberConfig;
                     }
                     if (attributeMap.ContainsKey(XmlConstants.UPDATED_ON.LocalName))
                     {
-                        MemberConfig updatedOnMemberConfig = ReadUniqueMemberConfig(XmlConstants.UPDATED_ON, attributeMap);
+                        MemberConfig updatedOnMemberConfig = ReadUniqueMemberConfig(XmlConstants.UPDATED_ON.LocalName, attributeMap);
                         entityConfig.UpdatedOnMemberConfig = updatedOnMemberConfig;
                     }
 
                     if (attributeMap.ContainsKey(XmlConstants.BASIC.LocalName))
                     {
-                        IList<XElement> basicAttrs = attributeMap[XmlConstants.BASIC.LocalName];
+                        IList<XElement> basicAttrs = attributeMap.Get(XmlConstants.BASIC.LocalName);
                         for (int j = basicAttrs.Count; j-- > 0; )
                         {
                             XElement memberElement = basicAttrs[j];
@@ -330,7 +317,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.IGNORE.LocalName))
                     {
-                        IList<XElement> ignoreAttrs = attributeMap[XmlConstants.IGNORE.LocalName];
+                        IList<XElement> ignoreAttrs = attributeMap.Get(XmlConstants.IGNORE.LocalName);
                         for (int j = ignoreAttrs.Count; j-- > 0; )
                         {
                             XElement ignoreElement = ignoreAttrs[j];
@@ -342,7 +329,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.RELATION.LocalName))
                     {
-                        IList<XElement> relationAttrs = attributeMap[XmlConstants.RELATION.LocalName];
+                        IList<XElement> relationAttrs = attributeMap.Get(XmlConstants.RELATION.LocalName);
                         for (int j = relationAttrs.Count; j-- > 0; )
                         {
                             XElement relationElement = relationAttrs[j];
@@ -357,13 +344,13 @@ namespace De.Osthus.Ambeth.Orm
             }
             catch (Exception e)
             {
-                throw new Exception("Error occured while processing mapping for entity: " + entityTypeName, e);
+                throw RuntimeExceptionUtil.Mask(e, "Error occured while processing mapping for entity: " + entityTypeName);
             }
         }
 
-        protected MemberConfig ReadUniqueMemberConfig(XName tagName, IDictionary<String, IList<XElement>> attributeMap)
+        protected MemberConfig ReadUniqueMemberConfig(String tagName, IMap<String, IList<XElement>> attributeMap)
         {
-            XElement memberElement = attributeMap[tagName.LocalName][0];
+            XElement memberElement = attributeMap.Get(tagName)[0];
             MemberConfig memberConfig = ReadMemberConfig(memberElement);
             return memberConfig;
         }
@@ -380,6 +367,27 @@ namespace De.Osthus.Ambeth.Orm
             }
 
             return memberConfig;
+        }
+
+        protected CompositeMemberConfig ReadCompositeMemberConfig(XElement memberElement, IMap<String, MemberConfig> allIdMemberConfigs)
+        {
+            IEnumerable<XElement> idFragmentNodes = GetDescendants(memberElement, XmlConstants.ID_FRAGMENT);
+            IList<XElement> idFragments = XmlConfigUtil.NodesToElements(idFragmentNodes);
+            MemberConfig[] memberConfigs = new MemberConfig[idFragments.Count];
+            for (int i = 0; i < idFragments.Count; i++)
+            {
+                XElement idFragment = idFragments[i];
+                String memberName = XmlConfigUtil.GetRequiredAttribute(idFragment, XmlConstants.NAME);
+                MemberConfig memberConfig = allIdMemberConfigs.Get(memberName);
+                if (memberConfig == null)
+                {
+                    memberConfig = ReadMemberConfig(idFragment);
+                    allIdMemberConfigs.Put(memberName, memberConfig);
+                }
+                memberConfigs[i] = memberConfig;
+            }
+            CompositeMemberConfig compositeMemberConfig = new CompositeMemberConfig(memberConfigs);
+            return compositeMemberConfig;
         }
 
         protected IRelationConfig ReadRelationConfig(XElement relationElement, IMap<String, ILinkConfig> nameToLinkMap)
@@ -413,8 +421,7 @@ namespace De.Osthus.Ambeth.Orm
                 String entityIdentifierName = XmlConfigUtil.GetAttribute(relationElement, XmlConstants.THIS);
                 if (entityIdentifierName.Length > 0)
                 {
-                    EntityIdentifier entityIdentifier;
-                    Enum.TryParse<EntityIdentifier>(entityIdentifierName, true, out entityIdentifier);
+                    EntityIdentifier entityIdentifier = (EntityIdentifier)Enum.Parse(typeof(EntityIdentifier), entityIdentifierName, true);
                     relationConfig.EntityIdentifier = entityIdentifier;
                 }
 

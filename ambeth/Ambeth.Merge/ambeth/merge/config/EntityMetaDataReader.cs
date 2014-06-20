@@ -209,6 +209,10 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    {
 			    metaData.SetMergeRelevant(member, false);
 		    }
+            if (metaData.IdMember == null)
+            {
+                throw new Exception("No ID member could be resolved for entity of type " + metaData.RealType);
+            }
         }
 
         protected ITypeInfoItem HandleMemberConfigIfNew(Type entityType, IMemberConfig itemConfig, IMap<IOrmConfig, ITypeInfoItem> memberConfigToInfoItem)

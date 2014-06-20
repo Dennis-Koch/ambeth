@@ -30,7 +30,7 @@ public class ActionPermissionPrivilegeProviderExtension implements IPrivilegePro
 		if (!userHandle.hasActionPermission(entity.getName(), securityScopes))
 		{
 			// this extension only handles the specific case where the user has the corresponding actionPermission associated
-			return permissionEvaluation.skipEach();
+			return permissionEvaluation.allowRead().skipCreate().skipUpdate().skipDelete().denyExecute();
 		}
 		// the association implies execution permission (no CUD operations) - these have to be handled by another extension
 		return permissionEvaluation.allowRead().skipCreate().skipUpdate().skipDelete().allowExecute();

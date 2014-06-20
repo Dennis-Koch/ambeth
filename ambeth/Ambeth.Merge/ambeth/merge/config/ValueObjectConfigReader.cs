@@ -96,7 +96,7 @@ namespace De.Osthus.Ambeth.Merge.Config
                 String entityTypeName = XmlConfigUtil.GetRequiredAttribute(item, XmlConstants.CLASS);
                 Type entityType = XmlConfigUtil.GetTypeForName(entityTypeName);
 
-                IDictionary<String, IList<XElement>> configs = XmlConfigUtil.ChildrenToElementMap(item);
+                IMap<String, IList<XElement>> configs = XmlConfigUtil.ChildrenToElementMap(item);
                 if (!configs.ContainsKey(XmlConstants.VALUE_OBJECT.LocalName))
                 {
                     continue;
@@ -113,7 +113,7 @@ namespace De.Osthus.Ambeth.Merge.Config
                     continue;
                 }
 
-                IList<XElement> voConfigs = configs[XmlConstants.VALUE_OBJECT.LocalName];
+                IList<XElement> voConfigs = configs.Get(XmlConstants.VALUE_OBJECT.LocalName);
                 for (int j = voConfigs.Count; j-- > 0; )
                 {
                     XElement voConfig = voConfigs[j];
@@ -149,15 +149,15 @@ namespace De.Osthus.Ambeth.Merge.Config
 
         protected void HandleMembers(ValueObjectConfig config, XElement voConfig, IEntityMetaData metaData)
         {
-            IDictionary<String, IList<XElement>> configDetails = XmlConfigUtil.ChildrenToElementMap(voConfig);
+            IMap<String, IList<XElement>> configDetails = XmlConfigUtil.ChildrenToElementMap(voConfig);
             HandleIgnoredMembers(config, configDetails);
             HandleMemberMappings(config, configDetails, metaData);
             HandleRelations(config, configDetails);
         }
 
-        protected void HandleIgnoredMembers(ValueObjectConfig config, IDictionary<String, IList<XElement>> configDetails)
+        protected void HandleIgnoredMembers(ValueObjectConfig config, IMap<String, IList<XElement>> configDetails)
         {
-            IList<XElement> memberTags = DictionaryExtension.ValueOrDefault(configDetails, XmlConstants.IGNORE.LocalName);
+            IList<XElement> memberTags = configDetails.Get(XmlConstants.IGNORE.LocalName);
             if (memberTags == null)
             {
                 return;
@@ -171,7 +171,7 @@ namespace De.Osthus.Ambeth.Merge.Config
             }
         }
 
-        protected void HandleMemberMappings(ValueObjectConfig config, IDictionary<String, IList<XElement>> configDetails, IEntityMetaData metaData)
+        protected void HandleMemberMappings(ValueObjectConfig config, IMap<String, IList<XElement>> configDetails, IEntityMetaData metaData)
         {
             Type entityType = config.EntityType;
             Type valueType = config.ValueType;
@@ -183,7 +183,7 @@ namespace De.Osthus.Ambeth.Merge.Config
             {
                 String memberTagName = memberTagNames[i].LocalName;
 
-                IList<XElement> memberTags = DictionaryExtension.ValueOrDefault(configDetails, memberTagName);
+                IList<XElement> memberTags = configDetails.Get(memberTagName);
                 if (memberTags == null)
                 {
                     continue;
@@ -254,9 +254,9 @@ namespace De.Osthus.Ambeth.Merge.Config
             return IsPropertyResolvable(propertyInfo.PropertyType, null, remainingMemberName, metaData);
         }
 
-        protected void HandlePrimitiveCollections(ValueObjectConfig config, IDictionary<String, IList<XElement>> configDetails)
+        protected void HandlePrimitiveCollections(ValueObjectConfig config, IMap<String, IList<XElement>> configDetails)
         {
-            IList<XElement> memberTags = DictionaryExtension.ValueOrDefault(configDetails, XmlConstants.BASIC.LocalName);
+            IList<XElement> memberTags = configDetails.Get(XmlConstants.BASIC.LocalName);
             if (memberTags == null)
             {
                 return;
@@ -284,9 +284,9 @@ namespace De.Osthus.Ambeth.Merge.Config
             }
         }
 
-        protected void HandleRelations(ValueObjectConfig config, IDictionary<String, IList<XElement>> configDetails)
+        protected void HandleRelations(ValueObjectConfig config, IMap<String, IList<XElement>> configDetails)
         {
-            IList<XElement> elementTypes = DictionaryExtension.ValueOrDefault(configDetails, XmlConstants.RELATION.LocalName);
+            IList<XElement> elementTypes = configDetails.Get(XmlConstants.RELATION.LocalName);
             if (elementTypes != null)
             {
                 for (int i = elementTypes.Count; i-- > 0; )

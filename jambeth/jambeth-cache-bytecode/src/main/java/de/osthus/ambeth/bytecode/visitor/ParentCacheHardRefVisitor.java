@@ -9,7 +9,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 
 public class ParentCacheHardRefVisitor extends ClassGenerator
 {
-	private static final MethodInstance template_m_setParentCacheValueHardRef = new MethodInstance(null, IParentCacheValueHardRef.class,
+	private static final MethodInstance template_m_setParentCacheValueHardRef = new MethodInstance(null, IParentCacheValueHardRef.class, void.class,
 			"setParentCacheValueHardRef", Object.class);
 
 	public ParentCacheHardRefVisitor(ClassVisitor cv)

@@ -97,7 +97,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         protected IEnhancementHint GetContext(IEnhancementHint hint)
         {
-            return hint.Unwrap<ImplementAbstractObjectContext>();
+            return hint.Unwrap<ImplementAbstractObjectEnhancementHint>();
         }
 
         /**

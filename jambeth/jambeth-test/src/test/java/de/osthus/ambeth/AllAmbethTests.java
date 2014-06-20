@@ -13,6 +13,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.AllPersistenceTests.class, //
 		de.osthus.ambeth.AllMergeTests.class, //
 		de.osthus.ambeth.AllUtilTests.class, //
+		de.osthus.ambeth.bytecode.AllBundleBytecodeTests.class, //
 		de.osthus.ambeth.merge.mergecontroller.AllMergeControllerTests.class, //
 		de.osthus.ambeth.merge.orihelper.AllORIHelperTests.class, //
 		de.osthus.ambeth.orm20.AllOrm20Tests.class, //

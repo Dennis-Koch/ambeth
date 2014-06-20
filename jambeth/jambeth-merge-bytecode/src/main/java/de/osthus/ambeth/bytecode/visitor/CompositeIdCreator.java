@@ -59,26 +59,26 @@ public class CompositeIdCreator extends ClassGenerator
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 
-	public static final MethodInstance m_equalsCompositeId = new MethodInstance(null, templateType, "equalsCompositeId", ITypeInfoItem[].class, Object.class,
+	public static final MethodInstance m_equalsCompositeId = new MethodInstance(null, templateType, boolean.class, "equalsCompositeId", ITypeInfoItem[].class,
+			Object.class, Object.class);
+
+	public static final MethodInstance m_hashCodeCompositeId = new MethodInstance(null, templateType, int.class, "hashCodeCompositeId", ITypeInfoItem[].class,
 			Object.class);
 
-	public static final MethodInstance m_hashCodeCompositeId = new MethodInstance(null, templateType, "hashCodeCompositeId", ITypeInfoItem[].class,
-			Object.class);
+	public static final MethodInstance m_toStringCompositeId = new MethodInstance(null, templateType, String.class, "toStringCompositeId",
+			ITypeInfoItem[].class, Object.class);
 
-	public static final MethodInstance m_toStringCompositeId = new MethodInstance(null, templateType, "toStringCompositeId", ITypeInfoItem[].class,
-			Object.class);
-
-	public static final MethodInstance m_toStringSbCompositeId = new MethodInstance(null, templateType, "toStringSbCompositeId", ITypeInfoItem[].class,
-			Object.class, StringBuilder.class);
+	public static final MethodInstance m_toStringSbCompositeId = new MethodInstance(null, templateType, void.class, "toStringSbCompositeId",
+			ITypeInfoItem[].class, Object.class, StringBuilder.class);
 
 	public static PropertyInstance getCompositeIdTemplatePI(ClassGenerator cv)
 	{
-		PropertyInstance pi = getState().getProperty(templatePropertyName);
+		Object bean = getState().getBeanContext().getService(templateType);
+		PropertyInstance pi = getState().getProperty(templatePropertyName, bean.getClass());
 		if (pi != null)
 		{
 			return pi;
 		}
-		Object bean = getState().getBeanContext().getService(templateType);
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
@@ -137,25 +137,25 @@ public class CompositeIdCreator extends ClassGenerator
 
 		{
 			// Implement boolean Object.equals(Object)
-			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, "equals", Object.class));
+			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, boolean.class, "equals", Object.class));
 			// public boolean CompositeIdTemplate.equalsCompositeId(ITypeInfoItem[] members, Object left, Object right)
 			implementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_equalsCompositeId);
 		}
 		{
 			// Implement int Object.hashCode()
-			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, "hashCode"));
+			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, int.class, "hashCode"));
 			// public int CompositeIdTemplate.hashCodeCompositeId(ITypeInfoItem[] members, Object compositeId)
 			implementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_hashCodeCompositeId);
 		}
 		{
 			// Implement String Object.toString()
-			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, "toString"));
+			MethodGenerator mg = visitMethod(new MethodInstance(null, Object.class, String.class, "toString"));
 			// public int CompositeIdTemplate.toStringCompositeId(ITypeInfoItem[] members, Object compositeId)
 			implementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_toStringCompositeId);
 		}
 		{
 			// Implement void IPrintable.toString(StringBuilder)
-			MethodGenerator mg = visitMethod(new MethodInstance(null, IPrintable.class, "toString", StringBuilder.class));
+			MethodGenerator mg = visitMethod(new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class));
 			// public int CompositeIdTemplate.toStringCompositeId(ITypeInfoItem[] members, Object compositeId)
 			implementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_toStringSbCompositeId);
 		}

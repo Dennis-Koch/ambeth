@@ -16,13 +16,13 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.update.RelationUpdateTest.RelationUpdateTestModule;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -35,7 +35,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLData("RelationUpdate_data.sql")
 @SQLStructure("RelationUpdate_structure.sql")
 @TestModule(RelationUpdateTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/update/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/update/orm.xml")
 public class RelationUpdateTest extends AbstractPersistenceTest
 {
 

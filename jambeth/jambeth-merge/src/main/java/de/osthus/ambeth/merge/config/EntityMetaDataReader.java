@@ -99,7 +99,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			idMembers.addAll(((CompositeIdTypeInfoItem) idMember).getMembers());
 		}
-		else
+		else if (idMember != null)
 		{
 			idMembers.add(idMember);
 		}
@@ -224,6 +224,10 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		for (ITypeInfoItem member : notMergeRelevant)
 		{
 			metaData.setMergeRelevant(member, false);
+		}
+		if (metaData.getIdMember() == null)
+		{
+			throw new IllegalStateException("No ID member could be resolved for entity of type " + metaData.getRealType());
 		}
 	}
 

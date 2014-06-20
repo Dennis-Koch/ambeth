@@ -18,6 +18,7 @@ import de.osthus.ambeth.bytecode.EntityEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -26,7 +27,6 @@ import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeController;
 import de.osthus.ambeth.model.IDataObject;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -38,7 +38,7 @@ import de.osthus.ambeth.util.MultithreadingHelper;
 @SQLStructure("MergeControllerTest_structure.sql")
 @SQLData("MergeControllerTest_data.sql")
 @TestModule(MergeControllerTestModule.class)
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/mergecontroller/MergeControllerTest-orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/mergecontroller/MergeControllerTest-orm.xml") })
 public class MergeControllerClientTest extends AbstractPersistenceTest
 {
 	@Autowired

@@ -11,7 +11,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -19,7 +19,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 
 @SQLData("PropertyQuery_data.sql")
 @SQLStructure("PropertyQuery_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
 public class PropertyQueryTest extends AbstractPersistenceTest
 {
 	protected static final String paramName1 = "param.1";

@@ -30,19 +30,19 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class MethodGenerator extends GeneratorAdapter
 {
-	public static final MethodInstance m_getClass = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Object.class, "getClass"));
+	public static final MethodInstance m_getClass = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Object.class, Class.class, "getClass"));
 
-	public static final MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Class.class, "isAssignableFrom",
-			Class.class));
+	public static final MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.getDeclaredMethod(false, Class.class, boolean.class,
+			"isAssignableFrom", Class.class));
 
 	protected final MethodInstance method;
 	protected final ClassGenerator cg;
 
 	protected final Printer methodPrinter = new Textifier();
 
-	public MethodGenerator(ClassGenerator cg, MethodVisitor mv, Type owner, int access, String name, String signature, Type returnType, Type... parameters)
+	public MethodGenerator(ClassGenerator cg, MethodVisitor mv, Type owner, int access, Type returnType, String name, String signature, Type... parameters)
 	{
-		this(cg, mv, new MethodInstance(owner, access, name, signature, returnType, parameters));
+		this(cg, mv, new MethodInstance(owner, access, returnType, name, signature, parameters));
 	}
 
 	public MethodGenerator(ClassGenerator cg, MethodVisitor mv, Type owner, int access, Method method, String signature)
@@ -115,8 +115,8 @@ public class MethodGenerator extends GeneratorAdapter
 			}
 			else
 			{
-				java.lang.reflect.Method r_method = ReflectUtil.getDeclaredMethod(true, BytecodeBehaviorState.getState().getCurrentType(), method.getName(),
-						method.getParameters());
+				java.lang.reflect.Method r_method = ReflectUtil.getDeclaredMethod(true, BytecodeBehaviorState.getState().getCurrentType(),
+						method.getReturnType(), method.getName(), method.getParameters());
 				if (r_method == null)
 				{
 					throw new IllegalArgumentException("Method has no super implementation: " + method);
@@ -182,7 +182,8 @@ public class MethodGenerator extends GeneratorAdapter
 	{
 		ParamChecker.assertParamNotNull(method, "method");
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
-		java.lang.reflect.Method superMethod = ReflectUtil.getDeclaredMethod(false, state.getCurrentType(), method.getName(), method.getParameterTypes());
+		java.lang.reflect.Method superMethod = ReflectUtil.getDeclaredMethod(false, state.getCurrentType(), method.getReturnType(), method.getName(),
+				method.getParameterTypes());
 		invokeSuper(new MethodInstance(superMethod));
 	}
 
@@ -211,7 +212,7 @@ public class MethodGenerator extends GeneratorAdapter
 	{
 		if (Type.BOOLEAN_TYPE.equals(typeToBox))
 		{
-			invokeStatic(new MethodInstance(null, Boolean.class, "valueOf", boolean.class));
+			invokeStatic(new MethodInstance(null, Boolean.class, Boolean.class, "valueOf", boolean.class));
 		}
 		else if (TypeUtil.isPrimitive(typeToBox))
 		{
@@ -412,7 +413,7 @@ public class MethodGenerator extends GeneratorAdapter
 	{
 		Type type = Type.getType(PrintStream.class);
 		getStatic(Type.getType(System.class), "out", type);
-		MethodInstance m_println = new MethodInstance(type, PrintStream.class, "println", String.class);
+		MethodInstance m_println = new MethodInstance(type, PrintStream.class, void.class, "println", String.class);
 		push(text.toString());
 		invokeVirtual(m_println);
 	}

@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.EventListenerRegistry;
 import de.osthus.ambeth.event.EventPoller;
 import de.osthus.ambeth.event.IEventBatcher;
@@ -16,29 +17,18 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 
 @FrameworkModule
 public class EventModule implements IInitializingModule
 {
-	@LogInstance(EventModule.class)
+	@LogInstance
 	private ILogger log;
 
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
-	protected boolean isPollingActive;
-
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	public void setNetworkClientMode(boolean isNetworkClientMode)
-	{
-		this.isNetworkClientMode = isNetworkClientMode;
-	}
-
 	@Property(name = EventConfigurationConstants.PollingActive, defaultValue = "false")
-	public void setPollingActive(boolean isPollingActive)
-	{
-		this.isPollingActive = isPollingActive;
-	}
+	protected boolean isPollingActive;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable

@@ -113,10 +113,10 @@ public class ClassGenerator extends ClassVisitor
 	{
 		ParamChecker.assertParamNotNull(fieldValue, "fieldValue");
 		FieldInstance field = implementStaticAssignedField("sf_" + propertyName, fieldValue);
-		MethodInstance getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, "get" + propertyName, null,
-				field.getType());
-		implementGetter(getter, field);
-		PropertyInstance property = getState().getProperty(propertyName);
+		MethodInstance getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC, field.getType(), "get" + propertyName,
+				null);
+		getter = implementGetter(getter, field);
+		PropertyInstance property = getState().getProperty(propertyName, field.getType());
 		if (property == null)
 		{
 			throw new IllegalStateException("Should never happen");
@@ -181,7 +181,7 @@ public class ClassGenerator extends ClassVisitor
 		MethodInstance setter = property.getSetter();
 		if (setter == null)
 		{
-			setter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, "set" + property.getName(), property.getSignature(), Type.VOID_TYPE,
+			setter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + property.getName(), property.getSignature(),
 					property.getPropertyType());
 		}
 		implementSetter(setter, field);
@@ -202,10 +202,10 @@ public class ClassGenerator extends ClassVisitor
 		MethodInstance getter = property.getGetter();
 		if (getter == null)
 		{
-			getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, "get" + property.getName(), property.getSignature(),
-					property.getPropertyType());
+			getter = new MethodInstance(getState().getNewType(), Opcodes.ACC_PUBLIC, property.getPropertyType(), "get" + property.getName(),
+					property.getSignature());
 		}
-		implementGetter(getter, field);
+		getter = implementGetter(getter, field);
 		return PropertyInstance.findByTemplate(property, false);
 	}
 
@@ -244,7 +244,7 @@ public class ClassGenerator extends ClassVisitor
 
 	public PropertyInstance fireThisOnPropertyChange(PropertyInstance property, String... propertyNames)
 	{
-		property = getState().getProperty(property.getName());
+		property = getState().getProperty(property.getName(), property.getPropertyType());
 		for (String propertyName : propertyNames)
 		{
 			property.addAnnotation(c_fireThisOPC, propertyName);

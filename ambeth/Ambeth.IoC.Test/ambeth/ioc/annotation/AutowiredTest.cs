@@ -88,10 +88,10 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 	    {
             InitManually(GetType());
 		    Bean1 bean1 = BeanContext.GetService<Bean1>(bean1Name);
-		    Assert.IsNull(bean1.bean2);
-		    Assert.IsNotNull(bean1.bean2Autowired);
-		    Assert.IsNull(bean1.bean3);
-		    Assert.IsNull(bean1.bean3Autowired);
+		    Assert.AssertNull(bean1.bean2);
+		    Assert.AssertNotNull(bean1.bean2Autowired);
+		    Assert.AssertNull(bean1.bean3);
+		    Assert.AssertNull(bean1.bean3Autowired);
 	    }
 
 	    [TestMethod]
@@ -102,10 +102,10 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 		    try
 		    {
 			    Bean1 bean1 = beanContext.GetService<Bean1>(bean1Name);
-			    Assert.IsNull(bean1.bean2);
-			    Assert.IsNull(bean1.bean2Autowired);
-			    Assert.IsNull(bean1.bean3);
-			    Assert.IsNull(bean1.bean3Autowired);
+			    Assert.AssertNull(bean1.bean2);
+			    Assert.AssertNull(bean1.bean2Autowired);
+			    Assert.AssertNull(bean1.bean3);
+			    Assert.AssertNull(bean1.bean3Autowired);
 		    }
 		    finally
 		    {
@@ -120,10 +120,10 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 		    try
 		    {
 			    Bean1 bean1 = beanContext.GetService<Bean1>(bean1Name);
-			    Assert.IsNull(bean1.bean2);
-			    Assert.IsNotNull(bean1.bean2Autowired);
-			    Assert.IsNull(bean1.bean3);
-			    Assert.IsNull(bean1.bean3Autowired);
+			    Assert.AssertNull(bean1.bean2);
+			    Assert.AssertNotNull(bean1.bean2Autowired);
+			    Assert.AssertNull(bean1.bean3);
+			    Assert.AssertNull(bean1.bean3Autowired);
 		    }
 		    finally
 		    {
@@ -138,10 +138,10 @@ namespace De.Osthus.Ambeth.Ioc.Annotation
 		    try
 		    {
 			    Bean1 bean1 = beanContext.GetService<Bean1>(bean1Name);
-			    Assert.IsNull(bean1.bean2);
-			    Assert.IsNotNull(bean1.bean2Autowired);
-			    Assert.IsNull(bean1.bean3);
-			    Assert.IsNull(bean1.bean3Autowired);
+			    Assert.AssertNull(bean1.bean2);
+			    Assert.AssertNotNull(bean1.bean2Autowired);
+			    Assert.AssertNull(bean1.bean3);
+			    Assert.AssertNull(bean1.bean3Autowired);
 		    }
 		    finally
 		    {

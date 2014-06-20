@@ -5,8 +5,8 @@ import java.util.Arrays;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -19,7 +19,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
  * level) set (or set to true) and has annotations set on class and method level which would trigger a context rebuild like {@link TestModule} or
  * {@link TestProperties}.
  */
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
 @SQLStructure("testutil_test_structure.sql")
 @SQLData("testutil_test_data_0.sql")
 @SQLDataRebuild(value = true)

@@ -7,7 +7,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 	public class SetBeanContextMethodCreator : ClassVisitor
 	{
 		private static readonly FieldAndSetterTemplate template = new FieldAndSetterTemplate(FieldAttributes.Family, "f_beanContext", ReflectUtil.GetDeclaredMethod(
-				false, typeof(IBeanContextAware), "set_BeanContext", typeof(IServiceContext)));
+				false, typeof(IBeanContextAware), typeof(void), "set_BeanContext", typeof(IServiceContext)));
 
 		public static MethodInstance GetBeanContextSetter(IClassVisitor cg)
 		{

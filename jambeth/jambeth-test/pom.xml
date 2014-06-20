@@ -17,6 +17,11 @@
 			<artifactId>javax.servlet-api</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-test</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

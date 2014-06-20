@@ -22,22 +22,27 @@ public class PropertyInstance
 
 	public static PropertyInstance findByTemplate(IPropertyInfo propertyTemplate, boolean tryOnly)
 	{
-		return findByTemplate(propertyTemplate.getName(), tryOnly);
+		return findByTemplate(propertyTemplate.getName(), Type.getType(propertyTemplate.getPropertyType()), tryOnly);
 	}
 
 	public static PropertyInstance findByTemplate(PropertyInstance propertyTemplate, boolean tryOnly)
 	{
-		return findByTemplate(propertyTemplate.getName(), tryOnly);
+		return findByTemplate(propertyTemplate.getName(), propertyTemplate.getPropertyType(), tryOnly);
 	}
 
-	public static PropertyInstance findByTemplate(Class<?> declaringType, String propertyName, boolean tryOnly)
+	public static PropertyInstance findByTemplate(Class<?> declaringType, String propertyName, Class<?> propertyType, boolean tryOnly)
 	{
-		Method getter = ReflectUtil.getDeclaredMethod(true, declaringType, "get" + propertyName, new Type[0]);
+		return findByTemplate(declaringType, propertyName, Type.getType(propertyType), tryOnly);
+	}
+
+	public static PropertyInstance findByTemplate(Class<?> declaringType, String propertyName, Type propertyType, boolean tryOnly)
+	{
+		Method getter = ReflectUtil.getDeclaredMethod(true, declaringType, propertyType, "get" + propertyName, new Type[0]);
 		if (getter == null)
 		{
-			getter = ReflectUtil.getDeclaredMethod(true, declaringType, "is" + propertyName, new Type[0]);
+			getter = ReflectUtil.getDeclaredMethod(true, declaringType, propertyType, "is" + propertyName, new Type[0]);
 		}
-		Method setter = ReflectUtil.getDeclaredMethod(true, declaringType, "set" + propertyName, new Type[1]);
+		Method setter = ReflectUtil.getDeclaredMethod(true, declaringType, null, "set" + propertyName, propertyType);
 		if (getter != null)
 		{
 			MethodInstance getterInstance = new MethodInstance(getter);
@@ -54,7 +59,8 @@ public class PropertyInstance
 			return new PropertyInstance(setterInstance.getOwner(), propertyName, null, setterInstance);
 		}
 		// last chance: check the propertyName directly
-		Method getterOrSetter = ReflectUtil.getDeclaredMethod(true, declaringType, Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1));
+		Method getterOrSetter = ReflectUtil.getDeclaredMethod(true, declaringType, (Type) null,
+				Character.toLowerCase(propertyName.charAt(0)) + propertyName.substring(1));
 		if (getterOrSetter != null)
 		{
 			MethodInstance getterOrSetterInstance = new MethodInstance(getterOrSetter);
@@ -71,10 +77,15 @@ public class PropertyInstance
 		throw new IllegalArgumentException("No property found on class hierarchy: " + propertyName + ". Start type: " + declaringType.getName());
 	}
 
-	public static PropertyInstance findByTemplate(String propertyName, boolean tryOnly)
+	public static PropertyInstance findByTemplate(String propertyName, Class<?> propertyType, boolean tryOnly)
+	{
+		return findByTemplate(propertyName, propertyType != null ? Type.getType(propertyType) : null, tryOnly);
+	}
+
+	public static PropertyInstance findByTemplate(String propertyName, Type propertyType, boolean tryOnly)
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
-		PropertyInstance pi = state.getProperty(propertyName);
+		PropertyInstance pi = state.getProperty(propertyName, propertyType);
 		if (pi != null)
 		{
 			return pi;
