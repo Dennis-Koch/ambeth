@@ -6,7 +6,7 @@ import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -14,35 +14,19 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.ILoadContainerProvider;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
 @PersistenceContext
-public class DefaultPersistenceCacheRetriever implements ICacheRetriever, IInitializingBean
+public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected ILoadContainerProvider loadContainerProvider;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(loadContainerProvider, "LoadContainerProvider");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-	}
-
-	public void setLoadContainerProvider(ILoadContainerProvider loadContainerProvider)
-	{
-		this.loadContainerProvider = loadContainerProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
 
 	@Override
 	public List<ILoadContainer> getEntities(List<IObjRef> orisToLoad)

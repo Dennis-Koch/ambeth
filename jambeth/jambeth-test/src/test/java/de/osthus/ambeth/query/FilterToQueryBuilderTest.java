@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.model.CompositeFilterDescriptor;
@@ -16,7 +17,6 @@ import de.osthus.ambeth.filter.model.FilterOperator;
 import de.osthus.ambeth.filter.model.IFilterDescriptor;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.LogicalOperator;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")
 public class FilterToQueryBuilderTest extends AbstractPersistenceTest
 {
 	private IFilterToQueryBuilder filterToQueryBuilder;

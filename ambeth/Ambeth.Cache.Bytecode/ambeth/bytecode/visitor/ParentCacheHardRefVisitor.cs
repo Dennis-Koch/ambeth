@@ -7,7 +7,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     public class ParentCacheHardRefVisitor : ClassVisitor
     {
         private static readonly MethodInstance template_m_setParentCacheValueHardRef = new MethodInstance(null, typeof(IParentCacheValueHardRef),
-                "set_ParentCacheValueHardRef", typeof(Object));
+                typeof(void), "set_ParentCacheValueHardRef", typeof(Object));
 
         public ParentCacheHardRefVisitor(IClassVisitor cv)
             : base(cv)

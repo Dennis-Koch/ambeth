@@ -13,7 +13,7 @@ import java.util.ListIterator;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class ArrayList<V> implements List<V>, IList<V>, Externalizable, IPrintable
+public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 {
 	public static class FastIterator<V> implements ListIterator<V>
 	{
@@ -503,6 +503,21 @@ public class ArrayList<V> implements List<V>, IList<V>, Externalizable, IPrintab
 			{
 				oneRemoved = true;
 			}
+		}
+		return oneRemoved;
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(final T[] externArray)
+	{
+		if (externArray == null)
+		{
+			return false;
+		}
+		boolean oneRemoved = false;
+		for (T item : externArray)
+		{
+			oneRemoved |= remove(item);
 		}
 		return oneRemoved;
 	}

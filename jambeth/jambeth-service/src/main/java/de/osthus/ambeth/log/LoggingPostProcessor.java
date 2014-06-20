@@ -4,6 +4,7 @@ import java.util.Set;
 
 import net.sf.cglib.proxy.Callback;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.PostProcessorOrder;
@@ -12,7 +13,6 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.interceptor.LogInterceptor;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 
 public class LoggingPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {
@@ -20,21 +20,11 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	@LogInstance
 	private ILogger log;
 
+	@Property(name = ServiceConfigurationConstants.WrapAllInteractions, defaultValue = "false")
 	protected boolean wrapAllInteractions;
 
+	@Property(name = ServiceConfigurationConstants.LogShortNames, defaultValue = "false")
 	protected boolean printShortStringNames;
-
-	@Property(name = ConfigurationConstants.WrapAllInteractions, defaultValue = "false")
-	public void setWrapAllInteractions(boolean wrapAllInteractions)
-	{
-		this.wrapAllInteractions = wrapAllInteractions;
-	}
-
-	@Property(name = ConfigurationConstants.LogShortNames, defaultValue = "false")
-	public void setPrintShortStringNames(boolean printShortStringNames)
-	{
-		this.printShortStringNames = printShortStringNames;
-	}
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,

@@ -6,8 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -17,7 +17,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 
 @SQLData("OneNoReverseRelations_data.sql")
 @SQLStructure("OneNoReverseRelations_structure.sql")
-@TestPropertiesList(@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/fk/reverse/none/orm.xml"))
+@TestPropertiesList(@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/fk/reverse/none/orm.xml"))
 public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelationsTest
 {
 	@Test

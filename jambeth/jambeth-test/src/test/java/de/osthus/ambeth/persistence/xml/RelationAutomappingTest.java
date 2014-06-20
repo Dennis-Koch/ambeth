@@ -7,10 +7,10 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ICache;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -21,7 +21,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/RelationAutomapping_orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/RelationAutomapping_orm.xml") })
 @TestModule(TestServicesModule.class)
 public class RelationAutomappingTest extends AbstractPersistenceTest
 {

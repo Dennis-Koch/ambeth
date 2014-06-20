@@ -27,6 +27,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
@@ -50,7 +51,6 @@ import de.osthus.ambeth.persistence.xml.TestServicesModule;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.query.QueryMassdataTest.QueryMassDataModule;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
@@ -74,7 +74,7 @@ import de.osthus.ambeth.util.ParamHolder;
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "50000"),
 		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassdataTest.ROW_COUNT + "}"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
 		@TestProperties(name = PersistenceConfigurationConstants.QueryCacheActive, value = "false"),

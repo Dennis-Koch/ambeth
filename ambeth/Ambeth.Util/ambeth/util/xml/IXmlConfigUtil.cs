@@ -1,4 +1,5 @@
-﻿using System;
+﻿using De.Osthus.Ambeth.Collections;
+using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
 
@@ -16,9 +17,9 @@ namespace De.Osthus.Ambeth.Util.Xml
 
         IList<XElement> NodesToElements(IEnumerable<XElement> nodes);
 
-        IDictionary<String, IList<XElement>> ChildrenToElementMap(XElement parent);
+        IMap<String, IList<XElement>> ChildrenToElementMap(XElement parent);
 
-        IDictionary<String, IList<XElement>> ToElementMap(IEnumerable<XElement> elements);
+        IMap<String, IList<XElement>> ToElementMap(IEnumerable<XElement> elements);
 
         String GetAttribute(XElement entityTag, XName xName);
 

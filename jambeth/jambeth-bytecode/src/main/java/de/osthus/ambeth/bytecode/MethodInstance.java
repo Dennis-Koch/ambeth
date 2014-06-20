@@ -70,15 +70,15 @@ public class MethodInstance
 		{
 			return null;
 		}
-		return findByTemplate(tryOnly, methodTemplate.getName(), methodTemplate.getParameters());
+		return findByTemplate(tryOnly, methodTemplate.getReturnType(), methodTemplate.getName(), methodTemplate.getParameters());
 	}
 
-	public static MethodInstance findByTemplate(boolean tryOnly, String methodName, Class<?>... parameters)
+	public static MethodInstance findByTemplate(boolean tryOnly, Class<?> returnType, String methodName, Class<?>... parameters)
 	{
-		return findByTemplate(tryOnly, methodName, TypeUtil.getClassesToTypes(parameters));
+		return findByTemplate(tryOnly, Type.getType(returnType), methodName, TypeUtil.getClassesToTypes(parameters));
 	}
 
-	public static MethodInstance findByTemplate(boolean tryOnly, String methodName, Type... parameters)
+	public static MethodInstance findByTemplate(boolean tryOnly, Type returnType, String methodName, Type... parameters)
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		for (MethodInstance methodOnNewType : state.getAlreadyImplementedMethodsOnNewType())
@@ -101,7 +101,11 @@ public class MethodInstance
 					break;
 				}
 			}
-			if (paramsEqual)
+			if (!paramsEqual)
+			{
+				continue;
+			}
+			if (returnType == null || methodOnNewType.getReturnType().equals(returnType))
 			{
 				return methodOnNewType;
 			}
@@ -111,7 +115,7 @@ public class MethodInstance
 		{
 			while (currType != null && currType != Object.class)
 			{
-				java.lang.reflect.Method method = ReflectUtil.getDeclaredMethod(true, currType, methodName, parameters);
+				java.lang.reflect.Method method = ReflectUtil.getDeclaredMethod(true, currType, returnType, methodName, parameters);
 				if (method != null)
 				{
 					if ((method.getModifiers() & Modifier.ABSTRACT) != 0)
@@ -139,9 +143,10 @@ public class MethodInstance
 
 	protected final String signature;
 
-	public MethodInstance(Type owner, Class<?> declaringTypeOfMethod, String methodName, Class<?>... parameters)
+	public MethodInstance(Type owner, Class<?> declaringTypeOfMethod, Class<?> returnType, String methodName, Class<?>... parameters)
 	{
-		this(owner != null ? owner : Type.getType(declaringTypeOfMethod), ReflectUtil.getDeclaredMethod(false, declaringTypeOfMethod, methodName, parameters));
+		this(owner != null ? owner : Type.getType(declaringTypeOfMethod), ReflectUtil.getDeclaredMethod(false, declaringTypeOfMethod, returnType, methodName,
+				parameters));
 	}
 
 	public MethodInstance(java.lang.reflect.Method method)
@@ -151,7 +156,7 @@ public class MethodInstance
 
 	public MethodInstance(Type owner, java.lang.reflect.Method method)
 	{
-		this(owner, TypeUtil.getModifiersToAccess(method.getModifiers()), method.getName(), getSignature(method), Type.getType(method.getReturnType()),
+		this(owner, TypeUtil.getModifiersToAccess(method.getModifiers()), Type.getType(method.getReturnType()), method.getName(), getSignature(method),
 				TypeUtil.getClassesToTypes(method.getParameterTypes()));
 	}
 
@@ -160,9 +165,9 @@ public class MethodInstance
 		this(owner, superMethod.getAccess(), superMethod.getName(), superMethod.getSignature(), superMethod.getDescriptor());
 	}
 
-	public MethodInstance(Class<?> owner, int access, String name, String signature, Class<?> returnType, Class<?>... parameters)
+	public MethodInstance(Class<?> owner, int access, Class<?> returnType, String name, String signature, Class<?>... parameters)
 	{
-		this(owner != null ? Type.getType(owner) : null, access, name, signature, Type.getType(returnType), TypeUtil.getClassesToTypes(parameters));
+		this(owner != null ? Type.getType(owner) : null, access, Type.getType(returnType), name, signature, TypeUtil.getClassesToTypes(parameters));
 	}
 
 	public MethodInstance(Type owner, int access, String name, String signature, String desc)
@@ -178,7 +183,7 @@ public class MethodInstance
 		this.signature = signature;
 	}
 
-	public MethodInstance(Type owner, int access, String name, String signature, Type returnType, Type... parameters)
+	public MethodInstance(Type owner, int access, Type returnType, String name, String signature, Type... parameters)
 	{
 		super();
 		this.owner = owner;
@@ -206,7 +211,7 @@ public class MethodInstance
 
 	public MethodInstance deriveName(String methodName)
 	{
-		return new MethodInstance(getOwner(), getAccess(), methodName, getSignature(), getReturnType(), getParameters());
+		return new MethodInstance(getOwner(), getAccess(), getReturnType(), methodName, getSignature(), getParameters());
 	}
 
 	public Type getOwner()

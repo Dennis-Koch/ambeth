@@ -17,11 +17,11 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
     public class PrefetchTest : AbstractHelloWorldTest
     {
         [TestMethod]
-        public void test_Prefetch()
+        public void Test_Prefetch()
         {
             Object obj = new UsableObservableCollection<Object>();
             IList<TestEntity> testEntities = HelloWorldService.GetAllTestEntities();
-            Assert.AreNotEqual(0, testEntities.Count);
+            Assert.AssertNotEquals(0, testEntities.Count);
 
             IPrefetchHandle prefetch = PrefetchHelper.CreatePrefetch().Add(typeof(TestEntity), "Relation").Add(typeof(TestEntity), "Relations").Build();
 
@@ -29,8 +29,8 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
 
             foreach (TestEntity testEntity in testEntities)
             {
-                Assert.AreEqual(true, ProxyHelper.IsInitialized(testEntity, "Relation"));
-                Assert.AreEqual(true, ProxyHelper.IsInitialized(testEntity, "Relations"));
+                Assert.AssertTrue(ProxyHelper.IsInitialized(testEntity, "Relation"));
+                Assert.AssertTrue(ProxyHelper.IsInitialized(testEntity, "Relations"));
             }
         }
     }

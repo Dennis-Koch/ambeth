@@ -2,7 +2,7 @@ package de.osthus.ambeth.accessor;
 
 public abstract class AbstractAccessor
 {
-	protected AbstractAccessor(Class<?> type, String propertyName)
+	protected AbstractAccessor(Class<?> type, String propertyName, Class<?> propertyType)
 	{
 		// Intended blank
 	}

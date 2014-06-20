@@ -2,11 +2,9 @@ package de.osthus.ambeth.merge.config;
 
 import org.w3c.dom.Document;
 
-import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IStartingBean;
@@ -20,7 +18,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.orm.EntityConfig;
 import de.osthus.ambeth.orm.IOrmXmlReader;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 
@@ -54,23 +51,11 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		Class<?>[] newEntityTypes = null;
 		if (xmlFileName != null)
 		{
 			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
 			ParamChecker.assertNotNull(docs, "docs");
 			readConfig(docs);
-
-			newEntityTypes = new Class<?>[managedEntityMetaData.size()];
-			int index = 0;
-			for (IEntityMetaData metaData : managedEntityMetaData)
-			{
-				newEntityTypes[index++] = metaData.getEntityType();
-			}
-		}
-		if (newEntityTypes != null && newEntityTypes.length > 0)
-		{
-			eventDispatcher.dispatchEvent(new EntityMetaDataAddedEvent(newEntityTypes));
 		}
 	}
 
@@ -83,7 +68,7 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 		}
 	}
 
-	@Property(name = ConfigurationConstants.mappingFile, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
 	public void setFileName(String fileName)
 	{
 		if (xmlFileName != null)
@@ -97,7 +82,7 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 
 	@SuppressWarnings("deprecation")
 	@Deprecated
-	@Property(name = ConfigurationConstants.mappingResource, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.mappingResource, mandatory = false)
 	public void setResourceName(String xmlResourceName)
 	{
 		if (xmlFileName != null)
@@ -111,7 +96,7 @@ public class IndependentEntityMetaDataReader implements IStartingBean, IDisposab
 
 	protected void readConfig(Document[] docs)
 	{
-		ISet<EntityConfig> entities = new HashSet<EntityConfig>();
+		LinkedHashSet<EntityConfig> entities = new LinkedHashSet<EntityConfig>();
 		for (Document doc : docs)
 		{
 			doc.normalizeDocument();

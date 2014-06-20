@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Bytecode.AbstractObject;
 using De.Osthus.Ambeth.Bytecode.Visitor;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc.Annotation;
@@ -20,7 +21,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
         public override IClassVisitor Extend(IClassVisitor visitor, IBytecodeBehaviorState state, IList<IBytecodeBehavior> remainingPendingBehaviors,
                 IList<IBytecodeBehavior> cascadePendingBehaviors)
         {
-            if (state.GetContext<EntityEnhancementHint>() == null && state.GetContext<EmbeddedEnhancementHint>() == null)
+            if (state.GetContext<EntityEnhancementHint>() == null && state.GetContext<EmbeddedEnhancementHint>() == null && state.GetContext<ImplementAbstractObjectEnhancementHint>() == null)
             {
                 return visitor;
             }

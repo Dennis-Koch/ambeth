@@ -8,17 +8,25 @@ public class MethodKeyOfType
 {
 	protected final String methodName;
 
+	protected final Type returnType;
+
 	protected final Type[] parameterTypes;
 
-	public MethodKeyOfType(String methodName, Type[] parameterTypes)
+	public MethodKeyOfType(String methodName, Type returnType, Type[] parameterTypes)
 	{
 		this.methodName = methodName;
+		this.returnType = returnType;
 		this.parameterTypes = parameterTypes;
 	}
 
 	public String getMethodName()
 	{
 		return methodName;
+	}
+
+	public Type getReturnType()
+	{
+		return returnType;
 	}
 
 	public Type[] getParameterTypes()
@@ -29,7 +37,7 @@ public class MethodKeyOfType
 	@Override
 	public int hashCode()
 	{
-		return methodName.hashCode() ^ parameterTypes.length;
+		return methodName.hashCode() ^ parameterTypes.length ^ returnType.hashCode();
 	}
 
 	@Override
@@ -48,7 +56,7 @@ public class MethodKeyOfType
 			return false;
 		}
 		MethodKeyOfType other = (MethodKeyOfType) obj;
-		if (!EqualsUtil.equals(methodName, other.methodName))
+		if (!EqualsUtil.equals(methodName, other.methodName) || !EqualsUtil.equals(returnType, other.returnType))
 		{
 			return false;
 		}

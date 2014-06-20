@@ -51,40 +51,39 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected static readonly String templatePropertyName = templateType.Name;
 
         public static readonly MethodInstance template_m_collectionChanged = new MethodInstance(null, typeof(INotifyCollectionChangedListener),
-                "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
+                typeof(void), "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
 
-        public static readonly MethodInstance template_m_PropertyChanged = new MethodInstance(null, typeof(IPropertyChangedEventHandler), "PropertyChanged", typeof(Object), typeof(PropertyChangedEventArgs));
+        public static readonly MethodInstance template_m_PropertyChanged = new MethodInstance(null, typeof(IPropertyChangedEventHandler), typeof(void), "PropertyChanged", typeof(Object), typeof(PropertyChangedEventArgs));
 
         public static readonly MethodInstance template_m_onPropertyChanged = new MethodInstance(null, typeof(INotifyPropertyChangedSource),
-            "OnPropertyChanged", typeof(String));
+            typeof(void), "OnPropertyChanged", typeof(String));
 
         public static readonly MethodInstance template_m_onPropertyChanged_Values = new MethodInstance(null, typeof(INotifyPropertyChangedSource),
-            "OnPropertyChanged", typeof(String), typeof(Object), typeof(Object));
+            typeof(void), "OnPropertyChanged", typeof(String), typeof(Object), typeof(Object));
 
-        public static readonly MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, "HandleParentChildPropertyChange", typeof(INotifyPropertyChangedSource), typeof(Object), typeof(PropertyChangedEventArgs));
+        public static readonly MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, typeof(void), "HandleParentChildPropertyChange", typeof(INotifyPropertyChangedSource), typeof(Object), typeof(PropertyChangedEventArgs));
 
-        public static readonly MethodInstance m_handleCollectionChange = new MethodInstance(null, templateType, "HandleCollectionChange", typeof(INotifyPropertyChangedSource), typeof(Object), typeof(NotifyCollectionChangedEventArgs));
+        public static readonly MethodInstance m_handleCollectionChange = new MethodInstance(null, templateType, typeof(void), "HandleCollectionChange", typeof(INotifyPropertyChangedSource), typeof(Object), typeof(NotifyCollectionChangedEventArgs));
 
         protected static readonly MethodInstance m_newPropertyChangeSupport = new MethodInstance(null, templateType,
-                "NewPropertyChangeSupport", typeof(Object));
+                typeof(PropertyChangeSupport), "NewPropertyChangeSupport", typeof(Object));
 
-        protected static readonly MethodInstance m_getMethodHandle = new MethodInstance(null, templateType, "GetMethodHandle", typeof(INotifyPropertyChangedSource),
+        protected static readonly MethodInstance m_getMethodHandle = new MethodInstance(null, templateType, typeof(IPropertyInfo), "GetMethodHandle", typeof(INotifyPropertyChangedSource),
             typeof(String));
 
-        protected static readonly MethodInstance m_firePropertyChange = new MethodInstance(null, templateType, "FirePropertyChange",
+        protected static readonly MethodInstance m_firePropertyChange = new MethodInstance(null, templateType, typeof(void), "FirePropertyChange",
                 typeof(INotifyPropertyChangedSource), typeof(PropertyChangeSupport), typeof(IPropertyInfo), typeof(Object), typeof(Object));
 
         protected static readonly MethodInstance m_addPropertyChangeListener = new MethodInstance(null, templateType,
-                "AddPropertyChangeListener", typeof(PropertyChangeSupport), typeof(PropertyChangedEventHandler));
+                typeof(void), "AddPropertyChangeListener", typeof(PropertyChangeSupport), typeof(PropertyChangedEventHandler));
 
         protected static readonly MethodInstance m_removePropertyChangeListener = new MethodInstance(null, templateType,
-                "RemovePropertyChangeListener", typeof(PropertyChangeSupport), typeof(PropertyChangedEventHandler));
+                typeof(void), "RemovePropertyChangeListener", typeof(PropertyChangeSupport), typeof(PropertyChangedEventHandler));
 
-        public static readonly MethodInstance template_m_firePropertyChange = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Family, "FirePropertyChange", typeof(void),
+        public static readonly MethodInstance template_m_firePropertyChange = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Family, typeof(void), "FirePropertyChange", 
                 typeof(PropertyChangeSupport), typeof(IPropertyInfo), typeof(Object), typeof(Object));
 
-        protected static readonly MethodInstance template_m_getOrCreatePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, "Use$PropertyChangeSupport",
-            typeof(PropertyChangeSupport));
+        protected static readonly MethodInstance template_m_getOrCreatePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, typeof(PropertyChangeSupport), "Use$PropertyChangeSupport");
 
         public static readonly PropertyInstance p_propertyChangeSupport = new PropertyInstance(typeof(INotifyPropertyChangedSource).GetProperty("PropertyChangeSupport"));
 
@@ -92,9 +91,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly PropertyInstance p_collectionEventHandler = new PropertyInstance(typeof(INotifyPropertyChangedSource).GetProperty("CollectionEventHandler"));
 
-        public static readonly MethodInstance sm_hasPropertyChangedDefault = new MethodInstance(null, templateType, "HasPropertyChangedDefault", typeof(Object), typeof(String), typeof(Object), typeof(Object));
+        public static readonly MethodInstance sm_hasPropertyChangedDefault = new MethodInstance(null, templateType, typeof(bool), "HasPropertyChangedDefault", typeof(Object), typeof(String), typeof(Object), typeof(Object));
 
-        public static readonly MethodInstance sm_hasPropertyChangedValueType = new MethodInstance(null, templateType, "HasPropertyChangedValueType", typeof(Object), typeof(String), typeof(Object), typeof(Object));
+        public static readonly MethodInstance sm_hasPropertyChangedValueType = new MethodInstance(null, templateType, typeof(bool), "HasPropertyChangedValueType", typeof(Object), typeof(String), typeof(Object), typeof(Object));
 
         public static readonly HashMap<Type, MethodInstance> propertyTypeToHasPropertyChangeMI = new HashMap<Type, MethodInstance>();
 
@@ -114,12 +113,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static PropertyInstance GetPropertyChangeTemplatePI(IClassVisitor cv)
         {
-            PropertyInstance pi = State.GetProperty(templatePropertyName);
+            Object bean = State.BeanContext.GetService(templateType);
+            PropertyInstance pi = State.GetProperty(templatePropertyName, NewType.GetType(bean.GetType()));
             if (pi != null)
             {
                 return pi;
             }
-            Object bean = State.BeanContext.GetService(templateType);
             return cv.ImplementAssignedReadonlyProperty(templatePropertyName, bean);
         }
 
@@ -144,7 +143,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static MethodInstance LookupHasPropertyChangeMI(Type propertyType)
         {
-            return new MethodInstance(null, templateType, "HasPropertyChanged", typeof(Object), typeof(String), propertyType, propertyType);
+            return new MethodInstance(null, templateType, typeof(bool), "HasPropertyChanged", typeof(Object), typeof(String), propertyType, propertyType);
         }
 
         /** property infos of enhanced type */
@@ -188,7 +187,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     {
                         continue;
                     }
-                    PropertyInstance propInfo = PropertyInstance.FindByTemplate(prop.Name, true);
+                    PropertyInstance propInfo = PropertyInstance.FindByTemplate(prop.Name, prop.PropertyType, true);
                     if (propInfo == null)
                     {
                         continue;
@@ -200,7 +199,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 foreach (String propertyName in properties)
                 {
-                    PropertyInstance propInfo = PropertyInstance.FindByTemplate(propertyName, false);
+                    PropertyInstance propInfo = PropertyInstance.FindByTemplate(propertyName, (NewType)null, false);
                     ImplementPropertyChangeOnProperty(propInfo, p_propertyChangeTemplate, m_firePropertyChange, f_propertyChangeSupport);
                 }
             }
@@ -534,7 +533,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 {
                     HideFromDebug(ImplementLazyInitProperty(p_parentChildEventHandler, delegate(IMethodVisitor mv)
                     {
-                        MethodInstance method = new MethodInstance(null, typeof(NotifyPropertyChangedClassVisitor), "CreateParentChildEventHandler", typeof(Object));
+                        MethodInstance method = new MethodInstance(null, typeof(NotifyPropertyChangedClassVisitor), typeof(PropertyChangedEventHandler), "CreateParentChildEventHandler", typeof(Object));
                         mv.LoadThis();
                         mv.InvokeStatic(method);
                     }));
@@ -543,7 +542,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 {
                     HideFromDebug(ImplementLazyInitProperty(p_collectionEventHandler, delegate(IMethodVisitor mv)
                     {
-                        MethodInstance method = new MethodInstance(null, typeof(NotifyPropertyChangedClassVisitor), "CreateCollectionEventHandler", typeof(Object));
+                        MethodInstance method = new MethodInstance(null, typeof(NotifyPropertyChangedClassVisitor), typeof(NotifyCollectionChangedEventHandler), "CreateCollectionEventHandler", typeof(Object));
                         mv.LoadThis();
                         mv.InvokeStatic(method);
                     }));
@@ -623,7 +622,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public static PropertyChangedEventHandler CreateParentChildEventHandler(Object entity)
         {
             //typeof(IPropertyChangeListener);
-            MethodInfo method = ReflectUtil.GetDeclaredMethod(true, entity.GetType(), template_m_PropertyChanged.Name, typeof(Object), typeof(PropertyChangedEventArgs));
+            MethodInfo method = ReflectUtil.GetDeclaredMethod(true, entity.GetType(), template_m_PropertyChanged.ReturnType.Type, template_m_PropertyChanged.Name, typeof(Object), typeof(PropertyChangedEventArgs));
             return (PropertyChangedEventHandler)Delegate.CreateDelegate(typeof(PropertyChangedEventHandler), entity, template_m_PropertyChanged.Name);
         }
     }

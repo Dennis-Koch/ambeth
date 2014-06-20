@@ -16,42 +16,27 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
-import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CacheBytecodeModule;
-import de.osthus.ambeth.ioc.CacheDataChangeModule;
-import de.osthus.ambeth.ioc.CacheModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
-import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.ServiceModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.merge.EntityMetaDataFake;
-import de.osthus.ambeth.merge.IEntityFactory;
-import de.osthus.ambeth.merge.IEntityMetaDataProvider;
-import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.ORIHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.Material;
-import de.osthus.ambeth.persistence.jdbc.BasicEntityMetaDataFiller;
-import de.osthus.ambeth.proxy.CacheEntityFactory;
-import de.osthus.ambeth.testutil.AbstractIocTest;
+import de.osthus.ambeth.model.Unit;
+import de.osthus.ambeth.service.ICacheRetrieverExtendable;
+import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
-import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestRebuildContext;
 
-@TestFrameworkModule({ BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class, CompositeIdModule.class,
-		AbstractCacheTestModule.class, EventModule.class, ServiceModule.class })
-@TestProperties(name = CacheConfigurationConstants.CacheServiceRegistryActive, value = "false")
+@TestFrameworkModule(AbstractCacheTestModule.class)
 @TestRebuildContext
-public class AbstractCacheTest extends AbstractIocTest
+public class AbstractCacheTest extends AbstractInformationBusTest
 {
 	@FrameworkModule
 	public static class AbstractCacheTestModule implements IInitializingModule
@@ -59,19 +44,9 @@ public class AbstractCacheTest extends AbstractIocTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean("cacheModification", CacheModification.class).autowireable(ICacheModification.class);
-
-			beanContextFactory.registerBean("entityFactory", CacheEntityFactory.class).autowireable(IEntityFactory.class);
-
-			beanContextFactory.registerBean("entityMetaDataFiller", BasicEntityMetaDataFiller.class);
-
-			beanContextFactory.registerBean("entityMetaDataProvider", EntityMetaDataFake.class).propertyRef("EntityMetaDataFiller", "entityMetaDataFiller")
-					.autowireable(IEntityMetaDataProvider.class).overridesExisting();
-
-			beanContextFactory.registerBean("oriHelper", ORIHelper.class).autowireable(IObjRefHelper.class);
-
-			beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheRetrieverFake.class);
-			beanContextFactory.registerAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.DEFAULT_CACHE_RETRIEVER);
+			IBeanConfiguration cacheRetrieverFakeBC = beanContextFactory.registerAnonymousBean(CacheRetrieverFake.class);
+			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Material.class);
+			beanContextFactory.link(cacheRetrieverFakeBC).to(ICacheRetrieverExtendable.class).with(Unit.class);
 		}
 	}
 

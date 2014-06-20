@@ -134,7 +134,6 @@
     <Compile Include="ambeth\merge\config\ValueObjectConfigReader.cs" />
     <Compile Include="ambeth\merge\EntityCallback.cs" />
     <Compile Include="ambeth\merge\EntityInitializedState.cs" />
-    <Compile Include="ambeth\merge\EntityMetaDataCache.cs" />
     <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
     <Compile Include="ambeth\merge\ICUDResultHelper.cs" />
     <Compile Include="ambeth\merge\IEntityChecker.cs" />

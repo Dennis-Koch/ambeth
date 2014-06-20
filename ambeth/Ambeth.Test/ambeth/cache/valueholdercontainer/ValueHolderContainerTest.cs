@@ -20,18 +20,17 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 {
-    [TestProperties(Name = CacheConfigurationConstants.CacheServiceRegistryActive, Value = "true")]
     [TestProperties(Name = CacheConfigurationConstants.AsyncPropertyChangeActive, Value = "true")]
     [TestProperties(Name = ServiceConfigurationConstants.MappingFile, Value = "ambeth/cache/valueholdercontainer/orm.xml")]
     [TestFrameworkModule(typeof(ValueHolderContainerTestModule))]
     [TestRebuildContext]
     [TestClass]
-    public class ValueHolderContainerTest : AbstractIndependentClientTest
+    public class ValueHolderContainerTest : AbstractInformationBusTest
     {
         public static readonly String getIdName = "Get__Id";
 
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         public ICacheFactory CacheFactory { protected get; set; }
 
@@ -240,32 +239,32 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
             Object id = ((IEntityEquals)obj).Get__Id();
 
-            Assert.IsTrue(((IDataObject)obj).ToBeCreated);
-            Assert.IsFalse(((IDataObject)obj).ToBeUpdated);
-            Assert.IsFalse(((IDataObject)obj).ToBeDeleted);
-            Assert.IsTrue(((IDataObject)obj).HasPendingChanges);
+            Assert.AssertTrue(((IDataObject)obj).ToBeCreated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeDeleted);
+            Assert.AssertTrue(((IDataObject)obj).HasPendingChanges);
 
             obj.Id = 0;
             obj.Name = "name2";
             obj.Version = 1;
 
             Object idNull = obj.GetType().GetMethod(getIdName).Invoke(obj, new Object[0]);
-            Assert.IsNull(idNull);
+            Assert.AssertNull(idNull);
 
-            Assert.IsTrue(((IDataObject)obj).ToBeCreated);
-            Assert.IsFalse(((IDataObject)obj).ToBeUpdated);
-            Assert.IsFalse(((IDataObject)obj).ToBeDeleted);
-            Assert.IsTrue(((IDataObject)obj).HasPendingChanges);
+            Assert.AssertTrue(((IDataObject)obj).ToBeCreated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeDeleted);
+            Assert.AssertTrue(((IDataObject)obj).HasPendingChanges);
 
             obj.Id = 1;
 
             Object idNotNull = obj.GetType().GetMethod(getIdName).Invoke(obj, new Object[0]);
-            Assert.IsNotNull(idNotNull);
+            Assert.AssertNotNull(idNotNull);
 
-            Assert.IsFalse(((IDataObject)obj).ToBeCreated);
-            Assert.IsTrue(((IDataObject)obj).ToBeUpdated);
-            Assert.IsFalse(((IDataObject)obj).ToBeDeleted);
-            Assert.IsTrue(((IDataObject)obj).HasPendingChanges);
+            Assert.AssertFalse(((IDataObject)obj).ToBeCreated);
+            Assert.AssertTrue(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeDeleted);
+            Assert.AssertTrue(((IDataObject)obj).HasPendingChanges);
 
             obj = EntityFactory.CreateEntity<Material>();
             bool oldCacheModActive = CacheModification.Active;
@@ -279,12 +278,12 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                 CacheModification.Active = oldCacheModActive;
             }
             idNotNull = obj.GetType().GetMethod(getIdName).Invoke(obj, new Object[0]);
-            Assert.IsNotNull(idNotNull);
+            Assert.AssertNotNull(idNotNull);
 
-            Assert.IsFalse(((IDataObject)obj).ToBeCreated);
-            Assert.IsFalse(((IDataObject)obj).ToBeUpdated);
-            Assert.IsFalse(((IDataObject)obj).ToBeDeleted);
-            Assert.IsFalse(((IDataObject)obj).HasPendingChanges);
+            Assert.AssertFalse(((IDataObject)obj).ToBeCreated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertFalse(((IDataObject)obj).ToBeDeleted);
+            Assert.AssertFalse(((IDataObject)obj).HasPendingChanges);
         }
 
         [TestMethod]
@@ -301,11 +300,11 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             ((IDataObject)obj).ToBeUpdated = false;
 
             obj.EmbMat.Name = "Name";
-            Assert.IsTrue(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertTrue(((IDataObject)obj).ToBeUpdated);
             ((IDataObject)obj).ToBeUpdated = false;
 
             obj.EmbMat.EmbMat2.Name2 = "Name2";
-            Assert.IsTrue(((IDataObject)obj).ToBeUpdated);
+            Assert.AssertTrue(((IDataObject)obj).ToBeUpdated);
             ((IDataObject)obj).ToBeUpdated = false;
         }
 
@@ -317,42 +316,42 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             // Test EmbMat.EmbMatType
             Assert.IsInstanceOfType(obj.EmbMat, typeof(IEmbeddedType));
             obj.EmbMat.Name = "Name2";
-            Assert.AreEqual("Name2", obj.EmbMat.Name);
+            Assert.AssertEquals("Name2", obj.EmbMat.Name);
 
-            Assert.AreEqual(0, ReflectUtil.GetDeclaredFieldInHierarchy(obj.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMat.EmbMatType")).Length);
-            Assert.AreEqual(1, ReflectUtil.GetDeclaredFieldInHierarchy(obj.EmbMat.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMatType")).Length);
+            Assert.AssertEquals(0, ReflectUtil.GetDeclaredFieldInHierarchy(obj.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMat.EmbMatType")).Length);
+            Assert.AssertEquals(1, ReflectUtil.GetDeclaredFieldInHierarchy(obj.EmbMat.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMatType")).Length);
 
             IRelationInfoItem embMatTypeRI = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(obj.GetType()).GetMemberByName("EmbMat.EmbMatType");
 
-            Assert.IsFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
 
             IObjRef[] emptyRefs = ObjRef.EMPTY_ARRAY;
             ProxyHelper.SetObjRefs(obj, embMatTypeRI, emptyRefs);
             IObjRef[] objRefs = ProxyHelper.GetObjRefs(obj, embMatTypeRI);
-            Assert.AreSame(emptyRefs, objRefs);
+            Assert.AssertSame(emptyRefs, objRefs);
 
-            Assert.IsNull(obj.EmbMat.EmbMatType);
-            Assert.IsTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertNull(obj.EmbMat.EmbMatType);
+            Assert.AssertTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
 
             // Test EmbMat.EmbMat2.EmbMatType2
             Assert.IsInstanceOfType(obj.EmbMat.EmbMat2, typeof(IEmbeddedType));
             obj.EmbMat.EmbMat2.Name2 = "Name3";
-            Assert.AreEqual("Name3", obj.EmbMat.EmbMat2.Name2);
+            Assert.AssertEquals("Name3", obj.EmbMat.EmbMat2.Name2);
 
-            Assert.IsNull(obj.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMat.EmbMat2.EmbMatType2")));
-            Assert.IsNull(obj.EmbMat.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMat2.EmbMatType2")));
-            Assert.IsNotNull(obj.EmbMat.EmbMat2.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMatType2")));
+            Assert.AssertNull(obj.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMat.EmbMat2.EmbMatType2")));
+            Assert.AssertNull(obj.EmbMat.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMat2.EmbMatType2")));
+            Assert.AssertNotNull(obj.EmbMat.EmbMat2.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMatType2")));
 
             embMatTypeRI = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(obj.GetType()).GetMemberByName("EmbMat.EmbMat2.EmbMatType2");
 
-            Assert.IsFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
 
             ProxyHelper.SetObjRefs(obj, embMatTypeRI, emptyRefs);
             objRefs = ProxyHelper.GetObjRefs(obj, embMatTypeRI);
-            Assert.AreSame(emptyRefs, objRefs);
+            Assert.AssertSame(emptyRefs, objRefs);
 
-            Assert.IsNull(obj.EmbMat.EmbMat2.EmbMatType2);
-            Assert.IsTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertNull(obj.EmbMat.EmbMat2.EmbMatType2);
+            Assert.AssertTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
 
             // Test EmbMat3.EmbMatType
             Assert.IsInstanceOfType(obj.EmbMat3, typeof(IEmbeddedType));
@@ -395,7 +394,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             PropertyChangedEventHandler handler = new PropertyChangedEventHandler(delegate(Object sender, PropertyChangedEventArgs e)
             {
                 Thread currentThread = Thread.CurrentThread;
-                //Assert.AreSame(syncContext, SynchronizationContext.Current);
+                //Assert.AssertSame(syncContext, SynchronizationContext.Current);
                 lock (propertyNameToHitCountMap)
                 {
                     IMap<Thread, int> threadMap = propertyNameToHitCountMap.Get(e.PropertyName);
@@ -425,28 +424,28 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             PropertyChangedEventHandler handler = GetPropertyChangeHandler(propertyNameToHitCountMap);
             ((INotifyPropertyChanged)obj).PropertyChanged += handler;
 
-            Assert.AreEqual(0, propertyNameToHitCountMap.Count);
+            Assert.AssertEquals(0, propertyNameToHitCountMap.Count);
             obj.Id = 1;
 
             WaitForUI();
 
-            Assert.AreEqual(4, propertyNameToHitCountMap.Count);
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Id"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("ToBeCreated"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("ToBeUpdated"));
-            Assert.AreEqual(2, propertyNameToHitCountMap.Get("HasPendingChanges"));
+            Assert.AssertEquals(4, propertyNameToHitCountMap.Count);
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Id"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("ToBeCreated"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("ToBeUpdated"));
+            Assert.AssertEquals(2, propertyNameToHitCountMap.Get("HasPendingChanges"));
             ((IDataObject)obj).ToBeUpdated = false;
             propertyNameToHitCountMap.Clear();
 
             obj.Name = "name2";
             WaitForUI();
 
-            Assert.AreEqual(5, propertyNameToHitCountMap.Count);
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Name"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Temp1"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Temp2"));
-            Assert.AreEqual(2, propertyNameToHitCountMap.Get("ToBeUpdated"));
-            Assert.AreEqual(2, propertyNameToHitCountMap.Get("HasPendingChanges"));
+            Assert.AssertEquals(5, propertyNameToHitCountMap.Count);
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Name"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Temp1"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Temp2"));
+            Assert.AssertEquals(2, propertyNameToHitCountMap.Get("ToBeUpdated"));
+            Assert.AssertEquals(2, propertyNameToHitCountMap.Get("HasPendingChanges"));
             propertyNameToHitCountMap.Clear();
         }
 
@@ -460,29 +459,29 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             objNull1.Name = "name2";
             objNull1.Version = 1;
 
-            Assert.AreEqual(objNull1, objNull1);
+            Assert.AssertEquals(objNull1, objNull1);
 
             MaterialType objNull2 = EntityFactory.CreateEntity<MaterialType>();
             objNull2.Id = 0;
             objNull2.Name = "name3";
             objNull2.Version = 1;
 
-            Assert.AreNotEqual(objNull1, objNull2);
+            Assert.AssertNotEquals(objNull1, objNull2);
 
             MaterialType obj1 = EntityFactory.CreateEntity<MaterialType>();
             obj1.Id = 1;
             obj1.Name = "name2";
             obj1.Version = 1;
 
-            Assert.AreEqual(obj1, obj1);
+            Assert.AssertEquals(obj1, obj1);
 
             MaterialType obj1_1 = EntityFactory.CreateEntity<MaterialType>();
             obj1_1.Id = 1;
             obj1_1.Name = "name3";
             obj1_1.Version = 2;
 
-            Assert.AreEqual(obj1, obj1_1);
-            Assert.AreEqual(obj1.GetHashCode(), obj1_1.GetHashCode());
+            Assert.AssertEquals(obj1, obj1_1);
+            Assert.AssertEquals(obj1.GetHashCode(), obj1_1.GetHashCode());
 
             MaterialType obj2 = EntityFactory.CreateEntity<MaterialType>();
             obj2.Id = 2;
@@ -491,14 +490,14 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
             Object value1 = obj1.GetType().GetMethod(getIdName).Invoke(obj1, new Object[0]);
             Object value2 = obj2.GetType().GetMethod(getIdName).Invoke(obj2, new Object[0]);
-            Assert.AreNotEqual(obj1, obj2);
+            Assert.AssertNotEquals(obj1, obj2);
 
             Material mat2 = EntityFactory.CreateEntity<Material>();
             mat2.Id = 2;
             mat2.Name = "name2";
             mat2.Version = 1;
 
-            Assert.AreNotEqual(mat2, obj2);
+            Assert.AssertNotEquals(mat2, obj2);
         }
 
         [TestMethod]
@@ -519,11 +518,11 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                 obj.Version = 1;
                 WaitForUI();
 
-                Assert.AreEqual(4, pceCounter.Count);
-                Assert.AreEqual(1, pceCounter.Get("Name"));
-                Assert.AreEqual(1, pceCounter.Get("Temp1"));
-                Assert.AreEqual(1, pceCounter.Get("Temp2"));
-                Assert.AreEqual(1, pceCounter.Get("Version"));
+                Assert.AssertEquals(4, pceCounter.Count);
+                Assert.AssertEquals(1, pceCounter.Get("Name"));
+                Assert.AssertEquals(1, pceCounter.Get("Temp1"));
+                Assert.AssertEquals(1, pceCounter.Get("Temp2"));
+                Assert.AssertEquals(1, pceCounter.Get("Version"));
             }
             {
                 Material obj = EntityFactory.CreateEntity<Material>();
@@ -543,9 +542,9 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                 obj.Names.Add("Item2");
                 WaitForUI();
 
-                Assert.AreEqual(2, pceCounter.Count);
-                Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
-                Assert.AreEqual(1, pceCounter.Get("HasPendingChanges"));
+                Assert.AssertEquals(2, pceCounter.Count);
+                Assert.AssertEquals(1, pceCounter.Get("ToBeUpdated"));
+                Assert.AssertEquals(1, pceCounter.Get("HasPendingChanges"));
             }
         }
 
@@ -561,22 +560,22 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj.Id = 1;
             WaitForUI();
 
-            Assert.AreEqual(1, pceCounter.Get("Id"));
-            Assert.AreEqual(1, pceCounter.Get("ToBeCreated"));
-            Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(2, pceCounter.Get("HasPendingChanges"));
-            Assert.AreEqual(4, pceCounter.Count);
+            Assert.AssertEquals(1, pceCounter.Get("Id"));
+            Assert.AssertEquals(1, pceCounter.Get("ToBeCreated"));
+            Assert.AssertEquals(1, pceCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(2, pceCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(4, pceCounter.Count);
 
             pceCounter.Clear();
 
             obj.Id = null;
             WaitForUI();
 
-            Assert.AreEqual(1, pceCounter.Get("Id"));
-            Assert.AreEqual(1, pceCounter.Get("ToBeCreated"));
-            Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(2, pceCounter.Get("HasPendingChanges"));
-            Assert.AreEqual(4, pceCounter.Count);
+            Assert.AssertEquals(1, pceCounter.Get("Id"));
+            Assert.AssertEquals(1, pceCounter.Get("ToBeCreated"));
+            Assert.AssertEquals(1, pceCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(2, pceCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(4, pceCounter.Count);
         }
 
         [TestMethod]
@@ -597,9 +596,9 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj.Names.Add("Item2");
             WaitForUI();
 
-            Assert.AreEqual(2, pceCounter.Count);
-            Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(1, pceCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(2, pceCounter.Count);
+            Assert.AssertEquals(1, pceCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(1, pceCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]
@@ -619,9 +618,9 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj.EmbMat.EmbMat2.Names2.Add("Item2");
             WaitForUI();
 
-            Assert.AreEqual(2, pceCounter.Count);
-            Assert.AreEqual(1, pceCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(1, pceCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(2, pceCounter.Count);
+            Assert.AssertEquals(1, pceCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(1, pceCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]
@@ -655,14 +654,14 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj.EmbMat.EmbMat2.Name2 = "name2";
             WaitForUI();
 
-            Assert.AreEqual(4, counter.Count);
-            Assert.AreEqual(1, counter.Get("Id"));
-            Assert.AreEqual(1, counter.Get("ToBeCreated"));
-            Assert.AreEqual(1, counter.Get("ToBeUpdated"));
-            Assert.AreEqual(2, counter.Get("HasPendingChanges"));
-            Assert.AreEqual(0, embMat_counter.Count);
-            Assert.AreEqual(1, embMat_embMat2_counter.Count);
-            Assert.AreEqual(1, embMat_embMat2_counter.Get("Name2"));
+            Assert.AssertEquals(4, counter.Count);
+            Assert.AssertEquals(1, counter.Get("Id"));
+            Assert.AssertEquals(1, counter.Get("ToBeCreated"));
+            Assert.AssertEquals(1, counter.Get("ToBeUpdated"));
+            Assert.AssertEquals(2, counter.Get("HasPendingChanges"));
+            Assert.AssertEquals(0, embMat_counter.Count);
+            Assert.AssertEquals(1, embMat_embMat2_counter.Count);
+            Assert.AssertEquals(1, embMat_embMat2_counter.Get("Name2"));
         }
 
         [TestMethod]
@@ -681,10 +680,10 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj.Name = "name2";
             WaitForUI();
 
-            Assert.AreEqual(3, propertyNameToHitCountMap.Count);
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Name"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Temp1"));
-            Assert.AreEqual(1, propertyNameToHitCountMap.Get("Temp2"));
+            Assert.AssertEquals(3, propertyNameToHitCountMap.Count);
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Name"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Temp1"));
+            Assert.AssertEquals(1, propertyNameToHitCountMap.Get("Temp2"));
 
             ((INotifyPropertyChanged)obj).PropertyChanged -= handler;
         }
@@ -707,8 +706,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
             Material parentEntity = EntityFactory.CreateEntity<Material>();
             Assert.IsInstanceOfType(parentEntity, typeof(IValueHolderContainer));
-            Assert.AreEqual(ValueHolderState.LAZY, ((IValueHolderContainer)parentEntity).GetState(member));
-            Assert.AreEqual(0, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
+            Assert.AssertEquals(ValueHolderState.LAZY, ((IValueHolderContainer)parentEntity).GetState(member));
+            Assert.AssertEquals(0, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
 
             parentEntity.Id = 1;
             parentEntity.Name = "name1";
@@ -722,8 +721,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             ((IValueHolderContainer)parentEntity).__TargetCache = (ICacheIntern)cache;
             ProxyHelper.SetObjRefs(parentEntity, member, new IObjRef[] { typeObjRef });
 
-            Assert.AreEqual(ValueHolderState.INIT, ((IValueHolderContainer)parentEntity).GetState(member));
-            Assert.AreEqual(1, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
+            Assert.AssertEquals(ValueHolderState.INIT, ((IValueHolderContainer)parentEntity).GetState(member));
+            Assert.AssertEquals(1, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
 
             Object value = ValueHolderContainerTemplate.GetValue(parentEntity, member);
         }
@@ -762,23 +761,23 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             mat.ChildMatType.Name += "_change";
             WaitForUI();
 
-            Assert.AreEqual(2, matCounter.Count);
-            Assert.IsTrue(matCounter.ContainsKey("ToBeUpdated"));
-            Assert.IsTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AreEqual(1, matCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(2, matCounter.Count);
+            Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
+            Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
+            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
 
-            Assert.AreEqual(5, matTypeCounter.Count);
-            Assert.IsTrue(matTypeCounter.ContainsKey("Name"));
-            Assert.IsTrue(matTypeCounter.ContainsKey("Temp1"));
-            Assert.IsTrue(matTypeCounter.ContainsKey("Temp2"));
-            Assert.IsTrue(matTypeCounter.ContainsKey("ToBeUpdated"));
-            Assert.IsTrue(matTypeCounter.ContainsKey("HasPendingChanges"));
-            Assert.AreEqual(1, matTypeCounter.Get("Name"));
-            Assert.AreEqual(1, matTypeCounter.Get("Temp1"));
-            Assert.AreEqual(1, matTypeCounter.Get("Temp2"));
-            Assert.AreEqual(1, matTypeCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(1, matTypeCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(5, matTypeCounter.Count);
+            Assert.AssertTrue(matTypeCounter.ContainsKey("Name"));
+            Assert.AssertTrue(matTypeCounter.ContainsKey("Temp1"));
+            Assert.AssertTrue(matTypeCounter.ContainsKey("Temp2"));
+            Assert.AssertTrue(matTypeCounter.ContainsKey("ToBeUpdated"));
+            Assert.AssertTrue(matTypeCounter.ContainsKey("HasPendingChanges"));
+            Assert.AssertEquals(1, matTypeCounter.Get("Name"));
+            Assert.AssertEquals(1, matTypeCounter.Get("Temp1"));
+            Assert.AssertEquals(1, matTypeCounter.Get("Temp2"));
+            Assert.AssertEquals(1, matTypeCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(1, matTypeCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]
@@ -820,11 +819,11 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             }
             WaitForUI();
 
-            Assert.AreEqual(2, matCounter.Count);
-            Assert.IsTrue(matCounter.ContainsKey("ToBeUpdated"));
-            Assert.IsTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AreEqual(1, matCounter.Get("ToBeUpdated"));
-            Assert.AreEqual(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(2, matCounter.Count);
+            Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
+            Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
+            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]
@@ -852,7 +851,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                         Log.Info("set_Id");
                         obj.Id = 1;
                         Log.Info("set_Id finished");
-                        Assert.AreEqual(0, counter.Count);
+                        Assert.AssertEquals(0, counter.Count);
                     }
                     finally
                     {
@@ -861,12 +860,12 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
                         Log.Info("ICacheModification.set_Active(false) finished");
                     }
                     WaitForUI();
-                    Assert.AreEqual(3, counter.Count);
+                    Assert.AssertEquals(3, counter.Count);
                     Log.Info(" set_Name");
                     obj.Name = "hallo";
                     WaitForUI();
                     Log.Info("set_Name finished");
-                    Assert.AreEqual(5, counter.Count);
+                    Assert.AssertEquals(5, counter.Count);
                 }
                 finally
                 {
@@ -880,41 +879,41 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             {
                 // just an empty blocking delegate
             });
-            Assert.AreEqual(5, counter.Count);
+            Assert.AssertEquals(5, counter.Count);
 
             Thread guiThread = ValueHolderContainerTestModule.dispatcherThread;
 
             IMap<Thread, int> toBeCreatedMap = counter.Get("ToBeCreated");
-            Assert.IsNotNull(toBeCreatedMap);
-            Assert.AreEqual(1, toBeCreatedMap.Count);
-            Assert.IsTrue(toBeCreatedMap.ContainsKey(guiThread));
-            Assert.AreEqual(1, toBeCreatedMap.Get(guiThread));
+            Assert.AssertNotNull(toBeCreatedMap);
+            Assert.AssertEquals(1, toBeCreatedMap.Count);
+            Assert.AssertTrue(toBeCreatedMap.ContainsKey(guiThread));
+            Assert.AssertEquals(1, toBeCreatedMap.Get(guiThread));
 
             IMap<Thread, int> idMap = counter.Get("Id");
-            Assert.IsNotNull(idMap);
-            Assert.AreEqual(1, idMap.Count);
-            Assert.IsTrue(idMap.ContainsKey(guiThread));
-            Assert.AreEqual(1, idMap.Get(guiThread));
+            Assert.AssertNotNull(idMap);
+            Assert.AssertEquals(1, idMap.Count);
+            Assert.AssertTrue(idMap.ContainsKey(guiThread));
+            Assert.AssertEquals(1, idMap.Get(guiThread));
 
             // uiThread is intended for Name in the case where asynchronous PCEs are allowed
             // but dispatched transparently in the UI
             IMap<Thread, int> nameMap = counter.Get("Name");
-            Assert.IsNotNull(nameMap);
-            Assert.AreEqual(1, nameMap.Count);
-            Assert.IsTrue(idMap.ContainsKey(guiThread));
-            Assert.AreEqual(1, nameMap.Get(guiThread));
+            Assert.AssertNotNull(nameMap);
+            Assert.AssertEquals(1, nameMap.Count);
+            Assert.AssertTrue(idMap.ContainsKey(guiThread));
+            Assert.AssertEquals(1, nameMap.Get(guiThread));
 
             IMap<Thread, int> toBeUpdatedMap = counter.Get("ToBeUpdated");
-            Assert.IsNotNull(toBeUpdatedMap);
-            Assert.AreEqual(1, toBeUpdatedMap.Count);
-            Assert.IsTrue(toBeUpdatedMap.ContainsKey(guiThread));
-            Assert.AreEqual(1, toBeUpdatedMap.Get(guiThread));
+            Assert.AssertNotNull(toBeUpdatedMap);
+            Assert.AssertEquals(1, toBeUpdatedMap.Count);
+            Assert.AssertTrue(toBeUpdatedMap.ContainsKey(guiThread));
+            Assert.AssertEquals(1, toBeUpdatedMap.Get(guiThread));
 
             IMap<Thread, int> hasPendingChangesMap = counter.Get("HasPendingChanges");
-            Assert.IsNotNull(hasPendingChangesMap);
-            Assert.AreEqual(1, hasPendingChangesMap.Count);
-            Assert.IsTrue(hasPendingChangesMap.ContainsKey(guiThread));
-            Assert.AreEqual(2, hasPendingChangesMap.Get(guiThread));
+            Assert.AssertNotNull(hasPendingChangesMap);
+            Assert.AssertEquals(1, hasPendingChangesMap.Count);
+            Assert.AssertTrue(hasPendingChangesMap.ContainsKey(guiThread));
+            Assert.AssertEquals(2, hasPendingChangesMap.Get(guiThread));
         }
 
         //[TestMethod]

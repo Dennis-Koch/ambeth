@@ -11,7 +11,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     {
         protected readonly IEntityMetaData metaData;
 
-        private static readonly MethodInstance template_m_entityEquals_getId = new MethodInstance(null, typeof(IEntityEquals), "Get__Id");
+        private static readonly MethodInstance template_m_entityEquals_getId = new MethodInstance(null, typeof(IEntityEquals), typeof(Object), "Get__Id");
 
         public static MethodInstance GetGetId()
         {

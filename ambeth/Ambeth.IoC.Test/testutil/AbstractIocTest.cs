@@ -33,6 +33,138 @@ namespace De.Osthus.Ambeth.Testutil
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Template.PropertyChangeTemplate", Value = "INFO")]
     public abstract class AbstractIocTest : IInitializingBean, IStartingBean, IDisposableBean
     {
+        public class Assert
+        {
+            public static void AssertNull(Object obj)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsNull(obj);
+            }
+
+            public static void AssertNotNull(Object obj)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsNotNull(obj);
+            }
+
+            public static void AssertNotSame(Object notExpected, Object value)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsFalse(Object.ReferenceEquals(notExpected, value));
+            }
+
+            public static void AssertSame(Object expected, Object value, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(Object.ReferenceEquals(expected, value));
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(Object.ReferenceEquals(expected, value), message);
+                }
+            }
+
+            public static void AssertTrue(bool actual, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(actual);
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsTrue(actual, message);
+                }
+            }
+
+            public static void AssertFalse(bool actual, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsFalse(actual);
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsFalse(actual, message);
+                }
+            }
+
+            public static void AssertEquals<T>(T expected, T actual, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(expected, actual);
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(expected, actual, message);
+                }
+            }
+
+            public static void AssertNotEquals<T>(T expected, T actual, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreNotEqual(expected, actual);
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreNotEqual(expected, actual, message);
+                }
+            }
+
+            public static void AssertNotEquals(Object expected, Object actual, String message = null)
+            {
+                if (message == null)
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreNotEqual(expected, actual);
+                }
+                else
+                {
+                    Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreNotEqual(expected, actual, message);
+                }
+            }
+
+            public static void Fail(String message)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.Fail(message);
+            }
+
+            public static void IsInstanceOfType(Object value, Type expectedType)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsInstanceOfType(value, expectedType);
+            }
+
+            public static void IsNotInstanceOfType(Object value, Type expectedType)
+            {
+                Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsNotInstanceOfType(value, expectedType);
+            }
+
+            public static void AssertArrayEquals<T>(T[] a1, T[] a2)
+            {
+                if (ReferenceEquals(a1, a2))
+                {
+                    return;
+                }
+
+                if (a1 == null || a2 == null)
+                {
+                    Fail("One array instance is null");
+                    return;
+                }
+                if (a1.Length != a2.Length)
+                {
+                    Fail("Length is not equal: " + a1.Length + " != " + a2.Length);
+                    return;
+                }
+                for (int i = 0; i < a1.Length; i++)
+                {
+                    if (!Object.Equals(a1[i], a2[i]))
+                    {
+                        Fail("Item at index " + i + " is not equal");
+                        return;
+                    }
+                }
+            }
+        }
+
         private static bool assemblyInitRan = false;
 
         private readonly AmbethIocRunner runner;

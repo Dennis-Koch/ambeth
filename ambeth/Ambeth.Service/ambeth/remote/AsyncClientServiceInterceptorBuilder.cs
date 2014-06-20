@@ -16,22 +16,19 @@ using Castle.DynamicProxy;
 using Castle.Core.Interceptor;
 #endif
 using De.Osthus.Ambeth.Service.Interceptor;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Remote
 {
-    public class AsyncClientServiceInterceptorBuilder : IInitializingBean, IClientServiceInterceptorBuilder
+    public class AsyncClientServiceInterceptorBuilder : IClientServiceInterceptorBuilder
     {
+        [Autowired]
         public IClientServiceFactory ClientServiceFactory { get; set; }
 
+        [Autowired]
         public IProxyFactory ProxyFactory { get; set; }
 
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(ClientServiceFactory, "ClientServiceFactory");
-            ParamChecker.AssertNotNull(ProxyFactory, "ProxyFactory");
-        }
-
-        public virtual IInterceptor CreateInterceptor(IServiceContext sourceBeanContext, Type syncLocalInterface, Type syncRemoteInterface, Type asyncRemoteInterface)
+        public IInterceptor CreateInterceptor(IServiceContext sourceBeanContext, Type syncLocalInterface, Type syncRemoteInterface, Type asyncRemoteInterface)
         {
             ParamChecker.AssertParamNotNull(sourceBeanContext, "sourceBeanContext");
             Type syncInterceptorType = null;

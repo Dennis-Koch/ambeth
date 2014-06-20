@@ -14,10 +14,12 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
+import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.typeinfo.EmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.FieldInfoItemASM;
 import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
@@ -155,9 +157,9 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 			}
 			ITypeInfoItem initializedFI_last = new FieldInfoItemASM(initIndex[0], FieldAccess.get(initIndex[0].getDeclaringClass()));
 			ITypeInfoItem objRefsFI_last = new FieldInfoItemASM(objRefsIndex[0], FieldAccess.get(objRefsIndex[0].getDeclaringClass()));
-			Method m_getDirectValue = ReflectUtil
-					.getDeclaredMethod(false, currType, ValueHolderIEC.getGetterNameOfRelationPropertyWithNoInit(lastPropertyName));
-			Method m_setDirectValue = ReflectUtil.getDeclaredMethod(false, currType,
+			Method m_getDirectValue = ReflectUtil.getDeclaredMethod(false, currType, (Type) null,
+					ValueHolderIEC.getGetterNameOfRelationPropertyWithNoInit(lastPropertyName));
+			Method m_setDirectValue = ReflectUtil.getDeclaredMethod(false, currType, null,
 					ValueHolderIEC.getSetterNameOfRelationPropertyWithNoInit(lastPropertyName), m_getDirectValue.getReturnType());
 			MethodPropertyInfoASM pi_directValue = new MethodPropertyInfoASM(currType, lastPropertyName + ValueHolderIEC.getNoInitSuffix(), m_getDirectValue,
 					m_setDirectValue, null, MethodAccess.get(m_getDirectValue.getDeclaringClass()));
@@ -237,7 +239,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
 					continue;
 				}
-				Method mi = ReflectUtil.getDeclaredMethod(true, currType, memberItem, new Class<?>[0]);
+				Method mi = ReflectUtil.getDeclaredMethod(true, currType, null, memberItem, new Class<?>[0]);
 				if (mi != null)
 				{
 					parentObjectType = currType;
@@ -270,6 +272,10 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		@Override
 		public void setObjRefs(Object obj, IObjRef[] objRefs)
 		{
+			if (objRefs != null && objRefs.length == 0)
+			{
+				objRefs = ObjRef.EMPTY_ARRAY;
+			}
 			this.objRefs.setValue(obj, objRefs);
 		}
 

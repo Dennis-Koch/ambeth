@@ -22,4 +22,4 @@ public class CacheMockModule implements IInitializingModule
 		beanContextFactory.registerBean("cacheProvider", CacheProviderMock.class).autowireable(ICacheProvider.class);
 		beanContextFactory.registerBean("prefetchHelper", PrefetchHelperMock.class).autowireable(IPrefetchHelper.class);
 	}
-};
+}

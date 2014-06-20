@@ -1,4 +1,5 @@
 using De.Osthus.Ambeth.Cache;
+using De.Osthus.Ambeth.Cache.Model;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
@@ -41,31 +42,31 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         private static readonly PropertyInstance p_template_targetCache = new PropertyInstance(typeof(IValueHolderContainer).GetProperty("__TargetCache"));
 
-        private static readonly MethodInstance m_vhce_getState_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), "GetState", typeof(Object),
+        private static readonly MethodInstance m_vhce_getState_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(ValueHolderState), "GetState", typeof(Object),
             typeof(IRelationInfoItem));
 
-        private static readonly MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), "GetObjRefs", typeof(Object),
+        private static readonly MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(IObjRef[]), "GetObjRefs", typeof(Object),
             typeof(IRelationInfoItem));
 
-        private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IValueHolderContainer), "GetState", typeof(IRelationInfoItem));
+        private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(ValueHolderState), "GetState", typeof(IRelationInfoItem));
 
-        private static readonly MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, typeof(IValueHolderContainer), "GetObjRefs",
+        private static readonly MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(IObjRef[]), "GetObjRefs",
             typeof(IRelationInfoItem));
 
-        private static readonly MethodInstance m_template_getSelf = new MethodInstance(null, templateType, "GetSelf",
+        private static readonly MethodInstance m_template_getSelf = new MethodInstance(null, templateType, typeof(IObjRelation), "GetSelf",
                 typeof(Object), typeof(String));
 
-        private static readonly MethodInstance m_template_getValue = new MethodInstance(null, templateType, "GetValue",
+        private static readonly MethodInstance m_template_getValue = new MethodInstance(null, templateType, typeof(Object), "GetValue",
                 typeof(Object), typeof(IRelationInfoItem[]), typeof(int), typeof(ICacheIntern), typeof(IObjRef[]));
 
         public static PropertyInstance GetValueHolderContainerTemplatePI(IClassVisitor cv)
         {
-            PropertyInstance pi = State.GetProperty(templatePropertyName);
+            Object bean = State.BeanContext.GetService(templateType);
+            PropertyInstance pi = State.GetProperty(templatePropertyName, NewType.GetType(bean.GetType()));
             if (pi != null)
             {
                 return pi;
             }
-            Object bean = State.BeanContext.GetService(templateType);
             return cv.ImplementAssignedReadonlyProperty(templatePropertyName, bean);
         }
 
@@ -349,7 +350,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected void ImplementSelfGetter(PropertyInstance p_valueHolderContainerTemplate)
         {
             NewType owner = State.NewType;
-            MethodInstance m_getSelf = new MethodInstance(owner, typeof(IValueHolderContainer), "GetSelf", typeof(String));
+            MethodInstance m_getSelf = new MethodInstance(owner, typeof(IValueHolderContainer), typeof(IObjRelation), "GetSelf", typeof(String));
             {
                 // public IObjRelation getSelf(String memberName)
                 // {
@@ -370,11 +371,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 // {
                 // return getSelf(member.getName());
                 // }
-                MethodInstance method = new MethodInstance(owner, typeof(IValueHolderContainer), "GetSelf", typeof(IRelationInfoItem));
+                MethodInstance method = new MethodInstance(owner, typeof(IValueHolderContainer), typeof(IObjRelation), "GetSelf", typeof(IRelationInfoItem));
                 IMethodVisitor mv = VisitMethod(method);
                 mv.LoadThis();
                 mv.LoadArg(0);
-                mv.InvokeInterface(new MethodInstance(null, typeof(INamed), "get_Name"));
+                mv.InvokeInterface(new MethodInstance(null, typeof(INamed), typeof(String), "get_Name"));
                 mv.InvokeVirtual(m_getSelf);
                 mv.ReturnValue();
                 mv.EndMethod();
@@ -416,7 +417,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 PropertyInstance p_cacheModification = SetCacheModificationMethodCreator.GetCacheModificationPI(this);
                 MethodInstance m_getMethod_scoped = new MethodInstance(State.NewType,
-                        MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.Final, m_getMethod_template.Name + "_GetValue", NewType.VOID_TYPE);
+                        MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.Final, NewType.VOID_TYPE, m_getMethod_template.Name + "_GetValue");
                 {
                     IMethodVisitor mg = base.VisitMethod(m_getMethod_scoped);
 
@@ -471,7 +472,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 MethodInstance m_getNoInit = m_getMethod_template.DeriveName(ValueHolderIEC.GetGetterNameOfRelationPropertyWithNoInit(propertyName));
                 IMethodVisitor mg = base.VisitMethod(m_getNoInit);
-                PropertyInstance p_getNoInit = PropertyInstance.FindByTemplate(propertyName + ValueHolderIEC.GetNoInitSuffix(), false);
+                PropertyInstance p_getNoInit = PropertyInstance.FindByTemplate(propertyName + ValueHolderIEC.GetNoInitSuffix(), m_getNoInit.ReturnType, false);
                 p_getNoInit.AddAnnotation(c_fireThisOPC, propertyName);
                 p_getNoInit.AddAnnotation(c_fireTargetOPC, propertyName);
                 mg.LoadThis();

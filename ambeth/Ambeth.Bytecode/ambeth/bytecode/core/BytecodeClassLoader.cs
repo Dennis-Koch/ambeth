@@ -1,5 +1,6 @@
 using ClrTest.Reflection;
 using De.Osthus.Ambeth.Bytecode;
+using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Bytecode.Visitor;
 using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Event;
@@ -114,11 +115,19 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             IClassVisitor visitor = cw;// new SuppressLinesClassVisitor(cw);
             visitor = new LogImplementationsClassVisitor(visitor);
             //visitor = new TraceClassVisitor(visitor, pw);
-            visitor = new InterfaceToClassVisitor(visitor, sourceContent);
-            visitor = new PublicConstructorVisitor(visitor);
+            IClassVisitor wrappedVisitor = visitor;
+            Type originalModifiers = BytecodeBehaviorState.State.OriginalType;
+            if (originalModifiers.IsInterface || originalModifiers.IsAbstract)
+            {
+                wrappedVisitor = new InterfaceToClassVisitor(wrappedVisitor);
+            }
+            if (!PublicConstructorVisitor.HasValidConstructor())
+            {
+                wrappedVisitor = new PublicConstructorVisitor(wrappedVisitor);
+            }
+            wrappedVisitor = buildVisitorDelegate.Invoke(wrappedVisitor);
 
-            IClassVisitor wrappedVisitor = buildVisitorDelegate.Invoke(visitor);
-            if (wrappedVisitor == visitor)
+            if (Object.ReferenceEquals(wrappedVisitor, visitor))
             {
                 // there seem to be no custom action to be done with the new type. So we skip type enhancement
                 return null;

@@ -17,7 +17,6 @@ import de.osthus.ambeth.service.IServiceUrlProvider;
 import de.osthus.ambeth.service.NoOpOfflineExtendable;
 import de.osthus.ambeth.service.ProcessService;
 import de.osthus.ambeth.service.ServiceByNameProvider;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfoProviderFactory;
 import de.osthus.ambeth.typeinfo.TypeInfoProvider;
@@ -28,10 +27,13 @@ import de.osthus.ambeth.xml.XmlTypeHelper;
 @FrameworkModule
 public class ServiceModule implements IInitializingModule
 {
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean networkClientMode;
 
+	@Property(name = ServiceConfigurationConstants.OfflineModeSupported, defaultValue = "false")
 	protected boolean offlineModeSupported;
 
+	@Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
 	protected Class<?> typeInfoProviderType;
 
 	@Override
@@ -75,23 +77,5 @@ public class ServiceModule implements IInitializingModule
 		beanContextFactory.registerBean("processService", ProcessService.class).autowireable(IProcessService.class);
 
 		beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class).autowireable(IXmlTypeHelper.class);
-	}
-
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	public void setNetworkClientMode(boolean networkClientMode)
-	{
-		this.networkClientMode = networkClientMode;
-	}
-
-	@Property(name = ConfigurationConstants.OfflineModeSupported, defaultValue = "false")
-	public void setOfflineModeSupported(boolean offlineModeSupported)
-	{
-		this.offlineModeSupported = offlineModeSupported;
-	}
-
-	@Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
-	public void setTypeInfoProviderType(Class<?> typeInfoProviderType)
-	{
-		this.typeInfoProviderType = typeInfoProviderType;
 	}
 }

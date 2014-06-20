@@ -96,6 +96,15 @@
       <Link>ambeth\util\orm_simple.xml</Link>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\mock\CacheFactoryMock.cs" />
+    <Compile Include="ambeth\cache\mock\CacheMock.cs" />
+    <Compile Include="ambeth\cache\mock\CacheMockModule.cs" />
+    <Compile Include="ambeth\cache\mock\CacheProviderMock.cs" />
+    <Compile Include="ambeth\cache\mock\MergeServiceMock.cs" />
+    <Compile Include="ambeth\cache\mock\PrefetchHelperMock.cs" />
+    <Compile Include="ambeth\cache\mock\RevertChangesHelperMock.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

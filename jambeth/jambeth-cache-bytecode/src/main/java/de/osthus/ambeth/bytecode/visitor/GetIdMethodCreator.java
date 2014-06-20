@@ -21,7 +21,7 @@ public class GetIdMethodCreator extends ClassGenerator
 {
 	protected final IEntityMetaData metaData;
 
-	private static final MethodInstance template_m_entityEquals_getId = new MethodInstance(null, IEntityEquals.class, "get__Id");
+	private static final MethodInstance template_m_entityEquals_getId = new MethodInstance(null, IEntityEquals.class, Object.class, "get__Id");
 
 	public static MethodInstance getGetId()
 	{

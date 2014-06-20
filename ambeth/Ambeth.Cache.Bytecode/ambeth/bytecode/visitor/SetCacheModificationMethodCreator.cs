@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -8,22 +9,22 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class SetCacheModificationMethodCreator : ClassVisitor
     {
-        private static readonly MethodInstance m_callCacheModificationActive = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), "CallCacheModificationActive",
+        private static readonly MethodInstance m_callCacheModificationActive = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), typeof(void), "CallCacheModificationActive",
                 typeof(ICacheModification), typeof(bool), typeof(bool));
 
-        private static readonly MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), "CallCacheModificationInternalUpdate",
+        private static readonly MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, typeof(SetCacheModificationMethodCreator), typeof(void), "CallCacheModificationInternalUpdate",
         typeof(ICacheModification), typeof(bool), typeof(bool));
 
         private static readonly String cacheModificationName = "f_cacheModification";
 
         public static PropertyInstance GetCacheModificationPI(IClassVisitor cv)
 	    {
-		    PropertyInstance pi = State.GetProperty(cacheModificationName);
+            Object bean = State.BeanContext.GetService<ICacheModification>();
+            PropertyInstance pi = State.GetProperty(cacheModificationName, NewType.GetType(bean.GetType()));
 		    if (pi != null)
 		    {
 			    return pi;
 		    }
-		    Object bean = State.BeanContext.GetService<ICacheModification>();
 		    return cv.ImplementAssignedReadonlyProperty(cacheModificationName, bean);
 	    }
 
@@ -38,7 +39,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
             // boolean oldActive = cacheModification.isActive();
             mg.LoadLocal(loc_cacheModification);
-            mg.InvokeInterface(new MethodInstance(null, typeof(ICacheModification), "get_Active"));
+            mg.InvokeInterface(new MethodInstance(null, typeof(ICacheModification), typeof(bool), "get_Active"));
             mg.StoreLocal(loc_oldActive);
 
             // callModificationActive(cacheModification, oldActive, true)
@@ -68,7 +69,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
             // boolean oldInternalUpdate = cacheModification.isInternalUpdate();
             mg.LoadLocal(loc_cacheModification);
-            mg.InvokeInterface(new MethodInstance(null, typeof(ICacheModification), "get_InternalUpdate"));
+            mg.InvokeInterface(new MethodInstance(null, typeof(ICacheModification), typeof(bool), "get_InternalUpdate"));
             mg.StoreLocal(loc_oldActive);
 
             // callModificationInternalUpdate(cacheModification, oldInternalUpdate, true)

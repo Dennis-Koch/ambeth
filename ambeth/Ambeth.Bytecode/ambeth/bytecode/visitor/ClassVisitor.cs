@@ -119,7 +119,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual IMethodVisitor VisitMethod(MethodAttributes access, String name, NewType returnType, params NewType[] parameters)
         {
-            return VisitMethod(new MethodInstance(State.NewType, access, name, returnType, parameters));
+            return VisitMethod(new MethodInstance(State.NewType, access, returnType, name, parameters));
         }
 
         public virtual FieldInstance ImplementStaticAssignedField(String staticFieldName, Object fieldValue)

@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Util;
+using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
@@ -111,17 +112,22 @@ namespace De.Osthus.Ambeth.Typeinfo
                     }
                 }
                 HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
-
-                PropertyInfo[] properties = type.GetProperties();
-                foreach (PropertyInfo property in properties)
+                Type[] interfaces = type.GetInterfaces();
+                List<Type> typesToSearch = new List<Type>(interfaces);
+                typesToSearch.Add(type);
+                foreach (Type typeToSearch in typesToSearch)
                 {
-                    if (property.GetGetMethod() != null && property.GetGetMethod().GetParameters().Length != 0)
+                    PropertyInfo[] properties = typeToSearch.GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
+                    foreach (PropertyInfo property in properties)
                     {
-                        continue;
+                        if (property.GetGetMethod() != null && property.GetGetMethod().GetParameters().Length != 0)
+                        {
+                            continue;
+                        }
+                        AbstractPropertyInfo propertyInfo = new MethodPropertyInfo(type, property.Name, property.GetGetMethod(), property.GetSetMethod());
+                        propertyInfo.PutAnnotations(property);
+                        propertyMap.Put(propertyInfo.Name, propertyInfo);
                     }
-                    AbstractPropertyInfo propertyInfo = new MethodPropertyInfo(type, property.Name, property.GetGetMethod(), property.GetSetMethod());
-                    propertyInfo.PutAnnotations(property);
-                    propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
 
                 foreach (Entry<String, IMap<String, MethodInfo>> propertyData in sortedMethods)
@@ -137,9 +143,17 @@ namespace De.Osthus.Ambeth.Typeinfo
                     MethodInfo getter = propertyMethods.Get("get");
                     MethodInfo setter = propertyMethods.Get("set");
 
-                    AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(type, propertyName);
-                    IPropertyInfo propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, accessor);
-                    //IPropertyInfo propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter)
+                    IPropertyInfo propertyInfo;
+                    if ((getter == null || !getter.IsAbstract) && (setter == null || !setter.IsAbstract))
+                    {
+                        Type propertyType = getter != null ? getter.ReturnType : setter.GetParameters()[0].ParameterType;
+                        AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(type, propertyName, propertyType);
+                        propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, accessor);
+                    }
+                    else
+                    {
+                        propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
+                    }
                     propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
 
@@ -174,10 +188,10 @@ namespace De.Osthus.Ambeth.Typeinfo
         public String GetPropertyNameFor(MethodInfo method)
         {
             PropertyAccessor propertyAccessor = AnnotationUtil.GetAnnotation<PropertyAccessor>(method, true);
-		    if (propertyAccessor != null)
-		    {
-			    return propertyAccessor.PropertyName;
-		    }
+            if (propertyAccessor != null)
+            {
+                return propertyAccessor.PropertyName;
+            }
             Match matcher = getSetIsPattern.Match(method.Name);
             if (!matcher.Success)
             {

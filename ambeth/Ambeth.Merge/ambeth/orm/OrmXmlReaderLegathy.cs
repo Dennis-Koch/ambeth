@@ -35,10 +35,10 @@ namespace De.Osthus.Ambeth.Orm
         public void LoadFromDocument(XDocument doc, ISet<EntityConfig> localEntities, ISet<EntityConfig> externalEntities)
         {
             List<XElement> entityNodes = new List<XElement>();
-            IDictionary<String,IList<XElement>> childrenMap = XmlConfigUtil.ChildrenToElementMap( doc.Root);
+            IMap<String,IList<XElement>> childrenMap = XmlConfigUtil.ChildrenToElementMap(doc.Root);
             if (childrenMap.ContainsKey(XmlConstants.ENTITY.LocalName))
             {
-                entityNodes.AddRange(childrenMap[XmlConstants.ENTITY.LocalName]);
+                entityNodes.AddRange(childrenMap.Get(XmlConstants.ENTITY.LocalName));
             }
 
             for (int i = entityNodes.Count; i-- > 0; )
@@ -72,29 +72,29 @@ namespace De.Osthus.Ambeth.Orm
                 bool localEntity = !XmlConfigUtil.GetAttribute(entityTag, XmlConstants.TYPE).Equals(XmlConstants.EXTERN.LocalName);
                 entityConfig.Local = localEntity;
 
-                IDictionary<String, IList<XElement>> attributeMap = null;
+                IMap<String, IList<XElement>> attributeMap = null;
 
-                IDictionary<String, IList<XElement>> entityDefs = XmlConfigUtil.ChildrenToElementMap(entityTag);
+                IMap<String, IList<XElement>> entityDefs = XmlConfigUtil.ChildrenToElementMap(entityTag);
                 if (entityDefs.ContainsKey(XmlConstants.TABLE.LocalName))
                 {
-                    String specifiedTableName = XmlConfigUtil.GetRequiredAttribute(entityDefs[XmlConstants.TABLE.LocalName][0], XmlConstants.NAME);
+                    String specifiedTableName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.TABLE.LocalName)[0], XmlConstants.NAME);
                     entityConfig.TableName = specifiedTableName;
                 }
                 if (entityDefs.ContainsKey(XmlConstants.SEQ.LocalName))
                 {
-                    String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs[XmlConstants.SEQ.LocalName][0], XmlConstants.NAME);
+                    String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.SEQ.LocalName)[0], XmlConstants.NAME);
                     entityConfig.SequenceName = sequenceName;
                 }
                 if (entityDefs.ContainsKey(XmlConstants.ATTR.LocalName))
                 {
-                    attributeMap = XmlConfigUtil.ChildrenToElementMap(entityDefs[XmlConstants.ATTR.LocalName][0]);
+                    attributeMap = XmlConfigUtil.ChildrenToElementMap(entityDefs.Get(XmlConstants.ATTR.LocalName)[0]);
                 }
                 bool versionRequired = true;
                 if (attributeMap != null)
                 {
                     if (attributeMap.ContainsKey(XmlConstants.ID.LocalName))
                     {
-                        XElement idElement = attributeMap[XmlConstants.ID.LocalName][0];
+                        XElement idElement = attributeMap.Get(XmlConstants.ID.LocalName)[0];
                         MemberConfig idMemberConfig = ReadMemberConfig(idElement);
                         entityConfig.IdMemberConfig = idMemberConfig;
                     }
@@ -105,7 +105,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.VERSION.LocalName))
                     {
-                        XElement versionElement = attributeMap[XmlConstants.VERSION.LocalName][0];
+                        XElement versionElement = attributeMap.Get(XmlConstants.VERSION.LocalName)[0];
                         versionRequired = XmlConfigUtil.AttributeIsTrue(versionElement, XmlConstants.WITHOUT);
                         if (versionRequired)
                         {
@@ -120,7 +120,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.BASIC.LocalName))
                     {
-                        IList<XElement> basicAttrs = attributeMap[XmlConstants.BASIC.LocalName];
+                        IList<XElement> basicAttrs = attributeMap.Get(XmlConstants.BASIC.LocalName);
                         for (int j = basicAttrs.Count; j-- > 0; )
                         {
                             XElement memberElement = basicAttrs[j];
@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.TO_ONE.LocalName))
                     {
-                        IList<XElement> toOneAttrs = attributeMap[XmlConstants.TO_ONE.LocalName];
+                        IList<XElement> toOneAttrs = attributeMap.Get(XmlConstants.TO_ONE.LocalName);
                         for (int j = toOneAttrs.Count; j-- > 0; )
                         {
                             XElement toOneElement = toOneAttrs[j];
@@ -142,7 +142,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.TO_MANY.LocalName))
                     {
-                        IList<XElement> toManyAttrs = attributeMap[XmlConstants.TO_MANY.LocalName];
+                        IList<XElement> toManyAttrs = attributeMap.Get(XmlConstants.TO_MANY.LocalName);
                         for (int j = toManyAttrs.Count; j-- > 0; )
                         {
                             XElement toManyElement = toManyAttrs[j];
@@ -153,7 +153,7 @@ namespace De.Osthus.Ambeth.Orm
 
                     if (attributeMap.ContainsKey(XmlConstants.IGNORE.LocalName))
                     {
-                        IList<XElement> ignoreAttrs = attributeMap[XmlConstants.IGNORE.LocalName];
+                        IList<XElement> ignoreAttrs = attributeMap.Get(XmlConstants.IGNORE.LocalName);
                         for (int j = ignoreAttrs.Count; j-- > 0; )
                         {
                             XElement ignoreElement = ignoreAttrs[j];

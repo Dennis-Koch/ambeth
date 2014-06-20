@@ -9,10 +9,10 @@ import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.independent.EntityB;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -20,7 +20,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.util.ParamChecker;
 
-@TestPropertiesList({ @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/orihelper/ORIHelperTest-orm.xml") })
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/orihelper/ORIHelperTest-orm.xml") })
 @SQLStructure("ORIHelperTest_structure.sql")
 @TestModule({ ORIHelperTestModule.class })
 public class ORIHelperTest extends AbstractPersistenceTest

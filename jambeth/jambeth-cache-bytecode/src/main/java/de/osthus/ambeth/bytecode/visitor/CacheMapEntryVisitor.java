@@ -32,11 +32,11 @@ public class CacheMapEntryVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, "getEntityType");
-		MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, "getIdIndex");
-		MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, "getId");
-		MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, "setId", Object.class);
-		MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, "isEqualTo", Class.class, byte.class, Object.class);
+		MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
+		MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
+		MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
+		MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
+		MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class, byte.class, Object.class);
 
 		Type entityType = Type.getType(metaData.getEntityType());
 		{
@@ -112,8 +112,8 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		{
 			// no business case for any complex efforts
 			FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));
-			cv.implementGetter(m_get, f_id);
-			cv.implementSetter(m_set, f_id);
+			m_get = cv.implementGetter(m_get, f_id);
+			m_set = cv.implementSetter(m_set, f_id);
 			return f_id;
 		}
 

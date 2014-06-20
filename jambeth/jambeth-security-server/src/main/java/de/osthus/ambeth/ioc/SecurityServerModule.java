@@ -13,7 +13,7 @@ import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
-import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
+import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionPrivilegeProviderExtension;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
@@ -24,7 +24,7 @@ public class SecurityServerModule implements IInitializingModule
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = SecurityServerConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
 	@Override

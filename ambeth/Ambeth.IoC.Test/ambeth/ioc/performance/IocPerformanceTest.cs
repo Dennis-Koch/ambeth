@@ -21,7 +21,7 @@ namespace De.Osthus.Ambeth.Ioc.Performance
         {
             using (IServiceContext childContext = BeanContext.CreateService(typeof(IocPerformanceTestModule)))
             {
-                Assert.AreEqual(50000, childContext.GetObjects<TestBean>().Count);
+                Assert.AssertEquals(50000, childContext.GetObjects<TestBean>().Count);
             }
         }
     }

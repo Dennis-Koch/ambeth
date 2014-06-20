@@ -15,6 +15,8 @@ namespace De.Osthus.Ambeth.Event.Config
 
         public const String MaxWaitInterval = "event.polling.maxwaitinterval";
 
+	    public const String EventManagerName = "event.manager.name";
+
         public const String EventServiceBeanActive = "event.service.active";
     }
 }

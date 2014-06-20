@@ -6,16 +6,15 @@ import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.annotation.AnnotationEntry;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.service.IServiceExtendable;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.EqualsUtil;
-
 public class CachePostProcessor extends MergePostProcessor
 {
 	@LogInstance
@@ -39,13 +38,8 @@ public class CachePostProcessor extends MergePostProcessor
 		}
 	};
 
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
-
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
-	public void setNetworkClientMode(boolean isNetworkClientMode)
-	{
-		this.isNetworkClientMode = isNetworkClientMode;
-	}
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,

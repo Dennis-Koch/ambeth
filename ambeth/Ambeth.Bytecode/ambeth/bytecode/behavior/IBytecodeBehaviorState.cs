@@ -22,7 +22,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         Object GetContext(Type contextType);
 
-        PropertyInstance GetProperty(String propertyName);
+        PropertyInstance GetProperty(String propertyName, NewType propertyType);
 
 	    MethodInstance[] GetAlreadyImplementedMethodsOnNewType();
 

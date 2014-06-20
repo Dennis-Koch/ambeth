@@ -43,23 +43,11 @@ public class IndependentEntityMetaDataReader : IStartingBean, IDisposableBean
 
 	public void AfterStarted()
 	{
-		Type[] newEntityTypes = null;
 		if (xmlFileName != null)
 		{
 			XDocument[] docs = XmlConfigUtil.ReadXmlFiles(xmlFileName);
 			ParamChecker.AssertNotNull(docs, "docs");
 			ReadConfig(docs);
-
-			newEntityTypes = new Type[managedEntityMetaData.Count];
-			int index = 0;
-			foreach (IEntityMetaData metaData in managedEntityMetaData)
-			{
-				newEntityTypes[index++] = metaData.EntityType;
-			}
-		}
-		if (newEntityTypes != null && newEntityTypes.Length > 0)
-		{
-			EventDispatcher.DispatchEvent(new EntityMetaDataAddedEvent(newEntityTypes));
 		}
 	}
 
@@ -87,7 +75,7 @@ public class IndependentEntityMetaDataReader : IStartingBean, IDisposableBean
 
 	protected void ReadConfig(XDocument[] docs)
 	{
-		ISet<EntityConfig> entities = new HashSet<EntityConfig>();
+        LinkedHashSet<EntityConfig> entities = new LinkedHashSet<EntityConfig>();
 		foreach (XDocument doc in docs)
 		{
 			String documentNamespace = XmlConfigUtil.ReadDocumentNamespace(doc);

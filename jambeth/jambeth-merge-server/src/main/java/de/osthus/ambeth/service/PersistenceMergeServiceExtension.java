@@ -63,8 +63,10 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.PersistenceContext;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -111,6 +113,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 	@Autowired
 	protected IRelationMergeService relationMergeService;
 
+	@Autowired
+	protected ISecurityActivation securityActivation;
+
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
@@ -143,20 +148,28 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 				@Override
 				public Object run() throws Throwable
 				{
-					HashMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
-					LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-					LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
-					ArrayList<IObjRef> toLoadForDeletion = new ArrayList<IObjRef>();
-					fillOriList(oriList, allChanges, toLoadForDeletion);
+					return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
+					{
+						@Override
+						public Object invoke() throws Throwable
+						{
+							HashMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
+							LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
+							LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
+							ArrayList<IObjRef> toLoadForDeletion = new ArrayList<IObjRef>();
+							fillOriList(oriList, allChanges, toLoadForDeletion);
 
-					loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, fChildCache);
+							loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, fChildCache);
 
-					convertChangeContainersToCommands(allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap);
+							convertChangeContainersToCommands(allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap);
 
-					aquireAndAssignIds(typeToIdlessReferenceMap);
+							aquireAndAssignIds(typeToIdlessReferenceMap);
 
-					processLinkChangeCommands(linkChangeCommands, tableChangeMap, fChildCache);
-					return null;
+							processLinkChangeCommands(linkChangeCommands, tableChangeMap, fChildCache);
+
+							return null;
+						}
+					});
 				}
 			});
 		}

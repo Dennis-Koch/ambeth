@@ -12,17 +12,17 @@ import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class EntityEqualsVisitor extends ClassGenerator
 {
-	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, EntityEqualsVisitor.class, "entityEquals_equals", IEntityEquals.class,
-			Object.class);
+	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, EntityEqualsVisitor.class, boolean.class, "entityEquals_equals",
+			IEntityEquals.class, Object.class);
 
-	private static final MethodInstance entityEquals_HashCode = new MethodInstance(null, EntityEqualsVisitor.class, "entityEquals_hashCode",
+	private static final MethodInstance entityEquals_HashCode = new MethodInstance(null, EntityEqualsVisitor.class, int.class, "entityEquals_hashCode",
 			IEntityEquals.class);
 
-	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null, EntityEqualsVisitor.class, "entityEquals_toString",
+	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null, EntityEqualsVisitor.class, String.class, "entityEquals_toString",
 			IEntityEquals.class, IPrintable.class);
 
-	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, EntityEqualsVisitor.class, "entityEquals_toString",
-			IEntityEquals.class, StringBuilder.class);
+	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, EntityEqualsVisitor.class, void.class,
+			"entityEquals_toString", IEntityEquals.class, StringBuilder.class);
 
 	public EntityEqualsVisitor(ClassVisitor cv)
 	{
@@ -45,7 +45,7 @@ public class EntityEqualsVisitor extends ClassGenerator
 
 	protected void implementEqualsMethod()
 	{
-		MethodInstance methodTemplate = new MethodInstance(null, Object.class, "equals", Object.class);
+		MethodInstance methodTemplate = new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 		{
@@ -60,7 +60,7 @@ public class EntityEqualsVisitor extends ClassGenerator
 
 	protected void implementHashCodeMethod()
 	{
-		MethodInstance methodTemplate = new MethodInstance(null, Object.class, "hashCode");
+		MethodInstance methodTemplate = new MethodInstance(null, Object.class, int.class, "hashCode");
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 		{
@@ -77,7 +77,7 @@ public class EntityEqualsVisitor extends ClassGenerator
 	protected void implementToStringMethod()
 	{
 		{
-			MethodInstance methodTemplate = new MethodInstance(null, Object.class, "toString");
+			MethodInstance methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
 			MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 			if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 			{
@@ -91,7 +91,7 @@ public class EntityEqualsVisitor extends ClassGenerator
 		}
 
 		{
-			MethodInstance methodTemplate = new MethodInstance(null, IPrintable.class, "toString", StringBuilder.class);
+			MethodInstance methodTemplate = new MethodInstance(null, IPrintable.class, void.class, "toString", StringBuilder.class);
 			MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 			if (method == null || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 			{

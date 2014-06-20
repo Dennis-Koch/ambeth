@@ -14,13 +14,13 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.cache.transfer.ObjRelation;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -29,7 +29,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/many/lazy/link/reverse/none/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/many/lazy/link/reverse/none/orm.xml")
 public class ManyLazyNoLinkReverseRelationsTest extends AbstractRelationsTest
 {
 	@Test

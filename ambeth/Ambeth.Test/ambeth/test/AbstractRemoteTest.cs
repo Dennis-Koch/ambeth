@@ -30,13 +30,11 @@ namespace De.Osthus.Ambeth.Test
     [TestProperties(Name = ServiceConfigurationConstants.ServiceHostName, Value = "localhost.")]
     [TestProperties(Name = ServiceConfigurationConstants.ServiceHostPort, Value = "9080")]
     [TestProperties(Name = ServiceWCFConfigurationConstants.TransferObjectsScope, Value = ".+")]
-    [TestFrameworkModule(typeof(MinervaCoreModule), typeof(BytecodeModule), typeof(CacheModule), typeof(CacheBytecodeModule), typeof(CacheDataChangeModule),
-        typeof(CompositeIdModule), typeof(EventModule), typeof(MergeModule), typeof(ObjectCopierModule),
-        typeof(RESTBootstrapModule), typeof(SecurityModule), typeof(ServiceModule), typeof(XmlModule))]
+    [TestFrameworkModule(typeof(MinervaCoreModule), typeof(RESTBootstrapModule), typeof(XmlModule))]
     [TestModule(typeof(RemoteTestModule))]
     [TestRebuildContext]
     [TestClass]
-    public abstract class AbstractRemoteTest : AbstractIocTest
+    public abstract class AbstractRemoteTest : AbstractInformationBusTest
     {
         [Autowired]
         public ICache Cache { protected get; set; }

@@ -72,17 +72,20 @@ public class RootCacheBridge implements ICacheRetriever
 				missedOris.add(ori);
 			}
 		}
-		IList<Object> loadContainers = committedRootCache.getObjects(orisToLoadWithVersion, committedRootCacheCD);
-		for (int a = loadContainers.size(); a-- > 0;)
+		if (orisToLoadWithVersion.size() > 0)
 		{
-			ILoadContainer loadContainer = (ILoadContainer) loadContainers.get(a);
-			if (loadContainer == null)
+			IList<Object> loadContainers = committedRootCache.getObjects(orisToLoadWithVersion, committedRootCacheCD);
+			for (int a = loadContainers.size(); a-- > 0;)
 			{
-				missedOris.add(orisToLoadWithVersion.get(a));
-			}
-			else
-			{
-				result.add(loadContainer);
+				ILoadContainer loadContainer = (ILoadContainer) loadContainers.get(a);
+				if (loadContainer == null)
+				{
+					missedOris.add(orisToLoadWithVersion.get(a));
+				}
+				else
+				{
+					result.add(loadContainer);
+				}
 			}
 		}
 		if (missedOris.size() > 0)

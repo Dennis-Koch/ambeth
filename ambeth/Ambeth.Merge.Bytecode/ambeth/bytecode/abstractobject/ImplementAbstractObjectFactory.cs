@@ -270,7 +270,7 @@ namespace De.Osthus.Ambeth.Bytecode.AbstractObject
         {
             if (IsRegistered(keyType))
             {
-                return BytecodeEnhancer.GetEnhancedType(keyType, ImplementAbstractObjectContext.INSTANCE);
+                return BytecodeEnhancer.GetEnhancedType(keyType, ImplementAbstractObjectEnhancementHint.INSTANCE);
             }
             throw new ArgumentException(keyType.FullName + " is not a registered type");
         }

@@ -9,11 +9,11 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -21,7 +21,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 
 @SQLData("autoindex_data.sql")
 @SQLStructure("autoindex_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/auto/autoindex_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/auto/autoindex_orm.xml")
 public class AutoIndexTest extends AbstractPersistenceTest
 {
 	@Test

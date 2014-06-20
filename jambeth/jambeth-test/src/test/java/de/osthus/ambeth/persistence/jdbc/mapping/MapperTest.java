@@ -28,6 +28,7 @@ import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.mapping.IDedicatedMapperExtendable;
@@ -48,7 +49,6 @@ import de.osthus.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntityVO;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.StringListType;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.MaterialService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -63,9 +63,9 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLStructure("Mapper_structure.sql")
 @TestModule(MapperTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ConfigurationConstants.GenericTransferMapping, value = "true"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = MapperTest.basePath + "orm.xml;" + MapperTest.basePath + "orm2.xml"),
-		@TestProperties(name = ConfigurationConstants.valueObjectFile, value = MapperTest.basePath + "value-object.xml;" + MapperTest.basePath
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MapperTest.basePath + "orm.xml;" + MapperTest.basePath + "orm2.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MapperTest.basePath + "value-object.xml;" + MapperTest.basePath
 				+ "value-object2.xml") })
 public class MapperTest extends AbstractPersistenceTest
 {

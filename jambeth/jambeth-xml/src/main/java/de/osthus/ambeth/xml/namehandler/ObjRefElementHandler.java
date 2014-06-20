@@ -14,10 +14,10 @@ import de.osthus.ambeth.xml.typehandler.AbstractHandler;
 
 public class ObjRefElementHandler extends AbstractHandler implements INameBasedHandler
 {
+	protected static final String idNameIndex = "ix";
+
 	@LogInstance
 	private ILogger log;
-
-	protected static final String idNameIndex = "ix";
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -55,7 +55,7 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 
 		if (objId != null || version != null)
 		{
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(realType);
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(realType, true);
 			if (metaData != null)
 			{
 				if (objId != null)

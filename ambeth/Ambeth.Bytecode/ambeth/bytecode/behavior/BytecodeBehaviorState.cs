@@ -12,6 +12,42 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 {
     public class BytecodeBehaviorState : IBytecodeBehaviorState
     {
+        public class PropertyKey
+	    {
+		    private readonly String propertyName;
+
+            private readonly NewType propertyType;
+
+            public PropertyKey(String propertyName, NewType propertyType)
+		    {
+			    this.propertyName = propertyName;
+			    this.propertyType = propertyType;
+		    }
+
+		    public override bool Equals(Object obj)
+		    {
+			    if (Object.ReferenceEquals(obj, this))
+			    {
+				    return true;
+			    }
+			    if (!(obj is PropertyKey))
+			    {
+				    return false;
+			    }
+			    PropertyKey other = (PropertyKey) obj;
+			    return propertyName.Equals(other.propertyName) && (propertyType == null || other.propertyType == null || propertyType.Equals(other.propertyType));
+		    }
+
+            public override int GetHashCode()
+            {
+			    if (propertyType == null)
+			    {
+                    return propertyName.GetHashCode();
+			    }
+                return propertyName.GetHashCode() ^ propertyType.GetHashCode();
+		    }
+	    }
+
         private static readonly ThreadLocal<IBytecodeBehaviorState> stateTL = new ThreadLocal<IBytecodeBehaviorState>();
 
         public static IBytecodeBehaviorState State
@@ -52,7 +88,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         private readonly HashMap<MethodKeyOfType, MethodInstance> implementedMethods = new HashMap<MethodKeyOfType, MethodInstance>();
 
-        private readonly HashMap<String, PropertyInstance> implementedProperties = new HashMap<String, PropertyInstance>();
+        private readonly HashMap<PropertyKey, PropertyInstance> implementedProperties = new HashMap<PropertyKey, PropertyInstance>();
 
         private readonly HashMap<String, Object> implementedEvents = new HashMap<String, Object>();
 
@@ -137,7 +173,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         public void PropertyImplemented(PropertyInstance property)
         {
-            if (!implementedProperties.PutIfNotExists(property.Name, property))
+            if (!implementedProperties.PutIfNotExists(new PropertyKey(property.Name, property.PropertyType), property))
             {
                 throw new Exception("Property already implemented: " + property);
             }
@@ -158,30 +194,31 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 throw new Exception("Field already queued for initialization: " + fieldName);
             }
         }
-        
-        public PropertyInstance GetProperty(String propertyName)
+
+        public PropertyInstance GetProperty(String propertyName, NewType propertyType)
         {
-            PropertyInstance pi = implementedProperties.Get(propertyName);
+            PropertyInstance pi = implementedProperties.Get(new PropertyKey(propertyName, propertyType));
             if (pi != null)
             {
                 return pi;
             }
-            PropertyInfo propertyInfo = CurrentType.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+            BindingFlags flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+            PropertyInfo propertyInfo = propertyType != null ? CurrentType.GetProperty(propertyName, flags, null, propertyType.Type, Type.EmptyTypes, new ParameterModifier[0]) : CurrentType.GetProperty(propertyName, flags);
             if (propertyInfo != null)
             {
                 pi = new PropertyInstance(propertyInfo);
             }
             if (pi == null)
             {
-                MethodInfo m_get = CurrentType.GetMethod("Get" + propertyName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+                MethodInfo m_get = CurrentType.GetMethod("Get" + propertyName, flags);
                 if (m_get == null)
                 {
-                    m_get = CurrentType.GetMethod("get" + propertyName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+                    m_get = CurrentType.GetMethod("get" + propertyName, flags);
                 }
-                MethodInfo m_set = CurrentType.GetMethod("Set" + propertyName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+                MethodInfo m_set = CurrentType.GetMethod("Set" + propertyName, flags);
                 if (m_set == null)
                 {
-                    m_set = CurrentType.GetMethod("set" + propertyName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+                    m_set = CurrentType.GetMethod("set" + propertyName, flags);
                 }
                 if (m_get != null || m_set != null)
                 {

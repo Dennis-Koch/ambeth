@@ -3,6 +3,7 @@ package de.osthus.ambeth.ioc;
 import de.osthus.ambeth.cache.CacheModification;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
@@ -15,6 +16,7 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityFactoryExtensionExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.IEntityMetaDataRefresher;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
@@ -39,7 +41,6 @@ import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.template.CompositeIdTemplate;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
@@ -52,13 +53,13 @@ public class MergeModule implements IInitializingModule
 {
 	public static final String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
 
-	@Property(name = ConfigurationConstants.IndependentMetaData, defaultValue = "false")
+	public static final String REMOTE_ENTITY_METADATA_PROVIDER = "entityMetaDataProvider.remote";
+
+	@Property(name = ServiceConfigurationConstants.IndependentMetaData, defaultValue = "false")
 	protected boolean independentMetaData;
 
 	@Property(name = MergeConfigurationConstants.EntityFactoryType, mandatory = false)
 	protected Class<?> entityFactoryType;
-
-	// protected EntityMetaDataClient metaDataClient;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -79,43 +80,42 @@ public class MergeModule implements IInitializingModule
 		// EntityMetaDataCache.class);
 		// metaDataCache.setEntityMetaDataProvider(metaDataClient);
 		// }
-		beanContextFactory.registerBean("cacheModification", CacheModification.class).autowireable(ICacheModification.class);
+		beanContextFactory.registerAnonymousBean(CacheModification.class).autowireable(ICacheModification.class);
 
 		beanContextFactory.registerAutowireableBean(IObjRefHelper.class, ORIHelper.class);
-		beanContextFactory.registerBean("cudResultHelper", CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
+		beanContextFactory.registerAnonymousBean(CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
 
-		beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
+		beanContextFactory.registerAnonymousBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 
 		beanContextFactory.registerAnonymousBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class);
 
+		IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
+		beanContextFactory
+				.registerAnonymousBean(EntityMetaDataProvider.class)
+				.propertyRef("ValueObjectMap", valueObjectMap)
+				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
+						IEntityLifecycleExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
+		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
+
 		if (!independentMetaData)
 		{
-			beanContextFactory.registerBean("entityMetaDataConverter", EntityMetaDataConverter.class);
-			DedicatedConverterUtil.biLink(beanContextFactory, "entityMetaDataConverter", EntityMetaData.class, EntityMetaDataTransfer.class);
+			IBeanConfiguration entityMetaDataConverter = beanContextFactory.registerAnonymousBean(EntityMetaDataConverter.class);
+			DedicatedConverterUtil.biLink(beanContextFactory, entityMetaDataConverter, EntityMetaData.class, EntityMetaDataTransfer.class);
 		}
 		else
 		{
-			IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
-			beanContextFactory
-					.registerBean("independantMetaDataProvider", EntityMetaDataProvider.class)
-					.propertyRef("ValueObjectMap", valueObjectMap)
-					.autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityLifecycleExtendable.class,
-							IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
-			beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
-
 			// beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
 			// beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
 
-			beanContextFactory.registerBean("ormXmlReader", ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, IOrmXmlReaderRegistry.class)
-					.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class)
-					.propertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
-			beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
+			IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerAnonymousBean(OrmXmlReaderLegathy.class);
+			ExtendableBean.registerExtendableBean(beanContextFactory, IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class).propertyRef(
+					ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy);
 			IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
 			beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
 
-			beanContextFactory.registerBean("relationProvider", RelationProvider.class).autowireable(IRelationProvider.class);
-			beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
+			beanContextFactory.registerAnonymousBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 		}
+		beanContextFactory.registerAnonymousBean(RelationProvider.class).autowireable(IRelationProvider.class);
 
 		Class<?> entityFactoryType = this.entityFactoryType;
 		if (entityFactoryType == null)

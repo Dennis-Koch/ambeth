@@ -44,13 +44,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly String FIELD_INDEX_OF_MEMBERS_FLD = "s_fieldIndexOfMembers";
 
-        public static readonly MethodInstance m_equalsCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), "EqualsCompositeId", typeof(ITypeInfoItem[]), typeof(Object), typeof(Object));
+        public static readonly MethodInstance m_equalsCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), typeof(bool), "EqualsCompositeId", typeof(ITypeInfoItem[]), typeof(Object), typeof(Object));
 
-        public static readonly MethodInstance m_hashCodeCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), "HashCodeCompositeId", typeof(ITypeInfoItem[]), typeof(Object));
+        public static readonly MethodInstance m_hashCodeCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), typeof(int), "HashCodeCompositeId", typeof(ITypeInfoItem[]), typeof(Object));
 
-        public static readonly MethodInstance m_toStringCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), "ToStringCompositeId", typeof(ITypeInfoItem[]), typeof(Object));
+        public static readonly MethodInstance m_toStringCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), typeof(String), "ToStringCompositeId", typeof(ITypeInfoItem[]), typeof(Object));
 
-        public static readonly MethodInstance m_toStringSbCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), "ToStringSbCompositeId", typeof(ITypeInfoItem[]), typeof(Object), typeof(StringBuilder));
+        public static readonly MethodInstance m_toStringSbCompositeId = new MethodInstance(null, typeof(CompositeIdCreator), typeof(void), "ToStringSbCompositeId", typeof(ITypeInfoItem[]), typeof(Object), typeof(StringBuilder));
 
         public CompositeIdCreator(IClassVisitor cv)
             : base(new InterfaceAdder(cv, typeof(IPrintable)))
@@ -99,25 +99,25 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
 		    {
 			    // Implement boolean Object.equals(Object)
-			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), "Equals", typeof(Object)));
+			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), typeof(bool), "Equals", typeof(Object)));
 			    // public static boolean CompositeIdCreator.equalsCompositeId(FieldAccess fa, int[] fieldIndexOfMembers, Object left, Object right)
                 ImplementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_equalsCompositeId);
 		    }
 		    {
 			    // Implement int Object.hashCode()
-			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), "GetHashCode"));
+			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), typeof(int), "GetHashCode"));
 			    // public static int CompositeIdCreator.hashCodeCompositeId(FieldAccess fa, int[] fieldIndexOfMembers, Object compositeId)
                 ImplementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_hashCodeCompositeId);
 		    }
 		    {
 			    // Implement String Object.toString()
-			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), "ToString"));
+			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(Object), typeof(String), "ToString"));
 			    // public static int CompositeIdCreator.toStringCompositeId(FieldAccess fa, int[] fieldIndexOfMembers, Object compositeId)
                 ImplementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_toStringCompositeId);
 		    }
 		    {
 			    // Implement void IPrintable.toString(StringBuilder)
-			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(IPrintable), "ToString", typeof(StringBuilder)));
+			    IMethodVisitor mg = VisitMethod(new MethodInstance(null, typeof(IPrintable), typeof(void), "ToString", typeof(StringBuilder)));
 			    // public static int CompositeIdCreator.toStringCompositeId(FieldAccess fa, int[] fieldIndexOfMembers, Object compositeId)
                 ImplementDefaultDelegatingMethod(mg, p_compositeIdTemplate, p_idMembers, m_toStringSbCompositeId);
 		    }

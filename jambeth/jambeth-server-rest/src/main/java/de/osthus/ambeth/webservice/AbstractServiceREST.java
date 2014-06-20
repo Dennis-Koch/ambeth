@@ -26,6 +26,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -34,9 +35,11 @@ import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.security.DefaultAuthentication;
+import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.transfer.AmbethServiceException;
 import de.osthus.ambeth.util.Base64;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
@@ -118,6 +121,16 @@ public abstract class AbstractServiceREST
 
 	protected void preServiceCall()
 	{
+		IAuthentication authentication = readAuthentication();
+		if (authentication != null)
+		{
+			setAuthentication(authentication);
+		}
+	}
+
+	protected IAuthentication readAuthentication()
+	{
+
 		List<String> values = headers.getRequestHeader("Authorization");
 		String value = values != null && values.size() > 0 ? values.get(0) : null;
 
@@ -143,11 +156,21 @@ public abstract class AbstractServiceREST
 			userName = matcher.group(1);
 			userPass = matcher.group(2).getBytes(utfCharset);
 		}
+		return new DefaultAuthentication(userName, userPass, PasswordType.PLAIN);
+	}
+
+	protected void setAuthentication(IAuthentication authentication)
+	{
 		ISecurityContext securityContext = SecurityContextHolder.getCreateContext();
-		securityContext.setAuthentication(new DefaultAuthentication(userName, userPass, PasswordType.PLAIN));
+		securityContext.setAuthentication(authentication);
 	}
 
 	protected void postServiceCall()
+	{
+		postServiceCall(servletContext);
+	}
+
+	protected void postServiceCall(ServletContext servletContext)
 	{
 		SecurityContextHolder.clearContext();
 		getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
@@ -261,6 +284,23 @@ public abstract class AbstractServiceREST
 			{
 				log.error(e);
 			}
+		}
+	}
+
+	protected void executeRequest(IBackgroundWorkerDelegate runnable)
+	{
+		preServiceCall();
+		try
+		{
+			runnable.invoke();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			postServiceCall();
 		}
 	}
 }

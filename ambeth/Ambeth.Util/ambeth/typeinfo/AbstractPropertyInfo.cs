@@ -65,7 +65,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                     parameters[a] = m.GetParameters()[a].ParameterType;
                 }
                 Type baseType = m.DeclaringType.BaseType;
-                MethodInfo overriddenMethod = baseType != null ? ReflectUtil.GetDeclaredMethod(true, baseType, m.Name, parameters) : null;
+                MethodInfo overriddenMethod = baseType != null ? ReflectUtil.GetDeclaredMethod(true, baseType, m.ReturnType, m.Name, parameters) : null;
                 if (overriddenMethod != null)
                 {
                     PutAnnotations(overriddenMethod);

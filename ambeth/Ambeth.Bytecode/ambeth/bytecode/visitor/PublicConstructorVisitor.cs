@@ -17,6 +17,22 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
      */
     public class PublicConstructorVisitor : ClassVisitor
     {
+        public static bool HasValidConstructor()
+	    {
+		    IBytecodeBehaviorState state = BytecodeBehaviorState.State;
+
+            ConstructorInfo[] constructors = state.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+
+		    foreach (ConstructorInfo constructor in constructors)
+		    {
+			    if (state.IsMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor)))
+			    {
+				    return true;
+			    }
+		    }
+		    return false;
+	    }
+
         /**
          * Derives constructors from {@link BytecodeBehaviorState#getState()#getCurrentType()}
          * 
@@ -33,21 +49,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
          */
         public override void VisitEnd()
         {
-            IBytecodeBehaviorState state = State;
-
-            ConstructorInfo[] constructors = state.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            bool atLeastOneConstructorImplemented = false;
-            foreach (ConstructorInfo constructor in constructors)
+            if (!HasValidConstructor())
             {
-                if (state.IsMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor)))
-                {
-                    atLeastOneConstructorImplemented = true;
-                    break;
-                }
-            }
-            if (!atLeastOneConstructorImplemented)
-            {
+                IBytecodeBehaviorState state = State;
+                ConstructorInfo[] constructors = state.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+
                 foreach (ConstructorInfo constructor in constructors)
                 {
                     MethodAttributes access = constructor.Attributes;

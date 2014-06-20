@@ -8,11 +8,13 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Modifier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.bytecode.IBuildVisitorDelegate;
 import de.osthus.ambeth.bytecode.IBytecodeClassLoader;
+import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.visitor.InterfaceToClassVisitor;
 import de.osthus.ambeth.bytecode.visitor.LogImplementationsClassVisitor;
 import de.osthus.ambeth.bytecode.visitor.PublicConstructorVisitor;
@@ -157,10 +159,19 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 			ClassVisitor visitor = new SuppressLinesClassVisitor(cw);
 			visitor = beanContext.registerWithLifecycle(new LogImplementationsClassVisitor(visitor)).finish();
 			visitor = new TraceClassVisitor(visitor, pw);
-			visitor = new InterfaceToClassVisitor(visitor, cn);
-			visitor = new PublicConstructorVisitor(visitor);
 
-			ClassVisitor wrappedVisitor = buildVisitorDelegate.build(visitor);
+			ClassVisitor wrappedVisitor = visitor;
+			int originalModifiers = BytecodeBehaviorState.getState().getOriginalType().getModifiers();
+			if (Modifier.isInterface(originalModifiers) || Modifier.isAbstract(originalModifiers))
+			{
+				wrappedVisitor = new InterfaceToClassVisitor(wrappedVisitor);
+			}
+			if (!PublicConstructorVisitor.hasValidConstructor())
+			{
+				wrappedVisitor = new PublicConstructorVisitor(wrappedVisitor);
+			}
+			wrappedVisitor = buildVisitorDelegate.build(wrappedVisitor);
+
 			if (wrappedVisitor == visitor)
 			{
 				// there seem to be no custom action to be done with the new type. So we skip type enhancement

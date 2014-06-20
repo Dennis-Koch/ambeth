@@ -20,7 +20,7 @@ namespace De.Osthus.Ambeth.Cache.DataChange
         public IMergeService MergeService { protected get; set; }
 
         [TestMethod]
-        public void test_DataChange()
+        public void Test_DataChange()
         {
             TestEntity newTestEntity = EntityFactory.CreateEntity<TestEntity>();
             CountDownLatch latch = new CountDownLatch(1);
@@ -55,7 +55,7 @@ namespace De.Osthus.Ambeth.Cache.DataChange
             latch.Await();
             WaitForUI();
 
-            Assert.IsNotNull(newTestEntity.Relation);
+            Assert.AssertNotNull(newTestEntity.Relation);
         }
     }
 }

@@ -11,6 +11,7 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheFactory;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -20,7 +21,6 @@ import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.service.TestService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -29,7 +29,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 @SQLStructure("../service/ProcessServiceTest_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class })
 public class ServiceDescriptionSerializationTest extends AbstractPersistenceTest
 {

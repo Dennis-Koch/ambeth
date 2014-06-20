@@ -11,7 +11,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class GetBaseTypeMethodCreator extends ClassGenerator
 {
-	private static final MethodInstance template_m_getBaseType = new MethodInstance(null, IEnhancedType.class, "get__BaseType");
+	private static final MethodInstance template_m_getBaseType = new MethodInstance(null, IEnhancedType.class, Class.class, "get__BaseType");
 
 	public static MethodInstance getGetBaseType()
 	{

@@ -30,6 +30,7 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -41,10 +42,8 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
-
 @SuppressWarnings("deprecation")
 public abstract class AbstractJDBCTest extends AbstractPersistenceAwareTest
 {
@@ -97,9 +96,9 @@ public abstract class AbstractJDBCTest extends AbstractPersistenceAwareTest
 			// PersistenceJdbcModule
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, OracleConnection.class.getName());
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, Oracle10gConnectionModule.class.getName());
-			props.put(ConfigurationConstants.NetworkClientMode, "false");
-			props.put(ConfigurationConstants.SlaveMode, "false");
-			props.put(ConfigurationConstants.LogShortNames, "true");
+			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
+			props.put(ServiceConfigurationConstants.SlaveMode, "false");
+			props.put(ServiceConfigurationConstants.LogShortNames, "true");
 
 			// IocModule
 			props.put(IocConfigurationConstants.UseObjectCollector, "false");
