@@ -15,7 +15,7 @@
 	<property name="source.ambeth.dir" value="${target.base.dir}/Ambeth" />
 	<property name="source.minerva.dir" value="${target.base.dir}/Minerva" />
 	
-	<property name="build.number" value="2.0.0" />
+	<property name="build.number" value="2.1.0" />
 
 	<property name="build.dev.dir" value="${workspace.build.dir}/dev" />
 	<property name="build.dev.job.dir" value="${workspace.build.dir}/dev_job" />

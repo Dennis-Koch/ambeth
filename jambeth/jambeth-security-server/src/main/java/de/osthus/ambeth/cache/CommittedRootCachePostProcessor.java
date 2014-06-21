@@ -71,7 +71,7 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 				methodLevelBehaviour = new HashMap<MethodKey, SecurityContextType>();
 			}
 			MethodKey methodKey = new MethodKey(method.getName(), method.getParameterTypes());
-			methodLevelBehaviour.put(methodKey, SecurityContextType.AUTHORIZED);
+			methodLevelBehaviour.put(methodKey, SecurityContextType.AUTHENTICATED);
 		}
 		if (methodLevelBehaviour == null)
 		{

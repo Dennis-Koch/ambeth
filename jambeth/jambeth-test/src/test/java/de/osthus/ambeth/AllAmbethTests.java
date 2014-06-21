@@ -1,18 +1,23 @@
 package de.osthus.ambeth;
 
+import org.junit.experimental.categories.Categories.ExcludeCategory;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import de.osthus.ambeth.testutil.category.SlowTests;
+
 @RunWith(Suite.class)
+@ExcludeCategory(SlowTests.class)
 @SuiteClasses({ de.osthus.ambeth.cache.AllBundleCacheTests.class, //
-		de.osthus.ambeth.AllCacheServerTests.class, //
+		de.osthus.ambeth.bytecode.AllBytecodeTests.class, //
 		de.osthus.ambeth.AllDataChangePersistenceTests.class, //
 		de.osthus.ambeth.AllIocTests.class,//
 		de.osthus.ambeth.AllMergeBytecodeTests.class, //
 		de.osthus.ambeth.AllPersistenceTests.class, //
 		de.osthus.ambeth.AllMergeTests.class, //
 		de.osthus.ambeth.AllUtilTests.class, //
+		de.osthus.ambeth.ioc.AllIocTests.class, //
 		de.osthus.ambeth.bytecode.AllBundleBytecodeTests.class, //
 		de.osthus.ambeth.merge.mergecontroller.AllMergeControllerTests.class, //
 		de.osthus.ambeth.merge.orihelper.AllORIHelperTests.class, //
@@ -27,6 +32,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.service.AllServiceTests.class, //
 		de.osthus.ambeth.testutil.AllTestUtilTests.class, //
 		de.osthus.ambeth.testutil.AllTestUtilPersistenceTests.class, //
+		de.osthus.ambeth.util.LongIdTest.class, //
 		de.osthus.ambeth.xml.AllXmlTests.class, //
 		de.osthus.ambeth.xml.oriwrapper.AllOriWrapperTests.class })
 public class AllAmbethTests

@@ -12,7 +12,8 @@ import de.osthus.ambeth.persistence.external.compositeid.CompositeIdExternalEnti
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest;
 import de.osthus.ambeth.persistence.jdbc.array.ArrayTest;
 import de.osthus.ambeth.persistence.jdbc.auto.AutoIndexTest;
-import de.osthus.ambeth.persistence.jdbc.bigstatements.BigStatementTest;
+import de.osthus.ambeth.persistence.jdbc.compositeid.CompositeIdTest;
+import de.osthus.ambeth.persistence.jdbc.ignoretable.IgnoreTableTest;
 import de.osthus.ambeth.persistence.jdbc.interf.InterfaceEntityTest;
 import de.osthus.ambeth.persistence.jdbc.lob.BlobTest;
 import de.osthus.ambeth.persistence.jdbc.lob.ClobTest;
@@ -27,12 +28,11 @@ import de.osthus.ambeth.persistence.xml.Relations20Test;
 import de.osthus.ambeth.persistence.xml.RelationsTest;
 
 @RunWith(Suite.class)
-@SuiteClasses({ AlternateIdTest.class, ArrayTest.class, AutoIndexTest.class, BigStatementTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class,
-		ConnectionHandlingTest.class, CompositeIdExternalEntityTest.class, InterfaceEntityTest.class, JDBCDatabaseTest.class, MapperTest.class,
-		MapperPerformanceTest.class, MasterDetailTest.class, MultiEventTest.class, OptimisticLockTest.class, RelationsTest.class,
-		RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class, RootCacheInvalidationTest.class, SecondLevelCacheTest.class,
-		SplitLoadingTest.class, SynonymTest.class })
+@SuiteClasses({ AlternateIdTest.class, ArrayTest.class, AutoIndexTest.class, BlobTest.class, CacheTypeTest.class, ClobTest.class, CompositeIdTest.class,
+		ConnectionTest.class, ConnectionHandlingTest.class, CompositeIdExternalEntityTest.class, IgnoreTableTest.class, InterfaceEntityTest.class,
+		JDBCDatabaseTest.class, MapperTest.class, MapperPerformanceTest.class, MasterDetailTest.class, MultiEventTest.class, OptimisticLockTest.class,
+		RelationsTest.class, RelationAutomappingTest.class, RelationUpdateTest.class, Relations20Test.class, RootCacheInvalidationTest.class,
+		SecondLevelCacheTest.class, SplitLoadingTest.class, SqlInjectionTest.class, SynonymTest.class })
 public class AllTests
 {
-
 }

@@ -4,9 +4,12 @@ import java.lang.reflect.Method;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 
+@Category(PerformanceTests.class)
 public class ReflectAsmPerformanceTest
 {
 	public static class MyClass

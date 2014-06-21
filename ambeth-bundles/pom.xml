@@ -1,18 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-bundles</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.X-SNAPSHOT</version>
+	<version>2.1.X-SNAPSHOT</version>
 
-<!-- 
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.17</version>
 	</parent>
-  -->
   
  	<properties>
 		<build.number>X-SNAPSHOT</build.number>
@@ -55,4 +54,16 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+	<repositories>
+		<!-- Location of the osthus-pom -->
+		<repository>
+			<id>ambeth-releases</id>
+			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
+		</repository>
+		<repository>
+			<id>thirdparty</id>
+			<url>http://nexus/nexus/content/repositories/thirdparty</url>
+		</repository>
+
+	</repositories>
 </project>

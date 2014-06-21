@@ -1,5 +1,5 @@
 package de.osthus.ambeth.testutil.category;
 
-public interface SlowTests
+public interface SlowTests extends SpecialTests
 {
 }

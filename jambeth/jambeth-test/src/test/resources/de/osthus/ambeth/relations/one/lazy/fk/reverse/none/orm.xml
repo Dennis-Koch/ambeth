@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<entity-mappings xmlns="http://www.osthus.de/ambeth/ambeth_orm_1_2">
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
 
-	<entity class="de.osthus.ambeth.relations.one.lazy.fk.reverse.none.EntityA" />
+	<entity-mappings>
 
-	<entity class="de.osthus.ambeth.relations.one.lazy.fk.reverse.none.EntityB" />
+		<entity class="de.osthus.ambeth.relations.one.lazy.fk.reverse.none.EntityA" />
 
-</entity-mappings>
+		<entity class="de.osthus.ambeth.relations.one.lazy.fk.reverse.none.EntityB" />
+
+	</entity-mappings>
+
+</or-mappings>

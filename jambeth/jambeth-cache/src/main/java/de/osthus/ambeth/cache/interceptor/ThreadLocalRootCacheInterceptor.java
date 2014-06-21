@@ -70,10 +70,7 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 	protected IRootCache acquireCurrentRootCache()
 	{
 		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerAnonymousBean(RootCache.class).propertyValue("CacheRetriever", storedCacheRetriever);
-		// Do not inject EventQueue because caches without foreign interest will never receive async DCEs
-		rootCacheBR.ignoreProperties("EventQueue");
-		rootCacheBR.propertyValue("WeakEntries", Boolean.FALSE);
-		RootCache rootCache = rootCacheBR.finish();
+		RootCache rootCache = postProcessRootCacheConfiguration(rootCacheBR).finish();
 
 		if (offlineListenerExtendable != null)
 		{
@@ -81,6 +78,12 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		}
 		rootCacheTL.set(rootCache);
 		return rootCache;
+	}
+
+	protected IBeanRuntime<RootCache> postProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
+	{
+		// Do not inject EventQueue because caches without foreign interest will never receive async DCEs
+		return rootCacheBR.ignoreProperties("EventQueue").propertyValue("WeakEntries", Boolean.FALSE);
 	}
 
 	protected IRootCache getCurrentRootCacheIfValid()

@@ -4,10 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 
+@Category(PerformanceTests.class)
 @TestModule(InjectionTestModule.class)
 public class InjectionTest extends AbstractIocTest
 {

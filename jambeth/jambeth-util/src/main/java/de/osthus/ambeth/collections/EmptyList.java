@@ -3,15 +3,14 @@ package de.osthus.ambeth.collections;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 
 /**
  * Hochperformante Implementierung einer Liste, welche leer ist und nicht modifiziert werden kann. Der Sinn hierbei ist, dass bei R�ckgabewerten von Methoden,
  * bei dem man �blicherweise eine neue Instanz einer leeren Liste verwenden w�rde, fallspezifisch der Singleton dieser Klasse verwenden werden k�nnte.
  * 
- * Hierbei w�rde keinerlei Garbage entstehen und der einzige Funktionalit�tsverlust w�re die fehlende Modifizierbarkeit des R�ckgabewertes f�r den
- * Aufrufer. Analysen der h�ufigsten Patterns haben jedoch gezeigt, dass dieser theoretische Verlust sehr selten praktische Relevanz besitzt.
+ * Hierbei w�rde keinerlei Garbage entstehen und der einzige Funktionalit�tsverlust w�re die fehlende Modifizierbarkeit des R�ckgabewertes f�r den Aufrufer.
+ * Analysen der h�ufigsten Patterns haben jedoch gezeigt, dass dieser theoretische Verlust sehr selten praktische Relevanz besitzt.
  * 
  * Die auf dieser Klasse aufrufbaren Methoden sind:
  * 
@@ -24,7 +23,7 @@ import java.util.ListIterator;
  * @param <V>
  *            Typ der Liste
  */
-public class EmptyList<V> implements List<V>, IList<V>
+public class EmptyList<V> implements IList<V>
 {
 	private static final ListIterator<Object> emptyIter = new ListIterator<Object>()
 	{
@@ -208,6 +207,12 @@ public class EmptyList<V> implements List<V>, IList<V>
 
 	@Override
 	public boolean removeAll(Collection<?> c)
+	{
+		return false;
+	}
+
+	@Override
+	public <T extends V> boolean removeAll(T[] array)
 	{
 		return false;
 	}

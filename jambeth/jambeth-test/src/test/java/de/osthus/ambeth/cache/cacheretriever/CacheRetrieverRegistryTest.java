@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
@@ -27,6 +28,7 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.category.ReminderTests;
 import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule(CacheRetrieverRegistryTestModule.class)
@@ -190,6 +192,9 @@ public class CacheRetrieverRegistryTest extends AbstractPersistenceTest
 		assertEquals(6, sibling.getParent().getId());
 	}
 
+	@Category(ReminderTests.class)
+	// FIXME Resolving the external Oris and loading the Entities has to be done by different CacheRetrievers. The local one knows the relations and the
+	// external knows the entities.
 	@Test
 	public void testLocalEntityWithExternalToManyRelationLinkTable() throws Throwable
 	{

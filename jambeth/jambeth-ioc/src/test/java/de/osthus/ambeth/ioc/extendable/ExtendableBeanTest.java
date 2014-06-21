@@ -9,8 +9,6 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.extendable.ExtendableBeanTest.ExtendableBeanTestModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
 
@@ -31,10 +29,6 @@ public class ExtendableBeanTest extends AbstractIocTest
 					.propertyValue(ExtendableBean.P_PROVIDER_TYPE, ITestListenerRegistry2.class);
 		}
 	}
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Test
 	public void testToString()
