@@ -6,13 +6,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.testutil.AbstractIocTest;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 import de.osthus.ambeth.util.converter.BooleanArrayConverter;
 
+@Category(PerformanceTests.class)
 public class ContextLifecycleLoadTest extends AbstractIocTest
 {
 	private static class ContextConsumer implements Runnable
@@ -75,8 +78,8 @@ public class ContextLifecycleLoadTest extends AbstractIocTest
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < count; i++)
 		{
-			long diff = (System.currentTimeMillis() - t);
-			long sleepTime = (loopDuration - diff) + ((10 - i) * 100) + (i * 220) % 1000;
+			long diff = System.currentTimeMillis() - t;
+			long sleepTime = loopDuration - diff + (10 - i) * 100 + i * 220 % 1000;
 			IServiceContext childContext = beanContext.createService(ContextLifecycleLoadTestModule.class);
 			ContextConsumer consumer = new ContextConsumer();
 			consumer.i = i;

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -21,8 +22,10 @@ import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.category.SlowTests;
 import de.osthus.ambeth.util.ParamChecker;
 
+@Category(SlowTests.class)
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")

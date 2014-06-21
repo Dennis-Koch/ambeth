@@ -7,7 +7,7 @@ public class InjectionTestModule implements IInitializingModule
 {
 	public static final int BEAN_COUNT = 10000;
 
-	public static final String NAME = "injectionTestBean #";
+	public static final String NAME = "injectionTestBean-";
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable

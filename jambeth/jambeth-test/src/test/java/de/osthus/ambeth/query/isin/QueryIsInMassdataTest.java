@@ -2,21 +2,19 @@ package de.osthus.ambeth.query.isin;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.query.isin.QueryIsInMassdataTest.QueryIsInMassdataTestModule;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.util.ParamChecker;
 
+@Category(PerformanceTests.class)
 @TestModule(QueryIsInMassdataTestModule.class)
 @SQLDataRebuild(false)
 // @SQLData("QueryIsInMassdata_data.sql")
@@ -40,24 +38,9 @@ import de.osthus.ambeth.util.ParamChecker;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.MergeService", value = "INFO") })
 public class QueryIsInMassdataTest extends AbstractPersistenceTest
 {
-	public static class QueryIsInMassdataTestModule implements IInitializingModule
-	{
-
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAnonymousBean(ChildService.class).autowireable(IChildService.class);
-		}
-
-	}
-
 	protected static long timeForEquals = 0;
 
 	protected static long timeForIsIn = 0;
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	protected IChildService childService;
 

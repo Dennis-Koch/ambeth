@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IListElem;
@@ -17,7 +18,9 @@ import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 
+@Category(PerformanceTests.class)
 public class ClassTupleExtendableContainerPerformanceTest extends AbstractIocTest
 {
 	/**

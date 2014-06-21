@@ -4,8 +4,10 @@ import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.ISecondLevelCacheManager;
 import de.osthus.ambeth.cache.ITransactionalRootCache;
+import de.osthus.ambeth.cache.RootCache;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -41,6 +43,12 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 		// If no thread-bound root cache is active (which implies that no transaction is currently active
 		// return the unbound root cache (which reads uncommitted data)
 		return rootCache != null ? rootCache : committedRootCache;
+	}
+
+	@Override
+	protected IBeanRuntime<RootCache> postProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
+	{
+		return super.postProcessRootCacheConfiguration(rootCacheBR).ignoreProperties("PrivilegeProvider", "SecurityActivation", "SecurityScopeProvider");
 	}
 
 	@Override

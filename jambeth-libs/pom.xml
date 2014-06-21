@@ -4,33 +4,26 @@
 
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-libs-pom</artifactId>
-	<version>2.0.X-SNAPSHOT</version>
+	<version>2.1.X-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.12</version>
+		<version>0.0.17</version>
 	</parent>
 
 	<modules>
+		<module>jambeth-junit-categories</module>
 		<module>jambeth-weblib-extjs</module>
 		<module>jambeth-weblib-teechart</module>
 	</modules>
 
-	<distributionManagement>
-		<repository>
-			<id>ambeth</id>
-			<name>ambeth</name>
-			<url>http://nexus/nexus/content/repositories/ambeth/</url>
-		</repository>
-	</distributionManagement>
-
 	<repositories>
-		<!-- Currently needed to get the osthus-pom -->
+		<!-- Location of the osthus-pom -->
 		<repository>
-			<id>allotrope-releases</id>
-			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<id>ambeth-releases</id>
+			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>

@@ -445,6 +445,7 @@ namespace De.Osthus.Ambeth.Cache
                 cacheModification.Active = true;
                 try
                 {
+                    IList<IObjRelationResult> result = null;
                     readLock.Lock();
                     try
                     {
@@ -474,7 +475,7 @@ namespace De.Osthus.Ambeth.Cache
                         if (objRelMisses.Count == 0)
                         {
                             // Create result WITHOUT releasing the readlock in the meantime
-                            return CreateResult(objRels, targetCache, null, alreadyClonedObjRefs, returnMisses);
+                            result = CreateResult(objRels, targetCache, null, alreadyClonedObjRefs, returnMisses);
                         }
                     }
                     finally
@@ -485,16 +486,30 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         IList<IObjRelationResult> loadedObjectRelations = CacheRetriever.GetRelations(objRelMisses);
                         LoadObjects(loadedObjectRelations, objRelToResultMap);
+                        readLock.Lock();
+                        try
+                        {
+                            result = CreateResult(objRels, targetCache, objRelToResultMap, alreadyClonedObjRefs, returnMisses);
+                        }
+                        finally
+                        {
+                            readLock.Unlock();
+                        }
                     }
-                    readLock.Lock();
-                    try
-                    {
-                        return CreateResult(objRels, targetCache, objRelToResultMap, alreadyClonedObjRefs, returnMisses);
-                    }
-                    finally
-                    {
-                        readLock.Unlock();
-                    }
+                    if (PrivilegeProvider != null && SecurityActivation.FilterActivated)
+				    {
+                        Lock writeLock = WriteLock;
+					    writeLock.Lock();
+					    try
+					    {
+						    result = FilterObjRelResult(result);
+					    }
+					    finally
+					    {
+						    writeLock.Unlock();
+					    }
+				    }
+                    return result;
                 }
                 finally
                 {
@@ -605,6 +620,124 @@ namespace De.Osthus.Ambeth.Cache
             }
             return objRelResults;
         }
+
+        protected IList<IObjRelationResult> FilterObjRelResult(IList<IObjRelationResult> objRelResults)
+	    {
+		    List<IObjRef> permittedObjRefs = new List<IObjRef>(objRelResults.Count);
+		    for (int a = 0, size = objRelResults.Count; a < size; a++)
+		    {
+			    IObjRelationResult objRelResult = objRelResults[a];
+			    if (objRelResult == null)
+			    {
+				    permittedObjRefs.Add(null);
+				    continue;
+			    }
+			    IObjRef[] objRefsOfReference = objRelResult.Reference.ObjRefs;
+			    IObjRef primaryObjRef = objRefsOfReference[0];
+			    foreach (IObjRef objRefOfReference in objRefsOfReference)
+			    {
+				    if (objRefOfReference.IdNameIndex == ObjRef.PRIMARY_KEY_INDEX)
+				    {
+					    primaryObjRef = objRefOfReference;
+					    break;
+				    }
+			    }
+			    permittedObjRefs.Add(primaryObjRef);
+		    }
+		    IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(permittedObjRefs, SecurityScopeProvider.SecurityScopes);
+		    HashMap<IObjRef, List<int>> relatedObjRefs = new HashMap<IObjRef, List<int>>();
+		    for (int index = permittedObjRefs.Count; index-- > 0;)
+		    {
+			    IPrivilegeItem privilege = privileges[index];
+			    if (privilege == null || !privilege.ReadAllowed)
+			    {
+				    permittedObjRefs[index] = null;
+				    continue;
+			    }
+			    IObjRelationResult objRelResult = objRelResults[index];
+			    IObjRef[] relations = objRelResult.Relations;
+			    foreach (IObjRef relation in relations)
+			    {
+				    List<int> intArrayList = relatedObjRefs.Get(relation);
+				    if (intArrayList == null)
+				    {
+                        intArrayList = new List<int>();
+					    relatedObjRefs.Put(relation, intArrayList);
+				    }
+				    intArrayList.Add(index);
+			    }
+		    }
+		    IList<IObjRef> relatedObjRefKeys = relatedObjRefs.KeySet().ToList();
+		    privileges = PrivilegeProvider.GetPrivilegesByObjRef(relatedObjRefKeys, SecurityScopeProvider.SecurityScopes);
+		    for (int a = 0, size = relatedObjRefKeys.Count; a < size; a++)
+		    {
+			    IPrivilegeItem privilege = privileges[a];
+			    if (privilege.ReadAllowed)
+			    {
+				    continue;
+			    }
+			    IObjRef relatedObjRefKey = relatedObjRefKeys[a];
+			    List<int> intArrayList = relatedObjRefs.Get(relatedObjRefKey);
+			    for (int b = 0, sizeB = intArrayList.Count; b < sizeB; b++)
+			    {
+				    int index = intArrayList[b];
+				    IObjRelationResult objRelResult = objRelResults[index];
+				    IObjRef[] relations = objRelResult.Relations;
+				    bool found = false;
+				    for (int c = relations.Length; c-- > 0;)
+				    {
+					    if (relations[c] != relatedObjRefKey)
+					    {
+						    continue;
+					    }
+					    relations[c] = null;
+					    found = true;
+					    break;
+				    }
+				    if (!found)
+				    {
+					    throw new Exception("Must never happen");
+				    }
+			    }
+		    }
+		    for (int a = objRelResults.Count; a-- > 0;)
+		    {
+			    IObjRelationResult objRelResult = objRelResults[a];
+			    if (objRelResult == null)
+			    {
+				    continue;
+			    }
+			    IObjRef[] relations = objRelResult.Relations;
+			    int count = 0;
+			    for (int b = relations.Length; b-- > 0;)
+			    {
+				    if (relations[b] != null)
+				    {
+					    count++;
+				    }
+			    }
+                if (count == relations.Length)
+			    {
+				    continue;
+			    }
+			    IObjRef[] filteredRelations = count > 0 ? new IObjRef[count] : ObjRef.EMPTY_ARRAY;
+			    int index = 0;
+			    for (int b = relations.Length; b-- > 0;)
+			    {
+				    IObjRef relation = relations[b];
+				    if (relation != null)
+				    {
+					    filteredRelations[index++] = relation;
+				    }
+			    }
+			    if (index != count)
+			    {
+				    throw new Exception("Must never happen");
+			    }
+			    ((ObjRelationResult) objRelResult).Relations = filteredRelations;
+		    }
+		    return objRelResults;
+	    }
 
         protected IObjRef[] CloneObjectRefArray(IObjRef[] objRefs, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs)
         {
@@ -997,6 +1130,61 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 primitiveMember.SetValue(obj, primitive);
             }
+            IObjRef[][] relations = cacheValue.GetRelations();
+		    if (relations.Length > 0 && PrivilegeProvider != null && SecurityActivation.FilterActivated)
+		    {
+			    List<IObjRef> allKnownRelations = new List<IObjRef>();
+			    for (int a = relations.Length; a-- > 0;)
+			    {
+				    IObjRef[] relationsOfMember = relations[a];
+				    if (relationsOfMember == null)
+				    {
+					    continue;
+				    }
+				    foreach (IObjRef relationOfMember in relationsOfMember)
+				    {
+					    if (relationOfMember == null)
+					    {
+						    continue;
+					    }
+					    allKnownRelations.Add(relationOfMember);
+				    }
+			    }
+			    IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
+			    IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(allKnownRelations, SecurityScopeProvider.SecurityScopes);
+			    for (int a = privileges.Count; a-- > 0;)
+			    {
+				    IPrivilegeItem privilege = privileges[a];
+				    if (privilege.ReadAllowed)
+				    {
+					    whiteListObjRefs.Add(allKnownRelations[a]);
+				    }
+			    }
+			    IObjRef[][] filteredRelations = new IObjRef[relations.Length][];
+			    List<IObjRef> filteredRelationsOfMember = new List<IObjRef>();
+			    for (int a = relations.Length; a-- > 0;)
+			    {
+				    IObjRef[] relationsOfMember = relations[a];
+				    if (relationsOfMember == null)
+				    {
+					    continue;
+				    }
+				    filteredRelationsOfMember.Clear();
+				    foreach (IObjRef relationOfMember in relationsOfMember)
+				    {
+					    if (relationOfMember == null)
+					    {
+						    continue;
+					    }
+					    if (whiteListObjRefs.Contains(relationOfMember))
+					    {
+						    filteredRelationsOfMember.Add(relationOfMember);
+					    }
+				    }
+				    filteredRelations[a] = filteredRelationsOfMember.Count > 0 ? filteredRelationsOfMember.ToArray() : ObjRef.EMPTY_ARRAY;
+			    }
+			    relations = filteredRelations;
+		    }
             targetCache.AddDirect(metaData, id, version, obj, primitiveTemplates, cacheValue.GetRelations());
         }
 

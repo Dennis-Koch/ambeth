@@ -4,5 +4,5 @@ import de.osthus.ambeth.model.ISecurityScope;
 
 public interface IUserHandleFactory
 {
-	IUserHandle createUserHandle(String sid, ISecurityScope[] securityScopes);
+	IUserHandle createUserHandle(String sid, String password, ISecurityScope[] securityScopes);
 }

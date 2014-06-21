@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.IValueObjectConfig;
@@ -14,6 +15,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
+import de.osthus.ambeth.testutil.category.ReminderTests;
 
 @TestRebuildContext
 @SQLStructure("PropertyMappingValidation_structure.sql")
@@ -41,6 +43,7 @@ public class PropertyMappingValidationTest extends AbstractPersistenceTest
 		assertNull(metaData.getMemberByName("NoDb"));
 	}
 
+	@Category(ReminderTests.class)
 	// FIXME The NPE is thrown during test context setup and not during the test.
 	@Test(expected = NullPointerException.class)
 	@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/validation/orm_fail_noBackingDbField.xml")
@@ -83,6 +86,7 @@ public class PropertyMappingValidationTest extends AbstractPersistenceTest
 		assertNotNull(valueObjectConfig);
 	}
 
+	@Category(ReminderTests.class)
 	// FIXME The IllegalStateException is thrown during test context setup and not during the test.
 	@Test(expected = IllegalStateException.class)
 	@TestPropertiesList({

@@ -15,6 +15,7 @@ import javax.persistence.PessimisticLockException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
@@ -38,9 +39,6 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
-import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.config.IBeanConfiguration;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -48,8 +46,6 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
-import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.query.QueryMassdataTest.QueryMassDataModule;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
@@ -58,10 +54,12 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.threading.ProcessIdHelper;
 import de.osthus.ambeth.util.MeasurementUtil;
 import de.osthus.ambeth.util.ParamHolder;
 
+@Category(PerformanceTests.class)
 @TestModule({ TestServicesModule.class, QueryMassDataModule.class })
 @SQLDataRebuild(false)
 @SQLData("QueryMassdata_data.sql")
@@ -100,33 +98,6 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 	public static final String QUERY_PAGE_SIZE = "QueryMassdataTest.query.pagesize";
 
 	public static final String ROW_COUNT = "QueryMassdataTest.rowcount";
-
-	public static class QueryMassDataModule implements IInitializingModule
-	{
-		protected IProxyFactory proxyFactory;
-
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAnonymousBean(IQueryEntityCRUD.class).autowireable(IQueryEntityCRUD.class);
-
-			IBeanConfiguration queryBeanBC = beanContextFactory.registerBean("myQuery1", QueryBean.class);
-			queryBeanBC.propertyValue("EntityType", QueryEntity.class);
-			queryBeanBC.propertyValue("QueryCreator", new IQueryCreator()
-			{
-				@Override
-				public <T> IQuery<T> createCustomQuery(IQueryBuilder<T> qb)
-				{
-					return qb.build();
-				}
-			});
-		}
-
-		public void setProxyFactory(IProxyFactory proxyFactory)
-		{
-			this.proxyFactory = proxyFactory;
-		}
-	}
 
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";

@@ -7,8 +7,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.ioc.ObjectCopierModule;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.util.ParamChecker;
@@ -19,10 +17,6 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestModule(ObjectCopierModule.class)
 public class ObjectCopierTest extends AbstractIocTest
 {
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
-
 	protected IObjectCopier fixture;
 
 	@Override
