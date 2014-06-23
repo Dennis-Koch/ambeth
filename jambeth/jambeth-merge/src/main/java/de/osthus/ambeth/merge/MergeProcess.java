@@ -13,6 +13,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.datachange.model.DirectDataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
@@ -33,7 +34,6 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.RelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 
@@ -69,7 +69,7 @@ public class MergeProcess implements IMergeProcess
 	@Autowired
 	protected IRevertChangesHelper revertChangesHelper;
 
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
 	@Override

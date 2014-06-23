@@ -21,11 +21,11 @@ public class EmbeddedTypeVisitor extends ClassGenerator
 
 	public static final String templatePropertyName = templateType.getSimpleName();
 
-	public static final PropertyInstance t_p_Parent = PropertyInstance.findByTemplate(IEmbeddedType.class, "Parent", false);
+	public static final PropertyInstance t_p_Parent = PropertyInstance.findByTemplate(IEmbeddedType.class, "Parent", Object.class, false);
 
-	public static final PropertyInstance t_p_Root = PropertyInstance.findByTemplate(IEmbeddedType.class, "Root", false);
+	public static final PropertyInstance t_p_Root = PropertyInstance.findByTemplate(IEmbeddedType.class, "Root", Object.class, false);
 
-	public static final MethodInstance m_getRoot = new MethodInstance(null, templateType, "getRoot", IEmbeddedType.class);
+	public static final MethodInstance m_getRoot = new MethodInstance(null, templateType, Object.class, "getRoot", IEmbeddedType.class);
 
 	private static final String parentFieldName = "f_" + t_p_Parent.getName();
 
@@ -60,12 +60,12 @@ public class EmbeddedTypeVisitor extends ClassGenerator
 
 	public static PropertyInstance getEmbeddedTypeTemplateProperty(ClassGenerator cv)
 	{
-		PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, true);
+		Object bean = getState().getBeanContext().getService(EmbeddedTypeTemplate.class);
+		PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
 		if (p_embeddedTypeTemplate != null)
 		{
 			return p_embeddedTypeTemplate;
 		}
-		Object bean = getState().getBeanContext().getService(EmbeddedTypeTemplate.class);
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 

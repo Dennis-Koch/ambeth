@@ -13,8 +13,9 @@ public class EnhancerUtil
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		Class<?> superType = state.getCurrentType();
-		java.lang.reflect.Method superSetter = ReflectUtil.getDeclaredMethod(false, superType, propertyInfo.getSetter().getName(), propertyInfo.getSetter()
-				.getParameters());
+		MethodInstance setter = propertyInfo.getSetter();
+		java.lang.reflect.Method superSetter = ReflectUtil
+				.getDeclaredMethod(false, superType, setter.getReturnType(), setter.getName(), setter.getParameters());
 		return new MethodInstance(superSetter);
 	}
 
@@ -22,12 +23,14 @@ public class EnhancerUtil
 	{
 		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
 		Class<?> superType = state.getCurrentType();
-		java.lang.reflect.Method superGetter = ReflectUtil.getDeclaredMethod(true, superType,
-				getGetterNameOfRelationPropertyWithNoInit(propertyInfo.getName()), propertyInfo.getGetter().getParameters());
+		MethodInstance getter = propertyInfo.getGetter();
+		java.lang.reflect.Method superGetter = ReflectUtil.getDeclaredMethod(true, superType, getter.getReturnType(),
+				getGetterNameOfRelationPropertyWithNoInit(propertyInfo.getName()), getter.getParameters());
 		if (superGetter == null)
 		{
 			// not a relation -> no lazy loading
-			superGetter = ReflectUtil.getDeclaredMethod(false, superType, propertyInfo.getGetter().getName(), propertyInfo.getGetter().getParameters());
+			superGetter = ReflectUtil.getDeclaredMethod(false, superType, propertyInfo.getGetter().getReturnType(), propertyInfo.getGetter().getName(),
+					propertyInfo.getGetter().getParameters());
 		}
 		return new MethodInstance(superGetter);
 	}

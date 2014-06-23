@@ -14,16 +14,16 @@ public class DefaultAccessor extends AbstractAccessor
 
 	protected final boolean readable, writable;
 
-	public DefaultAccessor(Class<?> type, String propertyName)
+	public DefaultAccessor(Class<?> type, String propertyName, Class<?> propertyType)
 	{
-		super(type, propertyName);
-		Method getter = ReflectUtil.getDeclaredMethod(true, type, "get" + propertyName);
+		super(type, propertyName, propertyType);
+		Method getter = ReflectUtil.getDeclaredMethod(true, type, propertyType, "get" + propertyName);
 		if (getter == null)
 		{
-			getter = ReflectUtil.getDeclaredMethod(true, type, "is" + propertyName);
+			getter = ReflectUtil.getDeclaredMethod(true, type, propertyType, "is" + propertyName);
 		}
 		this.getter = getter;
-		setter = ReflectUtil.getDeclaredMethod(true, type, "set" + propertyName, new Class<?>[] { null });
+		setter = ReflectUtil.getDeclaredMethod(true, type, null, "set" + propertyName, propertyType);
 		readable = getter != null && Modifier.isPublic(getter.getModifiers());
 		writable = setter != null && Modifier.isPublic(setter.getModifiers());
 	}

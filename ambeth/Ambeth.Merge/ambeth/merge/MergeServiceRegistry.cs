@@ -124,6 +124,10 @@ namespace De.Osthus.Ambeth.Cache
 		    {
 			    Type entityType = entityTypes[a];
 			    IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.GetExtension(entityType);
+                if (mergeServiceExtension == null)
+                {
+                    throw new ArgumentException("No " + typeof(IMergeServiceExtension).FullName + " registered for type '" + entityType.FullName + "'");
+                }
 			    IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
 			    if (groupedEntityTypes == null)
 			    {

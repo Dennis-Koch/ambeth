@@ -15,10 +15,10 @@ namespace De.Osthus.Ambeth.Xml.Test
     [TestClass]
     [TestProperties(File = "ambeth/xml/oriwrapper/OriWrapperTestData.properties")]
     [TestProperties(Name = ServiceConfigurationConstants.MappingFile, Value = "ambeth/xml/oriwrapper/orm.xml")]
-    [TestModule(typeof(OriWrapperTestModule), typeof(XmlModule))]
-    public class OriWrapperReadTest : AbstractIndependentClientTest
+    [TestModule(typeof(BootstrapScannerModule), typeof(OriWrapperTestModule), typeof(XmlModule))]
+    public class OriWrapperReadTest : AbstractInformationBusTest
     {
-        [Autowired]
+        [Autowired(XmlModule.CYCLIC_XML_HANDLER)]
         public ICyclicXmlHandler CyclicXmlHandler { protected get; set; }
 
         [Autowired]
@@ -49,7 +49,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getSimpleEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.AreEqual(testData.obj, obj);
+            Assert.AssertEquals(testData.obj, obj);
         }
 
         [TestMethod]
@@ -58,7 +58,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getEntityWithRelationTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.AreEqual(testData.obj, obj);
+            Assert.AssertEquals(testData.obj, obj);
         }
 
         [TestMethod]
@@ -94,7 +94,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getServiceDescriptionTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            De.Osthus.Ambeth.Transfer.Test.Assert.AreEqual((ServiceDescription)testData.obj, (ServiceDescription)obj);
+            De.Osthus.Ambeth.Transfer.Assert.AssertEquals((ServiceDescription)testData.obj, (ServiceDescription)obj);
         }
 
         [TestMethod]
@@ -103,8 +103,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -113,8 +113,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -123,8 +123,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedChildEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -133,8 +133,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedChildEntityTestData2();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -143,8 +143,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedChildEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -153,8 +153,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -163,8 +163,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesTestData2();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -173,8 +173,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            Assert.IsTrue(obj is Material);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertTrue(obj is Material);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -183,9 +183,9 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesInListTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is IList);
+            Assert.AssertTrue(obj is IList);
             IList<Object> actuals = (IList<Object>)obj;
-            AreEqual((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
+            AssertEquals((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
         }
 
         [TestMethod]
@@ -194,9 +194,9 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesInListTestData2();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.IsTrue(obj is IList);
+            Assert.AssertTrue(obj is IList);
             IList<Object> actuals = (IList<Object>)obj;
-            AreEqual((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
+            AssertEquals((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
         }
 
         [TestMethod]
@@ -205,9 +205,9 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesInListTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            Assert.IsTrue(obj is IList);
+            Assert.AssertTrue(obj is IList);
             IList<Object> actuals = (IList<Object>)obj;
-            AreEqual((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
+            AssertEquals((Material)((IList<Object>)testData.obj)[0], (Material)actuals[0]);
         }
 
         [TestMethod]
@@ -218,12 +218,12 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xml);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
@@ -235,12 +235,12 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xml);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
@@ -252,12 +252,12 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
@@ -267,7 +267,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedAndExistingChildrenTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            AreEqual((EntityA)testData.obj, (EntityA)obj);
+            AssertEquals((EntityA)testData.obj, (EntityA)obj);
         }
 
         [TestMethod]
@@ -276,7 +276,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedAndExistingChildrenTestData2();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            AreEqual((EntityA)testData.obj, (EntityA)obj);
+            AssertEquals((EntityA)testData.obj, (EntityA)obj);
         }
 
         [TestMethod]
@@ -285,7 +285,7 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedAndExistingChildrenTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            AreEqual((EntityA)testData.obj, (EntityA)obj);
+            AssertEquals((EntityA)testData.obj, (EntityA)obj);
         }
 
         [TestMethod]
@@ -294,8 +294,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getUpdatedEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xml);
-            Assert.AreEqual(testData.obj, obj);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertEquals(testData.obj, obj);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -304,8 +304,8 @@ namespace De.Osthus.Ambeth.Xml.Test
             InitManually(GetType());
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getUpdatedEntityTestData();
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
-            Assert.AreEqual(testData.obj, obj);
-            AreEqual((Material)testData.obj, (Material)obj);
+            Assert.AssertEquals(testData.obj, obj);
+            AssertEquals((Material)testData.obj, (Material)obj);
         }
 
         [TestMethod]
@@ -316,12 +316,12 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xml);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
@@ -333,12 +333,12 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xml);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
@@ -350,27 +350,27 @@ namespace De.Osthus.Ambeth.Xml.Test
             Object obj = CyclicXmlHandler.Read(testData.xmlJava);
             List<Object> expecteds = (List<Object>)testData.obj;
             List<Object> actuals = (List<Object>)obj;
-            Assert.AreEqual(expecteds.Count, actuals.Count);
+            Assert.AssertEquals(expecteds.Count, actuals.Count);
             for (int i = 0; i < expecteds.Count; i++)
             {
                 Material expected = expecteds[i] as Material;
                 Material actual = actuals[i] as Material;
-                AreEqual(expected, actual);
+                AssertEquals(expected, actual);
             }
         }
 
         private void AreArraysEqual(object[] expected, object[] actual)
         {
-            Assert.AreEqual(expected.Length, actual.Length);
+            Assert.AssertEquals(expected.Length, actual.Length);
             for (int i = 0; i < expected.Length; i++)
             {
-                Assert.AreEqual(expected[i], actual[i]);
+                Assert.AssertEquals(expected[i], actual[i]);
             }
         }
 
         protected void AreCollectionsEqual(ICollection expected, ICollection actual)
         {
-            Assert.AreEqual(expected.Count, actual.Count);
+            Assert.AssertEquals(expected.Count, actual.Count);
             IEnumerator expectedIter = expected.GetEnumerator();
             IEnumerator actualIter = actual.GetEnumerator();
             int index = 0;
@@ -379,79 +379,79 @@ namespace De.Osthus.Ambeth.Xml.Test
                 Object expectedEntry = expectedIter.Current;
                 actualIter.MoveNext();
                 Object actualEntry = actualIter.Current;
-                Assert.AreEqual(expectedEntry, actualEntry, "collection first differend at element " + index++);
+                Assert.AssertEquals(expectedEntry, actualEntry, "collection first differend at element " + index++);
             }
         }
 
         protected void AreSetsEqual(ISet<Object> expected, ISet<Object> actual)
         {
-            Assert.AreEqual(expected.Count, actual.Count);
+            Assert.AssertEquals(expected.Count, actual.Count);
             IEnumerator expectedIter = expected.GetEnumerator();
             while (expectedIter.MoveNext())
             {
                 Object expectedEntry = expectedIter.Current;
-                Assert.IsTrue(actual.Contains(expectedEntry), "expected does not contain element " + expectedEntry);
+                Assert.AssertTrue(actual.Contains(expectedEntry), "expected does not contain element " + expectedEntry);
             }
         }
 
-        protected void AreEqual(Material expected, Material actual)
+        protected void AssertEquals(Material expected, Material actual)
         {
-            Assert.AreEqual(expected.Buid, actual.Buid);
-            Assert.AreEqual(expected.CreatedBy, actual.CreatedBy);
-            Assert.AreEqual(expected.CreatedOn, actual.CreatedOn);
-            Assert.AreEqual(expected.Id, actual.Id);
-            Assert.AreEqual(expected.Name, actual.Name);
-            Assert.AreEqual(expected.UpdatedBy, actual.UpdatedBy);
-            Assert.AreEqual(expected.UpdatedOn, actual.UpdatedOn);
-            Assert.AreEqual(expected.Version, actual.Version);
+            Assert.AssertEquals(expected.Buid, actual.Buid);
+            Assert.AssertEquals(expected.CreatedBy, actual.CreatedBy);
+            Assert.AssertEquals(expected.CreatedOn, actual.CreatedOn);
+            Assert.AssertEquals(expected.Id, actual.Id);
+            Assert.AssertEquals(expected.Name, actual.Name);
+            Assert.AssertEquals(expected.UpdatedBy, actual.UpdatedBy);
+            Assert.AssertEquals(expected.UpdatedOn, actual.UpdatedOn);
+            Assert.AssertEquals(expected.Version, actual.Version);
 
-            AreEqual(expected.MaterialGroup, actual.MaterialGroup);
+            AssertEquals(expected.MaterialGroup, actual.MaterialGroup);
         }
 
-        protected void AreEqual(MaterialGroup expected, MaterialGroup actual)
-        {
-            if (expected == null)
-            {
-                Assert.IsNull(actual);
-                return;
-            }
-
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected.Buid, actual.Buid);
-            Assert.AreEqual(expected.Id, actual.Id);
-            Assert.AreEqual(expected.Name, actual.Name);
-            Assert.AreEqual(expected.Version, actual.Version);
-        }
-
-        private void AreEqual(EntityA expected, EntityA actual)
+        protected void AssertEquals(MaterialGroup expected, MaterialGroup actual)
         {
             if (expected == null)
             {
-                Assert.IsNull(actual);
+                Assert.AssertNull(actual);
                 return;
             }
 
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected.Id, actual.Id);
-            Assert.AreEqual(expected.Version, actual.Version);
-            Assert.AreEqual(expected.EntityBs.Count, actual.EntityBs.Count);
+            Assert.AssertNotNull(actual);
+            Assert.AssertEquals(expected.Buid, actual.Buid);
+            Assert.AssertEquals(expected.Id, actual.Id);
+            Assert.AssertEquals(expected.Name, actual.Name);
+            Assert.AssertEquals(expected.Version, actual.Version);
+        }
+
+        private void AssertEquals(EntityA expected, EntityA actual)
+        {
+            if (expected == null)
+            {
+                Assert.AssertNull(actual);
+                return;
+            }
+
+            Assert.AssertNotNull(actual);
+            Assert.AssertEquals(expected.Id, actual.Id);
+            Assert.AssertEquals(expected.Version, actual.Version);
+            Assert.AssertEquals(expected.EntityBs.Count, actual.EntityBs.Count);
             for (int i = 0; i < expected.EntityBs.Count; i++)
             {
-                AreEqual(expected.EntityBs[i], actual.EntityBs[i]);
+                AssertEquals(expected.EntityBs[i], actual.EntityBs[i]);
             }
         }
 
-        private void AreEqual(EntityB expected, EntityB actual)
+        private void AssertEquals(EntityB expected, EntityB actual)
         {
             if (expected == null)
             {
-                Assert.IsNull(actual);
+                Assert.AssertNull(actual);
                 return;
             }
 
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(expected.Id, actual.Id);
-            Assert.AreEqual(expected.Version, actual.Version);
+            Assert.AssertNotNull(actual);
+            Assert.AssertEquals(expected.Id, actual.Id);
+            Assert.AssertEquals(expected.Version, actual.Version);
         }
     }
 }

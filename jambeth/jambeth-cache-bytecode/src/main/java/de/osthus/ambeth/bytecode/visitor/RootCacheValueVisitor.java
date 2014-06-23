@@ -45,7 +45,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementGetEntityType()
 	{
-		MethodInstance template_m_getEntityType = new MethodInstance(null, RootCacheValue.class, "getEntityType");
+		MethodInstance template_m_getEntityType = new MethodInstance(null, RootCacheValue.class, Class.class, "getEntityType");
 
 		MethodGenerator mv = visitMethod(template_m_getEntityType);
 		mv.push(Type.getType(metaData.getEntityType()));
@@ -55,16 +55,16 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementId()
 	{
-		MethodInstance template_m_getId = new MethodInstance(null, RootCacheValue.class, "getId");
-		MethodInstance template_m_setId = new MethodInstance(null, RootCacheValue.class, "setId", Object.class);
+		MethodInstance template_m_getId = new MethodInstance(null, RootCacheValue.class, Object.class, "getId");
+		MethodInstance template_m_setId = new MethodInstance(null, RootCacheValue.class, void.class, "setId", Object.class);
 
 		CacheMapEntryVisitor.implementNativeField(this, metaData.getIdMember(), template_m_getId, template_m_setId);
 	}
 
 	protected void implementVersion()
 	{
-		MethodInstance template_m_getVersion = new MethodInstance(null, RootCacheValue.class, "getVersion");
-		MethodInstance template_m_setVersion = new MethodInstance(null, RootCacheValue.class, "setVersion", Object.class);
+		MethodInstance template_m_getVersion = new MethodInstance(null, RootCacheValue.class, Object.class, "getVersion");
+		MethodInstance template_m_setVersion = new MethodInstance(null, RootCacheValue.class, void.class, "setVersion", Object.class);
 
 		CacheMapEntryVisitor.implementNativeField(this, metaData.getVersionMember(), template_m_getVersion, template_m_setVersion);
 	}
@@ -114,7 +114,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementGetPrimitive(ITypeInfoItem[] primitiveMember, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	{
-		MethodInstance template_m_getPrimitive = new MethodInstance(null, RootCacheValue.class, "getPrimitive", int.class);
+		MethodInstance template_m_getPrimitive = new MethodInstance(null, RootCacheValue.class, Object.class, "getPrimitive", int.class);
 
 		MethodGenerator mv = visitMethod(template_m_getPrimitive);
 
@@ -167,7 +167,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementGetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	{
-		MethodInstance template_m_getPrimitives = new MethodInstance(null, RootCacheValue.class, "getPrimitives");
+		MethodInstance template_m_getPrimitives = new MethodInstance(null, RootCacheValue.class, Object[].class, "getPrimitives");
 
 		MethodGenerator mv = visitMethod(template_m_getPrimitives);
 
@@ -208,7 +208,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementSetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	{
-		MethodInstance template_m_setPrimitives = new MethodInstance(null, RootCacheValue.class, "setPrimitives", Object[].class);
+		MethodInstance template_m_setPrimitives = new MethodInstance(null, RootCacheValue.class, void.class, "setPrimitives", Object[].class);
 
 		MethodGenerator mv = visitMethod(template_m_setPrimitives);
 		final int loc_item = mv.newLocal(objType);
@@ -247,7 +247,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 							public void execute(MethodGenerator mg)
 							{
 								mg.checkCast(java.util.Date.class);
-								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, java.util.Date.class, "getTime")));
+								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, long.class, java.util.Date.class, "getTime")));
 							}
 						}, new Script()
 						{
@@ -329,7 +329,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementGetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
 	{
-		MethodInstance template_m_getRelation = new MethodInstance(null, RootCacheValue.class, "getRelation", int.class);
+		MethodInstance template_m_getRelation = new MethodInstance(null, RootCacheValue.class, IObjRef[].class, "getRelation", int.class);
 
 		MethodGenerator mv = visitMethod(template_m_getRelation);
 
@@ -363,7 +363,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementSetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
 	{
-		MethodInstance template_m_setRelation = new MethodInstance(null, RootCacheValue.class, "setRelation", int.class, IObjRef[].class);
+		MethodInstance template_m_setRelation = new MethodInstance(null, RootCacheValue.class, void.class, "setRelation", int.class, IObjRef[].class);
 
 		MethodGenerator mv = visitMethod(template_m_setRelation);
 		Label l_finish = mv.newLabel();
@@ -398,7 +398,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementSetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] fields)
 	{
-		MethodInstance template_m_setRelations = new MethodInstance(null, RootCacheValue.class, "setRelations", IObjRef[][].class);
+		MethodInstance template_m_setRelations = new MethodInstance(null, RootCacheValue.class, void.class, "setRelations", IObjRef[][].class);
 
 		MethodGenerator mv = visitMethod(template_m_setRelations);
 
@@ -424,7 +424,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementGetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
 	{
-		MethodInstance template_m_getRelations = new MethodInstance(null, RootCacheValue.class, "getRelations");
+		MethodInstance template_m_getRelations = new MethodInstance(null, RootCacheValue.class, IObjRef[][].class, "getRelations");
 
 		MethodGenerator mv = visitMethod(template_m_getRelations);
 

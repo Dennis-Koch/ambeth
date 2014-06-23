@@ -25,20 +25,20 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 if (getter == null)
                 {
                     // look for abstract definition of the getter
-                    getter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, "get_" + propertyInfo.Name);
+                    getter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, propertyInfo.PropertyType, "get_" + propertyInfo.Name);
                     if (getter == null)
                     {
-                        getter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, "Get" + propertyInfo.Name);
+                        getter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, propertyInfo.PropertyType, "Get" + propertyInfo.Name);
                     }
                 }
                 if (setter == null)
                 {
                     // look for abstract definition of the setter
-                    setter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, "set_" + propertyInfo.Name,
+                    setter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, propertyInfo.PropertyType, "set_" + propertyInfo.Name,
                             propertyInfo.PropertyType);
                     if (setter == null)
                     {
-                        setter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, "Set" + propertyInfo.Name,
+                        setter = ReflectUtil.GetDeclaredMethod(true, State.CurrentType, propertyInfo.PropertyType, "Set" + propertyInfo.Name,
                                 propertyInfo.PropertyType);
                     }
                 }
@@ -59,7 +59,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 }
                 if (m_setterTemplate == null)
                 {
-                    m_setterTemplate = new MethodInstance(null, MethodAttributes.Public, "set_" + propertyInfo.Name, null, m_setterTemplate != null ? m_setterTemplate.ReturnType : NewType.VOID_TYPE,
+                    m_setterTemplate = new MethodInstance(null, MethodAttributes.Public, m_setterTemplate != null ? m_setterTemplate.ReturnType : NewType.VOID_TYPE, "set_" + propertyInfo.Name,
                             f_backingField.Type);
                 }
                 // implement setter
@@ -67,7 +67,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
                 if (m_getterTemplate == null)
                 {
-                    m_getterTemplate = new MethodInstance(null, MethodAttributes.Public, "get_" + propertyInfo.Name, null, f_backingField.Type);
+                    m_getterTemplate = new MethodInstance(null, MethodAttributes.Public, f_backingField.Type, "get_" + propertyInfo.Name);
                 }
                 // implement getter
                 ImplementGetter(m_getterTemplate, f_backingField);

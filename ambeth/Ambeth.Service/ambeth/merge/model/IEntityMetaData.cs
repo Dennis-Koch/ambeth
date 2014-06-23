@@ -10,6 +10,8 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         Type RealType { get; }
 
+        Type EnhancedType { get; }
+
         bool LocalEntity { get; }
 
         ITypeInfoItem IdMember { get; }

@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace De.Osthus.Ambeth.Ioc.Config
 {
     public interface IBeanConfiguration
     {
-        String GetDeclarationStackTrace();
+        StackFrame[] GetDeclarationStackTrace();
 
         Object GetInstance();
 

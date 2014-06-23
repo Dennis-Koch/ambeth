@@ -11,9 +11,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.MaterialGroup;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 @SQLStructure("ProcessServiceTest_structure.sql")
 @TestModule(ProcessServiceTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 public class ProcessServiceTest extends AbstractPersistenceTest
 {
 	private static final Object[] NO_PARAMS = {};

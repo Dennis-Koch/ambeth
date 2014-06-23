@@ -21,7 +21,9 @@ public interface IBytecodeBehaviorState
 
 	<T extends IEnhancementHint> T getContext(Class<T> contextType);
 
-	PropertyInstance getProperty(String propertyName);
+	PropertyInstance getProperty(String propertyName, Class<?> propertyType);
+
+	PropertyInstance getProperty(String propertyName, Type propertyType);
 
 	MethodInstance[] getAlreadyImplementedMethodsOnNewType();
 

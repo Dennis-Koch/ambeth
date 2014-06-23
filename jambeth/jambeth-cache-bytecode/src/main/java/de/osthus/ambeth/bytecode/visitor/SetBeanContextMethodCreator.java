@@ -11,12 +11,12 @@ public class SetBeanContextMethodCreator extends ClassGenerator
 
 	public static PropertyInstance getBeanContextPI(ClassGenerator cv)
 	{
-		PropertyInstance pi = getState().getProperty(beanContextName);
+		Object bean = getState().getBeanContext().getService(IServiceContext.class);
+		PropertyInstance pi = getState().getProperty(beanContextName, bean.getClass());
 		if (pi != null)
 		{
 			return pi;
 		}
-		Object bean = getState().getBeanContext().getService(IServiceContext.class);
 		return cv.implementAssignedReadonlyProperty(beanContextName, bean);
 	}
 

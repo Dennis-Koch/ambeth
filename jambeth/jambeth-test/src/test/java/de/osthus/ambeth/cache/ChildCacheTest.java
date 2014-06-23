@@ -21,20 +21,14 @@ import org.junit.Test;
 
 import de.osthus.ambeth.ObjectMother;
 import de.osthus.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
-import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CacheBytecodeModule;
-import de.osthus.ambeth.ioc.CacheDataChangeModule;
-import de.osthus.ambeth.ioc.CacheModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
-import de.osthus.ambeth.ioc.EventModule;
-import de.osthus.ambeth.ioc.ServiceModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -44,78 +38,40 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.Unit;
-import de.osthus.ambeth.testutil.AbstractIocTest;
-import de.osthus.ambeth.testutil.TestModule;
+import de.osthus.ambeth.testutil.AbstractInformationBusTest;
+import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestRebuildContext;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.CacheHelperFake;
 import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.ICacheHelper;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-@TestModule({ BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class, CompositeIdModule.class,
-		AbstractCacheTestModule.class, EventModule.class, ServiceModule.class })
-@TestProperties(name = CacheConfigurationConstants.CacheServiceRegistryActive, value = "false")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/model/material-materialgroup-unit-orm.xml")
+@TestFrameworkModule(AbstractCacheTestModule.class)
 @TestRebuildContext
-public class ChildCacheTest extends AbstractIocTest
+public class ChildCacheTest extends AbstractInformationBusTest
 {
 	protected ChildCache childCache;
 
+	@Autowired
 	protected ICacheHelper cacheHelper;
 
+	@Autowired
 	protected IEntityFactory entityFactory;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IRootCache parent;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired
 	protected IProxyHelper proxyHelper;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(cacheHelper, "cacheHelper");
-		ParamChecker.assertNotNull(entityFactory, "entityFactory");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(parent, "parent");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-		ParamChecker.assertNotNull(proxyHelper, "proxyHelper");
-	}
-
-	public void setCacheHelper(ICacheHelper cacheHelper)
-	{
-		this.cacheHelper = cacheHelper;
-	}
-
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
-		this.entityFactory = entityFactory;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setParent(IRootCache parent)
-	{
-		this.parent = parent;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
 
 	@Before
 	public void setUp() throws Exception
@@ -346,13 +302,14 @@ public class ChildCacheTest extends AbstractIocTest
 		assertTrue(!proxyHelper.isInitialized(primitiveFilledObject, unitMember));
 		assertTrue(proxyHelper.getObjRefs(primitiveFilledObject, unitMember).length == 0);
 
-		relations = new IObjRef[][] { {}, { new ObjRef(Unit.class, 4, 2) } };
+		int unitIndex = metaData.getIndexByRelationName("Unit");
+		relations[unitIndex] = new IObjRef[] { new ObjRef(Unit.class, 4, 2) };
 		childCache.addDirect(metaData, id, version, primitiveFilledObject, primitives, relations);
 		actual = childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 		assertNotNull(actual);
 		assertSame(primitiveFilledObject, actual);
 		assertTrue(!proxyHelper.isInitialized(primitiveFilledObject, unitMember));
-		assertTrue(proxyHelper.getObjRefs(primitiveFilledObject, unitMember) == relations[1]);
+		assertTrue(proxyHelper.getObjRefs(primitiveFilledObject, unitMember) == relations[unitIndex]);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

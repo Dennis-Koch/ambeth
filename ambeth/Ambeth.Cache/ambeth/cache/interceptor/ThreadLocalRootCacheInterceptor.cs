@@ -47,9 +47,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         {
             IBeanRuntime<RootCache> rootCacheBR = ServiceContext.RegisterAnonymousBean<RootCache>().PropertyValue("CacheRetriever", StoredCacheRetriever);
             // Do not inject EventQueue because caches without foreign interest will never receive async DCEs
-            rootCacheBR.IgnoreProperties("EventQueue");
-            rootCacheBR.PropertyValue("WeakEntries", false);
-		    RootCache rootCache = rootCacheBR.Finish();
+            RootCache rootCache = PostProcessRootCacheConfiguration(rootCacheBR).Finish();
 
             if (OfflineListenerExtendable != null)
             {
@@ -57,6 +55,12 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
             rootCacheTL.Value = rootCache;
             return rootCache;
+        }
+
+        protected virtual IBeanRuntime<RootCache> PostProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
+        {
+            // Do not inject EventQueue because caches without foreign interest will never receive async DCEs
+            return rootCacheBR.IgnoreProperties("EventQueue").PropertyValue("WeakEntries", false);
         }
 
         protected virtual IRootCache GetCurrentRootCacheIfValid()

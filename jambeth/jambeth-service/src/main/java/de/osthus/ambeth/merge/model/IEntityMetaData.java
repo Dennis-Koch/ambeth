@@ -1,15 +1,15 @@
 package de.osthus.ambeth.merge.model;
 
-import de.osthus.ambeth.annotation.XmlType;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
-@XmlType
 public interface IEntityMetaData
 {
 	Class<?> getEntityType();
 
 	Class<?> getRealType();
+
+	Class<?> getEnhancedType();
 
 	boolean isLocalEntity();
 

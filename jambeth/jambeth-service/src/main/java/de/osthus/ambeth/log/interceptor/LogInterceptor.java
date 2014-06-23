@@ -6,6 +6,7 @@ import java.util.Collection;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.log.LogTypesUtil;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class LogInterceptor extends CascadedInterceptor
@@ -44,10 +44,10 @@ public class LogInterceptor extends CascadedInterceptor
 	@Autowired
 	protected IProperties properties;
 
-	@Property(name = ConfigurationConstants.LogShortNames, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.LogShortNames, defaultValue = "false")
 	protected boolean printShortStringNames;
 
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isClientLogger;
 
 	@SuppressWarnings("rawtypes")

@@ -6,8 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -16,7 +16,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/forward/none/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/one/lazy/fk/forward/none/orm.xml")
 public class OneLazyFkNoForwardRelationsTest extends AbstractRelationsTest
 {
 	protected static final int ENTITY_A_ID = 11;

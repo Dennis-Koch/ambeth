@@ -1,9 +1,11 @@
 package de.osthus.ambeth.security;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -115,7 +117,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 
 	protected IUserHandle createUserHandle() throws Throwable
 	{
-		IAuthentication authentication = getAuthentication();
+		final IAuthentication authentication = getAuthentication();
 		IUserHandle userHandle = null;
 
 		String sid = null;
@@ -132,7 +134,15 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 				@Override
 				public IUserHandle invoke()
 				{
-					return userHandleFactory.createUserHandle(databaseSid, securityScopeProvider.getSecurityScopes());
+					try
+					{
+						return userHandleFactory.createUserHandle(databaseSid, new String(authentication.getPassword(), "UTF-8"),
+								securityScopeProvider.getSecurityScopes());
+					}
+					catch (UnsupportedEncodingException e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
 				}
 			});
 		}

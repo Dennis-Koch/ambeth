@@ -5,16 +5,16 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.orm20.independent.AbstractIndependentOrm20Test;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 /**
  * Test for two uni-directional one-to-one relations
  */
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/orm20/independent/a22b/orm20.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/orm20/independent/a22b/orm20.xml")
 public class Orm20A22BTest extends AbstractIndependentOrm20Test
 {
 	@Test

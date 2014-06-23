@@ -7,51 +7,33 @@ import org.junit.Test;
 
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.cachetype.CacheTypeTest.CacheTypeTestModule;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.merge.IEntityMetaDataFiller;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdEntity;
 import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("cachetype_data.sql")
 @SQLStructure("cachetype_structure.sql")
 @TestModule(CacheTypeTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/cache/cachetype/cachetype_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/cache/cachetype/cachetype_orm.xml")
 public class CacheTypeTest extends AbstractPersistenceTest
 {
-	public static IEntityMetaDataFiller entityMetaDataFiller;
-
 	public static class CacheTypeTestModule implements IInitializingModule
 	{
+		@Autowired
 		protected IProxyFactory proxyFactory;
 
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
-
-			// MethodInterceptor methodInterceptor = new MethodInterceptor()
-			// {
-			// @Override
-			// public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
-			// {
-			// throw new UnsupportedOperationException("Should never be called");
-			// }
-			// };
-
-			// IAlternateIdEntityServiceCTPrototype prototypeProxy = proxyFactory.createProxy(IAlternateIdEntityServiceCTPrototype.class, methodInterceptor);
-			// IAlternateIdEntityServiceCTSingleton singletonProxy = proxyFactory.createProxy(IAlternateIdEntityServiceCTSingleton.class, methodInterceptor);
-			// IAlternateIdEntityServiceCTThreadLocal threadLocalProxy = proxyFactory.createProxy(IAlternateIdEntityServiceCTThreadLocal.class,
-			// methodInterceptor);
-
 			beanContextFactory.registerBean("prototypeProxy", IAlternateIdEntityServiceCTPrototype.class).autowireable(
 					IAlternateIdEntityServiceCTPrototype.class);
 			beanContextFactory.registerBean("singletonProxy", IAlternateIdEntityServiceCTSingleton.class).autowireable(
@@ -59,27 +41,10 @@ public class CacheTypeTest extends AbstractPersistenceTest
 			beanContextFactory.registerBean("threadLocalProxy", IAlternateIdEntityServiceCTThreadLocal.class).autowireable(
 					IAlternateIdEntityServiceCTThreadLocal.class);
 		}
-
-		public void setProxyFactory(IProxyFactory proxyFactory)
-		{
-			this.proxyFactory = proxyFactory;
-		}
 	}
 
+	@Autowired
 	protected IRootCache rootCache;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(rootCache, "rootCache");
-	}
-
-	public void setRootCache(IRootCache rootCache)
-	{
-		this.rootCache = rootCache;
-	}
 
 	// @Test
 	// public void prototypeBehavior()

@@ -19,44 +19,41 @@ namespace De.Osthus.Ambeth.Ioc
     {
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            beanContextFactory.RegisterBean<ORIHelper>("oriHelper").Autowireable<IObjRefHelper>();
+            //beanContextFactory.RegisterBean<DefaultProxyHelper>("proxyHelper").Autowireable<IProxyHelper>();
 
-            beanContextFactory.RegisterBean<DefaultProxyHelper>("proxyHelper").Autowireable<IProxyHelper>();
+            //beanContextFactory.RegisterBean<TypeInfoProvider>("typeInfoProvider").Autowireable<ITypeInfoProvider>();
 
-            beanContextFactory.RegisterBean<RelationProvider>("relationProvider").Autowireable<IRelationProvider>();
+            //beanContextFactory.RegisterBean<RelationProvider>("relationProvider").Autowireable<IRelationProvider>();
 
-            beanContextFactory.RegisterBean<TypeInfoProvider>("typeInfoProvider").Autowireable<ITypeInfoProvider>();
+            //beanContextFactory.RegisterBean<ORIHelper>("oriHelper").Autowireable<IObjRefHelper>();
 
-            IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
+            //beanContextFactory.RegisterBean<EntityMetaDataProviderDummy>("entityMetaDataProviderDummy").Autowireable<IEntityMetaDataProvider>();
 
-            beanContextFactory.RegisterBean("independentMetaDataProvider", typeof(EntityMetaDataProvider))
-                    .PropertyRef("ValueObjectMap", valueObjectMap)
-                    .Autowireable(typeof(IEntityMetaDataProvider))
-                    .Autowireable<IEntityMetaDataExtendable>()
-                    .Autowireable<IValueObjectConfigExtendable>();
-            beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader");
-            beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
+            //beanContextFactory.RegisterBean<CacheDummy>("cache").Autowireable<ICache>();
 
-            beanContextFactory.RegisterBean("ormXmlReader", typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, typeof(IOrmXmlReaderRegistry))
-                    .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, typeof(IOrmXmlReaderExtendable))
-                    .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").Autowireable(typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable));
-            beanContextFactory.RegisterBean<OrmXmlReaderLegathy>("ormXmlReaderLegathy");
-            beanContextFactory.RegisterBean<OrmXmlReader20>("ormXmlReader_2.0");
-            beanContextFactory.Link("ormXmlReader_2.0").To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
+            //beanContextFactory.RegisterBean<OriHelperDummy>("oriHelper", ).Autowireable<IObjRefHelper>();
 
-            // Mocks
+            //beanContextFactory.RegisterBean<EntityFactoryDummy>("entityFactory", ).Autowireable<IEntityFactory>();
 
-            beanContextFactory.RegisterBean<CacheMock>("cacheMock").Autowireable(typeof(ICache));
+            //beanContextFactory.RegisterBean<CacheFactoryDummy>("cacheFactory", ).Autowireable<ICacheFactory>();
 
-            beanContextFactory.RegisterBean<CacheFactoryMock>("cacheFactoryMock").Autowireable(typeof(ICacheFactory));
+            //beanContextFactory.RegisterBean<MergeControllerDummy>("mergeController", ).Autowireable<IMergeController>();
 
-            beanContextFactory.RegisterBean<EntityFactoryMock>("entityFactoryMock").Autowireable<IEntityFactory>();
+            //beanContextFactory.RegisterBean<PrefetchHelperDummy>("prefetchHelper", ).Autowireable<IPrefetchHelper>();
             
-            beanContextFactory.RegisterBean<XmlTypeHelper>("xmlTypeHelper").Autowireable<IXmlTypeHelper>();
+            //// Mocks
 
-            // Dummy
+            //beanContextFactory.RegisterBean<CacheMock>("cacheMock").Autowireable(typeof(ICache));
 
-            beanContextFactory.RegisterBean<EmptyDummy>("emptyDummy").Autowireable<ICompositeIdFactory>().Autowireable<IMergeController>().Autowireable<IPrefetchHelper>();
+            //beanContextFactory.RegisterBean<CacheFactoryMock>("cacheFactoryMock").Autowireable(typeof(ICacheFactory));
+
+            //beanContextFactory.RegisterBean<EntityFactoryMock>("entityFactoryMock").Autowireable<IEntityFactory>();
+            
+            //beanContextFactory.RegisterBean<XmlTypeHelper>("xmlTypeHelper").Autowireable<IXmlTypeHelper>();
+
+            //// Dummy
+
+            //beanContextFactory.RegisterBean<EmptyDummy>("emptyDummy").Autowireable<ICompositeIdFactory>().Autowireable<IMergeController>().Autowireable<IPrefetchHelper>();
         }
     }
 }

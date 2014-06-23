@@ -140,21 +140,18 @@ public class SqlLink extends Link
 
 			if (!hasLinkTable())
 			{
-				if (fromLink.isPersistingLink())
+				if (fromLink.getFromTable().equals(fromLink.getLink().getFromTable()))
 				{
-					fromField = fromField.getTable().getIdField();
+					toField = fromField.getTable().getIdField();
 				}
 				else
 				{
-					toField = toField.getTable().getIdField();
+					fromField = toField.getTable().getIdField();
 				}
-				if (fromLink.isReverse())
-				{
-					// All fields themselves are correct now. But for the reverse link each field is still on the wrong place. So switch them
-					IField tempField = fromField;
-					fromField = toField;
-					toField = tempField;
-				}
+				// All fields themselves are correct now. But for "some" reason we have to switch the fields :(
+				IField tempField = fromField;
+				fromField = toField;
+				toField = tempField;
 			}
 			sqlBuilder.appendName(fromField.getName(), fieldNamesSB);
 			fieldNamesSB.append(',');

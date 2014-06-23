@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -19,12 +20,16 @@ namespace De.Osthus.Ambeth.Xml
 
         public const String DefaultNamespace = "http://schemas.osthus.de/Ambeth";
 
+        [Autowired(Optional = true)]
         public IClasspathScanner ClasspathScanner { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired(Optional = true)]
         public IThreadPool ThreadPool { protected get; set; }
 
+        [Autowired]
         public IXmlTypeExtendable XmlTypeExtendable { protected get; set; }
 
         protected IList<Type> rootElementClasses;
@@ -33,10 +38,14 @@ namespace De.Osthus.Ambeth.Xml
 
         public virtual void AfterPropertiesSet()
         {
-            ParamChecker.AssertNotNull(ClasspathScanner, "ClasspathScanner");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(XmlTypeExtendable, "XmlTypeExtendable");
-
+            if (ClasspathScanner == null)
+		    {
+			    if (Log.InfoEnabled)
+			    {
+				    Log.Info("Skipped scanning for XML transfer types. Reason: No instance of " + typeof(IClasspathScanner).FullName + " resolved");
+			    }
+			    return;
+		    }
             IList<Type> rootElementClasses = ClasspathScanner.ScanClassesAnnotatedWith(typeof(DataContractAttribute), typeof(System.Xml.Serialization.XmlTypeAttribute), typeof(XmlTypeAttribute));
             if (Log.InfoEnabled)
             {

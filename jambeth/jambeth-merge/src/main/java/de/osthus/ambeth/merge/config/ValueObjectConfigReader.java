@@ -13,6 +13,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -25,7 +26,6 @@ import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.ValueObjectConfig;
 import de.osthus.ambeth.merge.ValueObjectMemberType;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
@@ -72,7 +72,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 		this.runtimeValidationActive = runtimeValidationActive;
 	}
 
-	@Property(name = ConfigurationConstants.valueObjectFile, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.valueObjectFile, mandatory = false)
 	public void setFileName(String fileName)
 	{
 		if (xmlFileName != null)
@@ -86,7 +86,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 
 	@SuppressWarnings("deprecation")
 	@Deprecated
-	@Property(name = ConfigurationConstants.valueObjectResource, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.valueObjectResource, mandatory = false)
 	public void setResourceName(String xmlResourceName)
 	{
 		if (xmlFileName != null)

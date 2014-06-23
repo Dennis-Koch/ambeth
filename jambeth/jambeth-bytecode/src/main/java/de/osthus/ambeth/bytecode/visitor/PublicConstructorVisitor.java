@@ -23,6 +23,22 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
  */
 public class PublicConstructorVisitor extends ClassGenerator
 {
+	public static boolean hasValidConstructor()
+	{
+		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
+
+		Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();
+
+		for (Constructor<?> constructor : constructors)
+		{
+			if (state.isMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Derives constructors from {@link BytecodeBehaviorState#getState()#getCurrentType()}
 	 * 
@@ -40,21 +56,11 @@ public class PublicConstructorVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
-
-		Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();
-
-		boolean atLeastOneConstructorImplemented = false;
-		for (Constructor<?> constructor : constructors)
+		if (!hasValidConstructor())
 		{
-			if (state.isMethodAlreadyImplementedOnNewType(new ConstructorInstance(constructor)))
-			{
-				atLeastOneConstructorImplemented = true;
-				break;
-			}
-		}
-		if (!atLeastOneConstructorImplemented)
-		{
+			IBytecodeBehaviorState state = BytecodeBehaviorState.getState();
+			Constructor<?>[] constructors = state.getCurrentType().getDeclaredConstructors();
+
 			for (Constructor<?> constructor : constructors)
 			{
 				int access = TypeUtil.getModifiersToAccess(constructor.getModifiers());

@@ -18,6 +18,44 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class BytecodeBehaviorState implements IBytecodeBehaviorState
 {
+	public static class PropertyKey
+	{
+		private final String propertyName;
+
+		private final Type propertyType;
+
+		public PropertyKey(String propertyName, Type propertyType)
+		{
+			this.propertyName = propertyName;
+			this.propertyType = propertyType;
+		}
+
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+			{
+				return true;
+			}
+			if (!(obj instanceof PropertyKey))
+			{
+				return false;
+			}
+			PropertyKey other = (PropertyKey) obj;
+			return propertyName.equals(other.propertyName) && (propertyType == null || other.propertyType == null || propertyType.equals(other.propertyType));
+		}
+
+		@Override
+		public int hashCode()
+		{
+			if (propertyType == null)
+			{
+				return propertyName.hashCode();
+			}
+			return propertyName.hashCode() ^ propertyType.hashCode();
+		}
+	}
+
 	private static final ThreadLocal<IBytecodeBehaviorState> stateTL = new ThreadLocal<IBytecodeBehaviorState>();
 
 	public static IBytecodeBehaviorState getState()
@@ -59,7 +97,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 
 	private final HashMap<MethodKeyOfType, MethodInstance> implementedMethods = new HashMap<MethodKeyOfType, MethodInstance>();
 
-	private final HashMap<String, PropertyInstance> implementedProperties = new HashMap<String, PropertyInstance>();
+	private final HashMap<PropertyKey, PropertyInstance> implementedProperties = new HashMap<PropertyKey, PropertyInstance>();
 
 	private final HashMap<String, FieldInstance> implementedFields = new HashMap<String, FieldInstance>();
 
@@ -112,7 +150,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 
 	public void methodImplemented(MethodInstance method)
 	{
-		if (!implementedMethods.putIfNotExists(new MethodKeyOfType(method.getName(), method.getParameters()), method))
+		if (!implementedMethods.putIfNotExists(new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()), method))
 		{
 			throw new IllegalStateException("Method already implemented: " + method);
 		}
@@ -128,7 +166,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 
 	public void propertyImplemented(PropertyInstance property)
 	{
-		if (!implementedProperties.putIfNotExists(property.getName(), property))
+		if (!implementedProperties.putIfNotExists(new PropertyKey(property.getName(), property.getPropertyType()), property))
 		{
 			throw new IllegalStateException("Property already implemented: " + property);
 		}
@@ -143,14 +181,20 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 	}
 
 	@Override
-	public PropertyInstance getProperty(String propertyName)
+	public PropertyInstance getProperty(String propertyName, Class<?> propertyType)
 	{
-		PropertyInstance pi = implementedProperties.get(propertyName);
+		return getProperty(propertyName, Type.getType(propertyType));
+	}
+
+	@Override
+	public PropertyInstance getProperty(String propertyName, Type propertyType)
+	{
+		PropertyInstance pi = implementedProperties.get(new PropertyKey(propertyName, propertyType));
 		if (pi != null)
 		{
 			return pi;
 		}
-		return PropertyInstance.findByTemplate(getCurrentType(), propertyName, true);
+		return PropertyInstance.findByTemplate(getCurrentType(), propertyName, propertyType, true);
 	}
 
 	@Override
@@ -184,7 +228,7 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 	@Override
 	public boolean isMethodAlreadyImplementedOnNewType(MethodInstance method)
 	{
-		return implementedMethods.containsKey(new MethodKeyOfType(method.getName(), method.getParameters()));
+		return implementedMethods.containsKey(new MethodKeyOfType(method.getName(), method.getReturnType(), method.getParameters()));
 	}
 
 	public void postProcessCreatedType(Class<?> newType)

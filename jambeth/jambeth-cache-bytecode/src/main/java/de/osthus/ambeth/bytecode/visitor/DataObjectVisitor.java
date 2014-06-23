@@ -28,27 +28,27 @@ public class DataObjectVisitor extends ClassGenerator
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 
-	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType, "toBeUpdatedChanged", IDataObject.class, boolean.class,
-			boolean.class);
+	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType, void.class, "toBeUpdatedChanged", IDataObject.class,
+			boolean.class, boolean.class);
 
-	public static final PropertyInstance p_hasPendingChanges = PropertyInstance.findByTemplate(IDataObject.class, "HasPendingChanges", false);
+	public static final PropertyInstance p_hasPendingChanges = PropertyInstance.findByTemplate(IDataObject.class, "HasPendingChanges", boolean.class, false);
 
-	public static final PropertyInstance template_p_toBeCreated = PropertyInstance.findByTemplate(IDataObject.class, "ToBeCreated", false);
+	public static final PropertyInstance template_p_toBeCreated = PropertyInstance.findByTemplate(IDataObject.class, "ToBeCreated", boolean.class, false);
 
-	public static final PropertyInstance template_p_toBeUpdated = PropertyInstance.findByTemplate(IDataObject.class, "ToBeUpdated", false);
+	public static final PropertyInstance template_p_toBeUpdated = PropertyInstance.findByTemplate(IDataObject.class, "ToBeUpdated", boolean.class, false);
 
-	public static final PropertyInstance template_p_toBeDeleted = PropertyInstance.findByTemplate(IDataObject.class, "ToBeDeleted", false);
+	public static final PropertyInstance template_p_toBeDeleted = PropertyInstance.findByTemplate(IDataObject.class, "ToBeDeleted", boolean.class, false);
 
 	public static final Class<IgnoreToBeUpdated> c_ignoreToBeUpdated = IgnoreToBeUpdated.class;
 
 	public static PropertyInstance getDataObjectTemplatePI(ClassGenerator cv)
 	{
-		PropertyInstance p_dataObjectTemplate = getState().getProperty(templatePropertyName);
+		Object bean = getState().getBeanContext().getService(templateType);
+		PropertyInstance p_dataObjectTemplate = getState().getProperty(templatePropertyName, bean.getClass());
 		if (p_dataObjectTemplate != null)
 		{
 			return p_dataObjectTemplate;
 		}
-		Object bean = getState().getBeanContext().getService(templateType);
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 

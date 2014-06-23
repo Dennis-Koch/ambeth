@@ -10,13 +10,13 @@ import java.util.List;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.ioc.DataChangePersistenceModule;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.DataChangeEntryBO;
 import de.osthus.ambeth.model.DataChangeEventBO;
 import de.osthus.ambeth.model.EntityType;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -27,7 +27,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLStructure("/DataChangeEvent_structure.sql")
 @SQLData("DataChangeEvent_data.sql")
 @TestModule(DataChangePersistenceModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "datachange-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "datachange-orm.xml")
 public class DataChangeEventDAOTest extends AbstractPersistenceTest
 {
 	private IDataChangeEventDAO fixture;

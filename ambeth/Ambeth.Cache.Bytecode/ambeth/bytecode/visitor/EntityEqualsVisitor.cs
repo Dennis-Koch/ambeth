@@ -10,16 +10,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     public class EntityEqualsVisitor : ClassVisitor
     {
         private static readonly MethodInstance entityEquals_Equals = new MethodInstance(null, typeof(EntityEqualsVisitor),
-                "EntityEquals_Equals", typeof(IEntityEquals), typeof(Object));
+                typeof(bool), "EntityEquals_Equals", typeof(IEntityEquals), typeof(Object));
 
         private static readonly MethodInstance entityEquals_HashCode = new MethodInstance(null, typeof(EntityEqualsVisitor),
-                "EntityEquals_GetHashCode", typeof(IEntityEquals));
+                typeof(int), "EntityEquals_GetHashCode", typeof(IEntityEquals));
 
         private static readonly MethodInstance entityEquals_toString_Obj = new MethodInstance(null, typeof(EntityEqualsVisitor),
-                "EntityEquals_ToString", typeof(IEntityEquals), typeof(IPrintable));
+                typeof(String), "EntityEquals_ToString", typeof(IEntityEquals), typeof(IPrintable));
 
         private static readonly MethodInstance entityEquals_toString_Printable = new MethodInstance(null,
-                typeof(EntityEqualsVisitor), "EntityEquals_ToString", typeof(IEntityEquals), typeof(StringBuilder));
+                typeof(EntityEqualsVisitor), typeof(void), "EntityEquals_ToString", typeof(IEntityEquals), typeof(StringBuilder));
 
         public EntityEqualsVisitor(IClassVisitor cv)
             : base(cv)
@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementEqualsMethod()
         {
-            MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), "Equals", typeof(Object));
+            MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), typeof(bool), "Equals", typeof(Object));
             MethodInstance method = MethodInstance.FindByTemplate(methodTemplate, true);
             if (NewType.GetType(typeof(Object)).Equals(method.Owner) || method.Access.HasFlag(MethodAttributes.Abstract))
             {
@@ -57,7 +57,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementHashCodeMethod()
         {
-            MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), "GetHashCode");
+            MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), typeof(int), "GetHashCode");
             MethodInstance method = MethodInstance.FindByTemplate(methodTemplate, true);
             if (NewType.GetType(typeof(Object)).Equals(method.Owner) || method.Access.HasFlag(MethodAttributes.Abstract))
             {
@@ -74,7 +74,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected void ImplementToStringMethod()
         {
             {
-                MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), "ToString");
+                MethodInstance methodTemplate = new MethodInstance(null, typeof(Object), typeof(String), "ToString");
                 MethodInstance method = MethodInstance.FindByTemplate(methodTemplate, true);
                 if (NewType.GetType(typeof(Object)).Equals(method.Owner) || method.Access.HasFlag(MethodAttributes.Abstract))
                 {
@@ -88,7 +88,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
 
             {
-                MethodInstance methodTemplate = new MethodInstance(null, typeof(IPrintable), "ToString", typeof(StringBuilder));
+                MethodInstance methodTemplate = new MethodInstance(null, typeof(IPrintable), typeof(void), "ToString", typeof(StringBuilder));
                 MethodInstance method = MethodInstance.FindByTemplate(methodTemplate, true);
                 if (method == null || method.Access.HasFlag(MethodAttributes.Abstract))
                 {

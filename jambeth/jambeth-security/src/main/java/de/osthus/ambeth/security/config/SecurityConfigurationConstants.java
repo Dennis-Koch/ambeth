@@ -18,7 +18,11 @@ public final class SecurityConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultDeletePrivilegeActive = "security.privilege.default.delete";
 
+	@ConfigurationConstantDescription("TODO")
 	public static final String DefaultExecutePrivilegeActive = "security.privilege.default.execute";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String SecurityActive = "ambeth.security.active";
 
 	private SecurityConfigurationConstants()
 	{

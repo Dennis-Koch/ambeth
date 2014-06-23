@@ -94,7 +94,7 @@ public class LogImplementationsClassVisitor extends ClassGenerator
 		// }
 		if (propertyName != null)
 		{
-			propertyInfo = getState().getProperty(propertyName);
+			propertyInfo = getState().getProperty(propertyName, propertyType);
 			if (propertyInfo == null)
 			{
 				propertyInfo = new PropertyInstance(propertyName, propertySignature, propertyType);

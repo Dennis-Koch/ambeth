@@ -56,6 +56,7 @@
     <Compile Include="ambeth\exceptions\ReconnectException.cs" />
     <Compile Include="ambeth\log\interceptor\LogInterceptor.cs" />
     <Compile Include="ambeth\log\LoggingPostProcessor.cs" />
+    <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />

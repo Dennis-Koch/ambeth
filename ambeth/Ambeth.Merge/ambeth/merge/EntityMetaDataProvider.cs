@@ -15,10 +15,11 @@ using System.Reflection;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Accessor;
 using De.Osthus.Ambeth.Bytecode;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
+    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -28,9 +29,6 @@ namespace De.Osthus.Ambeth.Merge
 
         [Autowired]
         public IServiceContext BeanContext { protected get; set; }
-
-        [Autowired]
-        public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
 
         [Autowired(Optional = true)]
         public IEntityFactory EntityFactory { protected get; set; }
@@ -42,6 +40,12 @@ namespace De.Osthus.Ambeth.Merge
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
 
         [Autowired]
+        public IProxyFactory ProxyFactory { protected get; set; }
+
+        [Autowired(MergeModule.REMOTE_ENTITY_METADATA_PROVIDER, Optional = true)]
+        public IEntityMetaDataProvider RemoteEntityMetaDataProvider { protected get; set; }
+
+        [Autowired]
         public ITypeInfoProvider TypeInfoProvider { protected get; set; }
 
         [Autowired]
@@ -49,6 +53,10 @@ namespace De.Osthus.Ambeth.Merge
 
         [Autowired]
         public ValueObjectMap ValueObjectMap { protected get; set; }
+
+        protected readonly HashSet<Type> currentlyRequestedTypes = new HashSet<Type>();
+
+        protected new IEntityMetaData alreadyHandled;
 
         protected Type[] businessObjectSaveOrder;
 
@@ -65,6 +73,7 @@ namespace De.Osthus.Ambeth.Merge
 
         public void AfterPropertiesSet()
         {
+            alreadyHandled = ProxyFactory.CreateProxy<IEntityMetaData>();
         }
 
         protected void AddTypeRelatedByTypes(IMap<Type, IISet<Type>> typeRelatedByTypes, Type relating, Type relatedTo)
@@ -98,21 +107,11 @@ namespace De.Osthus.Ambeth.Merge
                     relatedByTypes = new CHashSet<Type>();
                 }
                 ((EntityMetaData)metaData).TypesRelatingToThis = relatedByTypes.ToArray();
-                
-                Type typeToEnhance = metaData.RealType;
-			    if (typeToEnhance == null)
-			    {
-				    typeToEnhance = metaData.EntityType;
-			    }
-			    ((EntityMetaData) metaData).RealType = BytecodeEnhancer.GetEnhancedType(typeToEnhance, EntityEnhancementHint.Instance);
-                
-                RefreshMembers(metaData);
-
                 ((EntityMetaData)metaData).Initialize(EntityFactory);
             }
         }
 
-        protected void RefreshMembers(IEntityMetaData metaData)
+        public void RefreshMembers(IEntityMetaData metaData)
 	    {
 		    foreach (ITypeInfoItem member in metaData.RelationMembers)
 		    {
@@ -144,6 +143,49 @@ namespace De.Osthus.Ambeth.Merge
             //}
 	    }
 
+        protected IList<Type> AddLoadedMetaData(IList<Type> entityTypes, IList<IEntityMetaData> loadedMetaData)
+        {
+            HashSet<Type> cascadeMissingEntityTypes = null;
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                for (int a = loadedMetaData.Count; a-- > 0; )
+                {
+                    IEntityMetaData missingMetaDataItem = loadedMetaData[a];
+                    Type entityType = missingMetaDataItem.EntityType;
+                    if (GetExtension(entityType) != null)
+                    {
+                        continue;
+                    }
+                    Register(missingMetaDataItem, entityType);
+
+                    foreach (IRelationInfoItem relationMember in missingMetaDataItem.RelationMembers)
+                    {
+                        Type relationMemberType = relationMember.ElementType;
+                        if (!ContainsKey(relationMemberType))
+                        {
+                            if (cascadeMissingEntityTypes == null)
+                            {
+                                cascadeMissingEntityTypes = new HashSet<Type>();
+                            }
+                            cascadeMissingEntityTypes.Add(relationMemberType);
+                        }
+                    }
+                }
+                for (int a = entityTypes.Count; a-- > 0; )
+                {
+                    Type entityType = entityTypes[a];
+                    if (!ContainsKey(entityType))
+                    {
+                        // add dummy items to ensure that this type does not
+                        // get queried a second time
+                        Register(alreadyHandled, entityType);
+                    }
+                }
+                return cascadeMissingEntityTypes != null ? ListUtil.ToList(cascadeMissingEntityTypes) : null;
+            }
+        }
+
         public IEntityMetaData GetMetaData(Type entityType)
         {
             return GetMetaData(entityType, false);
@@ -152,47 +194,74 @@ namespace De.Osthus.Ambeth.Merge
         public IEntityMetaData GetMetaData(Type entityType, bool tryOnly)
         {
             IEntityMetaData metaDataItem = GetExtension(entityType);
-
-            if (metaDataItem == null)
+            if (metaDataItem != null)
             {
-                if (tryOnly)
+                if (Object.ReferenceEquals(metaDataItem, alreadyHandled))
                 {
-                    return null;
+                    if (tryOnly)
+                    {
+                        return null;
+                    }
+                    throw new ArgumentException("No metadata found for entity of type " + entityType.FullName);
                 }
-                throw new ArgumentException("No metadata found for entity of type " + entityType);
+                return metaDataItem;
             }
-            return metaDataItem;
+            List<Type> missingEntityTypes = new List<Type>(1);
+            missingEntityTypes.Add(entityType);
+            IList<IEntityMetaData> missingMetaData = GetMetaData(missingEntityTypes);
+            if (missingMetaData.Count > 0)
+            {
+                return missingMetaData[0];
+            }
+            if (tryOnly)
+            {
+                return null;
+            }
+            throw new ArgumentException("No metadata found for entity of type " + entityType.Name);
         }
 
         public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
-            List<IEntityMetaData> entityMetaData = new List<IEntityMetaData>(entityTypes.Count);
-            List<Type> notFoundEntityTypes = new List<Type>();
-            foreach (Type entityType in entityTypes)
+            List<IEntityMetaData> result = new List<IEntityMetaData>(entityTypes.Count);
+            IList<Type> missingEntityTypes = null;
+            for (int a = entityTypes.Count; a-- > 0; )
             {
+                Type entityType = entityTypes[a];
                 IEntityMetaData metaDataItem = GetExtension(entityType);
-
                 if (metaDataItem != null)
                 {
-                    entityMetaData.Add(metaDataItem);
+                    if (!Object.ReferenceEquals(metaDataItem, alreadyHandled))
+                    {
+                        result.Add(metaDataItem);
+                    }
+                    continue;
+                }
+                if (missingEntityTypes == null)
+                {
+                    missingEntityTypes = new List<Type>();
+                }
+                missingEntityTypes.Add(entityType);
+            }
+            if (missingEntityTypes == null || RemoteEntityMetaDataProvider == null)
+            {
+                return result;
+            }
+            while (missingEntityTypes != null && missingEntityTypes.Count > 0)
+            {
+                IList<IEntityMetaData> loadedMetaData = RemoteEntityMetaDataProvider.GetMetaData(missingEntityTypes);
+
+                IList<Type> cascadeMissingEntityTypes = AddLoadedMetaData(missingEntityTypes, loadedMetaData);
+
+                if (cascadeMissingEntityTypes != null && cascadeMissingEntityTypes.Count > 0)
+                {
+                    missingEntityTypes = cascadeMissingEntityTypes;
                 }
                 else
                 {
-                    notFoundEntityTypes.Add(entityType);
+                    missingEntityTypes.Clear();
                 }
             }
-            if (notFoundEntityTypes.Count > 0 && Log.WarnEnabled)
-            {
-                notFoundEntityTypes.Sort();
-                StringBuilder sb = new StringBuilder();
-                sb.Append("No metadata found for ").Append(notFoundEntityTypes.Count).Append(" type(s):");
-                foreach (Type notFoundType in notFoundEntityTypes)
-                {
-                    sb.Append("\n\t").Append(notFoundType.FullName);
-                }
-                Log.Warn(sb.ToString());
-            }
-            return entityMetaData;
+            return GetMetaData(entityTypes);
         }
 
         public void RegisterValueObjectConfig(IValueObjectConfig config)

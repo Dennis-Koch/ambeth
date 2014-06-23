@@ -10,22 +10,22 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 
 public class SetCacheModificationMethodCreator extends ClassGenerator
 {
-	private static final MethodInstance m_callCacheModificationActive = new MethodInstance(null, SetCacheModificationMethodCreator.class,
+	private static final MethodInstance m_callCacheModificationActive = new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
 			"callCacheModificationActive", ICacheModification.class, boolean.class, boolean.class);
 
-	private static final MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, SetCacheModificationMethodCreator.class,
+	private static final MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
 			"callCacheModificationInternalUpdate", ICacheModification.class, boolean.class, boolean.class);
 
 	private static final String cacheModificationName = "$cacheModification";
 
 	public static PropertyInstance getCacheModificationPI(ClassGenerator cv)
 	{
-		PropertyInstance pi = getState().getProperty(cacheModificationName);
+		Object bean = getState().getBeanContext().getService(ICacheModification.class);
+		PropertyInstance pi = getState().getProperty(cacheModificationName, bean.getClass());
 		if (pi != null)
 		{
 			return pi;
 		}
-		Object bean = getState().getBeanContext().getService(ICacheModification.class);
 		return cv.implementAssignedReadonlyProperty(cacheModificationName, bean);
 	}
 
@@ -40,7 +40,7 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 
 		// boolean oldActive = cacheModification.isActive();
 		mg.loadLocal(loc_cacheModification);
-		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, "isActive"));
+		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, boolean.class, "isActive"));
 		mg.storeLocal(loc_oldActive);
 
 		// callModificationActive(cacheModification, oldActive, true)
@@ -74,7 +74,7 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 
 		// boolean oldInternalUpdate = cacheModification.isInternalUpdate();
 		mg.loadLocal(loc_cacheModification);
-		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, "isInternalUpdate"));
+		mg.invokeInterface(new MethodInstance(null, ICacheModification.class, boolean.class, "isInternalUpdate"));
 		mg.storeLocal(loc_oldInternalUpdate);
 
 		// callModificationInternalUpdate(cacheModification, oldInternalUpdate, true)

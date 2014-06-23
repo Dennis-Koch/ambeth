@@ -14,9 +14,6 @@ public final class CacheConfigurationConstants
 	public static final String CacheServiceName = "cache.service.name";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String CacheServiceRegistryActive = "cache.serviceregistry.active";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String ServiceResultCacheActive = "cache.resultcache.active";
 
 	@ConfigurationConstantDescription("TODO")

@@ -5,8 +5,6 @@ namespace De.Osthus.Ambeth.Util.Xml
 {
     public class XmlConstants
     {
-        public static readonly String TRUE = "true";
-
         public static readonly XName ENTITY = XName.Get("entity");
         public static readonly XName NAME = XName.Get("name");
         public static readonly XName CLASS = XName.Get("class");
@@ -23,12 +21,13 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName UPDATED_BY = XName.Get("updated-by");
         public static readonly XName BASIC = XName.Get("basic");
         public static readonly XName ALT_ID = XName.Get("alternate-id");
+        public static readonly XName TRUE = XName.Get("true");
         public static readonly XName TO_ONE = XName.Get("to-one");
         public static readonly XName TO_MANY = XName.Get("to-many");
         public static readonly XName COLUMN = XName.Get("column");
         public static readonly XName TARGET_ENTITY = XName.Get("target-entity");
-        public static readonly XName CONSTRAINT_NAME = XName.Get("constraint");
         public static readonly XName DO_DELETE = XName.Get("do-delete");
+        public static readonly XName CONSTRAINT_NAME = XName.Get("constraint");
         public static readonly XName MAY_DELETE = XName.Get("may-delete");
         public static readonly XName JOIN_TABLE = XName.Get("join-table");
         public static readonly XName JOIN_COLUMN = XName.Get("join-column");
@@ -43,6 +42,10 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName IGNORE = XName.Get("ignore");
         public static readonly XName WITHOUT = XName.Get("without");
 
+        // New elementes in orm.xml 2.0
+        public static readonly XName ID_COMP = XName.Get("id-composite");
+        public static readonly XName ALT_ID_COMP = XName.Get("alternate-id-composite");
+        public static readonly XName ID_FRAGMENT = XName.Get("id-fragment");
         public static readonly XName LINK_MAPPINGS = XName.Get("link-mappings");
         public static readonly XName ENTITY_MAPPINGS = XName.Get("entity-mappings");
         public static readonly XName EXTERNAL_ENTITY = XName.Get("external-entity");

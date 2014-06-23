@@ -27,11 +27,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public override void VisitEnd()
         {
-            MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(CacheMapEntry), "get_EntityType");
-            MethodInstance template_m_getIdIndex = new MethodInstance(null, typeof(CacheMapEntry), "get_IdIndex");
-            MethodInstance template_m_getId = new MethodInstance(null, typeof(CacheMapEntry), "get_Id");
-            MethodInstance template_m_setId = new MethodInstance(null, typeof(CacheMapEntry), "set_Id", typeof(Object));
-            MethodInstance template_m_isEqualTo = new MethodInstance(null, typeof(CacheMapEntry), "IsEqualTo", typeof(Type), typeof(sbyte), typeof(Object));
+            MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(CacheMapEntry), typeof(Type), "get_EntityType");
+            MethodInstance template_m_getIdIndex = new MethodInstance(null, typeof(CacheMapEntry), typeof(sbyte), "get_IdIndex");
+            MethodInstance template_m_getId = new MethodInstance(null, typeof(CacheMapEntry), typeof(Object), "get_Id");
+            MethodInstance template_m_setId = new MethodInstance(null, typeof(CacheMapEntry), typeof(void), "set_Id", typeof(Object));
+            MethodInstance template_m_isEqualTo = new MethodInstance(null, typeof(CacheMapEntry), typeof(bool), "IsEqualTo", typeof(Type), typeof(sbyte), typeof(Object));
 
             Type entityType = metaData.EntityType;
             {

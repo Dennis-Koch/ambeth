@@ -7,6 +7,7 @@ using System.Xml.Schema;
 using De.Osthus.Ambeth.Io;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util.Xml;
+using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Util
 {
@@ -121,24 +122,24 @@ namespace De.Osthus.Ambeth.Util
             return elements;
         }
 
-        public IDictionary<String, IList<XElement>> ChildrenToElementMap(XElement parent)
+        public IMap<String, IList<XElement>> ChildrenToElementMap(XElement parent)
         {
             return ToElementMap(parent.Elements());
         }
 
-        public IDictionary<String, IList<XElement>> ToElementMap(IEnumerable<XElement> elements)
+        public IMap<String, IList<XElement>> ToElementMap(IEnumerable<XElement> elements)
         {
-            IDictionary<String, IList<XElement>> elementMap = new Dictionary<String, IList<XElement>>();
+            HashMap<String, IList<XElement>> elementMap = new HashMap<String, IList<XElement>>();
             IEnumerator<XElement> enumerator = elements.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 XElement element = enumerator.Current;
                 String nodeName = element.Name.LocalName;
-                IList<XElement> list = DictionaryExtension.ValueOrDefault<String, IList<XElement>>(elementMap, nodeName);
+                IList<XElement> list = elementMap.Get(nodeName);
                 if (list == null)
                 {
                     list = new List<XElement>();
-                    elementMap.Add(nodeName, list);
+                    elementMap.Put(nodeName, list);
                 }
                 list.Add(element);
             }

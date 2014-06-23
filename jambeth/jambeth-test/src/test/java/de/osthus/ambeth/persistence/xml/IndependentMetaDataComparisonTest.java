@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
@@ -55,7 +56,6 @@ import de.osthus.ambeth.persistence.xml.model.EmployeeSmallType;
 import de.osthus.ambeth.persistence.xml.model.EmployeeType;
 import de.osthus.ambeth.persistence.xml.model.Project;
 import de.osthus.ambeth.persistence.xml.model.ProjectType;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -76,11 +76,11 @@ import de.osthus.ambeth.xml.XmlTypeHelper;
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
 @TestPropertiesList({
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
 				+ IndependentMetaDataComparisonTest.basePath + "independent-orm2.xml"),
-		@TestProperties(name = ConfigurationConstants.valueObjectFile, value = IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;"
-				+ IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
-		@TestProperties(name = ConfigurationConstants.GenericTransferMapping, value = "true") })
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = IndependentMetaDataComparisonTest.basePath
+				+ "independent-value-object.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
 public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/xml/";
@@ -121,13 +121,13 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 	private static IServiceContext createClientBeanContext()
 	{
 		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.put(ConfigurationConstants.mappingFile, IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
+		baseProps.put(ServiceConfigurationConstants.mappingFile, IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
 				+ IndependentMetaDataComparisonTest.basePath + "independent-orm2.xml");
-		baseProps.put(ConfigurationConstants.valueObjectFile, IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;"
+		baseProps.put(ServiceConfigurationConstants.valueObjectFile, IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;"
 				+ IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml");
-		baseProps.put(ConfigurationConstants.GenericTransferMapping, "true");
-		baseProps.put(ConfigurationConstants.NetworkClientMode, "true");
-		baseProps.put(ConfigurationConstants.IndependentMetaData, "true");
+		baseProps.put(ServiceConfigurationConstants.GenericTransferMapping, "true");
+		baseProps.put(ServiceConfigurationConstants.NetworkClientMode, "true");
+		baseProps.put(ServiceConfigurationConstants.IndependentMetaData, "true");
 		String bootstrapPropertyFile = Properties.getSystem().getString(UtilConfigurationConstants.BootstrapPropertyFile);
 		if (bootstrapPropertyFile != null)
 		{
