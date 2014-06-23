@@ -1,5 +1,6 @@
 package de.osthus.ambeth.oracle;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
@@ -64,6 +65,7 @@ public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoad
 		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.class);
 		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.TYPE);
 		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Date.class);
+		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Calendar.class);
 
 		beanContextFactory.registerBean("oracleArrayConverter", OracleArrayConverter.class);
 		beanContextFactory.link("oracleArrayConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, Collection.class);

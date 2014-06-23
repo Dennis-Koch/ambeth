@@ -172,8 +172,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		if (userName != null)
 		{
 			PasswordType passwordTypeEnum = passwordType != null ? PasswordType.valueOf(passwordType) : PasswordType.PLAIN;
-			DefaultAuthentication authentication = new DefaultAuthentication(userName, userPass != null ? userPass.getBytes(utfCharset) : null,
-					passwordTypeEnum);
+			DefaultAuthentication authentication = new DefaultAuthentication(userName, userPass != null ? userPass.toCharArray() : null, passwordTypeEnum);
 			session.setAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE, authentication);
 			setAuthentication(authentication);
 		}

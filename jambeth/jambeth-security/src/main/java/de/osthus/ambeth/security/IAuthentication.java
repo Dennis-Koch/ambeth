@@ -9,7 +9,7 @@ public interface IAuthentication
 
 	String getUserName();
 
-	byte[] getPassword();
+	char[] getPassword();
 
 	PasswordType getType();
 }

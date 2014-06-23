@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -192,7 +193,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		writeLock.lock();
 		try
 		{
-			IList<IPrivilegeItem> result = createResult(objRefs, securityScopes, missingObjRefs, userHandle);
+			IList<IPrivilegeItem> result = createResult(objRefs, securityScopes, missingObjRefs, userHandle, null);
 			if (missingObjRefs.size() == 0)
 			{
 				return result;
@@ -207,12 +208,19 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		writeLock.lock();
 		try
 		{
+			HashMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities = null;
 			for (int a = 0, size = privilegeResults.size(); a < size; a++)
 			{
 				PrivilegeResult privilegeResult = privilegeResults.get(a);
 				IObjRef reference = privilegeResult.getReference();
 
 				PrivilegeKey privilegeKey = new PrivilegeKey(reference.getRealType(), reference.getIdNameIndex(), reference.getId(), userSID);
+				boolean useCache = true;
+				if (privilegeKey.id == null)
+				{
+					useCache = false;
+					privilegeKey.id = reference;
+				}
 				privilegeKey.securityScope = privilegeResult.getSecurityScope().getName();
 
 				PrivilegeEnum[] privilegeEnums = privilegeResult.getPrivileges();
@@ -259,9 +267,20 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 						}
 					}
 				}
-				privilegeCache.put(privilegeKey, indexedPrivilegeEnums);
+				if (useCache)
+				{
+					privilegeCache.put(privilegeKey, indexedPrivilegeEnums);
+				}
+				else
+				{
+					if (privilegeResultOfNewEntities == null)
+					{
+						privilegeResultOfNewEntities = new HashMap<PrivilegeKey, PrivilegeEnum[]>();
+					}
+					privilegeResultOfNewEntities.put(privilegeKey, indexedPrivilegeEnums);
+				}
 			}
-			return createResult(objRefs, securityScopes, null, userHandle);
+			return createResult(objRefs, securityScopes, null, userHandle, privilegeResultOfNewEntities);
 		}
 		finally
 		{
@@ -270,7 +289,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	}
 
 	protected IList<IPrivilegeItem> createResult(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-			IUserHandle userHandle)
+			IUserHandle userHandle, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities)
 	{
 		PrivilegeKey privilegeKey = null;
 
@@ -288,17 +307,25 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 			{
 				privilegeKey = new PrivilegeKey();
 			}
+			boolean useCache = true;
 			privilegeKey.entityType = objRef.getRealType();
 			privilegeKey.idIndex = objRef.getIdNameIndex();
 			privilegeKey.id = objRef.getId();
 			privilegeKey.userSID = userSID;
+			if (privilegeKey.id == null)
+			{
+				useCache = false;
+				// use the ObjRef instance as the id
+				privilegeKey.id = objRef;
+			}
 
 			PrivilegeEnum[] mergedPrivilegeValues = null;
 			for (int a = securityScopes.length; a-- > 0;)
 			{
 				privilegeKey.securityScope = securityScopes[a].getName();
 
-				PrivilegeEnum[] existingPrivilegeValues = privilegeCache.get(privilegeKey);
+				PrivilegeEnum[] existingPrivilegeValues = useCache ? privilegeCache.get(privilegeKey)
+						: privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.get(privilegeKey) : null;
 				if (existingPrivilegeValues == null)
 				{
 					mergedPrivilegeValues = null;

@@ -135,7 +135,7 @@ public abstract class AbstractServiceREST
 		String value = values != null && values.size() > 0 ? values.get(0) : null;
 
 		String userName = null;
-		byte[] userPass = null;
+		char[] userPass = null;
 		if (value != null)
 		{
 			Matcher basicMatcher = basicPattern.matcher(value);
@@ -154,7 +154,7 @@ public abstract class AbstractServiceREST
 				throw new IllegalStateException(decodedValue);
 			}
 			userName = matcher.group(1);
-			userPass = matcher.group(2).getBytes(utfCharset);
+			userPass = matcher.group(2).toCharArray();
 		}
 		return new DefaultAuthentication(userName, userPass, PasswordType.PLAIN);
 	}

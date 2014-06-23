@@ -27,7 +27,7 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 	}
 
 	@Override
-	public IUserHandle createUserHandle(final String sid, String password, final ISecurityScope[] securityScopes)
+	public IUserHandle createUserHandle(final String sid, char[] password, final ISecurityScope[] securityScopes)
 	{
 		// Allow all service methods
 		final Pattern[] allowPatterns = new Pattern[] { allowAllPattern };
