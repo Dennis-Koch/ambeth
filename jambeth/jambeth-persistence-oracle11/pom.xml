@@ -30,8 +30,8 @@
 
 	<repositories>
 		<repository>
-			<id>allotrope-releases</id>
-			<url>http://nexus/nexus/content/repositories/allotrope-releases/</url>
+			<id>thirdparty</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/thirdparty/</url>
 		</repository>
 	</repositories>
 
