@@ -3,12 +3,14 @@ package de.osthus.ambeth.cache;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean, ICacheProvider
 {
@@ -16,25 +18,31 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 	@LogInstance
 	private ILogger log;
 
-	protected CacheType cacheType;
-
+	@Autowired
 	protected ICacheFactory cacheFactory;
+
+	@Autowired
+	protected IRootCache rootCache;
+
+	@Autowired(optional = true)
+	protected ISecurityActivation securityActivation;
+
+	@Property
+	protected CacheType cacheType;
 
 	protected volatile ICache singletonCache;
 
-	protected IRootCache rootCache;
+	protected volatile ICache privilegedSingletonCache;
 
 	protected ThreadLocal<IDisposableCache> cacheTL;
+
+	protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
 	protected final Lock lock = new ReentrantLock();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(cacheType, "CacheType");
-		ParamChecker.assertNotNull(rootCache, "rootCache");
-
 		switch (cacheType)
 		{
 			case PROTOTYPE:
@@ -48,26 +56,15 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			case THREAD_LOCAL:
 			{
 				cacheTL = new SensitiveThreadLocal<IDisposableCache>();
+				if (securityActivation != null)
+				{
+					privilegedCacheTL = new SensitiveThreadLocal<IDisposableCache>();
+				}
 				break;
 			}
 			default:
 				throw new IllegalStateException("Not supported type: " + cacheType);
 		}
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCacheType(CacheType cacheType)
-	{
-		this.cacheType = cacheType;
-	}
-
-	public void setRootCache(IRootCache rootCache)
-	{
-		this.rootCache = rootCache;
 	}
 
 	@Override
@@ -79,6 +76,12 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			if (cache != null)
 			{
 				cacheTL.remove();
+				cache.dispose();
+			}
+			cache = privilegedCacheTL.get();
+			if (cache != null)
+			{
+				privilegedCacheTL.remove();
 				cache.dispose();
 			}
 		}
@@ -117,11 +120,22 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 				lock.lock();
 				try
 				{
-					if (singletonCache == null)
+					if (securityActivation != null && !securityActivation.isFilterActivated())
 					{
-						singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+						if (privilegedSingletonCache == null)
+						{
+							privilegedSingletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+						}
+						return privilegedSingletonCache;
 					}
-					return singletonCache;
+					else
+					{
+						if (singletonCache == null)
+						{
+							singletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+						}
+						return singletonCache;
+					}
 				}
 				finally
 				{
@@ -130,13 +144,26 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			}
 			case THREAD_LOCAL:
 			{
-				IDisposableCache cache = cacheTL.get();
-				if (cache == null)
+				if (securityActivation != null && !securityActivation.isFilterActivated())
 				{
-					cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
-					cacheTL.set(cache);
+					IDisposableCache cache = privilegedCacheTL.get();
+					if (cache == null)
+					{
+						cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
+						privilegedCacheTL.set(cache);
+					}
+					return cache;
 				}
-				return cache;
+				else
+				{
+					IDisposableCache cache = cacheTL.get();
+					if (cache == null)
+					{
+						cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
+						cacheTL.set(cache);
+					}
+					return cache;
+				}
 			}
 			default:
 				throw new IllegalStateException("Not supported type: " + cacheType);

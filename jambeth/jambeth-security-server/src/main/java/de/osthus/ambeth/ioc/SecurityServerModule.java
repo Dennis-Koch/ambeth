@@ -1,6 +1,5 @@
 package de.osthus.ambeth.ioc;
 
-import de.osthus.ambeth.cache.CommittedRootCachePostProcessor;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -32,7 +31,6 @@ public class SecurityServerModule implements IInitializingModule
 	{
 		if (isSecurityActive)
 		{
-			beanContextFactory.registerAnonymousBean(CommittedRootCachePostProcessor.class);
 			beanContextFactory.registerAnonymousBean(SecurityPostProcessor.class);
 
 			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,

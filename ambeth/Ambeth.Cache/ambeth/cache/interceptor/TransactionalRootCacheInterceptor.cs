@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Log;
 using System.Reflection;
@@ -21,17 +22,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         [LogInstance]
         public new ILogger Log { private get; set; }
 
+        [Autowired]
         public RootCache CommittedRootCache { protected get; set; }
 
         protected readonly ThreadLocal<bool> transactionalRootCacheActiveTL = new ThreadLocal<bool>();
-
-        public override void AfterPropertiesSet()
-        {
-            base.AfterPropertiesSet();
-
-            ParamChecker.AssertNotNull(CommittedRootCache, "CommittedRootCache");
-        }
-
+        
         public override void CleanupThreadLocal()
         {
             transactionalRootCacheActiveTL.Value = false;
@@ -40,11 +35,18 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected override IRootCache GetCurrentRootCacheIfValid()
         {
-            IRootCache rootCache = rootCacheTL.Value;
+            IRootCache rootCache = base.GetCurrentRootCacheIfValid();
             if (rootCache == null && transactionalRootCacheActiveTL.Value)
 			{
 				// Lazy init of transactional rootcache
-				rootCache = base.AcquireCurrentRootCache();
+                if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                {
+                    rootCache = AcquireCurrentPrivilegedRootCache();
+                }
+                else
+                {
+                    rootCache = AcquireCurrentRootCache();
+                }
     		}
             // If no thread-bound root cache is active (which implies that no transaction is currently active
             // return the unbound root cache (which reads uncommitted data)

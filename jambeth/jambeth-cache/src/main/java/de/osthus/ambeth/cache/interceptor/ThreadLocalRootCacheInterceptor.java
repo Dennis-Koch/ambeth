@@ -15,6 +15,7 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -48,8 +49,13 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 
 	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
 
+	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new SensitiveThreadLocal<RootCache>();
+
 	@Autowired(optional = true)
 	protected IOfflineListenerExtendable offlineListenerExtendable;
+
+	@Autowired(optional = true)
+	protected ISecurityActivation securityActivation;
 
 	@Autowired
 	protected IServiceContext serviceContext;
@@ -62,7 +68,14 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		IRootCache rootCache = getCurrentRootCacheIfValid();
 		if (rootCache == null)
 		{
-			rootCache = acquireCurrentRootCache();
+			if (securityActivation != null && !securityActivation.isFilterActivated())
+			{
+				rootCache = acquireCurrentPrivilegedRootCache();
+			}
+			else
+			{
+				rootCache = acquireCurrentRootCache();
+			}
 		}
 		return rootCache;
 	}
@@ -80,6 +93,16 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		return rootCache;
 	}
 
+	protected IRootCache acquireCurrentPrivilegedRootCache()
+	{
+		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerAnonymousBean(RootCache.class).propertyValue("CacheRetriever", storedCacheRetriever);
+		RootCache rootCache = postProcessRootCacheConfiguration(rootCacheBR).ignoreProperties("PrivilegeProvider", "SecurityActivation",
+				"SecurityScopeProvider").finish();
+
+		privilegedRootCacheTL.set(rootCache);
+		return rootCache;
+	}
+
 	protected IBeanRuntime<RootCache> postProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
 	{
 		// Do not inject EventQueue because caches without foreign interest will never receive async DCEs
@@ -88,6 +111,10 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 
 	protected IRootCache getCurrentRootCacheIfValid()
 	{
+		if (securityActivation != null && !securityActivation.isFilterActivated())
+		{
+			return privilegedRootCacheTL.get();
+		}
 		return rootCacheTL.get();
 	}
 

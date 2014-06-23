@@ -1097,20 +1097,21 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				if (loadContainerResult)
 				{
-					IObjRef[][] objRefs = cacheValue.getRelations();
+					IObjRef[][] relations = cacheValue.getRelations();
 					LoadContainer loadContainer = new LoadContainer();
 					loadContainer.setReference(new ObjRef(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, cacheValue.getId(), cacheValue.getVersion()));
 					loadContainer.setPrimitives(cacheValue.getPrimitives());
-					if (objRefs != null && objRefs.length > 0)
+					relations = filterRelations(relations);
+					if (relations != null && relations.length > 0)
 					{
-						IObjRef[][] objRefsClone = new IObjRef[objRefs.length][];
-						for (int b = objRefs.length; b-- > 0;)
+						IObjRef[][] objRefsClone = new IObjRef[relations.length][];
+						for (int b = relations.length; b-- > 0;)
 						{
-							objRefsClone[b] = cloneObjectRefArray(objRefs[b], alreadyClonedObjRefs);
+							objRefsClone[b] = cloneObjectRefArray(relations[b], alreadyClonedObjRefs);
 						}
-						objRefs = objRefsClone;
+						relations = objRefsClone;
 					}
-					loadContainer.setRelations(objRefs);
+					loadContainer.setRelations(relations);
 					result.add(loadContainer);
 					objRefsOfResult.add(oriToGet);
 				}
@@ -1227,61 +1228,70 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 		}
 		IObjRef[][] relations = cacheValue.getRelations();
-		if (relations.length > 0 && privilegeProvider != null && securityActivation.isFilterActivated())
-		{
-			ArrayList<IObjRef> allKnownRelations = new ArrayList<IObjRef>();
-			for (int a = relations.length; a-- > 0;)
-			{
-				IObjRef[] relationsOfMember = relations[a];
-				if (relationsOfMember == null)
-				{
-					continue;
-				}
-				for (IObjRef relationOfMember : relationsOfMember)
-				{
-					if (relationOfMember == null)
-					{
-						continue;
-					}
-					allKnownRelations.add(relationOfMember);
-				}
-			}
-			IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
-			IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations, securityScopeProvider.getSecurityScopes());
-			for (int a = privileges.size(); a-- > 0;)
-			{
-				IPrivilegeItem privilege = privileges.get(a);
-				if (privilege.isReadAllowed())
-				{
-					whiteListObjRefs.add(allKnownRelations.get(a));
-				}
-			}
-			IObjRef[][] filteredRelations = new IObjRef[relations.length][];
-			ArrayList<IObjRef> filteredRelationsOfMember = new ArrayList<IObjRef>();
-			for (int a = relations.length; a-- > 0;)
-			{
-				IObjRef[] relationsOfMember = relations[a];
-				if (relationsOfMember == null)
-				{
-					continue;
-				}
-				filteredRelationsOfMember.clear();
-				for (IObjRef relationOfMember : relationsOfMember)
-				{
-					if (relationOfMember == null)
-					{
-						continue;
-					}
-					if (whiteListObjRefs.contains(relationOfMember))
-					{
-						filteredRelationsOfMember.add(relationOfMember);
-					}
-				}
-				filteredRelations[a] = filteredRelationsOfMember.size() > 0 ? filteredRelationsOfMember.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
-			}
-			relations = filteredRelations;
-		}
+		relations = filterRelations(relations);
 		targetCache.addDirect(metaData, id, version, obj, primitiveTemplates, relations);
+	}
+
+	protected IObjRef[][] filterRelations(IObjRef[][] relations)
+	{
+		if (relations.length == 0 || privilegeProvider == null || !securityActivation.isFilterActivated())
+		{
+			return relations;
+		}
+		ArrayList<IObjRef> allKnownRelations = new ArrayList<IObjRef>();
+		for (int a = relations.length; a-- > 0;)
+		{
+			IObjRef[] relationsOfMember = relations[a];
+			if (relationsOfMember == null)
+			{
+				continue;
+			}
+			for (IObjRef relationOfMember : relationsOfMember)
+			{
+				if (relationOfMember == null)
+				{
+					continue;
+				}
+				allKnownRelations.add(relationOfMember);
+			}
+		}
+		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
+		IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations, securityScopeProvider.getSecurityScopes());
+		for (int a = privileges.size(); a-- > 0;)
+		{
+			IPrivilegeItem privilege = privileges.get(a);
+			if (privilege.isReadAllowed())
+			{
+				whiteListObjRefs.add(allKnownRelations.get(a));
+			}
+		}
+		IObjRef[][] filteredRelations = new IObjRef[relations.length][];
+
+		allKnownRelations.clear();
+		// reuse list instance for performance reasons
+		ArrayList<IObjRef> filteredRelationsOfMember = allKnownRelations;
+		for (int a = relations.length; a-- > 0;)
+		{
+			IObjRef[] relationsOfMember = relations[a];
+			if (relationsOfMember == null)
+			{
+				continue;
+			}
+			filteredRelationsOfMember.clear();
+			for (IObjRef relationOfMember : relationsOfMember)
+			{
+				if (relationOfMember == null)
+				{
+					continue;
+				}
+				if (whiteListObjRefs.contains(relationOfMember))
+				{
+					filteredRelationsOfMember.add(relationOfMember);
+				}
+			}
+			filteredRelations[a] = filteredRelationsOfMember.size() > 0 ? filteredRelationsOfMember.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
+		}
+		return filteredRelations;
 	}
 
 	protected Object createPrimitiveFromTemplate(Class<?> expectedType, Object primitiveTemplate)

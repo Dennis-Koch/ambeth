@@ -1,38 +1,22 @@
 package de.osthus.ambeth.cache;
 
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheFactory implements ICacheFactory, IInitializingBean
+public class CacheFactory implements ICacheFactory
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected IFirstLevelCacheExtendable firstLevelCacheExtendable;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(firstLevelCacheExtendable, "FirstLevelCacheExtendable");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setFirstLevelCacheExtendable(IFirstLevelCacheExtendable firstLevelCacheExtendable)
-	{
-		this.firstLevelCacheExtendable = firstLevelCacheExtendable;
-	}
 
 	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective)
