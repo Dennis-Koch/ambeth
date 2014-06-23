@@ -10,11 +10,10 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.17</version>
+		<version>0.0.18</version>
 	</parent>
 
 	<modules>
-		<module>jambeth-junit-categories</module>
 		<module>jambeth-weblib-extjs</module>
 		<module>jambeth-weblib-teechart</module>
 	</modules>
@@ -22,14 +21,12 @@
 	<repositories>
 		<!-- Location of the osthus-pom -->
 		<repository>
-			<id>ambeth-releases</id>
-			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
+			<id>osthus-releases</id>
+			<url>http://nexus/nexus/content/repositories/osthus-releases/</url>
+		</repository>
+		<repository>
+			<id>osthus-snapshots</id>
+			<url>http://nexus/nexus/content/repositories/osthus-snapshots/</url>
 		</repository>
 	</repositories>
 
