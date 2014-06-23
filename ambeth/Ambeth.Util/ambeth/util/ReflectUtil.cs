@@ -48,18 +48,26 @@ namespace De.Osthus.Ambeth.Util
             return type.GetMethods(BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
         }
 
-        public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, String methodName, params Type[] parameters)
+        public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, Type returnType, String methodName, params Type[] parameters)
         {
-            return GetDeclaredMethod(tryOnly, type, methodName, TypeUtil.GetClassesToTypes(parameters));
+            return GetDeclaredMethod(tryOnly, type, returnType != null ? NewType.GetType(returnType) : null, methodName, TypeUtil.GetClassesToTypes(parameters));
         }
 
-        public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, String methodName, NewType[] parameters)
+        public static MethodInfo GetDeclaredMethod(bool tryOnly, Type type, NewType returnType, String methodName, NewType[] parameters)
         {
             foreach (MethodInfo method in GetDeclaredMethods(type))
             {
                 if (!method.Name.Equals(methodName))
                 {
                     continue;
+                }
+                if (returnType != null && !NewType.GetType(method.ReturnType).Equals(returnType))
+                {
+                    continue;
+                }
+                if (parameters == null)
+                {
+                    return method;
                 }
                 ParameterInfo[] currentParameters = method.GetParameters();
                 if (currentParameters.Length != parameters.Length)
@@ -90,7 +98,16 @@ namespace De.Osthus.Ambeth.Util
             {
                 propertyName = StringBuilderUtil.UpperCaseFirst(methodName.Substring(3));
             }
-            PropertyInfo propertyInfo = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+            PropertyInfo propertyInfo;
+            BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+            if (returnType != null)
+            {
+                propertyInfo = type.GetProperty(propertyName, flags, null, returnType.Type, null, new ParameterModifier[0]);
+            }
+            else
+            {
+                propertyInfo = type.GetProperty(propertyName, flags);
+            }
             if (propertyInfo != null)
             {
                 if (methodName.ToLowerInvariant().StartsWith("set") && propertyInfo.GetSetMethod() != null)

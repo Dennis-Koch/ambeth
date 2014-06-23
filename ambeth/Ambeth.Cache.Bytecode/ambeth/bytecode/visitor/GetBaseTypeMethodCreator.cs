@@ -1,11 +1,12 @@
 using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Proxy;
+using System;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class GetBaseTypeMethodCreator : ClassVisitor
     {
-        private static readonly MethodInstance template_m_getBaseType = new MethodInstance(null, typeof(IEnhancedType), "Get__BaseType");
+        private static readonly MethodInstance template_m_getBaseType = new MethodInstance(null, typeof(IEnhancedType), typeof(Type), "Get__BaseType");
 
         public static MethodInstance GetGetBaseType()
         {

@@ -10,7 +10,7 @@ namespace De.Osthus.Ambeth.Accessor
 {
     public class AccessorTypeProvider : IAccessorTypeProvider, IInitializingBean
     {
-        protected static readonly ConstructorInfo ci = typeof(DefaultAccessor).GetConstructor(new Type[] { typeof(Type), typeof(String) });
+        protected static readonly ConstructorInfo ci = typeof(DefaultAccessor).GetConstructor(new Type[] { typeof(Type), typeof(String), typeof(Type) });
 
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -26,7 +26,7 @@ namespace De.Osthus.Ambeth.Accessor
             // Intended blank
         }
 
-        public AbstractAccessor GetAccessorType(Type type, String propertyName)
+        public AbstractAccessor GetAccessorType(Type type, String propertyName, Type propertyType)
         {
             AbstractAccessor accessor = typeToAccessorMap.Get(type, propertyName);
             if (accessor != null)
@@ -44,7 +44,7 @@ namespace De.Osthus.Ambeth.Accessor
                 }
                 try
                 {
-                    Type enhancedType = GetAccessorTypeIntern(type, propertyName);
+                    Type enhancedType = GetAccessorTypeIntern(type, propertyName, propertyType);
                     if (enhancedType != typeof(AbstractAccessor))
                     {
                         ConstructorInfo constructor = enhancedType.GetConstructor(new Type[] { typeof(Type), typeof(String) });
@@ -106,7 +106,7 @@ namespace De.Osthus.Ambeth.Accessor
             }
         }
 
-        protected Type GetAccessorTypeIntern(Type targetType, String propertyName)
+        protected Type GetAccessorTypeIntern(Type targetType, String propertyName, Type propertyType)
         {
             String accessClassName = targetType.FullName + "$" + typeof(AbstractAccessor).Name + "$" + propertyName;
             lock (writeLock)
@@ -117,11 +117,11 @@ namespace De.Osthus.Ambeth.Accessor
                 {
                     return type;
                 }
-                return CreateType(loader, accessClassName, targetType, propertyName);
+                return CreateType(loader, accessClassName, targetType, propertyName, propertyType);
             }
         }
         
-        protected Type CreateType(AccessorClassLoader loader, String accessClassName, Type targetType, String propertyName)
+        protected Type CreateType(AccessorClassLoader loader, String accessClassName, Type targetType, String propertyName, Type propertyType)
         {
             if (Log.DebugEnabled)
             {
@@ -140,19 +140,19 @@ namespace De.Osthus.Ambeth.Accessor
                 mv.Emit(OpCodes.Call, baseConstructor);
                 mv.Emit(OpCodes.Ret);
             }
-            MethodInfo r_get = ReflectUtil.GetDeclaredMethod(true, targetType, "get_" + propertyName, new Type[0]);
+            MethodInfo r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "get_" + propertyName, new Type[0]);
             if (r_get == null)
             {
-                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, "Get" + propertyName, new Type[0]);
+                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Get" + propertyName, new Type[0]);
             }
             if (r_get == null)
             {
-                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, "Is" + propertyName, new Type[0]);
+                r_get = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Is" + propertyName, new Type[0]);
             }
-            MethodInfo r_set = ReflectUtil.GetDeclaredMethod(true, targetType, "set_" + propertyName, new Type[] { null });
+            MethodInfo r_set = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "set_" + propertyName, new Type[] { null });
             if (r_set == null)
             {
-                r_set = ReflectUtil.GetDeclaredMethod(true, targetType, "Set" + propertyName, new Type[] { null });
+                r_set = ReflectUtil.GetDeclaredMethod(true, targetType, propertyType, "Set" + propertyName, new Type[] { null });
             }
             {
                 ILGenerator mv = cw.DefineMethod("get_CanRead", MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig, CallingConventions.HasThis, typeof(bool), Type.EmptyTypes).GetILGenerator();

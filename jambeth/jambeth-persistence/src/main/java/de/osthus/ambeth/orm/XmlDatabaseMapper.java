@@ -19,6 +19,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -42,7 +43,6 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.Link;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.sql.SqlLink;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -51,7 +51,6 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
-
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean
 {
 	@LogInstance
@@ -170,7 +169,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		this.xmlConfigUtil = xmlConfigUtil;
 	}
 
-	@Property(name = ConfigurationConstants.mappingFile, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.mappingFile, mandatory = false)
 	public void setFileName(String fileName)
 	{
 		if (xmlFileName != null)
@@ -190,7 +189,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	@SuppressWarnings("deprecation")
 	@Deprecated
-	@Property(name = ConfigurationConstants.mappingResource, mandatory = false)
+	@Property(name = ServiceConfigurationConstants.mappingResource, mandatory = false)
 	public void setResourceName(String xmlResourceName)
 	{
 		if (xmlFileName != null)

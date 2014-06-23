@@ -16,9 +16,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class MethodWriter : IMethodVisitor
     {
-        public static readonly MethodInstance m_getClass = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Object), "GetType"));
+        public static readonly MethodInstance m_getClass = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Object), typeof(Type), "GetType"));
 
-	    public static readonly MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Type), "IsAssignableFrom",
+	    public static readonly MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Type), typeof(bool), "IsAssignableFrom",
 			typeof(Type)));
         
         public static readonly MethodInfo getTypeFromHandleMI = typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
@@ -172,7 +172,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 }
                 else
                 {
-                    MethodInfo r_method = ReflectUtil.GetDeclaredMethod(true, BytecodeBehaviorState.State.CurrentType, method.Name,
+                    MethodInfo r_method = ReflectUtil.GetDeclaredMethod(true, BytecodeBehaviorState.State.CurrentType, method.ReturnType, method.Name,
                             method.Parameters);
                     if (r_method == null)
                     {
@@ -255,7 +255,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void InvokeSuperOf(MethodInfo method)
         {
             IBytecodeBehaviorState state = BytecodeBehaviorState.State;
-            MethodInfo superMethod = ReflectUtil.GetDeclaredMethod(false, state.CurrentType, method.Name, TypeUtil.GetClassesToTypes(method.GetParameters()));
+            MethodInfo superMethod = ReflectUtil.GetDeclaredMethod(false, state.CurrentType, NewType.GetType(method.ReturnType), method.Name, TypeUtil.GetClassesToTypes(method.GetParameters()));
             InvokeSuper(new MethodInstance(superMethod));
         }
 

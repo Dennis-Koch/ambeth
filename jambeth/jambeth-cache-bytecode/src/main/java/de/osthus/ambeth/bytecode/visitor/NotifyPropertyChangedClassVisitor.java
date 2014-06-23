@@ -43,52 +43,53 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 
-	public static final MethodInstance template_m_collectionChanged = new MethodInstance(null, INotifyCollectionChangedListener.class, "collectionChanged",
-			NotifyCollectionChangedEvent.class);
+	public static final MethodInstance template_m_collectionChanged = new MethodInstance(null, INotifyCollectionChangedListener.class, void.class,
+			"collectionChanged", NotifyCollectionChangedEvent.class);
 
-	public static final MethodInstance template_m_PropertyChanged = new MethodInstance(null, PropertyChangeListener.class, "propertyChange",
+	public static final MethodInstance template_m_PropertyChanged = new MethodInstance(null, PropertyChangeListener.class, void.class, "propertyChange",
 			PropertyChangeEvent.class);
 
-	public static final MethodInstance template_m_onPropertyChanged = new MethodInstance(null, INotifyPropertyChangedSource.class, "onPropertyChanged",
-			String.class);
+	public static final MethodInstance template_m_onPropertyChanged = new MethodInstance(null, INotifyPropertyChangedSource.class, void.class,
+			"onPropertyChanged", String.class);
 
-	public static final MethodInstance template_m_onPropertyChanged_Values = new MethodInstance(null, INotifyPropertyChangedSource.class, "onPropertyChanged",
-			String.class, Object.class, Object.class);
+	public static final MethodInstance template_m_onPropertyChanged_Values = new MethodInstance(null, INotifyPropertyChangedSource.class, void.class,
+			"onPropertyChanged", String.class, Object.class, Object.class);
 
-	public static final MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, "handleParentChildPropertyChange",
+	public static final MethodInstance m_handlePropertyChange = new MethodInstance(null, templateType, void.class, "handleParentChildPropertyChange",
 			INotifyPropertyChangedSource.class, PropertyChangeEvent.class);
 
-	public static final MethodInstance m_handleCollectionChange = new MethodInstance(null, templateType, "handleCollectionChange",
+	public static final MethodInstance m_handleCollectionChange = new MethodInstance(null, templateType, void.class, "handleCollectionChange",
 			INotifyPropertyChangedSource.class, NotifyCollectionChangedEvent.class);
 
-	protected static final MethodInstance m_newPropertyChangeSupport = new MethodInstance(null, templateType, "newPropertyChangeSupport", Object.class);
+	protected static final MethodInstance m_newPropertyChangeSupport = new MethodInstance(null, templateType, PropertyChangeSupport.class,
+			"newPropertyChangeSupport", Object.class);
 
-	protected static final MethodInstance m_getMethodHandle = new MethodInstance(null, templateType, "getMethodHandle", INotifyPropertyChangedSource.class,
-			String.class);
+	protected static final MethodInstance m_getMethodHandle = new MethodInstance(null, templateType, IPropertyInfo.class, "getMethodHandle",
+			INotifyPropertyChangedSource.class, String.class);
 
-	protected static final MethodInstance m_firePropertyChange = new MethodInstance(null, templateType, "firePropertyChange",
+	protected static final MethodInstance m_firePropertyChange = new MethodInstance(null, templateType, void.class, "firePropertyChange",
 			INotifyPropertyChangedSource.class, PropertyChangeSupport.class, IPropertyInfo.class, Object.class, Object.class);
 
-	protected static final MethodInstance m_addPropertyChangeListener = new MethodInstance(null, templateType, "addPropertyChangeListener",
+	protected static final MethodInstance m_addPropertyChangeListener = new MethodInstance(null, templateType, void.class, "addPropertyChangeListener",
 			PropertyChangeSupport.class, PropertyChangeListener.class);
 
-	protected static final MethodInstance m_removePropertyChangeListener = new MethodInstance(null, templateType, "removePropertyChangeListener",
+	protected static final MethodInstance m_removePropertyChangeListener = new MethodInstance(null, templateType, void.class, "removePropertyChangeListener",
 			PropertyChangeSupport.class, PropertyChangeListener.class);
 
-	public static final MethodInstance template_m_firePropertyChange = new MethodInstance(null, Opcodes.ACC_PROTECTED, "firePropertyChange", null, void.class,
+	public static final MethodInstance template_m_firePropertyChange = new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "firePropertyChange", null,
 			PropertyChangeSupport.class, IPropertyInfo.class, Object.class, Object.class);
 
-	protected static final MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, Opcodes.ACC_PUBLIC, "use$PropertyChangeSupport", null,
-			PropertyChangeSupport.class);
+	protected static final MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, Opcodes.ACC_PUBLIC, PropertyChangeSupport.class,
+			"use$PropertyChangeSupport", null);
 
 	public static final PropertyInstance p_propertyChangeSupport = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class, "PropertyChangeSupport",
-			false);
+			PropertyChangeSupport.class, false);
 
 	public static final PropertyInstance p_parentChildEventHandler = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class,
-			"ParentChildEventHandler", false);
+			"ParentChildEventHandler", PropertyChangeListener.class, false);
 
 	public static final PropertyInstance p_collectionEventHandler = PropertyInstance.findByTemplate(INotifyPropertyChangedSource.class,
-			"CollectionEventHandler", false);
+			"CollectionEventHandler", INotifyCollectionChangedListener.class, false);
 
 	public static String getPropertyNameForGetterMethodHandle(String propertyName)
 	{
@@ -97,12 +98,12 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 	public static PropertyInstance getPropertyChangeTemplatePI(ClassGenerator cv)
 	{
-		PropertyInstance pi = getState().getProperty(templatePropertyName);
+		Object bean = getState().getBeanContext().getService(templateType);
+		PropertyInstance pi = getState().getProperty(templatePropertyName, bean.getClass());
 		if (pi != null)
 		{
 			return pi;
 		}
-		Object bean = getState().getBeanContext().getService(templateType);
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
@@ -137,7 +138,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 		if (properties == null)
 		{
-			implementSelfAsListener();
+			// implementSelfAsListener();
 
 			implementCollectionChanged(p_propertyChangeTemplate);
 			implementPropertyChanged(p_propertyChangeTemplate);
@@ -150,7 +151,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 				{
 					continue;
 				}
-				PropertyInstance propInfo = PropertyInstance.findByTemplate(prop.getName(), true);
+				PropertyInstance propInfo = PropertyInstance.findByTemplate(prop.getName(), prop.getPropertyType(), true);
 				if (propInfo == null)
 				{
 					continue;
@@ -162,7 +163,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		{
 			for (String propertyName : properties)
 			{
-				PropertyInstance propInfo = PropertyInstance.findByTemplate(propertyName, false);
+				PropertyInstance propInfo = PropertyInstance.findByTemplate(propertyName, (Type) null, false);
 				implementPropertyChangeOnProperty(propInfo, m_firePropertyChange, f_propertyChangeSupport);
 			}
 		}
@@ -189,8 +190,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 				@Override
 				public void execute(MethodGenerator mg)
 				{
-					MethodInstance m_addPropertyChangeListener = MethodInstance
-							.findByTemplate(false, "addPropertyChangeListener", PropertyChangeListener.class);
+					MethodInstance m_addPropertyChangeListener = MethodInstance.findByTemplate(false, void.class, "addPropertyChangeListener",
+							PropertyChangeListener.class);
 					mg.loadThis();
 					mg.dup();
 					mg.invokeVirtual(m_addPropertyChangeListener);

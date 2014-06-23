@@ -36,6 +36,8 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         public Type RealType { get; set; }
 
+        public Type EnhancedType { get; set; }
+
         public bool LocalEntity { get; set; }
 
         protected readonly ISet<Type> cascadeDeleteTypes = new HashSet<Type>();
@@ -84,6 +86,8 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         protected readonly ISet<Type> typesRelatingToThisSet = new HashSet<Type>();
 
+        protected readonly SmartCopySet<ITypeInfoItem> interningMemberSet = new SmartCopySet<ITypeInfoItem>(0.5f);
+
         protected readonly Dictionary<String, ITypeInfoItem> nameToMemberDict = new Dictionary<String, ITypeInfoItem>();
 
         protected readonly Dictionary<String, int?> relMemberNameToIndexDict = new Dictionary<String, int?>();
@@ -123,6 +127,23 @@ namespace De.Osthus.Ambeth.Merge.Model
             }
             return index.Value;
         }
+
+        public bool HasInterningBehavior(ITypeInfoItem primitiveMember)
+	    {
+		    return interningMemberSet.Contains(primitiveMember);
+	    }
+
+	    public void ChangeInterningBehavior(ITypeInfoItem primitiveMember, bool state)
+	    {
+		    if (state)
+		    {
+			    interningMemberSet.Add(primitiveMember);
+		    }
+		    else
+		    {
+			    interningMemberSet.Remove(primitiveMember);
+		    }
+	    }
 
         public int GetAlternateIdCount()
         {
@@ -344,6 +365,14 @@ namespace De.Osthus.Ambeth.Merge.Model
                 {
                     typesRelatingToThisSet.Add(TypesRelatingToThis[i]);
                 }
+            }
+            if (CreatedByMember != null)
+            {
+                ChangeInterningBehavior(CreatedByMember, true);
+            }
+            if (UpdatedByMember != null)
+            {
+                ChangeInterningBehavior(UpdatedByMember, true);
             }
         }
                 

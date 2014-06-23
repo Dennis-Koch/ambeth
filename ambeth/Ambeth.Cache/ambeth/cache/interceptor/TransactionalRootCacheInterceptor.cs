@@ -51,6 +51,11 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             return rootCache != null ? rootCache : CommittedRootCache;
         }
 
+        protected override IBeanRuntime<RootCache> PostProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
+        {
+            return base.PostProcessRootCacheConfiguration(rootCacheBR).IgnoreProperties("PrivilegeProvider", "SecurityActivation", "SecurityScopeProvider");
+        }
+
         public IRootCache SelectSecondLevelCache()
         {
             return GetCurrentRootCacheIfValid();

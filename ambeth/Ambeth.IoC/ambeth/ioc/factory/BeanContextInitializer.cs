@@ -14,6 +14,7 @@ using De.Osthus.Ambeth.Ioc.Proxy;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using System.Diagnostics;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -573,7 +574,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 return e;
             }
-            String declarationStackTrace = null;
+            StackFrame[] declarationStackTrace = null;
             if (propertyConfiguration != null)
             {
                 declarationStackTrace = propertyConfiguration.GetDeclarationStackTrace();
@@ -813,7 +814,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 {
                     return;
                 }
-                String declarationStackTrace = propertyConf.GetDeclarationStackTrace();
                 String message;
                 if (propertyConf.GetPropertyName() != null)
                 {

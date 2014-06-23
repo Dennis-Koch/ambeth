@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IField;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.xml.model.ParentOfEmbeddedType;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -23,7 +23,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLData("embeddedtype_data.sql")
 @SQLStructure("embeddedtype_structure.sql")
 @TestModule(TestServicesModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/embedded_type_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/embedded_type_orm.xml")
 public class EmbeddedTypeTest extends AbstractPersistenceTest
 {
 	@Test

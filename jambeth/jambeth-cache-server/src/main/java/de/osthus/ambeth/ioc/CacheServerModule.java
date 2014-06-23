@@ -6,8 +6,6 @@ import de.osthus.ambeth.cache.CacheServiceUtil;
 import de.osthus.ambeth.cache.DefaultPersistenceCacheRetriever;
 import de.osthus.ambeth.cache.IServiceResultHolder;
 import de.osthus.ambeth.cache.ServiceResultHolder;
-import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
-import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.store.DataChangeEventStoreHandler;
 import de.osthus.ambeth.event.IEventListenerExtendable;
@@ -23,9 +21,6 @@ import de.osthus.ambeth.service.ICacheService;
 @FrameworkModule
 public class CacheServerModule implements IInitializingModule
 {
-	@Property(name = CacheConfigurationConstants.CacheServiceRegistryActive, defaultValue = "true")
-	protected boolean cacheServiceRegistryActive;
-
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
@@ -36,10 +31,6 @@ public class CacheServerModule implements IInitializingModule
 		beanContextFactory.registerAutowireableBean(IServiceUtil.class, CacheServiceUtil.class);
 
 		beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class).autowireable(ICacheRetriever.class);
-		if (!cacheServiceRegistryActive)
-		{
-			beanContextFactory.registerAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.DEFAULT_CACHE_RETRIEVER);
-		}
 
 		beanContextFactory.registerBean("cacheLocalDataChangeListener", CacheLocalDataChangeListener.class)
 				.propertyRefs(CacheModule.CACHE_DATA_CHANGE_LISTENER);

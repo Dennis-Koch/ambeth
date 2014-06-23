@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.filter.ioc.FilterPersistenceModule;
 import de.osthus.ambeth.ioc.BytecodeModule;
@@ -37,7 +38,6 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.ioc.SQLQueryModule;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest.PersistencePropertiesProvider;
 import de.osthus.ambeth.util.IConversionHelper;
 
@@ -56,9 +56,9 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 		public void fillProperties(Properties props)
 		{
 			// PersistenceJdbcModule
-			props.put(ConfigurationConstants.NetworkClientMode, "false");
-			props.put(ConfigurationConstants.SlaveMode, "false");
-			props.put(ConfigurationConstants.LogShortNames, "true");
+			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
+			props.put(ServiceConfigurationConstants.SlaveMode, "false");
+			props.put(ServiceConfigurationConstants.LogShortNames, "true");
 
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
 			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.oracle.Oracle10gConnectionModule");

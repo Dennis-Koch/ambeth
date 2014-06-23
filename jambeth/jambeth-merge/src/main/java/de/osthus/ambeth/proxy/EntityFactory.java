@@ -2,13 +2,14 @@ package de.osthus.ambeth.proxy;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import net.sf.cglib.reflect.FastClass;
+import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.EntityEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
@@ -29,6 +30,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityFactoryExtension;
 import de.osthus.ambeth.merge.IEntityFactoryExtensionExtendable;
+import de.osthus.ambeth.merge.IEntityMetaDataRefresher;
+import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -56,6 +59,9 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	protected IBytecodeEnhancer bytecodeEnhancer;
 
 	@Autowired
+	protected IEntityMetaDataRefresher entityMetaDataRefresher;
+
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
 	@Autowired
@@ -67,15 +73,15 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	protected final ClassExtendableContainer<IEntityFactoryExtension> entityFactoryExtensions = new ClassExtendableContainer<IEntityFactoryExtension>(
 			"entityFactoryExtension", "entityType");
 
-	protected final SmartCopyMap<Class<?>, Constructor<?>> typeToConstructorMap = new SmartCopyMap<Class<?>, Constructor<?>>(0.5f);
+	protected final SmartCopyMap<Class<?>, FastConstructor> typeToConstructorMap = new SmartCopyMap<Class<?>, FastConstructor>(0.5f);
 
-	protected final SmartCopyMap<Class<?>, Constructor<?>> typeToEmbbeddedConstructorMap = new SmartCopyMap<Class<?>, Constructor<?>>(0.5f);
+	protected final SmartCopyMap<Class<?>, FastConstructor> typeToEmbbeddedConstructorMap = new SmartCopyMap<Class<?>, FastConstructor>(0.5f);
 
-	protected final SmartCopyMap<Class<?>, Constructor<?>> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<Class<?>, Constructor<?>>(0.5f);
+	protected final SmartCopyMap<Class<?>, FastConstructor> typeToEmbbeddedParamConstructorMap = new SmartCopyMap<Class<?>, FastConstructor>(0.5f);
 
 	protected final HashMap<Class<?>, HashMap<Method, Integer>> typeToMethodMap = new HashMap<Class<?>, HashMap<Method, Integer>>();
 
-	protected final WeakSmartCopyMap<Constructor<?>, Object[]> constructorToBeanArgsMap = new WeakSmartCopyMap<Constructor<?>, Object[]>(0.5f);
+	protected final WeakSmartCopyMap<FastConstructor, Object[]> constructorToBeanArgsMap = new WeakSmartCopyMap<FastConstructor, Object[]>(0.5f);
 
 	protected final WeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>> typeToEmbeddedInfoItemsMap = new WeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>>(
 			0.5f);
@@ -97,18 +103,19 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> Constructor<T> getConstructor(Map<Class<?>, Constructor<?>> map, Class<T> entityType)
+	protected <T> FastConstructor getConstructor(Map<Class<?>, FastConstructor> map, Class<T> entityType)
 	{
-		Constructor<T> constructor = (Constructor<T>) map.get(entityType);
+		FastConstructor constructor = map.get(entityType);
 		if (constructor == null)
 		{
+			FastClass fastClass = FastClass.create(entityType);
 			Throwable lastThrowable = null;
 			for (int a = 0, size = CONSTRUCTOR_SERIES.length; a < size; a++)
 			{
 				Class<?>[] parameters = CONSTRUCTOR_SERIES[a];
 				try
 				{
-					constructor = entityType.getDeclaredConstructor(parameters);
+					constructor = fastClass.getConstructor(parameters);
 					lastThrowable = null;
 					break;
 				}
@@ -121,13 +128,12 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 			{
 				throw RuntimeExceptionUtil.mask(lastThrowable);
 			}
-			constructor.setAccessible(true);
 			map.put(entityType, constructor);
 		}
 		return constructor;
 	}
 
-	protected Object[] getConstructorArguments(Constructor<?> constructor)
+	protected Object[] getConstructorArguments(FastConstructor constructor)
 	{
 		Object[] beanArgs = constructorToBeanArgsMap.get(constructor);
 		if (beanArgs == null)
@@ -152,14 +158,15 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T> Constructor<T> getEmbeddedParamConstructor(Class<T> embeddedType, Class<?> parentObjectType)
+	protected <T> FastConstructor getEmbeddedParamConstructor(Class<T> embeddedType, Class<?> parentObjectType)
 	{
-		Constructor<T> constructor = (Constructor<T>) typeToEmbbeddedParamConstructorMap.get(embeddedType);
+		FastConstructor constructor = typeToEmbbeddedParamConstructorMap.get(embeddedType);
 		if (constructor == null)
 		{
 			try
 			{
-				constructor = embeddedType.getDeclaredConstructor(parentObjectType);
+				FastClass fastEmbeddedType = FastClass.create(embeddedType);
+				constructor = fastEmbeddedType.getConstructor(new Class<?>[] { parentObjectType });
 			}
 			catch (Throwable e)
 			{
@@ -169,7 +176,6 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 				}
 				throw RuntimeExceptionUtil.mask(e);
 			}
-			constructor.setAccessible(true);
 			typeToEmbbeddedParamConstructorMap.put(embeddedType, constructor);
 		}
 		return constructor;
@@ -179,15 +185,24 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	@Override
 	public <T> T createEntity(Class<T> entityType)
 	{
+		Class<?> mappedEntityType = entityType;
 		IEntityFactoryExtension extension = entityFactoryExtensions.getExtension(entityType);
 		if (extension != null && extension != this)
 		{
-			Class<? extends T> mappedEntityType = extension.getMappedEntityType(entityType);
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(mappedEntityType);
-			Object entity = createEntityIntern(metaData, mappedEntityType);
-			return (T) extension.postProcessMappedEntity(entityType, metaData, entity);
+			mappedEntityType = extension.getMappedEntityType(entityType);
 		}
-		return super.createEntity(entityType);
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(mappedEntityType);
+		if (metaData.getEnhancedType() == null)
+		{
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
+			entityMetaDataRefresher.refreshMembers(metaData);
+		}
+		Object entity = createEntityIntern(metaData);
+		if (extension != null && extension != this)
+		{
+			entity = extension.postProcessMappedEntity(entityType, metaData, entity);
+		}
+		return (T) entity;
 	}
 
 	@Override
@@ -195,9 +210,17 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 	{
 		Class<?> entityType = metaData.getEntityType();
 		IEntityFactoryExtension extension = entityFactoryExtensions.getExtension(entityType);
-		Class<?> mappedEntityType = extension != null && extension != this ? extension.getMappedEntityType(entityType) : entityType;
-
-		Object entity = createEntityIntern(metaData, mappedEntityType);
+		if (metaData.getEnhancedType() == null)
+		{
+			Class<?> mappedEntityType = entityType;
+			if (extension != null && extension != this)
+			{
+				mappedEntityType = extension.getMappedEntityType(mappedEntityType);
+			}
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
+			entityMetaDataRefresher.refreshMembers(metaData);
+		}
+		Object entity = createEntityIntern(metaData);
 		if (extension != null && extension != this)
 		{
 			entity = extension.postProcessMappedEntity(entityType, metaData, entity);
@@ -205,26 +228,21 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 		return entity;
 	}
 
-	protected Object createEntityIntern(IEntityMetaData metaData, Class<?> entityType)
+	protected Object createEntityIntern(IEntityMetaData metaData)
 	{
 		try
 		{
-			entityType = bytecodeEnhancer.getEnhancedType(entityType, EntityEnhancementHint.EntityEnhancementHint);
-			if (!entityType.isInterface())
-			{
-				Constructor<?> constructor = getConstructor(typeToConstructorMap, entityType);
-				Object[] args = getConstructorArguments(constructor);
-				Object entity = constructor.newInstance(args);
-				postProcessEntity(entity, metaData);
-				return entity;
-			}
-			throw new IllegalArgumentException("It is not possible to create interface entities without bytecode enhancement");
+			FastConstructor constructor = getConstructor(typeToConstructorMap, metaData.getEnhancedType());
+			Object[] args = getConstructorArguments(constructor);
+			Object entity = constructor.newInstance(args);
+			postProcessEntity(entity, metaData);
+			return entity;
 		}
 		catch (Throwable e)
 		{
 			if (bytecodePrinter != null)
 			{
-				throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(entityType));
+				throw RuntimeExceptionUtil.mask(e, bytecodePrinter.toPrintableBytecode(metaData.getEnhancedType()));
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
@@ -346,7 +364,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 				currPath.append(pathItem.getName());
 				Class<?> embeddedType = bytecodeEnhancer.getEnhancedType(pathItem.getRealType(),
 						new EmbeddedEnhancementHint(entityType, parentObject.getClass(), currPath.toString()));
-				Constructor<?> embeddedConstructor = getEmbeddedParamConstructor(embeddedType, parentObject.getClass());
+				FastConstructor embeddedConstructor = getEmbeddedParamConstructor(embeddedType, parentObject.getClass());
 				constructorArgs[0] = parentObject;
 				embeddedObject = embeddedConstructor.newInstance(constructorArgs);
 				pathItem.setValue(parentObject, embeddedObject);

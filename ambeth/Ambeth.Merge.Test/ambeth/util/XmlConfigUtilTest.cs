@@ -40,18 +40,18 @@ namespace De.Osthus.Ambeth.Util
         public void TestReadXmlFiles()
         {
             XDocument[] docs = xmlConfigUtil.ReadXmlFiles(ORM_XML_SIMPLE);
-            Assert.IsNotNull(docs);
-            Assert.AreEqual(1, docs.Length);
+            Assert.AssertNotNull(docs);
+            Assert.AssertEquals(1, docs.Length);
         }
 
         [TestMethod]
         public void TestCreateValidator()
         {
             IXmlValidator validator1 = xmlConfigUtil.CreateValidator(XSD_SIMPLE_TYPES_2_0);
-            Assert.IsNotNull(validator1);
+            Assert.AssertNotNull(validator1);
 
             IXmlValidator validator2 = xmlConfigUtil.CreateValidator(XSD_SIMPLE_TYPES_2_0, XSD_ORM_2_0);
-            Assert.IsNotNull(validator2);
+            Assert.AssertNotNull(validator2);
 
             XDocument doc = xmlConfigUtil.ReadXmlFiles(ORM_XML_SIMPLE)[0];
             validator2.Validate(doc);

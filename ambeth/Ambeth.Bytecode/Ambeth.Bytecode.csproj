@@ -48,7 +48,7 @@
   <ItemGroup>
     <Compile Include="ambeth\bytecode\abstractobject\IImplementAbstractObjectFactory.cs" />
     <Compile Include="ambeth\bytecode\abstractobject\IImplementAbstractObjectFactoryExtendable.cs" />
-    <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectContext.cs" />
+    <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectEnhancementHint.cs" />
     <Compile Include="ambeth\bytecode\behavior\AbstractBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\AbstractBehaviorGroup.cs" />
     <Compile Include="ambeth\bytecode\behavior\BytecodeBehaviorState.cs" />

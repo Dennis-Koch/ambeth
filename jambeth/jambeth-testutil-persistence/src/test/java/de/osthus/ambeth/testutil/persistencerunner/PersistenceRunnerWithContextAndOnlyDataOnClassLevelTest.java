@@ -5,8 +5,8 @@ import java.util.Arrays;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -26,7 +26,8 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 @TestPropertiesList({
 		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName, value = "jambeth_testutil_user"),
 		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseUser, value = "${" + PersistenceJdbcConfigurationConstants.DatabaseSchemaName
-				+ "}"), @TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
+				+ "}"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
 @SQLData("testutil_test_data_0.sql")
 @SQLDataRebuild(value = false)
 public class PersistenceRunnerWithContextAndOnlyDataOnClassLevelTest extends AbstractPersistenceRunnerWithServiceTest

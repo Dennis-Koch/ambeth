@@ -19,7 +19,6 @@ namespace De.Osthus.Ambeth.Testutil
     [TestProperties(Name = ServiceConfigurationConstants.GenericTransferMapping, Value = "true")]
     [TestProperties(Name = ServiceConfigurationConstants.IndependentMetaData, Value = "true")]
     [TestProperties(Name = ServiceConfigurationConstants.NetworkClientMode, Value = "false")]
-    [TestProperties(Name = CacheConfigurationConstants.CacheServiceRegistryActive, Value = "true")]
     [TestProperties(Name = CacheConfigurationConstants.CacheServiceBeanActive, Value = "true")]
     [TestFrameworkModule(typeof(TestUtilModule), typeof(BytecodeModule), typeof(CacheModule), typeof(CacheBytecodeModule),
         typeof(CacheDataChangeModule), typeof(CompositeIdModule), typeof(EventModule), typeof(MergeModule),

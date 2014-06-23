@@ -37,6 +37,7 @@ import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -54,7 +55,6 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -82,10 +82,10 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = ConfigurationConstants.NetworkClientMode, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isNetworkClientMode;
 
-	@Property(name = ConfigurationConstants.GenericTransferMapping, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.GenericTransferMapping, defaultValue = "false")
 	protected boolean genericTransferMapping;
 
 	@Autowired
@@ -96,9 +96,6 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 
 	@Property(name = CacheConfigurationConstants.SecondLevelCacheActive, defaultValue = "true")
 	protected boolean secondLevelCacheActive;
-
-	@Property(name = CacheConfigurationConstants.CacheServiceRegistryActive, defaultValue = "true")
-	protected boolean cacheServiceRegistryActive;
 
 	@Override
 	public void applyProperties(Properties contextProperties)
@@ -125,12 +122,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 
 		beanContextFactory.registerAutowireableBean(IRootCacheValueTypeProvider.class, RootCacheValueTypeProvider.class);
 
-		if (cacheServiceRegistryActive)
-		{
-			beanContextFactory.registerBean("cacheRetrieverRegistry", CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
-					ICacheRetrieverExtendable.class);
-			beanContextFactory.registerAlias(ROOT_CACHE_RETRIEVER, "cacheRetrieverRegistry");
-		}
+		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
+				ICacheRetrieverExtendable.class);
 
 		beanContextFactory.registerBean("firstLevelCacheManager", FirstLevelCacheManager.class).autowireable(IFirstLevelCacheExtendable.class,
 				IFirstLevelCacheManager.class);

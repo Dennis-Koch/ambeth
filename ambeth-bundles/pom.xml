@@ -54,4 +54,16 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+	<repositories>
+		<!-- Location of the osthus-pom -->
+		<repository>
+			<id>ambeth-releases</id>
+			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
+		</repository>
+		<repository>
+			<id>thirdparty</id>
+			<url>http://nexus/nexus/content/repositories/thirdparty</url>
+		</repository>
+
+	</repositories>
 </project>

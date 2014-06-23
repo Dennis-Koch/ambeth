@@ -4,6 +4,7 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.NoOp;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -11,6 +12,8 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Factory>> implements IProxyFactory
 {
 	protected static final Class<?>[] emptyInterfaces = new Class[0];
+
+	protected static final Callback[] emptyCallbacks = new Callback[] { NoOp.INSTANCE };
 
 	protected Object createProxyIntern(Class<? extends Factory> proxyType, Callback[] callbacks)
 	{
@@ -50,7 +53,14 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 		{
 			enhancer.setSuperclass(type);
 		}
-		enhancer.setCallbacks(interceptors);
+		if (interceptors.length == 0)
+		{
+			enhancer.setCallbacks(emptyCallbacks);
+		}
+		else
+		{
+			enhancer.setCallbacks(interceptors);
+		}
 		Object proxy = enhancer.create();
 		put(key, (Class<? extends Factory>) proxy.getClass());
 		return (T) proxy;

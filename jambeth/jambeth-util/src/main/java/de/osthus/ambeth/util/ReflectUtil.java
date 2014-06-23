@@ -155,7 +155,9 @@ public final class ReflectUtil
 			{
 				return declaredMethods;
 			}
-			declaredMethods = type.getDeclaredMethods();
+			ArrayList<Method> declaredMethodsList = new ArrayList<Method>();
+			fillDeclaredMethods(type, declaredMethodsList);
+			declaredMethods = declaredMethodsList.toArray(Method.class);
 			for (Method declaredMethod : declaredMethods)
 			{
 				declaredMethod.setAccessible(true);
@@ -169,32 +171,38 @@ public final class ReflectUtil
 		}
 	}
 
-	public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, String methodName)
+	protected static void fillDeclaredMethods(Class<?> type, ArrayList<Method> declaredMethods)
 	{
-		Class<?> currType = type;
-		while (currType != null)
-		{
-			Method method = getDeclaredMethodIntern(currType, methodName, (Type[]) null, true);
-			if (method != null)
-			{
-				return method;
-			}
-			currType = currType.getSuperclass();
-		}
-		if (tryOnly)
-		{
-			return null;
-		}
-		throw new IllegalArgumentException(type + " does not implement '" + methodName + "'");
+		declaredMethods.addAll(type.getDeclaredMethods());
 	}
 
-	public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, String methodName, Class<?>... parameters)
+	// public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, String methodName)
+	// {
+	// Class<?> currType = type;
+	// while (currType != null)
+	// {
+	// Method method = getDeclaredMethodIntern(currType, (Type) null, methodName, null, true);
+	// if (method != null)
+	// {
+	// return method;
+	// }
+	// currType = currType.getSuperclass();
+	// }
+	// if (tryOnly)
+	// {
+	// return null;
+	// }
+	// throw new IllegalArgumentException(type + " does not implement '" + methodName + "'");
+	// }
+
+	public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, Class<?> returnType, String methodName, Class<?>... parameters)
 	{
 		Class<?> currType = type;
 		Type[] params = parameters != null ? TypeUtil.getClassesToTypes(parameters) : null;
+		Type returnTypeAsType = returnType != null ? Type.getType(returnType) : null;
 		while (currType != null)
 		{
-			Method method = getDeclaredMethodIntern(currType, methodName, params, true);
+			Method method = getDeclaredMethodIntern(currType, returnTypeAsType, methodName, params, true);
 			if (method != null)
 			{
 				return method;
@@ -208,13 +216,17 @@ public final class ReflectUtil
 		throw new IllegalArgumentException(type + " does not implement '" + methodName + "(" + Arrays.toString(parameters) + ")'");
 	}
 
-	private static final Method getDeclaredMethodIntern(Class<?> type, String methodName, Type[] parameters, boolean tryOnly)
+	private static final Method getDeclaredMethodIntern(Class<?> type, Type returnType, String methodName, Type[] parameters, boolean tryOnly)
 	{
 		Method[] declaredMethods = getDeclaredMethods(type);
 		for (int a = declaredMethods.length; a-- > 0;)
 		{
 			Method declaredMethod = declaredMethods[a];
 			if (!declaredMethod.getName().equals(methodName))
+			{
+				continue;
+			}
+			if (returnType != null && !Type.getType(declaredMethod.getReturnType()).equals(returnType))
 			{
 				continue;
 			}
@@ -248,12 +260,12 @@ public final class ReflectUtil
 		throw new IllegalArgumentException(type + " does not implement '" + methodName + "'");
 	}
 
-	public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, String methodName, Type... parameters)
+	public static final Method getDeclaredMethod(boolean tryOnly, Class<?> type, Type returnType, String methodName, Type... parameters)
 	{
 		Class<?> currType = type;
 		while (currType != null)
 		{
-			Method method = getDeclaredMethodIntern(currType, methodName, parameters, true);
+			Method method = getDeclaredMethodIntern(currType, returnType, methodName, parameters, true);
 			if (method != null)
 			{
 				return method;

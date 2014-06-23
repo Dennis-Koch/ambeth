@@ -3,7 +3,6 @@ package de.osthus.ambeth.merge;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -12,8 +11,6 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
-import de.osthus.ambeth.bytecode.EntityEnhancementHint;
-import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -27,6 +24,7 @@ import de.osthus.ambeth.event.EntityMetaDataRemovedEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.MergeModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
@@ -38,6 +36,7 @@ import de.osthus.ambeth.merge.model.IEntityLifecycleExtension;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
+import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.typeinfo.AbstractPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -50,8 +49,8 @@ import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.xml.IXmlTypeHelper;
 
-public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData> implements IEntityMetaDataProvider, IEntityMetaDataExtendable,
-		IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
+public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData> implements IEntityMetaDataProvider, IEntityMetaDataRefresher,
+		IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -63,9 +62,6 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected IServiceContext beanContext;
 
-	@Autowired
-	protected IBytecodeEnhancer bytecodeEnhancer;
-
 	@Autowired(optional = true)
 	protected IEntityFactory entityFactory;
 
@@ -76,6 +72,12 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Autowired
+	protected IProxyFactory proxyFactory;
+
+	@Autowired(value = MergeModule.REMOTE_ENTITY_METADATA_PROVIDER, optional = true)
+	protected IEntityMetaDataProvider remoteEntityMetaDataProvider;
+
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
 	@Autowired
@@ -83,6 +85,8 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Autowired
 	protected ValueObjectMap valueObjectMap;
+
+	protected IEntityMetaData alreadyHandled;
 
 	protected Class<?>[] businessObjectSaveOrder;
 
@@ -99,6 +103,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
+		alreadyHandled = proxyFactory.createProxy(IEntityMetaData.class);
 	}
 
 	protected void addTypeRelatedByTypes(Map<Class<?>, ISet<Class<?>>> typeRelatedByTypes, Class<?> relating, Class<?> relatedTo)
@@ -132,22 +137,12 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
-
-			Class<?> typeToEnhance = metaData.getRealType();
-			if (typeToEnhance == null)
-			{
-				typeToEnhance = metaData.getEntityType();
-			}
-			((EntityMetaData) metaData).setRealType(bytecodeEnhancer.getEnhancedType(typeToEnhance, EntityEnhancementHint.EntityEnhancementHint));
-
-			refreshMembers(metaData);
-
 			((EntityMetaData) metaData).initialize(entityFactory);
-
 		}
 	}
 
-	protected void refreshMembers(IEntityMetaData metaData)
+	@Override
+	public void refreshMembers(IEntityMetaData metaData)
 	{
 		for (ITypeInfoItem member : metaData.getRelationMembers())
 		{
@@ -181,7 +176,55 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		// }
 		// else
 		{
-			propertyInfo.refreshAccessors(metaData.getRealType());
+			propertyInfo.refreshAccessors(metaData.getEnhancedType());
+		}
+	}
+
+	protected IList<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData)
+	{
+		HashSet<Class<?>> cascadeMissingEntityTypes = null;
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			for (int a = loadedMetaData.size(); a-- > 0;)
+			{
+				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
+				Class<?> entityType = missingMetaDataItem.getEntityType();
+				if (getExtension(entityType) != null)
+				{
+					continue;
+				}
+				register(missingMetaDataItem, entityType);
+
+				for (ITypeInfoItem relationMember : missingMetaDataItem.getRelationMembers())
+				{
+					Class<?> relationMemberType = relationMember.getElementType();
+					if (!containsKey(relationMemberType))
+					{
+						if (cascadeMissingEntityTypes == null)
+						{
+							cascadeMissingEntityTypes = new HashSet<Class<?>>();
+						}
+						cascadeMissingEntityTypes.add(relationMemberType);
+					}
+				}
+			}
+			for (int a = entityTypes.size(); a-- > 0;)
+			{
+				Class<?> entityType = entityTypes.get(a);
+				if (!containsKey(entityType))
+				{
+					// add dummy items to ensure that this type does not
+					// get queried a second time
+					register(alreadyHandled, entityType);
+				}
+			}
+			return cascadeMissingEntityTypes != null ? cascadeMissingEntityTypes.toList() : null;
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 
@@ -195,55 +238,78 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	public IEntityMetaData getMetaData(Class<?> entityType, boolean tryOnly)
 	{
 		IEntityMetaData metaDataItem = getExtension(entityType);
-
-		if (metaDataItem == null)
+		if (metaDataItem != null)
 		{
-			if (tryOnly)
+			if (metaDataItem == alreadyHandled)
 			{
-				return null;
+				if (tryOnly)
+				{
+					return null;
+				}
+				throw new IllegalArgumentException("No metadata found for entity of type " + entityType.getName());
 			}
-			throw new IllegalArgumentException("No metadata found for entity of type " + entityType);
+			return metaDataItem;
 		}
-		return metaDataItem;
+		ArrayList<Class<?>> missingEntityTypes = new ArrayList<Class<?>>(1);
+		missingEntityTypes.add(entityType);
+		IList<IEntityMetaData> missingMetaData = getMetaData(missingEntityTypes);
+		if (missingMetaData.size() > 0)
+		{
+			return missingMetaData.get(0);
+		}
+		if (tryOnly)
+		{
+			return null;
+		}
+		throw new IllegalArgumentException("No metadata found for entity of type " + entityType.getName());
 	}
 
 	@Override
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
-		ArrayList<IEntityMetaData> entityMetaData = new ArrayList<IEntityMetaData>(entityTypes.size());
-		ArrayList<Class<?>> notFoundEntityTypes = new ArrayList<Class<?>>();
-		for (Class<?> entityType : entityTypes)
+		ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>(entityTypes.size());
+		IList<Class<?>> missingEntityTypes = null;
+		for (int a = entityTypes.size(); a-- > 0;)
 		{
+			Class<?> entityType = entityTypes.get(a);
 			IEntityMetaData metaDataItem = getExtension(entityType);
-
 			if (metaDataItem != null)
 			{
-				entityMetaData.add(metaDataItem);
+				if (metaDataItem != null)
+				{
+					if (metaDataItem != alreadyHandled)
+					{
+						result.add(metaDataItem);
+					}
+					continue;
+				}
+			}
+			if (missingEntityTypes == null)
+			{
+				missingEntityTypes = new ArrayList<Class<?>>();
+			}
+			missingEntityTypes.add(entityType);
+		}
+		if (missingEntityTypes == null || remoteEntityMetaDataProvider == null)
+		{
+			return result;
+		}
+		while (missingEntityTypes != null && missingEntityTypes.size() > 0)
+		{
+			IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider.getMetaData(missingEntityTypes);
+
+			IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes, loadedMetaData);
+
+			if (cascadeMissingEntityTypes != null && cascadeMissingEntityTypes.size() > 0)
+			{
+				missingEntityTypes = cascadeMissingEntityTypes;
 			}
 			else
 			{
-				notFoundEntityTypes.add(entityType);
+				missingEntityTypes.clear();
 			}
 		}
-		if (notFoundEntityTypes.size() > 0 && log.isWarnEnabled())
-		{
-			Collections.sort(notFoundEntityTypes, new Comparator<Class<?>>()
-			{
-				@Override
-				public int compare(Class<?> o1, Class<?> o2)
-				{
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
-			StringBuilder sb = new StringBuilder();
-			sb.append("No metadata found for ").append(notFoundEntityTypes.size()).append(" type(s):");
-			for (Class<?> notFoundType : notFoundEntityTypes)
-			{
-				sb.append("\n\t").append(notFoundType.getName());
-			}
-			log.warn(sb);
-		}
-		return entityMetaData;
+		return getMetaData(entityTypes);
 	}
 
 	@Override
@@ -400,13 +466,17 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@SuppressWarnings("unchecked")
 	protected void updateEntityMetaDataWithLifecycleExtensions(IEntityMetaData entityMetaData)
 	{
-		IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.getExtensions(entityMetaData.getEntityType());
+		if (entityMetaData.getEnhancedType() == null)
+		{
+			return;
+		}
+		IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.getExtensions(entityMetaData.getEnhancedType());
 		ArrayList<IEntityLifecycleExtension> allExtensions = new ArrayList<IEntityLifecycleExtension>(extensionList);
 		ArrayList<Method> prePersistMethods = new ArrayList<Method>();
-		fillMethodsAnnotatedWith(entityMetaData.getRealType(), prePersistMethods, PrePersist.class);
+		fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), prePersistMethods, PrePersist.class);
 
 		ArrayList<Method> postLoadMethods = new ArrayList<Method>();
-		fillMethodsAnnotatedWith(entityMetaData.getRealType(), postLoadMethods, PostLoad.class);
+		fillMethodsAnnotatedWith(entityMetaData.getEnhancedType(), postLoadMethods, PostLoad.class);
 
 		for (Method prePersistMethod : prePersistMethods)
 		{

@@ -19,7 +19,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 import de.osthus.ambeth.util.xml.IXmlValidator;
 import de.osthus.ambeth.util.xml.XmlConstants;
@@ -44,8 +43,6 @@ public class OrmXmlReader20 implements IOrmXmlReader, IInitializingBean
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(xmlConfigUtil, "XmlConfigUtil");
-
 		validator = xmlConfigUtil.createValidator(XSD_FILE_NAMES);
 	}
 

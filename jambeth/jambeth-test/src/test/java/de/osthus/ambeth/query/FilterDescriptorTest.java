@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.model.FilterDescriptor;
@@ -23,7 +24,6 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -31,7 +31,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 
 @SQLData("FilterDescriptor_data.sql")
 @SQLStructure("FilterDescriptor_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/FilterDescriptor_orm.xml")
 public class FilterDescriptorTest extends AbstractPersistenceTest
 {
 	protected static final String paramName1 = "param.1";

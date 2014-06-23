@@ -52,9 +52,6 @@ namespace De.Osthus.Ambeth.Ioc
         [Property(CacheConfigurationConstants.SecondLevelCacheActive, DefaultValue = "true")]
         public bool IsSecondLevelCacheActive { get; set; }
 
-        [Property(CacheConfigurationConstants.CacheServiceRegistryActive, DefaultValue = "true")]
-        public bool IsCacheServiceRegistryActive { get; set; }
-
         [Property(CacheConfigurationConstants.FirstLevelCacheType, Mandatory = false)]
         public CacheType DefaultCacheType { get; set; }
 
@@ -98,11 +95,7 @@ namespace De.Osthus.Ambeth.Ioc
             //beanContextFactory.registerBean<RootCache>(ROOT_CACHE).autowireable<RootCache>();
             //beanContextFactory.Link("rootCache").To<IOfflineListenerExtendable>();
 
-            if (IsCacheServiceRegistryActive)
-            {
-                beanContextFactory.RegisterBean<CacheRetrieverRegistry>("cacheServiceRegistry")
-                        .PropertyRef("CacheServiceForOris", EXTERNAL_CACHE_SERVICE).Autowireable(typeof(ICacheService), typeof(ICacheServiceByNameExtendable), typeof(ICacheRetrieverExtendable));
-            }
+            beanContextFactory.RegisterBean<CacheRetrieverRegistry>(ROOT_CACHE_RETRIEVER).Autowireable(typeof(ICacheServiceByNameExtendable), typeof(ICacheRetrieverExtendable));
 
             beanContextFactory.RegisterBean<FirstLevelCacheManager>("firstLevelCacheManager").Autowireable(typeof(IFirstLevelCacheExtendable), typeof(IFirstLevelCacheManager));
 
@@ -197,10 +190,10 @@ namespace De.Osthus.Ambeth.Ioc
                 beanContextFactory.RegisterBean<ClientServiceBean>(CacheModule.EXTERNAL_CACHE_SERVICE)
                     .PropertyValue("Interface", typeof(ICacheService))
                     .PropertyValue("SyncRemoteInterface", typeof(ICacheServiceWCF))
-                    .PropertyValue("AsyncRemoteInterface", typeof(ICacheClient));
+                    .PropertyValue("AsyncRemoteInterface", typeof(ICacheClient)).Autowireable<ICacheService>();
 
                 beanContextFactory.RegisterAlias(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
-                beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
+                //beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
                 //beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
             }
         }

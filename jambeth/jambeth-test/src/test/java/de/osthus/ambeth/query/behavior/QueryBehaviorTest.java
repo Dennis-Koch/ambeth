@@ -4,13 +4,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.model.IServiceResult;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.query.behavior.QueryBehaviorTest.QueryBehaviorTestModule;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestModule(QueryBehaviorTestModule.class)
 @TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "orm.xml") })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
 public class QueryBehaviorTest extends AbstractPersistenceTest
 {
 	public static class QueryBehaviorTestModule implements IInitializingModule

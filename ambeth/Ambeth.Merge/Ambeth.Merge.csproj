@@ -91,7 +91,6 @@
     <Compile Include="ambeth\merge\IProxyHelper.cs" />
     <Compile Include="ambeth\merge\EntityInitializedState.cs" />
     <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
-    <Compile Include="ambeth\merge\EntityMetaDataCache.cs" />
     <Compile Include="ambeth\merge\IEntityChecker.cs" />
     <Compile Include="ambeth\merge\IMergeController.cs" />
     <Compile Include="ambeth\merge\IRevertChangesHelper.cs" />

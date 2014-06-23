@@ -2,15 +2,22 @@ using System;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Xml.Typehandler;
+using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Typeinfo;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Merge;
 
 namespace De.Osthus.Ambeth.Xml.Namehandler
 {
     public class ObjRefElementHandler : AbstractHandler, INameBasedHandler
     {
+        protected static readonly String idNameIndex = "ix";
+
         [LogInstance]
 		public new ILogger Log { private get; set; }
 
-        protected static readonly String idNameIndex = "ix";
+        [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         public virtual bool WritesCustom(Object obj, Type type, IWriter writer)
         {
@@ -40,6 +47,33 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 		    Type realType = (Type) reader.ReadObject();
 		    Object objId = reader.ReadObject();
             Object version = reader.ReadObject();
+
+            if (objId != null || version != null)
+            {
+                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(realType, true);
+                if (metaData != null)
+                {
+                    if (objId != null)
+                    {
+                        ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+                        if (objId.Equals(idMember.NullEquivalentValue))
+                        {
+                            objId = null;
+                        }
+                    }
+                    if (version != null)
+                    {
+                        ITypeInfoItem versionMember = metaData.VersionMember;
+                        if (versionMember != null)
+                        {
+                            if (version.Equals(versionMember.NullEquivalentValue))
+                            {
+                                version = null;
+                            }
+                        }
+                    }
+                }
+            }
 
             ObjRef obj = new ObjRef(realType, idIndex, objId, version);
 

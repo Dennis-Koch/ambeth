@@ -16,7 +16,7 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class CacheRetrieverRegistry : ICacheService, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
+    public class CacheRetrieverRegistry : ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -26,8 +26,6 @@ namespace De.Osthus.Ambeth.Cache
         protected readonly ClassExtendableContainer<ICacheRetriever> typeToCacheRetrieverMap = new ClassExtendableContainer<ICacheRetriever>("cacheRetriever", "entityType");
 
         protected readonly MapExtendableContainer<String, ICacheService> nameToCacheServiceMap = new MapExtendableContainer<String, ICacheService>("cacheService", "serviceName");
-
-        public ICacheService CacheServiceForOris { protected get; set; }
 
         [Autowired(Optional = true)]
         public ICacheRetriever DefaultCacheRetriever { protected get; set; }
@@ -138,10 +136,6 @@ namespace De.Osthus.Ambeth.Cache
             ICacheService cacheService = nameToCacheServiceMap.GetExtension(serviceDescription.ServiceName);
             if (cacheService == null)
             {
-                if (CacheServiceForOris != null)
-                {
-                    return CacheServiceForOris.GetORIsForServiceRequest(serviceDescription);
-                }
                 throw new ArgumentException("No cache service registered for with name '" + serviceDescription.ServiceName + "'");
             }
             return cacheService.GetORIsForServiceRequest(serviceDescription);

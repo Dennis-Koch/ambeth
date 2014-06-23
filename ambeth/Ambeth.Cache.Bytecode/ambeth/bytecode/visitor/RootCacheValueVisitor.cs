@@ -34,7 +34,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetEntityType()
         {
-            MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(RootCacheValue), "getEntityType");
+            MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(RootCacheValue), typeof(Type), "getEntityType");
 
             IMethodVisitor mv = VisitMethod(template_m_getEntityType);
             mv.Push(metaData.EntityType);
@@ -44,16 +44,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementId()
         {
-            MethodInstance template_m_getId = new MethodInstance(null, typeof(RootCacheValue), "get_Id");
-            MethodInstance template_m_setId = new MethodInstance(null, typeof(RootCacheValue), "set_Id", typeof(Object));
+            MethodInstance template_m_getId = new MethodInstance(null, typeof(RootCacheValue), typeof(Object), "get_Id");
+            MethodInstance template_m_setId = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "set_Id", typeof(Object));
 
             CacheMapEntryVisitor.ImplementNativeField(this, metaData.IdMember, template_m_getId, template_m_setId);
         }
 
         protected void ImplementVersion()
         {
-            MethodInstance template_m_getVersion = new MethodInstance(null, typeof(RootCacheValue), "get_Version");
-            MethodInstance template_m_setVersion = new MethodInstance(null, typeof(RootCacheValue), "set_Version", typeof(Object));
+            MethodInstance template_m_getVersion = new MethodInstance(null, typeof(RootCacheValue), typeof(Object), "get_Version");
+            MethodInstance template_m_setVersion = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "set_Version", typeof(Object));
 
             CacheMapEntryVisitor.ImplementNativeField(this, metaData.VersionMember, template_m_getVersion, template_m_setVersion);
         }
@@ -97,7 +97,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetPrimitive(ITypeInfoItem[] primitiveMember, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	    {
-		    MethodInstance template_m_getPrimitive = new MethodInstance(null, typeof(RootCacheValue), "GetPrimitive", typeof(int));
+		    MethodInstance template_m_getPrimitive = new MethodInstance(null, typeof(RootCacheValue), typeof(Object), "GetPrimitive", typeof(int));
 
 		    IMethodVisitor mv = VisitMethod(template_m_getPrimitive);
 
@@ -150,7 +150,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
         {
-            MethodInstance template_m_getPrimitives = new MethodInstance(null, typeof(RootCacheValue), "GetPrimitives");
+            MethodInstance template_m_getPrimitives = new MethodInstance(null, typeof(RootCacheValue), typeof(Object[]), "GetPrimitives");
 
             IMethodVisitor mv = VisitMethod(template_m_getPrimitives);
 
@@ -191,7 +191,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementSetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
         {
-            MethodInstance template_m_setPrimitives = new MethodInstance(null, typeof(RootCacheValue), "SetPrimitives", typeof(Object[]));
+            MethodInstance template_m_setPrimitives = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetPrimitives", typeof(Object[]));
 
             IMethodVisitor mv = VisitMethod(template_m_setPrimitives);
             LocalVariableInfo loc_item = mv.NewLocal(objType);
@@ -270,7 +270,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
 	    {
-		    MethodInstance template_m_getRelation = new MethodInstance(null, typeof(RootCacheValue), "GetRelation", typeof(int));
+		    MethodInstance template_m_getRelation = new MethodInstance(null, typeof(RootCacheValue), typeof(IObjRef[]), "GetRelation", typeof(int));
 
 		    IMethodVisitor mv = VisitMethod(template_m_getRelation);
 
@@ -304,7 +304,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementSetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
         {
-            MethodInstance template_m_setRelation = new MethodInstance(null, typeof(RootCacheValue), "SetRelation", typeof(int), typeof(IObjRef[]));
+            MethodInstance template_m_setRelation = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetRelation", typeof(int), typeof(IObjRef[]));
 
             IMethodVisitor mv = VisitMethod(template_m_setRelation);
             Label l_finish = mv.NewLabel();
@@ -335,7 +335,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementSetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] fields)
         {
-            MethodInstance template_m_setRelations = new MethodInstance(null, typeof(RootCacheValue), "SetRelations", typeof(IObjRef[][]));
+            MethodInstance template_m_setRelations = new MethodInstance(null, typeof(RootCacheValue), typeof(void), "SetRelations", typeof(IObjRef[][]));
 
             IMethodVisitor mv = VisitMethod(template_m_setRelations);
 
@@ -357,7 +357,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
         {
-            MethodInstance template_m_getRelations = new MethodInstance(null, typeof(RootCacheValue), "GetRelations");
+            MethodInstance template_m_getRelations = new MethodInstance(null, typeof(RootCacheValue), typeof(IObjRef[][]), "GetRelations");
 
             IMethodVisitor mv = VisitMethod(template_m_getRelations);
 

@@ -34,13 +34,7 @@ import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CacheBytecodeModule;
-import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
-import de.osthus.ambeth.ioc.EventModule;
-import de.osthus.ambeth.ioc.ServiceModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -51,7 +45,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.Unit;
-import de.osthus.ambeth.testutil.AbstractIocTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -60,11 +54,10 @@ import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheWeakActive, value = "false"),
-		@TestProperties(name = CacheConfigurationConstants.CacheServiceRegistryActive, value = "false") })
-@TestModule({ BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class, CompositeIdModule.class,
-		AbstractCacheTestModule.class, EventModule.class, ServiceModule.class })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/model/material-materialgroup-unit-orm.xml") })
+@TestModule(AbstractCacheTestModule.class)
 @TestRebuildContext
-public class RootCacheTest extends AbstractIocTest
+public class RootCacheTest extends AbstractInformationBusTest
 {
 	@Autowired
 	protected ICacheFactory cacheFactory;
@@ -315,12 +308,13 @@ public class RootCacheTest extends AbstractIocTest
 		Integer id = 3;
 		Long version = 2l;
 		String name = "test unit name";
-		Object[] primitives = { name };
 		IObjRef[][] relations = ObjRef.EMPTY_ARRAY_ARRAY;
 
 		ChildCache targetCache = beanContext.registerAnonymousBean(ChildCache.class).propertyValue("Parent", fixture).finish();
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+		Object[] primitives = new Object[metaData.getPrimitiveMembers().length];
+		primitives[metaData.getIndexByPrimitiveName("Name")] = name;
 
 		RootCacheValue rcv = new DefaultRootCacheValue(entityType);
 		rcv.setId(id);

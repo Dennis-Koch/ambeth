@@ -10,7 +10,6 @@ import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.copy.IObjectCopier;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -26,10 +25,8 @@ import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheRetrieverMock implements IInitializingBean, ICacheRetriever, IMergeService, ICacheService, IStartingBean
-// , IClientServiceFactory
+public class CacheRetrieverMock implements ICacheRetriever, IMergeService, ICacheService, IStartingBean
 {
 	protected final HashMap<IObjRef, ILoadContainer> databaseMap = new HashMap<IObjRef, ILoadContainer>();
 
@@ -40,13 +37,6 @@ public class CacheRetrieverMock implements IInitializingBean, ICacheRetriever, I
 	protected IObjectCopier objectCopier;
 
 	protected Object reader;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCopier, "ObjectCopier");
-	}
 
 	public void setReader(Object reader)
 	{

@@ -8,13 +8,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.model.BlobObject;
 import de.osthus.ambeth.persistence.jdbc.lob.BlobTest.BlobTestModule;
 import de.osthus.ambeth.service.BlobObjectService;
 import de.osthus.ambeth.service.IBlobObjectService;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLData("blob_data.sql")
 @SQLStructure("blob_structure.sql")
 @TestModule(BlobTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/lob/blob_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/lob/blob_orm.xml")
 public class BlobTest extends AbstractPersistenceTest
 {
 	public static class BlobTestModule implements IInitializingModule

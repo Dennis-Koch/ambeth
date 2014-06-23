@@ -25,7 +25,9 @@ namespace De.Osthus.Ambeth.Ioc
     [FrameworkModule]
     public class MergeModule : IInitializingModule
     {
-        public static readonly String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
+        public const String INDEPENDENT_META_DATA_READER = "independentEntityMetaDataReader";
+
+        public const String REMOTE_ENTITY_METADATA_PROVIDER = "entityMetaDataProvider.remote";
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public virtual bool IsNetworkClientMode { get; set; }
@@ -49,11 +51,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterAutowireableBean<CompositeIdTemplate, CompositeIdTemplate>();
 
-            beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
-
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
-            beanContextFactory.RegisterBean<RelationProvider>("relationProvider").Autowireable<IRelationProvider>();
             beanContextFactory.RegisterAutowireableBean<IObjRefHelper, ORIHelper>();
             beanContextFactory.RegisterBean<CUDResultHelper>("cudResultHelper").Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
 
@@ -63,38 +62,34 @@ namespace De.Osthus.Ambeth.Ioc
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
 
+            IBeanConfiguration entityMetaDataProvider = beanContextFactory.RegisterAnonymousBean<EntityMetaDataProvider>()
+                .PropertyRef("ValueObjectMap", valueObjectMap)
+                .Autowireable<IEntityMetaDataProvider>()
+                .Autowireable<IEntityMetaDataExtendable>()
+                .Autowireable<IEntityMetaDataRefresher>()
+                .Autowireable<IValueObjectConfigExtendable>();
+
             if (!IndependentMetaData)
             {
                 beanContextFactory.RegisterBean<EntityMetaDataConverter>("entityMetaDataConverter");
                 DedicatedConverterUtil.BiLink(beanContextFactory, "entityMetaDataConverter", typeof(EntityMetaData), typeof(EntityMetaDataTransfer));
 
-                beanContextFactory.RegisterBean<EntityMetaDataClient>("entityMetaDataClient");
-
-                IBeanConfiguration beanConfig = beanContextFactory.RegisterBean<EntityMetaDataCache>("entityMetaDataCache")
-                    .PropertyRefs("entityMetaDataClient").PropertyRef("ValueObjectMap", valueObjectMap)
-                    .Autowireable<IEntityMetaDataProvider>();
-                if (GenericTransferMapping)
-                {
-                    beanConfig.Autowireable<IValueObjectConfigExtendable>();
-                }
+                beanContextFactory.RegisterBean<EntityMetaDataClient>(REMOTE_ENTITY_METADATA_PROVIDER);
             }
             else
             {
-                beanContextFactory.RegisterBean<EntityMetaDataProvider>("independentMetaDataProvider")
-                    .PropertyRef("ValueObjectMap", valueObjectMap)
-                    .Autowireable<IEntityMetaDataProvider>()
-                    .Autowireable<IEntityMetaDataExtendable>()
-                    .Autowireable<IValueObjectConfigExtendable>();
-
                 beanContextFactory.RegisterBean<IndependentEntityMetaDataReader>(INDEPENDENT_META_DATA_READER);
 
                 beanContextFactory.RegisterBean("ormXmlReader", typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, typeof(IOrmXmlReaderRegistry))
                         .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, typeof(IOrmXmlReaderExtendable))
                         .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").Autowireable(typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable));
                 beanContextFactory.RegisterBean<OrmXmlReaderLegathy>("ormXmlReaderLegathy");
-                beanContextFactory.RegisterBean<OrmXmlReader20>("ormXmlReader_2.0");
-                beanContextFactory.Link("ormXmlReader_2.0").To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
+			    IBeanConfiguration ormXmlReader20BC = beanContextFactory.RegisterAnonymousBean<OrmXmlReader20>();
+			    beanContextFactory.Link(ormXmlReader20BC).To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
+
+			    beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
             }
+            beanContextFactory.RegisterAnonymousBean<RelationProvider>().Autowireable<IRelationProvider>();
 
             Type entityFactoryType = this.EntityFactoryType;
             if (entityFactoryType == null)
@@ -110,7 +105,7 @@ namespace De.Osthus.Ambeth.Ioc
             if (IsNetworkClientMode && IsMergeServiceBeanActive)
             {
                 beanContextFactory.RegisterBean<ClientServiceBean>("mergeServiceWCF")
-                    .PropertyValue("Interface", typeof(IMergeService))
+                    .PropertyValue("Interface", typeof(IMergeServiceExtension))
                     .PropertyValue("SyncRemoteInterface", typeof(IMergeServiceWCF))
                     .PropertyValue("AsyncRemoteInterface", typeof(IMergeClient));
                 // beanContextFactory.registerBean<MergeServiceDelegate>("mergeService").autowireable<IMergeService>();

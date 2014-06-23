@@ -9,7 +9,7 @@ import org.junit.runners.Suite.SuiteClasses;
 		FilterToQueryBuilderTest.class, //
 		PropertyQueryTest.class, //
 		Query10000Test.class, //
-		QueryMassdataTest.class, //
+		// QueryMassdataTest.class, //
 		QueryTest.class,//
 		StoredFunctionTest.class, //
 		de.osthus.ambeth.query.alternateid.MultiAlternateIdQueryTest.class, //

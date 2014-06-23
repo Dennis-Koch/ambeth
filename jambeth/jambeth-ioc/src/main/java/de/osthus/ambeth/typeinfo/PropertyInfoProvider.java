@@ -191,7 +191,8 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				{
 					methodAccess = MethodAccess.get(type);
 				}
-				if (methodAccess != null)
+				if (methodAccess != null
+						&& (getter == null || !Modifier.isAbstract(getter.getModifiers()) && (setter == null || !Modifier.isAbstract(setter.getModifiers()))))
 				{
 					// AbstractAccessor accessor = accessorTypeProvider.getAccessorType(type, propertyName);
 					// propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, objectCollector, accessor);

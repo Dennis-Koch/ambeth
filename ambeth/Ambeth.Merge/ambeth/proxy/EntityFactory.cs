@@ -30,6 +30,9 @@ namespace De.Osthus.Ambeth.Proxy
         [Autowired]
         public IServiceContext BeanContext { protected get; set; }
 
+        [Autowired]
+        public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
+        
         [Autowired(Optional = true)]
         public IBytecodePrinter BytecodePrinter { protected get; set; }
 
@@ -37,7 +40,7 @@ namespace De.Osthus.Ambeth.Proxy
         public ICacheModification CacheModification { protected get; set; }
 
         [Autowired]
-        public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
+        public IEntityMetaDataRefresher EntityMetaDataRefresher { protected get; set; }
         
         [Autowired]
         public IProxyFactory ProxyFactory { protected get; set; }
@@ -180,54 +183,63 @@ namespace De.Osthus.Ambeth.Proxy
         
         public override Object CreateEntity(Type entityType)
         {
-            IEntityFactoryExtension extension = entityFactoryExtensions.GetExtension(entityType);
+            Type mappedEntityType = entityType;
+		    IEntityFactoryExtension extension = entityFactoryExtensions.GetExtension(entityType);
 		    if (extension != null && extension != this)
 		    {
-			    Type mappedEntityType = extension.GetMappedEntityType(entityType);
-			    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(mappedEntityType);
-			    Object entity = CreateEntityIntern(metaData, mappedEntityType);
-			    return extension.PostProcessMappedEntity(entityType, metaData, entity);
+			    mappedEntityType = extension.GetMappedEntityType(entityType);
 		    }
-		    return base.CreateEntity(entityType);
-        }
-
-        public override Object CreateEntity(IEntityMetaData metaData)
-        {
-            Type entityType = metaData.EntityType;
-		    IEntityFactoryExtension extension = entityFactoryExtensions.GetExtension(entityType);
-		    Type mappedEntityType = extension != null && extension != this ? extension.GetMappedEntityType(entityType) : entityType;
-
-		    Object entity = CreateEntityIntern(metaData, mappedEntityType);
-		    if (extension != null && extension != this)
+		    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(mappedEntityType);
+		    if (metaData.EnhancedType == null)
+		    {
+                ((EntityMetaData)metaData).EnhancedType = BytecodeEnhancer.GetEnhancedType(mappedEntityType, EntityEnhancementHint.Instance);
+                EntityMetaDataRefresher.RefreshMembers(metaData);
+		    }
+		    Object entity = CreateEntityIntern(metaData);
+            if (extension != null && !Object.ReferenceEquals(extension, this))
 		    {
 			    entity = extension.PostProcessMappedEntity(entityType, metaData, entity);
 		    }
 		    return entity;
         }
 
-        protected Object CreateEntityIntern(IEntityMetaData metaData, Type entityType)
+        public override Object CreateEntity(IEntityMetaData metaData)
+        {
+            Type entityType = metaData.EntityType;
+		    IEntityFactoryExtension extension = entityFactoryExtensions.GetExtension(entityType);
+		    if (metaData.EnhancedType == null)
+		    {
+			    Type mappedEntityType = entityType;
+			    if (extension != null && extension != this)
+			    {
+				    mappedEntityType = extension.GetMappedEntityType(mappedEntityType);
+			    }
+			    ((EntityMetaData) metaData).EnhancedType = BytecodeEnhancer.GetEnhancedType(mappedEntityType, EntityEnhancementHint.Instance);
+                EntityMetaDataRefresher.RefreshMembers(metaData);
+		    }
+		    Object entity = CreateEntityIntern(metaData);
+		    if (extension != null && !Object.ReferenceEquals(extension, this))
+		    {
+			    entity = extension.PostProcessMappedEntity(entityType, metaData, entity);
+		    }
+		    return entity;
+        }
+
+        protected Object CreateEntityIntern(IEntityMetaData metaData)
 	    {
 		    try
 		    {
-			    if (BytecodeEnhancer != null)
-			    {
-				    entityType = BytecodeEnhancer.GetEnhancedType(entityType, EntityEnhancementHint.Instance);
-			    }
-			    if (!entityType.IsInterface)
-			    {
-				    ConstructorInfo constructor = GetConstructor(typeToConstructorMap, entityType);
-				    Object[] args = GetConstructorArguments(constructor);
-				    Object entity = constructor.Invoke(args);
-				    PostProcessEntity(entity, metaData);
-				    return entity;
-			    }
-			    throw new ArgumentException("It is not possible to create interface entities without bytecode enhancement");
+                ConstructorInfo constructor = GetConstructor(typeToConstructorMap, metaData.EnhancedType);
+				Object[] args = GetConstructorArguments(constructor);
+				Object entity = constructor.Invoke(args);
+				PostProcessEntity(entity, metaData);
+				return entity;
 		    }
 		    catch (Exception e)
 		    {
 			    if (BytecodePrinter != null)
 			    {
-				    throw RuntimeExceptionUtil.Mask(e, BytecodePrinter.ToPrintableBytecode(entityType));
+                    throw RuntimeExceptionUtil.Mask(e, BytecodePrinter.ToPrintableBytecode(metaData.EnhancedType));
 			    }
 			    throw;
 		    }

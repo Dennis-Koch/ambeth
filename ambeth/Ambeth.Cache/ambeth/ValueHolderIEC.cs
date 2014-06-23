@@ -190,7 +190,7 @@ namespace De.Osthus.Ambeth.Cache
                     currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
                     continue;
                 }
-                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, memberItem, Type.EmptyTypes);
+                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, Type.EmptyTypes);
                 if (mi != null)
                 {
                     parentObjectType = currType;
@@ -276,7 +276,7 @@ namespace De.Osthus.Ambeth.Cache
                     currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
                     continue;
                 }
-                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, memberItem, new Type[0]);
+                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, Type.EmptyTypes);
                 if (mi != null)
                 {
                     parentObjectType = currType;

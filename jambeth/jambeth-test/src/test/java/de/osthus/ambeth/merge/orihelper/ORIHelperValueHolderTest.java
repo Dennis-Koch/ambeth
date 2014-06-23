@@ -8,6 +8,7 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -16,7 +17,6 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -26,7 +26,7 @@ import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml")
 public class ORIHelperValueHolderTest extends AbstractPersistenceTest
 {
 	protected ICache cache;

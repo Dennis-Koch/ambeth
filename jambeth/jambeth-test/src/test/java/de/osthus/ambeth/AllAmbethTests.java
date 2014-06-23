@@ -11,7 +11,6 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 @ExcludeCategory(SlowTests.class)
 @SuiteClasses({ de.osthus.ambeth.cache.AllBundleCacheTests.class, //
 		de.osthus.ambeth.bytecode.AllBytecodeTests.class, //
-		de.osthus.ambeth.AllCacheServerTests.class, //
 		de.osthus.ambeth.AllDataChangePersistenceTests.class, //
 		de.osthus.ambeth.AllIocTests.class,//
 		de.osthus.ambeth.AllMergeBytecodeTests.class, //
@@ -19,6 +18,7 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 		de.osthus.ambeth.AllMergeTests.class, //
 		de.osthus.ambeth.AllUtilTests.class, //
 		de.osthus.ambeth.ioc.AllIocTests.class, //
+		de.osthus.ambeth.bytecode.AllBundleBytecodeTests.class, //
 		de.osthus.ambeth.merge.mergecontroller.AllMergeControllerTests.class, //
 		de.osthus.ambeth.merge.orihelper.AllORIHelperTests.class, //
 		de.osthus.ambeth.orm20.AllOrm20Tests.class, //

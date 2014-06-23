@@ -26,6 +26,7 @@ using De.Osthus.Ambeth.Crypto;
 using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Security.Transfer;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Rest
 {
@@ -36,14 +37,19 @@ namespace De.Osthus.Ambeth.Rest
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Autowired]
         public IAuthenticationHolder AuthenticationHolder { protected get; set; }
 
+        [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
 
+        [Autowired(XmlModule.CYCLIC_XML_HANDLER)]
         public ICyclicXmlHandler CyclicXmlHandler { protected get; set; }
 
+        [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
+        [Autowired]
         public IEncryption Encryption { protected get; set; }
 
         [Property(ServiceConfigurationConstants.ServiceBaseUrl)]
@@ -72,11 +78,6 @@ namespace De.Osthus.Ambeth.Rest
 
         public virtual void AfterPropertiesSet()
         {
-            ParamChecker.AssertNotNull(AuthenticationHolder, "AuthenticationHolder");
-            ParamChecker.AssertNotNull(ConversionHelper, "ConversionHelper");
-            ParamChecker.AssertNotNull(CyclicXmlHandler, "CyclicXmlHandler");
-            ParamChecker.AssertNotNull(Encryption, "Encryption");
-            ParamChecker.AssertNotNull(ServiceBaseUrl, "ServiceBaseUrl");
             ParamChecker.AssertNotNull(ServiceName, "ServiceName");
 
             //String authInfo = UserName + ":" + Encryption.Encrypt(.password;//TODO Encryption.encrypt(password);

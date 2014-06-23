@@ -24,27 +24,27 @@ public class ConstructorInstance extends MethodInstance
 
 	public ConstructorInstance(java.lang.reflect.Constructor<?> constructor)
 	{
-		super(Type.getType(constructor.getDeclaringClass()), TypeUtil.getModifiersToAccess(constructor.getModifiers()), CONSTRUCTOR_NAME,
-				getSignature(constructor), Type.VOID_TYPE, TypeUtil.getClassesToTypes(constructor.getParameterTypes()));
+		super(Type.getType(constructor.getDeclaringClass()), TypeUtil.getModifiersToAccess(constructor.getModifiers()), Type.VOID_TYPE, CONSTRUCTOR_NAME,
+				getSignature(constructor), TypeUtil.getClassesToTypes(constructor.getParameterTypes()));
 	}
 
 	public ConstructorInstance(Type owner, int access, String signature, Type... parameters)
 	{
-		super(owner, access, CONSTRUCTOR_NAME, signature, Type.VOID_TYPE, parameters);
+		super(owner, access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, parameters);
 	}
 
 	public ConstructorInstance(Class<?> owner, int access, String signature, Class<?>... parameters)
 	{
-		super(Type.getType(owner), access, CONSTRUCTOR_NAME, signature, Type.VOID_TYPE, TypeUtil.getClassesToTypes(parameters));
+		super(Type.getType(owner), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, TypeUtil.getClassesToTypes(parameters));
 	}
 
 	public ConstructorInstance(int access, String signature, Type... parameters)
 	{
-		super(BytecodeBehaviorState.getState().getNewType(), access, CONSTRUCTOR_NAME, signature, Type.VOID_TYPE, parameters);
+		super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, parameters);
 	}
 
 	public ConstructorInstance(int access, String signature, Class<?>... parameters)
 	{
-		super(BytecodeBehaviorState.getState().getNewType(), access, CONSTRUCTOR_NAME, signature, Type.VOID_TYPE, TypeUtil.getClassesToTypes(parameters));
+		super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, TypeUtil.getClassesToTypes(parameters));
 	}
 }

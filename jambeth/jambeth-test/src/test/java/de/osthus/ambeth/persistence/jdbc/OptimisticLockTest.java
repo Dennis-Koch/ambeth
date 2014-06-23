@@ -4,13 +4,13 @@ import javax.persistence.OptimisticLockException;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.mapping.IMapperService;
 import de.osthus.ambeth.mapping.IMapperServiceFactory;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.TestServicesModule;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -22,9 +22,9 @@ import de.osthus.ambeth.transfer.MaterialVO;
 @TestModule({ TestServicesModule.class })
 @TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "orm.xml"),
-		@TestProperties(name = ConfigurationConstants.valueObjectFile, value = "de/osthus/ambeth/persistence/jdbc/mapping/value-object.xml"),
-		@TestProperties(name = ConfigurationConstants.GenericTransferMapping, value = "true") })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "de/osthus/ambeth/persistence/jdbc/mapping/value-object.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
 @SQLStructure("JDBCDatabase_structure.sql")
 @SQLData("Example_data.sql")
 public class OptimisticLockTest extends AbstractPersistenceTest

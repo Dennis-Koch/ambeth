@@ -13,13 +13,13 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -30,7 +30,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLStructure("ChildCacheDirectObjRefTest_structure.sql")
 @SQLData("ChildCacheDirectObjRefTest_data.sql")
 @TestModule(ProcessServiceTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml")
 public class ChildCacheDirectObjRefTest extends AbstractPersistenceTest
 {
 	protected ICache fixture;

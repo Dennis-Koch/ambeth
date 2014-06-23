@@ -17,15 +17,15 @@ namespace De.Osthus.Ambeth.Bytecode
 
         public static PropertyInstance FindByTemplate(IPropertyInfo propertyTemplate, bool tryOnly)
         {
-            return FindByTemplate(propertyTemplate.Name, tryOnly);
+            return FindByTemplate(propertyTemplate.Name, propertyTemplate.PropertyType, tryOnly);
         }
 
         public static PropertyInstance FindByTemplate(PropertyInstance propertyTemplate, bool tryOnly)
         {
-            return FindByTemplate(propertyTemplate.Name, tryOnly);
+            return FindByTemplate(propertyTemplate.Name, propertyTemplate.PropertyType, tryOnly);
         }
 
-        public static PropertyInstance FindByTemplate(Type declaringType, String propertyName, bool tryOnly)
+        public static PropertyInstance FindByTemplate(Type declaringType, String propertyName, Type propertyType, bool tryOnly)
         {
             PropertyInfo pi = declaringType.GetProperty(propertyName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
             if (pi != null)
@@ -39,10 +39,15 @@ namespace De.Osthus.Ambeth.Bytecode
             throw new ArgumentException("No property found on class hierarchy: " + propertyName + ". Start type: " + declaringType.FullName);
         }
 
-        public static PropertyInstance FindByTemplate(String propertyName, bool tryOnly)
+        public static PropertyInstance FindByTemplate(String propertyName, Type propertyType, bool tryOnly)
+        {
+            return FindByTemplate(propertyName, propertyType != null ? NewType.GetType(propertyType) : null, tryOnly);
+        }
+
+        public static PropertyInstance FindByTemplate(String propertyName, NewType propertyType, bool tryOnly)
         {
             IBytecodeBehaviorState state = BytecodeBehaviorState.State;
-            PropertyInstance pi = state.GetProperty(propertyName);
+            PropertyInstance pi = state.GetProperty(propertyName, propertyType);
             if (pi != null)
             {
                 return pi;

@@ -30,7 +30,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             int? original = 5;
             int? clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             long? original = 5;
             long? clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -48,7 +48,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             Double original = 5;
             Double clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -57,7 +57,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             Single original = 5;
             Single clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             byte? original = 5;
             byte? clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             char? original = (char)5;
             char? clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             bool original = true;
             bool clone = ObjectCopier.Clone(original);
-            Assert.AreEqual(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -93,8 +93,8 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             DateTime original = new DateTime(DateTime.Now.Ticks - 1000);
             DateTime clone = ObjectCopier.Clone(original);
-            Assert.AreNotSame(original, clone);
-            Assert.AreEqual(original, clone);
+            Assert.AssertNotSame(original, clone);
+            Assert.AssertEquals(original, clone);
         }
 
         [TestMethod]
@@ -103,8 +103,8 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             StringBuilder original = new StringBuilder("abc");
             StringBuilder clone = ObjectCopier.Clone(original);
-            Assert.AreNotSame(original, clone);
-            Assert.AreEqual(original.ToString(), clone.ToString());
+            Assert.AssertNotSame(original, clone);
+            Assert.AssertEquals(original.ToString(), clone.ToString());
         }
 
         [TestMethod]
@@ -113,7 +113,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             byte[] original = new byte[] { 5, 4, 3, 2, 1 };
             byte[] clone = ObjectCopier.Clone(original);
-            Assert.AreNotSame(original, clone);
+            Assert.AssertNotSame(original, clone);
             CollectionAssert.AreEqual(original, clone);
         }
 
@@ -123,7 +123,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             Byte[] original = new Byte[] { 5, 4, 3, 2, 1 };
             Byte[] clone = ObjectCopier.Clone(original);
-            Assert.AreNotSame(original, clone);
+            Assert.AssertNotSame(original, clone);
             CollectionAssert.AreEqual(original, clone);
         }
 
@@ -133,7 +133,7 @@ namespace De.Osthus.Ambeth.Ioc
             InitManually(GetType());
             Object[][] original = new Object[][] { new Object[] { (int)5 }, new Object[] { (long)6, (Double)7 } };
             Object[][] clone = ObjectCopier.Clone(original);
-            Assert.AreNotSame(original, clone);
+            Assert.AssertNotSame(original, clone);
             for (int a = original.Length; a-- > 0; )
             {
                 CollectionAssert.AreEqual(original[a], clone[a]);

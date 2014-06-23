@@ -13,7 +13,6 @@ import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -24,7 +23,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 @SQLData("Relations_data.sql")
 @SQLStructure("Relations_structure.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode, value = "LAZY"),
-		@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/many/lazy/fk/reverse/none/orm.xml") })
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/relations/many/lazy/fk/reverse/none/orm.xml") })
 public class ManyLazyNoReverseRelationsTest extends AbstractRelationsTest
 {
 	@Test

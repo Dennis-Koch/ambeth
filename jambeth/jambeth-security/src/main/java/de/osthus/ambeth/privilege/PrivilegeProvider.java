@@ -279,6 +279,11 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 
 		for (IObjRef objRef : objRefs)
 		{
+			if (objRef == null)
+			{
+				result.add(null);
+				continue;
+			}
 			if (privilegeKey == null)
 			{
 				privilegeKey = new PrivilegeKey();

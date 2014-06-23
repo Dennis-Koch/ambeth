@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
+using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -17,27 +18,27 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static readonly String templatePropertyName = templateType.Name;
 
-        public static readonly MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, typeof(DataObjectTemplate), "ToBeUpdatedChanged",
+        public static readonly MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, typeof(DataObjectTemplate), typeof(void), "ToBeUpdatedChanged",
             typeof(IDataObject), typeof(bool), typeof(bool));
 
-        public static readonly PropertyInstance p_hasPendingChanges = PropertyInstance.FindByTemplate(typeof(IDataObject), "HasPendingChanges", false);
+        public static readonly PropertyInstance p_hasPendingChanges = PropertyInstance.FindByTemplate(typeof(IDataObject), "HasPendingChanges", typeof(bool), false);
 
-        public static readonly PropertyInstance template_p_toBeCreated = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeCreated", false);
+        public static readonly PropertyInstance template_p_toBeCreated = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeCreated", typeof(bool), false);
 
-        public static readonly PropertyInstance template_p_toBeUpdated = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeUpdated", false);
+        public static readonly PropertyInstance template_p_toBeUpdated = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeUpdated", typeof(bool), false);
 
-        public static readonly PropertyInstance template_p_toBeDeleted = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeDeleted", false);
+        public static readonly PropertyInstance template_p_toBeDeleted = PropertyInstance.FindByTemplate(typeof(IDataObject), "ToBeDeleted", typeof(bool), false);
 
         public static readonly ConstructorInfo c_ignoreToBeUpdated = typeof(IgnoreToBeUpdated).GetConstructor(Type.EmptyTypes);
 
         public static PropertyInstance GetDataObjectTemplatePI(IClassVisitor cv)
         {
-            PropertyInstance p_dataObjectTemplate = State.GetProperty(templatePropertyName);
+            Object bean = State.BeanContext.GetService<DataObjectTemplate>();
+            PropertyInstance p_dataObjectTemplate = State.GetProperty(templatePropertyName, NewType.GetType(bean.GetType()));
             if (p_dataObjectTemplate != null)
             {
                 return p_dataObjectTemplate;
             }
-            Object bean = State.BeanContext.GetService<DataObjectTemplate>();
             return cv.ImplementAssignedReadonlyProperty(templatePropertyName, bean);
         }
 

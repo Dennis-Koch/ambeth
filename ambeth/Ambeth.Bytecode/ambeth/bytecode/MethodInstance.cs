@@ -28,15 +28,15 @@ namespace De.Osthus.Ambeth.Bytecode
             {
                 return null;
             }
-            return FindByTemplate(tryOnly, methodTemplate.Name, methodTemplate.Parameters);
+            return FindByTemplate(tryOnly, methodTemplate.ReturnType, methodTemplate.Name, methodTemplate.Parameters);
         }
 
-        public static MethodInstance FindByTemplate(bool tryOnly, String methodName, params Type[] parameters)
+        public static MethodInstance FindByTemplate(bool tryOnly, Type returnType, String methodName, params Type[] parameters)
 	    {
-		    return FindByTemplate(tryOnly, methodName, TypeUtil.GetClassesToTypes(parameters));
+		    return FindByTemplate(tryOnly, NewType.GetType(returnType), methodName, TypeUtil.GetClassesToTypes(parameters));
 	    }
 
-        public static MethodInstance FindByTemplate(bool tryOnly, String methodName, params NewType[] parameters)
+        public static MethodInstance FindByTemplate(bool tryOnly, NewType returnType, String methodName, params NewType[] parameters)
         {
             IBytecodeBehaviorState state = BytecodeBehaviorState.State;
             foreach (MethodInstance methodOnNewType in state.GetAlreadyImplementedMethodsOnNewType())
@@ -63,13 +63,17 @@ namespace De.Osthus.Ambeth.Bytecode
                 {
                     return methodOnNewType;
                 }
+                if (returnType == null || methodOnNewType.ReturnType.Equals(returnType))
+                {
+                    return methodOnNewType;
+                }
             }
             Type currType = state.CurrentType;
             if (!currType.IsInterface)
             {
                 while (currType != null && currType != typeof(Object))
                 {
-                    MethodInfo method = ReflectUtil.GetDeclaredMethod(true, currType, methodName, parameters);
+                    MethodInfo method = ReflectUtil.GetDeclaredMethod(true, currType, returnType, methodName, parameters);
                     if (method != null)
                     {
                         if (method.Attributes.HasFlag(MethodAttributes.Abstract))
@@ -133,8 +137,8 @@ namespace De.Osthus.Ambeth.Bytecode
 
         protected readonly MethodAttributes access;
 
-        public MethodInstance(NewType owner, Type declaringTypeOfMethod, String methodName, params Type[] parameters)
-            : this(owner != null ? owner : NewType.GetType(declaringTypeOfMethod), ReflectUtil.GetDeclaredMethod(false, declaringTypeOfMethod, methodName,
+        public MethodInstance(NewType owner, Type declaringTypeOfMethod, Type returnType, String methodName, params Type[] parameters)
+            : this(owner != null ? owner : NewType.GetType(declaringTypeOfMethod), ReflectUtil.GetDeclaredMethod(false, declaringTypeOfMethod, returnType, methodName,
                 parameters))
         {
             // Intended blank
@@ -147,19 +151,19 @@ namespace De.Osthus.Ambeth.Bytecode
         }
 
         public MethodInstance(NewType owner, MethodBase method)
-            : this(owner, CheckPublic(method), method.Name, GetReturnType(method), TypeUtil.GetClassesToTypes(method.GetParameters()))
+            : this(owner, CheckPublic(method), GetReturnType(method), method.Name, TypeUtil.GetClassesToTypes(method.GetParameters()))
         {
             this.method = method;
         }
         
         public MethodInstance(NewType owner, MethodBase method, params NewType[] parameters)
-            : this(owner, CheckPublic(method), method.Name, GetReturnType(method), parameters)
+            : this(owner, CheckPublic(method), GetReturnType(method), method.Name, parameters)
         {
             this.method = method;
         }
-        
-        public MethodInstance(Type owner, MethodAttributes access, String name, Type returnType, params Type[] parameters)
-            : this(owner != null ? NewType.GetType(owner) : null, access, name, NewType.GetType(returnType), TypeUtil.GetClassesToTypes(parameters))
+
+        public MethodInstance(Type owner, MethodAttributes access, Type returnType, String name, params Type[] parameters)
+            : this(owner != null ? NewType.GetType(owner) : null, access, NewType.GetType(returnType), name, TypeUtil.GetClassesToTypes(parameters))
         {
             // Intended blank
         }
@@ -177,7 +181,7 @@ namespace De.Osthus.Ambeth.Bytecode
         //    this.signature = signature;
         //}
 
-        public MethodInstance(NewType owner, MethodAttributes access, String name, NewType returnType, params NewType[] parameters)
+        public MethodInstance(NewType owner, MethodAttributes access, NewType returnType, String name, params NewType[] parameters)
         {
             this.owner = owner;
             this.access = access;
@@ -188,12 +192,12 @@ namespace De.Osthus.Ambeth.Bytecode
 
         public MethodInstance DeriveOwner()
         {
-            return new MethodInstance(BytecodeBehaviorState.State.NewType, CheckAbstract(BytecodeBehaviorState.State.NewType, Access), Name, ReturnType, Parameters);
+            return new MethodInstance(BytecodeBehaviorState.State.NewType, CheckAbstract(BytecodeBehaviorState.State.NewType, Access), ReturnType, Name, Parameters);
         }
 
         public MethodInstance DeriveName(String methodName)
         {
-            return new MethodInstance(Owner, Access, methodName, ReturnType, Parameters);
+            return new MethodInstance(Owner, Access, ReturnType, methodName, Parameters);
         }
 
         public MethodBase Method

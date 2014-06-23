@@ -12,22 +12,22 @@ namespace De.Osthus.Ambeth.Accessor
 
         protected readonly bool readable, writable;
 
-        public DefaultAccessor(Type type, String propertyName)
+        public DefaultAccessor(Type type, String propertyName, Type propertyType)
             : base(type, propertyName)
         {
-            getter = ReflectUtil.GetDeclaredMethod(true, type, "get_" + propertyName);
+            getter = ReflectUtil.GetDeclaredMethod(true, type, propertyType, "get_" + propertyName);
             if (getter == null)
             {
-                getter = ReflectUtil.GetDeclaredMethod(true, type, "Get" + propertyName);
+                getter = ReflectUtil.GetDeclaredMethod(true, type, propertyType, "Get" + propertyName);
             }
             if (getter == null)
             {
-                getter = ReflectUtil.GetDeclaredMethod(true, type, "Is" + propertyName);
+                getter = ReflectUtil.GetDeclaredMethod(true, type, propertyType, "Is" + propertyName);
             }
-            setter = ReflectUtil.GetDeclaredMethod(true, type, "set_" + propertyName, new Type[] { null });
+            setter = ReflectUtil.GetDeclaredMethod(true, type, propertyType, "set_" + propertyName, propertyType);
             if (setter == null)
             {
-                setter = ReflectUtil.GetDeclaredMethod(true, type, "Set" + propertyName, new Type[] { null });
+                setter = ReflectUtil.GetDeclaredMethod(true, type, null, "Set" + propertyName, propertyType);
             }
             readable = getter != null && getter.IsPublic;
             writable = setter != null && setter.IsPublic;

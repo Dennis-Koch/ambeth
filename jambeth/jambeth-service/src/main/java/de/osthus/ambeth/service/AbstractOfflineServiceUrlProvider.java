@@ -1,10 +1,10 @@
 package de.osthus.ambeth.service;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 
 public abstract class AbstractOfflineServiceUrlProvider implements IServiceUrlProvider, IOfflineListenerExtendable, IInitializingBean
 {
@@ -17,7 +17,7 @@ public abstract class AbstractOfflineServiceUrlProvider implements IServiceUrlPr
 	}
 
 	@Override
-	@Property(name = ConfigurationConstants.OfflineMode, defaultValue = "false")
+	@Property(name = ServiceConfigurationConstants.OfflineMode, defaultValue = "false")
 	public void setOffline(boolean isOffline)
 	{
 		if (this.isOffline == isOffline)

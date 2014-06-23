@@ -9,8 +9,6 @@ namespace De.Osthus.Ambeth.Cache.Config
     {
         public const String CacheServiceName = "cache.service.name";
 
-        public const String CacheServiceRegistryActive = "cache.serviceregistry.active";
-
     	public const String EntityEnhancerActive = "cache.entityenhancer.active";
 
         public const String ServiceResultCacheActive = "cache.resultcache.active";

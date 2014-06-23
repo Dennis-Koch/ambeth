@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Ioc.Factory;
-using De.Osthus.Ambeth.Ioc.Hierarchy;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using De.Osthus.Ambeth.Config;
-using De.Osthus.Ambeth.Ioc.Config;
-using De.Osthus.Ambeth.Ioc.Extendable;
+﻿using De.Osthus.Ambeth.Ioc.Exceptions;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Testutil;
-using De.Osthus.Ambeth.Ioc.Exceptions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace De.Osthus.Ambeth.Ioc.Link
 {
@@ -76,16 +68,16 @@ namespace De.Osthus.Ambeth.Ioc.Link
         protected void testValidContext(int expectedCount, int expectedListenerReceivedCount, int expectedPropertyChangedReceivedCount)
         {
             InitManually();
-            Assert.AreEqual(expectedCount, testRegistry.GetTestListeners().Length);
-            Assert.AreEqual(expectedListenerReceivedCount, listenerReceivedCount);
-            Assert.AreEqual(expectedPropertyChangedReceivedCount, propertyChangedReceivedCount);
+            Assert.AssertEquals(expectedCount, testRegistry.GetTestListeners().Length);
+            Assert.AssertEquals(expectedListenerReceivedCount, listenerReceivedCount);
+            Assert.AssertEquals(expectedPropertyChangedReceivedCount, propertyChangedReceivedCount);
         }
 
         protected void testValidContextEvent(int expectedCount)
         {
             InitManually();
-            Assert.AreEqual(expectedCount, testRegistry.GetPceListeners().Length);
-            Assert.AreEqual(expectedCount, propertyChangedReceivedCount);
+            Assert.AssertEquals(expectedCount, testRegistry.GetPceListeners().Length);
+            Assert.AssertEquals(expectedCount, propertyChangedReceivedCount);
         }
 
         [TestMethod]

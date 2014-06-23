@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.LinkedHashSet;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
@@ -21,13 +22,12 @@ import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.QueryEntity;
 import de.osthus.ambeth.query.StringQuery;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 
-@TestProperties(name = ConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
 @SQLStructure("../Query_structure.sql")
 @SQLData("../Query_data.sql")
 public class SqlQueryTest extends AbstractPersistenceTest

@@ -141,8 +141,8 @@ namespace De.Osthus.Ambeth.Typeinfo
         public override void RefreshAccessors(Type realType)
 	    {
             base.RefreshAccessors(realType);
-		    Getter = ReflectUtil.GetDeclaredMethod(true, realType, "get_" + Name);
-		    Setter = ReflectUtil.GetDeclaredMethod(true, realType, "set_" + Name, PropertyType);
+		    Getter = ReflectUtil.GetDeclaredMethod(true, realType, PropertyType, "get_" + Name);
+		    Setter = ReflectUtil.GetDeclaredMethod(true, realType, null, "set_" + Name, PropertyType);
             IsWritable = this.Setter != null && !Setter.IsPrivate;
 		    IsReadable = this.Getter != null && !Getter.IsPrivate;
 	    }

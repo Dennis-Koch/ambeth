@@ -16,13 +16,13 @@ import org.junit.experimental.categories.Category;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.cacheretriever.CacheRetrieverRegistryTest.CacheRetrieverRegistryTestModule;
+import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.service.config.ConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -32,8 +32,8 @@ import de.osthus.ambeth.testutil.category.ReminderTests;
 import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule(CacheRetrieverRegistryTestModule.class)
-@TestProperties(name = ConfigurationConstants.mappingFile, value = CacheRetrieverRegistryTest.basePath + "orm.xml;" + CacheRetrieverRegistryTest.basePath
-		+ "external-orm.xml")
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = CacheRetrieverRegistryTest.basePath + "orm.xml;"
+		+ CacheRetrieverRegistryTest.basePath + "external-orm.xml")
 @SQLData("CacheRetrieverRegistry_data.sql")
 @SQLStructure("CacheRetrieverRegistry_structure.sql")
 public class CacheRetrieverRegistryTest extends AbstractPersistenceTest

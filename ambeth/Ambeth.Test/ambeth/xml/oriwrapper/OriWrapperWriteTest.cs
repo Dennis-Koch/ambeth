@@ -10,10 +10,10 @@ namespace De.Osthus.Ambeth.Xml.Test
     [TestClass]
     [TestProperties(File = "ambeth/xml/oriwrapper/OriWrapperTestData.properties")]
     [TestProperties(Name = ServiceConfigurationConstants.MappingFile, Value = "ambeth/xml/oriwrapper/orm.xml")]
-    [TestModule(typeof(OriWrapperTestModule), typeof(XmlModule))]
-    public class OriWrapperWriteTest : AbstractIndependentClientTest
+    [TestModule(typeof(BootstrapScannerModule), typeof(OriWrapperTestModule), typeof(XmlModule))]
+    public class OriWrapperWriteTest : AbstractInformationBusTest
     {
-        [Autowired]
+        [Autowired(XmlModule.CYCLIC_XML_HANDLER)]
         public ICyclicXmlHandler CyclicXmlHandler { protected get; set; }
 
         [Autowired]
@@ -31,7 +31,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getSimpleEntityTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getEntityWithRelationTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getMixedArrayTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -55,7 +55,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getMixedListTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -63,7 +63,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getMixedLinkedSetTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -71,7 +71,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getServiceDescriptionTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -79,7 +79,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getCreatedEntityTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set in CUDResut
                 testData = OriWrapperTestBed.getCreatedChildEntityTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -105,7 +105,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set
                 testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -118,7 +118,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set
                 testData = OriWrapperTestBed.getCreatedParentAndChildEntitiesInListTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set in CUDResut
                 testData = OriWrapperTestBed.getMultipleCreatedEntitiesTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -139,7 +139,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             OriWrapperTestBed.TestData testData = OriWrapperTestBed.getUpdatedEntityTestData();
             String xml = CyclicXmlHandler.Write(testData.obj);
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -152,7 +152,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set in CUDResut
                 testData = OriWrapperTestBed.getCreatedAndUpdatedEntitiesTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
 
         [TestMethod]
@@ -165,7 +165,7 @@ namespace De.Osthus.Ambeth.Xml.Test
                 // Compensate for loss of order in set in CUDResut
                 testData = OriWrapperTestBed.getCreatedAndExistingChildrenTestData2();
             }
-            Assert.AreEqual(testData.xml, xml);
+            Assert.AssertEquals(testData.xml, xml);
         }
     }
 }

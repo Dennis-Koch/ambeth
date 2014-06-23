@@ -136,13 +136,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual IMethodVisitor VisitMethod(MethodAttributes access, String name, Type returnType, params Type[] parameters)
 	    {
 		    IBytecodeBehaviorState state = State;
-            return VisitMethod(new MethodInstance(state.NewType.Type, access, name, returnType, parameters));
+            return VisitMethod(new MethodInstance(state.NewType.Type, access, returnType, name, parameters));
 	    }
 
         public virtual IMethodVisitor VisitMethod(MethodAttributes access, String name, NewType returnType, params NewType[] parameters)
         {
             IBytecodeBehaviorState state = State;
-            return VisitMethod(new MethodInstance(state.NewType, access, name, returnType, parameters));
+            return VisitMethod(new MethodInstance(state.NewType, access, returnType, name, parameters));
         }
 
         public virtual IMethodVisitor VisitMethod(MethodInstance method)
@@ -200,7 +200,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 }
                 if (propertyName != null)
                 {
-                    propertyInfo = State.GetProperty(propertyName);
+                    propertyInfo = State.GetProperty(propertyName, NewType.GetType(propertyType));
                     if (propertyInfo == null)
                     {
 #if SILVERLIGHT
@@ -306,9 +306,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ParamChecker.AssertParamNotNull(propertyName, "propertyName");
             ParamChecker.AssertParamNotNull(fieldValue, "fieldValue");
             FieldInstance field = ImplementStaticAssignedField("sf_" + propertyName, fieldValue);
-            MethodInstance getter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Static, "get_" + propertyName, field.Type);
+            MethodInstance getter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Static, field.Type, "get_" + propertyName);
             getter = HideFromDebug(ImplementGetter(getter, field));
-            PropertyInstance property = State.GetProperty(propertyName);
+            PropertyInstance property = State.GetProperty(propertyName, field.Type);
             if (property == null)
             {
                 throw new Exception("Should never happen");
@@ -356,7 +356,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (setter == null)
             {
                 setter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
-                    "set_" + property.Name, NewType.VOID_TYPE, property.PropertyType);
+                    NewType.VOID_TYPE, "set_" + property.Name, property.PropertyType);
             }
             ImplementSetter(setter, field);
             return PropertyInstance.FindByTemplate(property, false);
@@ -377,7 +377,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (getter == null)
             {
                 getter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.SpecialName,
-                    "get_" + property.Name, property.PropertyType);
+                    property.PropertyType, "get_" + property.Name);
             }
             ImplementGetter(getter, field);
             return PropertyInstance.FindByTemplate(property, false);
@@ -417,7 +417,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual PropertyInstance FireThisOnPropertyChange(PropertyInstance property, params String[] propertyNames)
         {
-            property = State.GetProperty(property.Name);
+            property = State.GetProperty(property.Name, property.PropertyType);
             foreach (String propertyName in propertyNames)
             {
                 property.AddAnnotation(c_ftopc, propertyName);
