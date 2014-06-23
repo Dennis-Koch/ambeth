@@ -4,7 +4,7 @@
 
 	<groupId>de.osthus.junit</groupId>
 	<artifactId>osthus-junit-categories</artifactId>
-	<version>0.3.0</version>
+	<version>0.3.1-SNAPSHOT</version>
 	<name>Osthus jUnit Categories</name>
 	<description>jUnit Categories for tests in Osthus projects</description>
 
