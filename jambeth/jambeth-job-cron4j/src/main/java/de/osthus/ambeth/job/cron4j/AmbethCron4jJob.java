@@ -8,6 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.job.IJob;
 import de.osthus.ambeth.log.ILogger;
@@ -23,15 +24,17 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected IJob job;
 
 	protected String jobName;
 
 	protected String userName;
 
-	protected byte[] userPass;
+	protected char[] userPass;
 
 	protected Lock writeLock = new ReentrantLock();
 
@@ -40,20 +43,8 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(job, "job");
 		ParamChecker.assertNotNull(jobName, "jobName");
 		ParamChecker.assertNotNull(userName, "userName");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setJob(IJob job)
-	{
-		this.job = job;
 	}
 
 	public void setJobName(String jobName)
@@ -64,11 +55,6 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	public void setUserName(String userName)
 	{
 		this.userName = userName;
-	}
-
-	public void setUserPass(byte[] userPass)
-	{
-		this.userPass = userPass;
 	}
 
 	@Override

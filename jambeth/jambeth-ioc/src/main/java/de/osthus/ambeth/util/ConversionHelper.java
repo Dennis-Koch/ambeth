@@ -401,6 +401,10 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			{
 				return new java.sql.Timestamp(((java.util.Date) value).getTime());
 			}
+			else if (java.util.Calendar.class.isAssignableFrom(type))
+			{
+				return new java.sql.Timestamp(((java.util.Calendar) value).getTimeInMillis());
+			}
 		}
 		else if (expectedType.isEnum())
 		{

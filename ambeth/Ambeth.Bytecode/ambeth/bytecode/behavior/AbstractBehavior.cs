@@ -23,50 +23,39 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             return NewType.GetType(member.DeclaringType);
         }
 
-        //protected ClassNode readClassNode(Type type)
-        //{
-        //    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        //    return readClassNode(classLoader.getResourceAsStream(NewType.getInternalName(type) + ".class"));
-        //}
-
-        //protected ClassNode readClassNode(InputStream is)
-        //{
-        //    try
-        //    {
-        //        ClassReader cr = new ClassReader(is);
-        //        ClassNode cn = new ClassNode();
-        //        cr.accept(cn, 0);
-        //        return cn;
-        //    }
-        //    catch (Throwable e)
-        //    {
-        //        throw RuntimeExceptionUtil.mask(e);
-        //    }
-        //    finally
-        //    {
-        //        try
-        //        {
-        //            is.close();
-        //        }
-        //        catch (IOException e)
-        //        {
-        //            // Intended blank
-        //        }
-        //    }
-        //}
-
         protected bool IsAnnotationPresent<V>(Type type) where V : Attribute
         {
             if (type == null)
             {
                 return false;
             }
-            if (AnnotationUtil.IsAnnotationPresent<V>(type, false))
-            {
-                return true;
-            }
-            return IsAnnotationPresent<V>(type.BaseType);
-        }
+            if (IsAnnotationPresentIntern<V>(type))
+		    {
+			    return true;
+		    }
+		    Type[] interfaces = type.GetInterfaces();
+		    foreach (Type interfaceType in interfaces)
+		    {
+			    if (IsAnnotationPresent<V>(interfaceType))
+			    {
+				    return true;
+			    }
+		    }
+		    return false;
+	    }
+
+	    protected bool IsAnnotationPresentIntern<V>(Type type) where V : Attribute
+	    {
+		    if (type == null)
+		    {
+			    return false;
+		    }
+		    if (AnnotationUtil.IsAnnotationPresent<V>(type, false))
+		    {
+			    return true;
+		    }
+            return IsAnnotationPresentIntern<V>(type.BaseType);
+	    }
 
         public virtual Type[] GetEnhancements()
         {

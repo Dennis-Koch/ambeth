@@ -175,7 +175,7 @@ namespace De.Osthus.Ambeth.Privilege
             List<IObjRef> missingObjRefs = new List<IObjRef>();
             lock (writeLock)
             {
-                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, userHandle);
+                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, userHandle, null);
                 if (missingObjRefs.Count == 0)
                 {
                     return result;
@@ -185,12 +185,19 @@ namespace De.Osthus.Ambeth.Privilege
             IList<PrivilegeResult> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
             lock (writeLock)
             {
+                HashMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities = null;
                 for (int a = 0, size = privilegeResults.Count; a < size; a++)
                 {
                     PrivilegeResult privilegeResult = privilegeResults[a];
                     IObjRef reference = privilegeResult.Reference;
 
                     PrivilegeKey privilegeKey = new PrivilegeKey(reference.RealType, reference.IdNameIndex, reference.Id, userSID);
+                    bool useCache = true;
+				    if (privilegeKey.Id == null)
+				    {
+					    useCache = false;
+					    privilegeKey.Id = reference;
+				    }
                     privilegeKey.SecurityScope = privilegeResult.SecurityScope.Name;
 
                     PrivilegeEnum[] privilegeEnums = privilegeResult.Privileges;
@@ -237,14 +244,25 @@ namespace De.Osthus.Ambeth.Privilege
                             }
                         }
                     }
-                    privilegeCache.Put(privilegeKey, indexedPrivilegeEnums);
+                    if (useCache)
+				    {
+					    privilegeCache.Put(privilegeKey, indexedPrivilegeEnums);
+				    }
+				    else
+				    {
+					    if (privilegeResultOfNewEntities == null)
+					    {
+						    privilegeResultOfNewEntities = new HashMap<PrivilegeKey, PrivilegeEnum[]>();
+					    }
+					    privilegeResultOfNewEntities.Put(privilegeKey, indexedPrivilegeEnums);
+				    }
                 }
-                return CreateResult(objRefs, securityScopes, null, userHandle);
+                return CreateResult(objRefs, securityScopes, null, userHandle, privilegeResultOfNewEntities);
             }
         }
 
         protected IList<IPrivilegeItem> CreateResult<V>(IEnumerable<V> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-                IUserHandle userHandle) where V : IObjRef
+                IUserHandle userHandle, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities) where V : IObjRef
         {
             PrivilegeKey privilegeKey = null;
 
@@ -257,17 +275,25 @@ namespace De.Osthus.Ambeth.Privilege
                 {
                     privilegeKey = new PrivilegeKey();
                 }
+                bool useCache = true;
                 privilegeKey.EntityType = objRef.RealType;
                 privilegeKey.IdIndex = objRef.IdNameIndex;
                 privilegeKey.Id = objRef.Id;
                 privilegeKey.userSID = userSID;
+                if (privilegeKey.Id == null)
+                {
+                    useCache = false;
+                    // use the ObjRef instance as the id
+                    privilegeKey.Id = objRef;
+                }
 
                 PrivilegeEnum[] mergedPrivilegeValues = null;
                 for (int a = securityScopes.Length; a-- > 0; )
                 {
                     privilegeKey.SecurityScope = securityScopes[a].Name;
 
-                    PrivilegeEnum[] existingPrivilegeValues = privilegeCache.Get(privilegeKey);
+                    PrivilegeEnum[] existingPrivilegeValues = useCache ? privilegeCache.Get(privilegeKey)
+                            : privilegeResultOfNewEntities != null ? privilegeResultOfNewEntities.Get(privilegeKey) : null;
                     if (existingPrivilegeValues == null)
                     {
                         mergedPrivilegeValues = null;

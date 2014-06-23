@@ -133,6 +133,10 @@ public class ObjRef implements IObjRef, IPrintable
 		}
 		Object id = getId();
 		Object otherId = obj.getId();
+		if (id == null || otherId == null)
+		{
+			return false;
+		}
 		if (!id.getClass().isArray() || !otherId.getClass().isArray())
 		{
 			return id.equals(otherId);

@@ -73,7 +73,34 @@ namespace De.Osthus.Ambeth.Merge.Transfer
             {
                 return false;
             }
-            return (IdNameIndex == obj.IdNameIndex) && Object.Equals(Id, obj.Id) && Object.Equals(RealType, obj.RealType);
+            if (IdNameIndex != obj.IdNameIndex || !RealType.Equals(obj.RealType))
+            {
+                return false;
+            }
+            Object id = Id;
+            Object otherId = obj.Id;
+            if (id == null || otherId == null)
+            {
+                return false;
+            }
+            if (!id.GetType().IsArray || !otherId.GetType().IsArray)
+            {
+                return id.Equals(otherId);
+            }
+            Object[] idArray = (Object[])id;
+            Object[] otherIdArray = (Object[])otherId;
+            if (idArray.Length != otherIdArray.Length)
+            {
+                return false;
+            }
+            for (int a = idArray.Length; a-- > 0; )
+            {
+                if (!idArray[a].Equals(otherIdArray[a]))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public override int GetHashCode()

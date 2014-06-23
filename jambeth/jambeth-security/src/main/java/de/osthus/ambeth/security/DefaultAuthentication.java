@@ -8,7 +8,7 @@ public class DefaultAuthentication implements IAuthentication, Serializable
 
 	protected String userName;
 
-	protected byte[] userPass;
+	protected char[] userPass;
 
 	protected PasswordType passwordType;
 
@@ -17,7 +17,7 @@ public class DefaultAuthentication implements IAuthentication, Serializable
 		// Intended blank
 	}
 
-	public DefaultAuthentication(String userName, byte[] userPass, PasswordType passwordType)
+	public DefaultAuthentication(String userName, char[] userPass, PasswordType passwordType)
 	{
 		this.userName = userName;
 		this.userPass = userPass;
@@ -31,7 +31,7 @@ public class DefaultAuthentication implements IAuthentication, Serializable
 	}
 
 	@Override
-	public byte[] getPassword()
+	public char[] getPassword()
 	{
 		return userPass;
 	}
@@ -41,7 +41,7 @@ public class DefaultAuthentication implements IAuthentication, Serializable
 		this.userName = userName;
 	}
 
-	public void setUserPass(byte[] userPass)
+	public void setUserPass(char[] userPass)
 	{
 		this.userPass = userPass;
 	}
