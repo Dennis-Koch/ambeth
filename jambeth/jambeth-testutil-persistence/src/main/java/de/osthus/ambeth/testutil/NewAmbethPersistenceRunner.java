@@ -143,7 +143,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		}
 	}
 
-	protected void rebuildSchemaContext()
+	public void rebuildSchemaContext()
 	{
 		if (schemaContext != null)
 		{
@@ -276,7 +276,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 
 	}
 
-	protected void rebuildStructure()
+	public void rebuildStructure()
 	{
 		Class<?> callingClass = getTestClass().getJavaClass();
 		try
