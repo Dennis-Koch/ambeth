@@ -10,10 +10,10 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.17</version>
+		<version>0.0.19</version>
 	</parent>
-  
- 	<properties>
+
+	<properties>
 		<build.number>X-SNAPSHOT</build.number>
 	</properties>
 
@@ -39,31 +39,25 @@
 					<configuration>
 						<appendAssemblyId>false</appendAssemblyId>
 					</configuration>
-					<!-- 
-					<executions>
-						<execution>
-							<id>make-assembly</id>
-							<phase>package</phase>
-							<goals>
-								<goal>single</goal>
-							</goals>
-						</execution>
-					</executions>
-					 -->
+					<!-- <executions> <execution> <id>make-assembly</id> <phase>package</phase> 
+						<goals> <goal>single</goal> </goals> </execution> </executions> -->
 				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
+
 	<repositories>
 		<!-- Location of the osthus-pom -->
 		<repository>
-			<id>ambeth-releases</id>
-			<url>http://nexus/nexus/content/repositories/ambeth-releases/</url>
-		</repository>
-		<repository>
-			<id>thirdparty</id>
-			<url>http://nexus/nexus/content/repositories/thirdparty</url>
+			<id>osthus-releases</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
 		</repository>
 
+		<!-- Locally hosted third-party libs -->
+		<repository>
+			<id>thirdparty</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/thirdparty</url>
+		</repository>
 	</repositories>
+
 </project>

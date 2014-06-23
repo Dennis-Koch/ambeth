@@ -4,7 +4,7 @@
 
 	<groupId>de.osthus.junit</groupId>
 	<artifactId>osthus-junit-categories</artifactId>
-	<version>0.3.1-SNAPSHOT</version>
+	<version>0.3.1</version>
 	<name>Osthus jUnit Categories</name>
 	<description>jUnit Categories for tests in Osthus projects</description>
 
@@ -17,12 +17,12 @@
 		<repository>
 			<id>osthus-releases</id>
 			<name>Osthus Release Repository</name>
-			<url>http://nexus/nexus/content/repositories/osthus-releases/</url>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
 		</repository>
 		<snapshotRepository>
 			<id>osthus-snapshots</id>
 			<name>Osthus Snapshot Repository</name>
-			<url>http://nexus/nexus/content/repositories/osthus-snapshots/</url>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
