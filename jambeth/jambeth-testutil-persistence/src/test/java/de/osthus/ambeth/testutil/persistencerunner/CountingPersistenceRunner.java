@@ -81,7 +81,7 @@ public class CountingPersistenceRunner extends NewAmbethPersistenceRunner
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected void rebuildStructure()
+	public void rebuildStructure()
 	{
 		super.rebuildStructure();
 		rebuildStructureCount++;
