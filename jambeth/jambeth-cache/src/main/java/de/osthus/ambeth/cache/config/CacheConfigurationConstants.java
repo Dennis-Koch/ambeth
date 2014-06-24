@@ -8,6 +8,7 @@ public final class CacheConfigurationConstants
 {
 	private CacheConfigurationConstants()
 	{
+		// intended blank
 	}
 
 	@ConfigurationConstantDescription("TODO")

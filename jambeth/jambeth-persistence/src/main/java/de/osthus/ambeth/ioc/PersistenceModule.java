@@ -6,6 +6,8 @@ import de.osthus.ambeth.database.DatabaseSessionIdController;
 import de.osthus.ambeth.database.IDatabaseProviderExtendable;
 import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.IDatabaseSessionIdController;
+import de.osthus.ambeth.database.ITransactionListenerExtendable;
+import de.osthus.ambeth.database.ITransactionListenerProvider;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
@@ -62,6 +64,8 @@ public class PersistenceModule implements IInitializingModule
 		beanContextFactory.registerBean("queryPostProcessor", QueryPostProcessor.class);
 
 		beanContextFactory.registerBean("entityLoader", EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
+
+		ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class, ITransactionListenerExtendable.class);
 
 		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerBean("entityLoaderParallelInvoker", EntityLoaderParallelInvoker.class)
 				.propertyRefs("databaseProvider").autowireable(IEntityLoaderParallelInvoker.class);
