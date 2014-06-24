@@ -57,6 +57,5 @@ public class PersistencePostProcessor extends AbstractCascadePostProcessor
 		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
 		interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
 		return interceptor;
-
 	}
 }

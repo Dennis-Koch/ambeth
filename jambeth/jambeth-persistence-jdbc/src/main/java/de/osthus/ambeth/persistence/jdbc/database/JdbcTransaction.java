@@ -14,6 +14,8 @@ import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.IDatabaseSessionIdController;
 import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.database.ITransactionListener;
+import de.osthus.ambeth.database.ITransactionListenerProvider;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseCommitEvent;
@@ -69,6 +71,9 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected ITransactionListenerProvider transactionListenerProvider;
 
 	@Autowired(optional = true)
 	protected ITransactionalRootCache transactionalRootCache;
@@ -193,6 +198,11 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 		if (sessionIdValue == null)
 		{
 			return;
+		}
+		ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();
+		for (ITransactionListener transactionListener : transactionListeners)
+		{
+			transactionListener.handlePreCommit();
 		}
 		boolean releaseSessionId = false;
 		long sessionId = sessionIdValue.longValue();

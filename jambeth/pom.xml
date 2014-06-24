@@ -19,6 +19,7 @@
 	</properties>
 
 	<modules>
+		<module>jambeth-audit</module>
 		<module>jambeth-bytecode</module>
 		<module>jambeth-cache</module>
 		<module>jambeth-cache-bytecode</module>
@@ -113,6 +114,12 @@
 			</dependency>
 
 			<!-- jAmbeth dependencies -->
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-audit</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-bytecode</artifactId>

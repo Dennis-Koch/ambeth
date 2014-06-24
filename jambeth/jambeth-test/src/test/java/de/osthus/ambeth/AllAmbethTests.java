@@ -9,7 +9,8 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 
 @RunWith(Suite.class)
 @ExcludeCategory(SlowTests.class)
-@SuiteClasses({ de.osthus.ambeth.cache.AllBundleCacheTests.class, //
+@SuiteClasses({ de.osthus.ambeth.audit.AllAuditTests.class, //
+		de.osthus.ambeth.cache.AllBundleCacheTests.class, //
 		de.osthus.ambeth.bytecode.AllBytecodeTests.class, //
 		de.osthus.ambeth.AllDataChangePersistenceTests.class, //
 		de.osthus.ambeth.AllIocTests.class,//
