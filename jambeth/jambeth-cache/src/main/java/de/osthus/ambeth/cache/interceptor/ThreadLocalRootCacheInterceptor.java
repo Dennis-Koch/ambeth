@@ -68,7 +68,7 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		IRootCache rootCache = getCurrentRootCacheIfValid();
 		if (rootCache == null)
 		{
-			if (securityActivation != null && !securityActivation.isFilterActivated())
+			if (isPrivilegedMode())
 			{
 				rootCache = acquireCurrentPrivilegedRootCache();
 			}
@@ -99,6 +99,10 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		RootCache rootCache = postProcessRootCacheConfiguration(rootCacheBR).ignoreProperties("PrivilegeProvider", "SecurityActivation",
 				"SecurityScopeProvider").finish();
 
+		if (offlineListenerExtendable != null)
+		{
+			offlineListenerExtendable.addOfflineListener(rootCache);
+		}
 		privilegedRootCacheTL.set(rootCache);
 		return rootCache;
 	}
@@ -111,7 +115,7 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 
 	protected IRootCache getCurrentRootCacheIfValid()
 	{
-		if (securityActivation != null && !securityActivation.isFilterActivated())
+		if (isPrivilegedMode())
 		{
 			return privilegedRootCacheTL.get();
 		}
@@ -144,15 +148,25 @@ public class ThreadLocalRootCacheInterceptor implements MethodInterceptor, IThre
 		disposeCurrentRootCache();
 	}
 
+	protected boolean isPrivilegedMode()
+	{
+		return securityActivation == null || !securityActivation.isFilterActivated();
+	}
+
 	protected void disposeCurrentRootCache()
 	{
-		RootCache rootCache = rootCacheTL.get();
+		disposeCurrentRootCache(privilegedRootCacheTL);
+		disposeCurrentRootCache(rootCacheTL);
+	}
+
+	protected void disposeCurrentRootCache(ThreadLocal<RootCache> currentTL)
+	{
+		RootCache rootCache = currentTL.get();
 		if (rootCache == null)
 		{
 			return;
 		}
-		rootCacheTL.remove();
-
+		currentTL.remove();
 		if (offlineListenerExtendable != null)
 		{
 			offlineListenerExtendable.removeOfflineListener(rootCache);
