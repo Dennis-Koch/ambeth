@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             IRootCache rootCache = GetCurrentRootCacheIfValid();
             if (rootCache == null)
             {
-                if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                if (IsPrivilegedMode())
                 {
                     rootCache = AcquireCurrentPrivilegedRootCache();
                 }
@@ -57,7 +57,6 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         protected virtual IRootCache AcquireCurrentRootCache()
         {
             IBeanRuntime<RootCache> rootCacheBR = ServiceContext.RegisterAnonymousBean<RootCache>().PropertyValue("CacheRetriever", StoredCacheRetriever);
-            // Do not inject EventQueue because caches without foreign interest will never receive async DCEs
             RootCache rootCache = PostProcessRootCacheConfiguration(rootCacheBR).Finish();
 
             if (OfflineListenerExtendable != null)
@@ -74,6 +73,10 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 		    RootCache rootCache = PostProcessRootCacheConfiguration(rootCacheBR).IgnoreProperties("PrivilegeProvider", "SecurityActivation",
 				    "SecurityScopeProvider").Finish();
 
+            if (OfflineListenerExtendable != null)
+            {
+                OfflineListenerExtendable.RemoveOfflineListener(rootCache);
+            }
 		    privilegedRootCacheTL.Value = rootCache;
 		    return rootCache;
 	    }
@@ -86,7 +89,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected virtual IRootCache GetCurrentRootCacheIfValid()
         {
-            if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+            if (IsPrivilegedMode())
             {
                 return privilegedRootCacheTL.Value;
             }
@@ -104,14 +107,25 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             DisposeCurrentRootCache();
         }
 
+        protected bool IsPrivilegedMode()
+        {
+            return SecurityActivation == null || !SecurityActivation.FilterActivated;
+        }
+
         protected virtual void DisposeCurrentRootCache()
         {
-            RootCache rootCache = rootCacheTL.Value;
+            DisposeCurrentRootCache(privilegedRootCacheTL);
+            DisposeCurrentRootCache(rootCacheTL);
+        }
+
+        protected virtual void DisposeCurrentRootCache(ThreadLocal<RootCache> currentTL)
+        {
+            RootCache rootCache = currentTL.Value;
             if (rootCache == null)
             {
                 return;
             }
-            rootCacheTL.Value = null;
+            currentTL.Value = null;
 
             if (OfflineListenerExtendable != null)
             {

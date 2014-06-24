@@ -38,7 +38,7 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 		if (rootCache == null && Boolean.TRUE.equals(transactionalRootCacheActiveTL.get()))
 		{
 			// Lazy init of transactional rootcache
-			if (securityActivation != null && !securityActivation.isFilterActivated())
+			if (isPrivilegedMode())
 			{
 				rootCache = acquireCurrentPrivilegedRootCache();
 			}
@@ -67,8 +67,7 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 	@Override
 	public void acquireTransactionalRootCache()
 	{
-		IRootCache rootCache = rootCacheTL.get();
-		if (rootCache != null)
+		if (privilegedRootCacheTL.get() != null || rootCacheTL.get() != null)
 		{
 			throw new IllegalStateException("Transactional root cache already acquired");
 		}
@@ -79,8 +78,8 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 	public void disposeTransactionalRootCache(boolean success)
 	{
 		transactionalRootCacheActiveTL.remove();
-
-		IRootCache rootCache = rootCacheTL.get();
+		
+		IRootCache rootCache = privilegedRootCacheTL.get();
 		if (rootCache == null)
 		{
 			// This may happen if an exception occurs while committing and therefore calling a rollback

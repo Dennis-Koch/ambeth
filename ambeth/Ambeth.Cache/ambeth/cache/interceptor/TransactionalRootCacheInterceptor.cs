@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             if (rootCache == null && transactionalRootCacheActiveTL.Value)
 			{
 				// Lazy init of transactional rootcache
-                if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                if (IsPrivilegedMode())
                 {
                     rootCache = AcquireCurrentPrivilegedRootCache();
                 }
@@ -65,8 +65,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         public void AcquireTransactionalRootCache()
         {
-            RootCache rootCache = rootCacheTL.Value;
-            if (rootCache != null)
+            if (privilegedRootCacheTL.Value != null || rootCacheTL.Value != null)
             {
                 throw new Exception("Transactional root cache already acquired");
             }
@@ -79,7 +78,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
             try
             {
-                RootCache rootCache = rootCacheTL.Value;
+                RootCache rootCache = privilegedRootCacheTL.Value;
                 if (rootCache == null)
                 {
                     // This may happen if an exception occurs while committing and therefore calling a rollback
