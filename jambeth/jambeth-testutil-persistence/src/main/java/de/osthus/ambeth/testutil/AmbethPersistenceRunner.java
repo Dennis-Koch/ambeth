@@ -66,6 +66,10 @@ import de.osthus.ambeth.util.PersistenceExceptionUtil;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
 
+/**
+ * Please use <code>de.osthus.ambeth.testutil.NewAmbethPersistenceRunner</code> instead
+ */
+@Deprecated
 public class AmbethPersistenceRunner extends AmbethIocRunner
 {
 	protected static final String MEASUREMENT_BEAN = "measurementBean";

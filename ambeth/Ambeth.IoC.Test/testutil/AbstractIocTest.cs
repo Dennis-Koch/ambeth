@@ -26,6 +26,7 @@ namespace De.Osthus.Ambeth.Testutil
     [TestClass]
     [TestFrameworkModule(typeof(IocModule))]
     [TestProperties(Name = IocConfigurationConstants.TrackDeclarationTrace, Value = "true")]
+    [TestProperties(Name = IocConfigurationConstants.DebugModeActive, Value = "true")]
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Accessor.AccessorTypeProvider", Value = "INFO")]
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Bytecode.Core.BytecodeEnhancer", Value = "INFO")]
     [TestProperties(Name = "ambeth.log.level.De.Osthus.Ambeth.Bytecode.Visitor.ClassWriter", Value = "INFO")]

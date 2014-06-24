@@ -50,6 +50,7 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.oracle.Oracle10gThinDialect;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -57,7 +58,18 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
+import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.security.DefaultAuthentication;
+import de.osthus.ambeth.security.IAuthentication.PasswordType;
+import de.osthus.ambeth.security.IAuthenticationManager;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.security.SecurityFilterInterceptor;
+import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.testutil.RandomUserScript.RandomUserModule;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
 import de.osthus.ambeth.util.PersistenceExceptionUtil;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
@@ -398,6 +410,71 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 			return;
 		}
 		super.runChildWithContext(frameworkMethod, notifier, doContextRebuild);
+	}
+
+	@Override
+	protected org.junit.runners.model.Statement withBefores(final FrameworkMethod method, Object target, final org.junit.runners.model.Statement statement)
+	{
+		return NewAmbethPersistenceRunner.super.withBefores(method, target, new org.junit.runners.model.Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
+				if (authentication == null)
+				{
+					statement.evaluate();
+					return;
+				}
+				final String scopeName = authentication.scope();
+				final ISecurityScope scope = new ISecurityScope()
+				{
+					@Override
+					public String getName()
+					{
+						return scopeName;
+					}
+				};
+				IMethodLevelBehaviour<SecurityContextType> behaviour = new IMethodLevelBehaviour<SecurityContextType>()
+				{
+					@Override
+					public SecurityContextType getBehaviourOfMethod(Method method)
+					{
+						return SecurityContextType.AUTHENTICATED;
+					}
+
+					@Override
+					public SecurityContextType getDefaultBehaviour()
+					{
+						return SecurityContextType.AUTHENTICATED;
+					}
+				};
+
+				SecurityFilterInterceptor interceptor = beanContext.registerAnonymousBean(SecurityFilterInterceptor.class)
+						.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement).finish();
+				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class).createProxy(
+						new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
+				final org.junit.runners.model.Statement fStatement = stmt;
+				SecurityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
+						PasswordType.PLAIN), new IResultingBackgroundWorkerDelegate<Object>()
+				{
+					@Override
+					public Object invoke() throws Throwable
+					{
+						return beanContext.getService(ISecurityScopeProvider.class).executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Object>()
+						{
+							@Override
+							public Object invoke() throws Throwable
+							{
+								beanContext.getService(IAuthenticationManager.class).authenticate(SecurityContextHolder.getContext().getAuthentication());
+								fStatement.evaluate();
+								return null;
+							}
+						}, scope);
+					}
+				});
+			}
+		});
 	}
 
 	/**

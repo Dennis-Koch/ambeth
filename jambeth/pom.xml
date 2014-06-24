@@ -375,6 +375,13 @@
 				<artifactId>jambeth-security</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
+			</dependency>
 
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>

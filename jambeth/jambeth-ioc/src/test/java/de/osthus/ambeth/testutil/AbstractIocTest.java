@@ -22,6 +22,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 @RunWith(AmbethIocRunner.class)
 @TestFrameworkModule({ IocBootstrapModule.class })
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
+		@TestProperties(name = IocConfigurationConstants.DebugModeActive, value = "true"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.accessor.AccessorTypeProvider", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "WARN"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.ClassWriter", value = "INFO"),

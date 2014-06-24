@@ -2,11 +2,9 @@ package de.osthus.ambeth.privilege.evaluation;
 
 public interface IScopedPermissionEvaluation
 {
-	IScopedPermissionEvaluationReadStep allowCreate();
+	IScopedPermissionEvaluationCreateStep allowRead();
 
-	IScopedPermissionEvaluationReadStep skipCreate();
-
-	IScopedPermissionEvaluationReadStep denyCreate();
+	IPermissionEvaluationResult denyRead();
 
 	IPermissionEvaluationResult allowEach();
 

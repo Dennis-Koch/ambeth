@@ -18,4 +18,7 @@ public final class IocConfigurationConstants
 
 	@ConfigurationConstantDescription("Allows to monitor all ioc managed beans via JMX. Valid values: \"true\" or \"false\". Default is \"true\".")
 	public static final String MonitorBeansActive = "ambeth.ioc.monitoring.active";
+
+	@ConfigurationConstantDescription("Allows to run the IoC container in debug mode. This e.g. disables several security behaviors to ease debugging. Valid values: \"true\" or \"false\". Default is \"false\".")
+	public static final String DebugModeActive = "ambeth.ioc.debug.active";
 }
