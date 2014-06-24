@@ -197,7 +197,8 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		ArrayList<PrivilegeEnum> privilegeEnums = new ArrayList<PrivilegeEnum>(4);
 
 		IUserHandle userHandle = securityScopeProvider.getUserHandle();
-		PermissionEvaluation pe = new PermissionEvaluation(securityScopes);
+		PermissionEvaluation pe = new PermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege, isDefaultUpdatePrivilege,
+				isDefaultDeletePrivilege, isDefaultExecutePrivilege);
 
 		for (int a = 0, size = objRefs.length; a < size; a++)
 		{

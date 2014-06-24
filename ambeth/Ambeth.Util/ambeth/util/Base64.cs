@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+
 namespace De.Osthus.Ambeth.Util
 {
     /*

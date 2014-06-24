@@ -333,7 +333,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();
 		IList<IPrivilegeItem> privilegeItems = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
-		IdentityHashMap<IObjRef, IPrivilegeItem> objRefToPrivilege = IdentityHashMap.<IObjRef, IPrivilegeItem> create(relatedObjRefsList.size());
+		HashMap<IObjRef, IPrivilegeItem> objRefToPrivilege = HashMap.<IObjRef, IPrivilegeItem> create(relatedObjRefsList.size());
 
 		for (int a = relatedObjRefsList.size(); a-- > 0;)
 		{

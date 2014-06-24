@@ -13,9 +13,17 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 
 	protected Boolean create, read, update, delete, execute;
 
-	public PermissionEvaluation(ISecurityScope[] scopes)
+	protected boolean createTrueDefault, readTrueDefault, updateTrueDefault, deleteTrueDefault, executeTrueDefault;
+
+	public PermissionEvaluation(ISecurityScope[] scopes, boolean createTrueDefault, boolean readTrueDefault, boolean updateTrueDefault,
+			boolean deleteTrueDefault, boolean executeTrueDefault)
 	{
 		this.scopes = scopes;
+		this.createTrueDefault = createTrueDefault;
+		this.readTrueDefault = readTrueDefault;
+		this.updateTrueDefault = updateTrueDefault;
+		this.deleteTrueDefault = deleteTrueDefault;
+		this.executeTrueDefault = executeTrueDefault;
 		spes = new ScopedPermissionEvaluation[scopes.length];
 	}
 
@@ -62,6 +70,7 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 		read = null;
 		update = null;
 		delete = null;
+		execute = null;
 	}
 
 	@Override
@@ -86,7 +95,10 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	@Override
 	public IPermissionEvaluationUpdateStep allowCreate()
 	{
-		create = Boolean.TRUE;
+		if (!createTrueDefault)
+		{
+			create = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -99,31 +111,43 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	@Override
 	public IPermissionEvaluationUpdateStep denyCreate()
 	{
-		create = Boolean.FALSE;
+		if (createTrueDefault)
+		{
+			create = Boolean.FALSE;
+		}
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationCreateStep allowRead()
 	{
-		read = Boolean.TRUE;
+		if (!readTrueDefault)
+		{
+			read = Boolean.TRUE;
+		}
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationResult denyRead()
 	{
-		read = Boolean.FALSE;
-		create = Boolean.FALSE;
-		update = Boolean.FALSE;
-		delete = Boolean.FALSE;
+		if (readTrueDefault)
+		{
+			read = Boolean.FALSE;
+		}
+		denyCreate();
+		denyUpdate();
+		denyDelete();
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationDeleteStep allowUpdate()
 	{
-		update = Boolean.TRUE;
+		if (!updateTrueDefault)
+		{
+			update = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -136,14 +160,20 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	@Override
 	public IPermissionEvaluationDeleteStep denyUpdate()
 	{
-		update = Boolean.FALSE;
+		if (updateTrueDefault)
+		{
+			update = Boolean.FALSE;
+		}
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationExecuteStep allowDelete()
 	{
-		delete = Boolean.TRUE;
+		if (!deleteTrueDefault)
+		{
+			delete = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -156,14 +186,20 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	@Override
 	public IPermissionEvaluationExecuteStep denyDelete()
 	{
-		delete = Boolean.FALSE;
+		if (deleteTrueDefault)
+		{
+			delete = Boolean.FALSE;
+		}
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationResult allowExecute()
 	{
-		execute = Boolean.TRUE;
+		if (!executeTrueDefault)
+		{
+			execute = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -176,7 +212,10 @@ public class PermissionEvaluation implements IPermissionEvaluation, IPermissionE
 	@Override
 	public IPermissionEvaluationResult denyExecute()
 	{
-		execute = Boolean.FALSE;
+		if (executeTrueDefault)
+		{
+			execute = Boolean.FALSE;
+		}
 		return this;
 	}
 

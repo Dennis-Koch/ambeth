@@ -1222,6 +1222,11 @@ public class Base64
 		return out;
 	} // end decode
 
+	public static byte[] decode(char[] s) throws java.io.IOException
+	{
+		return decode(new String(s));
+	}
+
 	/**
 	 * Decodes data from Base64 notation, automatically detecting gzip-compressed data and decompressing it.
 	 * 

@@ -93,6 +93,17 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security</artifactId>
+			<classifier>tests</classifier>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
 		</dependency>
 

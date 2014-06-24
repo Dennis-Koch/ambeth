@@ -1,6 +1,6 @@
 package de.osthus.ambeth.privilege.evaluation;
 
-public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, IScopedPermissionEvaluationReadStep, IScopedPermissionEvaluationUpdateStep,
+public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, IScopedPermissionEvaluationCreateStep, IScopedPermissionEvaluationUpdateStep,
 		IScopedPermissionEvaluationDeleteStep, IScopedPermissionEvaluationExecuteStep
 {
 	protected Boolean create, read, update, delete, execute = null;
@@ -47,49 +47,58 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	}
 
 	@Override
-	public IScopedPermissionEvaluationReadStep allowCreate()
+	public IScopedPermissionEvaluationUpdateStep allowCreate()
 	{
-		create = Boolean.TRUE;
+		if (!permissionEvaluation.createTrueDefault)
+		{
+			create = Boolean.TRUE;
+		}
 		return this;
 	}
 
 	@Override
-	public IScopedPermissionEvaluationReadStep skipCreate()
-	{
-		return this;
-	}
-
-	@Override
-	public IScopedPermissionEvaluationReadStep denyCreate()
-	{
-		create = Boolean.FALSE;
-		return this;
-	}
-
-	@Override
-	public IScopedPermissionEvaluationUpdateStep allowRead()
-	{
-		read = Boolean.TRUE;
-		return this;
-	}
-
-	@Override
-	public IScopedPermissionEvaluationUpdateStep skipRead()
+	public IScopedPermissionEvaluationUpdateStep skipCreate()
 	{
 		return this;
 	}
 
 	@Override
-	public IScopedPermissionEvaluationUpdateStep denyRead()
+	public IScopedPermissionEvaluationUpdateStep denyCreate()
 	{
-		read = Boolean.FALSE;
+		if (permissionEvaluation.createTrueDefault)
+		{
+			create = Boolean.FALSE;
+		}
 		return this;
+	}
+
+	@Override
+	public IScopedPermissionEvaluationCreateStep allowRead()
+	{
+		if (!permissionEvaluation.readTrueDefault)
+		{
+			read = Boolean.TRUE;
+		}
+		return this;
+	}
+
+	@Override
+	public IPermissionEvaluationResult denyRead()
+	{
+		if (permissionEvaluation.readTrueDefault)
+		{
+			read = Boolean.FALSE;
+		}
+		return permissionEvaluation;
 	}
 
 	@Override
 	public IScopedPermissionEvaluationDeleteStep allowUpdate()
 	{
-		update = Boolean.TRUE;
+		if (!permissionEvaluation.updateTrueDefault)
+		{
+			update = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -102,14 +111,20 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	@Override
 	public IScopedPermissionEvaluationDeleteStep denyUpdate()
 	{
-		update = Boolean.FALSE;
+		if (permissionEvaluation.updateTrueDefault)
+		{
+			update = Boolean.FALSE;
+		}
 		return this;
 	}
 
 	@Override
 	public IScopedPermissionEvaluationExecuteStep allowDelete()
 	{
-		delete = Boolean.TRUE;
+		if (!permissionEvaluation.deleteTrueDefault)
+		{
+			delete = Boolean.TRUE;
+		}
 		return this;
 	}
 
@@ -122,14 +137,20 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	@Override
 	public IScopedPermissionEvaluationExecuteStep denyDelete()
 	{
-		delete = Boolean.FALSE;
+		if (permissionEvaluation.deleteTrueDefault)
+		{
+			delete = Boolean.FALSE;
+		}
 		return this;
 	}
 
 	@Override
 	public IPermissionEvaluationResult allowExecute()
 	{
-		execute = Boolean.TRUE;
+		if (!permissionEvaluation.executeTrueDefault)
+		{
+			execute = Boolean.TRUE;
+		}
 		return permissionEvaluation;
 	}
 
@@ -142,25 +163,28 @@ public class ScopedPermissionEvaluation implements IScopedPermissionEvaluation, 
 	@Override
 	public IPermissionEvaluationResult denyExecute()
 	{
-		execute = Boolean.FALSE;
+		if (permissionEvaluation.executeTrueDefault)
+		{
+			execute = Boolean.FALSE;
+		}
 		return permissionEvaluation;
 	}
 
 	@Override
 	public IPermissionEvaluationResult allowEach()
 	{
-		return allowCreate().allowRead().allowUpdate().allowDelete().allowExecute();
+		return allowRead().allowCreate().allowUpdate().allowDelete().allowExecute();
 	}
 
 	@Override
 	public IPermissionEvaluationResult skipEach()
 	{
-		return skipCreate().skipRead().skipUpdate().skipDelete().skipExecute();
+		return permissionEvaluation;
 	}
 
 	@Override
 	public IPermissionEvaluationResult denyEach()
 	{
-		return denyCreate().denyRead().denyUpdate().denyDelete().denyExecute();
+		return denyRead();
 	}
 }
