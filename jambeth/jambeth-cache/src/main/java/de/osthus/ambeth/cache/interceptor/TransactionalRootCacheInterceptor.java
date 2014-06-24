@@ -34,11 +34,18 @@ public class TransactionalRootCacheInterceptor extends ThreadLocalRootCacheInter
 	@Override
 	protected IRootCache getCurrentRootCacheIfValid()
 	{
-		IRootCache rootCache = rootCacheTL.get();
+		IRootCache rootCache = super.getCurrentRootCacheIfValid();
 		if (rootCache == null && Boolean.TRUE.equals(transactionalRootCacheActiveTL.get()))
 		{
 			// Lazy init of transactional rootcache
-			rootCache = super.acquireCurrentRootCache();
+			if (securityActivation != null && !securityActivation.isFilterActivated())
+			{
+				rootCache = acquireCurrentPrivilegedRootCache();
+			}
+			else
+			{
+				rootCache = acquireCurrentRootCache();
+			}
 		}
 		// If no thread-bound root cache is active (which implies that no transaction is currently active
 		// return the unbound root cache (which reads uncommitted data)

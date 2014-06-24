@@ -148,6 +148,10 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	{
 		super.refreshAccessors(realType);
 		getter = ReflectUtil.getDeclaredMethod(true, realType, getPropertyType(), "get" + getName());
+		if (getter == null)
+		{
+			getter = ReflectUtil.getDeclaredMethod(true, realType, getPropertyType(), "is" + getName());
+		}
 		setter = ReflectUtil.getDeclaredMethod(true, realType, null, "set" + getName(), getPropertyType());
 		writable = this.setter != null && (Modifier.isPublic(this.setter.getModifiers()) || Modifier.isProtected(this.setter.getModifiers()));
 		readable = this.getter != null && (Modifier.isPublic(this.getter.getModifiers()) || Modifier.isProtected(this.getter.getModifiers()));

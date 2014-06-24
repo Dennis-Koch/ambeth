@@ -65,11 +65,32 @@ public abstract class AbstractBehavior implements IBytecodeBehavior
 		{
 			return false;
 		}
+		if (isAnnotationPresentIntern(type, annotationType))
+		{
+			return true;
+		}
+		Class<?>[] interfaces = type.getInterfaces();
+		for (Class<?> interfaceType : interfaces)
+		{
+			if (isAnnotationPresent(interfaceType, annotationType))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected boolean isAnnotationPresentIntern(Class<?> type, Class<? extends Annotation> annotationType)
+	{
+		if (type == null)
+		{
+			return false;
+		}
 		if (type.isAnnotationPresent(annotationType))
 		{
 			return true;
 		}
-		return isAnnotationPresent(type.getSuperclass(), annotationType);
+		return isAnnotationPresentIntern(type.getSuperclass(), annotationType);
 	}
 
 	@Override

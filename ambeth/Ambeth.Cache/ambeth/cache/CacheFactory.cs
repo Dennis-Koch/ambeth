@@ -1,24 +1,21 @@
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class CacheFactory : ICacheFactory, IInitializingBean
+    public class CacheFactory : ICacheFactory
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Autowired]
 	    public IServiceContext BeanContext { protected get; set; }
 
-	    public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
-        
-	    public void AfterPropertiesSet()
-	    {
-		    ParamChecker.AssertNotNull(BeanContext, "BeanContext");
-		    ParamChecker.AssertNotNull(FirstLevelCacheExtendable, "FirstLevelCacheExtendable");
-	    }
-
+        [Autowired]
+        public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
+       
 	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective)
 	    {
 		    return Create(cacheFactoryDirective, false, null);
