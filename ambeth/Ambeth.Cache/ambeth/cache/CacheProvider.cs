@@ -4,6 +4,9 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Security;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -12,24 +15,30 @@ namespace De.Osthus.Ambeth.Cache
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        public virtual CacheType CacheType { protected get; set; }
+        [Autowired]
+        public ICacheFactory CacheFactory { protected get; set; }
 
-        public virtual ICacheFactory CacheFactory { protected get; set; }
+        [Autowired]
+        public IRootCache RootCache { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public ISecurityActivation SecurityActivation { protected get; set; }
+
+        [Property]
+        public CacheType CacheType { protected get; set; }
 
         protected volatile ICache singletonCache;
 
-        public virtual IRootCache RootCache { protected get; set; }
+        protected volatile ICache privilegedSingletonCache;
 
         protected ThreadLocal<IDisposableCache> cacheTL;
+
+        protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
         protected readonly Lock writeLock = new ReadWriteLock().WriteLock;
 
         public virtual void AfterPropertiesSet()
         {
-            ParamChecker.AssertNotNull(CacheFactory, "CacheFactory");
-            ParamChecker.AssertNotNull(CacheType, "CacheType");
-            ParamChecker.AssertNotNull(RootCache, "RootCache");
-
             switch (CacheType)
             {
                 case CacheType.PROTOTYPE:
@@ -43,6 +52,10 @@ namespace De.Osthus.Ambeth.Cache
                 case CacheType.THREAD_LOCAL:
                     {
                         cacheTL = new ThreadLocal<IDisposableCache>();
+                        if (SecurityActivation != null)
+                        {
+                            privilegedCacheTL = new ThreadLocal<IDisposableCache>();
+                        }
                         break;
                     }
                 default:
@@ -58,6 +71,12 @@ namespace De.Osthus.Ambeth.Cache
                 if (cache != null)
                 {
                     cacheTL.Value = null;
+                    cache.Dispose();
+                }
+                cache = privilegedCacheTL.Value;
+                if (cache != null)
+                {
+                    privilegedCacheTL.Value = null;
                     cache.Dispose();
                 }
             }
@@ -97,11 +116,22 @@ namespace De.Osthus.Ambeth.Cache
                         writeLock.Lock();
                         try
                         {
-                            if (singletonCache == null)
+                            if (SecurityActivation != null && !SecurityActivation.FilterActivated)
                             {
-                                singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                if (privilegedSingletonCache == null)
+                                {
+                                    privilegedSingletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                }
+                                return privilegedSingletonCache;
                             }
-                            return singletonCache;
+                            else
+                            {
+                                if (singletonCache == null)
+                                {
+                                    singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                }
+                                return singletonCache;
+                            }
                         }
                         finally
                         {
@@ -110,13 +140,26 @@ namespace De.Osthus.Ambeth.Cache
                     }
                 case CacheType.THREAD_LOCAL:
                     {
-                        IDisposableCache cache = cacheTL.Value;
-                        if (cache == null)
+                        if (SecurityActivation != null && !SecurityActivation.FilterActivated)
                         {
-                            cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
-                            cacheTL.Value = cache;
+                            IDisposableCache cache = privilegedCacheTL.Value;
+                            if (cache == null)
+                            {
+                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                privilegedCacheTL.Value = cache;
+                            }
+                            return cache;
                         }
-                        return cache;
+                        else
+                        {
+                            IDisposableCache cache = cacheTL.Value;
+                            if (cache == null)
+                            {
+                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cacheTL.Value = cache;
+                            }
+                            return cache;
+                        }
                     }
                 default:
                     throw new Exception("Not supported type: " + CacheType);

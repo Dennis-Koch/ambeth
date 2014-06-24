@@ -11,34 +11,45 @@ using System;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Service;
 using System.Threading;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Security;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class ThreadLocalRootCacheInterceptor : IInitializingBean, IInterceptor, IThreadLocalCleanupBean
+    public class ThreadLocalRootCacheInterceptor : IInterceptor, IThreadLocalCleanupBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
         protected readonly ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
-        public ICacheRetriever StoredCacheRetriever { protected get; set; }
+        protected readonly ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
 
+        [Autowired(Optional = true)]
         public IOfflineListenerExtendable OfflineListenerExtendable { protected get; set; }
 
+        [Autowired(Optional = true)]
+        public ISecurityActivation SecurityActivation { protected get; set; }
+
+        [Autowired]
         public IServiceContext ServiceContext { protected get; set; }
 
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(ServiceContext, "ServiceContext");
-            ParamChecker.AssertNotNull(StoredCacheRetriever, "StoredCacheRetriever");
-        }
-
+        [Autowired]
+        public ICacheRetriever StoredCacheRetriever { protected get; set; }
+        
         protected IRootCache GetCurrentRootCache()
         {
             IRootCache rootCache = GetCurrentRootCacheIfValid();
             if (rootCache == null)
             {
-                rootCache = AcquireCurrentRootCache();
+                if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                {
+                    rootCache = AcquireCurrentPrivilegedRootCache();
+                }
+                else
+                {
+                    rootCache = AcquireCurrentRootCache();
+                }
             }
             return rootCache;
         }
@@ -57,6 +68,16 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             return rootCache;
         }
 
+        protected IRootCache AcquireCurrentPrivilegedRootCache()
+	    {
+            IBeanRuntime<RootCache> rootCacheBR = ServiceContext.RegisterAnonymousBean<RootCache>().PropertyValue("CacheRetriever", StoredCacheRetriever);
+		    RootCache rootCache = PostProcessRootCacheConfiguration(rootCacheBR).IgnoreProperties("PrivilegeProvider", "SecurityActivation",
+				    "SecurityScopeProvider").Finish();
+
+		    privilegedRootCacheTL.Value = rootCache;
+		    return rootCache;
+	    }
+
         protected virtual IBeanRuntime<RootCache> PostProcessRootCacheConfiguration(IBeanRuntime<RootCache> rootCacheBR)
         {
             // Do not inject EventQueue because caches without foreign interest will never receive async DCEs
@@ -65,6 +86,10 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected virtual IRootCache GetCurrentRootCacheIfValid()
         {
+            if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+            {
+                return privilegedRootCacheTL.Value;
+            }
             return rootCacheTL.Value;
         }
 

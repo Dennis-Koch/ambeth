@@ -17,7 +17,7 @@ import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class Properties implements IProperties
+public class Properties implements IProperties, Iterable<Entry<String, Object>>
 {
 	protected static final Pattern commentRegex = Pattern.compile(" *[#;'].*");
 	protected static final Pattern propertyRegex = Pattern.compile(" *([^= ]+) *(?:=? *(?:(.*)|'(.*)'|\"(.*)\") *)?");
@@ -84,21 +84,6 @@ public class Properties implements IProperties
 			System.out.println("No Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile
 					+ "' found. Skipping search for external bootstrap properties");
 		}
-	}
-
-	public static void fillApplicationWithArgs(String[] args)
-	{
-		StringBuilder sb = new StringBuilder();
-		for (int a = args.length; a-- > 0;)
-		{
-			String arg = args[a];
-			if (sb.length() > 0)
-			{
-				sb.append('\n');
-			}
-			sb.append(arg);
-		}
-		application.handleContent(sb.toString(), true);
 	}
 
 	// Intentionally not a SensitiveThreadLocal. It can not contain a memory leak, because the HashSet is cleared after each usage
@@ -229,6 +214,21 @@ public class Properties implements IProperties
 				}
 			}
 		}
+	}
+
+	public void fillWithCommandLineArgs(String[] args)
+	{
+		StringBuilder sb = new StringBuilder();
+		for (int a = args.length; a-- > 0;)
+		{
+			String arg = args[a];
+			if (sb.length() > 0)
+			{
+				sb.append('\n');
+			}
+			sb.append(arg);
+		}
+		handleContent(sb.toString(), true);
 	}
 
 	public void put(String key, Object value)

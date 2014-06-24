@@ -208,13 +208,20 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 			}
 			Object entity = entitiesToCheck.get(a);
 
-			IList<IPrivilegeProviderExtension<?>> extensions = privilegeProviderExtensions.getExtensions(objRef.getRealType());
-
 			pe.reset();
-			for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+			if (entity != null)
 			{
-				IPrivilegeProviderExtension extension = extensions.get(c);
-				extension.evaluatePermission(objRef, entity, userHandle, securityScopes, pe);
+				IList<IPrivilegeProviderExtension<?>> extensions = privilegeProviderExtensions.getExtensions(objRef.getRealType());
+				for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+				{
+					IPrivilegeProviderExtension extension = extensions.get(c);
+					extension.evaluatePermission(objRef, entity, userHandle, securityScopes, pe);
+				}
+			}
+			else
+			{
+				// an entity which can not be read even without active security is not valid
+				pe.denyEach();
 			}
 			ScopedPermissionEvaluation[] spes = pe.getSpes();
 

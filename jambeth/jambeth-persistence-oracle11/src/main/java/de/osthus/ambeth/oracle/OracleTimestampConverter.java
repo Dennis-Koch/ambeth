@@ -1,5 +1,6 @@
 package de.osthus.ambeth.oracle;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import oracle.sql.TIMESTAMP;
@@ -15,6 +16,8 @@ public class OracleTimestampConverter implements IInitializingBean, IDedicatedCo
 	@LogInstance
 	private ILogger log;
 
+	protected final Calendar vmCalendar = Calendar.getInstance();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -29,7 +32,7 @@ public class OracleTimestampConverter implements IInitializingBean, IDedicatedCo
 			long longValue;
 			try
 			{
-				longValue = ((TIMESTAMP) value).timestampValue().getTime();
+				longValue = ((TIMESTAMP) value).timestampValue(vmCalendar).getTime();
 			}
 			catch (Throwable e)
 			{
@@ -42,6 +45,14 @@ public class OracleTimestampConverter implements IInitializingBean, IDedicatedCo
 			else if (Date.class.equals(expectedType))
 			{
 				return new Date(longValue);
+			}
+			else if (Calendar.class.equals(expectedType))
+			{
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTimeInMillis(longValue);
+				// skip cloning the TimeZone with e.g.: calendar.setTimeZone(vmCalendar.getTimeZone());
+				// the timezone is already correct because both calendar instances contain the "default" timezone of the vm
+				return calendar;
 			}
 		}
 		throw new IllegalStateException("Conversion " + sourceType.getName() + "->" + expectedType.getName() + " not supported");
