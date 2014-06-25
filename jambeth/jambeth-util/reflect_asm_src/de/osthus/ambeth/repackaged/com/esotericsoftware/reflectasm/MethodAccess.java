@@ -18,7 +18,7 @@ import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.INVOKESTATIC
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.NEW;
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.RETURN;
-import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.V1_1;
+import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.V1_6;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -133,9 +133,9 @@ public abstract class MethodAccess
 				String classNameInternal = className.replace('.', '/');
 
 				String methodAccessName = Type.getInternalName(MethodAccess.class);
-				ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+				ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 				MethodVisitor mv;
-				cw.visit(V1_1, ACC_PUBLIC + ACC_SUPER, accessClassNameInternal, null, methodAccessName, null);
+				cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, accessClassNameInternal, null, methodAccessName, null);
 				{
 					mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 					mv.visitCode();
