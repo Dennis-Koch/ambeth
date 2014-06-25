@@ -9,9 +9,9 @@ public interface ISecurityScopeProvider
 
 	void setSecurityScopes(ISecurityScope[] securityScopes);
 
-	IUserHandle getUserHandle();
+	IAuthorization getAuthorization();
 
-	void setUserHandle(IUserHandle userHandle);
+	void setAuthorization(IAuthorization authorization);
 
 	<R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable, ISecurityScope... securityScopes) throws Throwable;
 }

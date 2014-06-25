@@ -4,6 +4,6 @@ namespace De.Osthus.Ambeth.Security
 {
     public interface ISecurityScopeChangeListener
     {
-        void SecurityScopeChanged(IUserHandle userHandle, ISecurityScope[] securityScopes);
+        void SecurityScopeChanged(IAuthorization authorization, ISecurityScope[] securityScopes);
     }
 }

@@ -11,7 +11,7 @@ namespace De.Osthus.Ambeth.Security
     {
         ISecurityScope[] SecurityScopes { get; set; }
 
-        IUserHandle UserHandle { get; set; }
+        IAuthorization Authorization { get; set; }
 
         R ExecuteWithSecurityScopes<R>(IResultingBackgroundWorkerDelegate<R> runnable, params ISecurityScope[] securityScopes);
     }

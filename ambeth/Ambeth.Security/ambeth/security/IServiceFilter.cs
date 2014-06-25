@@ -9,6 +9,6 @@ namespace De.Osthus.Ambeth.Security
 {
     public interface IServiceFilter
     {
-        CallPermission CheckCallPermissionOnService(MethodInfo serviceMethod, Object[] arguments, IUserHandle userHandle, ISecurityScope[] securityScopes);
+        CallPermission CheckCallPermissionOnService(MethodInfo serviceMethod, Object[] arguments, IAuthorization authorization, ISecurityScope[] securityScopes);
     }
 }

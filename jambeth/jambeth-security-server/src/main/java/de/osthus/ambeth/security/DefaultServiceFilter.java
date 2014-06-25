@@ -22,10 +22,10 @@ public class DefaultServiceFilter implements IServiceFilter
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public CallPermission checkCallPermissionOnService(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle,
+	public CallPermission checkCallPermissionOnService(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization,
 			ISecurityScope[] securityScopes)
 	{
-		if (userHandle == null || !userHandle.isValid())
+		if (authorization == null || !authorization.isValid())
 		{
 			if (SecurityContextType.NOT_REQUIRED.equals(securityContextType))
 			{
@@ -53,7 +53,7 @@ public class DefaultServiceFilter implements IServiceFilter
 		methodSignatures.add(StringBuilderUtil.concat(tlObjectCollector, method.getDeclaringClass().getName(), ".", method.getName()));
 
 		CallPermission callPermission = CallPermission.FORBIDDEN;
-		for (IServicePermission servicePermissions : userHandle.getServicePermissions(securityScopes))
+		for (IServicePermission servicePermissions : authorization.getServicePermissions(securityScopes))
 		{
 			for (Pattern pattern : servicePermissions.getPatterns())
 			{

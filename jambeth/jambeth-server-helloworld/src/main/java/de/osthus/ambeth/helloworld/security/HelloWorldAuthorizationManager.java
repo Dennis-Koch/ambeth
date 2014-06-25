@@ -3,31 +3,25 @@ package de.osthus.ambeth.helloworld.security;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.helloworld.service.IHelloWorldService;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IAuthorizationManager;
 import de.osthus.ambeth.security.IServicePermission;
-import de.osthus.ambeth.security.IUserHandle;
-import de.osthus.ambeth.security.IUserHandleFactory;
 import de.osthus.ambeth.security.PermissionApplyType;
 
-public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitializingBean
+public class HelloWorldAuthorizationManager implements IAuthorizationManager
 {
+	@LogInstance
+	private ILogger log;
+
 	protected final Pattern allowAllPattern = Pattern.compile(".*");
 
 	protected final Pattern denyForbiddenMethodPattern = Pattern.compile(IHelloWorldService.class.getName().replaceAll("\\.", "\\\\.") + "\\.forbiddenMethod");
 
-	@LogInstance
-	private ILogger log;
-
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-	}
-
-	@Override
-	public IUserHandle createUserHandle(final String sid, char[] password, final ISecurityScope[] securityScopes)
+	public IAuthorization authorize(final String sid, final ISecurityScope[] securityScopes)
 	{
 		// Allow all service methods
 		final Pattern[] allowPatterns = new Pattern[] { allowAllPattern };
@@ -64,7 +58,7 @@ public class HelloWorldUserHandleFactory implements IUserHandleFactory, IInitial
 
 		} };
 
-		return new IUserHandle()
+		return new IAuthorization()
 		{
 			@Override
 			public boolean isValid()

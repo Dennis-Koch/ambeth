@@ -7,7 +7,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.security.ISecurityScopeChangeListener;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.IUserHandle;
+import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -36,8 +36,8 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
-		IUserHandle userHandle = securityScopeProvider.getUserHandle();
-		String user = userHandle != null ? userHandle.getSID() : null;
+		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
 	
@@ -91,7 +91,7 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	}
 	
 	@Override
-	public void securityScopeChanged(IUserHandle userHandle, ISecurityScope[] securityScopes)
+	public void securityScopeChanged(IAuthorization authorization, ISecurityScope[] securityScopes)
 	{
 		if (boundThread == null)
 		{
@@ -103,7 +103,7 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 			// other thread
 			return;
 		}
-		String user = userHandle != null ? userHandle.getSID() : null;
+		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
 }

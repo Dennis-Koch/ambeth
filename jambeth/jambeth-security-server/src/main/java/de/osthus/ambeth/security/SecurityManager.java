@@ -76,11 +76,11 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
 
-		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getUserHandle(), securityScopeProvider.getSecurityScopes());
+		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getAuthorization(), securityScopeProvider.getSecurityScopes());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes)
+	protected Object filterList(List<?> list, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes)
 	{
 		if (list.size() == 0)
 		{
@@ -140,7 +140,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		return cloneCollection;
 	}
 
-	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle, ISecurityScope[] securityScopes)
+	protected Object filterValue(Object value, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization, ISecurityScope[] securityScopes)
 	{
 		if (value == null)
 		{
@@ -158,11 +158,11 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		}
 		if (value instanceof List)
 		{
-			return filterList((List<?>) value, alreadyProcessedMap, userHandle, securityScopes);
+			return filterList((List<?>) value, alreadyProcessedMap, authorization, securityScopes);
 		}
 		else if (value instanceof Collection)
 		{
-			return filterCollection((Collection<?>) value, alreadyProcessedMap, userHandle, securityScopes);
+			return filterCollection((Collection<?>) value, alreadyProcessedMap, authorization, securityScopes);
 		}
 		else if (value.getClass().isArray())
 		{
@@ -171,7 +171,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			for (int a = 0, size = length; a < size; a++)
 			{
 				Object item = Array.get(value, a);
-				Object filteredItem = filterValue(item, alreadyProcessedMap, userHandle, securityScopes);
+				Object filteredItem = filterValue(item, alreadyProcessedMap, authorization, securityScopes);
 				if (filteredItem == item)
 				{
 					// Filtering ok and unchanged
@@ -196,7 +196,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			// not an entity. So nothing to filter
 			return value;
 		}
-		ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, userHandle, securityScopes);
+		ReadPermission readPermission = filterEntity(value, alreadyProcessedMap, authorization, securityScopes);
 		switch (readPermission)
 		{
 			case PARTLY_ALLOWED:
@@ -209,7 +209,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object filterCollection(Collection<?> coll, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
+	protected Object filterCollection(Collection<?> coll, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
 			ISecurityScope[] securityScopes)
 	{
 		if (coll.size() == 0)
@@ -282,7 +282,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 	}
 
-	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IUserHandle userHandle,
+	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
 			ISecurityScope[] securityScopes)
 	{
 		IPrivilegeItem privilege = privilegeProvider.getPrivilege(entity, securityScopes);
@@ -315,13 +315,13 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	// }
 
 	@Override
-	public void checkMethodAccess(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
+	public void checkMethodAccess(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization)
 	{
-		CallPermission callPermission = filterService(method, arguments, securityContextType, userHandle);
+		CallPermission callPermission = filterService(method, arguments, securityContextType, authorization);
 		if (callPermission == CallPermission.FORBIDDEN)
 		{
 			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector, "For current user with sid '",
-					userHandle != null ? userHandle.getSID() : "n/a", "' it is not permitted to call service ", method.getDeclaringClass().getName(), ".",
+					authorization != null ? authorization.getSID() : "n/a", "' it is not permitted to call service ", method.getDeclaringClass().getName(), ".",
 					method.getName()));
 		}
 	}
@@ -474,13 +474,13 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		return typeToChanges;
 	}
 
-	protected CallPermission filterService(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle)
+	protected CallPermission filterService(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization)
 	{
 		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
 		CallPermission restrictiveCallPermission = CallPermission.ALLOWED;
 		for (IServiceFilter serviceFilter : serviceFilters.getExtensions())
 		{
-			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments, securityContextType, userHandle, securityScopes);
+			CallPermission callPermission = serviceFilter.checkCallPermissionOnService(method, arguments, securityContextType, authorization, securityScopes);
 			switch (callPermission)
 			{
 				case UNDEFINED:
