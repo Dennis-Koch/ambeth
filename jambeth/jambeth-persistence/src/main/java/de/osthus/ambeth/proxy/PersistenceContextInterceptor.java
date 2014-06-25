@@ -33,7 +33,7 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 	protected ITransaction transaction;
 
 	@Autowired
-	protected IMethodLevelBehaviour<PersistenceContextType> methodLevelBehaviour;
+	protected IMethodLevelBehavior<PersistenceContextType> methodLevelBehaviour;
 
 	@Override
 	public Object intercept(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable

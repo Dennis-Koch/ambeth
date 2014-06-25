@@ -13,27 +13,14 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.util.MethodKey;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class MethodLevelBehaviour<T> implements IMethodLevelBehaviour<T>
+public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 {
 	public interface IBehaviourTypeExtractor<A extends Annotation, T>
 	{
 		T extractBehaviourType(A annotation);
 	}
 
-	private static final IMethodLevelBehaviour<Object> noBehavior = new IMethodLevelBehaviour<Object>()
-	{
-		@Override
-		public Object getBehaviourOfMethod(Method method)
-		{
-			throw new UnsupportedOperationException();
-		}
-
-		@Override
-		public Object getDefaultBehaviour()
-		{
-			throw new UnsupportedOperationException();
-		}
-	};
+	private static final IMethodLevelBehavior<Object> noBehavior = new NoBehavior();
 
 	public static class BehaviorKey
 	{
@@ -70,14 +57,14 @@ public class MethodLevelBehaviour<T> implements IMethodLevelBehaviour<T>
 	}
 
 	@SuppressWarnings("rawtypes")
-	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehaviour> beanTypeToBehavior = new SmartCopyMap<BehaviorKey, IMethodLevelBehaviour>(0.5f);
+	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior = new SmartCopyMap<BehaviorKey, IMethodLevelBehavior>(0.5f);
 
-	public static <A extends Annotation, T> IMethodLevelBehaviour<T> create(Class<?> beanType, AnnotationCache<A> annotationCache, Class<T> behaviourType,
+	public static <A extends Annotation, T> IMethodLevelBehavior<T> create(Class<?> beanType, AnnotationCache<A> annotationCache, Class<T> behaviourType,
 			IBehaviourTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory, IServiceContext beanContext)
 	{
 		BehaviorKey key = new BehaviorKey(beanType, behaviourType);
 		@SuppressWarnings("unchecked")
-		IMethodLevelBehaviour<T> behavior = beanTypeToBehavior.get(key);
+		IMethodLevelBehavior<T> behavior = beanTypeToBehavior.get(key);
 		if (behavior != null)
 		{
 			if (behavior == noBehavior)
@@ -118,7 +105,7 @@ public class MethodLevelBehaviour<T> implements IMethodLevelBehaviour<T>
 		{
 			methodLevelBehaviour = Collections.<MethodKey, T> emptyMap();
 		}
-		behavior = new MethodLevelBehaviour<T>(defaultBehaviour, methodLevelBehaviour);
+		behavior = new MethodLevelBehavior<T>(defaultBehaviour, methodLevelBehaviour);
 		beanTypeToBehavior.put(key, behavior);
 		return behavior;
 	}
@@ -127,7 +114,7 @@ public class MethodLevelBehaviour<T> implements IMethodLevelBehaviour<T>
 
 	protected final Map<MethodKey, T> methodLevelBehaviour;
 
-	public MethodLevelBehaviour(T defaultBehaviour, Map<MethodKey, T> methodLevelBehaviour)
+	public MethodLevelBehavior(T defaultBehaviour, Map<MethodKey, T> methodLevelBehaviour)
 	{
 		super();
 		this.defaultBehaviour = defaultBehaviour;

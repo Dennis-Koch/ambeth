@@ -8,10 +8,14 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
+import de.osthus.ambeth.security.AuthenticationManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
+import de.osthus.ambeth.security.IAuthenticationManager;
+import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
+import de.osthus.ambeth.security.PasswordUtil;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionPrivilegeProviderExtension;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
@@ -32,6 +36,10 @@ public class SecurityServerModule implements IInitializingModule
 		if (isSecurityActive)
 		{
 			beanContextFactory.registerAnonymousBean(SecurityPostProcessor.class);
+
+			beanContextFactory.registerAnonymousBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
+
+			beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
 
 			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
 					IMergeSecurityManager.class, IServiceFilterExtendable.class);

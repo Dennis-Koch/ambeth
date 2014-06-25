@@ -9,7 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public class SecurityFilterInterceptor extends CascadedInterceptor
@@ -26,7 +26,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	protected IAuthenticationManager authenticationManager;
 
 	@Autowired
-	protected IMethodLevelBehaviour<SecurityContextType> methodLevelBehaviour;
+	protected IMethodLevelBehavior<SecurityContextType> methodLevelBehaviour;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;

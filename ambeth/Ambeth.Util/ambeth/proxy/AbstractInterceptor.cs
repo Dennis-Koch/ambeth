@@ -12,8 +12,7 @@ using Castle.DynamicProxy;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    abstract public class AbstractInterceptor<S, C>
-        : CascadedInterceptor
+    public abstract class AbstractInterceptor<S, C> : CascadedInterceptor
     {
         public S Service { get; set; }
 
@@ -33,13 +32,16 @@ namespace De.Osthus.Ambeth.Proxy
             return typeof(C);
         }
 
+        protected abstract Attribute GetMethodLevelBehavior(MethodInfo method);
+
         public override void Intercept(IInvocation invocation)
         {
-            if (AnnotationUtil.GetAnnotation<IgnoreAttribute>(invocation.Method, false) != null)
-            {
-                InvokeTarget(invocation);
+            Attribute annotation = GetMethodLevelBehavior(invocation.Method);
+		    if (annotation is IgnoreAttribute)
+		    {
+			    InvokeTarget(invocation);
                 return;
-            }
+		    }
             String methodName = invocation.Method.Name.ToLower();
             Boolean? isAsyncBegin = null;
             if (methodName.StartsWith("begin"))
@@ -61,19 +63,19 @@ namespace De.Osthus.Ambeth.Proxy
                 }
                 ThreadPool.Queue(delegate()
                 {
-                    Intercept(invocation, methodName, isAsyncBegin);
+                    Intercept(invocation, methodName, annotation, isAsyncBegin);
                 });
                 return;
             }
-            Object result = Intercept(invocation, methodName, isAsyncBegin);
+            Object result = Intercept(invocation, methodName, annotation, isAsyncBegin);
             invocation.ReturnValue = result;
         }
 
-        protected Object Intercept(IInvocation invocation, String methodName, Boolean? isAsyncBegin)
+        protected Object Intercept(IInvocation invocation, String methodName, Attribute annotation, Boolean? isAsyncBegin)
         {
             if (AnnotationUtil.GetAnnotation<ProcessAttribute>(invocation.Method, false) != null)
             {
-                return InterceptApplication(invocation, isAsyncBegin);
+                return InterceptApplication(invocation, annotation, isAsyncBegin);
             }
             if (AnnotationUtil.GetAnnotation<MergeAttribute>(invocation.Method, false) != null
                 || methodName.StartsWith("update")
@@ -81,13 +83,13 @@ namespace De.Osthus.Ambeth.Proxy
                 || methodName.StartsWith("merge")
                 || methodName.StartsWith("insert"))
             {
-                return InterceptMerge(invocation, isAsyncBegin);
+                return InterceptMerge(invocation, annotation, isAsyncBegin);
             }
             if (AnnotationUtil.GetAnnotation<RemoveAttribute>(invocation.Method, false) != null
                 || methodName.StartsWith("delete")
                 || methodName.StartsWith("remove"))
             {
-                return InterceptDelete(invocation, isAsyncBegin);
+                return InterceptDelete(invocation, annotation, isAsyncBegin);
             }
             if (AnnotationUtil.GetAnnotation<FindAttribute>(invocation.Method, false) != null
                 || methodName.StartsWith("retrieve")
@@ -95,24 +97,22 @@ namespace De.Osthus.Ambeth.Proxy
                 || methodName.StartsWith("find")
                 || methodName.StartsWith("get"))
             {
-                return InterceptLoad(invocation, isAsyncBegin);
+                return InterceptLoad(invocation, annotation, isAsyncBegin);
             }
             if (methodName.Equals("close") || methodName.Equals("abort"))
             {
                 // Intended blank
             }
-            return InterceptApplication(invocation, isAsyncBegin);
+            return InterceptApplication(invocation, annotation, isAsyncBegin);
         }
 
-        protected virtual Object InterceptApplication(IInvocation invocation,
-            Boolean? isAsyncBegin)
+        protected virtual Object InterceptApplication(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             InvokeTarget(invocation);
             return invocation.ReturnValue;
         }
 
-        protected virtual Object InterceptLoad(IInvocation invocation,
-            Boolean? isAsyncBegin)
+        protected virtual Object InterceptLoad(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             InvokeTarget(invocation);
 
@@ -120,39 +120,34 @@ namespace De.Osthus.Ambeth.Proxy
             {
                 return (IAsyncResult)invocation.ReturnValue;
             }
-            return InterceptLoadIntern(invocation.Method, invocation.Arguments, isAsyncBegin, invocation.ReturnValue);
+            return InterceptLoadIntern(invocation.Method, invocation.Arguments, annotation, isAsyncBegin, invocation.ReturnValue);
         }
 
-        protected virtual Object InterceptMerge(IInvocation invocation,
-            Boolean? isAsyncBegin)
+        protected virtual Object InterceptMerge(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             if (isAsyncBegin.HasValue && !isAsyncBegin.Value)
             {
                 return ((IAsyncResult)invocation.Arguments[0]).AsyncState;
             }
-            return InterceptMergeIntern(invocation.Method, invocation.Arguments, isAsyncBegin);
+            return InterceptMergeIntern(invocation.Method, invocation.Arguments, annotation, isAsyncBegin);
         }
 
-        protected virtual Object InterceptDelete(IInvocation invocation,
-            Boolean? isAsyncBegin)
+        protected virtual Object InterceptDelete(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             if (isAsyncBegin.HasValue && !isAsyncBegin.Value)
             {
                 return ((IAsyncResult)invocation.Arguments[0]).AsyncState;
             }
-            return InterceptDeleteIntern(invocation.Method, invocation.Arguments, isAsyncBegin);
+            return InterceptDeleteIntern(invocation.Method, invocation.Arguments, annotation, isAsyncBegin);
         }
 
-        protected virtual Object InterceptLoadIntern(MethodInfo method, Object[] arguments,
-            Boolean? isAsyncBegin, Object result)
+        protected virtual Object InterceptLoadIntern(MethodInfo method, Object[] arguments, Attribute annotation, Boolean? isAsyncBegin, Object result)
         {
             return result;
         }
 
-        abstract protected Object InterceptMergeIntern(MethodInfo method, Object[] arguments,
-            Boolean? isAsyncBegin);
+        abstract protected Object InterceptMergeIntern(MethodInfo method, Object[] arguments, Attribute annotation, Boolean? isAsyncBegin);
 
-        abstract protected Object InterceptDeleteIntern(MethodInfo method, Object[] arguments,
-            Boolean? isAsyncBegin);
+        abstract protected Object InterceptDeleteIntern(MethodInfo method, Object[] arguments, Attribute annotation, Boolean? isAsyncBegin);
     }
 }

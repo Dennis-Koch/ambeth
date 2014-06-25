@@ -13,9 +13,9 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
-import de.osthus.ambeth.proxy.MethodLevelBehaviour;
-import de.osthus.ambeth.proxy.MethodLevelBehaviour.IBehaviourTypeExtractor;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.proxy.MethodLevelBehavior;
+import de.osthus.ambeth.proxy.MethodLevelBehavior.IBehaviourTypeExtractor;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
@@ -49,7 +49,7 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		IMethodLevelBehaviour<SecurityContextType> behaviour = MethodLevelBehaviour.create(type, annotationCache, SecurityContextType.class, btExtractor,
+		IMethodLevelBehavior<SecurityContextType> behaviour = MethodLevelBehavior.create(type, annotationCache, SecurityContextType.class, btExtractor,
 				beanContextFactory, beanContext);
 		if (behaviour == null)
 		{

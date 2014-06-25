@@ -5,9 +5,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.DataChangeEventBO;
@@ -16,43 +17,27 @@ import de.osthus.ambeth.proxy.MergeContext;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.util.ParamChecker;
 
 @PersistenceContext
 @MergeContext
-public class DataChangeEventDAO implements IDataChangeEventDAO, IInitializingBean, IStartingBean
+public class DataChangeEventDAO implements IDataChangeEventDAO, IStartingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Connection connection;
 
-	protected IQuery<DataChangeEventBO> retrieveAll;
-
+	@Autowired
 	protected IQueryBuilderFactory qbf;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connection, "connection");
-		ParamChecker.assertNotNull(qbf, "qbf");
-	}
+	protected IQuery<DataChangeEventBO> retrieveAll;
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
 		retrieveAll = qbf.create(DataChangeEventBO.class).build();
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setQbf(IQueryBuilderFactory qbf)
-	{
-		this.qbf = qbf;
 	}
 
 	@Override
@@ -68,6 +53,7 @@ public class DataChangeEventDAO implements IDataChangeEventDAO, IInitializingBea
 	}
 
 	@Override
+	@NoProxy
 	public void removeBefore(long time)
 	{
 		Statement stmt = null;

@@ -1,9 +1,9 @@
 package de.osthus.ambeth.proxy;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.Merge;
 import de.osthus.ambeth.annotation.NoProxy;
@@ -12,53 +12,10 @@ import de.osthus.ambeth.annotation.Remove;
 
 public abstract class AbstractInterceptor extends CascadedInterceptor
 {
-	protected static final AnnotationCache<Find> findCache = new AnnotationCache<Find>(Find.class)
-	{
-		@Override
-		protected boolean annotationEquals(Find left, Find right)
-		{
-			return left.equals(right);
-		}
-	};
-
-	protected static final AnnotationCache<Merge> mergeCache = new AnnotationCache<Merge>(Merge.class)
-	{
-		@Override
-		protected boolean annotationEquals(Merge left, Merge right)
-		{
-			return left.equals(right);
-		}
-	};
-
-	protected static final AnnotationCache<Remove> removeCache = new AnnotationCache<Remove>(Remove.class)
-	{
-		@Override
-		protected boolean annotationEquals(Remove left, Remove right)
-		{
-			return left.equals(right);
-		}
-	};
-
-	protected static final AnnotationCache<NoProxy> noProxyCache = new AnnotationCache<NoProxy>(NoProxy.class)
-	{
-		@Override
-		protected boolean annotationEquals(NoProxy left, NoProxy right)
-		{
-			return left.equals(right);
-		}
-	};
-
-	protected static final AnnotationCache<Process> processCache = new AnnotationCache<Process>(Process.class)
-	{
-		@Override
-		protected boolean annotationEquals(Process left, Process right)
-		{
-			return left.equals(right);
-		}
-	};
-
 	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
 	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
+	protected abstract Annotation getMethodLevelBehavior(Method method);
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
@@ -67,7 +24,8 @@ public abstract class AbstractInterceptor extends CascadedInterceptor
 		{
 			return null;
 		}
-		if (noProxyCache.getAnnotation(method) != null)
+		Annotation annotation = getMethodLevelBehavior(method);
+		if (annotation instanceof NoProxy)
 		{
 			return invokeTarget(obj, method, args, proxy);
 		}
@@ -83,42 +41,44 @@ public abstract class AbstractInterceptor extends CascadedInterceptor
 			isAsyncBegin = Boolean.FALSE;
 			methodName = methodName.substring(3);
 		}
-		return intercept(obj, method, args, proxy, methodName, isAsyncBegin);
+		return intercept(obj, method, args, proxy, annotation, methodName, isAsyncBegin);
 	}
 
-	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, String methodName, Boolean isAsyncBegin) throws Throwable
+	protected Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, String methodName, Boolean isAsyncBegin)
+			throws Throwable
 	{
-		if (processCache.getAnnotation(method) != null)
+		if (annotation instanceof Process)
 		{
-			return interceptApplication(obj, method, args, proxy, isAsyncBegin);
+			return interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
-		if (mergeCache.getAnnotation(method) != null || methodName.startsWith("create") || methodName.startsWith("update") || methodName.startsWith("save")
+		if (annotation instanceof Merge || methodName.startsWith("create") || methodName.startsWith("update") || methodName.startsWith("save")
 				|| methodName.startsWith("merge") || methodName.startsWith("insert"))
 		{
-			return interceptMerge(method, args, isAsyncBegin);
+			return interceptMerge(method, args, annotation, isAsyncBegin);
 		}
-		if (removeCache.getAnnotation(method) != null || methodName.startsWith("delete") || methodName.startsWith("remove"))
+		if (annotation instanceof Remove || methodName.startsWith("delete") || methodName.startsWith("remove"))
 		{
-			return interceptDelete(method, args, isAsyncBegin);
+			return interceptDelete(method, args, annotation, isAsyncBegin);
 		}
-		if (findCache.getAnnotation(method) != null || methodName.startsWith("retrieve") || methodName.startsWith("read") || methodName.startsWith("find")
+		if (annotation instanceof Find || methodName.startsWith("retrieve") || methodName.startsWith("read") || methodName.startsWith("find")
 				|| methodName.startsWith("get"))
 		{
-			return interceptLoad(obj, method, args, proxy, isAsyncBegin);
+			return interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		if (methodName.equals("close") || methodName.equals("abort"))
 		{
 			// Intended blank
 		}
-		return interceptApplication(obj, method, args, proxy, isAsyncBegin);
+		return interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 	}
 
-	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, Boolean isAsyncBegin)
+			throws Throwable
 	{
 		return invokeTarget(obj, method, args, proxy);
 	}
 
-	protected Object interceptLoad(Object obj, Method method, Object[] args, MethodProxy proxy, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptLoad(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		Object returnValue = invokeTarget(obj, method, args, proxy);
 
@@ -127,35 +87,35 @@ public abstract class AbstractInterceptor extends CascadedInterceptor
 			throw new RuntimeException();
 			// return (IAsyncResult)invocation.ReturnValue;
 		}
-		return interceptLoadIntern(method, args, isAsyncBegin, returnValue);
+		return interceptLoadIntern(method, args, annotation, isAsyncBegin, returnValue);
 	}
 
-	protected Object interceptMerge(Method method, Object[] args, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptMerge(Method method, Object[] args, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		if (Boolean.FALSE.equals(isAsyncBegin))
 		{
 			throw new RuntimeException();
 			// return ((IAsyncResult)invocation.Arguments[0]).AsyncState;
 		}
-		return interceptMergeIntern(method, args, isAsyncBegin);
+		return interceptMergeIntern(method, args, annotation, isAsyncBegin);
 	}
 
-	protected Object interceptDelete(Method method, Object[] args, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptDelete(Method method, Object[] args, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		if (Boolean.FALSE.equals(isAsyncBegin))
 		{
 			throw new RuntimeException();
 			// return ((IAsyncResult)invocation.Arguments[0]).AsyncState;
 		}
-		return interceptDeleteIntern(method, args, isAsyncBegin);
+		return interceptDeleteIntern(method, args, annotation, isAsyncBegin);
 	}
 
-	protected Object interceptLoadIntern(Method method, Object[] arguments, Boolean isAsyncBegin, Object result) throws Throwable
+	protected Object interceptLoadIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin, Object result) throws Throwable
 	{
 		return result;
 	}
 
-	protected abstract Object interceptMergeIntern(Method method, Object[] arguments, Boolean isAsyncBegin) throws Throwable;
+	protected abstract Object interceptMergeIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable;
 
-	protected abstract Object interceptDeleteIntern(Method method, Object[] arguments, Boolean isAsyncBegin) throws Throwable;
+	protected abstract Object interceptDeleteIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable;
 }

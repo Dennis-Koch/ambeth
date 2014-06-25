@@ -92,12 +92,12 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 		this(10);
 	}
 
-	public ArrayList(final Collection<V> coll)
+	public ArrayList(final Collection<? extends V> coll)
 	{
 		init(coll.toArray(), coll.size());
 	}
 
-	public ArrayList(final Iterable<V> coll)
+	public ArrayList(final Iterable<? extends V> coll)
 	{
 		this(10);
 		for (V item : coll)

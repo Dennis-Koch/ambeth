@@ -1,5 +1,6 @@
 package de.osthus.ambeth.cache.interceptor;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -8,7 +9,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.Cached;
 import de.osthus.ambeth.cache.ICache;
@@ -17,6 +17,7 @@ import de.osthus.ambeth.cache.IServiceResultProcessorRegistry;
 import de.osthus.ambeth.cache.model.IServiceResult;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.interceptor.MergeInterceptor;
@@ -29,10 +30,8 @@ import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.transfer.ServiceDescription;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
-import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ListUtil;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheInterceptor extends MergeInterceptor
 {
@@ -42,62 +41,32 @@ public class CacheInterceptor extends MergeInterceptor
 
 	public static final ThreadLocal<Boolean> pauseCache = new SensitiveThreadLocal<Boolean>();
 
-	protected final AnnotationCache<Cached> cachedAnnotationCache = new AnnotationCache<Cached>(Cached.class)
-	{
-		@Override
-		protected boolean annotationEquals(Cached left, Cached right)
-		{
-			return EqualsUtil.equals(left.type(), right.type()) && EqualsUtil.equals(left.alternateIdName(), right.alternateIdName());
-		}
-	};
-
+	@Autowired
 	protected ICacheService cacheService;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IServiceResultProcessorRegistry serviceResultProcessorRegistry;
 
 	@Override
-	public void afterPropertiesSet()
-	{
-		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(cacheService, "CacheService");
-		ParamChecker.assertNotNull(cache, "Cache");
-		ParamChecker.assertNotNull(serviceResultProcessorRegistry, "ServiceResultProcessorRegistry");
-	}
-
-	public void setCacheService(ICacheService cacheService)
-	{
-		this.cacheService = cacheService;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setServiceResultProcessorRegistry(IServiceResultProcessorRegistry serviceResultProcessorRegistry)
-	{
-		this.serviceResultProcessorRegistry = serviceResultProcessorRegistry;
-	}
-
-	@Override
-	protected Object interceptLoad(Object obj, Method method, Object[] args, MethodProxy proxy, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptLoad(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		ServiceDescription serviceDescription;
 		IServiceResult serviceResult;
 
-		Cached cached = cachedAnnotationCache.getAnnotation(method);
+		Cached cached = annotation instanceof Cached ? (Cached) annotation : null;
 		if (cached == null && Boolean.TRUE.equals(pauseCache.get()))
 		{
-			return super.interceptLoad(obj, method, args, proxy, isAsyncBegin);
+			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 
 		Class<?> returnType = method.getReturnType();
 		if (ImmutableTypeSet.isImmutableType(returnType))
 		{
 			// No possible result which might been read by cache
-			return super.interceptLoad(obj, method, args, proxy, isAsyncBegin);
+			return super.interceptLoad(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		if (cached == null)
 		{

@@ -91,7 +91,6 @@
     <Compile Include="ambeth\security\IActionPermission.cs" />
     <Compile Include="ambeth\security\IAuthorization.cs" />
     <Compile Include="ambeth\security\IAuthorizationManager.cs" />
-    <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
     <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
     <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />

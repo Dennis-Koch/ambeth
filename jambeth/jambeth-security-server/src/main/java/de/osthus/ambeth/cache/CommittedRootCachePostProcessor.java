@@ -20,8 +20,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
-import de.osthus.ambeth.proxy.MethodLevelBehaviour;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.proxy.MethodLevelBehavior;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
@@ -77,7 +77,7 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 		{
 			methodLevelBehaviour = Collections.<MethodKey, SecurityContextType> emptyMap();
 		}
-		IMethodLevelBehaviour<SecurityContextType> behaviour = new MethodLevelBehaviour<SecurityContextType>(SecurityContextType.NOT_REQUIRED,
+		IMethodLevelBehavior<SecurityContextType> behaviour = new MethodLevelBehavior<SecurityContextType>(SecurityContextType.NOT_REQUIRED,
 				methodLevelBehaviour);
 
 		SecurityFilterInterceptor interceptor = new SecurityFilterInterceptor();

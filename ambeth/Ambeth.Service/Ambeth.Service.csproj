@@ -67,6 +67,7 @@
     <Compile Include="ambeth\model\IServiceResult.cs" />
     <Compile Include="ambeth\proxy\AbstractCascadePostProcessor.cs" />
     <Compile Include="ambeth\proxy\AmbethInvocation.cs" />
+    <Compile Include="ambeth\proxy\IBehaviorTypeExtractor.cs" />
     <Compile Include="ambeth\proxy\CustomInvocation.cs" />
     <Compile Include="ambeth\proxy\ServiceAttribute.cs" />
     <Compile Include="ambeth\proxy\ServiceClientAttribute.cs" />
@@ -141,6 +142,13 @@
     <Compile Include="ambeth\merge\model\AbstractMethodLifecycleExtension.cs" />
     <Compile Include="ambeth\merge\model\IEntityLifecycleExtendable.cs" />
     <Compile Include="ambeth\merge\model\IEntityLifecycleExtension.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IMethodLevelBehavior.cs" />
+    <Compile Include="ambeth\proxy\MethodLevelBehavior.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\NoBehavior.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

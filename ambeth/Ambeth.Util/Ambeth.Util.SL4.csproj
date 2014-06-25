@@ -225,6 +225,7 @@
     <Compile Include="ambeth\util\FullServiceModelProvider.cs" />
     <Compile Include="ambeth\util\Lock.cs" />
     <Compile Include="ambeth\util\LockState.cs" />
+    <Compile Include="ambeth\util\MethodKey.cs" />
     <Compile Include="ambeth\util\MethodKeyOfType.cs" />
     <Compile Include="ambeth\util\NamedItemComparer.cs" />
     <Compile Include="ambeth\util\NewType.cs" />

@@ -14,19 +14,16 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Transfer;
 using De.Osthus.Ambeth.Merge.Transfer;
-using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Cache;
-using De.Osthus.Ambeth.Cache.Transfer;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Interceptor;
 using De.Osthus.Ambeth.Merge;
-using De.Osthus.Ambeth.Security.Interceptor;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Cache.Config;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Cache.Model;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
@@ -53,40 +50,35 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected readonly CachedAnnotationCache cachedAnnotationCache = new CachedAnnotationCache();
 
+        [Autowired]
+        public ICache Cache { protected get; set; }
+
+        [Autowired]
         public ICacheService CacheService { protected get; set; }
 
+        [Autowired]
         public IServiceResultProcessorRegistry ServiceResultProcessorRegistry { protected get; set; }
-
-        public ICache Cache { protected get; set; }
 
         [Property(CacheConfigurationConstants.CacheServiceName, DefaultValue = "CacheService")]
         public String CacheServiceName { protected get; set; }
 
-        public override void AfterPropertiesSet()
-        {
-            base.AfterPropertiesSet();
-            ParamChecker.AssertNotNull(Cache, "Cache");
-            ParamChecker.AssertNotNull(CacheService, "CacheService");
-            ParamChecker.AssertNotNull(ServiceResultProcessorRegistry, "ServiceResultProcessorRegistry");
-        }
-
-        protected override Object InterceptLoad(IInvocation invocation, Boolean? isAsyncBegin)
+        protected override Object InterceptLoad(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             ServiceDescription serviceDescription;
 		    IServiceResult serviceResult;
             MethodInfo method = invocation.Method;
             Object[] args = invocation.Arguments;
 
-            CachedAttribute cached = cachedAnnotationCache.GetAnnotation(method);
+            CachedAttribute cached = annotation is CachedAttribute ? (CachedAttribute)annotation : null;
 		    if (cached == null && pauseCache.Value)
 		    {
-			    return base.InterceptLoad(invocation, isAsyncBegin);
+                return base.InterceptLoad(invocation, annotation, isAsyncBegin);
 		    }
 		    Type returnType = method.ReturnType;
 		    if (ImmutableTypeSet.IsImmutableType(returnType))
 		    {
 			    // No possible result which might been read by cache
-			    return base.InterceptLoad(invocation, isAsyncBegin);
+                return base.InterceptLoad(invocation, annotation, isAsyncBegin);
 		    }
 		    if (cached == null)
 		    {
