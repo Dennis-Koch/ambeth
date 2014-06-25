@@ -12,10 +12,10 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
+import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
-import de.osthus.ambeth.proxy.MethodLevelBehavior.IBehaviourTypeExtractor;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
@@ -36,10 +36,10 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 		}
 	};
 
-	protected final IBehaviourTypeExtractor<SecurityContext, SecurityContextType> btExtractor = new IBehaviourTypeExtractor<SecurityContext, SecurityContextType>()
+	protected final IBehaviorTypeExtractor<SecurityContext, SecurityContextType> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityContextType>()
 	{
 		@Override
-		public SecurityContextType extractBehaviourType(SecurityContext annotation)
+		public SecurityContextType extractBehaviorType(SecurityContext annotation)
 		{
 			return annotation.value();
 		}

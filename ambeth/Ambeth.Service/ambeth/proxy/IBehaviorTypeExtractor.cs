@@ -3,8 +3,8 @@ using System.Reflection;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public interface IBehaviourTypeExtractor<A, T> where A : Attribute
+    public interface IBehaviorTypeExtractor<A, T> where A : Attribute
     {
-        T ExtractBehaviourType(A annotation);
+        T ExtractBehaviorType(A annotation);
     }
 }

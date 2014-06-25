@@ -7,7 +7,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor
 {
@@ -19,7 +19,7 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	protected IMethodCallLogger methodCallLogger;
 
 	@Autowired
-	protected IMethodLevelBehaviour<AuditMethod> methodLevelBehaviour;
+	protected IMethodLevelBehavior<AuditMethod> methodLevelBehaviour;
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
