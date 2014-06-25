@@ -73,7 +73,7 @@ namespace De.Osthus.Ambeth.Cache
                     cacheTL.Value = null;
                     cache.Dispose();
                 }
-                cache = privilegedCacheTL.Value;
+                cache = privilegedCacheTL != null ? privilegedCacheTL.Value : null;
                 if (cache != null)
                 {
                     privilegedCacheTL.Value = null;
