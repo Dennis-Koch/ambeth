@@ -4,5 +4,5 @@ import de.osthus.ambeth.model.ISecurityScope;
 
 public interface ISecurityScopeChangeListener
 {
-	void securityScopeChanged(IUserHandle userHandle, ISecurityScope[] securityScopes);
+	void securityScopeChanged(IAuthorization authorization, ISecurityScope[] securityScopes);
 }

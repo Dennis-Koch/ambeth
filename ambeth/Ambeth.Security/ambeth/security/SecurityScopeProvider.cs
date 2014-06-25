@@ -16,13 +16,6 @@ namespace De.Osthus.Ambeth.Security
 {
     public class SecurityScopeProvider : IThreadLocalCleanupBean, ISecurityScopeProvider, ISecurityScopeChangeListenerExtendable
     {
-        public class SecurityScopeHandle
-        {
-            public ISecurityScope[] securityScopes;
-
-            public IUserHandle userHandle;
-        }
-
         public static readonly ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
 
         protected ThreadLocal<SecurityScopeHandle> securityScopeTL = new ThreadLocal<SecurityScopeHandle>();
@@ -63,17 +56,17 @@ namespace De.Osthus.Ambeth.Security
             }
         }
 
-        public IUserHandle UserHandle
+        public IAuthorization Authorization
         {
             get
             {
                 SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
-                return securityScopeHandle.userHandle;
+                return securityScopeHandle.authorization;
             }
             set
             {
                 SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
-                securityScopeHandle.userHandle = value;
+                securityScopeHandle.authorization = value;
             }
         }
 
@@ -95,7 +88,7 @@ namespace De.Osthus.Ambeth.Security
         {
 	        foreach (ISecurityScopeChangeListener securityScopeChangeListener in securityScopeChangeListeners.GetExtensions())
 	        {
-		        securityScopeChangeListener.SecurityScopeChanged(securityScopeHandle.userHandle, securityScopeHandle.securityScopes);
+		        securityScopeChangeListener.SecurityScopeChanged(securityScopeHandle.authorization, securityScopeHandle.securityScopes);
 	        }
         }
 

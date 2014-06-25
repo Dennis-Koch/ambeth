@@ -163,8 +163,8 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<IPrivilegeItem> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
         {
-            IUserHandle userHandle = SecurityScopeProvider.UserHandle;
-            if (userHandle == null)
+            IAuthorization authorization = SecurityScopeProvider.Authorization;
+            if (authorization == null)
             {
                 throw new SecurityException("User must be authenticated to be able to check for privileges");
             }
@@ -175,13 +175,13 @@ namespace De.Osthus.Ambeth.Privilege
             List<IObjRef> missingObjRefs = new List<IObjRef>();
             lock (writeLock)
             {
-                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, userHandle, null);
+                IList<IPrivilegeItem> result = CreateResult(objRefs, securityScopes, missingObjRefs, authorization, null);
                 if (missingObjRefs.Count == 0)
                 {
                     return result;
                 }
             }
-            String userSID = userHandle.SID;
+            String userSID = authorization.SID;
             IList<PrivilegeResult> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
             lock (writeLock)
             {
@@ -257,17 +257,17 @@ namespace De.Osthus.Ambeth.Privilege
 					    privilegeResultOfNewEntities.Put(privilegeKey, indexedPrivilegeEnums);
 				    }
                 }
-                return CreateResult(objRefs, securityScopes, null, userHandle, privilegeResultOfNewEntities);
+                return CreateResult(objRefs, securityScopes, null, authorization, privilegeResultOfNewEntities);
             }
         }
 
         protected IList<IPrivilegeItem> CreateResult<V>(IEnumerable<V> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-                IUserHandle userHandle, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities) where V : IObjRef
+                IAuthorization authorization, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities) where V : IObjRef
         {
             PrivilegeKey privilegeKey = null;
 
             List<IPrivilegeItem> result = new List<IPrivilegeItem>();
-            String userSID = userHandle.SID;
+            String userSID = authorization.SID;
 
             foreach (IObjRef objRef in objRefs)
             {

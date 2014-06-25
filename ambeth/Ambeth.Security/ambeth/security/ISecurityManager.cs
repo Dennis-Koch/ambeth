@@ -6,7 +6,7 @@ namespace De.Osthus.Ambeth.Security
 {
     public interface ISecurityManager
     {
-        void CheckMethodAccess(MethodInfo method, Object[] arguments, IUserHandle userHandle);
+        void CheckMethodAccess(MethodInfo method, Object[] arguments, IAuthorization authorization);
 
         T FilterValue<T>(T value);
     }

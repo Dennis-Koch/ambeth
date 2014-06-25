@@ -8,7 +8,7 @@ import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
 import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.IPermissionEvaluationResult;
 import de.osthus.ambeth.security.IActionPermission;
-import de.osthus.ambeth.security.IUserHandle;
+import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
 public class ActionPermissionPrivilegeProviderExtension implements IPrivilegeProviderExtension<IActionPermission>
@@ -24,10 +24,10 @@ public class ActionPermissionPrivilegeProviderExtension implements IPrivilegePro
 	}
 
 	@Override
-	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, IActionPermission entity, IUserHandle userHandle, ISecurityScope[] securityScopes,
+	public IPermissionEvaluationResult evaluatePermission(IObjRef objRef, IActionPermission entity, IAuthorization authorization, ISecurityScope[] securityScopes,
 			IPermissionEvaluation permissionEvaluation)
 	{
-		if (!userHandle.hasActionPermission(entity.getName(), securityScopes))
+		if (!authorization.hasActionPermission(entity.getName(), securityScopes))
 		{
 			// this extension only handles the specific case where the user has the corresponding actionPermission associated
 			return permissionEvaluation.allowRead().skipCreate().skipUpdate().skipDelete().denyExecute();

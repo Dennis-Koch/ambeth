@@ -24,7 +24,7 @@ import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.model.PrivilegeItem;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.IUserHandle;
+import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.util.EqualsUtil;
 
@@ -179,8 +179,8 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	@Override
 	public IList<IPrivilegeItem> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope... securityScopes)
 	{
-		IUserHandle userHandle = securityScopeProvider.getUserHandle();
-		if (userHandle == null)
+		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		if (authorization == null)
 		{
 			throw new SecurityException("User must be authenticated to be able to check for privileges");
 		}
@@ -193,7 +193,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		writeLock.lock();
 		try
 		{
-			IList<IPrivilegeItem> result = createResult(objRefs, securityScopes, missingObjRefs, userHandle, null);
+			IList<IPrivilegeItem> result = createResult(objRefs, securityScopes, missingObjRefs, authorization, null);
 			if (missingObjRefs.size() == 0)
 			{
 				return result;
@@ -203,7 +203,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 		{
 			writeLock.unlock();
 		}
-		String userSID = userHandle.getSID();
+		String userSID = authorization.getSID();
 		List<PrivilegeResult> privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
 		writeLock.lock();
 		try
@@ -280,7 +280,7 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 					privilegeResultOfNewEntities.put(privilegeKey, indexedPrivilegeEnums);
 				}
 			}
-			return createResult(objRefs, securityScopes, null, userHandle, privilegeResultOfNewEntities);
+			return createResult(objRefs, securityScopes, null, authorization, privilegeResultOfNewEntities);
 		}
 		finally
 		{
@@ -289,12 +289,12 @@ public class PrivilegeProvider implements IPrivilegeProvider, IInitializingBean,
 	}
 
 	protected IList<IPrivilegeItem> createResult(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes, List<IObjRef> missingObjRefs,
-			IUserHandle userHandle, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities)
+			IAuthorization authorization, IMap<PrivilegeKey, PrivilegeEnum[]> privilegeResultOfNewEntities)
 	{
 		PrivilegeKey privilegeKey = null;
 
 		ArrayList<IPrivilegeItem> result = new ArrayList<IPrivilegeItem>(objRefs.size());
-		String userSID = userHandle.getSID();
+		String userSID = authorization.getSID();
 
 		for (IObjRef objRef : objRefs)
 		{

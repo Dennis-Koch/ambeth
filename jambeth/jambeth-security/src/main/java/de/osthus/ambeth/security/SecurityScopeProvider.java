@@ -65,18 +65,18 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	}
 
 	@Override
-	public IUserHandle getUserHandle()
+	public IAuthorization getAuthorization()
 	{
 		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
 		if (securityScopeHandle == null)
 		{
 			return null;
 		}
-		return securityScopeHandle.userHandle;
+		return securityScopeHandle.authorization;
 	}
 
 	@Override
-	public void setUserHandle(IUserHandle userHandle)
+	public void setAuthorization(IAuthorization authorization)
 	{
 		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
 		if (securityScopeHandle == null)
@@ -84,7 +84,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 			securityScopeHandle = new SecurityScopeHandle();
 			securityScopeTL.set(securityScopeHandle);
 		}
-		securityScopeHandle.userHandle = userHandle;
+		securityScopeHandle.authorization = authorization;
 		notifySecurityScopeChangeListeners(securityScopeHandle);
 	}
 
@@ -92,7 +92,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	{
 		for (ISecurityScopeChangeListener securityScopeChangeListener : securityScopeChangeListeners.getExtensions())
 		{
-			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.userHandle, securityScopeHandle.securityScopes);
+			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.authorization, securityScopeHandle.securityScopes);
 		}
 	}
 

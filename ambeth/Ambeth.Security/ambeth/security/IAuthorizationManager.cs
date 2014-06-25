@@ -4,8 +4,8 @@ using De.Osthus.Ambeth.Model;
 
 namespace De.Osthus.Ambeth.Security
 {
-    public interface IUserHandleFactory
+    public interface IAuthorizationManager
     {
-        IUserHandle CreateUserHandle(String sid, ISecurityScope[] securityScopes);
+        IAuthorization Authorize(String sid, ISecurityScope[] securityScopes);
     }
 }

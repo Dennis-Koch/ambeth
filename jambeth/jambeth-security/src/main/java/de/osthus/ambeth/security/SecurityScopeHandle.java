@@ -6,5 +6,5 @@ public class SecurityScopeHandle
 {
 	public ISecurityScope[] securityScopes;
 
-	public IUserHandle userHandle;
+	public IAuthorization authorization;
 }

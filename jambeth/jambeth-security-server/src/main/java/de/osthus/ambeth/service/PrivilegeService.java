@@ -30,7 +30,7 @@ import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.IUserHandle;
+import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
@@ -196,7 +196,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		ArrayList<PrivilegeResult> privilegeResults = new ArrayList<PrivilegeResult>();
 		ArrayList<PrivilegeEnum> privilegeEnums = new ArrayList<PrivilegeEnum>(4);
 
-		IUserHandle userHandle = securityScopeProvider.getUserHandle();
+		IAuthorization authorization = securityScopeProvider.getAuthorization();
 		PermissionEvaluation pe = new PermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege, isDefaultUpdatePrivilege,
 				isDefaultDeletePrivilege, isDefaultExecutePrivilege);
 
@@ -216,7 +216,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 				for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
 				{
 					IPrivilegeProviderExtension extension = extensions.get(c);
-					extension.evaluatePermission(objRef, entity, userHandle, securityScopes, pe);
+					extension.evaluatePermission(objRef, entity, authorization, securityScopes, pe);
 				}
 			}
 			else

@@ -7,6 +7,6 @@ import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public interface IServiceFilter
 {
-	CallPermission checkCallPermissionOnService(Method method, Object[] arguments, SecurityContextType securityContextType, IUserHandle userHandle,
+	CallPermission checkCallPermissionOnService(Method method, Object[] arguments, SecurityContextType securityContextType, IAuthorization authorization,
 			ISecurityScope[] securityScopes);
 }

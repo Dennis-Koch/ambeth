@@ -6,7 +6,7 @@ using De.Osthus.Ambeth.Model;
 
 namespace De.Osthus.Ambeth.Security
 {
-    public interface IUserHandle
+    public interface IAuthorization
     {
         String SID { get; }
 
