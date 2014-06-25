@@ -78,7 +78,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 				cacheTL.remove();
 				cache.dispose();
 			}
-			cache = privilegedCacheTL.get();
+			cache = privilegedCacheTL != null ? privilegedCacheTL.get() : null;
 			if (cache != null)
 			{
 				privilegedCacheTL.remove();
