@@ -23,7 +23,7 @@ import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.LRETURN;
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.NEW;
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.PUTFIELD;
 import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.RETURN;
-import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.V1_1;
+import static de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes.V1_6;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -153,8 +153,8 @@ public abstract class FieldAccess
 				String accessClassNameInternal = accessClassName.replace('.', '/');
 				String classNameInternal = className.replace('.', '/');
 
-				ClassWriter cw = new ClassWriter(0);
-				cw.visit(V1_1, ACC_PUBLIC + ACC_SUPER, accessClassNameInternal, null,
+				ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+				cw.visit(V1_6, ACC_PUBLIC + ACC_SUPER, accessClassNameInternal, null,
 						"de/osthus/ambeth/repackaged/com/esotericsoftware/reflectasm/FieldAccess", null);
 				insertConstructor(cw);
 				insertGetObject(cw, classNameInternal, fields);
