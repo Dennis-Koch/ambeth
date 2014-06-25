@@ -10,10 +10,10 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
+import de.osthus.ambeth.proxy.IBehaviorTypeExtractor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
-import de.osthus.ambeth.proxy.MethodLevelBehaviour;
-import de.osthus.ambeth.proxy.MethodLevelBehaviour.IBehaviourTypeExtractor;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.proxy.MethodLevelBehavior;
 
 public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 {
@@ -30,10 +30,10 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 		}
 	};
 
-	protected final IBehaviourTypeExtractor<AuditMethod, AuditMethod> auditMethodExtractor = new IBehaviourTypeExtractor<AuditMethod, AuditMethod>()
+	protected final IBehaviorTypeExtractor<AuditMethod, AuditMethod> auditMethodExtractor = new IBehaviorTypeExtractor<AuditMethod, AuditMethod>()
 	{
 		@Override
-		public AuditMethod extractBehaviourType(AuditMethod annotation)
+		public AuditMethod extractBehaviorType(AuditMethod annotation)
 		{
 			return annotation;
 		}
@@ -43,7 +43,7 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		IMethodLevelBehaviour<AuditMethod> behaviour = MethodLevelBehaviour.create(type, annotationCache, AuditMethod.class, auditMethodExtractor,
+		IMethodLevelBehavior<AuditMethod> behaviour = MethodLevelBehavior.create(type, annotationCache, AuditMethod.class, auditMethodExtractor,
 				beanContextFactory, beanContext);
 		if (behaviour == null)
 		{

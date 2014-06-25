@@ -9,7 +9,6 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.MethodLevelBehavior.IBehaviourTypeExtractor;
 import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.util.EqualsUtil;
 
@@ -28,10 +27,10 @@ public class PersistencePostProcessor extends AbstractCascadePostProcessor
 		}
 	};
 
-	protected final IBehaviourTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor = new IBehaviourTypeExtractor<PersistenceContext, PersistenceContextType>()
+	protected final IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType> btExtractor = new IBehaviorTypeExtractor<PersistenceContext, PersistenceContextType>()
 	{
 		@Override
-		public PersistenceContextType extractBehaviourType(PersistenceContext annotation)
+		public PersistenceContextType extractBehaviorType(PersistenceContext annotation)
 		{
 			return annotation.value();
 		}

@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Proxy
         private static readonly SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior = new SmartCopyMap<BehaviorKey, IMethodLevelBehavior>(0.5f);
 
         public static IMethodLevelBehavior<T> Create<A>(Type beanType, AnnotationCache<A> annotationCache, Type behaviourType,
-                IBehaviourTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory, IServiceContext beanContext) where A : Attribute
+                IBehaviorTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory, IServiceContext beanContext) where A : Attribute
         {
             BehaviorKey key = new BehaviorKey(beanType, behaviourType);
 
@@ -66,7 +66,7 @@ namespace De.Osthus.Ambeth.Proxy
                 beanTypeToBehavior.Put(key, noBehavior);
                 return null;
             }
-            T defaultBehaviour = behaviourTypeExtractor.ExtractBehaviourType(annotation);
+            T defaultBehaviour = behaviourTypeExtractor.ExtractBehaviorType(annotation);
             IMap<MethodKey, T> methodLevelBehaviour = null;
 
             MethodInfo[] methods = ReflectUtil.GetMethods(beanType);
@@ -81,7 +81,7 @@ namespace De.Osthus.Ambeth.Proxy
                         methodLevelBehaviour = new HashMap<MethodKey, T>();
                     }
                     MethodKey methodKey = new MethodKey(method);
-                    T behaviourTypeOnMethod = behaviourTypeExtractor.ExtractBehaviourType(annotationOnMethod);
+                    T behaviourTypeOnMethod = behaviourTypeExtractor.ExtractBehaviorType(annotationOnMethod);
                     if (behaviourTypeOnMethod != null)
                     {
                         methodLevelBehaviour.Put(methodKey, behaviourTypeOnMethod);

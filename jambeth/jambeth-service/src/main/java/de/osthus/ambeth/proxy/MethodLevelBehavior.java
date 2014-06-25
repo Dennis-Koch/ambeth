@@ -15,11 +15,6 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 {
-	public interface IBehaviourTypeExtractor<A extends Annotation, T>
-	{
-		T extractBehaviourType(A annotation);
-	}
-
 	private static final IMethodLevelBehavior<Object> noBehavior = new NoBehavior();
 
 	public static class BehaviorKey
@@ -60,7 +55,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 	private static final SmartCopyMap<BehaviorKey, IMethodLevelBehavior> beanTypeToBehavior = new SmartCopyMap<BehaviorKey, IMethodLevelBehavior>(0.5f);
 
 	public static <A extends Annotation, T> IMethodLevelBehavior<T> create(Class<?> beanType, AnnotationCache<A> annotationCache, Class<T> behaviourType,
-			IBehaviourTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory, IServiceContext beanContext)
+			IBehaviorTypeExtractor<A, T> behaviourTypeExtractor, IBeanContextFactory beanContextFactory, IServiceContext beanContext)
 	{
 		BehaviorKey key = new BehaviorKey(beanType, behaviourType);
 		@SuppressWarnings("unchecked")
@@ -79,7 +74,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 			beanTypeToBehavior.put(key, noBehavior);
 			return null;
 		}
-		T defaultBehaviour = behaviourTypeExtractor.extractBehaviourType(annotation);
+		T defaultBehaviour = behaviourTypeExtractor.extractBehaviorType(annotation);
 		Map<MethodKey, T> methodLevelBehaviour = null;
 
 		Method[] methods = ReflectUtil.getMethods(beanType);
@@ -94,7 +89,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 					methodLevelBehaviour = new HashMap<MethodKey, T>();
 				}
 				MethodKey methodKey = new MethodKey(method.getName(), method.getParameterTypes());
-				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviourType(annotationOnMethod);
+				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod);
 				if (behaviourTypeOnMethod != null)
 				{
 					methodLevelBehaviour.put(methodKey, behaviourTypeOnMethod);
