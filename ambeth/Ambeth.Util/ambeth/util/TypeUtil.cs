@@ -20,6 +20,16 @@ namespace De.Osthus.Ambeth.Util
             return types;
         }
 
+        public static Type[] GetParameterTypesToTypes(ParameterInfo[] classes)
+        {
+            Type[] types = new Type[classes.Length];
+            for (int a = classes.Length; a-- > 0; )
+            {
+                types[a] = classes[a].ParameterType;
+            }
+            return types;
+        }
+
         public static NewType[] GetClassesToTypes(ParameterInfo[] classes)
         {
             NewType[] types = new NewType[classes.Length];

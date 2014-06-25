@@ -180,12 +180,17 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 	protected IMergeServiceExtension getServiceForType(Class<?> type)
 	{
+		return getServiceForType(type, false);
+	}
+
+	protected IMergeServiceExtension getServiceForType(Class<?> type, boolean tryOnly)
+	{
 		if (type == null)
 		{
 			return null;
 		}
 		IMergeServiceExtension mse = mergeServiceExtensions.getExtension(type);
-		if (mse == null)
+		if (mse == null && !tryOnly)
 		{
 			throw new IllegalArgumentException("No " + IMergeServiceExtension.class.getSimpleName() + " found to handle entity type '" + type.getName() + "'");
 		}
@@ -308,8 +313,12 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		{
 			Class<?> type = entry.getKey();
 			IList<IChangeContainer> unorderedChanges = entry.getValue();
-			IMergeServiceExtension mergeServiceExtension = getServiceForType(type);
+			IMergeServiceExtension mergeServiceExtension = getServiceForType(type, true);
 
+			if (mergeServiceExtension == null)
+			{
+				continue;
+			}
 			boolean cont = false;
 			for (MergeOperation existingMergeOperation : mergeOperations)
 			{

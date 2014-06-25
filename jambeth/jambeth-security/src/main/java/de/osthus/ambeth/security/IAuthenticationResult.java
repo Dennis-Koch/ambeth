@@ -4,5 +4,5 @@ public interface IAuthenticationResult
 {
 	String getUserName();
 
-	boolean isPasswordStillValid();
+	boolean isChangePassword();
 }

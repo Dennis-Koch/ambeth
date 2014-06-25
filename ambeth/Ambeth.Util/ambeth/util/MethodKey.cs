@@ -1,15 +1,27 @@
 using System;
+using System.Reflection;
 using System.Text;
 
 namespace De.Osthus.Ambeth.Util
 {
-    public class MethodKeyOfType : IPrintable
+    public class MethodKey : IPrintable
     {
         protected readonly String methodName;
 
-        protected readonly NewType[] parameterTypes;
+        protected readonly Type[] parameterTypes;
 
-        public MethodKeyOfType(String methodName, NewType[] parameterTypes)
+        public MethodKey(MethodInfo method)
+        {
+            this.methodName = method.Name;
+            ParameterInfo[] parameters = method.GetParameters();
+            parameterTypes = new Type[parameterTypes.Length];
+            for (int a = parameterTypes.Length; a-- > 0; )
+            {
+                parameterTypes[a] = parameters[a].ParameterType;
+            }
+        }
+
+        public MethodKey(String methodName, Type[] parameterTypes)
         {
             this.methodName = methodName;
             this.parameterTypes = parameterTypes;
@@ -23,7 +35,7 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
-        public NewType[] ParameterTypes
+        public Type[] ParameterTypes
         {
             get
             {
@@ -50,7 +62,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return false;
             }
-            MethodKeyOfType other = (MethodKeyOfType)obj;
+            MethodKey other = (MethodKey)obj;
             if (!Object.Equals(methodName, other.methodName))
             {
                 return false;
@@ -62,25 +74,25 @@ namespace De.Osthus.Ambeth.Util
             return true;
         }
 
-	    public override String ToString()
-	    {
-		    StringBuilder sb = new StringBuilder();
-		    ToString(sb);
-		    return sb.ToString();
-	    }
+        public override String ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            ToString(sb);
+            return sb.ToString();
+        }
 
-	    public void ToString(StringBuilder sb)
-	    {
+        public void ToString(StringBuilder sb)
+        {
             sb.Append("MethodKey: ").Append(methodName).Append('(');
-		    for (int a = 0, size = parameterTypes.Length; a < size; a++)
-		    {
-			    if (a > 0)
-			    {
+            for (int a = 0, size = parameterTypes.Length; a < size; a++)
+            {
+                if (a > 0)
+                {
                     sb.Append(", ");
-			    }
-                sb.Append(parameterTypes[a].ClassName);
-		    }
+                }
+                sb.Append(parameterTypes[a].FullName);
+            }
             sb.Append(')');
-	    }
+        }
     }
 }

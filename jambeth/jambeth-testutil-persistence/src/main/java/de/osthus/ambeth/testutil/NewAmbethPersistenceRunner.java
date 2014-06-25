@@ -58,7 +58,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
-import de.osthus.ambeth.proxy.IMethodLevelBehaviour;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
@@ -435,7 +435,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 						return scopeName;
 					}
 				};
-				IMethodLevelBehaviour<SecurityContextType> behaviour = new IMethodLevelBehaviour<SecurityContextType>()
+				IMethodLevelBehavior<SecurityContextType> behaviour = new IMethodLevelBehavior<SecurityContextType>()
 				{
 					@Override
 					public SecurityContextType getBehaviourOfMethod(Method method)

@@ -3,39 +3,24 @@ package de.osthus.ambeth.service;
 import java.lang.reflect.Method;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class ProcessService implements IProcessService, IInitializingBean
+public class ProcessService implements IProcessService
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IServiceByNameProvider serviceByNameProvider;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(serviceByNameProvider, "ServiceByNameProvider");
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setServiceByNameProvider(IServiceByNameProvider serviceByNameProvider)
-	{
-		this.serviceByNameProvider = serviceByNameProvider;
-	}
 
 	@Override
 	public Object invokeService(IServiceDescription serviceDescription)

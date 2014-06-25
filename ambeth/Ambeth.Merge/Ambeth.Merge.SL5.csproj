@@ -183,6 +183,8 @@
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\IEnhancedType.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\proxy\MergeContext.cs" />
+    <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
     <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />

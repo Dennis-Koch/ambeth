@@ -10,7 +10,8 @@ import java.util.List;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.annotation.Remove;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -22,13 +23,14 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.proxy.AbstractInterceptor;
+import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.proxy.ServiceClient;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class MergeInterceptor extends AbstractInterceptor implements IInitializingBean
+public class MergeInterceptor extends AbstractInterceptor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -37,53 +39,34 @@ public class MergeInterceptor extends AbstractInterceptor implements IInitializi
 	// Intentionally no SensitiveThreadLocal
 	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<Boolean>();
 
+	@Autowired
+	protected IMethodLevelBehavior<Annotation> behavior;
+
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
 	protected IMergeProcess mergeProcess;
 
+	@Autowired(optional = true)
 	protected IProcessService processService;
-
-	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	protected boolean isCloneCacheControllerActive;
 
+	@Property
 	protected String serviceName;
 
 	@Override
-	public void afterPropertiesSet()
+	protected Annotation getMethodLevelBehavior(Method method)
 	{
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(mergeProcess, "MergeProcess");
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setMergeProcess(IMergeProcess mergeProcess)
-	{
-		this.mergeProcess = mergeProcess;
-	}
-
-	public void setProcessService(IProcessService processService)
-	{
-		this.processService = processService;
-	}
-
-	public void setServiceName(String serviceName)
-	{
-		this.serviceName = serviceName;
+		return behavior.getBehaviourOfMethod(method);
 	}
 
 	@Override
-	protected Object interceptMergeIntern(Method method, Object[] arguments, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptMergeIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		if (arguments == null || arguments.length != 1 && arguments.length != 3)
 		{
@@ -103,7 +86,7 @@ public class MergeInterceptor extends AbstractInterceptor implements IInitializi
 	}
 
 	@Override
-	protected Object interceptDeleteIntern(Method method, Object[] arguments, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptDeleteIntern(Method method, Object[] arguments, Annotation annotation, Boolean isAsyncBegin) throws Throwable
 	{
 		if (arguments == null || arguments.length != 1 && arguments.length != 3)
 		{
@@ -111,7 +94,7 @@ public class MergeInterceptor extends AbstractInterceptor implements IInitializi
 		}
 		ProceedWithMergeHook proceedHook = getProceedHook(arguments);
 		MergeFinishedCallback finishedCallback = getFinishedCallback(arguments);
-		Remove remove = method.getAnnotation(Remove.class);
+		Remove remove = (Remove) annotation;
 		if (remove != null)
 		{
 			String idName = remove.idName();
@@ -136,12 +119,13 @@ public class MergeInterceptor extends AbstractInterceptor implements IInitializi
 	}
 
 	@Override
-	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy, Boolean isAsyncBegin) throws Throwable
+	protected Object interceptApplication(Object obj, Method method, Object[] args, MethodProxy proxy, Annotation annotation, Boolean isAsyncBegin)
+			throws Throwable
 	{
 		Boolean oldProcessServiceActive = processServiceActive.get();
-		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null)
+		if (Boolean.TRUE.equals(oldProcessServiceActive) || processService == null || !method.getDeclaringClass().isAnnotationPresent(ServiceClient.class))
 		{
-			return super.interceptApplication(obj, method, args, proxy, isAsyncBegin);
+			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
 		IServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args);
 		processServiceActive.set(Boolean.TRUE);

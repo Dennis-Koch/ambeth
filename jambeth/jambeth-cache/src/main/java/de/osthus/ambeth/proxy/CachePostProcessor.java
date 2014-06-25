@@ -1,9 +1,12 @@
 package de.osthus.ambeth.proxy;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.annotation.AnnotationEntry;
+import de.osthus.ambeth.cache.Cached;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -15,6 +18,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.service.IServiceExtendable;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.EqualsUtil;
+
 public class CachePostProcessor extends MergePostProcessor
 {
 	@LogInstance
@@ -87,16 +91,19 @@ public class CachePostProcessor extends MergePostProcessor
 		String serviceName = extractServiceName(beanContext, serviceAnnotation.name(), type);
 		if (!isNetworkClientMode)
 		{
+			IMethodLevelBehavior<Annotation> behavior = createInterceptorModeBehavior(type);
+
 			CacheInterceptor interceptor = new CacheInterceptor();
 			if (beanContext.isRunning())
 			{
-				interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).ignoreProperties("ProcessService")
-						.finish();
+				interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
+						.ignoreProperties("ProcessService").finish();
 				beanContext.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
 			else
 			{
-				beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).ignoreProperties("ProcessService");
+				beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
+						.ignoreProperties("ProcessService");
 				beanContextFactory.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
 			if (log.isInfoEnabled())
@@ -127,15 +134,18 @@ public class CachePostProcessor extends MergePostProcessor
 			IBeanContextFactory beanContextFactory, IServiceContext beanContext, IBeanConfiguration beanConfiguration, Class<?> type)
 	{
 		String serviceName = extractServiceName(beanContext, serviceClientAnnotation.getAnnotation().value(), serviceClientAnnotation.getDeclaringType());
+
+		IMethodLevelBehavior<Annotation> behavior = createInterceptorModeBehavior(type);
+
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext != null)
 		{
-			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).finish();
+			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior).finish();
 			// beanContext.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 		else
 		{
-			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName);
+			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior);
 			// beanContextFactory.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 
@@ -150,5 +160,16 @@ public class CachePostProcessor extends MergePostProcessor
 	protected String buildCacheInterceptorName(String serviceName)
 	{
 		return "cacheInterceptor." + serviceName;
+	}
+
+	@Override
+	protected Annotation lookForAnnotation(Method method)
+	{
+		Annotation annotation = super.lookForAnnotation(method);
+		if (annotation != null)
+		{
+			return annotation;
+		}
+		return method.getAnnotation(Cached.class);
 	}
 }

@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using De.Osthus.Ambeth.Annotation;
+﻿using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Cache.Interceptor;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
@@ -8,13 +7,16 @@ using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Service;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public class CachePostProcessor : AbstractCascadePostProcessor
+    public class CachePostProcessor : MergePostProcessor
     {
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         public class ServiceAnnotationCache : AnnotationCache<ServiceAttribute>
         {
@@ -32,9 +34,9 @@ namespace De.Osthus.Ambeth.Proxy
             }
         }
 
-        protected AnnotationCache<ServiceAttribute> serviceAnnotationCache = new ServiceAnnotationCache();
+        protected readonly AnnotationCache<ServiceAttribute> serviceAnnotationCache = new ServiceAnnotationCache();
 
-        protected AnnotationCache<ServiceClientAttribute> serviceClientAnnotationCache = new ServiceClientAnnotationCache();
+        protected readonly AnnotationCache<ServiceClientAttribute> serviceClientAnnotationCache = new ServiceClientAnnotationCache();
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsNetworkClientMode { protected get; set; }
@@ -82,15 +84,19 @@ namespace De.Osthus.Ambeth.Proxy
             String serviceName = ExtractServiceName(serviceAnnotation.Name, type);
             if (!IsNetworkClientMode)
             {
+                IMethodLevelBehavior<Attribute> behavior = CreateInterceptorModeBehavior(type);
+
                 CacheInterceptor interceptor = new CacheInterceptor();
                 if (beanContext.IsRunning)
                 {
-                    interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).IgnoreProperties("ProcessService").Finish();
+                    interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior)
+                        .IgnoreProperties("ProcessService").Finish();
                     beanContext.Link(beanName).To<IServiceExtendable>().With(serviceName);
                 }
                 else
                 {
-                    beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).IgnoreProperties("ProcessService");
+                    beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior)
+                        .IgnoreProperties("ProcessService");
                     beanContextFactory.Link(beanName).To<IServiceExtendable>().With(serviceName);
                 }
                 if (Log.InfoEnabled)
@@ -121,14 +127,17 @@ namespace De.Osthus.Ambeth.Proxy
             IBeanConfiguration beanConfiguration, Type type)
         {
             String serviceName = ExtractServiceName(serviceClientAnnotation.Annotation.Name, serviceClientAnnotation.DeclaringType);
+
+            IMethodLevelBehavior<Attribute> behavior = CreateInterceptorModeBehavior(type);
+
             CacheInterceptor interceptor = new CacheInterceptor();
             if (beanContext.IsRunning)
             {
-                interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).Finish();
+                interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior).Finish();
             }
             else
             {
-                beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName);
+                beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("ServiceName", serviceName).PropertyValue("Behavior", behavior);
             }
 
             if (Log.InfoEnabled)
@@ -141,6 +150,16 @@ namespace De.Osthus.Ambeth.Proxy
         protected String BuildCacheInterceptorName(String serviceName)
         {
             return "cacheInterceptor." + serviceName;
+        }
+
+        protected override Attribute LookForAnnotation(MethodInfo method)
+        {
+            Attribute annotation = base.LookForAnnotation(method);
+            if (annotation != null)
+            {
+                return annotation;
+            }
+            return AnnotationUtil.GetAnnotation<CachedAttribute>(method, false);
         }
     }
 }

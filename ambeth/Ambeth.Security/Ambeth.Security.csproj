@@ -66,7 +66,6 @@
     <Compile Include="ambeth\security\ISecurityManager.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
-    <Compile Include="ambeth\security\interceptor\SecurityScopeInterceptor.cs" />
     <Compile Include="ambeth\security\IServiceFilter.cs" />
     <Compile Include="ambeth\security\IServicePermission.cs" />
     <Compile Include="ambeth\security\IAuthorization.cs" />

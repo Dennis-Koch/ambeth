@@ -18,34 +18,42 @@ using Castle.DynamicProxy;
 #endif
 using De.Osthus.Ambeth.Model;
 using System.Threading;
+using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Merge.Interceptor
 {
-    public class MergeInterceptor : AbstractInterceptor<IMergeService, IMergeClient>, IInitializingBean
+    public class MergeInterceptor : AbstractInterceptor<IMergeService, IMergeClient>
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
         protected static readonly ThreadLocal<bool> processServiceActiveTL = new ThreadLocal<bool>(delegate() { return false; });
 
+        [Autowired]
+        public IMethodLevelBehavior<Attribute> Behavior { protected get; set; }
+
+        [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IMergeProcess MergeProcess { protected get; set; }
 
+        [Autowired(Optional = true)]
         public IProcessService ProcessService { protected get; set; }
 
+        [Property]
         public String ServiceName { protected get; set; }
 
-        public virtual void AfterPropertiesSet()
+        protected override Attribute GetMethodLevelBehavior(MethodInfo method)
         {
-            ParamChecker.AssertNotNull(ConversionHelper, "ConversionHelper");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(MergeProcess, "MergeProcess");
+            return Behavior.GetBehaviourOfMethod(method);
         }
 
-        protected override Object InterceptMergeIntern(MethodInfo method, Object[] arguments,
+        protected override Object InterceptMergeIntern(MethodInfo method, Object[] arguments, Attribute annotation,
             Boolean? isAsyncBegin)
         {
             if (arguments == null || (arguments.Length != 1 && arguments.Length != 2 && arguments.Length != 3))
@@ -65,7 +73,7 @@ namespace De.Osthus.Ambeth.Merge.Interceptor
             return null;
         }
 
-        protected override Object InterceptDeleteIntern(MethodInfo method, Object[] arguments,
+        protected override Object InterceptDeleteIntern(MethodInfo method, Object[] arguments, Attribute annotation,
             Boolean? isAsyncBegin)
         {
             if (arguments == null || (arguments.Length != 1 && arguments.Length != 3))
@@ -74,7 +82,7 @@ namespace De.Osthus.Ambeth.Merge.Interceptor
             }
             ProceedWithMergeHook proceedHook = GetProceedHook(arguments);
             MergeFinishedCallback finishedCallback = GetFinishedCallback(arguments);
-            RemoveAttribute remove = AnnotationUtil.GetAnnotation<RemoveAttribute>(method, false);
+            RemoveAttribute remove = (RemoveAttribute) annotation;
             if (remove != null)
             {
                 String idName = remove.IdName;
@@ -98,12 +106,12 @@ namespace De.Osthus.Ambeth.Merge.Interceptor
             return null;
         }
 
-        protected override Object InterceptApplication(IInvocation invocation, Boolean? isAsyncBegin)
+        protected override Object InterceptApplication(IInvocation invocation, Attribute annotation, Boolean? isAsyncBegin)
         {
             bool oldProcessServiceActive = processServiceActiveTL.Value;
-            if (oldProcessServiceActive || ProcessService == null)
+            if (oldProcessServiceActive || ProcessService == null  || !AnnotationUtil.IsAnnotationPresent<ServiceClientAttribute>(invocation.Method.DeclaringType, false))
             {
-                return base.InterceptApplication(invocation, isAsyncBegin);
+                return base.InterceptApplication(invocation, annotation, isAsyncBegin);
             }
             IServiceDescription serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, invocation.Method, invocation.Arguments);
             processServiceActiveTL.Value = true;

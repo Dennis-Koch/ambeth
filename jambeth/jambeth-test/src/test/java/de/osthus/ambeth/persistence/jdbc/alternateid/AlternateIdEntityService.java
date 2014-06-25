@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -14,36 +14,20 @@ import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.Service;
-import de.osthus.ambeth.util.ParamChecker;
 
 @Service(IAlternateIdEntityService.class)
 @PersistenceContext
-public class AlternateIdEntityService implements IAlternateIdEntityService, IInitializingBean
+public class AlternateIdEntityService implements IAlternateIdEntityService
 {
 	@SuppressWarnings("unused")
-	@LogInstance(AlternateIdEntityService.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
 	protected IServiceUtil serviceUtil;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
-		this.serviceUtil = serviceUtil;
-	}
 
 	@Override
 	public AlternateIdEntity getAlternateIdEntityByName(String name)
