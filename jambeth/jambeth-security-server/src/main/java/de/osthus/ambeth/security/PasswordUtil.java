@@ -233,8 +233,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		password.setAlgorithm(algorithm);
 		password.setIterationCount(iterationCount);
 		password.setKeySize(keySize);
-		password.setSalt(Base64.encodeBytes(PasswordSalts.nextSalt(saltLength)).toCharArray());
 		password.setChangeAfter(validBefore);
+		encryptSalt(password, PasswordSalts.nextSalt(saltLength));
 		try
 		{
 			byte[] hashedPassword = hashClearTextPassword(clearTextPassword, password);
@@ -255,7 +255,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			{
 				return encryptedSalt;
 			}
-			if (loginSaltPassword == null)
+			if (decodedLoginSaltPassword == null)
 			{
 				throw new IllegalStateException("Property '" + SecurityServerConfigurationConstants.LoginSaltPassword
 						+ "' specified but reading an encrypted salt from " + password);
@@ -263,6 +263,28 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
 			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword);
 			return cipher.doFinal(encryptedSalt);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected void encryptSalt(IPassword password, byte[] salt)
+	{
+		try
+		{
+			if (decodedLoginSaltPassword == null)
+			{
+				password.setSaltEncrypted(false);
+				password.setSalt(Base64.encodeBytes(salt).toCharArray());
+				return;
+			}
+			Cipher cipher = Cipher.getInstance("AES/CBC/PKCS7Padding");
+			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword);
+			byte[] encryptedSalt = cipher.doFinal(salt);
+			password.setSaltEncrypted(true);
+			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());
 		}
 		catch (Throwable e)
 		{
