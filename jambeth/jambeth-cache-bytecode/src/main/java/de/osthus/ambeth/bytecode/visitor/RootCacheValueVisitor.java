@@ -247,7 +247,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 							public void execute(MethodGenerator mg)
 							{
 								mg.checkCast(java.util.Date.class);
-								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, long.class, java.util.Date.class, "getTime")));
+								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, java.util.Date.class, long.class, "getTime")));
 							}
 						}, new Script()
 						{
