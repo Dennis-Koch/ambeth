@@ -161,15 +161,14 @@
 
 	<target name="-resolve-maven-dependencies">
 		<mkdir dir="${src.dir}/module/ambeth-bundles" />
-		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">
-			<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-				<modelVersion>4.0.0</modelVersion>
-				<!-- DUMMY POM FOR AMBETH-INTEGRITY ONLY -->
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-bundles</artifactId>
-				<packaging>pom</packaging>
-				<version>2.1.X-SNAPSHOT</version>
-			</project>
+		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+&lt;modelVersion>4.0.0&lt;/modelVersion>
+&lt;!-- DUMMY POM FOR AMBETH-INTEGRITY ONLY -->
+&lt;groupId>de.osthus.ambeth&lt;/groupId>
+&lt;artifactId>jambeth-bundles&lt;/artifactId>
+&lt;packaging>pom&lt;/packaging>
+&lt;version>2.1.X-SNAPSHOT&lt;/version>
+&lt;/project>
 		</echo>
 		<exec dir="${java.module.dir}" executable="cmd">
 			<arg value="${env.MAVEN_HOME}\bin\mvn.bat" />
