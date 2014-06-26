@@ -1,7 +1,7 @@
 <project name="jambeth-integrity-bundle" default="zip-integrity-bundle">
 
 	<!-- TEMP -->
-	<property name="base.dir" location="C:\dev\osthus-extensions" />
+	<!-- <property name="base.dir" location="C:\dev\osthus-extensions" /> -->
 	<!-- /TEMP -->
 
 	<fail unless="base.dir" message="{base.dir} property has to be set!" />
