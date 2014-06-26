@@ -27,7 +27,7 @@
 	<condition property="junit.lib.file" value="${env.junit.lib.file}">
 		<isset property="env.junit.lib.file" />
 	</condition>
-	
+
 	<property name="junit.debug.port" value="8787" />
 
 	<property name="emma.coverage.active" value="true" />
@@ -45,11 +45,11 @@
 	</path>
 
 	<property name="workspace.base.dir" value=".." />
-	
+
 	<property name="java.target.version" value="1.6" />
 
 	<property name="junit.lib.file" location="${workspace.base.dir}/jAmbeth.Util/lib/junit/junit-4.10.jar" />
-	
+
 	<property name="target.base.dir" value="${workspace.base.dir}" />
 
 	<property name="findbugs.report.dir" value="${target.base.dir}/findbugs" />
@@ -189,7 +189,7 @@
 			:${workspace.base.dir}/jAmbeth.Privilege.Server/src
 			:${workspace.base.dir}/jAmbeth.Query.JDBC/src
 			:${workspace.base.dir}/jAmbeth.Security.Server/src" />
-	
+
 	<property name="source.relative.dirs.platform" value="
 				${workspace.base.dir}/jAmbeth.Platform/src" />
 
@@ -284,9 +284,9 @@
 		<mkdir dir="${build.dev.dir}" />
 		<mkdir dir="${build.dev.dce.persistence.dir}" />
 		<mkdir dir="${build.dev.job.dir}" />
-		<mkdir dir="${build.dev.persistence.dir}" />			
-		<mkdir dir="${build.dev.platform.dir}" />			
-		<mkdir dir="${build.dev.test.dir}" />			
+		<mkdir dir="${build.dev.persistence.dir}" />
+		<mkdir dir="${build.dev.platform.dir}" />
+		<mkdir dir="${build.dev.test.dir}" />
 		<mkdir dir="${build.dev.xml.dir}" />
 	</target>
 
@@ -329,7 +329,7 @@
 				<include name="**/*.wadl" />
 			</fileset>
 		</copy>
-		<javac target="${java.target.version}" source="${java.target.version}"  srcdir="${source.relative.dirs.xml}" destdir="${build.dev.xml.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs.xml}" destdir="${build.dev.xml.dir}" includeAntRuntime="false" fork="true" debug="on" encoding="UTF-8">
 			<classpath>
 				<path refid="ambeth.lib.classpath" />
 				<path location="${build.dev.dir}" />
@@ -366,16 +366,16 @@
 			<classpath>
 				<path refid="ambeth.lib.classpath" />
 				<path location="${build.dev.dir}" />
-				<path location="${build.dev.dce.persistence.dir}" />				
+				<path location="${build.dev.dce.persistence.dir}" />
 				<path location="${build.dev.job.dir}" />
 				<path location="${build.dev.persistence.dir}" />
-				<path location="${build.dev.xml.dir}" />				
+				<path location="${build.dev.xml.dir}" />
 			</classpath>
 		</javac>
 	</target>
 
 	<target name="compile-prod" depends="init-prod">
-		<javac target="${java.target.version}" source="${java.target.version}"  srcdir="${source.relative.dirs}" destdir="${build.prod.dir}" includeAntRuntime="false" fork="true" debug="off" encoding="UTF-8">
+		<javac target="${java.target.version}" source="${java.target.version}" srcdir="${source.relative.dirs}" destdir="${build.prod.dir}" includeAntRuntime="false" fork="true" debug="off" encoding="UTF-8">
 			<classpath>
 				<path refid="ambeth.lib.classpath" />
 			</classpath>
@@ -471,7 +471,7 @@
 		<fail unless="findbugs.home" />
 		<fail unless="findbugs.report.dir" />
 		<fail unless="workspace.base.dir" />
-		
+
 		<delete dir="${findbugs.report.dir}" />
 		<mkdir dir="${findbugs.report.dir}" />
 
@@ -720,13 +720,13 @@
 	<target name="-deleteTargetDir">
 		<delete dir="${target.jars.dir}" />
 	</target>
-	
+
 	<target name="-zip-integrity">
-	        <property name="integrity.zip" value="${target.jars.dir}/jAmbeth-integrity.zip" />
-	        <delete file="${integrity.zip}" />
-                <zip destfile="${integrity.zip}">
-       	             <fileset dir="${workspace.base.dir}" excludes="**/.svn" />
-                </zip>
+		<property name="integrity.zip" value="${target.jars.dir}/jAmbeth-integrity.zip" />
+		<delete file="${integrity.zip}" />
+		<zip destfile="${integrity.zip}">
+			<fileset dir="${workspace.base.dir}" excludes="**/.svn" />
+		</zip>
 	</target>
 
 	<target name="-zip-jars">
@@ -739,9 +739,10 @@
 			<zipfileset dir="${schema.dir}" includes="ambeth_orm_1_2.xsd" fullpath="schema/ambeth_orm_1_2.xsd" />
 			<zipfileset dir="${schema.dir}" includes="ambeth_vom_1_3.xsd" fullpath="schema/ambeth_vom_1_3.xsd" />
 		</zip>
-		<zip destfile="${target.libs.dir}/libs.zip" ><!-- basedir="${target.libs.dir}" includes="*.jar" -->
-                     <fileset dir="${target.libs.dir}" includes="*.jar" />
-                     <fileset dir="${antlibs.dir}" includes="junit*.jar" />
+		<zip destfile="${target.libs.dir}/libs.zip">
+			<!-- basedir="${target.libs.dir}" includes="*.jar" -->
+			<fileset dir="${target.libs.dir}" includes="*.jar" />
+			<fileset dir="${antlibs.dir}" includes="junit*.jar" />
 		</zip>
 	</target>
 
