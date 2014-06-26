@@ -131,7 +131,7 @@
 		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
 	</target>
 
-	<target name="unpack_java">
+	<target name="unpack_java" depends="-resolve-maven-dependencies">
 		<!-- move test jars to lib folder -->
 		<move todir="${java.lib.dir}">
 			<fileset dir="${java.src.dir}">
