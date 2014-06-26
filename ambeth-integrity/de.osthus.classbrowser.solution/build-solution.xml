@@ -2,19 +2,14 @@
 <!-- ====================================================================== 
      Class browser and comparer
      ====================================================================== -->
-<project name="ClassComparer" default="default">
+<project name="ClassComparer" default="default" basedir="../../../">
+
 	<description>
     	This project starts the class comparison between Java and C# classes.      
     </description>
 
-	<!-- TEMP -->
-	<!-- <property name="base.dir" location="C:\dev\osthus-extensions/" /> -->
-	<!-- /TEMP -->
-
-	<fail unless="base.dir" message="{base.dir} property has to be set!" />
-
-	<property name="bin.dir" value="${base.dir}/bin" />
-	<property name="src.dir" value="${base.dir}/src" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="src.dir" value="${basedir}/src" />
 
 	<property name="java.src.dir" value="${src.dir}/java" />
 	<property name="java.lib.dir" value="${java.src.dir}/libs" />
@@ -27,8 +22,8 @@
 	<property name="cs.skipModuleScan" value="true" />
 
 	<property name="result.type" value="tc" />
-	<property name="data.dir" value="${base.dir}/data" />
-	<property name="result.dir" value="${base.dir}/results" />
+	<property name="data.dir" value="${basedir}/data" />
+	<property name="result.dir" value="${basedir}/results" />
 
 	<!--condition property="java.modules.set">
 		<isset property="java.modules" />
@@ -126,7 +121,7 @@
 	<target name="unpack_java_module">
 		<mkdir dir="${java.module.dir}" />
 		<unzip dest="${java.module.dir}" src="${java.src.dir}/jAmbeth-integrity.zip" />
-<!--		<unzip dest="${java.module.dir}">
+		<!--<unzip dest="${java.module.dir}">
 			<fileset dir="${java.src.dir}" includes="*-sources.jar" />
 		</unzip> -->
 	</target>

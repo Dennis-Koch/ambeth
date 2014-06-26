@@ -1,9 +1,5 @@
 <project name="jambeth-integrity-bundle" default="zip-integrity-bundle" basedir="../../../">
 
-	<!-- TEMP -->
-	<!-- <property name="base.dir" location="C:\dev\osthus-extensions" /> -->
-	<!-- /TEMP -->
-
 	<property name="jambeth.basedir" value="${basedir}/osthus-ambeth/jambeth" />
 
 	<target name="zip-integrity-bundle" description="Zips the jAmbeth sources for Interity">

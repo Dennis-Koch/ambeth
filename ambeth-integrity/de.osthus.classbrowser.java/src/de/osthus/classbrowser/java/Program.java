@@ -25,7 +25,8 @@ import org.apache.commons.lang3.StringUtils;
  * @author juergen.panser
  * 
  */
-public class Program {
+public class Program
+{
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
@@ -59,13 +60,17 @@ public class Program {
 	 * @param args
 	 *            Program arguments
 	 */
-	public static void main(String[] args) {
-		try {
+	public static void main(String[] args)
+	{
+		try
+		{
 			run();
 			System.exit(ExitCode.SUCCESS.getCode());
 		}
-		catch (Exception e) {
-			showMessage(e.getMessage() + "\n\n");
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			// showMessage(e.getMessage() + "\n\n");
 		}
 		System.exit(ExitCode.ERROR.getCode());
 	}
@@ -73,9 +78,11 @@ public class Program {
 	/**
 	 * The program logic.
 	 */
-	private static void run() {
+	private static void run()
+	{
 
-		if (wantsHelp()) {
+		if (wantsHelp())
+		{
 			displayHelpAndWait();
 			return;
 		}
@@ -86,12 +93,15 @@ public class Program {
 		List<String> allLibraryJarFiles = readJarFiles(ARG_KEY_LIBRARYJARFOLDERS);
 		List<String> allJarFilesToBeAnalyzed = readJarFiles(ARG_KEY_JARFOLDERS);
 		preprocessJarFilesToBeAnalyzed(allJarFilesToBeAnalyzed);
-		if (allJarFilesToBeAnalyzed == null || allJarFilesToBeAnalyzed.isEmpty()) {
+		if (allJarFilesToBeAnalyzed == null || allJarFilesToBeAnalyzed.isEmpty())
+		{
 			log("No JAR files found to be analyzed!");
 			return;
 		}
-		else {
-			if (allLibraryJarFiles != null) {
+		else
+		{
+			if (allLibraryJarFiles != null)
+			{
 				log("All " + allLibraryJarFiles.size() + " library JAR files successfully read.");
 			}
 			log("All " + allJarFilesToBeAnalyzed.size() + " JAR files which have to be (possibly) analyzed successfully read.");
@@ -110,13 +120,17 @@ public class Program {
 		log("FINISHED!");
 	}
 
-	private static void preprocessJarFilesToBeAnalyzed(List<String> allJarFilesToBeAnalyzed) {
+	private static void preprocessJarFilesToBeAnalyzed(List<String> allJarFilesToBeAnalyzed)
+	{
 		Pattern[] excludedJarFiles = { Pattern.compile("[\\\\/]jAmbeth-\\d[^\\\\/]+?$"), Pattern.compile("[\\\\/]jAmbeth-jUnit-\\d[^\\\\/]+?$") };
 
-		for (int i = allJarFilesToBeAnalyzed.size();i-->0;) {
+		for (int i = allJarFilesToBeAnalyzed.size(); i-- > 0;)
+		{
 			String jarFileName = allJarFilesToBeAnalyzed.get(i);
-			for (Pattern excludedName : excludedJarFiles) {
-				if (excludedName.matcher(jarFileName).find()) {
+			for (Pattern excludedName : excludedJarFiles)
+			{
+				if (excludedName.matcher(jarFileName).find())
+				{
 					allJarFilesToBeAnalyzed.remove(i);
 					break;
 				}
@@ -129,14 +143,16 @@ public class Program {
 	 * 
 	 * @return True if the help should be displayed
 	 */
-	private static boolean wantsHelp() {
+	private static boolean wantsHelp()
+	{
 		return System.getProperties().containsKey(ARG_KEY_HELP);
 	}
 
 	/**
 	 * Display the help text.
 	 */
-	private static void displayHelpAndWait() {
+	private static void displayHelpAndWait()
+	{
 		List<String> messages = Arrays.asList( //
 				DECO, //
 				"    Welcome to the JAVA class browser.", //
@@ -158,13 +174,16 @@ public class Program {
 						ARG_KEY_TARGETPATH + "=c:\\temp\\export -jar JavaClassbrowser.jar", //
 				DECO);
 		Console console = System.console();
-		if (console == null) {
-			for (String message : messages) {
+		if (console == null)
+		{
+			for (String message : messages)
+			{
 				log(message);
 			}
 			return;
 		}
-		for (String message : messages) {
+		for (String message : messages)
+		{
 			console.format(message);
 		}
 	}
@@ -175,15 +194,20 @@ public class Program {
 	 * @param message
 	 *            Message to display
 	 */
-	public static void showMessage(String message) {
+	public static void showMessage(String message)
+	{
 		Console console = System.console();
-		if (console == null) {
-			if (!StringUtils.isBlank(message)) {
+		if (console == null)
+		{
+			if (!StringUtils.isBlank(message))
+			{
 				log(message);
 			}
 		}
-		else {
-			if (!StringUtils.isBlank(message)) {
+		else
+		{
+			if (!StringUtils.isBlank(message))
+			{
 				console.format(message);
 			}
 		}
@@ -195,8 +219,10 @@ public class Program {
 	 * @param message
 	 *            Message to log
 	 */
-	public static void log(String message) {
-		if (doLog && !StringUtils.isBlank(message)) {
+	public static void log(String message)
+	{
+		if (doLog && !StringUtils.isBlank(message))
+		{
 			System.out.println(message);
 		}
 	}
@@ -206,7 +232,8 @@ public class Program {
 	 * 
 	 * @return Target path
 	 */
-	private static String getTargetPathEnsured() {
+	private static String getTargetPathEnsured()
+	{
 		return getPathEnsured(ARG_KEY_TARGETPATH, "Target path");
 	}
 
@@ -215,13 +242,13 @@ public class Program {
 	 * 
 	 * @return Module root path
 	 */
-	private static String getModuleRootPathEnsured() {
+	private static String getModuleRootPathEnsured()
+	{
 		return getPathEnsured(ARG_KEY_MODULEROOTPATH, "Module root path");
 	}
 
 	/**
-	 * Get path from the given property and ensure that it is a directory. Throws an exception if the path wasn't found
-	 * or doesn't exist.
+	 * Get path from the given property and ensure that it is a directory. Throws an exception if the path wasn't found or doesn't exist.
 	 * 
 	 * @param propertyKey
 	 *            Property key to get the path from
@@ -229,14 +256,18 @@ public class Program {
 	 *            Identifier used in all message texts
 	 * @return Path; never null
 	 */
-	private static String getPathEnsured(String propertyKey, String identifier) {
+	private static String getPathEnsured(String propertyKey, String identifier)
+	{
 		String path = System.getProperty(propertyKey);
-		if (!StringUtils.isBlank(path)) {
+		if (!StringUtils.isBlank(path))
+		{
 			File file = new File(path);
-			if (file.isDirectory()) {
+			if (file.isDirectory())
+			{
 				return path;
 			}
-			else {
+			else
+			{
 				throw new IllegalArgumentException(identifier + " '" + path + "' is not a directory!");
 			}
 		}
@@ -248,10 +279,12 @@ public class Program {
 	 *            Property to read the jar folders from
 	 * @return List of jars or null
 	 */
-	private static List<String> readJarFiles(String propertyKey) {
+	private static List<String> readJarFiles(String propertyKey)
+	{
 		List<String> allJarFiles = null;
 		String jarFolderSequence = System.getProperty(propertyKey);
-		if (!StringUtils.isBlank(jarFolderSequence)) {
+		if (!StringUtils.isBlank(jarFolderSequence))
+		{
 			String[] jarFolders = jarFolderSequence.split(ARG_PATH_DELIMITER);
 			allJarFiles = readFiles(EXTENSION_JAR, jarFolders, false);
 		}
@@ -269,12 +302,15 @@ public class Program {
 	 *            Flag if sub folders are searched as well
 	 * @return List of classes; never null
 	 */
-	private static List<String> readFiles(String fileExtension, String[] folders, boolean recursive) {
+	private static List<String> readFiles(String fileExtension, String[] folders, boolean recursive)
+	{
 		List<String> allFiles = new ArrayList<String>();
-		for (String folder : folders) {
+		for (String folder : folders)
+		{
 			File directory = new File(folder);
 			Collection<File> files = FileUtils.listFiles(directory, new String[] { fileExtension }, recursive);
-			for (File file : files) {
+			for (File file : files)
+			{
 				String fullFileName = file.getAbsolutePath();
 				allFiles.add(fullFileName);
 			}
@@ -289,16 +325,20 @@ public class Program {
 	 *            Optional property to read the list from
 	 * @return List of module names (lower case) to be analyzed or null (all modules are analyzed)
 	 */
-	private static List<String> readModulesToBeAnalyzed(String propertyKey) {
+	private static List<String> readModulesToBeAnalyzed(String propertyKey)
+	{
 		List<String> modules = null;
 		String modulesSequence = System.getProperty(propertyKey);
-		if (!StringUtils.isBlank(modulesSequence)) {
-			if (modulesSequence.trim().endsWith(ARG_PATH_DELIMITER)) {
+		if (!StringUtils.isBlank(modulesSequence))
+		{
+			if (modulesSequence.trim().endsWith(ARG_PATH_DELIMITER))
+			{
 				throw new IllegalArgumentException("Please check the argument '" + propertyKey + "'! It seems to be incomplete...");
 			}
 			String[] splittedModuleSequence = modulesSequence.split(ARG_PATH_DELIMITER);
 			modules = new ArrayList<String>(splittedModuleSequence.length);
-			for (String moduleName : splittedModuleSequence) {
+			for (String moduleName : splittedModuleSequence)
+			{
 				modules.add(moduleName.trim().toLowerCase());
 			}
 		}
@@ -310,34 +350,41 @@ public class Program {
 	 * 
 	 * @param rootPath
 	 *            The root path - all modules have to be direct children of this path
-	 * @return Map with the module name of each class file; key is the full qualified class name in LOWER CASE and value
-	 *         the module name
+	 * @return Map with the module name of each class file; key is the full qualified class name in LOWER CASE and value the module name
 	 */
-	private static Map<String, String> createModuleMap(String rootPath) {
+	private static Map<String, String> createModuleMap(String rootPath)
+	{
 		Map<String, String> moduleMap = new TreeMap<String, String>();
 		// Assumption: the modules are the first child hierarchy
 		File rootDir = new File(rootPath);
-		if (!rootDir.isDirectory()) {
+		if (!rootDir.isDirectory())
+		{
 			throw new IllegalArgumentException("Root path '" + rootPath + "' is not a directory!");
 		}
 		File[] foundInRoot = rootDir.listFiles();
-		if (foundInRoot != null) {
-			for (File rootFile : foundInRoot) {
-				if (rootFile.isDirectory()) {
+		if (foundInRoot != null)
+		{
+			for (File rootFile : foundInRoot)
+			{
+				if (rootFile.isDirectory())
+				{
 					String moduleName = rootFile.getName();
 					String modulePath = rootFile.getAbsolutePath();
 
 					Collection<File> files = FileUtils.listFiles(rootFile, new String[] { "java" }, true);
-					for (File file : files) {
+					for (File file : files)
+					{
 						String fullFileName = file.getAbsolutePath();
 						String relativeName = StringUtils.replace(fullFileName, modulePath, StringUtils.EMPTY);
 						String[] splittedRelativeName = StringUtils.split(relativeName, "\\/");
 						final String className;
-						if ("src".equals(splittedRelativeName[0])) {
+						if ("src".equals(splittedRelativeName[0]))
+						{
 							String[] adaptedRelativeName = Arrays.copyOfRange(splittedRelativeName, 1, splittedRelativeName.length);
 							className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
 						}
-						else {
+						else
+						{
 							className = StringUtils.join(splittedRelativeName, ".").toLowerCase();
 						}
 						moduleMap.put(className, moduleName);
@@ -356,29 +403,39 @@ public class Program {
 	 *            Path to jars which are needed to create the complete class path (libraries, dependencies); optional
 	 * @return List of classes of the jars to be analyzed
 	 */
-	private static List<ClassHolder> getClassesFromJars(List<String> analyzeJarPaths, List<String> libraryJarPaths) {
-		if (analyzeJarPaths == null) {
+	private static List<ClassHolder> getClassesFromJars(List<String> analyzeJarPaths, List<String> libraryJarPaths)
+	{
+		if (analyzeJarPaths == null)
+		{
 			throw new IllegalArgumentException("Jar paths to the analyzed jars missing!");
 		}
 		List<ClassHolder> classes = new ArrayList<ClassHolder>();
-		try {
+		try
+		{
 			List<URL> urls = new ArrayList<URL>();
-			if (libraryJarPaths != null) {
-				for (String pathToJar : libraryJarPaths) {
+			if (libraryJarPaths != null)
+			{
+				for (String pathToJar : libraryJarPaths)
+				{
 					urls.add(new URL("jar:file:" + pathToJar + "!/"));
 				}
 			}
-			for (String pathToJar : analyzeJarPaths) {
+			for (String pathToJar : analyzeJarPaths)
+			{
 				urls.add(new URL("jar:file:" + pathToJar + "!/"));
 			}
 			URLClassLoader cl = URLClassLoader.newInstance(urls.toArray(new URL[0]));
-			for (String pathToJar : analyzeJarPaths) {
+			for (String pathToJar : analyzeJarPaths)
+			{
 				JarFile jarFile = new JarFile(pathToJar);
-				try {
+				try
+				{
 					Enumeration<JarEntry> enumeration = jarFile.entries();
-					while (enumeration.hasMoreElements()) {
-						JarEntry je = (JarEntry) enumeration.nextElement();
-						if (je.isDirectory() || !je.getName().endsWith(".class")) {
+					while (enumeration.hasMoreElements())
+					{
+						JarEntry je = enumeration.nextElement();
+						if (je.isDirectory() || !je.getName().endsWith(".class"))
+						{
 							continue;
 						}
 						// -6 because of .class
@@ -388,12 +445,14 @@ public class Program {
 						classes.add(new ClassHolder(pathToJar, c));
 					}
 				}
-				finally {
+				finally
+				{
 					jarFile.close();
 				}
 			}
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			throw new RuntimeException(e);
 		}
 		return classes;
