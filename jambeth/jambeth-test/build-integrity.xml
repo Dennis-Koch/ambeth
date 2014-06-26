@@ -1,19 +1,20 @@
-<project name="jambeth-integrity-bundle" default="zip-integrity-bundle">
+<project name="jambeth-integrity-bundle" default="zip-integrity-bundle" basedir="../../../">
 
 	<!-- TEMP -->
 	<!-- <property name="base.dir" location="C:\dev\osthus-extensions" /> -->
 	<!-- /TEMP -->
 
-	<fail unless="base.dir" message="{base.dir} property has to be set!" />
+	<property name="jambeth.basedir" value="${basedir}/osthus-ambeth/jambeth" />
 
-	<property name="jambeth.base.dir" value="${base.dir}/osthus-ambeth/jambeth" />
-
-	<target name="zip-integrity-bundle">
-		<property name="integrity.zip" value="${base.dir}/jAmbeth-integrity.zip" />
+	<target name="zip-integrity-bundle" description="Zips the jAmbeth sources for Interity">
+		<property name="integrity.zip" value="${basedir}/jAmbeth-integrity.zip" />
 		<delete file="${integrity.zip}" />
-		<zip destfile="${integrity.zip}">
-			<fileset dir="${jambeth.base.dir}" excludes="**/.git" />
-		</zip>
+		<zip destfile="${integrity.zip}" basedir="${jambeth.basedir}" excludes="**/target/**" />
+	</target>
+
+	<!-- For testing -->
+	<target name="show-basedir">
+		<echo message="${basedir}" />
 	</target>
 
 </project>
