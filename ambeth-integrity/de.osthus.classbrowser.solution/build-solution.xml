@@ -132,20 +132,19 @@
 	</target>
 
 	<target name="unpack_java">
-		<!-- <unzip dest="${java.src.dir}" src="${java.src.dir}/jAmbeth.zip" /> -->
-		<mkdir dir="${java.src.dir}/unzip" />
-		<unzip dest="${java.src.dir}/unzip">
+		<!-- move test jars to lib folder -->
+		<move todir="${java.lib.dir}">
 			<fileset dir="${java.src.dir}">
-				<include name="*.jar" />
-				<exclude name="*-javadoc.jar" />
-				<exclude name="*-sources.jar" />
+				<include name="*-tests.jar" />
 			</fileset>
-		</unzip>
-		<!-- <unzip dest="${java.lib.dir}" src="${java.src.dir}/libs.zip" /> -->
-		<!-- <exec dir="${source.dir}\${projectName}" executable="cmd">
-			<arg value="${env.MAVEN_HOME}\bin\mvn.bat" />
-			<arg line="clean install" />
-		</exec> -->
+		</move>
+		<!-- remove non-class jars -->
+		<delete>
+			<fileset dir="${java.src.dir}">
+				<include name="*-javadoc.jar" />
+				<include name="*-sources.jar" />
+			</fileset>
+		</delete>
 	</target>
 
 	<target name="unpack_cs">
@@ -158,6 +157,26 @@
 
 		<unzip dest="${cs.src.dir}" src="${cs.src.dir}/${ambeth.net.zip}" />
 		<unzip dest="${cs.lib.dir}" src="${cs.src.dir}/${ambeth.net.libs.zip}" />
+	</target>
+
+	<target name="-resolve-maven-dependencies">
+		<mkdir dir="${src.dir}/module/ambeth-bundles" />
+		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">
+			<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+				<modelVersion>4.0.0</modelVersion>
+				<!-- DUMMY POM FOR AMBETH-INTEGRITY ONLY -->
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-bundles</artifactId>
+				<packaging>pom</packaging>
+				<version>2.1.X-SNAPSHOT</version>
+			</project>
+		</echo>
+		<exec dir="${java.module.dir}" executable="cmd">
+			<arg value="${env.MAVEN_HOME}\bin\mvn.bat" />
+			<arg line="dependency:copy-dependencies" />
+			<arg line="-DoutputDirectory=${java.lib.dir}" />
+			<arg line="-DexcludeGroupIds=de.osthus.ambeth" />
+		</exec>
 	</target>
 
 </project>
