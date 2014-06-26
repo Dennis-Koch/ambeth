@@ -2,14 +2,16 @@
 <!-- ====================================================================== 
      Class browser and comparer
      ====================================================================== -->
-<project name="ClassComparer" default="default" basedir="../../../">
+<project name="ClassComparer" default="default">
 
 	<description>
     	This project starts the class comparison between Java and C# classes.      
     </description>
 
-	<property name="bin.dir" value="${basedir}/bin" />
-	<property name="src.dir" value="${basedir}/src" />
+	<fail unless="base.dir" message="{base.dir} property has to be set!" />
+
+	<property name="bin.dir" value="${base.dir}/bin" />
+	<property name="src.dir" value="${base.dir}/src" />
 
 	<property name="java.src.dir" value="${src.dir}/java" />
 	<property name="java.lib.dir" value="${java.src.dir}/libs" />
@@ -22,8 +24,8 @@
 	<property name="cs.skipModuleScan" value="true" />
 
 	<property name="result.type" value="tc" />
-	<property name="data.dir" value="${basedir}/data" />
-	<property name="result.dir" value="${basedir}/results" />
+	<property name="data.dir" value="${base.dir}/data" />
+	<property name="result.dir" value="${base.dir}/results" />
 
 	<!--condition property="java.modules.set">
 		<isset property="java.modules" />
@@ -131,7 +133,7 @@
 		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
 	</target>
 
-	<target name="unpack_java" depends="-resolve-maven-dependencies">
+	<target name="unpack_java" depends="resolve-maven-dependencies">
 		<!-- move test jars to lib folder -->
 		<move todir="${java.lib.dir}">
 			<fileset dir="${java.src.dir}">
@@ -159,7 +161,7 @@
 		<unzip dest="${cs.lib.dir}" src="${cs.src.dir}/${ambeth.net.libs.zip}" />
 	</target>
 
-	<target name="-resolve-maven-dependencies">
+	<target name="resolve-maven-dependencies">
 		<mkdir dir="${src.dir}/module/ambeth-bundles" />
 		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 &lt;modelVersion>4.0.0&lt;/modelVersion>
@@ -170,11 +172,13 @@
 &lt;version>2.1.X-SNAPSHOT&lt;/version>
 &lt;/project>
 		</echo>
+		<echo message="${env.MAVEN_HOME}\bin\mvn.bat" />
 		<exec dir="${java.module.dir}" executable="cmd">
+			<arg value="/c" />
 			<arg value="${env.MAVEN_HOME}\bin\mvn.bat" />
-			<arg line="dependency:copy-dependencies" />
-			<arg line="-DoutputDirectory=${java.lib.dir}" />
-			<arg line="-DexcludeGroupIds=de.osthus.ambeth" />
+			<arg value="dependency:copy-dependencies" />
+			<arg value="-DoutputDirectory=${java.lib.dir}" />
+			<arg value="-DexcludeGroupIds=de.osthus.ambeth" />
 		</exec>
 	</target>
 
