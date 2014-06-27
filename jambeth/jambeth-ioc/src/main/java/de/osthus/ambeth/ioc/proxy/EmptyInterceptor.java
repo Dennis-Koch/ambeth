@@ -25,6 +25,10 @@ public final class EmptyInterceptor implements MethodInterceptor
 		{
 			return null;
 		}
+		if (Object.class.equals(method.getDeclaringClass()))
+		{
+			return proxy.invoke(this, args);
+		}
 		throw new UnsupportedOperationException("Should never be called");
 	}
 }

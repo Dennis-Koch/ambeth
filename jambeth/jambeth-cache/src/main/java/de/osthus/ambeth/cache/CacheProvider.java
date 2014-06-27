@@ -120,6 +120,10 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 		{
 			case PROTOTYPE:
 			{
+				if (!securityActive || !securityActivation.isFilterActivated())
+				{
+					return cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+				}
 				return cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
 			}
 			case SINGLETON:

@@ -112,13 +112,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			{
 				IObjRef oriToLoad = orisToLoad.get(a);
 				Class<?> type = oriToLoad.getRealType();
-				byte idNameIndex = oriToLoad.getIdNameIndex();
+				byte idIndex = oriToLoad.getIdNameIndex();
 
 				ITable table = database.getTableByType(type);
-				Class<?> idType = table.getIdFieldByAlternateIdIndex(idNameIndex).getFieldType();
-				Object id = conversionHelper.convertValueToType(idType, oriToLoad.getId());
-				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idNameIndex);
-				pendingInit.add(id);
+				Class<?> persistentIdType = table.getIdFieldByAlternateIdIndex(idIndex).getFieldType();
+				Object persistentId = conversionHelper.convertValueToType(persistentIdType, oriToLoad.getId());
+				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idIndex);
+				pendingInit.add(persistentId);
 			}
 			initInstances(typeToPendingInit, cascadeTypeToPendingInit, LoadMode.REFERENCE_ONLY);
 			while (0 < cascadeTypeToPendingInit.size())
@@ -131,12 +131,12 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			}
 			for (int a = orisToLoad.size(); a-- > 0;)
 			{
-				IObjRef objRef = orisToLoad.get(a);
+				IObjRef oriToLoad = orisToLoad.get(a);
 
-				ITable table = database.getTableByType(objRef.getRealType());
-				byte idIndex = objRef.getIdNameIndex();
+				ITable table = database.getTableByType(oriToLoad.getRealType());
+				byte idIndex = oriToLoad.getIdNameIndex();
 				Class<?> persistentIdType = table.getIdFieldByAlternateIdIndex(idIndex).getFieldType();
-				Object persistentId = conversionHelper.convertValueToType(persistentIdType, objRef.getId());
+				Object persistentId = conversionHelper.convertValueToType(persistentIdType, oriToLoad.getId());
 
 				ILoadContainer loadContainer = alCache.getObject(idIndex, persistentId, table.getEntityType());
 				if (loadContainer == null)

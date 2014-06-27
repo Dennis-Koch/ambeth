@@ -116,6 +116,10 @@ namespace De.Osthus.Ambeth.Cache
             {
                 case CacheType.PROTOTYPE:
                     {
+                        if (!SecurityActive || !SecurityActivation.FilterActivated)
+                        {
+                            return CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+                        }
                         return CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
                     }
                 case CacheType.SINGLETON:

@@ -117,7 +117,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			return new CheckPasswordResult(false, false, false);
 		}
-		// password is correct. no check if we should rehash the password on-the-fly to ensure long-term security
+		// password is correct. now check if we should rehash the password on-the-fly to ensure long-term security
 		boolean changeRecommended = isChangeRecommended(password);
 		boolean rehashRecommended = isRehashRecommended(password);
 		return new CheckPasswordResult(true, changeRecommended, rehashRecommended);
@@ -140,7 +140,8 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected boolean isChangeRecommended(IPassword password)
 	{
-		return Calendar.getInstance().after(password.getChangeAfter());
+		Calendar changeAfter = password.getChangeAfter();
+		return changeAfter == null || Calendar.getInstance().after(changeAfter);
 	}
 
 	protected boolean isRehashRecommended(IPassword password)

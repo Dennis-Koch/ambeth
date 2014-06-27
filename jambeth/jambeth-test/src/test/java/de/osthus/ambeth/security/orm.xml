@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<independent-link alias="User-Password"
+			left="de.osthus.ambeth.security.User" right="de.osthus.ambeth.security.Password"
+			cascade-delete="right" />
+	</link-mappings>
+
+	<entity-mappings>
+		<external-entity class="de.osthus.ambeth.security.User">
+			<attributes>
+				<id name="Id"/>
+				<alternate-id name="SID"/>		
+				<version name="Version"/>
+				<relation name="Password" link="User-Password" />
+			</attributes>
+		</external-entity>
+		<external-entity class="de.osthus.ambeth.security.Password" >
+			<attributes>
+				<id name="Id"/>
+				<version name="Version"/>
+				<basic name="ChangeAfter"/>
+			</attributes>
+		</external-entity>
+	</entity-mappings>
+</or-mappings>

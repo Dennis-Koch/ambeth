@@ -25,11 +25,11 @@ public interface IAlreadyLoadedCache
 
 	void add(IdTypeTuple idTypeTuple, IObjRef objRef);
 
-	void add(byte idNameIndex, Object id, Class<?> type, IObjRef objRef, ILoadContainer loadContainer);
+	void add(byte idNameIndex, Object persistentId, Class<?> type, IObjRef objRef, ILoadContainer loadContainer);
 
 	void add(IdTypeTuple idTypeTuple, IObjRef objRef, ILoadContainer loadContainer);
 
-	void replace(byte idNameIndex, Object id, Class<?> type, ILoadContainer loadContainer);
+	void replace(byte idNameIndex, Object persistentId, Class<?> type, ILoadContainer loadContainer);
 
 	void replace(IdTypeTuple idTypeTuple, ILoadContainer loadContainer);
 
