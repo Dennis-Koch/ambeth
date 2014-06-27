@@ -55,12 +55,13 @@ public abstract class AbstractRootCacheAwareInterceptor implements IThreadLocalC
 
 	protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL)
 	{
-		return acquireRootCache(privileged, currentRootCacheTL, null, null);
+		return acquireRootCache(privileged, currentRootCacheTL, storedCacheRetriever, null, null);
 	}
 
-	protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL, Lock readLock, Lock writeLock)
+	protected IRootCache acquireRootCache(boolean privileged, ThreadLocal<RootCache> currentRootCacheTL, ICacheRetriever cacheRetriever, Lock readLock,
+			Lock writeLock)
 	{
-		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerAnonymousBean(RootCache.class).propertyValue("CacheRetriever", storedCacheRetriever);
+		IBeanRuntime<RootCache> rootCacheBR = serviceContext.registerAnonymousBean(RootCache.class).propertyValue("CacheRetriever", cacheRetriever);
 		if (readLock != null)
 		{
 			rootCacheBR.propertyValue("ReadLock", readLock);
