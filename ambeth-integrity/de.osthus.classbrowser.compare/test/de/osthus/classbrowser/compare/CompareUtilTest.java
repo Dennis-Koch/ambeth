@@ -20,10 +20,12 @@ import de.osthus.classbrowser.java.MethodDescription;
 import de.osthus.classbrowser.java.ParserUtil;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class CompareUtilTest {
+public class CompareUtilTest
+{
 
 	@Test
-	public void testIsMethodNameEqual() {
+	public void testIsMethodNameEqual()
+	{
 		List<String> emptyList = Collections.<String> emptyList();
 		CompareResult result = new CompareResult("testIsMethodNameEqual");
 		List<CompareError> errors = result.getErrors();
@@ -76,14 +78,16 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testAreMethodModifiersEquivalent() {
+	public void testAreMethodModifiersEquivalent()
+	{
 		List<String> csharpMethodModifiers = Arrays.asList("public", "virtual", "abstract");
 		List<String> javaMethodModifiers = Arrays.asList("public", "abstract");
 		assertTrue(CompareUtil.areMethodModifiersEquivalent(csharpMethodModifiers, javaMethodModifiers));
 	}
 
 	@Test
-	public void testIsTypeMatch() {
+	public void testIsTypeMatch()
+	{
 		assertTrue(CompareUtil.isTypeMatch("object", "java.lang.Object", 0));
 		assertTrue(CompareUtil.isTypeMatch("Object", "java.lang.Object", 10));
 		assertTrue(CompareUtil.isTypeMatch("bool", "boolean", 10));
@@ -96,7 +100,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testIsTypeMatch_Arrays() {
+	public void testIsTypeMatch_Arrays()
+	{
 		assertTrue(CompareUtil.isTypeMatch("object[]", "java.lang.Object[]", 0));
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IDictionary", "java.util.Map", 0));
 		assertTrue(CompareUtil.isTypeMatch("System.Xml.Linq.XDocument[]", "org.w3c.dom.Document[]", 0));
@@ -108,7 +113,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testIsTypeMatch_Generics() {
+	public void testIsTypeMatch_Generics()
+	{
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IList<Object>", "java.util.List<java.lang.Object>", 0));
 
 		assertTrue(CompareUtil.isTypeMatch("De.Osthus.Ambeth.Merge.Model.IObjRef", "de.osthus.ambeth.merge.model.IObjRef", 0));
@@ -126,7 +132,8 @@ public class CompareUtilTest {
 	@Ignore
 	// Not yet imlemented
 	@Test
-	public void testIsTypeMatch_GenericsContent() {
+	public void testIsTypeMatch_GenericsContent()
+	{
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IList<Object>", "java.util.List<java.lang.Object>", 0));
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IList<String>", "java.util.List<java.lang.String>", 0));
 
@@ -137,7 +144,8 @@ public class CompareUtilTest {
 	@Ignore
 	// Not yet imlemented
 	@Test
-	public void testIsTypeMatch_MultipleGenerics() {
+	public void testIsTypeMatch_MultipleGenerics()
+	{
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IDictionary<Object, Object>", "java.util.Map<java.lang.Object, java.lang.Object>", 0));
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IDictionary<String, Object>", "java.util.Map<java.lang.String, java.lang.Object>", 0));
 
@@ -148,7 +156,8 @@ public class CompareUtilTest {
 	@Ignore
 	// Not yet imlemented
 	@Test
-	public void testIsTypeMatch_MultiLevelGenerics() {
+	public void testIsTypeMatch_MultiLevelGenerics()
+	{
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IList<System.Collections.Generic.IList<Object>>",
 				"java.util.List<java.util.List<java.lang.Object>>", 0));
 		assertTrue(CompareUtil.isTypeMatch("System.Collections.Generic.IList<System.Collections.Generic.IList<String>>",
@@ -160,12 +169,14 @@ public class CompareUtilTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testIsTypeMatch_maxRecursionReached() {
+	public void testIsTypeMatch_maxRecursionReached()
+	{
 		CompareUtil.isTypeMatch("", "", 11);
 	}
 
 	@Test
-	public void testIsMethodEqual() {
+	public void testIsMethodEqual()
+	{
 		CompareResult result = new CompareResult("testIsMethodEqual");
 		MethodDescription cSharpMethodDescription = new MethodDescription("Validate", "void", Arrays.asList("public", "virtual", "abstract"),
 				Arrays.asList("System.Xml.Linq.XDocument"));
@@ -175,11 +186,12 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testCheckForAnnotationValueMethod() {
+	public void testCheckForAnnotationValueMethod()
+	{
 		MethodDescription cSharpGetter = new MethodDescription("get_Name", "String", Arrays.asList("public"), Collections.<String> emptyList());
 		MethodDescription cSharpSetter = new MethodDescription("set_Name", "void", Arrays.asList("private"), Arrays.asList("String"));
 		MethodDescription javaGetter = new MethodDescription("value", "java.lang.String", Arrays.asList("public", "abstract"), Collections.<String> emptyList());
-		List<MethodDescription> cSharpMethods = new ArrayList<MethodDescription>(Arrays.asList(cSharpGetter,cSharpSetter));
+		List<MethodDescription> cSharpMethods = new ArrayList<MethodDescription>(Arrays.asList(cSharpGetter, cSharpSetter));
 		List<MethodDescription> javaMethods = new ArrayList<MethodDescription>(Arrays.asList(javaGetter));
 		CompareUtil.checkForAnnotationValueMethod(cSharpMethods, javaMethods);
 		assertTrue(cSharpMethods.isEmpty());
@@ -187,11 +199,13 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testCheckForAnnotationValueMethod_valueArray() {
+	public void testCheckForAnnotationValueMethod_valueArray()
+	{
 		MethodDescription cSharpGetter = new MethodDescription("get_Name", "String", Arrays.asList("public"), Collections.<String> emptyList());
 		MethodDescription cSharpSetter = new MethodDescription("set_Name", "void", Arrays.asList("private"), Arrays.asList("String"));
-		MethodDescription javaGetter = new MethodDescription("value", "java.lang.String[]", Arrays.asList("public", "abstract"), Collections.<String> emptyList());
-		List<MethodDescription> cSharpMethods = new ArrayList<MethodDescription>(Arrays.asList(cSharpGetter,cSharpSetter));
+		MethodDescription javaGetter = new MethodDescription("value", "java.lang.String[]", Arrays.asList("public", "abstract"),
+				Collections.<String> emptyList());
+		List<MethodDescription> cSharpMethods = new ArrayList<MethodDescription>(Arrays.asList(cSharpGetter, cSharpSetter));
 		List<MethodDescription> javaMethods = new ArrayList<MethodDescription>(Arrays.asList(javaGetter));
 		CompareUtil.checkForAnnotationValueMethod(cSharpMethods, javaMethods);
 		assertTrue(cSharpMethods.isEmpty());
@@ -199,7 +213,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testCheckTypeAndGenericParams_annotation() {
+	public void testCheckTypeAndGenericParams_annotation()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		TypeDescription javaType = new TypeDescription("java source", "Integrity.Test", "de.osthus.ambeth.annotation", "Testing",
 				"de.osthus.ambeth.annotation.Testing", "annotation", 0);
@@ -212,7 +227,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleLoggerProperty() {
+	public void testHandleLoggerProperty()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		MethodDescription validGetter = new MethodDescription(CompareUtil.LOG_PROPERTY_GETTER_NAME, CompareUtil.LOG_TYPE_CSHARP,
 				Arrays.asList(ParserUtil.MODIFIER_PRIVATE), Collections.<String> emptyList());
@@ -240,7 +256,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_default() {
+	public void testHandleInjectionPoints_default()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validProtectedCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PROTECTED,
@@ -263,7 +280,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_defaultNotVirtual() {
+	public void testHandleInjectionPoints_defaultNotVirtual()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validProtectedCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PROTECTED),
@@ -286,7 +304,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_publicJavaGetter() {
+	public void testHandleInjectionPoints_publicJavaGetter()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validPublicCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PUBLIC,
@@ -310,7 +329,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_protectedJavaGetter() {
+	public void testHandleInjectionPoints_protectedJavaGetter()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validProtectedCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PROTECTED,
@@ -334,7 +354,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_javaGetterMismatchingCSharp() {
+	public void testHandleInjectionPoints_javaGetterMismatchingCSharp()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validProtectedCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PROTECTED,
@@ -361,7 +382,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_javaAutowired() {
+	public void testHandleInjectionPoints_javaAutowired()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validCSharpGetter = new MethodDescription("get_" + propertyName, "Object", Arrays.asList(ParserUtil.MODIFIER_PROTECTED,
@@ -395,7 +417,8 @@ public class CompareUtilTest {
 	}
 
 	@Test
-	public void testHandleInjectionPoints_propertyMethod() {
+	public void testHandleInjectionPoints_propertyMethod()
+	{
 		CompareResult result = new CompareResult("de.osthus.ambeth.annotation.Testing");
 		String propertyName = "Name";
 		MethodDescription validProtectedCSharpGetter = new MethodDescription("get_" + propertyName, "String", Arrays.asList(ParserUtil.MODIFIER_PROTECTED,
@@ -425,17 +448,21 @@ public class CompareUtilTest {
 		assertTrue(nameToJavaMethodDescriptionMap.isEmpty());
 	}
 
-	protected LinkedHashMap<String, List<MethodDescription>> createMethodDescriptionMap(MethodDescription... methodDescriptions) {
+	protected LinkedHashMap<String, List<MethodDescription>> createMethodDescriptionMap(MethodDescription... methodDescriptions)
+	{
 		LinkedHashMap<String, List<MethodDescription>> nameToMethodDescriptionMap = new LinkedHashMap<String, List<MethodDescription>>();
-		for (MethodDescription methodDescription : methodDescriptions) {
+		for (MethodDescription methodDescription : methodDescriptions)
+		{
 			nameToMethodDescriptionMap.put(methodDescription.getName(), Arrays.asList(methodDescription));
 		}
 		return nameToMethodDescriptionMap;
 	}
 
-	protected HashMap<String, FieldDescription> createFieldDescriptionMap(FieldDescription... fieldDescriptions) {
+	protected HashMap<String, FieldDescription> createFieldDescriptionMap(FieldDescription... fieldDescriptions)
+	{
 		LinkedHashMap<String, FieldDescription> nameToFieldDescriptionMap = new LinkedHashMap<String, FieldDescription>();
-		for (FieldDescription fieldDescription : fieldDescriptions) {
+		for (FieldDescription fieldDescription : fieldDescriptions)
+		{
 			nameToFieldDescriptionMap.put(fieldDescription.getName(), fieldDescription);
 		}
 		return nameToFieldDescriptionMap;

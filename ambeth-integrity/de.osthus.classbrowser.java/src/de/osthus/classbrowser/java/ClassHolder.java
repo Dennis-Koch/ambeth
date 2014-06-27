@@ -9,7 +9,8 @@ import org.apache.commons.lang3.StringUtils;
  * @author juergen.panser
  * 
  */
-public class ClassHolder {
+public class ClassHolder
+{
 
 	// ---- INNER CLASSES ------------------------------------------------------
 
@@ -29,8 +30,10 @@ public class ClassHolder {
 	 * @param clazz
 	 *            Class; mandatory
 	 */
-	public ClassHolder(String source, Class<?> clazz) {
-		if (StringUtils.isBlank(source) || clazz == null) {
+	public ClassHolder(String source, Class<?> clazz)
+	{
+		if (StringUtils.isBlank(source) || clazz == null)
+		{
 			throw new IllegalArgumentException("Mandatory class holder values missing!");
 		}
 		this.source = source;
@@ -39,11 +42,13 @@ public class ClassHolder {
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-	public String getSource() {
+	public String getSource()
+	{
 		return source;
 	}
 
-	public Class<?> getClazz() {
+	public Class<?> getClazz()
+	{
 		return clazz;
 	}
 

@@ -7,12 +7,14 @@ import java.util.regex.Pattern;
 
 import de.osthus.classbrowser.java.MethodDescription;
 
-public class FindProblem {
+public class FindProblem
+{
 
 	private static final Pattern METHOD_DESCRIPTION_TEXT = Pattern
 			.compile("MethodDescription\\[method modifiers=\\[(.+)\\],method name=(.+),param types=\\[(.+)\\],return type=(.+)\\]");
 
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
 		String cSharpMethodText = "MethodDescription[method modifiers=[protected],method name=handlePrimitiveCollections,param types=[De.Osthus.Ambeth.Merge.ValueObjectConfig, System.Collections.Generic.IDictionary<string, System.Collections.Generic.IList<System.Xml.Linq.XElement>>],return type=void]";
 		String javaMethodText = "MethodDescription[method modifiers=[protected],method name=handlePrimitiveCollections,param types=[de.osthus.ambeth.merge.ValueObjectConfig, de.osthus.ambeth.collections.IMap<java.lang.String, de.osthus.ambeth.collections.IList<org.w3c.dom.Element>>],return type=void]";
 
@@ -22,25 +24,32 @@ public class FindProblem {
 		compare(cSharpMethodDescription, javaMethodDescription);
 	}
 
-	private static void compare(MethodDescription cSharpMethodDescription, MethodDescription javaMethodDescription) {
+	private static void compare(MethodDescription cSharpMethodDescription, MethodDescription javaMethodDescription)
+	{
 		CompareResult result = new CompareResult("testIsMethodEqual");
-		if (!CompareUtil.isMethodNameEqual(result, cSharpMethodDescription, javaMethodDescription)) {
+		if (!CompareUtil.isMethodNameEqual(result, cSharpMethodDescription, javaMethodDescription))
+		{
 			System.out.println("Method names");
 		}
-		if (!CompareUtil.isTypeMatch(cSharpMethodDescription.getReturnType(), javaMethodDescription.getReturnType())) {
+		if (!CompareUtil.isTypeMatch(cSharpMethodDescription.getReturnType(), javaMethodDescription.getReturnType()))
+		{
 			System.out.println("Return types");
 		}
-		if (!CompareUtil.areMethodParameterTypesEquivalent(cSharpMethodDescription.getParameterTypes(), javaMethodDescription.getParameterTypes())) {
+		if (!CompareUtil.areMethodParameterTypesEquivalent(cSharpMethodDescription.getParameterTypes(), javaMethodDescription.getParameterTypes()))
+		{
 			System.out.println("Parameters");
 		}
-		if (!CompareUtil.areMethodModifiersEquivalent(cSharpMethodDescription.getModifiers(), javaMethodDescription.getModifiers())) {
+		if (!CompareUtil.areMethodModifiersEquivalent(cSharpMethodDescription.getModifiers(), javaMethodDescription.getModifiers()))
+		{
 			System.out.println("Modifiers");
 		}
 	}
 
-	private static MethodDescription createMethodDescription(String methodText) {
+	private static MethodDescription createMethodDescription(String methodText)
+	{
 		Matcher matcher = METHOD_DESCRIPTION_TEXT.matcher(methodText);
-		if (!matcher.matches()) {
+		if (!matcher.matches())
+		{
 			throw new IllegalArgumentException("Description does not match: " + methodText);
 		}
 

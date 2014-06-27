@@ -1,6 +1,7 @@
 package de.osthus.classbrowser.java;
 
-public interface INamed {
+public interface INamed
+{
 
 	String getName();
 
