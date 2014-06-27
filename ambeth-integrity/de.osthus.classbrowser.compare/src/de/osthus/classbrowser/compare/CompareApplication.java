@@ -26,7 +26,8 @@ import de.osthus.classbrowser.java.TypeDescription;
  * @author juergen.panser
  * 
  */
-public class CompareApplication {
+public class CompareApplication
+{
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
@@ -76,12 +77,15 @@ public class CompareApplication {
 	 * @param args
 	 *            Program arguments
 	 */
-	public static void main(String[] args) {
-		try {
+	public static void main(String[] args)
+	{
+		try
+		{
 			run();
 			System.exit(ExitCode.SUCCESS.getCode());
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			e.printStackTrace();
 			// Program.showMessage(e.getMessage() + "\n\n");
 		}
@@ -91,9 +95,11 @@ public class CompareApplication {
 	/**
 	 * The program logic.
 	 */
-	private static void run() {
+	private static void run()
+	{
 
-		if (wantsHelp()) {
+		if (wantsHelp())
+		{
 			displayHelpAndWait();
 			return;
 		}
@@ -108,14 +114,17 @@ public class CompareApplication {
 		List<CompareResult> compareResults = CompareUtil.compare(analyzedJavaClasses, analyzedCsharpClasses);
 
 		// Export the results
-		if (doExportResults(EXPORT_TYPE_COMPARE)) {
+		if (doExportResults(EXPORT_TYPE_COMPARE))
+		{
 			boolean mismatchOnly = Boolean.getBoolean(ARG_KEY_MISMATCHESONLY);
 			ExportResults(compareResults, System.getProperty(ARG_KEY_TARGETPATH), true, mismatchOnly);
 		}
-		if (doExportResults(EXPORT_TYPE_TEST)) {
+		if (doExportResults(EXPORT_TYPE_TEST))
+		{
 			ExportAsJunitTestResult(compareResults, System.getProperty(ARG_KEY_TARGETPATH));
 		}
-		if (doExportResults(EXPORT_TYPE_CHECKSTYLE)) {
+		if (doExportResults(EXPORT_TYPE_CHECKSTYLE))
+		{
 			ExportAsCheckstyleTestResult(compareResults, System.getProperty(ARG_KEY_TARGETPATH));
 		}
 		log("FINISHED!");
@@ -126,14 +135,16 @@ public class CompareApplication {
 	 * 
 	 * @return True if the help should be displayed
 	 */
-	private static boolean wantsHelp() {
+	private static boolean wantsHelp()
+	{
 		return System.getProperties().containsKey(ARG_KEY_HELP);
 	}
 
 	/**
 	 * Display the help text.
 	 */
-	private static void displayHelpAndWait() {
+	private static void displayHelpAndWait()
+	{
 		List<String> messages = Arrays.asList( //
 				DECO, //
 				"    Welcome to the class comparer.", //
@@ -151,13 +162,16 @@ public class CompareApplication {
 						+ ARG_KEY_TARGETPATH + "=c:\\temp\\results -jar Classcomparer.jar", //
 				DECO);
 		Console console = System.console();
-		if (console == null) {
-			for (String message : messages) {
+		if (console == null)
+		{
+			for (String message : messages)
+			{
 				log(message);
 			}
 			return;
 		}
-		for (String message : messages) {
+		for (String message : messages)
+		{
 			console.format(message);
 		}
 	}
@@ -167,9 +181,11 @@ public class CompareApplication {
 	 *            Export result type: c or t
 	 * @return True if the export should be done for the given type
 	 */
-	private static boolean doExportResults(String resultType) {
+	private static boolean doExportResults(String resultType)
+	{
 		String property = System.getProperty(ARG_KEY_RESULTTYPE);
-		if (property != null) {
+		if (property != null)
+		{
 			return property.contains(resultType);
 		}
 		return true;
@@ -181,8 +197,10 @@ public class CompareApplication {
 	 * @param message
 	 *            Message to log
 	 */
-	public static void log(String message) {
-		if (doLog && !StringUtils.isBlank(message)) {
+	public static void log(String message)
+	{
+		if (doLog && !StringUtils.isBlank(message))
+		{
 			System.out.println(message);
 		}
 	}
@@ -192,15 +210,18 @@ public class CompareApplication {
 	 *            Key of the system property to get the file name from
 	 * @return TypeDescription entities from the given file
 	 */
-	private static SortedMap<String, TypeDescription> extractFromFile(String fileNameKey) {
+	private static SortedMap<String, TypeDescription> extractFromFile(String fileNameKey)
+	{
 		// Read the needed file name and check it
 		String fileName = System.getProperty(fileNameKey);
-		if (StringUtils.isBlank(fileName)) {
+		if (StringUtils.isBlank(fileName))
+		{
 			// Use the default name and assume that the file is in the same folder
 			fileName = ARG_KEY_JAVAFILE.equals(fileNameKey) ? OutputUtil.EXPORT_FILE_NAME : "export_csharp.xml";
 		}
 		File file = new File(fileName);
-		if (!file.exists()) {
+		if (!file.exists())
+		{
 			throw new IllegalArgumentException("File '" + fileName + "' does not exist!");
 		}
 		// Import file content
@@ -219,40 +240,50 @@ public class CompareApplication {
 	 * @param mismatchesOnly
 	 *            Flag if only the compare results should be exported which aren't equal
 	 */
-	private static void ExportResults(List<CompareResult> results, String targetPath, boolean asXML, boolean mismatchesOnly) {
-		if (results == null) {
+	private static void ExportResults(List<CompareResult> results, String targetPath, boolean asXML, boolean mismatchesOnly)
+	{
+		if (results == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for the compare result export are missing!");
 		}
 
 		// Filter
 		final List<CompareResult> resultsToExport;
-		if (mismatchesOnly) {
+		if (mismatchesOnly)
+		{
 			resultsToExport = getNonEqualOnly(results);
 		}
-		else {
+		else
+		{
 			resultsToExport = results;
 		}
 		// Sort can't be done any more because a result now can have more than one error (which contains the status to
 		// be sorted by)
 
 		// Write
-		if (StringUtils.isBlank(targetPath)) {
+		if (StringUtils.isBlank(targetPath))
+		{
 			// Write to console
 			log(DECO + "Compare results are:" + DECO + StringUtils.join(resultsToExport, "\n\n"));
 		}
-		else {
+		else
+		{
 			// Write to file
-			if (asXML) {
+			if (asXML)
+			{
 				String fileName = FilenameUtils.concat(targetPath, COMPARE_RESULTS_FILE_NAME + ".xml");
 				Export(resultsToExport, fileName);
 			}
-			else {
+			else
+			{
 				String fileName = FilenameUtils.concat(targetPath, COMPARE_RESULTS_FILE_NAME + ".txt");
 				File file = new File(fileName);
-				try {
+				try
+				{
 					FileUtils.writeLines(file, resultsToExport);
 				}
-				catch (IOException e) {
+				catch (IOException e)
+				{
 					throw new RuntimeException(e);
 				}
 			}
@@ -264,10 +295,13 @@ public class CompareApplication {
 	 *            Source list
 	 * @return List with CompareResult entities which have compare errors
 	 */
-	private static List<CompareResult> getNonEqualOnly(List<CompareResult> sourceResults) {
+	private static List<CompareResult> getNonEqualOnly(List<CompareResult> sourceResults)
+	{
 		List<CompareResult> filteredResults = new ArrayList<CompareResult>();
-		for (CompareResult compareResult : sourceResults) {
-			if (compareResult != null && !compareResult.getErrors().isEmpty()) {
+		for (CompareResult compareResult : sourceResults)
+		{
+			if (compareResult != null && !compareResult.getErrors().isEmpty())
+			{
 				filteredResults.add(compareResult);
 			}
 		}
@@ -282,8 +316,10 @@ public class CompareApplication {
 	 * @param fileName
 	 *            File name of the result file; mandatory
 	 */
-	private static void Export(List<CompareResult> results, String fileName) {
-		if (results == null || StringUtils.isBlank(fileName)) {
+	private static void Export(List<CompareResult> results, String fileName)
+	{
+		if (results == null || StringUtils.isBlank(fileName))
+		{
 			throw new IllegalArgumentException("Mandatory values for the export are missing!");
 		}
 
@@ -291,12 +327,15 @@ public class CompareApplication {
 		Document doc = new Document(rootNode);
 
 		Map<CompareStatus, Element> groupMap = new HashMap<CompareStatus, Element>();
-		for (CompareResult result : results) {
-			if (result.getErrors().isEmpty()) {
+		for (CompareResult result : results)
+		{
+			if (result.getErrors().isEmpty())
+			{
 				// No errors -> types are equal -> one single node
 				CompareStatus status = CompareStatus.EQUAL;
 				Element statusNode = groupMap.get(status);
-				if (statusNode == null) {
+				if (statusNode == null)
+				{
 					statusNode = new Element("GroupedByStatus");
 					statusNode.setAttribute(new Attribute("Status", status.getLabel()));
 					rootNode.addContent(statusNode);
@@ -305,12 +344,15 @@ public class CompareApplication {
 				Element resultNode = CreateCompareResultNode(result, null, false);
 				statusNode.addContent(resultNode);
 			}
-			else {
+			else
+			{
 				// There are errors -> one node for each error
-				for (CompareError compareError : result.getErrors()) {
+				for (CompareError compareError : result.getErrors())
+				{
 					CompareStatus status = compareError.getStatus();
 					Element statusNode = groupMap.get(status);
-					if (statusNode == null) {
+					if (statusNode == null)
+					{
 						statusNode = new Element("GroupedByStatus");
 						statusNode.setAttribute(new Attribute("Status", status.getLabel()));
 						rootNode.addContent(statusNode);
@@ -337,18 +379,23 @@ public class CompareApplication {
 	 *            Flag if the status should be used as attribute
 	 * @return XML node; never null
 	 */
-	private static Element CreateCompareResultNode(CompareResult result, CompareError compareError, boolean showStatus) {
-		if (result == null || result.getFullTypeName() == null) {
+	private static Element CreateCompareResultNode(CompareResult result, CompareError compareError, boolean showStatus)
+	{
+		if (result == null || result.getFullTypeName() == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating the result node are missing!");
 		}
 
 		Element resultNode = new Element("CompareResult");
 
-		if (showStatus) {
-			if (compareError == null) {
+		if (showStatus)
+		{
+			if (compareError == null)
+			{
 				resultNode.setAttribute(new Attribute("Status", CompareStatus.EQUAL.getLabel()));
 			}
-			else {
+			else
+			{
 				resultNode.setAttribute(new Attribute("Status", compareError.getStatus().getLabel()));
 			}
 		}
@@ -356,7 +403,8 @@ public class CompareApplication {
 		resultNode.setAttribute(new Attribute("JavaTypeName", getName(result.getJavaType())));
 		resultNode.setAttribute(new Attribute("NetSource", getSource(result.getCsharpType())));
 		resultNode.setAttribute(new Attribute("JavaSource", getSource(result.getJavaType())));
-		if (compareError != null && !StringUtils.isBlank(compareError.getAdditionalInformation())) {
+		if (compareError != null && !StringUtils.isBlank(compareError.getAdditionalInformation()))
+		{
 			Element infoNode = new Element("AdditionalInformation");
 			infoNode.setText(compareError.getAdditionalInformation());
 			resultNode.addContent(infoNode);
@@ -373,8 +421,10 @@ public class CompareApplication {
 	 * @param targetPath
 	 *            Target path of the result file; mandatory
 	 */
-	private static void ExportAsJunitTestResult(List<CompareResult> results, String targetPath) {
-		if (results == null || StringUtils.isBlank(targetPath)) {
+	private static void ExportAsJunitTestResult(List<CompareResult> results, String targetPath)
+	{
+		if (results == null || StringUtils.isBlank(targetPath))
+		{
 			throw new IllegalArgumentException("Mandatory values for the export are missing!");
 		}
 		String fileName = FilenameUtils.concat(targetPath, TEST_RESULTS_FILE_NAME + ".xml");
@@ -383,12 +433,15 @@ public class CompareApplication {
 		Document doc = new Document(rootNode);
 
 		Map<CompareStatus, Element> groupMap = new HashMap<CompareStatus, Element>();
-		for (CompareResult result : results) {
-			if (result.getErrors().isEmpty()) {
+		for (CompareResult result : results)
+		{
+			if (result.getErrors().isEmpty())
+			{
 				// No errors -> types are equal -> one single node
 				CompareStatus status = CompareStatus.EQUAL;
 				Element statusNode = groupMap.get(status);
-				if (statusNode == null) {
+				if (statusNode == null)
+				{
 					statusNode = new Element("testsuite");
 					statusNode.setAttribute(new Attribute("name", status.getLabel()));
 					rootNode.addContent(statusNode);
@@ -397,12 +450,15 @@ public class CompareApplication {
 				Element resultNode = createJunitResultNode(result, null);
 				statusNode.addContent(resultNode);
 			}
-			else {
+			else
+			{
 				// There are errors -> one node for each error
-				for (CompareError compareError : result.getErrors()) {
+				for (CompareError compareError : result.getErrors())
+				{
 					CompareStatus status = compareError.getStatus();
 					Element statusNode = groupMap.get(status);
-					if (statusNode == null) {
+					if (statusNode == null)
+					{
 						statusNode = new Element("testsuite");
 						statusNode.setAttribute(new Attribute("name", status.getLabel()));
 						rootNode.addContent(statusNode);
@@ -425,20 +481,25 @@ public class CompareApplication {
 	 *            CompareError (null if equal)
 	 * @return XML element
 	 */
-	private static Element createJunitResultNode(CompareResult result, CompareError compareError) {
+	private static Element createJunitResultNode(CompareResult result, CompareError compareError)
+	{
 		CompareStatus status = compareError == null ? CompareStatus.EQUAL : compareError.getStatus();
 		Element resultNode = new Element("testcase");
 		resultNode.setAttribute(new Attribute("name", result.getFullTypeName()));
-		if (!CompareStatus.EQUAL.equals(status)) {
-			if (INFO_STATES.contains(status)) {
+		if (!CompareStatus.EQUAL.equals(status))
+		{
+			if (INFO_STATES.contains(status))
+			{
 				resultNode.addContent(new Element("skipped"));
 			}
 			String errorElementName = "error";
-			if (WARNING_STATES.contains(status)) {
+			if (WARNING_STATES.contains(status))
+			{
 				errorElementName = "failure";
 			}
 			Element errorNode = new Element(errorElementName);
-			if (compareError != null && !StringUtils.isBlank(compareError.getAdditionalInformation())) {
+			if (compareError != null && !StringUtils.isBlank(compareError.getAdditionalInformation()))
+			{
 				resultNode.setAttribute(new Attribute("message", compareError.getAdditionalInformation()));
 			}
 			resultNode.addContent(errorNode);
@@ -454,8 +515,10 @@ public class CompareApplication {
 	 * @param targetPath
 	 *            Target path of the result file; mandatory
 	 */
-	private static void ExportAsCheckstyleTestResult(List<CompareResult> results, String targetPath) {
-		if (results == null || StringUtils.isBlank(targetPath)) {
+	private static void ExportAsCheckstyleTestResult(List<CompareResult> results, String targetPath)
+	{
+		if (results == null || StringUtils.isBlank(targetPath))
+		{
 			throw new IllegalArgumentException("Mandatory values for the export are missing!");
 		}
 		String fileName = FilenameUtils.concat(targetPath, CHECKSTYLE_RESULTS_FILE_NAME + ".xml");
@@ -464,29 +527,36 @@ public class CompareApplication {
 		rootNode.setAttribute(new Attribute("version", "5.6"));
 		Document doc = new Document(rootNode);
 
-		for (CompareResult result : results) {
+		for (CompareResult result : results)
+		{
 			Element fileNode = new Element("file");
 
 			String source = getCheckstyleTypeSource(result);
 			fileNode.setAttribute(new Attribute("name", source));
 
 			// If there are no errors nothing has to be added
-			for (CompareError compareError : result.getErrors()) {
+			for (CompareError compareError : result.getErrors())
+			{
 				CompareStatus status = compareError.getStatus();
-				if (!CompareStatus.EQUAL.equals(status)) {
+				if (!CompareStatus.EQUAL.equals(status))
+				{
 					Element errorNode = new Element("error");
 					String severity = "error";
-					if (INFO_STATES.contains(status)) {
+					if (INFO_STATES.contains(status))
+					{
 						severity = "info";
 					}
-					if (WARNING_STATES.contains(status)) {
+					if (WARNING_STATES.contains(status))
+					{
 						severity = "warning";
 					}
 					errorNode.setAttribute(new Attribute("severity", severity));
-					if (!StringUtils.isBlank(compareError.getAdditionalInformation())) {
+					if (!StringUtils.isBlank(compareError.getAdditionalInformation()))
+					{
 						errorNode.setAttribute(new Attribute("message", compareError.getAdditionalInformation()));
 					}
-					else {
+					else
+					{
 						errorNode.setAttribute(new Attribute("message", status.getLabel()));
 					}
 					errorNode.setAttribute(new Attribute("source", getCheckstyleStatusSource(status)));
@@ -506,8 +576,10 @@ public class CompareApplication {
 	 *            CompareResult; mandatory
 	 * @return Source
 	 */
-	private static String getCheckstyleStatusSource(CompareStatus status) {
-		if (status == null) {
+	private static String getCheckstyleStatusSource(CompareStatus status)
+	{
+		if (status == null)
+		{
 			throw new IllegalArgumentException("Mandatory status is missing!");
 		}
 		return "de.osthus.compare." + status.name();
@@ -518,8 +590,10 @@ public class CompareApplication {
 	 *            CompareResult; mandatory
 	 * @return Source
 	 */
-	private static String getCheckstyleTypeSource(CompareResult result) {
-		if (result == null) {
+	private static String getCheckstyleTypeSource(CompareResult result)
+	{
+		if (result == null)
+		{
 			throw new IllegalArgumentException("Mandatory value to get the Checkstyle source is missing!");
 		}
 		String netTypeName = getName(result.getCsharpType());
@@ -528,29 +602,39 @@ public class CompareApplication {
 		String javaSource = getSource(result.getJavaType());
 		javaSource = AMBETH_VERSION.matcher(javaSource).replaceAll("");
 		String source = StringUtils.EMPTY;
-		if (!StringUtils.isBlank(netTypeName)) {
+		if (!StringUtils.isBlank(netTypeName))
+		{
 			source = "net:" + netTypeName;
-			if (!StringUtils.isBlank(netSource)) {
+			if (!StringUtils.isBlank(netSource))
+			{
 				source += " from " + netSource;
 			}
 		}
-		else {
-			if (!StringUtils.isBlank(netSource)) {
+		else
+		{
+			if (!StringUtils.isBlank(netSource))
+			{
 				source = "net:" + netSource;
 			}
 		}
-		if (!StringUtils.isBlank(javaTypeName)) {
-			if (!StringUtils.isBlank(source)) {
+		if (!StringUtils.isBlank(javaTypeName))
+		{
+			if (!StringUtils.isBlank(source))
+			{
 				source += ";";
 			}
 			source += "java:" + javaTypeName;
-			if (!StringUtils.isBlank(javaSource)) {
+			if (!StringUtils.isBlank(javaSource))
+			{
 				source += " from " + javaSource;
 			}
 		}
-		else {
-			if (!StringUtils.isBlank(javaSource)) {
-				if (!StringUtils.isBlank(source)) {
+		else
+		{
+			if (!StringUtils.isBlank(javaSource))
+			{
+				if (!StringUtils.isBlank(source))
+				{
 					source += ";";
 				}
 				source = "java:" + javaSource;
@@ -566,8 +650,10 @@ public class CompareApplication {
 	 *            TypeDescription to get the information from
 	 * @return Type name
 	 */
-	private static String getName(TypeDescription typeDescription) {
-		if (typeDescription == null) {
+	private static String getName(TypeDescription typeDescription)
+	{
+		if (typeDescription == null)
+		{
 			return StringUtils.EMPTY;
 		}
 		return typeDescription.getFullTypeName();
@@ -580,8 +666,10 @@ public class CompareApplication {
 	 *            TypeDescription to get the information from
 	 * @return Source
 	 */
-	private static String getSource(TypeDescription typeDescription) {
-		if (typeDescription == null) {
+	private static String getSource(TypeDescription typeDescription)
+	{
+		if (typeDescription == null)
+		{
 			return StringUtils.EMPTY;
 		}
 		String[] sourceParts = StringUtils.split(typeDescription.getSource(), "/\\");

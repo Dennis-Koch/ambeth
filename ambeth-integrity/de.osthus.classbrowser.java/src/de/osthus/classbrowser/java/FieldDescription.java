@@ -12,7 +12,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * 
  * @author juergen.panser
  */
-public class FieldDescription implements INamed {
+public class FieldDescription implements INamed
+{
 
 	// ---- VARIABLES ----------------------------------------------------------
 
@@ -36,8 +37,10 @@ public class FieldDescription implements INamed {
 	 * @param modifiers
 	 *            Modifiers; may be null
 	 */
-	public FieldDescription(String fieldName, String fieldType, List<String> modifiers) {
-		if (StringUtils.isBlank(fieldName) || StringUtils.isBlank(fieldType)) {
+	public FieldDescription(String fieldName, String fieldType, List<String> modifiers)
+	{
+		if (StringUtils.isBlank(fieldName) || StringUtils.isBlank(fieldType))
+		{
 			throw new IllegalArgumentException("Mandatory method description value missing!");
 		}
 		this.fieldName = fieldName;
@@ -53,26 +56,31 @@ public class FieldDescription implements INamed {
 	 * @see de.osthus.classbrowser.java.INamed#getName()
 	 */
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		return fieldName;
 	}
 
-	public String getFieldType() {
+	public String getFieldType()
+	{
 		return fieldType;
 	}
 
-	public List<String> getModifiers() {
+	public List<String> getModifiers()
+	{
 		return modifiers;
 	}
 
-	public List<String> getAnnotations() {
+	public List<String> getAnnotations()
+	{
 		return annotations;
 	}
 
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("field modifiers", this.modifiers).append("field type", this.fieldType)
 				.append("field name", this.fieldName).toString();
 	}

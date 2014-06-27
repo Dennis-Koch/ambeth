@@ -11,7 +11,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * 
  * @author juergen.panser
  */
-public class CompareError {
+public class CompareError
+{
 
 	// ---- VARIABLES ----------------------------------------------------------
 
@@ -27,7 +28,8 @@ public class CompareError {
 	 * @param status
 	 *            CompareStatus; mandatory
 	 */
-	public CompareError(CompareStatus status) {
+	public CompareError(CompareStatus status)
+	{
 		this(status, null);
 	}
 
@@ -39,8 +41,10 @@ public class CompareError {
 	 * @param additionalInformation
 	 *            Additional information; optional
 	 */
-	public CompareError(CompareStatus status, String additionalInformation) {
-		if (status == null) {
+	public CompareError(CompareStatus status, String additionalInformation)
+	{
+		if (status == null)
+		{
 			throw new IllegalArgumentException("Status has to be set!");
 		}
 		setStatus(status);
@@ -49,26 +53,31 @@ public class CompareError {
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-	public CompareStatus getStatus() {
+	public CompareStatus getStatus()
+	{
 		return status;
 	}
 
-	public void setStatus(CompareStatus status) {
+	public void setStatus(CompareStatus status)
+	{
 		this.status = status;
 	}
 
-	public String getAdditionalInformation() {
+	public String getAdditionalInformation()
+	{
 		return additionalInformation;
 	}
 
-	public void setAdditionalInformation(String additionalInformation) {
+	public void setAdditionalInformation(String additionalInformation)
+	{
 		this.additionalInformation = additionalInformation;
 	}
 
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("status", this.status)
 				.append("additional information", this.additionalInformation).toString();
 	}

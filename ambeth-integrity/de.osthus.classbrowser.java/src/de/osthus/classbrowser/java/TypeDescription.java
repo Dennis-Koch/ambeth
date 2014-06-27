@@ -10,7 +10,8 @@ import org.apache.commons.lang3.StringUtils;
  * 
  * @author juergen.panser
  */
-public class TypeDescription implements INamed, IDeprecation {
+public class TypeDescription implements INamed, IDeprecation
+{
 
 	// ---- VARIABLES ----------------------------------------------------------
 
@@ -46,8 +47,7 @@ public class TypeDescription implements INamed, IDeprecation {
 	 * @param namespaceName
 	 *            Namespace name; optional
 	 * @param typeName
-	 *            Short name of the type; mandatory (because no anonymous classes are allowed where the canonical name
-	 *            may be null or the simple name be empty)
+	 *            Short name of the type; mandatory (because no anonymous classes are allowed where the canonical name may be null or the simple name be empty)
 	 * @param fullTypeName
 	 *            Full name of the type including the namespace; mandatory
 	 * @param typeType
@@ -55,8 +55,10 @@ public class TypeDescription implements INamed, IDeprecation {
 	 * @param genericTypeParams
 	 *            Number of generic type parameters
 	 */
-	public TypeDescription(String source, String moduleName, String namespaceName, String typeName, String fullTypeName, String typeType, int genericTypeParams) {
-		if (StringUtils.isBlank(source) || StringUtils.isBlank(typeName) || StringUtils.isBlank(fullTypeName) || StringUtils.isBlank(typeType)) {
+	public TypeDescription(String source, String moduleName, String namespaceName, String typeName, String fullTypeName, String typeType, int genericTypeParams)
+	{
+		if (StringUtils.isBlank(source) || StringUtils.isBlank(typeName) || StringUtils.isBlank(fullTypeName) || StringUtils.isBlank(typeType))
+		{
 			throw new IllegalArgumentException("Mandatory type description value missing!");
 		}
 		this.source = source;
@@ -70,15 +72,18 @@ public class TypeDescription implements INamed, IDeprecation {
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-	public String getSource() {
+	public String getSource()
+	{
 		return source;
 	}
 
-	public String getModuleName() {
+	public String getModuleName()
+	{
 		return moduleName;
 	}
 
-	public String getNamespaceName() {
+	public String getNamespaceName()
+	{
 		return namespaceName;
 	}
 
@@ -88,19 +93,23 @@ public class TypeDescription implements INamed, IDeprecation {
 	 * @see de.osthus.classbrowser.java.INamed#getName()
 	 */
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		return typeName;
 	}
 
-	public String getFullTypeName() {
+	public String getFullTypeName()
+	{
 		return fullTypeName;
 	}
 
-	public String getTypeType() {
+	public String getTypeType()
+	{
 		return typeType;
 	}
 
-	public int getGenericTypeParams() {
+	public int getGenericTypeParams()
+	{
 		return genericTypeParams;
 	}
 
@@ -110,19 +119,23 @@ public class TypeDescription implements INamed, IDeprecation {
 	 * @see de.osthus.classbrowser.java.IDeprecation#isDeprecated()
 	 */
 	@Override
-	public boolean isDeprecated() {
+	public boolean isDeprecated()
+	{
 		return IDeprecation.INSTANCE.isDeprecated(annotations);
 	}
 
-	public List<String> getAnnotations() {
+	public List<String> getAnnotations()
+	{
 		return annotations;
 	}
 
-	public List<MethodDescription> getMethodDescriptions() {
+	public List<MethodDescription> getMethodDescriptions()
+	{
 		return methodDescriptions;
 	}
 
-	public List<FieldDescription> getFieldDescriptions() {
+	public List<FieldDescription> getFieldDescriptions()
+	{
 		return fieldDescriptions;
 	}
 

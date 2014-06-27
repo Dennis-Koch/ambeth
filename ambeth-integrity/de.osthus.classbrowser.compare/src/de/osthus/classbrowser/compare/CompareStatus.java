@@ -7,7 +7,8 @@ package de.osthus.classbrowser.compare;
  * @author juergen.panser
  * 
  */
-public enum CompareStatus {
+public enum CompareStatus
+{
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
@@ -20,23 +21,23 @@ public enum CompareStatus {
 
 	NO_MATCHING_JAVA_CLASS_FOUND("No matching JAVA class found"), //
 	NO_MATCHING_CSHARP_CLASS_FOUND("No matching C# class found"), //
-	
+
 	PUBLIC_METHOD_COUNT_DIFFERS("Public method count differs"), //
 	PROTECTED_METHOD_COUNT_DIFFERS("Protected method count differs"), //
 	METHOD_COUNT_DIFFERS("Method count differs"), //
-	
+
 	INTERFACE_METHOD_NOT_FOUND("Interface method not found"), //
 	PUBLIC_METHOD_NOT_FOUND("Public method not found"), //
 	INTERNAL_METHOD_NOT_FOUND("Internal method not found"), //
-	
+
 	METHOD_NAME_CASE("Wrong method name case"), //
-	
+
 	PARAMETER_COUNT_DIFFERS("Parameter count differs"), //
-	
+
 	WRONG_TYPE("Wrong type"), //
-	
+
 	FIELDS_DIFFER("Fields differ"), //
-	
+
 	PATTERN_VIOLATION("Pattern has been violated");
 
 	// ---- VARIABLES ----------------------------------------------------------
@@ -51,7 +52,8 @@ public enum CompareStatus {
 	 * @param label
 	 *            Label
 	 */
-	CompareStatus(String label) {
+	CompareStatus(String label)
+	{
 		this.label = label;
 	}
 
@@ -62,14 +64,16 @@ public enum CompareStatus {
 	 * 
 	 * @return the label
 	 */
-	public String getLabel() {
+	public String getLabel()
+	{
 		return this.label;
 	}
 
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return getLabel();
 	}
 

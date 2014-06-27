@@ -7,10 +7,12 @@ import java.util.List;
 
 import org.junit.Test;
 
-public class ParserUtilTest {
+public class ParserUtilTest
+{
 
 	@Test
-	public void testAddFieldDescriptions() {
+	public void testAddFieldDescriptions()
+	{
 		TypeDescription typeDescription = new TypeDescription("null", "null", "null", "null", "null", "null", 0);
 		ParserUtil.addFieldDescriptions(TestClass.class, typeDescription);
 
@@ -22,7 +24,8 @@ public class ParserUtilTest {
 	}
 
 	@Test
-	public void testAddMethodDescriptions() {
+	public void testAddMethodDescriptions()
+	{
 		TypeDescription typeDescription = new TypeDescription("null", "null", "null", "null", "null", "null", 0);
 		ParserUtil.addMethodDescriptions(TestClass.class, typeDescription);
 

@@ -19,7 +19,8 @@ import org.apache.commons.lang3.StringUtils;
  * 
  * @author juergen.panser
  */
-public class ParserUtil {
+public class ParserUtil
+{
 
 	// ---- INNER CLASSES ------------------------------------------------------
 
@@ -47,7 +48,8 @@ public class ParserUtil {
 
 	// ---- CONSTRUCTORS -------------------------------------------------------
 
-	private ParserUtil() {
+	private ParserUtil()
+	{
 		// No instances allowed
 	}
 
@@ -56,15 +58,16 @@ public class ParserUtil {
 	// ---- METHODS ------------------------------------------------------------
 
 	/**
-	 * Check the given type literal. If it isn't one of the constants defined in this class an IllegalArgumentException
-	 * is thrown.
+	 * Check the given type literal. If it isn't one of the constants defined in this class an IllegalArgumentException is thrown.
 	 * 
 	 * @param typeToCheck
 	 *            Type to check
 	 */
-	public static void checkType(String typeToCheck) {
+	public static void checkType(String typeToCheck)
+	{
 		if (TYPE_CLASS.equals(typeToCheck) || TYPE_DELEGATE.equals(typeToCheck) || TYPE_ENUM.equals(typeToCheck) || TYPE_INTERFACE.equals(typeToCheck)
-				|| TYPE_ANNOTATION.equals(typeToCheck)) {
+				|| TYPE_ANNOTATION.equals(typeToCheck))
+		{
 			return;
 		}
 		throw new IllegalArgumentException("Type '" + typeToCheck + "'is not a valid one.");
@@ -74,29 +77,34 @@ public class ParserUtil {
 	 * @param classes
 	 *            List of classes
 	 * @param moduleMap
-	 *            Map with the module name of each class file; key is the full qualified class name in LOWER CASE and
-	 *            value the module name
+	 *            Map with the module name of each class file; key is the full qualified class name in LOWER CASE and value the module name
 	 * @param modulesToBeAnalyzed
 	 *            List of modules to be analyzed; if null or empty all classes in the jar path are analyzed
 	 * @return A list of found types as TypeDescription entities; never null (but may be empty)
 	 */
-	public static List<TypeDescription> analyzeClasses(List<ClassHolder> classes, Map<String, String> moduleMap, List<String> modulesToBeAnalyzed) {
+	public static List<TypeDescription> analyzeClasses(List<ClassHolder> classes, Map<String, String> moduleMap, List<String> modulesToBeAnalyzed)
+	{
 		List<TypeDescription> foundTypes = new ArrayList<TypeDescription>();
-		if (classes == null) {
+		if (classes == null)
+		{
 			return foundTypes;
 		}
 
-		for (ClassHolder classHolder : classes) {
+		for (ClassHolder classHolder : classes)
+		{
 			Class<?> classToBeAnalyzed = classHolder.getClazz();
 			String source = getSource(classHolder);
 			String typeType = getTypeType(classToBeAnalyzed);
 
-			if (typeType != null) {
-				if (isTypeSkipped(classToBeAnalyzed)) {
+			if (typeType != null)
+			{
+				if (isTypeSkipped(classToBeAnalyzed))
+				{
 					continue;
 				}
 				String moduleName = getModule(classToBeAnalyzed, moduleMap);
-				if (isModuleSkipped(moduleName, modulesToBeAnalyzed)) {
+				if (isModuleSkipped(moduleName, modulesToBeAnalyzed))
+				{
 					continue;
 				}
 
@@ -122,14 +130,15 @@ public class ParserUtil {
 	 * Check if all classes of this module have to be skipped.
 	 * 
 	 * @param moduleName
-	 *            Module to check; if null or empty the class is analyzed to let the comparer give a hint on the missing
-	 *            module name
+	 *            Module to check; if null or empty the class is analyzed to let the comparer give a hint on the missing module name
 	 * @param modulesToBeAnalyzed
 	 *            List of modules to be analyzed; if null or empty all classes in the jar path are analyzed
 	 * @return True if the all classes of this module have to be skipped
 	 */
-	private static boolean isModuleSkipped(String moduleName, List<String> modulesToBeAnalyzed) {
-		if (modulesToBeAnalyzed == null || modulesToBeAnalyzed.isEmpty()) {
+	private static boolean isModuleSkipped(String moduleName, List<String> modulesToBeAnalyzed)
+	{
+		if (modulesToBeAnalyzed == null || modulesToBeAnalyzed.isEmpty())
+		{
 			return false;
 		}
 		boolean doAnalyze = StringUtils.isBlank(moduleName) || modulesToBeAnalyzed.contains(moduleName.trim().toLowerCase());
@@ -143,10 +152,12 @@ public class ParserUtil {
 	 *            Class to check
 	 * @return True if class should be skipped
 	 */
-	private static boolean isTypeSkipped(Class<?> classToBeAnalyzed) {
+	private static boolean isTypeSkipped(Class<?> classToBeAnalyzed)
+	{
 		boolean skip = false;
 		if (classToBeAnalyzed.isAnonymousClass() || classToBeAnalyzed.isLocalClass() || classToBeAnalyzed.isMemberClass()
-				|| StringUtils.containsIgnoreCase(classToBeAnalyzed.getName(), "ambeth.repackaged.")) {
+				|| StringUtils.containsIgnoreCase(classToBeAnalyzed.getName(), "ambeth.repackaged."))
+		{
 			skip = true;
 		}
 		return skip;
@@ -158,17 +169,19 @@ public class ParserUtil {
 	 * @param classToBeAnalyzed
 	 *            Class
 	 * @param moduleMap
-	 *            Map with the module name of each class file; key is the full qualified class name in LOWER CASE and
-	 *            value the module name
+	 *            Map with the module name of each class file; key is the full qualified class name in LOWER CASE and value the module name
 	 * @return Module name or empty string (if no module can be found); never null
 	 */
-	public static String getModule(Class<?> classToBeAnalyzed, Map<String, String> moduleMap) {
-		if (classToBeAnalyzed == null || moduleMap == null) {
+	public static String getModule(Class<?> classToBeAnalyzed, Map<String, String> moduleMap)
+	{
+		if (classToBeAnalyzed == null || moduleMap == null)
+		{
 			throw new IllegalArgumentException("Mandatory value missing!");
 		}
 		String classFileName = classToBeAnalyzed.getName().toLowerCase() + ".java";
 		String moduleName = moduleMap.get(classFileName);
-		if (!StringUtils.isBlank(moduleName)) {
+		if (!StringUtils.isBlank(moduleName))
+		{
 			return moduleName;
 		}
 		return StringUtils.EMPTY;
@@ -181,7 +194,8 @@ public class ParserUtil {
 	 *            ClassHolder
 	 * @return Source
 	 */
-	public static String getSource(ClassHolder classHolder) {
+	public static String getSource(ClassHolder classHolder)
+	{
 		return classHolder.getSource();
 	}
 
@@ -192,21 +206,27 @@ public class ParserUtil {
 	 *            Type to identify; mandatory
 	 * @return One of the TYPE constants (e.g. TYPE_CLASS) or null
 	 */
-	public static String getTypeType(Class<?> givenType) {
-		if (givenType == null) {
+	public static String getTypeType(Class<?> givenType)
+	{
+		if (givenType == null)
+		{
 			throw new IllegalArgumentException("Class may not be null!");
 		}
 
-		if (givenType.isAnnotation()) {
+		if (givenType.isAnnotation())
+		{
 			return TYPE_ANNOTATION;
 		}
-		else if (givenType.isInterface()) {
+		else if (givenType.isInterface())
+		{
 			return TYPE_INTERFACE;
 		}
-		else if (givenType.isEnum()) {
+		else if (givenType.isEnum())
+		{
 			return TYPE_ENUM;
 		}
-		else {
+		else
+		{
 			return TYPE_CLASS;
 		}
 	}
@@ -219,7 +239,8 @@ public class ParserUtil {
 	 * @param typeDescription
 	 *            Description to write the method infos to; mandatory
 	 */
-	protected static void addAnnotations(Class<?> classToBeAnalyzed, TypeDescription typeDescription) {
+	protected static void addAnnotations(Class<?> classToBeAnalyzed, TypeDescription typeDescription)
+	{
 		List<String> annotationNames = getAnnotationNames(classToBeAnalyzed);
 		typeDescription.getAnnotations().addAll(annotationNames);
 	}
@@ -232,12 +253,15 @@ public class ParserUtil {
 	 * @param typeDescription
 	 *            Description to write the method infos to; mandatory
 	 */
-	protected static void addMethodDescriptions(Class<?> givenType, TypeDescription typeDescription) {
-		if (givenType == null || typeDescription == null) {
+	protected static void addMethodDescriptions(Class<?> givenType, TypeDescription typeDescription)
+	{
+		if (givenType == null || typeDescription == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for adding the method descriptions are missing!");
 		}
 
-		for (Method methodInfo : givenType.getDeclaredMethods()) {
+		for (Method methodInfo : givenType.getDeclaredMethods())
+		{
 			MethodDescription methodDescription = createMethodDescriptionFrom(methodInfo);
 			typeDescription.getMethodDescriptions().add(methodDescription);
 		}
@@ -251,21 +275,25 @@ public class ParserUtil {
 	 * @param typeDescription
 	 *            Description to write the method infos to; mandatory
 	 */
-	protected static void addFieldDescriptions(Class<?> givenType, TypeDescription typeDescription) {
-		if (givenType == null || typeDescription == null) {
+	protected static void addFieldDescriptions(Class<?> givenType, TypeDescription typeDescription)
+	{
+		if (givenType == null || typeDescription == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for adding the field descriptions are missing!");
 		}
 
 		boolean isEnum = ParserUtil.TYPE_ENUM.equals(typeDescription.getTypeType());
 
-		for (Field fieldInfo : givenType.getDeclaredFields()) {
+		for (Field fieldInfo : givenType.getDeclaredFields())
+		{
 			List<String> annotationNames = getAnnotationNames(fieldInfo);
 			boolean isLoggerField = annotationNames.contains(JAVA_ANNOTATION_LOG_INSTANCE);
 			boolean isAutowired = annotationNames.contains(JAVA_ANNOTATION_AUTOWIRED);
 			// on enums only "recognize" the enum values and not the internal field to save the integer value
 			boolean isEnumAndEnumConstant = isEnum && fieldInfo.isEnumConstant();
 
-			if (isAutowired || isLoggerField || isEnumAndEnumConstant) {
+			if (isAutowired || isLoggerField || isEnumAndEnumConstant)
+			{
 				FieldDescription fieldDescription = createFieldDescriptionFrom(fieldInfo);
 				fieldDescription.getAnnotations().addAll(annotationNames);
 				typeDescription.getFieldDescriptions().add(fieldDescription);
@@ -280,8 +308,10 @@ public class ParserUtil {
 	 *            Method to get the infos from; mandatory
 	 * @return MethodDescription
 	 */
-	public static MethodDescription createMethodDescriptionFrom(Method methodInfo) {
-		if (methodInfo == null) {
+	public static MethodDescription createMethodDescriptionFrom(Method methodInfo)
+	{
+		if (methodInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating a method description are missing!");
 		}
 
@@ -303,17 +333,21 @@ public class ParserUtil {
 	 *            FieldInfo to get the infos from; mandatory
 	 * @return FieldDescription
 	 */
-	public static FieldDescription createFieldDescriptionFrom(Field fieldInfo) {
-		if (fieldInfo == null) {
+	public static FieldDescription createFieldDescriptionFrom(Field fieldInfo)
+	{
+		if (fieldInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating a field description are missing!");
 		}
 
 		final String fieldType;
 		Type genericType = fieldInfo.getGenericType();
-		if (genericType instanceof ParameterizedType) {
+		if (genericType instanceof ParameterizedType)
+		{
 			fieldType = getTypeFrom(genericType);
 		}
-		else {
+		else
+		{
 			fieldType = getTypeFrom(fieldInfo.getType());
 		}
 		List<String> modifiers = getModifiersFrom(fieldInfo);
@@ -328,13 +362,16 @@ public class ParserUtil {
 	 *            Method to get the infos from; mandatory
 	 * @return Return type as text
 	 */
-	public static String getReturnTypeFrom(Method methodInfo) {
-		if (methodInfo == null) {
+	public static String getReturnTypeFrom(Method methodInfo)
+	{
+		if (methodInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the return type are missing!");
 		}
 
 		Type returnType = methodInfo.getGenericReturnType();
-		if (returnType instanceof ParameterizedType) {
+		if (returnType instanceof ParameterizedType)
+		{
 			return getTypeFrom(returnType);
 		}
 
@@ -348,8 +385,10 @@ public class ParserUtil {
 	 *            Type to get the infos from; mandatory
 	 * @return Type as text
 	 */
-	public static String getTypeFrom(Type givenType) {
-		if (givenType == null) {
+	public static String getTypeFrom(Type givenType)
+	{
+		if (givenType == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the type are missing!");
 		}
 		return givenType.toString();
@@ -362,8 +401,10 @@ public class ParserUtil {
 	 *            Type to get the infos from; mandatory
 	 * @return Type as text
 	 */
-	public static String getTypeFrom(Class<?> givenType) {
-		if (givenType == null) {
+	public static String getTypeFrom(Class<?> givenType)
+	{
+		if (givenType == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the type are missing!");
 		}
 
@@ -378,8 +419,10 @@ public class ParserUtil {
 	 *            Method to get the infos from; mandatory
 	 * @return List of modifiers; never null (but may be empty)
 	 */
-	public static List<String> getModifiersFrom(Method methodInfo) {
-		if (methodInfo == null) {
+	public static List<String> getModifiersFrom(Method methodInfo)
+	{
+		if (methodInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the method modifiers are missing!");
 		}
 
@@ -394,8 +437,10 @@ public class ParserUtil {
 	 *            Field to get the infos from; mandatory
 	 * @return List of modifiers; never null (but may be empty)
 	 */
-	public static List<String> getModifiersFrom(Field fieldInfo) {
-		if (fieldInfo == null) {
+	public static List<String> getModifiersFrom(Field fieldInfo)
+	{
+		if (fieldInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the field modifiers are missing!");
 		}
 
@@ -408,24 +453,31 @@ public class ParserUtil {
 	 *            Modifier flags (integer constants)
 	 * @return List of modifiers; never null (but may be empty)
 	 */
-	protected static List<String> getModifersFrom(int modifierFlags) {
+	protected static List<String> getModifersFrom(int modifierFlags)
+	{
 		List<String> modifiers = new ArrayList<String>();
-		if (Modifier.isPublic(modifierFlags)) {
+		if (Modifier.isPublic(modifierFlags))
+		{
 			modifiers.add(MODIFIER_PUBLIC);
 		}
-		if (Modifier.isProtected(modifierFlags)) {
+		if (Modifier.isProtected(modifierFlags))
+		{
 			modifiers.add(MODIFIER_PROTECTED);
 		}
-		if (Modifier.isPrivate(modifierFlags)) {
+		if (Modifier.isPrivate(modifierFlags))
+		{
 			modifiers.add(MODIFIER_PRIVATE);
 		}
-		if (Modifier.isStatic(modifierFlags)) {
+		if (Modifier.isStatic(modifierFlags))
+		{
 			modifiers.add(MODIFIER_STATIC);
 		}
-		if (Modifier.isFinal(modifierFlags)) {
+		if (Modifier.isFinal(modifierFlags))
+		{
 			modifiers.add(MODIFIER_FINAL);
 		}
-		if (Modifier.isAbstract(modifierFlags)) {
+		if (Modifier.isAbstract(modifierFlags))
+		{
 			modifiers.add(MODIFIER_ABSTRACT);
 		}
 		return modifiers;
@@ -438,21 +490,27 @@ public class ParserUtil {
 	 *            Method to get the infos from; mandatory
 	 * @return List of parameter types; never null (but may be empty)
 	 */
-	public static List<String> getParameterTypesFrom(Method methodInfo) {
-		if (methodInfo == null) {
+	public static List<String> getParameterTypesFrom(Method methodInfo)
+	{
+		if (methodInfo == null)
+		{
 			throw new IllegalArgumentException("Mandatory values to get the parameter types are missing!");
 		}
 
 		int parameterCount = methodInfo.getGenericParameterTypes().length;
 		String[] parameters = new String[parameterCount];
-		for (int i = 0; i < parameterCount; i++) {
+		for (int i = 0; i < parameterCount; i++)
+		{
 			Type parameterType = methodInfo.getGenericParameterTypes()[i];
-			if (parameterType instanceof ParameterizedType) {
+			if (parameterType instanceof ParameterizedType)
+			{
 				parameters[i] = getTypeFrom(parameterType);
 			}
 		}
-		for (int i = 0; i < parameterCount; i++) {
-			if (StringUtils.isBlank(parameters[i])) {
+		for (int i = 0; i < parameterCount; i++)
+		{
+			if (StringUtils.isBlank(parameters[i]))
+			{
 				Class<?> parameterType = methodInfo.getParameterTypes()[i];
 				parameters[i] = getTypeFrom(parameterType);
 			}
@@ -468,10 +526,12 @@ public class ParserUtil {
 	 *            Object to be analysed
 	 * @return List of the full annotation names
 	 */
-	protected static ArrayList<String> getAnnotationNames(AnnotatedElement annotatedElement) {
+	protected static ArrayList<String> getAnnotationNames(AnnotatedElement annotatedElement)
+	{
 		ArrayList<String> annotationNames = new ArrayList<String>();
 		Annotation[] annotations = annotatedElement.getAnnotations();
-		for (Annotation annotation : annotations) {
+		for (Annotation annotation : annotations)
+		{
 			String name = annotation.annotationType().getName();
 			annotationNames.add(name);
 		}

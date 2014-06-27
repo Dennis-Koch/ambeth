@@ -12,7 +12,8 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  * 
  * @author juergen.panser
  */
-public class MethodDescription implements INamed, IDeprecation {
+public class MethodDescription implements INamed, IDeprecation
+{
 
 	// ---- VARIABLES ----------------------------------------------------------
 
@@ -40,8 +41,10 @@ public class MethodDescription implements INamed, IDeprecation {
 	 * @param parameterTypes
 	 *            Parameters types; may be null
 	 */
-	public MethodDescription(String methodName, String returnType, List<String> modifiers, List<String> parameterTypes) {
-		if (StringUtils.isBlank(methodName) || StringUtils.isBlank(returnType)) {
+	public MethodDescription(String methodName, String returnType, List<String> modifiers, List<String> parameterTypes)
+	{
+		if (StringUtils.isBlank(methodName) || StringUtils.isBlank(returnType))
+		{
 			throw new IllegalArgumentException("Mandatory method description value missing!");
 		}
 		this.methodName = methodName;
@@ -58,23 +61,28 @@ public class MethodDescription implements INamed, IDeprecation {
 	 * @see de.osthus.classbrowser.java.INamed#getName()
 	 */
 	@Override
-	public String getName() {
+	public String getName()
+	{
 		return methodName;
 	}
 
-	public String getReturnType() {
+	public String getReturnType()
+	{
 		return returnType;
 	}
 
-	public List<String> getModifiers() {
+	public List<String> getModifiers()
+	{
 		return modifiers;
 	}
 
-	public List<String> getParameterTypes() {
+	public List<String> getParameterTypes()
+	{
 		return parameterTypes;
 	}
 
-	public List<String> getAnnotations() {
+	public List<String> getAnnotations()
+	{
 		return annotations;
 	}
 
@@ -84,14 +92,16 @@ public class MethodDescription implements INamed, IDeprecation {
 	 * @see de.osthus.classbrowser.java.IDeprecation#isDeprecated()
 	 */
 	@Override
-	public boolean isDeprecated() {
+	public boolean isDeprecated()
+	{
 		return IDeprecation.INSTANCE.isDeprecated(annotations);
 	}
 
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("method modifiers", this.modifiers).append("method name", this.methodName)
 				.append("param types", this.parameterTypes).append("return type", this.returnType).toString();
 	}

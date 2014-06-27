@@ -3,6 +3,7 @@
      Class browser and comparer
      ====================================================================== -->
 <project name="ClassComparer" default="default">
+
 	<description>
     	This project starts the class comparison between Java and C# classes.      
     </description>
@@ -11,17 +12,20 @@
 
 	<property name="bin.dir" value="${base.dir}/bin" />
 	<property name="src.dir" value="${base.dir}/src" />
+
 	<property name="java.src.dir" value="${src.dir}/java" />
 	<property name="java.lib.dir" value="${java.src.dir}/libs" />
 	<property name="java.module.dir" value="${src.dir}/module/java" />
+
 	<property name="cs.src.dir" value="${src.dir}/cs" />
 	<property name="cs.lib.dir" value="${cs.src.dir}/libs" />
 	<property name="cs.module.dir" value="${src.dir}/module/cs" />
+	<property name="cs.ambeth.properties" value="${cs.src.dir}/ambeth.properties" />
+	<property name="cs.skipModuleScan" value="true" />
+
+	<property name="result.type" value="tc" />
 	<property name="data.dir" value="${base.dir}/data" />
 	<property name="result.dir" value="${base.dir}/results" />
-	<property name="cs.ambeth.properties" value="${cs.src.dir}/ambeth.properties" />
-	<property name="result.type" value="tc" />
-	<property name="cs.skipModuleScan" value="true" />
 
 	<!--condition property="java.modules.set">
 		<isset property="java.modules" />
@@ -114,11 +118,35 @@
 	<!-- - - - - - - - - - - - - - - - - - 
           unpack targets: only for JENKINS                 
          - - - - - - - - - - - - - - - - - -->
-	<target name="unpack_all" depends="unpack_java_module, unpack_cs_module, unpack_java, unpack_cs" />
+	<target name="unpack_all" depends="unpack_java_module, unpack_cs_module, unpack_java, unpack_cs, create-dummy-pom-for-bundles" />
+
+	<target name="unpack_java_module">
+		<mkdir dir="${java.module.dir}" />
+		<unzip dest="${java.module.dir}" src="${java.src.dir}/jAmbeth-integrity.zip" />
+		<!--<unzip dest="${java.module.dir}">
+			<fileset dir="${java.src.dir}" includes="*-sources.jar" />
+		</unzip> -->
+	</target>
+
+	<target name="unpack_cs_module">
+		<mkdir dir="${cs.module.dir}" />
+		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
+	</target>
 
 	<target name="unpack_java">
-		<unzip dest="${java.src.dir}" src="${java.src.dir}/jAmbeth.zip" />
-		<unzip dest="${java.lib.dir}" src="${java.src.dir}/libs.zip" />
+		<!-- move test jars to lib folder -->
+		<move todir="${java.lib.dir}">
+			<fileset dir="${java.src.dir}">
+				<include name="*-tests.jar" />
+			</fileset>
+		</move>
+		<!-- remove non-class jars -->
+		<delete>
+			<fileset dir="${java.src.dir}">
+				<include name="*-javadoc.jar" />
+				<include name="*-sources.jar" />
+			</fileset>
+		</delete>
 	</target>
 
 	<target name="unpack_cs">
@@ -133,14 +161,17 @@
 		<unzip dest="${cs.lib.dir}" src="${cs.src.dir}/${ambeth.net.libs.zip}" />
 	</target>
 
-	<target name="unpack_java_module">
-		<mkdir dir="${java.module.dir}" />
-		<unzip dest="${java.module.dir}" src="${java.src.dir}/jAmbeth-integrity.zip" />
-	</target>
-
-	<target name="unpack_cs_module">
-		<mkdir dir="${cs.module.dir}" />
-		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
+	<target name="create-dummy-pom-for-bundles">
+		<mkdir dir="${src.dir}/module/ambeth-bundles" />
+		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+&lt;modelVersion>4.0.0&lt;/modelVersion>
+&lt;!-- DUMMY POM FOR AMBETH-INTEGRITY ONLY -->
+&lt;groupId>de.osthus.ambeth&lt;/groupId>
+&lt;artifactId>jambeth-bundles&lt;/artifactId>
+&lt;packaging>pom&lt;/packaging>
+&lt;version>2.1.X-SNAPSHOT&lt;/version>
+&lt;/project>
+		</echo>
 	</target>
 
 </project>

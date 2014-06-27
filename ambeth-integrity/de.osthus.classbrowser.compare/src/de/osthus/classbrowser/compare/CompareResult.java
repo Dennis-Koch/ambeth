@@ -17,7 +17,8 @@ import de.osthus.classbrowser.java.TypeDescription;
  * 
  * @author juergen.panser
  */
-public class CompareResult {
+public class CompareResult
+{
 
 	// ---- VARIABLES ----------------------------------------------------------
 
@@ -35,7 +36,8 @@ public class CompareResult {
 	 * @param fullTypeName
 	 *            Full type name; mandatory
 	 */
-	public CompareResult(String fullTypeName) {
+	public CompareResult(String fullTypeName)
+	{
 		this(fullTypeName, null);
 	}
 
@@ -45,8 +47,10 @@ public class CompareResult {
 	 * @param compareErrors
 	 *            List of errors; optional
 	 */
-	public CompareResult(String fullTypeName, List<CompareError> compareErrors) {
-		if (StringUtils.isBlank(fullTypeName)) {
+	public CompareResult(String fullTypeName, List<CompareError> compareErrors)
+	{
+		if (StringUtils.isBlank(fullTypeName))
+		{
 			throw new IllegalArgumentException("Full type name has to be set!");
 		}
 		setFullTypeName(fullTypeName);
@@ -55,42 +59,52 @@ public class CompareResult {
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-	public String getFullTypeName() {
+	public String getFullTypeName()
+	{
 		return fullTypeName;
 	}
 
-	private void setFullTypeName(String fullTypeName) {
+	private void setFullTypeName(String fullTypeName)
+	{
 		this.fullTypeName = fullTypeName;
 	}
 
-	public TypeDescription getJavaType() {
+	public TypeDescription getJavaType()
+	{
 		return javaType;
 	}
 
-	public void setJavaType(TypeDescription javaType) {
+	public void setJavaType(TypeDescription javaType)
+	{
 		this.javaType = javaType;
 	}
 
-	public TypeDescription getCsharpType() {
+	public TypeDescription getCsharpType()
+	{
 		return csharpType;
 	}
 
-	public void setCsharpType(TypeDescription csharpType) {
+	public void setCsharpType(TypeDescription csharpType)
+	{
 		this.csharpType = csharpType;
 	}
 
 	/**
 	 * @return List of errors; never null
 	 */
-	public List<CompareError> getErrors() {
+	public List<CompareError> getErrors()
+	{
 		return errors;
 	}
 
-	public void setErrors(List<CompareError> errors) {
-		if (errors == null) {
+	public void setErrors(List<CompareError> errors)
+	{
+		if (errors == null)
+		{
 			this.errors = new ArrayList<CompareError>();
 		}
-		else {
+		else
+		{
 			this.errors = errors;
 		}
 	}
@@ -103,21 +117,26 @@ public class CompareResult {
 	 * @param additionalInformation
 	 *            Additional information; optional
 	 */
-	public void addError(CompareStatus status, String additionalInformation) {
+	public void addError(CompareStatus status, String additionalInformation)
+	{
 		CompareError error = new CompareError(status, additionalInformation);
 		getErrors().add(error);
 	}
 
-	public void addError(CompareError... error) {
-		if (error != null && error.length > 0) {
-			for (CompareError compareError : error) {
+	public void addError(CompareError... error)
+	{
+		if (error != null && error.length > 0)
+		{
+			for (CompareError compareError : error)
+			{
 				getErrors().add(compareError);
 			}
 		}
 	}
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("full type name", this.fullTypeName).toString();
 	}
 

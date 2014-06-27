@@ -7,7 +7,8 @@ package de.osthus.classbrowser.java;
  * @author juergen.panser
  * 
  */
-public enum ExitCode {
+public enum ExitCode
+{
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
@@ -27,20 +28,21 @@ public enum ExitCode {
 	 * @param label
 	 *            Label
 	 */
-	ExitCode(int code, String label) {
+	ExitCode(int code, String label)
+	{
 		this.code = code;
 		this.label = label;
 	}
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-
 	/**
 	 * Returns the code
 	 * 
 	 * @return the code
 	 */
-	public int getCode() {
+	public int getCode()
+	{
 		return this.code;
 	}
 
@@ -49,14 +51,16 @@ public enum ExitCode {
 	 * 
 	 * @return the label
 	 */
-	public String getLabel() {
+	public String getLabel()
+	{
 		return this.label;
 	}
 
 	// ---- METHODS ------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String toString()
+	{
 		return "[" + getCode() + "] " + getLabel();
 	}
 }
