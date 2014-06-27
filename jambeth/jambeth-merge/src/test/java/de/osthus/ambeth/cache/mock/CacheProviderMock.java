@@ -19,10 +19,4 @@ public class CacheProviderMock implements ICacheProvider
 	{
 		return false;
 	}
-
-	@Override
-	public ICache getCurrentCacheIfAvailable()
-	{
-		return null;
-	}
 }
