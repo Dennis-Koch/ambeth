@@ -74,7 +74,9 @@ namespace De.Osthus.Ambeth.Cache
 
         protected int changeVersion = 1;
 
-        protected readonly Lock readLock, writeLock;
+        protected Lock readLock;
+
+        protected Lock writeLock;
 
         public AbstractCache()
         {
@@ -118,19 +120,29 @@ namespace De.Osthus.Ambeth.Cache
             cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
         }
 
+        [Property(Mandatory = false)]
         public Lock ReadLock
         {
             get
             {
                 return readLock;
             }
+            set
+            {
+                readLock = value;
+            }
         }
 
+        [Property(Mandatory = false)]
         public Lock WriteLock
         {
             get
             {
                 return writeLock;
+            }
+            set
+            {
+                writeLock = value;
             }
         }
 

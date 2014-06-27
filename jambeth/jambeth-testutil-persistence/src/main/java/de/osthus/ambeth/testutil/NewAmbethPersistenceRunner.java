@@ -62,7 +62,6 @@ import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
-import de.osthus.ambeth.security.IAuthenticationManager;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityContextHolder;
@@ -95,6 +94,8 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 						+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
 						+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
 			}
+			contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor", "INFO");
+			contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.JDBCDatabaseWrapper", "INFO");
 		}
 
 		@Override
@@ -412,6 +413,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		super.runChildWithContext(frameworkMethod, notifier, doContextRebuild);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected org.junit.runners.model.Statement withBefores(final FrameworkMethod method, Object target, final org.junit.runners.model.Statement statement)
 	{
@@ -466,7 +468,6 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 							@Override
 							public Object invoke() throws Throwable
 							{
-								beanContext.getService(IAuthenticationManager.class).authenticate(SecurityContextHolder.getContext().getAuthentication());
 								fStatement.evaluate();
 								return null;
 							}

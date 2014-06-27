@@ -23,8 +23,8 @@ import de.osthus.ambeth.privilege.model.IPrivilegeItem;
 import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.model.PrivilegeItem;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
-import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.util.EqualsUtil;
 

@@ -2,10 +2,12 @@ package de.osthus.ambeth.helloworld.security;
 
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.helloworld.service.IHelloWorldService;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.security.AbstractAuthorization;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationManager;
 import de.osthus.ambeth.security.IServicePermission;
@@ -58,36 +60,23 @@ public class HelloWorldAuthorizationManager implements IAuthorizationManager
 
 		} };
 
-		return new IAuthorization()
+		HashMap<ISecurityScope, IServicePermission[]> servicePermissionMap = new HashMap<ISecurityScope, IServicePermission[]>();
+		for (ISecurityScope securityScope : securityScopes)
+		{
+			servicePermissionMap.put(securityScope, servicePermissions);
+		}
+		return new AbstractAuthorization(servicePermissionMap, securityScopes, null)
 		{
 			@Override
 			public boolean isValid()
 			{
-				return true;
-			}
-
-			@Override
-			public IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes)
-			{
-				return servicePermissions;
+				return false;
 			}
 
 			@Override
 			public String getSID()
 			{
-				return sid;
-			}
-
-			@Override
-			public ISecurityScope[] getSecurityScopes()
-			{
-				return securityScopes;
-			}
-
-			@Override
-			public boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes)
-			{
-				return false;
+				return null;
 			}
 		};
 	}

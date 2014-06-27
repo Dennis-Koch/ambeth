@@ -23,6 +23,9 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
         [Autowired(Optional = true)]
 	    public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
 
+        [Autowired(Optional = true)]
+        public IBytecodePrinter BytecodePrinter { protected get; set; }
+
 	    protected readonly HashMap<Type, ConstructorInfo> typeToConstructorMap = new HashMap<Type, ConstructorInfo>();
 
 	    protected readonly Object writeLock = new Object();
@@ -47,7 +50,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 			    {
 				    return constructor;
 			    }
-                Type enhancedType;
+                Type enhancedType = null;
                 try
                 {
                     enhancedType = BytecodeEnhancer.GetEnhancedType(typeof(RootCacheValue), new RootCacheValueEnhancementHint(entityType));
@@ -56,7 +59,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
                 {
                     if (Log.WarnEnabled)
                     {
-                        Log.Warn(e);
+                        Log.Warn(BytecodePrinter.ToPrintableBytecode(enhancedType), e);
                     }
                     // something serious happened during enhancement: continue with a fallback
                     enhancedType = typeof(RootCacheValue);

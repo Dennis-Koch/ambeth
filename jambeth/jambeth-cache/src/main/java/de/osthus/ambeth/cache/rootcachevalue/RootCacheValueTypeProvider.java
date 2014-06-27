@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
+import de.osthus.ambeth.bytecode.IBytecodePrinter;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -37,6 +38,9 @@ public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 	@Autowired(optional = true)
 	protected IBytecodeEnhancer bytecodeEnhancer;
 
+	@Autowired(optional = true)
+	protected IBytecodePrinter bytecodePrinter;
+
 	protected final HashMap<Class<?>, FastConstructor> typeToConstructorMap = new HashMap<Class<?>, FastConstructor>();
 
 	protected final Lock writeLock = new ReentrantLock();
@@ -63,9 +67,10 @@ public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 			{
 				return constructor;
 			}
+			Class<?> enhancedType = null;
 			try
 			{
-				Class<?> enhancedType = bytecodeEnhancer.getEnhancedType(RootCacheValue.class, new RootCacheValueEnhancementHint(entityType));
+				enhancedType = bytecodeEnhancer.getEnhancedType(RootCacheValue.class, new RootCacheValueEnhancementHint(entityType));
 				if (enhancedType == RootCacheValue.class)
 				{
 					// Nothing has been enhanced
@@ -82,7 +87,7 @@ public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 			{
 				if (log.isWarnEnabled())
 				{
-					log.warn(e);
+					log.warn(bytecodePrinter.toPrintableBytecode(enhancedType), e);
 				}
 				// something serious happened during enhancement: continue with a fallback
 				constructor = ci;

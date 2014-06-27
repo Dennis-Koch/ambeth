@@ -573,13 +573,14 @@ namespace De.Osthus.Ambeth.Cache
                 for (int a = cacheChangeItems.Count; a-- > 0; )
                 {
                     CacheChangeItem cci = cacheChangeItems[a];
-                    IWritableCache childCache = cci.Cache;
+                    ChildCache childCache = (ChildCache)cci.Cache;
 
-                    ICacheIntern cacheIntern = (ICacheIntern)childCache;
                     IList<IObjRef> deletedObjRefs = cci.DeletedObjRefs;
                     IList<Object> objectsToUpdate = cci.UpdatedObjects;
 
-                    Lock writeLock = cacheIntern.WriteLock;
+                    IRootCache parent = (IRootCache)childCache.Parent;
+
+                    Lock writeLock = childCache.WriteLock;
                     writeLock.Lock();
                     try
                     {
@@ -603,7 +604,7 @@ namespace De.Osthus.Ambeth.Cache
                                 {
                                     continue;
                                 }
-                                if (!rootCache.ApplyValues(objectInCache, cacheIntern))
+                                if (!parent.ApplyValues(objectInCache, childCache))
                                 {
                                     if (Log.WarnEnabled)
                                     {

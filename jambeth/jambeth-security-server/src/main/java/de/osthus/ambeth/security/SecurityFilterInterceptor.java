@@ -61,7 +61,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 
 		IAuthorization oldAuthorization = securityScopeProvider.getAuthorization();
 		IAuthorization authorization = null;
-		if (oldAuthorization == null)
+		if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 		{
 			authorization = createAuthorization();
 		}

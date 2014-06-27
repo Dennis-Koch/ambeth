@@ -16,10 +16,10 @@ namespace De.Osthus.Ambeth.Cache
         IList<Object> GetObjects(IList<IObjRef> orisToGet, ICacheIntern targetCache, CacheDirective cacheDirective);
 
         IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective);
-
-        bool IsResultCloned { get; }
-
+        
         bool AcquireHardRefTLIfNotAlready();
+
+        bool Privileged { get; }
 
         void ClearHardRefs(bool acquirementSuccessful);
     }

@@ -19,29 +19,40 @@ using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class RevertChangesHelper : IRevertChangesHelper, IInitializingBean
+    public class RevertChangesHelper : IRevertChangesHelper
     {
+        [Autowired]
         public IServiceContext BeanContext { protected get; set; }
 
+        [Autowired]
         public ICacheModification CacheModification { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IEventDispatcher EventDispatcher { protected get; set; }
 
+        [Autowired]
         public IFirstLevelCacheManager FirstLevelCacheManager { protected get; set; }
 
+        [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
+        [Autowired]
         public IMergeController MergeController { protected get; set; }
 
+        [Autowired]
         public IProxyHelper ProxyHelper { protected get; set; }
 
-        public RootCache RootCache { protected get; set; }
+        [Autowired]
+        public IRootCache RootCache { protected get; set; }
 
+        [Autowired]
         public ITypeInfoProvider TypeInfoProvider { protected get; set; }
 
         protected readonly Lock readLock, writeLock;
@@ -51,20 +62,6 @@ namespace De.Osthus.Ambeth.Cache
             ReadWriteLock rwLock = new ReadWriteLock();
             readLock = rwLock.ReadLock;
             writeLock = rwLock.WriteLock;
-        }
-
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(BeanContext, "BeanContext");
-            ParamChecker.AssertNotNull(CacheModification, "CacheModification");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(EventDispatcher, "EventDispatcher");
-            ParamChecker.AssertNotNull(FirstLevelCacheManager, "FirstLevelCacheManager");
-            ParamChecker.AssertNotNull(GuiThreadHelper, "GuiThreadHelper");
-            ParamChecker.AssertNotNull(MergeController, "MergeController");
-            ParamChecker.AssertNotNull(ProxyHelper, "ProxyHelper");
-            ParamChecker.AssertNotNull(RootCache, "RootCache");
-            ParamChecker.AssertNotNull(TypeInfoProvider, "TypeInfoProvider");
         }
 
         public virtual IRevertChangesSavepoint CreateSavepoint(Object source)

@@ -183,12 +183,6 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public void testIsResultCloned()
-	{
-		assertFalse("A childcache never clones objects by itself", childCache.isResultCloned());
-	}
-
-	@Test
 	public void testGetMembersToInitialize()
 	{
 		assertNull(childCache.getMembersToInitialize());

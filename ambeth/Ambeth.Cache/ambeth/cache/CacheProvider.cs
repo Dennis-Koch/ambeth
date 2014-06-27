@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Security.Config;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -23,6 +24,9 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
+
+        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        public bool SecurityActive { protected get; set; }
 
         [Property]
         public CacheType CacheType { protected get; set; }
@@ -73,7 +77,10 @@ namespace De.Osthus.Ambeth.Cache
                     cacheTL.Value = null;
                     cache.Dispose();
                 }
-                cache = privilegedCacheTL != null ? privilegedCacheTL.Value : null;
+            }
+            if (privilegedCacheTL != null)
+            {
+                IDisposableCache cache = privilegedCacheTL.Value;
                 if (cache != null)
                 {
                     privilegedCacheTL.Value = null;
@@ -116,11 +123,11 @@ namespace De.Osthus.Ambeth.Cache
                         writeLock.Lock();
                         try
                         {
-                            if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                            if (!SecurityActive || !SecurityActivation.FilterActivated)
                             {
                                 if (privilegedSingletonCache == null)
                                 {
-                                    privilegedSingletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                    privilegedSingletonCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
                                 }
                                 return privilegedSingletonCache;
                             }
@@ -140,12 +147,12 @@ namespace De.Osthus.Ambeth.Cache
                     }
                 case CacheType.THREAD_LOCAL:
                     {
-                        if (SecurityActivation != null && !SecurityActivation.FilterActivated)
+                        if (!SecurityActive || !SecurityActivation.FilterActivated)
                         {
                             IDisposableCache cache = privilegedCacheTL.Value;
                             if (cache == null)
                             {
-                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
                                 privilegedCacheTL.Value = cache;
                             }
                             return cache;

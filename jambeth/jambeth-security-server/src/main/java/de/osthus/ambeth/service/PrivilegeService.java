@@ -28,9 +28,9 @@ import de.osthus.ambeth.privilege.evaluation.PermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.ScopedPermissionEvaluation;
 import de.osthus.ambeth.privilege.model.PrivilegeEnum;
 import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
+import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
@@ -40,7 +40,6 @@ import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
 
-@SecurityContext(SecurityContextType.AUTHENTICATED)
 public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderExtensionExtendable
 {
 	private static final PrivilegeEnum[] emptyPrivileges = new PrivilegeEnum[0];
@@ -111,14 +110,14 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		return getPrivileges(entity, securityScopes).contains(PrivilegeEnum.READ_ALLOWED);
 	}
 
-	public ISet<PrivilegeEnum> getPrivileges(Object entity, final ISecurityScope[] securityScopes)
+	public ISet<PrivilegeEnum> getPrivileges(Object entity, ISecurityScope[] securityScopes)
 	{
 		IObjRef objRef = oriHelper.entityToObjRef(entity, true);
-		final IObjRef[] objRefs = new IObjRef[] { objRef };
-		IDisposableCache cacheForSecurityChecks = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		IObjRef[] objRefs = new IObjRef[] { objRef };
+
 		try
 		{
-			List<PrivilegeResult> result = cacheContext.executeWithCache(cacheForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
+			List<PrivilegeResult> result = getPrivileges(objRefs, securityScopes);
 			PrivilegeResult privilegeResult = result.get(0);
 			return new HashSet<PrivilegeEnum>(privilegeResult.getPrivileges());
 		}
@@ -126,16 +125,12 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		finally
-		{
-			cacheForSecurityChecks.dispose();
-		}
 	}
 
 	@Override
-	public List<PrivilegeResult> getPrivileges(IObjRef[] objRefs, ISecurityScope[] securityScopes)
+	public List<PrivilegeResult> getPrivileges(final IObjRef[] objRefs, final ISecurityScope[] securityScopes)
 	{
-		IDisposableCache cacheForSecurityChecks = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		IDisposableCache cacheForSecurityChecks = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
 		try
 		{
 			return cacheContext.executeWithCache(cacheForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
@@ -150,20 +145,26 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		}
 	}
 
-	protected List<PrivilegeResult> getPrivilegesIntern(final IObjRef[] objRefs, final ISecurityScope[] securityScopes) throws Throwable
+	List<PrivilegeResult> getPrivilegesIntern(final IObjRef[] objRefs, final ISecurityScope[] securityScopes)
 	{
-		return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<PrivilegeResult>>()
+		try
 		{
-			@Override
-			public List<PrivilegeResult> invoke() throws Throwable
+			return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<PrivilegeResult>>()
 			{
-				return getPrivilegesIntern2(objRefs, securityScopes);
-			}
-		});
+				@Override
+				public List<PrivilegeResult> invoke() throws Throwable
+				{
+					return getPrivilegesIntern2(objRefs, securityScopes);
+				}
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected List<PrivilegeResult> getPrivilegesIntern2(IObjRef[] objRefs, ISecurityScope[] securityScopes)
+	List<PrivilegeResult> getPrivilegesIntern2(IObjRef[] objRefs, ISecurityScope[] securityScopes)
 	{
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		HashSet<Class<?>> requestedTypes = new HashSet<Class<?>>();

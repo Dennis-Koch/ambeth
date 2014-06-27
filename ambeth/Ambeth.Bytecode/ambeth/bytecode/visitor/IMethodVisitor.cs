@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void IfNull(Label label);
 
-        void IfThisInstanceOf(Type instanceOfType, Script executeIfTrue, Script executeIfFalse);
+        void IfThisInstanceOf(Type instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse);
 
         void IfZCmp(CompareOperator compareOperator, Label label);
 

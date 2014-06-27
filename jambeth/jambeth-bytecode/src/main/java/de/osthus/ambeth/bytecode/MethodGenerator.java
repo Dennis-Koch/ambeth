@@ -355,7 +355,7 @@ public class MethodGenerator extends GeneratorAdapter
 		ifCmp(Type.getType(type), mode, label);
 	}
 
-	public void ifThisInstanceOf(final Class<?> instanceOfType, Script executeIfTrue, Script executeIfFalse)
+	public void ifThisInstanceOf(final Class<?> instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse)
 	{
 		if (executeIfTrue == null && executeIfFalse == null)
 		{
@@ -363,28 +363,35 @@ public class MethodGenerator extends GeneratorAdapter
 			return;
 		}
 		push(instanceOfType);
-		callThisGetter(m_getClass);
+		loadValue.execute(this);
+		invokeVirtual(m_getClass);
 		invokeVirtual(m_isAssignableFrom);
 
 		if (executeIfTrue != null)
 		{
-			Label l_isFalse = newLabel();
-			ifZCmp(GeneratorAdapter.EQ, l_isFalse);
-
-			executeIfTrue.execute(this);
-
-			mark(l_isFalse);
 			if (executeIfFalse != null)
 			{
+				Label l_isFalse = newLabel();
+				Label l_finish = newLabel();
+				ifZCmp(GeneratorAdapter.EQ, l_isFalse);
+				executeIfTrue.execute(this);
+				goTo(l_finish);
+				mark(l_isFalse);
 				executeIfFalse.execute(this);
+				mark(l_finish);
+			}
+			else
+			{
+				Label l_isFalse = newLabel();
+				ifZCmp(GeneratorAdapter.EQ, l_isFalse);
+				executeIfTrue.execute(this);
+				mark(l_isFalse);
 			}
 			return;
 		}
 		Label l_isTrue = newLabel();
 		ifZCmp(GeneratorAdapter.NE, l_isTrue);
-
 		executeIfFalse.execute(this);
-
 		mark(l_isTrue);
 	}
 

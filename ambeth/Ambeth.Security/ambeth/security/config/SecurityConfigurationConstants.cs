@@ -7,5 +7,7 @@ namespace De.Osthus.Ambeth.Security.Config
         public const String EnryptionPassword = "encryption.password";
 
         public const String SecurityServiceBeanActive = "security.service.active";
+
+        public const String SecurityActive = "ambeth.security.active";
     }
 }

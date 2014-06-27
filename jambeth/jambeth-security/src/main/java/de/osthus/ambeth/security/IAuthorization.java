@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security;
 
+import java.lang.reflect.Method;
+
 import de.osthus.ambeth.model.ISecurityScope;
 
 public interface IAuthorization
@@ -10,7 +12,7 @@ public interface IAuthorization
 
 	ISecurityScope[] getSecurityScopes();
 
-	IServicePermission[] getServicePermissions(ISecurityScope[] securityScopes);
+	CallPermission getCallPermission(Method serviceOperation, ISecurityScope[] securityScopes);
 
 	boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes);
 }

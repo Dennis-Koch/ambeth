@@ -144,7 +144,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		if (secondLevelCacheActive)
 		{
 			// One single root cache instance for whole context
-			beanContextFactory.registerBean(COMMITTED_ROOT_CACHE, RootCache.class).propertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER);
+			beanContextFactory.registerBean(COMMITTED_ROOT_CACHE, RootCache.class).propertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER)
+					.propertyValue("Privileged", Boolean.TRUE);
 			beanContextFactory.link(COMMITTED_ROOT_CACHE).to(IOfflineListenerExtendable.class);
 		}
 		else
@@ -154,8 +155,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 			// request. Effectively this means that the root cache itself only lives per-request and does not hold a longer state
 			ThreadLocalRootCacheInterceptor threadLocalRcInterceptor = new ThreadLocalRootCacheInterceptor();
 
-			beanContextFactory.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor).propertyRef("StoredCacheRetriever",
-					CacheModule.ROOT_CACHE_RETRIEVER);
+			beanContextFactory.registerWithLifecycle("threadLocalRootCacheInterceptor", threadLocalRcInterceptor)
+					.propertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER).propertyValue("Privileged", Boolean.TRUE);
 
 			IRootCache threadLocalRcProxy = proxyFactory.createProxy(IRootCache.class, threadLocalRcInterceptor);
 

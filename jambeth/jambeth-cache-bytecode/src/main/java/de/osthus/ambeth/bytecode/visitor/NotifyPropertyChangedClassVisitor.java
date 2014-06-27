@@ -190,6 +190,13 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 				@Override
 				public void execute(MethodGenerator mg)
 				{
+					mg.loadThis();
+				}
+			}, new Script()
+			{
+				@Override
+				public void execute(MethodGenerator mg)
+				{
 					MethodInstance m_addPropertyChangeListener = MethodInstance.findByTemplate(false, void.class, "addPropertyChangeListener",
 							PropertyChangeListener.class);
 					mg.loadThis();

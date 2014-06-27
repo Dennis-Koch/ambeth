@@ -74,9 +74,14 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 
 	protected int cacheId;
 
+	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
 	protected boolean valueholderOnEmptyToOne;
 
+	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache, defaultValue = "true")
 	protected boolean overwriteToManyRelations;
+
+	@Property
+	protected boolean privileged;
 
 	@Override
 	public void afterPropertiesSet()
@@ -94,6 +99,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
+	public boolean isPrivileged()
+	{
+		return privileged;
+	}
+
+	@Override
 	public void setCacheId(int cacheId)
 	{
 		if (this.cacheId != 0 && cacheId != 0)
@@ -101,18 +112,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			throw new UnsupportedOperationException();
 		}
 		this.cacheId = cacheId;
-	}
-
-	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
-	public void setValueholderOnEmptyToOne(String valueholderOnEmptyToOne)
-	{
-		this.valueholderOnEmptyToOne = Boolean.parseBoolean(valueholderOnEmptyToOne);
-	}
-
-	@Property(name = CacheConfigurationConstants.OverwriteToManyRelationsInChildCache, defaultValue = "true")
-	public void setOverwriteToManyRelations(boolean overwriteToManyRelations)
-	{
-		this.overwriteToManyRelations = overwriteToManyRelations;
 	}
 
 	@Override
@@ -130,16 +129,9 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		super.dispose();
 	}
 
-	protected ICacheIntern getParent()
+	public ICacheIntern getParent()
 	{
 		return parent;
-	}
-
-	@Override
-	public boolean isResultCloned()
-	{
-		// A childcache never clones objects by itself
-		return false;
 	}
 
 	@Override

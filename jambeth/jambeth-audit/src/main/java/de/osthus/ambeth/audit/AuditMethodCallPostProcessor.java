@@ -21,19 +21,19 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 	@LogInstance
 	private ILogger log;
 
-	protected final AnnotationCache<AuditMethod> annotationCache = new AnnotationCache<AuditMethod>(AuditMethod.class)
+	protected final AnnotationCache<AuditAccess> annotationCache = new AnnotationCache<AuditAccess>(AuditAccess.class)
 	{
 		@Override
-		protected boolean annotationEquals(AuditMethod left, AuditMethod right)
+		protected boolean annotationEquals(AuditAccess left, AuditAccess right)
 		{
 			return true;
 		}
 	};
 
-	protected final IBehaviorTypeExtractor<AuditMethod, AuditMethod> auditMethodExtractor = new IBehaviorTypeExtractor<AuditMethod, AuditMethod>()
+	protected final IBehaviorTypeExtractor<AuditAccess, AuditAccess> auditMethodExtractor = new IBehaviorTypeExtractor<AuditAccess, AuditAccess>()
 	{
 		@Override
-		public AuditMethod extractBehaviorType(AuditMethod annotation)
+		public AuditAccess extractBehaviorType(AuditAccess annotation)
 		{
 			return annotation;
 		}
@@ -43,7 +43,7 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		IMethodLevelBehavior<AuditMethod> behaviour = MethodLevelBehavior.create(type, annotationCache, AuditMethod.class, auditMethodExtractor,
+		IMethodLevelBehavior<AuditAccess> behaviour = MethodLevelBehavior.create(type, annotationCache, AuditAccess.class, auditMethodExtractor,
 				beanContextFactory, beanContext);
 		if (behaviour == null)
 		{

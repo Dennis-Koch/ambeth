@@ -200,13 +200,43 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 FieldInstance f_primitive = f_primitives[primitiveIndex];
                 FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
+                ITypeInfoItem member = primitiveMembers[primitiveIndex];
+			    Type originalType = member.RealType;
 
-                Label l_itemIsNull = mv.NewLabel();
+                Script script_loadArrayValue = new Script(delegate(IMethodVisitor mg)
+			    {
+					mg.LoadArg(0);
+					mg.Push(primitiveIndex);
+					mg.ArrayLoad(objType);
+			    });
+
                 Label l_finish = mv.NewLabel();
 
-                mv.LoadArg(0);
-                mv.Push(primitiveIndex);
-                mv.ArrayLoad(objType);
+                if (f_nullFlag == null)
+			    {
+				    if (!originalType.IsValueType)
+				    {
+					    mv.PutThisField(f_primitive, script_loadArrayValue);
+					    continue;
+				    }
+				    script_loadArrayValue(mv);
+				    mv.StoreLocal(loc_item);
+				    mv.LoadLocal(loc_item);
+				    mv.IfNull(l_finish);
+
+				    mv.PutThisField(f_primitive, new Script(delegate(IMethodVisitor mg)
+					    {
+						    mg.LoadLocal(loc_item);
+						    mg.Unbox(f_primitive.Type.Type);
+					    }));
+
+				    mv.Mark(l_finish);
+				    continue;
+			    }
+
+                Label l_itemIsNull = mv.NewLabel();
+                
+                script_loadArrayValue(mv);
                 mv.StoreLocal(loc_item);
 
                 mv.LoadLocal(loc_item);

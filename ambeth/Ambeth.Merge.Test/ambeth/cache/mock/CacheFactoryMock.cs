@@ -14,5 +14,15 @@ namespace De.Osthus.Ambeth.Cache.Mock
         {
             return null;
         }
+
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective)
+        {
+            return null;
+        }
+
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries)
+        {
+            return null;
+        }
     }
 }

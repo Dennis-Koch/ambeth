@@ -17,8 +17,8 @@ import de.osthus.ambeth.datachange.model.IDataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventStore;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
@@ -30,12 +30,11 @@ import de.osthus.ambeth.model.DataChangeEntryBO;
 import de.osthus.ambeth.model.DataChangeEventBO;
 import de.osthus.ambeth.model.EntityType;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.util.IPrefetchHelper;
 
-public class DataChangeEventService implements IDataChangeEventService, IInitializingBean, IStartingBean
+public class DataChangeEventService implements IDataChangeEventService, IStartingBean
 {
 	private static final long KEEP_EVENTS_FOREVER = -1;
 
@@ -43,33 +42,29 @@ public class DataChangeEventService implements IDataChangeEventService, IInitial
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected ICache cache;
 
-	protected ICacheHelper cacheHelper;
-
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IDataChangeEventDAO dataChangeEventDAO;
 
+	@Autowired
 	protected IEntityFactory entityFactory;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IEventStore eventStore;
 
-	protected long keepEventsForMillis = KEEP_EVENTS_FOREVER;
+	@Autowired
+	protected IPrefetchHelper prefetchHelper;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(cacheHelper, "cacheHelper");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(dataChangeEventDAO, "dataChangeEventDAO");
-		ParamChecker.assertNotNull(entityFactory, "entityFactory");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(eventStore, "eventStore");
-	}
+	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis, defaultValue = KEEP_EVENTS_FOREVER + "")
+	protected long keepEventsForMillis = KEEP_EVENTS_FOREVER;
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -79,47 +74,6 @@ public class DataChangeEventService implements IDataChangeEventService, IInitial
 		@SuppressWarnings("unchecked")
 		List<Object> asObjectList = (List<Object>) (Object) eventObjects;
 		eventStore.addEvents(asObjectList);
-	}
-
-	@Property(name = DataChangePersistenceConfigurationConstants.KeepEventsForMillis, defaultValue = KEEP_EVENTS_FOREVER + "")
-	public void setKeepEventsForMillis(long keepEventsForMillis)
-	{
-		this.keepEventsForMillis = keepEventsForMillis;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCacheHelper(ICacheHelper cacheHelper)
-	{
-		this.cacheHelper = cacheHelper;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setDataChangeEventDAO(IDataChangeEventDAO dataChangeEventDAO)
-	{
-		this.dataChangeEventDAO = dataChangeEventDAO;
-	}
-
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
-		this.entityFactory = entityFactory;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setEventStore(IEventStore eventStore)
-	{
-		this.eventStore = eventStore;
 	}
 
 	@Override
@@ -146,7 +100,7 @@ public class DataChangeEventService implements IDataChangeEventService, IInitial
 		List<DataChangeEventBO> bos = dataChangeEventDAO.retrieveAll();
 		ArrayList<IDataChange> retrieved = new ArrayList<IDataChange>();
 
-		IPrefetchHandle prefetchHandle = cacheHelper.createPrefetch().add(DataChangeEventBO.class, "Inserts.EntityType")
+		IPrefetchHandle prefetchHandle = prefetchHelper.createPrefetch().add(DataChangeEventBO.class, "Inserts.EntityType")
 				.add(DataChangeEventBO.class, "Updates.EntityType").add(DataChangeEventBO.class, "Deletes.EntityType").build();
 		prefetchHandle.prefetch(bos);
 		for (int i = 0, size = bos.size(); i < size; i++)

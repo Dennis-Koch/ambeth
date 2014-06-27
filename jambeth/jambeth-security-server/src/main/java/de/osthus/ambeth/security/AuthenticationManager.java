@@ -1,16 +1,15 @@
 package de.osthus.ambeth.security;
 
-import java.util.Calendar;
-
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuthenticationManager implements IAuthenticationManager
@@ -23,7 +22,7 @@ public class AuthenticationManager implements IAuthenticationManager
 	protected ICache cache;
 
 	@Autowired
-	protected IPasswordResolver passwordResolver;
+	protected IUserResolver userResolver;
 
 	@Autowired
 	protected IPasswordUtil passwordUtil;
@@ -34,18 +33,27 @@ public class AuthenticationManager implements IAuthenticationManager
 	@Property(name = IocConfigurationConstants.DebugModeActive, defaultValue = "false")
 	protected boolean debugModeActive;
 
+	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, defaultValue = "true")
+	protected boolean autoRehashPasswords;
+
 	@Override
 	public IAuthenticationResult authenticate(final IAuthentication authentication) throws AuthenticationException
 	{
-		IPassword password;
+		IUser user;
 		try
 		{
-			password = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IPassword>()
+			user = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IUser>()
 			{
 				@Override
-				public IPassword invoke() throws Throwable
+				public IUser invoke() throws Throwable
 				{
-					return passwordResolver.resolvePassword(authentication);
+					IUser user = userResolver.resolveUserBySID(authentication.getUserName());
+					if (user != null)
+					{
+						// enforce loading
+						user.getPassword();
+					}
+					return user;
 				}
 			});
 		}
@@ -53,39 +61,52 @@ public class AuthenticationManager implements IAuthenticationManager
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		if (password == null)
+		if (user == null || user.getPassword() == null)
 		{
 			throw createAuthenticationException(authentication);
 		}
 		try
 		{
-			String passwordString = new String(password.getValue());
-			String givenPasswordString = Base64.encodeBytes(passwordUtil.hashClearTextPassword(authentication.getPassword(), password));
-			if (!passwordString.equals(givenPasswordString))
+			final IPassword password = user.getPassword();
+			final ICheckPasswordResult checkPasswordResult = passwordUtil.checkClearTextPassword(authentication.getPassword(), password);
+			if (!checkPasswordResult.isPasswordCorrect())
 			{
 				throw createAuthenticationException(authentication);
 			}
-			Calendar currentTime = Calendar.getInstance();
-			final boolean changePassword = currentTime.after(password.getChangeAfter());
-			if (changePassword)
+			boolean rehashRecommended = checkPasswordResult.isRehashPasswordRecommended();
+			if (rehashRecommended && autoRehashPasswords)
 			{
-				if (log.isWarnEnabled())
+				securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 				{
-					log.warn("Password for user '" + authentication.getUserName() + "' is outdated. Please set a new password");
-				}
+					@Override
+					public Object invoke() throws Throwable
+					{
+						passwordUtil.rehashPassword(authentication.getPassword(), password);
+						return null;
+					}
+				});
+				rehashRecommended = false;
 			}
+			final String userName = authentication.getUserName();
+			final boolean fRehashRecommended = rehashRecommended;
 			return new IAuthenticationResult()
 			{
 				@Override
-				public boolean isChangePassword()
+				public boolean isChangePasswordRecommended()
 				{
-					return changePassword;
+					return checkPasswordResult.isChangePasswordRecommended();
+				}
+
+				@Override
+				public boolean isRehashPasswordRecommended()
+				{
+					return fRehashRecommended;
 				}
 
 				@Override
 				public String getUserName()
 				{
-					return authentication.getUserName();
+					return userName;
 				}
 			};
 		}
