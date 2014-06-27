@@ -1490,7 +1490,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-	    public override void RemovePriorVersions(List<IObjRef> oris)
+	    public override void RemovePriorVersions(IList<IObjRef> oris)
 	    {
             Lock writeLock = WriteLock;
             writeLock.Lock();
