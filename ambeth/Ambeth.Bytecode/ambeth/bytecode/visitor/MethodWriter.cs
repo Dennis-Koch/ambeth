@@ -383,7 +383,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             gen.Emit(OpCodes.Brfalse_S, label);
         }
 
-        public virtual void IfThisInstanceOf(Type instanceOfType, Script executeIfTrue, Script executeIfFalse)
+        public virtual void IfThisInstanceOf(Type instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse)
         {
             if (executeIfTrue == null && executeIfFalse == null)
             {
@@ -391,28 +391,35 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 return;
             }
             Push(instanceOfType);
-            CallThisGetter(m_getClass);
+            loadValue(this);
+            InvokeVirtual(m_getClass);
             InvokeVirtual(m_isAssignableFrom);
 
             if (executeIfTrue != null)
             {
-                Label l_isFalse = NewLabel();
-                IfZCmp(CompareOperator.EQ, l_isFalse);
-
-                executeIfTrue(this);
-
-                Mark(l_isFalse);
                 if (executeIfFalse != null)
                 {
+                    Label l_isFalse = NewLabel();
+                    Label l_finish = NewLabel();
+                    IfZCmp(CompareOperator.EQ, l_isFalse);
+                    executeIfTrue(this);
+                    GoTo(l_finish);
+                    Mark(l_isFalse);
                     executeIfFalse(this);
+                    Mark(l_finish);
+                }
+                else
+                {
+                    Label l_isFalse = NewLabel();
+                    IfZCmp(CompareOperator.EQ, l_isFalse);
+                    executeIfTrue(this);
+                    Mark(l_isFalse);
                 }
                 return;
             }
             Label l_isTrue = NewLabel();
             IfZCmp(CompareOperator.NE, l_isTrue);
-
             executeIfFalse(this);
-
             Mark(l_isTrue);
         }
 

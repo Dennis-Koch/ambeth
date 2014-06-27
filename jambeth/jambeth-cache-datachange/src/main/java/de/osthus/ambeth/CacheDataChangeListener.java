@@ -9,7 +9,6 @@ import java.util.Set;
 import de.osthus.ambeth.cache.AbstractCache;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ChildCache;
-import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.IFirstLevelCacheManager;
 import de.osthus.ambeth.cache.IRootCache;
@@ -623,9 +622,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			for (int a = cacheChangeItems.size(); a-- > 0;)
 			{
 				CacheChangeItem cci = cacheChangeItems.get(a);
-				IWritableCache childCache = cci.cache;
+				ChildCache childCache = (ChildCache) cci.cache;
 
-				ICacheIntern cacheIntern = (ICacheIntern) childCache;
+				IRootCache parent = (IRootCache) childCache.getParent();
+
 				IList<IObjRef> deletedObjRefs = cci.deletedObjRefs;
 				IList<Object> objectsToUpdate = cci.updatedObjects;
 
@@ -665,7 +665,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							{
 								continue;
 							}
-							if (!rootCache.applyValues(objectInCache, cacheIntern))
+							if (!parent.applyValues(objectInCache, childCache))
 							{
 								if (log.isWarnEnabled())
 								{

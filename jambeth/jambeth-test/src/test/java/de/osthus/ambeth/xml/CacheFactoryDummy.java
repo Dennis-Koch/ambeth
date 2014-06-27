@@ -13,6 +13,18 @@ public class CacheFactoryDummy implements ICacheFactory
 	private ILogger log;
 
 	@Override
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective)
+	{
+		return null;
+	}
+
+	@Override
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	{
+		return null;
+	}
+
+	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective)
 	{
 		return null;

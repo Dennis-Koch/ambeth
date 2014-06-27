@@ -4,5 +4,7 @@ import java.lang.reflect.Method;
 
 public interface IMethodCallLogger
 {
-	void logMethodCall(Method method);
+	IMethodCallHandle logMethodCallStart(Method method);
+
+	void logMethodCallFinish(IMethodCallHandle methodCallHandle);
 }

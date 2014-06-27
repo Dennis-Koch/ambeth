@@ -61,6 +61,9 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	protected IPrivilegeProvider privilegeProvider;
 
 	@Autowired
+	protected ISecurityActivation securityActivation;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	public SecurityManager()
@@ -321,14 +324,18 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		if (callPermission == CallPermission.FORBIDDEN)
 		{
 			throw new ServiceCallForbiddenException(StringBuilderUtil.concat(objectCollector, "For current user with sid '",
-					authorization != null ? authorization.getSID() : "n/a", "' it is not permitted to call service ", method.getDeclaringClass().getName(), ".",
-					method.getName()));
+					authorization != null ? authorization.getSID() : "n/a", "' it is not permitted to call service ", method.getDeclaringClass().getName(),
+					".", method.getName()));
 		}
 	}
 
 	@Override
 	public void checkMergeAccess(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
+		if (!securityActivation.isSecured())
+		{
+			return;
+		}
 		ISet<IObjRef> relatedObjRefs = scanForAllObjRefs(cudResult);
 
 		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();

@@ -10,6 +10,7 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean, ICacheProvider
@@ -26,6 +27,9 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
+
+	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
 	@Property
 	protected CacheType cacheType;
@@ -78,7 +82,10 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 				cacheTL.remove();
 				cache.dispose();
 			}
-			cache = privilegedCacheTL != null ? privilegedCacheTL.get() : null;
+		}
+		if (privilegedCacheTL != null)
+		{
+			IDisposableCache cache = privilegedCacheTL.get();
 			if (cache != null)
 			{
 				privilegedCacheTL.remove();
@@ -120,11 +127,11 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 				lock.lock();
 				try
 				{
-					if (securityActivation != null && !securityActivation.isFilterActivated())
+					if (!securityActive || !securityActivation.isFilterActivated())
 					{
 						if (privilegedSingletonCache == null)
 						{
-							privilegedSingletonCache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+							privilegedSingletonCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
 						}
 						return privilegedSingletonCache;
 					}
@@ -144,12 +151,12 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			}
 			case THREAD_LOCAL:
 			{
-				if (securityActivation != null && !securityActivation.isFilterActivated())
+				if (!securityActive || !securityActivation.isFilterActivated())
 				{
 					IDisposableCache cache = privilegedCacheTL.get();
 					if (cache == null)
 					{
-						cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
+						cache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE);
 						privilegedCacheTL.set(cache);
 					}
 					return cache;

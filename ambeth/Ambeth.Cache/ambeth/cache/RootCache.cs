@@ -110,9 +110,9 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired(Optional = true)]
 	    public IPrivilegeProvider PrivilegeProvider { protected get; set; }
-
-        [Autowired]
-        public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
+        
+        [Property(Mandatory = false)]
+        public bool Privileged { get; set; }
 
         protected readonly Lock pendingKeysReadLock, pendingKeysWriteLock;
 
@@ -140,7 +140,6 @@ namespace De.Osthus.Ambeth.Cache
             ObjectCopier = null;
             OriHelper = null;
             PrefetchHelper = null;
-            ValueHolderContainerTemplate = null;
 
             base.Dispose();
         }
@@ -202,15 +201,6 @@ namespace De.Osthus.Ambeth.Cache
             cacheValue.SetRelations(relations);
         }
 
-        public bool IsResultCloned
-        {
-            get
-            {
-                // A rootcache always clones objects by itself
-                return true;
-            }
-        }
-
         public Object GetObject(IObjRef oriToGet, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
             CheckNotDisposed();
@@ -241,7 +231,15 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return GetObjects(orisToGet, null, cacheDirective);
             }
-            ICacheIntern targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE);
+            ICacheIntern targetCache;
+            if (Privileged && !SecurityActivation.FilterActivated)
+            {
+                targetCache = (ICacheIntern)CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+            }
+            else
+            {
+                targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE);
+            }
             return GetObjects(orisToGet, targetCache, cacheDirective);
         }
 
@@ -357,7 +355,18 @@ namespace De.Osthus.Ambeth.Cache
                 bool loadSuccess = false;
                 try
                 {
-                    IList<ILoadContainer> loadedEntities = CacheRetriever.GetEntities(orisToLoad);
+                    IList<ILoadContainer> loadedEntities;
+				    if (Privileged)
+				    {
+						loadedEntities = SecurityActivation.ExecuteWithoutSecurity(delegate()
+						{
+    						return CacheRetriever.GetEntities(orisToLoad);
+						});
+				    }
+				    else
+				    {
+					    loadedEntities = CacheRetriever.GetEntities(orisToLoad);
+				    }
 
                     // Acquire write lock and mark this state. In the finally-Block the writeLock
                     // has to be released in a deterministic way
@@ -484,7 +493,19 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     if (objRelMisses.Count > 0)
                     {
-                        IList<IObjRelationResult> loadedObjectRelations = CacheRetriever.GetRelations(objRelMisses);
+                        IList<IObjRelationResult> loadedObjectRelations;
+					    if (Privileged)
+					    {
+							loadedObjectRelations = SecurityActivation.ExecuteWithoutSecurity(delegate()
+							{
+    							return CacheRetriever.GetRelations(objRelMisses);
+							});
+					    }
+					    else
+					    {
+						    loadedObjectRelations = CacheRetriever.GetRelations(objRelMisses);
+					    }
+
                         LoadObjects(loadedObjectRelations, objRelToResultMap);
                         readLock.Lock();
                         try
@@ -502,7 +523,7 @@ namespace De.Osthus.Ambeth.Cache
 					    writeLock.Lock();
 					    try
 					    {
-						    result = FilterObjRelResult(result);
+						    result = FilterObjRelResult(result, targetCache);
 					    }
 					    finally
 					    {
@@ -621,8 +642,16 @@ namespace De.Osthus.Ambeth.Cache
             return objRelResults;
         }
 
-        protected IList<IObjRelationResult> FilterObjRelResult(IList<IObjRelationResult> objRelResults)
+        protected IList<IObjRelationResult> FilterObjRelResult(IList<IObjRelationResult> objRelResults, ICacheIntern targetCache)
 	    {
+            if (targetCache != null && targetCache.Privileged)
+            {
+                return objRelResults;
+            }
+            if (objRelResults.Count == 0 || PrivilegeProvider == null || !SecurityActivation.FilterActivated)
+            {
+                return objRelResults;
+            }
 		    List<IObjRef> permittedObjRefs = new List<IObjRef>(objRelResults.Count);
 		    for (int a = 0, size = objRelResults.Count; a < size; a++)
 		    {
@@ -1009,7 +1038,7 @@ namespace De.Osthus.Ambeth.Cache
                         LoadContainer loadContainer = new LoadContainer();
                         loadContainer.Reference = new ObjRef(cacheValue.EntityType, ObjRef.PRIMARY_KEY_INDEX, cacheValue.Id, cacheValue.Version);
                         loadContainer.Primitives = cacheValue.GetPrimitives();
-                        relations = FilterRelations(relations);
+                        relations = FilterRelations(relations, targetCache);
                         if (relations != null && relations.Length > 0)
                         {
                             IObjRef[][] objRefsClone = new IObjRef[relations.Length][];
@@ -1132,12 +1161,16 @@ namespace De.Osthus.Ambeth.Cache
                 primitiveMember.SetValue(obj, primitive);
             }
             IObjRef[][] relations = cacheValue.GetRelations();
-            relations = FilterRelations(relations);
+            relations = FilterRelations(relations, targetCache);
             targetCache.AddDirect(metaData, id, version, obj, primitiveTemplates, cacheValue.GetRelations());
         }
 
-        protected IObjRef[][] FilterRelations(IObjRef[][] relations)
+        protected IObjRef[][] FilterRelations(IObjRef[][] relations, ICacheIntern targetCache)
         {
+            if (targetCache != null && targetCache.Privileged)
+            {
+                return relations;
+            }
             if (relations.Length == 0 || PrivilegeProvider == null || !SecurityActivation.FilterActivated)
             {
                 return relations;

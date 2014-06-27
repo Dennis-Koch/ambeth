@@ -56,8 +56,8 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListener;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
@@ -144,8 +144,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Autowired(optional = true)
 	protected IPrivilegeProvider privilegeProvider;
 
-	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	@Property(mandatory = false)
+	protected boolean privileged;
 
 	protected final Lock pendingKeysReadLock, pendingKeysWriteLock;
 
@@ -166,9 +166,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		objectCopier = null;
 		oriHelper = null;
 		prefetchHelper = null;
-		valueHolderContainerTemplate = null;
 
 		super.dispose();
+	}
+
+	@Override
+	public boolean isPrivileged()
+	{
+		return privileged;
 	}
 
 	@Override
@@ -249,13 +254,6 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public boolean isResultCloned()
-	{
-		// A rootcache always clones objects by itself
-		return true;
-	}
-
-	@Override
 	public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
@@ -268,7 +266,15 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			return getObjects(orisToGet, null, cacheDirective);
 		}
-		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+		ICacheIntern targetCache;
+		if (privileged && !securityActivation.isFilterActivated())
+		{
+			targetCache = (ICacheIntern) cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+		}
+		else
+		{
+			targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+		}
 		return getObjects(orisToGet, targetCache, cacheDirective);
 	}
 
@@ -382,7 +388,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected IList<Object> getObjectsRetry(List<IObjRef> orisToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective,
 			ParamHolder<Boolean> doAnotherRetry, LinkedHashSet<IObjRef> neededObjRefs, ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
-		ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
+		final ArrayList<IObjRef> orisToLoad = new ArrayList<IObjRef>();
 		RootCacheValue[] rootCacheValuesToGet = new RootCacheValue[orisToGet.size()];
 		Lock readLock = getReadLock();
 		Lock writeLock = getWriteLock();
@@ -408,7 +414,29 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			boolean loadSuccess = false;
 			try
 			{
-				List<ILoadContainer> loadedEntities = cacheRetriever.getEntities(orisToLoad);
+				List<ILoadContainer> loadedEntities;
+				if (privileged)
+				{
+					try
+					{
+						loadedEntities = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<ILoadContainer>>()
+						{
+							@Override
+							public List<ILoadContainer> invoke() throws Throwable
+							{
+								return cacheRetriever.getEntities(orisToLoad);
+							}
+						});
+					}
+					catch (Throwable e)
+					{
+						throw RuntimeExceptionUtil.mask(e);
+					}
+				}
+				else
+				{
+					loadedEntities = cacheRetriever.getEntities(orisToLoad);
+				}
 
 				// Acquire write lock and mark this state. In the finally-Block the writeLock
 				// has to be released in a deterministic way
@@ -485,7 +513,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		try
 		{
 			Lock readLock = getReadLock();
-			ArrayList<IObjRelation> objRelMisses = new ArrayList<IObjRelation>();
+			final ArrayList<IObjRelation> objRelMisses = new ArrayList<IObjRelation>();
 			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap = new HashMap<IObjRelation, IObjRelationResult>();
 			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
 
@@ -534,7 +562,30 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				if (objRelMisses.size() > 0)
 				{
-					List<IObjRelationResult> loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
+					List<IObjRelationResult> loadedObjectRelations;
+					if (privileged)
+					{
+						try
+						{
+							loadedObjectRelations = securityActivation
+									.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<IObjRelationResult>>()
+									{
+										@Override
+										public List<IObjRelationResult> invoke() throws Throwable
+										{
+											return cacheRetriever.getRelations(objRelMisses);
+										}
+									});
+						}
+						catch (Throwable e)
+						{
+							throw RuntimeExceptionUtil.mask(e);
+						}
+					}
+					else
+					{
+						loadedObjectRelations = cacheRetriever.getRelations(objRelMisses);
+					}
 					loadObjects(loadedObjectRelations, objRelToResultMap);
 					readLock.lock();
 					try
@@ -546,12 +597,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 						readLock.unlock();
 					}
 				}
-				if (privilegeProvider != null && securityActivation.isFilterActivated())
+				if (privilegeProvider != null
+						&& ((targetCache != null && !targetCache.isPrivileged()) || (targetCache == null && securityActivation.isFilterActivated())))
 				{
 					writeLock.lock();
 					try
 					{
-						result = filterObjRelResult(result);
+						result = filterObjRelResult(result, targetCache);
 					}
 					finally
 					{
@@ -670,8 +722,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		return objRelResults;
 	}
 
-	protected IList<IObjRelationResult> filterObjRelResult(IList<IObjRelationResult> objRelResults)
+	protected IList<IObjRelationResult> filterObjRelResult(IList<IObjRelationResult> objRelResults, ICacheIntern targetCache)
 	{
+		if (targetCache != null && targetCache.isPrivileged())
+		{
+			return objRelResults;
+		}
+		if (objRelResults.size() == 0 || privilegeProvider == null || !securityActivation.isFilterActivated())
+		{
+			return objRelResults;
+		}
 		ArrayList<IObjRef> permittedObjRefs = new ArrayList<IObjRef>(objRelResults.size());
 		for (int a = 0, size = objRelResults.size(); a < size; a++)
 		{
@@ -1022,23 +1082,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		try
 		{
-			// if (privilegeProvider != null && securityActivation.isFilterActivated())
-			// {
-			// IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(orisToGet, securityScopeProvider.getSecurityScopes());
-			// ArrayList<IObjRef> permittedObjRefs = new ArrayList<IObjRef>(orisToGet.size());
-			// for (int a = 0, size = orisToGet.size(); a < size; a++)
-			// {
-			// IPrivilegeItem privilege = privileges.get(a);
-			// if (!privilege.isReadAllowed())
-			// {
-			// permittedObjRefs.add(null);
-			// continue;
-			// }
-			// permittedObjRefs.add(orisToGet.get(a));
-			// }
-			// orisToGet = permittedObjRefs;
-			// }
-			if (privilegeProvider != null && securityActivation.isFilterActivated())
+			if (privilegeProvider != null
+					&& ((targetCache != null && !targetCache.isPrivileged()) || (targetCache == null && securityActivation.isFilterActivated())))
 			{
 				IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(orisToGet, securityScopeProvider.getSecurityScopes());
 				ArrayList<IObjRef> filteredOrisToGet = new ArrayList<IObjRef>(orisToGet.size());
@@ -1101,7 +1146,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					LoadContainer loadContainer = new LoadContainer();
 					loadContainer.setReference(new ObjRef(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, cacheValue.getId(), cacheValue.getVersion()));
 					loadContainer.setPrimitives(cacheValue.getPrimitives());
-					relations = filterRelations(relations);
+					relations = filterRelations(relations, targetCache);
 					if (relations != null && relations.length > 0)
 					{
 						IObjRef[][] objRefsClone = new IObjRef[relations.length][];
@@ -1228,12 +1273,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 		}
 		IObjRef[][] relations = cacheValue.getRelations();
-		relations = filterRelations(relations);
+		relations = filterRelations(relations, targetCache);
 		targetCache.addDirect(metaData, id, version, obj, primitiveTemplates, relations);
 	}
 
-	protected IObjRef[][] filterRelations(IObjRef[][] relations)
+	protected IObjRef[][] filterRelations(IObjRef[][] relations, ICacheIntern targetCache)
 	{
+		if (targetCache != null && targetCache.isPrivileged())
+		{
+			return relations;
+		}
 		if (relations.length == 0 || privilegeProvider == null || !securityActivation.isFilterActivated())
 		{
 			return relations;

@@ -220,12 +220,49 @@ public class RootCacheValueVisitor extends ClassGenerator
 			ITypeInfoItem member = primitiveMembers[primitiveIndex];
 			final Class<?> originalType = member.getRealType();
 
-			Label l_itemIsNull = mv.newLabel();
+			final int fPrimitiveIndex = primitiveIndex;
+
+			final Script script_loadArrayValue = new Script()
+			{
+				@Override
+				public void execute(MethodGenerator mg)
+				{
+					mg.loadArg(0);
+					mg.push(fPrimitiveIndex);
+					mg.arrayLoad(objType);
+				}
+			};
+
 			Label l_finish = mv.newLabel();
 
-			mv.loadArg(0);
-			mv.push(primitiveIndex);
-			mv.arrayLoad(objType);
+			if (f_nullFlag == null)
+			{
+				if (!originalType.isPrimitive())
+				{
+					mv.putThisField(f_primitive, script_loadArrayValue);
+					continue;
+				}
+				script_loadArrayValue.execute(mv);
+				mv.storeLocal(loc_item);
+				mv.loadLocal(loc_item);
+				mv.ifNull(l_finish);
+
+				mv.putThisField(f_primitive, new Script()
+				{
+					@Override
+					public void execute(MethodGenerator mg)
+					{
+						mg.loadLocal(loc_item);
+						mg.unbox(f_primitive.getType());
+					}
+				});
+
+				mv.mark(l_finish);
+				continue;
+			}
+			Label l_itemIsNull = mv.newLabel();
+
+			script_loadArrayValue.execute(mv);
 			mv.storeLocal(loc_item);
 
 			mv.loadLocal(loc_item);
@@ -236,7 +273,6 @@ public class RootCacheValueVisitor extends ClassGenerator
 				@Override
 				public void execute(MethodGenerator mg)
 				{
-					mg.loadLocal(loc_item);
 					if (java.util.Date.class.equals(originalType))
 					{
 						// simple unboxing would result in a ClassCast with Date beeing casted to Number
@@ -246,6 +282,14 @@ public class RootCacheValueVisitor extends ClassGenerator
 							@Override
 							public void execute(MethodGenerator mg)
 							{
+								mg.loadLocal(loc_item);
+							}
+						}, new Script()
+						{
+							@Override
+							public void execute(MethodGenerator mg)
+							{
+								mg.loadLocal(loc_item);
 								mg.checkCast(java.util.Date.class);
 								mg.invokeVirtual(new MethodInstance(ReflectUtil.getDeclaredMethod(false, java.util.Date.class, long.class, "getTime")));
 							}
@@ -254,56 +298,41 @@ public class RootCacheValueVisitor extends ClassGenerator
 							@Override
 							public void execute(MethodGenerator mg)
 							{
+								mg.loadLocal(loc_item);
 								mg.unbox(f_primitive.getType());
 							}
 						});
 					}
 					else
 					{
+						mg.loadLocal(loc_item);
 						mg.unbox(f_primitive.getType());
 					}
 				}
 			});
 
-			if (f_nullFlag != null)
+			// field is a nullable numeric value in the entity, but a native numeric value in our RCV
+			mv.putThisField(f_nullFlag, new Script()
 			{
-				// field is a nullable numeric value in the entity, but a native numeric value in our RCV
-				mv.putThisField(f_nullFlag, new Script()
+				@Override
+				public void execute(MethodGenerator mg)
 				{
-					@Override
-					public void execute(MethodGenerator mg)
-					{
-						mg.push(false);
-					}
-				});
-			}
+					mg.push(false);
+				}
+			});
 
 			mv.goTo(l_finish);
 			mv.mark(l_itemIsNull);
 
-			if (f_nullFlag != null)
+			// field is a nullable numeric value in the entity, but a native numeric value in our RCV
+			mv.putThisField(f_nullFlag, new Script()
 			{
-				// field is a nullable numeric value in the entity, but a native numeric value in our RCV
-				mv.putThisField(f_nullFlag, new Script()
+				@Override
+				public void execute(MethodGenerator mg)
 				{
-					@Override
-					public void execute(MethodGenerator mg)
-					{
-						mg.push(true);
-					}
-				});
-			}
-			else
-			{
-				mv.putThisField(f_primitive, new Script()
-				{
-					@Override
-					public void execute(MethodGenerator mg)
-					{
-						mg.pushNullOrZero(f_primitive.getType());
-					}
-				});
-			}
+					mg.push(true);
+				}
+			});
 			mv.mark(l_finish);
 		}
 		mv.returnValue();

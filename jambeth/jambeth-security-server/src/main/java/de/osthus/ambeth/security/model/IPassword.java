@@ -28,7 +28,11 @@ public interface IPassword
 
 	void setSalt(char[] salt);
 
-	boolean isSaltEncrypted();
+	String getSaltAlgorithm();
 
-	void setSaltEncrypted(boolean saltEncrypted);
+	void setSaltAlgorithm(String saltAlgorithm);
+
+	Integer getSaltLength();
+
+	void setSaltLength(Integer saltLength);
 }

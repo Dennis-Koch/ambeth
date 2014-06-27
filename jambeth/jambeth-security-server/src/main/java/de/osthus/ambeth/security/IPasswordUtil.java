@@ -10,4 +10,8 @@ public interface IPasswordUtil
 	void generateNewPassword(IPassword newEmptyPassword, IUser user);
 
 	byte[] hashClearTextPassword(char[] clearTextPassword, IPassword password);
+
+	ICheckPasswordResult checkClearTextPassword(char[] clearTextPassword, IPassword password);
+
+	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
 }

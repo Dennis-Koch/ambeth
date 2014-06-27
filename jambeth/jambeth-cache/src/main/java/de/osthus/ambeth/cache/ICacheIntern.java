@@ -21,9 +21,9 @@ public interface ICacheIntern extends ICache
 
 	IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRelation, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
 
-	boolean isResultCloned();
-
 	boolean acquireHardRefTLIfNotAlready();
+
+	boolean isPrivileged();
 
 	void clearHardRefs(boolean acquirementSuccessful);
 }

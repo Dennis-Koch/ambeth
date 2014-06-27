@@ -169,11 +169,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public virtual void IfThisInstanceOf(Type instanceOfType, Script executeIfTrue, Script executeIfFalse)
+        public virtual void IfThisInstanceOf(Type instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse)
         {
             if (mv != null)
             {
-                mv.IfThisInstanceOf(instanceOfType, executeIfTrue, executeIfFalse);
+                mv.IfThisInstanceOf(instanceOfType, loadValue, executeIfTrue, executeIfFalse);
             }
         }
 

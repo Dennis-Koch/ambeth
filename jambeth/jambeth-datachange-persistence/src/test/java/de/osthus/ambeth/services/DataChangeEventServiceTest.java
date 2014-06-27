@@ -25,6 +25,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.util.ReflectUtil;
 
 @SQLStructure("/DataChangeEvent_structure.sql")
 @SQLData("DataChangeEvent_data.sql")
@@ -69,7 +70,7 @@ public class DataChangeEventServiceTest extends AbstractPersistenceTest
 	public void testRetrieveAll1() throws Throwable
 	{
 		EventStoreDummy dummy = new EventStoreDummy();
-		((DataChangeEventService) fixture).setEventStore(dummy);
+		ReflectUtil.getDeclaredField(fixture.getClass(), "eventStore").set(fixture, dummy);
 		((DataChangeEventService) fixture).afterStarted();
 		List<Object> all = dummy.getEventObjects();
 		assertNotNull(all);
@@ -98,7 +99,7 @@ public class DataChangeEventServiceTest extends AbstractPersistenceTest
 	public void testRetrieveAll2() throws Throwable
 	{
 		EventStoreDummy dummy = new EventStoreDummy();
-		((DataChangeEventService) fixture).setEventStore(dummy);
+		ReflectUtil.getDeclaredField(fixture.getClass(), "eventStore").set(fixture, dummy);
 		((DataChangeEventService) fixture).afterStarted();
 		List<Object> all = dummy.getEventObjects();
 		assertNotNull(all);

@@ -10,6 +10,18 @@ import de.osthus.ambeth.cache.IDisposableCache;
 public class CacheFactoryMock implements ICacheFactory
 {
 	@Override
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective)
+	{
+		return null;
+	}
+
+	@Override
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	{
+		return null;
+	}
+
+	@Override
 	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective)
 	{
 		return null;

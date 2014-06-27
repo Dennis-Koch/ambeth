@@ -75,4 +75,15 @@ public class SecurityActivation implements ISecurityActivation
 			filterActiveTL.set(oldFilterActive);
 		}
 	}
+
+	@Override
+	public boolean setPrivilegedMode(boolean privilegedModeActive)
+	{
+		return false;
+	}
+
+	@Override
+	public void restorePrivilegedMode(boolean previousPrivilegedMode)
+	{
+	}
 }

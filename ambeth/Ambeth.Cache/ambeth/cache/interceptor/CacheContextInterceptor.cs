@@ -12,7 +12,6 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-
     public class CacheContextInterceptor : CascadedInterceptor, IInitializingBean
     {
         [LogInstance]

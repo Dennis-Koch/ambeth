@@ -19,16 +19,24 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	protected IMethodCallLogger methodCallLogger;
 
 	@Autowired
-	protected IMethodLevelBehavior<AuditMethod> methodLevelBehaviour;
+	protected IMethodLevelBehavior<AuditAccess> methodLevelBehaviour;
 
 	@Override
 	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		AuditMethod auditMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
-		if (auditMethod != null)
+		AuditAccess auditMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
+		if (auditMethod == null || !auditMethod.value())
 		{
-			methodCallLogger.logMethodCall(method);
+			return invokeTarget(obj, method, args, proxy);
 		}
-		return invokeTarget(obj, method, args, proxy);
+		IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method);
+		try
+		{
+			return invokeTarget(obj, method, args, proxy);
+		}
+		finally
+		{
+			methodCallLogger.logMethodCallFinish(methodCallHandle);
+		}
 	}
 }

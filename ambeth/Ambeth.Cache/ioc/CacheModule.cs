@@ -116,7 +116,7 @@ namespace De.Osthus.Ambeth.Ioc
             {
                 // One single root cache instance for whole context
                 beanContextFactory.RegisterBean<RootCache>(COMMITTED_ROOT_CACHE).PropertyRef("CacheRetriever", ROOT_CACHE_RETRIEVER)
-                        .Autowireable<RootCache>();
+                        .PropertyValue("Privileged", true);
                 beanContextFactory.Link(CacheModule.COMMITTED_ROOT_CACHE).To<IOfflineListenerExtendable>();
             }
             else
@@ -126,7 +126,7 @@ namespace De.Osthus.Ambeth.Ioc
                 // request. Effectively this means that the root cache itself only lives per-request and does not hold a longer state
                 IInterceptor threadLocalRootCacheInterceptor = (IInterceptor)beanContextFactory
                         .RegisterBean<ThreadLocalRootCacheInterceptor>("threadLocalRootCacheInterceptor")
-                        .PropertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER).GetInstance();
+                        .PropertyRef("StoredCacheRetriever", CacheModule.ROOT_CACHE_RETRIEVER).PropertyValue("Privileged", true).GetInstance();
 
                 RootCache rootCacheProxy = ProxyFactory.CreateProxy<RootCache>(threadLocalRootCacheInterceptor);
 

@@ -137,12 +137,6 @@ public class RootCacheTest extends AbstractInformationBusTest
 	}
 
 	@Test
-	public final void testIsResultCloned()
-	{
-		assertTrue("A RootCache always clones objects by itself!", fixture.isResultCloned());
-	}
-
-	@Test
 	public final void testGetCacheValue()
 	{
 		Material material1 = ObjectMother.getNewMaterial(entityFactory, 1, 1, "Material 1");

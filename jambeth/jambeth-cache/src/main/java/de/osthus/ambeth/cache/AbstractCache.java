@@ -16,6 +16,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -85,7 +86,11 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected final ReferenceQueue<V> referenceQueue = new ReferenceQueue<V>();
 
-	protected final Lock readLock, writeLock;
+	@Property(mandatory = false)
+	protected Lock readLock;
+
+	@Property(mandatory = false)
+	protected Lock writeLock;
 
 	public AbstractCache()
 	{
@@ -897,6 +902,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
+	@Override
 	public void cascadeLoadPath(Class<?> entityType, String cascadeLoadPath)
 	{
 		throw new UnsupportedOperationException("Not implemented");

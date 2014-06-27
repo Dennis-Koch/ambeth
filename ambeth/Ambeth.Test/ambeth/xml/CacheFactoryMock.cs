@@ -13,5 +13,15 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             return new CacheMock();
         }
+
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective)
+        {
+            return new CacheMock();
+        }
+
+        public IDisposableCache CreatePrivileged(CacheFactoryDirective cacheFactoryDirective, bool foreignThreadAware, bool? useWeakEntries)
+        {
+            return new CacheMock();
+        }
     }
 }

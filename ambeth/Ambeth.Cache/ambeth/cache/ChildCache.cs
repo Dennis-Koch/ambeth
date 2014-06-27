@@ -44,13 +44,16 @@ namespace De.Osthus.Ambeth.Cache
         public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
 
         [Autowired]
-        public ICacheIntern Parent { protected get; set; }
+        public ICacheIntern Parent { get; set; }
 
         [Property(CacheConfigurationConstants.ValueholderOnEmptyToOne, DefaultValue = "false")]
         public bool ValueholderOnEmptyToOne { protected get; set; }
 
         [Property(CacheConfigurationConstants.OverwriteToManyRelationsInChildCache, DefaultValue = "true")]
         public bool OverwriteToManyRelations { protected get; set; }
+
+        [Property]
+        public bool Privileged { get; set; }
 
         protected int cacheId;
 
@@ -102,15 +105,6 @@ namespace De.Osthus.Ambeth.Cache
             MembersToInitialize = null;
             keyToAlternateIdsMap = null;
             base.Dispose();
-        }
-
-        public bool IsResultCloned
-        {
-            get
-            {
-                // A childcache never clones objects by itself
-                return false;
-            }
         }
 
         protected override void CacheValueHasBeenAdded(sbyte idIndex, Object id, IEntityMetaData metaData, Object[] primitives, IObjRef[][] relations, Object cacheValueR)

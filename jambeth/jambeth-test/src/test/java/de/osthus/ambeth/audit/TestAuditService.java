@@ -4,7 +4,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.PersistenceContext;
 
-@AuditMethod(false)
+@AuditAccess(false)
 @PersistenceContext
 public class TestAuditService implements ITestAuditService
 {
@@ -12,7 +12,7 @@ public class TestAuditService implements ITestAuditService
 	@LogInstance
 	private ILogger log;
 
-	@AuditMethod
+	@AuditAccess
 	@Override
 	public String funnyMethod(Integer myArg)
 	{

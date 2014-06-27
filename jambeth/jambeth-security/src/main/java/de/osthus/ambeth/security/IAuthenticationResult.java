@@ -4,5 +4,7 @@ public interface IAuthenticationResult
 {
 	String getUserName();
 
-	boolean isChangePassword();
+	boolean isChangePasswordRecommended();
+
+	boolean isRehashPasswordRecommended();
 }

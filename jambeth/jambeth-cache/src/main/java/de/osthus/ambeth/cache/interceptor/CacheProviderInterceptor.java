@@ -27,8 +27,7 @@ public class CacheProviderInterceptor implements MethodInterceptor, ICacheProvid
 {
 	public static class SingleCacheProvider implements ICacheProvider
 	{
-
-		protected ICache cache;
+		protected final ICache cache;
 
 		public SingleCacheProvider(ICache cache)
 		{
