@@ -118,7 +118,7 @@
 	<!-- - - - - - - - - - - - - - - - - - 
           unpack targets: only for JENKINS                 
          - - - - - - - - - - - - - - - - - -->
-	<target name="unpack_all" depends="unpack_java_module, unpack_cs_module, unpack_java, unpack_cs" />
+	<target name="unpack_all" depends="unpack_java_module, unpack_cs_module, unpack_java, unpack_cs, create-dummy-pom-for-bundles" />
 
 	<target name="unpack_java_module">
 		<mkdir dir="${java.module.dir}" />
@@ -133,7 +133,7 @@
 		<unzip dest="${cs.module.dir}" src="${cs.src.dir}/Ambeth-integrity.zip" />
 	</target>
 
-	<target name="unpack_java" depends="resolve-maven-dependencies">
+	<target name="unpack_java">
 		<!-- move test jars to lib folder -->
 		<move todir="${java.lib.dir}">
 			<fileset dir="${java.src.dir}">
@@ -161,7 +161,7 @@
 		<unzip dest="${cs.lib.dir}" src="${cs.src.dir}/${ambeth.net.libs.zip}" />
 	</target>
 
-	<target name="resolve-maven-dependencies">
+	<target name="create-dummy-pom-for-bundles">
 		<mkdir dir="${src.dir}/module/ambeth-bundles" />
 		<echo file="${src.dir}/module/ambeth-bundles/pom.xml" append="false">&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 &lt;modelVersion>4.0.0&lt;/modelVersion>
@@ -172,14 +172,6 @@
 &lt;version>2.1.X-SNAPSHOT&lt;/version>
 &lt;/project>
 		</echo>
-		<echo message="${env.MAVEN_HOME}\bin\mvn.bat" />
-		<exec dir="${java.module.dir}" executable="cmd">
-			<arg value="/c" />
-			<arg value="${env.MAVEN_HOME}\bin\mvn.bat" />
-			<arg value="dependency:copy-dependencies" />
-			<arg value="-DoutputDirectory=${java.lib.dir}" />
-			<arg value="-DexcludeGroupIds=de.osthus.ambeth" />
-		</exec>
 	</target>
 
 </project>
