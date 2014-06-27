@@ -164,6 +164,7 @@ public class PrivilegeService implements IPrivilegeService, IPrivilegeProviderEx
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	List<PrivilegeResult> getPrivilegesIntern2(IObjRef[] objRefs, ISecurityScope[] securityScopes)
 	{
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;

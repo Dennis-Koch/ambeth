@@ -18,6 +18,11 @@ namespace De.Osthus.Ambeth.Ioc.Proxy
 
         public void Intercept(IInvocation invocation)
         {
+            if (typeof(Object).Equals(invocation.Method.DeclaringType))
+            {
+                invocation.ReturnValue = invocation.Method.Invoke(this, invocation.Arguments);
+                return;
+            }
             throw new NotSupportedException("Should never be called");
         }
     }

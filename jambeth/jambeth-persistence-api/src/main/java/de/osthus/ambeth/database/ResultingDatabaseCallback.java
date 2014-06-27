@@ -5,5 +5,5 @@ import de.osthus.ambeth.persistence.IDatabase;
 
 public interface ResultingDatabaseCallback<R>
 {
-	R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception;
+	R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable;
 }

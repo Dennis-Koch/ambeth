@@ -305,7 +305,8 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
 		IMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
 
-		fixture.convertChangeContainersToCommands(allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap);
+		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
+				toDeleteMap);
 
 		fail("Not yet implemented"); // TODO
 	}
