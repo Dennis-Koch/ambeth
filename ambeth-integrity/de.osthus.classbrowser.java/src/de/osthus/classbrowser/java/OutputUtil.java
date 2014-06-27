@@ -22,7 +22,8 @@ import org.jdom2.output.XMLOutputter;
  * 
  * @author juergen.panser
  */
-public class OutputUtil {
+public class OutputUtil
+{
 
 	// ---- CONSTANTS ----------------------------------------------------------
 
@@ -38,7 +39,8 @@ public class OutputUtil {
 
 	// ---- CONSTRUCTORS -------------------------------------------------------
 
-	private OutputUtil() {
+	private OutputUtil()
+	{
 		// No instances allowed
 	}
 
@@ -51,17 +53,20 @@ public class OutputUtil {
 	 *            File to import (with full path)
 	 * @return Map with TypeDescription as value and the full type name (lower case) as key; never null
 	 */
-	public static SortedMap<String, TypeDescription> importFromFile(String fileName) {
+	public static SortedMap<String, TypeDescription> importFromFile(String fileName)
+	{
 		SortedMap<String, TypeDescription> results = new TreeMap<String, TypeDescription>();
 
 		SAXBuilder builder = new SAXBuilder();
 		File xmlFile = new File(fileName);
-		try {
-			Document document = (Document) builder.build(xmlFile);
+		try
+		{
+			Document document = builder.build(xmlFile);
 			Element rootNode = document.getRootElement(); // TypeDescriptions
 
 			List<Element> typeDescriptionNodes = rootNode.getChildren("TypeDescription");
-			for (Element typeNode : typeDescriptionNodes) {
+			for (Element typeNode : typeDescriptionNodes)
+			{
 				// Read mandatory attributes
 				String typeAttributeValue = getMandatoryAttributeValue(typeNode, "Type");
 				String nameAttributeValue = getMandatoryAttributeValue(typeNode, "TypeName");
@@ -72,7 +77,8 @@ public class OutputUtil {
 				String namespaceAttributeValue = getAttributeValue(typeNode, "NamespaceName");
 				int genericTypeParams = 0;
 				Attribute genericTypeParamsAttribute = typeNode.getAttribute("GenericTypeParams");
-				if (genericTypeParamsAttribute != null) {
+				if (genericTypeParamsAttribute != null)
+				{
 					genericTypeParams = genericTypeParamsAttribute.getIntValue();
 				}
 
@@ -81,32 +87,37 @@ public class OutputUtil {
 
 				List<String> annotations = readAnnotationNames(typeNode);
 				typeDescription.getAnnotations().addAll(annotations);
-				if (typeDescription.isDeprecated() && IGNORE_DEPRECATED_TYPES) {
+				if (typeDescription.isDeprecated() && IGNORE_DEPRECATED_TYPES)
+				{
 					continue;
 				}
 
 				Element methodDescriptionsNode = typeNode.getChild("MethodDescriptions");
 				List<Element> methodDescriptionNodes = methodDescriptionsNode.getChildren("MethodDescription");
-				for (Element methodNode : methodDescriptionNodes) {
+				for (Element methodNode : methodDescriptionNodes)
+				{
 					Attribute methodNameAttribute = methodNode.getAttribute("MethodName");
 					Attribute methodReturnTypeAttribute = methodNode.getAttribute("ReturnType");
 
 					annotations = readAnnotationNames(methodNode);
-					if (IDeprecation.INSTANCE.isDeprecated(annotations) && IGNORE_DEPRECATED_METHODS) {
+					if (IDeprecation.INSTANCE.isDeprecated(annotations) && IGNORE_DEPRECATED_METHODS)
+					{
 						continue;
 					}
 
 					List<String> modifiers = new ArrayList<String>();
 					Element methodModifiersNode = methodNode.getChild("MethodModifiers");
 					List<Element> methodModifierNodes = methodModifiersNode.getChildren("MethodModifier");
-					for (Element methodModifierNode : methodModifierNodes) {
+					for (Element methodModifierNode : methodModifierNodes)
+					{
 						modifiers.add(methodModifierNode.getValue());
 					}
 
 					List<String> parameterTypes = new ArrayList<String>();
 					Element methodParameterTypesNode = methodNode.getChild("MethodParameterTypes");
 					List<Element> methodParameterTypeNodes = methodParameterTypesNode.getChildren("MethodParameterType");
-					for (Element methodParameterTypeNode : methodParameterTypeNodes) {
+					for (Element methodParameterTypeNode : methodParameterTypeNodes)
+					{
 						parameterTypes.add(methodParameterTypeNode.getValue());
 					}
 
@@ -119,7 +130,8 @@ public class OutputUtil {
 
 				Element fieldDescriptionsNode = typeNode.getChild("FieldDescriptions");
 				List<Element> fieldDescriptionNodes = fieldDescriptionsNode.getChildren("FieldDescription");
-				for (Element fieldNode : fieldDescriptionNodes) {
+				for (Element fieldNode : fieldDescriptionNodes)
+				{
 					Attribute fieldNameAttribute = fieldNode.getAttribute("FieldName");
 					Attribute fieldTypeAttribute = fieldNode.getAttribute("FieldType");
 
@@ -128,7 +140,8 @@ public class OutputUtil {
 					List<String> modifiers = new ArrayList<String>();
 					Element fieldModifiersNode = fieldNode.getChild("FieldModifiers");
 					List<Element> fieldModifierNodes = fieldModifiersNode.getChildren("FieldModifier");
-					for (Element fieldModifierNode : fieldModifierNodes) {
+					for (Element fieldModifierNode : fieldModifierNodes)
+					{
 						modifiers.add(fieldModifierNode.getValue());
 					}
 
@@ -141,19 +154,23 @@ public class OutputUtil {
 				results.put(key, typeDescription);
 			}
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			throw new RuntimeException(e);
 		}
 
 		return results;
 	}
 
-	private static List<String> readAnnotationNames(Element typeNode) {
+	private static List<String> readAnnotationNames(Element typeNode)
+	{
 		List<String> annotations = new ArrayList<String>();
 		Element typeAnnotationsNode = typeNode.getChild(TAG_NAME_ANNOTATIONS);
-		if (typeAnnotationsNode != null) {
+		if (typeAnnotationsNode != null)
+		{
 			List<Element> typeAnnotationNodes = typeAnnotationsNode.getChildren(TAG_NAME_ANNOTATION);
-			for (Element typeAnnotationNode : typeAnnotationNodes) {
+			for (Element typeAnnotationNode : typeAnnotationNodes)
+			{
 				annotations.add(typeAnnotationNode.getValue());
 			}
 		}
@@ -161,8 +178,7 @@ public class OutputUtil {
 	}
 
 	/**
-	 * Get an attribute value from the given node. Throws an exception if the attribute isn't found or the value is
-	 * illegal.
+	 * Get an attribute value from the given node. Throws an exception if the attribute isn't found or the value is illegal.
 	 * 
 	 * @param node
 	 *            Node to get the attribute from
@@ -170,9 +186,11 @@ public class OutputUtil {
 	 *            Attribute key/name
 	 * @return Attribute value; never null nor empty
 	 */
-	private static String getMandatoryAttributeValue(Element node, String key) {
+	private static String getMandatoryAttributeValue(Element node, String key)
+	{
 		String result = getAttributeValue(node, key);
-		if (StringUtils.isBlank(result)) {
+		if (StringUtils.isBlank(result))
+		{
 			throw new IllegalStateException("Mandatory attribute '" + key + "' has no value!");
 		}
 		return result;
@@ -187,12 +205,15 @@ public class OutputUtil {
 	 *            Attribute key/name
 	 * @return Attribute value; never null but may be empty
 	 */
-	private static String getAttributeValue(Element node, String key) {
-		if (node == null || StringUtils.isBlank(key)) {
+	private static String getAttributeValue(Element node, String key)
+	{
+		if (node == null || StringUtils.isBlank(key))
+		{
 			throw new IllegalArgumentException("Input parameter missing!");
 		}
 		Attribute attribute = node.getAttribute(key);
-		if (attribute == null) {
+		if (attribute == null)
+		{
 			throw new IllegalStateException("Attribute '" + key + "' not found!");
 		}
 		return attribute.getValue();
@@ -206,15 +227,18 @@ public class OutputUtil {
 	 * @param targetPath
 	 *            Path to save the file to; mandatory
 	 */
-	public static void export(List<TypeDescription> foundTypes, String targetPath) {
-		if (foundTypes == null || StringUtils.isBlank(targetPath)) {
+	public static void export(List<TypeDescription> foundTypes, String targetPath)
+	{
+		if (foundTypes == null || StringUtils.isBlank(targetPath))
+		{
 			throw new IllegalArgumentException("Mandatory values for the export are missing!");
 		}
 
 		Element rootNode = new Element("TypeDescriptions");
 		Document doc = new Document(rootNode);
 
-		for (TypeDescription typeDescription : foundTypes) {
+		for (TypeDescription typeDescription : foundTypes)
+		{
 			Element typeNode = createTypeNode(typeDescription);
 			rootNode.addContent(typeNode);
 		}
@@ -231,15 +255,19 @@ public class OutputUtil {
 	 * @param doc
 	 *            XML document; mandatory
 	 */
-	public static void writeExportToFile(String fileName, Document doc) {
-		if (StringUtils.isBlank(fileName) || doc == null) {
+	public static void writeExportToFile(String fileName, Document doc)
+	{
+		if (StringUtils.isBlank(fileName) || doc == null)
+		{
 			throw new IllegalArgumentException("Mandatory export parameter missing!");
 		}
 		XMLOutputter xmlOutPutter = new XMLOutputter(Format.getPrettyFormat());
-		try {
+		try
+		{
 			xmlOutPutter.output(doc, new FileWriter(fileName));
 		}
-		catch (IOException e) {
+		catch (IOException e)
+		{
 			throw new RuntimeException(e);
 		}
 	}
@@ -251,8 +279,10 @@ public class OutputUtil {
 	 *            TypeDescription to get the information from; mandatory
 	 * @return Element with the type infos
 	 */
-	protected static Element createTypeNode(TypeDescription typeDescription) {
-		if (typeDescription == null) {
+	protected static Element createTypeNode(TypeDescription typeDescription)
+	{
+		if (typeDescription == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating the type node are missing!");
 		}
 
@@ -264,7 +294,8 @@ public class OutputUtil {
 		typeNode.setAttribute(new Attribute("FullTypeName", typeDescription.getFullTypeName()));
 		typeNode.setAttribute(new Attribute("Source", typeDescription.getSource()));
 		typeNode.setAttribute(new Attribute("ModuleName", typeDescription.getModuleName()));
-		if (typeDescription.getGenericTypeParams() > 0) {
+		if (typeDescription.getGenericTypeParams() > 0)
+		{
 			typeNode.setAttribute(new Attribute("GenericTypeParams", String.valueOf(typeDescription.getGenericTypeParams())));
 		}
 
@@ -274,7 +305,8 @@ public class OutputUtil {
 		Element methodRootNode = new Element("MethodDescriptions");
 		typeNode.addContent(methodRootNode);
 
-		for (MethodDescription methodDescription : typeDescription.getMethodDescriptions()) {
+		for (MethodDescription methodDescription : typeDescription.getMethodDescriptions())
+		{
 			Element methodNode = createMethodNode(methodDescription);
 			methodRootNode.addContent(methodNode);
 		}
@@ -282,7 +314,8 @@ public class OutputUtil {
 		Element fieldRootNode = new Element("FieldDescriptions");
 		typeNode.addContent(fieldRootNode);
 
-		for (FieldDescription fieldDescription : typeDescription.getFieldDescriptions()) {
+		for (FieldDescription fieldDescription : typeDescription.getFieldDescriptions())
+		{
 			Element fieldNode = createFieldNode(fieldDescription);
 			fieldRootNode.addContent(fieldNode);
 		}
@@ -297,8 +330,10 @@ public class OutputUtil {
 	 *            MethodDescription to get the information from; mandatory
 	 * @return Element with the method infos
 	 */
-	protected static Element createMethodNode(MethodDescription methodDescription) {
-		if (methodDescription == null) {
+	protected static Element createMethodNode(MethodDescription methodDescription)
+	{
+		if (methodDescription == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating the method node are missing!");
 		}
 
@@ -313,7 +348,8 @@ public class OutputUtil {
 		Element modifiersRootNode = new Element("MethodModifiers");
 		methodNode.addContent(modifiersRootNode);
 
-		for (String modifier : methodDescription.getModifiers()) {
+		for (String modifier : methodDescription.getModifiers())
+		{
 			Element modifierNode = new Element("MethodModifier");
 			modifierNode.setText(modifier);
 			modifiersRootNode.addContent(modifierNode);
@@ -322,7 +358,8 @@ public class OutputUtil {
 		Element parameterTypesRootNode = new Element("MethodParameterTypes");
 		methodNode.addContent(parameterTypesRootNode);
 
-		for (String parameterType : methodDescription.getParameterTypes()) {
+		for (String parameterType : methodDescription.getParameterTypes())
+		{
 			Element parameterTypeNode = new Element("MethodParameterType");
 			parameterTypeNode.setText(parameterType);
 			parameterTypesRootNode.addContent(parameterTypeNode);
@@ -338,8 +375,10 @@ public class OutputUtil {
 	 *            FieldDescription to get the information from; mandatory
 	 * @return Element with the field infos
 	 */
-	protected static Element createFieldNode(FieldDescription fieldDescription) {
-		if (fieldDescription == null) {
+	protected static Element createFieldNode(FieldDescription fieldDescription)
+	{
+		if (fieldDescription == null)
+		{
 			throw new IllegalArgumentException("Mandatory values for creating the field node are missing!");
 		}
 
@@ -354,7 +393,8 @@ public class OutputUtil {
 		Element modifiersRootNode = new Element("FieldModifiers");
 		fieldNode.addContent(modifiersRootNode);
 
-		for (String modifier : fieldDescription.getModifiers()) {
+		for (String modifier : fieldDescription.getModifiers())
+		{
 			Element modifierNode = new Element("FieldModifier");
 			modifierNode.setText(modifier);
 			modifiersRootNode.addContent(modifierNode);
@@ -371,15 +411,18 @@ public class OutputUtil {
 	 * @param annotations
 	 *            List of the annotation names
 	 */
-	protected static void createAnnotationNodes(Element parentNode, List<String> annotations) {
-		if (annotations.isEmpty()){
+	protected static void createAnnotationNodes(Element parentNode, List<String> annotations)
+	{
+		if (annotations.isEmpty())
+		{
 			return;
 		}
-		
+
 		Element annotationRootNode = new Element(TAG_NAME_ANNOTATIONS);
 		parentNode.addContent(annotationRootNode);
 
-		for (String annotation : annotations) {
+		for (String annotation : annotations)
+		{
 			Element annotationNode = new Element(TAG_NAME_ANNOTATION);
 			annotationNode.setText(annotation);
 			annotationRootNode.addContent(annotationNode);

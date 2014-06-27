@@ -92,7 +92,7 @@ public class Program
 		// Read the class files
 		List<String> allLibraryJarFiles = readJarFiles(ARG_KEY_LIBRARYJARFOLDERS);
 		List<String> allJarFilesToBeAnalyzed = readJarFiles(ARG_KEY_JARFOLDERS);
-		preprocessJarFilesToBeAnalyzed(allJarFilesToBeAnalyzed);
+		preprocessJarFilesToBeAnalyzed(allJarFilesToBeAnalyzed); // TODO What should be filtered?
 		if (allJarFilesToBeAnalyzed == null || allJarFilesToBeAnalyzed.isEmpty())
 		{
 			log("No JAR files found to be analyzed!");
@@ -378,7 +378,12 @@ public class Program
 						String relativeName = StringUtils.replace(fullFileName, modulePath, StringUtils.EMPTY);
 						String[] splittedRelativeName = StringUtils.split(relativeName, "\\/");
 						final String className;
-						if ("src".equals(splittedRelativeName[0]))
+						if ("src".equals(splittedRelativeName[0]) && "java".equals(splittedRelativeName[2]))
+						{
+							String[] adaptedRelativeName = Arrays.copyOfRange(splittedRelativeName, 3, splittedRelativeName.length);
+							className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
+						}
+						else if ("asm_src".equals(splittedRelativeName[0]) || "addon".equals(splittedRelativeName[0]))
 						{
 							String[] adaptedRelativeName = Arrays.copyOfRange(splittedRelativeName, 1, splittedRelativeName.length);
 							className = StringUtils.join(adaptedRelativeName, ".").toLowerCase();
