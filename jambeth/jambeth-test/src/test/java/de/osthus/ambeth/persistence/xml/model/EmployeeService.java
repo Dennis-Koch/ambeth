@@ -20,7 +20,7 @@ import de.osthus.ambeth.util.ParamChecker;
 public class EmployeeService implements IInitializingBean, IEmployeeService
 {
 	@SuppressWarnings("unused")
-	@LogInstance(EmployeeService.class)
+	@LogInstance
 	private ILogger log;
 
 	protected IDatabase database;

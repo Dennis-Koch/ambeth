@@ -4,6 +4,18 @@ import java.util.Calendar;
 
 public interface IPassword
 {
+	public static final String Algorithm = "Algorithm";
+
+	public static final String ChangeAfter = "ChangeAfter";
+
+	public static final String IterationCount = "IterationCount";
+
+	public static final String KeySize = "KeySize";
+
+	public static final String Salt = "Salt";
+
+	public static final String Value = "Value";
+
 	char[] getValue();
 
 	void setValue(char[] value);

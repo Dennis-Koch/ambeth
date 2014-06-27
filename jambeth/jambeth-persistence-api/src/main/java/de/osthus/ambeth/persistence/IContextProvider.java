@@ -15,6 +15,8 @@ public interface IContextProvider
 	IAlreadyLoadedCache getAlreadyLoadedCache();
 
 	void acquired();
-	
+
 	void clear();
+
+	void clearAfterMerge();
 }

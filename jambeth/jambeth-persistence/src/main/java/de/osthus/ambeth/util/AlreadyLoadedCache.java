@@ -120,9 +120,9 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	}
 
 	@Override
-	public void add(byte idNameIndex, Object id, Class<?> type, IObjRef objRef, ILoadContainer loadContainer)
+	public void add(byte idNameIndex, Object persistentId, Class<?> type, IObjRef objRef, ILoadContainer loadContainer)
 	{
-		add(new IdTypeTuple(type, idNameIndex, id), objRef, loadContainer);
+		add(new IdTypeTuple(type, idNameIndex, persistentId), objRef, loadContainer);
 	}
 
 	@Override
@@ -133,15 +133,15 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	}
 
 	@Override
-	public void replace(byte idNameIndex, Object id, Class<?> type, ILoadContainer loadContainer)
+	public void replace(byte idNameIndex, Object persistentId, Class<?> type, ILoadContainer loadContainer)
 	{
-		replace(new IdTypeTuple(type, idNameIndex, id), loadContainer);
+		replace(new IdTypeTuple(type, idNameIndex, persistentId), loadContainer);
 	}
 
 	@Override
 	public void replace(IdTypeTuple idTypeTuple, ILoadContainer loadContainer)
 	{
-		this.keyToRefMap.putIfNotExists(idTypeTuple, new ObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.id, null));
+		this.keyToRefMap.putIfNotExists(idTypeTuple, new ObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null));
 		this.keyToObjectMap.put(idTypeTuple, loadContainer);
 	}
 }
