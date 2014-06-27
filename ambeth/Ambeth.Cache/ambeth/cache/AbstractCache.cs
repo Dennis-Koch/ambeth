@@ -357,7 +357,7 @@ namespace De.Osthus.Ambeth.Cache
             Remove(ori);
         }
 
-        public void RemovePriorVersions(IList<IObjRef> oris)
+        public virtual void RemovePriorVersions(IList<IObjRef> oris)
         {
             for (int a = oris.Count; a-- > 0; )
             {

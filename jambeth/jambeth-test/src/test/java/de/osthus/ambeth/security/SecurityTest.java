@@ -141,6 +141,7 @@ public class SecurityTest extends AbstractPersistenceTest
 				});
 			}
 		};
+		System.out.println();
 		transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
 		{
 			@Override
@@ -168,5 +169,6 @@ public class SecurityTest extends AbstractPersistenceTest
 		});
 		// test committed root cache
 		checkRootCache.invoke();
+		System.out.println();
 	}
 }

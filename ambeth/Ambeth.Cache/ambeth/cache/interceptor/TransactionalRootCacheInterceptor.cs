@@ -51,21 +51,36 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         protected IRootCache GetCurrentRootCache(bool privileged)
         {
             IRootCache rootCache = privileged ? privilegedRootCacheTL.Value : rootCacheTL.Value;
-            if (rootCache == null && transactionalRootCacheActiveTL.Value)
+            if (rootCache != null)
             {
-                IRootCache otherRootCache = privileged ? rootCacheTL.Value : privilegedRootCacheTL.Value;
-                Lock readLock = null, writeLock = null;
-                if (otherRootCache != null)
-                {
-                    readLock = otherRootCache.ReadLock;
-                    writeLock = otherRootCache.WriteLock;
-                }
-                // Lazy init of transactional rootcache
-                rootCache = AcquireRootCache(privileged, privileged ? privilegedRootCacheTL : rootCacheTL, readLock, writeLock);
+                return rootCache;
             }
-            // If no thread-bound root cache is active (which implies that no transaction is currently active
-            // return the unbound root cache (which reads committed data)
-            return rootCache != null ? rootCache : CommittedRootCache;
+            if (!transactionalRootCacheActiveTL.Value)
+            {
+                // If no thread-bound root cache is active (which implies that no transaction is currently active
+                // return the unbound root cache (which reads committed data)
+                return CommittedRootCache;
+            }
+            // if we need a cache and security is active the privileged cache is a prerequisite in both cases
+            IRootCache privilegedRootCache = privilegedRootCacheTL.Value;
+            if (privilegedRootCache == null)
+            {
+                // here we know that the non-privileged one could not have existed before, so we simply create the privileged one
+                privilegedRootCache = AcquireRootCache(privileged, privilegedRootCacheTL);
+            }
+            if (privileged)
+            {
+                // we need only the privilegedRootCache so we are finished
+                return privilegedRootCache;
+            }
+            IRootCache nonPrivilegedRootCache = rootCacheTL.Value;
+            if (nonPrivilegedRootCache == null)
+            {
+                // share the locks from the privileged rootCache
+                nonPrivilegedRootCache = AcquireRootCache(privileged, rootCacheTL, (ICacheRetriever)privilegedRootCache, privilegedRootCache.ReadLock,
+                        privilegedRootCache.WriteLock);
+            }
+            return nonPrivilegedRootCache;
         }
 
         public IRootCache SelectSecondLevelCache()
