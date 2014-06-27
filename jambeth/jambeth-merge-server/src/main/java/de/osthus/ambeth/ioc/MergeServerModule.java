@@ -1,8 +1,10 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseCommitEvent;
 import de.osthus.ambeth.event.DatabaseFailEvent;
+import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.LocalToPublicDispatcher;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
@@ -31,7 +33,11 @@ public class MergeServerModule implements IInitializingModule
 		beanContextFactory.registerAnonymousBean(DatabaseToEntityMetaData.class).propertyRef("PersistenceMergeServiceExtension", MERGE_SERVICE_SERVER)
 				.propertyRef("PersistenceCacheRetriever", CacheModule.DEFAULT_CACHE_RETRIEVER);
 
-		beanContextFactory.registerAnonymousBean(RelationMergeService.class).autowireable(IRelationMergeService.class);
+		IBeanConfiguration relationMergeService = beanContextFactory.registerAnonymousBean(RelationMergeService.class)
+				.autowireable(IRelationMergeService.class);
+		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
+		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+
 		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
 
 		IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerAnonymousBean(LocalToPublicDispatcher.class);

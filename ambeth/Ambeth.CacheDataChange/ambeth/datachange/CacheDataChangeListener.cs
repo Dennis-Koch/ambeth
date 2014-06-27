@@ -126,36 +126,20 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         Lock rootCacheWriteLock = rootCache.WriteLock;
 
-                        //if (!rootCacheWriteLock.TryLock())
-                        //{
-                        //    // This is the case when the UI thread is currently handling the DCE in "ChangeFirstLevelCaches()" and needs to call 
-                        //    IdentityHashSet<Object> collisionSet = new IdentityHashSet<Object>();
-                        //    collisionSet.Add(rootCache);
-                        //    collisionSet.AddAll(selectedFirstLevelCaches);
-                        //    EventDispatcher.WaitEventToResume(collisionSet, -1, delegate(IProcessResumeItem processResumeItem2)
-                        //    {
-                        //        DataChangedIntern(dataChange, pausedEventTargets, processResumeItem2, rootCache, selectedFirstLevelCaches);
-                        //    }, null);
-                        //    return;
-                        //}
+                            IList<IObjRef> deletesList = ListUtil.ToList(deletesSet);
+					    List<IObjRef> objRefsRemovePriorVersions = new List<IObjRef>(updates.Count);
+					    for (int a = updates.Count; a-- > 0;)
+					    {
+						    IDataChangeEntry updateEntry = updates[a];
+						    Type entityType = updateEntry.EntityType;
+						    occuringTypes.Add(entityType);
+						    objRefsRemovePriorVersions.Add(new ObjRef(entityType, updateEntry.IdNameIndex, updateEntry.Id, updateEntry.Version));
+					    }
                         rootCacheWriteLock.Lock();
                         try
                         {
-                            IList<IObjRef> deletesList = ListUtil.ToList(deletesSet);
                             rootCache.Remove(deletesList);
-                            deletesList = null;
-                            ObjRef tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
-                            for (int a = updates.Count; a-- > 0; )
-                            {
-                                IDataChangeEntry updateEntry = updates[a];
-                                Type entityType = updateEntry.EntityType;
-                                occuringTypes.Add(entityType);
-                                tempORI.RealType = entityType;
-                                tempORI.Id = updateEntry.Id;
-                                tempORI.IdNameIndex = updateEntry.IdNameIndex;
-                                tempORI.Version = updateEntry.Version;
-                                rootCache.RemovePriorVersions(tempORI);
-                            }
+                            rootCache.RemovePriorVersions(objRefsRemovePriorVersions);
                         }
                         finally
                         {

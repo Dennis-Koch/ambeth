@@ -18,8 +18,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.Lock;
 
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements MethodInterceptor, ITransactionalRootCache,
 		ISecondLevelCacheManager
@@ -59,21 +59,36 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	protected IRootCache getCurrentRootCache(boolean privileged)
 	{
 		IRootCache rootCache = privileged ? privilegedRootCacheTL.get() : rootCacheTL.get();
-		if (rootCache == null && Boolean.TRUE.equals(transactionalRootCacheActiveTL.get()))
+		if (rootCache != null)
 		{
-			IRootCache otherRootCache = privileged ? rootCacheTL.get() : privilegedRootCacheTL.get();
-			Lock readLock = null, writeLock = null;
-			if (otherRootCache != null)
-			{
-				readLock = otherRootCache.getReadLock();
-				writeLock = otherRootCache.getWriteLock();
-			}
-			// Lazy init of transactional rootcache
-			rootCache = acquireRootCache(privileged, privileged ? privilegedRootCacheTL : rootCacheTL, readLock, writeLock);
+			return rootCache;
 		}
-		// If no thread-bound root cache is active (which implies that no transaction is currently active
-		// return the unbound root cache (which reads committed data)
-		return rootCache != null ? rootCache : committedRootCache;
+		if (!Boolean.TRUE.equals(transactionalRootCacheActiveTL.get()))
+		{
+			// If no thread-bound root cache is active (which implies that no transaction is currently active
+			// return the unbound root cache (which reads committed data)
+			return committedRootCache;
+		}
+		// if we need a cache and security is active the privileged cache is a prerequisite in both cases
+		IRootCache privilegedRootCache = privilegedRootCacheTL.get();
+		if (privilegedRootCache == null)
+		{
+			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
+			privilegedRootCache = acquireRootCache(privileged, privilegedRootCacheTL);
+		}
+		if (privileged)
+		{
+			// we need only the privilegedRootCache so we are finished
+			return privilegedRootCache;
+		}
+		IRootCache nonPrivilegedRootCache = rootCacheTL.get();
+		if (nonPrivilegedRootCache == null)
+		{
+			// share the locks from the privileged rootCache
+			nonPrivilegedRootCache = acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache, privilegedRootCache.getReadLock(),
+					privilegedRootCache.getWriteLock());
+		}
+		return nonPrivilegedRootCache;
 	}
 
 	@Override
