@@ -4,21 +4,21 @@ public class IdTypeTuple
 {
 	public final byte idNameIndex;
 
-	public final Object id;
+	public final Object persistentId;
 
 	public final Class<?> type;
 
-	public IdTypeTuple(Class<?> type, byte idNameIndex, Object id)
+	public IdTypeTuple(Class<?> type, byte idNameIndex, Object persistentId)
 	{
 		this.type = type;
 		this.idNameIndex = idNameIndex;
-		this.id = id;
+		this.persistentId = persistentId;
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return id.hashCode() ^ type.hashCode();
+		return persistentId.hashCode() ^ type.hashCode();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -31,13 +31,13 @@ public class IdTypeTuple
 		}
 		IdTypeTuple other = (IdTypeTuple) obj;
 		boolean idEqual;
-		if (id instanceof Comparable && id.getClass().equals(other.id.getClass()))
+		if (persistentId instanceof Comparable && persistentId.getClass().equals(other.persistentId.getClass()))
 		{
-			idEqual = ((Comparable<Object>) id).compareTo(other.id) == 0;
+			idEqual = ((Comparable<Object>) persistentId).compareTo(other.persistentId) == 0;
 		}
 		else
 		{
-			idEqual = id.equals(other.id);
+			idEqual = persistentId.equals(other.persistentId);
 		}
 		return idEqual && type.equals(other.type) && idNameIndex == other.idNameIndex;
 	}

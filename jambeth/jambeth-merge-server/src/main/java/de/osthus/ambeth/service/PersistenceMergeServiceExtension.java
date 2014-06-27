@@ -131,67 +131,76 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 	@Override
 	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
-		if (mergeSecurityManager != null)
-		{
-			mergeSecurityManager.checkMergeAccess(cudResult, methodDescription);
-		}
-		final List<IChangeContainer> allChanges = cudResult.getAllChanges();
-		final HashMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
-		final List<IObjRef> oriList = new java.util.ArrayList<IObjRef>(allChanges.size());
-
-		IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		final IDatabase database = this.database.getCurrent();
 		try
 		{
-			final IDisposableCache fChildCache = childCache;
-			cacheContext.executeWithCache(childCache, new ISingleCacheRunnable<Object>()
+			if (mergeSecurityManager != null)
 			{
-				@Override
-				public Object run() throws Throwable
+				mergeSecurityManager.checkMergeAccess(cudResult, methodDescription);
+			}
+			final List<IChangeContainer> allChanges = cudResult.getAllChanges();
+			final HashMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
+			final List<IObjRef> oriList = new java.util.ArrayList<IObjRef>(allChanges.size());
+
+			IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+			try
+			{
+				final IDisposableCache fChildCache = childCache;
+				cacheContext.executeWithCache(childCache, new ISingleCacheRunnable<Object>()
 				{
-					return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
+					@Override
+					public Object run() throws Throwable
 					{
-						@Override
-						public Object invoke() throws Throwable
+						return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 						{
-							HashMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
-							LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-							LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
-							ArrayList<IObjRef> toLoadForDeletion = new ArrayList<IObjRef>();
-							fillOriList(oriList, allChanges, toLoadForDeletion);
+							@Override
+							public Object invoke() throws Throwable
+							{
+								HashMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
+								LinkedHashMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
+								LinkedHashMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
+								ArrayList<IObjRef> toLoadForDeletion = new ArrayList<IObjRef>();
+								fillOriList(oriList, allChanges, toLoadForDeletion);
 
-							loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, fChildCache);
+								loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, fChildCache);
 
-							convertChangeContainersToCommands(allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands, toDeleteMap);
+								convertChangeContainersToCommands(database, allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
+										toDeleteMap);
 
-							aquireAndAssignIds(typeToIdlessReferenceMap);
+								aquireAndAssignIds(database, typeToIdlessReferenceMap);
 
-							processLinkChangeCommands(linkChangeCommands, tableChangeMap, fChildCache);
+								processLinkChangeCommands(linkChangeCommands, tableChangeMap, fChildCache);
 
-							return null;
-						}
-					});
-				}
-			});
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
+								return null;
+							}
+						});
+					}
+				});
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally
+			{
+				childCache.dispose();
+				childCache = null;
+			}
+
+			IChangeAggregator changeAggregator = persistTableChanges(database, tableChangeMap);
+			changeAggregator.createDataChange();
+
+			OriCollection oriCollection = new OriCollection(oriList);
+			IContextProvider contextProvider = database.getContextProvider();
+			oriCollection.setChangedOn(contextProvider.getCurrentTime().longValue());
+			oriCollection.setChangedBy(contextProvider.getCurrentUser());
+
+			return oriCollection;
 		}
 		finally
 		{
-			childCache.dispose();
-			childCache = null;
+			database.getContextProvider().clearAfterMerge();
 		}
-
-		IChangeAggregator changeAggregator = persistTableChanges(tableChangeMap);
-		changeAggregator.createDataChange();
-
-		OriCollection oriCollection = new OriCollection(oriList);
-		IContextProvider contextProvider = database.getContextProvider();
-		oriCollection.setChangedOn(contextProvider.getCurrentTime().longValue());
-		oriCollection.setChangedBy(contextProvider.getCurrentUser());
-
-		return oriCollection;
 	}
 
 	protected void fillOriList(List<IObjRef> oriList, List<IChangeContainer> allChanges, IList<IObjRef> toLoadForDeletion)
@@ -264,11 +273,10 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		}
 	}
 
-	protected void convertChangeContainersToCommands(List<IChangeContainer> allChanges, IMap<String, ITableChange> tableChangeMap,
+	protected void convertChangeContainersToCommands(IDatabase database, List<IChangeContainer> allChanges, IMap<String, ITableChange> tableChangeMap,
 			ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap, ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands,
 			IMap<IObjRef, Object> toDeleteMap)
 	{
-		IDatabase database = this.database.getCurrent();
 		IObjRefHelper oriHelper = this.oriHelper;
 		IRelationMergeService relationMergeService = this.relationMergeService;
 
@@ -460,9 +468,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		}
 	}
 
-	protected void aquireAndAssignIds(ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap)
+	protected void aquireAndAssignIds(IDatabase database, ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap)
 	{
-		IDatabase database = this.database.getCurrent();
 		for (Entry<Class<?>, IList<IObjRef>> entry : typeToIdlessReferenceMap)
 		{
 			ITable entityHandler = getEnsureTable(database, entry.getKey());
@@ -564,10 +571,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 		}
 	}
 
-	protected IChangeAggregator persistTableChanges(IMap<String, ITableChange> tableChangeMap)
+	protected IChangeAggregator persistTableChanges(IDatabase database, IMap<String, ITableChange> tableChangeMap)
 	{
-		IDatabase database = this.database.getCurrent();
-
 		// Mark this database as modifying (e.g. to suppress later out-of-transaction parallel reads)
 		IModifyingDatabase modifyingDatabase = database.getAutowiredBeanInContext(IModifyingDatabase.class);
 		if (!modifyingDatabase.isModifyingAllowed())

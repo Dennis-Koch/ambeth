@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.xml.RelationsTest;
@@ -14,25 +15,13 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.util.MultithreadingHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
 		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
 public class SecondLevelCacheTest extends RelationsTest
 {
+	@Autowired
 	protected IRootCache rootCache;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(rootCache, "rootCache");
-	}
-
-	public void setRootCache(IRootCache rootCache)
-	{
-		this.rootCache = rootCache;
-	}
 
 	@Test
 	public void testInactiveSecondLevelCache() throws Throwable
@@ -67,6 +56,7 @@ public class SecondLevelCacheTest extends RelationsTest
 					cacheValues[workerId] = cacheValue;
 				}
 			};
+
 			runnables[a] = runnable;
 		}
 		MultithreadingHelper.invokeInParallel(beanContext, runnables);
