@@ -169,23 +169,20 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				{
 					de.osthus.ambeth.util.Lock rootCacheWriteLock = rootCache.getWriteLock();
 
+					IList<IObjRef> deletesList = deletesSet.toList();
+					ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<IObjRef>(updates.size());
+					for (int a = updates.size(); a-- > 0;)
+					{
+						IDataChangeEntry updateEntry = updates.get(a);
+						Class<?> entityType = updateEntry.getEntityType();
+						occuringTypes.add(entityType);
+						objRefsRemovePriorVersions.add(new ObjRef(entityType, updateEntry.getIdNameIndex(), updateEntry.getId(), updateEntry.getVersion()));
+					}
 					rootCacheWriteLock.lock();
 					try
 					{
-						IList<IObjRef> deletesList = deletesSet.toList();
 						rootCache.remove(deletesList);
-						ObjRef tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
-						for (int a = updates.size(); a-- > 0;)
-						{
-							IDataChangeEntry updateEntry = updates.get(a);
-							Class<?> entityType = updateEntry.getEntityType();
-							occuringTypes.add(entityType);
-							tempORI.setRealType(entityType);
-							tempORI.setId(updateEntry.getId());
-							tempORI.setIdNameIndex(updateEntry.getIdNameIndex());
-							tempORI.setVersion(updateEntry.getVersion());
-							rootCache.removePriorVersions(tempORI);
-						}
+						rootCache.removePriorVersions(objRefsRemovePriorVersions);
 					}
 					finally
 					{

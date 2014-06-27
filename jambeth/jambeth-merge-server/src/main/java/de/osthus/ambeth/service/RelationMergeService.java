@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import de.osthus.ambeth.cache.CacheDirective;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.change.ILinkChangeCommand;
 import de.osthus.ambeth.change.ITableChange;
@@ -22,8 +23,11 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.event.IEntityMetaDataEvent;
+import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -37,7 +41,6 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
-import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDirectedLink;
@@ -54,89 +57,51 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ListUtil;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class RelationMergeService implements IRelationMergeService, IInitializingBean
+public class RelationMergeService implements IRelationMergeService, IEventListener
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected IObjectCollector objectCollector;
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
+	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
+	protected final SmartCopyMap<ParentChildQueryKey, IQuery<?>> keyToParentChildQuery = new SmartCopyMap<ParentChildQueryKey, IQuery<?>>();
+
 	@Override
-	public void afterPropertiesSet()
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
 	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-		ParamChecker.assertNotNull(prefetchHelper, "prefetchHelper");
-		ParamChecker.assertNotNull(queryBuilderFactory, "queryBuilderFactory");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setObjectCollector(IObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setPrefetchHelper(IPrefetchHelper prefetchHelper)
-	{
-		this.prefetchHelper = prefetchHelper;
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory queryBuilderFactory)
-	{
-		this.queryBuilderFactory = queryBuilderFactory;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
+		if (!(eventObject instanceof IEntityMetaDataEvent) && !(eventObject instanceof ClearAllCachesEvent))
+		{
+			return;
+		}
+		// meta data has changed so we clear all cached queries because they might have gone illegal now
+		keyToParentChildQuery.clear();
 	}
 
 	@Override
@@ -367,13 +332,24 @@ public class RelationMergeService implements IRelationMergeService, IInitializin
 		{
 			throw new IllegalArgumentException("Illegal map");
 		}
+		ArrayList<String> childMemberNames = new ArrayList<String>(childMemberNameToIdsMap.size());
+		for (Entry<String, IList<Object>> entry : childMemberNameToIdsMap)
+		{
+			childMemberNames.add(entry.getKey());
+		}
+		ParentChildQueryKey key = new ParentChildQueryKey(selectedEntityType, selectingMemberName, childMemberNames.toArray(String.class));
+		IQuery<?> query = keyToParentChildQuery.get(key);
+		if (query != null)
+		{
+			return query;
+		}
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		IQueryBuilder<?> qb = queryBuilderFactory.create(selectedEntityType);
 		IOperand operand = null;
 		// Build IS IN clauses for each referred member name
-		for (Entry<String, IList<Object>> entry : childMemberNameToIdsMap)
+		for (int a = 0, size = childMemberNames.size(); a < size; a++)
 		{
-			String childMemberName = entry.getKey();
+			String childMemberName = childMemberNames.get(a);
 			String propertyName = StringBuilderUtil.concat(tlObjectCollector, selectingMemberName, ".", childMemberName);
 			IOperand inOperator = qb.isIn(qb.property(propertyName), qb.valueName(propertyName));
 			if (operand == null)
@@ -385,7 +361,9 @@ public class RelationMergeService implements IRelationMergeService, IInitializin
 				operand = qb.or(operand, inOperator);
 			}
 		}
-		return qb.build(operand);
+		query = qb.build(operand);
+		keyToParentChildQuery.put(key, query);
+		return query;
 	}
 
 	protected IQuery<?> parameterizeParentChildQuery(IQuery<?> query, String selectingMemberName, ILinkedMap<String, IList<Object>> childMemberNameToIdsMap)
