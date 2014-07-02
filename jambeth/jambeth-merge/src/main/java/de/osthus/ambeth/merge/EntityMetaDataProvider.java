@@ -37,12 +37,15 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
 import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.typeinfo.AbstractPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
+import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
+import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
@@ -166,17 +169,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		PropertyInfoItem pMember = (PropertyInfoItem) member;
 		AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.getProperty();
-		// if (propertyInfo instanceof MethodPropertyInfo && !(propertyInfo instanceof MethodPropertyInfoASM2))
-		// {
-		// MethodPropertyInfo mPropertyInfo = (MethodPropertyInfo) propertyInfo;
-		// AbstractAccessor accessor = accessorTypeProvider.getAccessorType(metaData.getRealType(), member.getName());
-		// MethodPropertyInfoASM2 propertyInfoASM2 = new MethodPropertyInfoASM2(propertyInfo.getEntityType(), propertyInfo.getName(),
-		// mPropertyInfo.getGetter(), mPropertyInfo.getSetter(), null, accessor);
-		// pMember.setProperty(propertyInfoASM2);
-		// }
-		// else
+		propertyInfo.refreshAccessors(metaData.getEnhancedType());
+		if (propertyInfo instanceof MethodPropertyInfo && !(propertyInfo instanceof MethodPropertyInfoASM))
 		{
-			propertyInfo.refreshAccessors(metaData.getEnhancedType());
+			MethodPropertyInfo mpi = (MethodPropertyInfo) propertyInfo;
+			MethodAccess methodAcess = MethodAccess.get(metaData.getEnhancedType());
+			mpi = new MethodPropertyInfoASM(metaData.getEnhancedType(), propertyInfo.getName(), mpi.getGetter(), mpi.getSetter(), null, methodAcess);
+			pMember.setProperty(mpi);
 		}
 	}
 

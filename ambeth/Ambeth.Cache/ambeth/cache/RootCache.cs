@@ -673,11 +673,11 @@ namespace De.Osthus.Ambeth.Cache
 			    }
 			    permittedObjRefs.Add(primaryObjRef);
 		    }
-		    IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(permittedObjRefs, SecurityScopeProvider.SecurityScopes);
+		    IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(permittedObjRefs, SecurityScopeProvider.SecurityScopes);
 		    HashMap<IObjRef, List<int>> relatedObjRefs = new HashMap<IObjRef, List<int>>();
 		    for (int index = permittedObjRefs.Count; index-- > 0;)
 		    {
-			    IPrivilegeItem privilege = privileges[index];
+			    IPrivilege privilege = privileges[index];
 			    if (privilege == null || !privilege.ReadAllowed)
 			    {
 				    permittedObjRefs[index] = null;
@@ -700,7 +700,7 @@ namespace De.Osthus.Ambeth.Cache
 		    privileges = PrivilegeProvider.GetPrivilegesByObjRef(relatedObjRefKeys, SecurityScopeProvider.SecurityScopes);
 		    for (int a = 0, size = relatedObjRefKeys.Count; a < size; a++)
 		    {
-			    IPrivilegeItem privilege = privileges[a];
+			    IPrivilege privilege = privileges[a];
 			    if (privilege.ReadAllowed)
 			    {
 				    continue;
@@ -998,11 +998,11 @@ namespace De.Osthus.Ambeth.Cache
             {
                 if (filteringNecessary)
                 {
-                    IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefsToGet, SecurityScopeProvider.SecurityScopes);
+                    IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefsToGet, SecurityScopeProvider.SecurityScopes);
                     List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
                     for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                     {
-                        IPrivilegeItem privilege = privileges[a];
+                        IPrivilege privilege = privileges[a];
                         if (!privilege.ReadAllowed)
                         {
                             filteredObjRefsToGet.Add(null);
@@ -1204,10 +1204,10 @@ namespace De.Osthus.Ambeth.Cache
                 }
             }
             IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
-            IList<IPrivilegeItem> privileges = PrivilegeProvider.GetPrivilegesByObjRef(allKnownRelations, SecurityScopeProvider.SecurityScopes);
+            IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(allKnownRelations, SecurityScopeProvider.SecurityScopes);
             for (int a = privileges.Count; a-- > 0; )
             {
-                IPrivilegeItem privilege = privileges[a];
+                IPrivilege privilege = privileges[a];
                 if (privilege.ReadAllowed)
                 {
                     whiteListObjRefs.Add(allKnownRelations[a]);

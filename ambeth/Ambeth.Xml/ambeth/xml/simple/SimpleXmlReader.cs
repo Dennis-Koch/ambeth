@@ -67,19 +67,11 @@ namespace De.Osthus.Ambeth.Xml.Simple
             }
             catch (Exception e)
             {
-                String xmlContent;
-                try
-                {
-                    long newPosition = se.Position;
-                    se.Seek(position, SeekOrigin.Begin);
-                    byte[] buffer = new byte[newPosition - position];
-                    se.Read(buffer, 0, buffer.Length);
-                    xmlContent = new String(encoding.GetChars(buffer));
-                }
-                catch (Exception ex)
-                {
-                    throw;
-                }
+                long newPosition = se.Position;
+                se.Seek(position, SeekOrigin.Begin);
+                byte[] buffer = new byte[newPosition - position];
+                se.Read(buffer, 0, buffer.Length);
+                String xmlContent = new String(encoding.GetChars(buffer));
                 throw RuntimeExceptionUtil.Mask(e, xmlContent);
             }
         }
@@ -125,7 +117,7 @@ namespace De.Osthus.Ambeth.Xml.Simple
             {
                 throw e;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //if (xmlReader != null)
                 //{
