@@ -23,6 +23,9 @@ namespace De.Osthus.Ambeth.Testutil
     /// 
     /// All annotations can be used on test class level as well as on test method level. In ambiguous scenarios the method annotations will gain precedence.
     /// </summary>
+    [DeploymentItem(@"Ambeth.IoC.dll")]
+    [DeploymentItem(@"Ambeth.Log.dll")]
+    [DeploymentItem(@"Ambeth.Util.dll")]
     [TestClass]
     [TestFrameworkModule(typeof(IocModule))]
     [TestProperties(Name = IocConfigurationConstants.TrackDeclarationTrace, Value = "true")]

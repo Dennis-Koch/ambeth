@@ -2,16 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
-using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Xml.Test.Transfer;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using De.Osthus.Ambeth.Testutil;
-using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -421,7 +418,7 @@ namespace De.Osthus.Ambeth.Xml
         }
 
         [TestMethod]
-        public virtual void CclicString2()
+        public virtual void CyclicString2()
         {
             String xml = "<root><a i=\"1\" s=\"2\" ti=\"2\" n=\"Object\"><o i=\"3\" ti=\"4\" n=\"CUDResult\" m=\"AllChanges\"><l i=\"5\" s=\"2\" ti=\"6\" n=\"IChangeContainer\"><o i=\"7\" ti=\"8\" n=\"CreateContainer\" m=\"Primitives Reference Relations\"><a i=\"9\" s=\"4\" ti=\"10\" n=\"IPUI\"><o i=\"11\" ti=\"12\" n=\"PrimitiveUpdateItem\" m=\"NewValue MemberName\"><e i=\"13\" ti=\"14\" n=\"OrderStateType\" ns=\"Comtrack\" v=\"OPEN\"/><s i=\"15\"><![CDATA[State]]></s></o><o i=\"16\" ti=\"12\" m=\"NewValue MemberName\"><e i=\"17\" ti=\"18\" n=\"OrderType\" ns=\"Comtrack\" v=\"FTE\"/><s i=\"19\"><![CDATA[OrderType]]></s></o><o i=\"20\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"21\"/><s i=\"22\"><![CDATA[Workgroup]]></s></o><o i=\"23\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"24\"><![CDATA[test4]]></s><s i=\"25\"><![CDATA[Supplier]]></s></o></a><o i=\"26\" ti=\"27\" n=\"DirectObjRef\" m=\"RealType IdNameIndex CreateContainerIndex\"><c i=\"28\" n=\"Ordr\" ns=\"Comtrack\"/><o i=\"29\" ti=\"30\" n=\"ByteN\" v=\"-1\"/><o i=\"31\" ti=\"32\" n=\"Int32N\" v=\"1\"/></o><a i=\"33\" s=\"1\" ti=\"34\" n=\"IRUI\"><o i=\"35\" ti=\"36\" n=\"RelationUpdateItem\" m=\"AddedORIs MemberName\"><a i=\"37\" s=\"1\" ti=\"38\" n=\"IObjRef\"><o i=\"39\" ti=\"27\"><c i=\"40\" n=\"Compound\" ns=\"Comtrack\"/><r i=\"29\"/><r i=\"31\"/></o></a><s i=\"41\"><![CDATA[Compounds]]></s></o></a></o><o i=\"42\" ti=\"8\" m=\"Primitives Reference Relations\"><a i=\"43\" s=\"3\" ti=\"10\"><o i=\"44\" ti=\"12\" m=\"NewValue MemberName\"><s i=\"45\"><![CDATA[test4]]></s><s i=\"46\"><![CDATA[Description]]></s></o><o i=\"47\" ti=\"12\" m=\"NewValue MemberName\"><e i=\"48\" ti=\"49\" n=\"CompoundStateType\" ns=\"Comtrack\" v=\"INITIALIZED\"/><s i=\"50\"><![CDATA[State]]></s></o><o i=\"51\" ti=\"12\" m=\"NewValue MemberName\"><o ti=\"52\" n=\"Int64\" v=\"1\"/><s i=\"53\"><![CDATA[DetailNumber]]></s></o></a><r i=\"39\"/><a i=\"54\" s=\"1\" ti=\"34\"><o i=\"55\" ti=\"36\" m=\"AddedORIs MemberName\"><a i=\"56\" s=\"1\" ti=\"38\"><r i=\"26\"/></a><s i=\"57\"><![CDATA[Order]]></s></o></a></o></l></o><o i=\"58\" ti=\"59\" n=\"MethodDescription\" m=\"ServiceType ParamTypes MethodName\"><c i=\"60\" n=\"IOrderService\"/><a i=\"61\" s=\"2\" ti=\"62\" n=\"Class\"><c i=\"63\" n=\"Ordr[]\" ns=\"Comtrack\"/><r i=\"63\"/></a><s i=\"64\"><![CDATA[Save]]></s></o></a></root>";
             Object obj = CyclicXmlHandler.Read(xml);
