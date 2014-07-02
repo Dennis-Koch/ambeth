@@ -355,6 +355,12 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
+	public boolean isRelationMember(String relationMemberName)
+	{
+		return relMemberNameToIndexDict.containsKey(relationMemberName);
+	}
+
+	@Override
 	public int getIndexByRelation(IRelationInfoItem relationMember)
 	{
 		Integer index = relMemberToIndexDict.get(relationMember);

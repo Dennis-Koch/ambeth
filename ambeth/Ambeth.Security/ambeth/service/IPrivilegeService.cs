@@ -11,6 +11,8 @@ namespace De.Osthus.Ambeth.Service
     [XmlType]
     public interface IPrivilegeService
     {
-        IList<PrivilegeResult> GetPrivileges(IObjRef[] oris, ISecurityScope[] securityScopes);
+        IList<IPrivilegeOfService> GetPrivileges(IObjRef[] oris, ISecurityScope[] securityScopes);
+
+        IList<IPrivilegeOfService> GetPrivilegesOfTypes(Type[] entityTypes, ISecurityScope[] securityScopes);
     }
 }

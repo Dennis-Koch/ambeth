@@ -13,7 +13,7 @@ import javax.ws.rs.core.StreamingOutput;
 
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
+import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
 import de.osthus.ambeth.service.IPrivilegeService;
 
 @Path("/PrivilegeService")
@@ -35,7 +35,7 @@ public class PrivilegeServiceREST extends AbstractServiceREST
 		{
 			preServiceCall();
 			Object[] args = getArguments(is);
-			List<PrivilegeResult> result = getPrivilegeService().getPrivileges((IObjRef[]) args[0], (ISecurityScope[]) args[1]);
+			List<IPrivilegeOfService> result = getPrivilegeService().getPrivileges((IObjRef[]) args[0], (ISecurityScope[]) args[1]);
 			return createResult(result);
 		}
 		catch (Throwable e)

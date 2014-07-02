@@ -21,10 +21,10 @@ namespace De.Osthus.Ambeth.Privilege
 
         bool IsExecutionAllowed(Object entity, params ISecurityScope[] securityScopes);
 
-        IPrivilegeItem GetPrivilege(Object entity, params ISecurityScope[]  securityScopes);
+        IPrivilege GetPrivilege(Object entity, params ISecurityScope[] securityScopes);
 
-	    IPrivilegeItem GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[]  securityScopes);
-        
+        IPrivilege GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[] securityScopes);
+
         /// <summary>
         /// Result correlates by-index with the given objRefs
         /// </summary>
@@ -32,7 +32,7 @@ namespace De.Osthus.Ambeth.Privilege
         /// <param name="entities"></param>
         /// <param name="securityScopes"></param>
         /// <returns></returns>
-	    IList<IPrivilegeItem> GetPrivileges<V>(IEnumerable<V> entities, params ISecurityScope[] securityScopes);
+        IList<IPrivilege> GetPrivileges<V>(IEnumerable<V> entities, params ISecurityScope[] securityScopes);
 
         /// <summary>
         /// Result correlates by-index with the given objRefs
@@ -41,6 +41,10 @@ namespace De.Osthus.Ambeth.Privilege
         /// <param name="objRefs"></param>
         /// <param name="securityScopes"></param>
         /// <returns></returns>
-        IList<IPrivilegeItem> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef;
+        IList<IPrivilege> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef;
+
+        IPrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes);
+
+        IList<IPrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes);
     }
 }

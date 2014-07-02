@@ -6,60 +6,29 @@ import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ServiceUtil implements IServiceUtil, IInitializingBean
+public class ServiceUtil implements IServiceUtil
 {
+	@Autowired
 	protected IEntityLoader entityLoader;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(database, "database");
-		ParamChecker.assertNotNull(entityLoader, "entityLoader");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setEntityLoader(IEntityLoader entityLoader)
-	{
-		this.entityLoader = entityLoader;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
 
 	@SuppressWarnings("unchecked")
 	@Override

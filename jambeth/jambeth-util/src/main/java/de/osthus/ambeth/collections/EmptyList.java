@@ -25,7 +25,8 @@ import java.util.ListIterator;
  */
 public class EmptyList<V> implements IList<V>
 {
-	private static final ListIterator<Object> emptyIter = new ListIterator<Object>()
+	@SuppressWarnings("rawtypes")
+	static final ListIterator emptyIter = new ListIterator()
 	{
 		@Override
 		public boolean hasNext()
@@ -81,6 +82,12 @@ public class EmptyList<V> implements IList<V>
 			throw new UnsupportedOperationException();
 		}
 	};
+
+	@SuppressWarnings("unchecked")
+	static <K> ListIterator<K> emptyIterator()
+	{
+		return emptyIter;
+	}
 
 	private static final Object[] emptyArray = new Object[0];
 
@@ -168,10 +175,9 @@ public class EmptyList<V> implements IList<V>
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public Iterator<V> iterator()
 	{
-		return (Iterator<V>) emptyIter;
+		return emptyIterator();
 	}
 
 	@Override
@@ -181,10 +187,9 @@ public class EmptyList<V> implements IList<V>
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public ListIterator<V> listIterator()
 	{
-		return (ListIterator<V>) emptyIter;
+		return emptyIterator();
 	}
 
 	@Override
