@@ -119,7 +119,7 @@ namespace De.Osthus.Ambeth.Merge.Transfer
 	    {
             get
             {
-		        return "ORI";
+		        return "ObjRef";
             }
 	    }
 

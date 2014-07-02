@@ -27,6 +27,7 @@ import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
@@ -34,7 +35,8 @@ import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
-import de.osthus.ambeth.privilege.model.IPrivilegeItem;
+import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ReadPermission;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.util.IDisposable;
@@ -91,7 +93,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			return list;
 		}
 		Object firstItem = list.get(0);
-		IList<IPrivilegeItem> privileges;
+		IList<IPrivilege> privileges;
 		if (firstItem instanceof IObjRef)
 		{
 			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) list, securityScopes);
@@ -122,7 +124,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				cloneCollection.add(null);
 				continue;
 			}
-			IPrivilegeItem privilege = privileges.get(a);
+			IPrivilege privilege = privileges.get(a);
 			if (privilege.isReadAllowed())
 			{
 				cloneCollection.add(item);
@@ -226,7 +228,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			throw new IllegalStateException("Must never happen");
 		}
 		Object firstItem = iter.next();
-		IList<IPrivilegeItem> privileges;
+		IList<IPrivilege> privileges;
 		if (firstItem instanceof IObjRef)
 		{
 			privileges = privilegeProvider.getPrivilegesByObjRef((Collection<IObjRef>) coll, securityScopes);
@@ -259,7 +261,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				cloneCollection.add(null);
 				continue;
 			}
-			IPrivilegeItem privilege = privileges.get(index);
+			IPrivilege privilege = privileges.get(index);
 			if (privilege.isReadAllowed())
 			{
 				cloneCollection.add(item);
@@ -288,7 +290,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	protected ReadPermission filterEntity(Object entity, Map<Object, ReadPermission> alreadyProcessedMap, IAuthorization authorization,
 			ISecurityScope[] securityScopes)
 	{
-		IPrivilegeItem privilege = privilegeProvider.getPrivilege(entity, securityScopes);
+		IPrivilege privilege = privilegeProvider.getPrivilege(entity, securityScopes);
 		ReadPermission rp;
 		if (privilege == null || privilege.isReadAllowed())
 		{
@@ -339,13 +341,13 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		ISet<IObjRef> relatedObjRefs = scanForAllObjRefs(cudResult);
 
 		IList<IObjRef> relatedObjRefsList = relatedObjRefs.toList();
-		IList<IPrivilegeItem> privilegeItems = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
-		HashMap<IObjRef, IPrivilegeItem> objRefToPrivilege = HashMap.<IObjRef, IPrivilegeItem> create(relatedObjRefsList.size());
+		IList<IPrivilege> privilegeItems = privilegeProvider.getPrivilegesByObjRef(relatedObjRefsList, securityScopeProvider.getSecurityScopes());
+		HashMap<IObjRef, IPrivilege> objRefToPrivilege = HashMap.<IObjRef, IPrivilege> create(relatedObjRefsList.size());
 
 		for (int a = relatedObjRefsList.size(); a-- > 0;)
 		{
 			IObjRef objRef = relatedObjRefsList.get(a);
-			IPrivilegeItem privilegeItem = privilegeItems.get(a);
+			IPrivilege privilegeItem = privilegeItems.get(a);
 			objRefToPrivilege.put(objRef, privilegeItem);
 		}
 		evaluatePermssionOnAllObjRefs(cudResult, objRefToPrivilege);
@@ -384,7 +386,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		return relatedObjRefs;
 	}
 
-	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilegeItem> objRefToPrivilege)
+	protected void evaluatePermssionOnAllObjRefs(ICUDResult cudResult, Map<IObjRef, IPrivilege> objRefToPrivilege)
 	{
 		List<IChangeContainer> allChanges = cudResult.getAllChanges();
 		for (int a = allChanges.size(); a-- > 0;)
@@ -392,7 +394,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 			IChangeContainer changeContainer = allChanges.get(a);
 			IObjRef reference = changeContainer.getReference();
 
-			IPrivilegeItem privilege = objRefToPrivilege.get(reference);
+			IPrivilege privilege = objRefToPrivilege.get(reference);
 
 			if (!privilege.isReadAllowed())
 			{
@@ -407,6 +409,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				{
 					throw new SecurityException("Current user has no permssion to create entity: " + reference);
 				}
+				evaluatePermissionOnEntityCreate((CreateContainer) changeContainer, privilege);
 				ruis = ((CreateContainer) changeContainer).getRelations();
 			}
 			else if (changeContainer instanceof UpdateContainer)
@@ -415,6 +418,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				{
 					throw new SecurityException("Current user has no permssion to update entity: " + reference);
 				}
+				evaluatePermissionOnEntityUpdate((UpdateContainer) changeContainer, privilege);
 				ruis = ((UpdateContainer) changeContainer).getRelations();
 			}
 			else if (!privilege.isDeleteAllowed())
@@ -433,6 +437,70 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		}
 	}
 
+	protected void evaluatePermissionOnEntityCreate(CreateContainer changeContainer, IPrivilege privilege)
+	{
+		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
+		IRelationUpdateItem[] relations = changeContainer.getRelations();
+		if (primitives != null)
+		{
+			for (IPrimitiveUpdateItem pui : primitives)
+			{
+				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(pui.getMemberName());
+				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+				if (!createPrivilege)
+				{
+					throw new SecurityException("Current user has no permssion to create property '" + pui.getMemberName() + "' on entity: "
+							+ changeContainer.getReference());
+				}
+			}
+		}
+		if (relations != null)
+		{
+			for (IRelationUpdateItem rui : relations)
+			{
+				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(rui.getMemberName());
+				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
+				if (!createPrivilege)
+				{
+					throw new SecurityException("Current user has no permssion to create property '" + rui.getMemberName() + "' on entity: "
+							+ changeContainer.getReference());
+				}
+			}
+		}
+	}
+
+	protected void evaluatePermissionOnEntityUpdate(UpdateContainer changeContainer, IPrivilege privilege)
+	{
+		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
+		IRelationUpdateItem[] relations = changeContainer.getRelations();
+		if (primitives != null)
+		{
+			for (IPrimitiveUpdateItem pui : primitives)
+			{
+				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(pui.getMemberName());
+				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+				if (!updatePrivilege)
+				{
+					throw new SecurityException("Current user has no permssion to update property '" + pui.getMemberName() + "' on entity: "
+							+ changeContainer.getReference());
+				}
+			}
+		}
+		if (relations != null)
+		{
+			for (IRelationUpdateItem rui : relations)
+			{
+				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(rui.getMemberName());
+				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
+				if (!updatePrivilege)
+				{
+					throw new SecurityException("Current user has no permssion to update property '" + rui.getMemberName() + "' on entity: "
+							+ changeContainer.getReference());
+				}
+			}
+		}
+	}
+
 	protected void addRelatedObjRefs(IObjRef[] objRefs, ISet<IObjRef> relatedObjRefs)
 	{
 		if (objRefs == null)
@@ -442,7 +510,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		relatedObjRefs.addAll(objRefs);
 	}
 
-	protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs, Map<IObjRef, IPrivilegeItem> objRefToPrivilege)
+	protected void evaulatePermissionOnRelatedObjRefs(IObjRef[] objRefs, Map<IObjRef, IPrivilege> objRefToPrivilege)
 	{
 		if (objRefs == null)
 		{
@@ -450,7 +518,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		}
 		for (IObjRef objRef : objRefs)
 		{
-			IPrivilegeItem privilege = objRefToPrivilege.get(objRef);
+			IPrivilege privilege = objRefToPrivilege.get(objRef);
 
 			if (!privilege.isReadAllowed())
 			{

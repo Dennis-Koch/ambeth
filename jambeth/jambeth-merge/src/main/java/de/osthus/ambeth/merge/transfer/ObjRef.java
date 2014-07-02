@@ -173,7 +173,7 @@ public class ObjRef implements IObjRef, IPrintable
 
 	protected String getClassName()
 	{
-		return "ORI";
+		return "ObjRef";
 	}
 
 	@Override

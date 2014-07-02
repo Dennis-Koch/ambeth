@@ -90,7 +90,7 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef
 	{
 		if (direct != null)
 		{
-			return "ORI (new) type=" + getRealType().toString();
+			return "ObjRef (new) type=" + getRealType().getName();
 		}
 		return super.toString();
 	}

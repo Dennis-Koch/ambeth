@@ -51,7 +51,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
-import de.osthus.ambeth.privilege.model.IPrivilegeItem;
+import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
@@ -752,11 +752,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			permittedObjRefs.add(primaryObjRef);
 		}
-		IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(permittedObjRefs, securityScopeProvider.getSecurityScopes());
+		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(permittedObjRefs, securityScopeProvider.getSecurityScopes());
 		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<IObjRef, IntArrayList>();
 		for (int index = permittedObjRefs.size(); index-- > 0;)
 		{
-			IPrivilegeItem privilege = privileges.get(index);
+			IPrivilege privilege = privileges.get(index);
 			if (privilege == null || !privilege.isReadAllowed())
 			{
 				permittedObjRefs.set(index, null);
@@ -779,7 +779,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		privileges = privilegeProvider.getPrivilegesByObjRef(relatedObjRefKeys, securityScopeProvider.getSecurityScopes());
 		for (int a = 0, size = relatedObjRefKeys.size(); a < size; a++)
 		{
-			IPrivilegeItem privilege = privileges.get(a);
+			IPrivilege privilege = privileges.get(a);
 			if (privilege.isReadAllowed())
 			{
 				continue;
@@ -1083,11 +1083,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 		if (filteringNecessary)
 		{
-			IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(objRefsToGet, securityScopeProvider.getSecurityScopes());
+			IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefsToGet, securityScopeProvider.getSecurityScopes());
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
-				IPrivilegeItem privilege = privileges.get(a);
+				IPrivilege privilege = privileges.get(a);
 				if (privilege.isReadAllowed())
 				{
 					filteredObjRefsToGet.add(objRefsToGet.get(a));
@@ -1308,10 +1308,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 		}
 		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
-		IList<IPrivilegeItem> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations, securityScopeProvider.getSecurityScopes());
+		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations, securityScopeProvider.getSecurityScopes());
 		for (int a = privileges.size(); a-- > 0;)
 		{
-			IPrivilegeItem privilege = privileges.get(a);
+			IPrivilege privilege = privileges.get(a);
 			if (privilege.isReadAllowed())
 			{
 				whiteListObjRefs.add(allKnownRelations.get(a));

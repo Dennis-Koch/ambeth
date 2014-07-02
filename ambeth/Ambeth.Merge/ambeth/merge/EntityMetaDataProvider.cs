@@ -135,12 +135,13 @@ namespace De.Osthus.Ambeth.Merge
 		    }
 		    PropertyInfoItem pMember = (PropertyInfoItem) member;
 		    AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.Property;
-		    propertyInfo.RefreshAccessors(metaData.RealType);
-            //if (propertyInfo is MethodPropertyInfoASM2)
-            //{
-            //    AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(metaData.RealType, member.Name);
-            //    ((MethodPropertyInfoASM2) propertyInfo).SetAccessor(accessor);
-            //}
+            propertyInfo.RefreshAccessors(metaData.EnhancedType);
+		    if (propertyInfo is MethodPropertyInfo && !(propertyInfo is MethodPropertyInfoASM))
+		    {
+			    MethodPropertyInfo mpi = (MethodPropertyInfo) propertyInfo;
+			    mpi = new MethodPropertyInfoASM(metaData.EnhancedType, propertyInfo.Name, mpi.Getter, mpi.Setter);
+			    pMember.SetProperty(mpi);
+		    }
 	    }
 
         protected IList<Type> AddLoadedMetaData(IList<Type> entityTypes, IList<IEntityMetaData> loadedMetaData)

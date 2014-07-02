@@ -102,6 +102,9 @@
     <Compile Include="ambeth\collections\AbstractListElem.cs" />
     <Compile Include="ambeth\collections\AbstractTuple2KeyHashMap.cs" />
     <Compile Include="ambeth\collections\CHashSet.cs" />
+    <Compile Include="ambeth\collections\EmptyIterator.cs" />
+    <Compile Include="ambeth\collections\EmptyMap.cs" />
+    <Compile Include="ambeth\collections\EmptySet.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
     <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
     <Compile Include="ambeth\collections\specialized\PropertyChangeSupport.cs" />

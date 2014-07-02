@@ -57,6 +57,8 @@ public interface IEntityMetaData
 
 	int getIndexByPrimitive(ITypeInfoItem primitiveMember);
 
+	boolean isRelationMember(String relationMemberName);
+
 	Class<?>[] getTypesRelatingToThis();
 
 	boolean isRelatingToThis(Class<?> childType);
