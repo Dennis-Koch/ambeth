@@ -64,6 +64,9 @@
     <Compile Include="ambeth\annotation\XmlTypeAttribute.cs" />
     <Compile Include="ambeth\collections\AbstractHashSet.cs" />
     <Compile Include="ambeth\collections\AbstractLinkedSet.cs" />
+    <Compile Include="ambeth\collections\EmptyMap.cs" />
+    <Compile Include="ambeth\collections\EmptyIterator.cs" />
+    <Compile Include="ambeth\collections\EmptySet.cs" />
     <Compile Include="ambeth\collections\IICollection.cs" />
     <Compile Include="ambeth\collections\IMapEntry.cs" />
     <Compile Include="ambeth\collections\IISet.cs" />

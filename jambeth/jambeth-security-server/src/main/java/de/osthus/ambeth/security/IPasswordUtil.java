@@ -14,4 +14,6 @@ public interface IPasswordUtil
 	ICheckPasswordResult checkClearTextPassword(char[] clearTextPassword, IPassword password);
 
 	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
+
+	void reencryptAllSalts(char[] newSaltPassword, Class<? extends IPassword> passwordEntityType);
 }

@@ -15,16 +15,16 @@ namespace De.Osthus.Ambeth.Service
     [ServiceKnownType("RegisterKnownTypes", typeof(PrivilegeServiceModelProvider))]
     public interface IPrivilegeServiceWCF
     {
-        [OperationContract]
-        IList<PrivilegeResult> GetPrivileges(IObjRef[] oris, SecurityScope[] securityScopes);
+        //[OperationContract]
+        //IList<PrivilegeResult> GetPrivileges(IObjRef[] oris, SecurityScope[] securityScopes);
     }
 
     [ServiceContract(Name = "IPrivilegeService", Namespace = "http://schemas.osthus.de/Ambeth")]
     [ServiceKnownType("RegisterKnownTypes", typeof(PrivilegeServiceModelProvider))]
     public interface IPrivilegeClient : ICommunicationObject
     {
-        [OperationContract(AsyncPattern = true)]
-        IAsyncResult BeginGetPrivileges(IObjRef[] oris, SecurityScope[] securityScopes, AsyncCallback callback, object asyncState);
-        IList<PrivilegeResult> EndGetPrivileges(IAsyncResult result);
+        //[OperationContract(AsyncPattern = true)]
+        //IAsyncResult BeginGetPrivileges(IObjRef[] oris, SecurityScope[] securityScopes, AsyncCallback callback, object asyncState);
+        //IList<PrivilegeResult> EndGetPrivileges(IAsyncResult result);
     }
 }

@@ -24,6 +24,10 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-query</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>

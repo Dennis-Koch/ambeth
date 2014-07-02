@@ -5,9 +5,9 @@ import java.util.List;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.transfer.PrivilegeResult;
+import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
 
-public class PrivilegeServiceCall implements ISingleCacheRunnable<List<PrivilegeResult>>
+public class PrivilegeServiceCall implements ISingleCacheRunnable<List<IPrivilegeOfService>>
 {
 	private final IObjRef[] objRefs;
 
@@ -23,7 +23,7 @@ public class PrivilegeServiceCall implements ISingleCacheRunnable<List<Privilege
 	}
 
 	@Override
-	public List<PrivilegeResult> run() throws Throwable
+	public List<IPrivilegeOfService> run() throws Throwable
 	{
 		return privilegeService.getPrivilegesIntern(objRefs, securityScopes);
 	}

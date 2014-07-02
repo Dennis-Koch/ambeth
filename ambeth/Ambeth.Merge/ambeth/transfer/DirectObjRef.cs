@@ -60,7 +60,7 @@ namespace De.Osthus.Ambeth.Merge.Transfer
         {
             if (Direct != null)
             {
-                return "ORI (new) type=" + RealType.ToString();
+                return "ObjRef (new) type=" + RealType.FullName;
             }
             return base.ToString();
         }

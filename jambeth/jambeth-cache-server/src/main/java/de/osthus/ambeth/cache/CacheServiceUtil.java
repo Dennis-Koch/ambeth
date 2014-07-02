@@ -4,6 +4,7 @@ import java.util.List;
 
 import de.osthus.ambeth.cache.transfer.ServiceResult;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -16,7 +17,6 @@ import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.ServiceUtil;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheServiceUtil extends ServiceUtil
 {
@@ -24,19 +24,8 @@ public class CacheServiceUtil extends ServiceUtil
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceResultHolder oriResultHolder;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(oriResultHolder, "oriResultHolder");
-	}
-
-	public void setOriResultHolder(IServiceResultHolder oriResultHolder)
-	{
-		this.oriResultHolder = oriResultHolder;
-	}
 
 	@Override
 	public <T> void loadObjectsIntoCollection(List<T> targetEntities, Class<T> entityType, IVersionCursor cursor)

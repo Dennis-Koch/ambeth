@@ -71,6 +71,11 @@ namespace De.Osthus.Ambeth.Typeinfo
             }
         }
 
+        public void SetProperty(IPropertyInfoIntern property)
+        {
+            this.property = property;
+        }
+
         public override Type RealType
         {
             get
