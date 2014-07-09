@@ -4,13 +4,14 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtension;
+import de.osthus.ambeth.privilege.IEntityPermissionRule;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
-public class ActionPermissionPrivilegeProviderExtension implements IPrivilegeProviderExtension<IActionPermission>
+public class ActionPermissionRule implements IEntityPermissionRule<IActionPermission>, IEntityTypePermissionRule<IActionPermission>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
