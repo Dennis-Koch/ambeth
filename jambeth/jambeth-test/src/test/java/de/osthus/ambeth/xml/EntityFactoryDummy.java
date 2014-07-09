@@ -24,6 +24,12 @@ public class EntityFactoryDummy implements IEntityFactory
 	}
 
 	@Override
+	public Object createEntityNoEmptyInit(IEntityMetaData metaData)
+	{
+		return null;
+	}
+
+	@Override
 	public boolean supportsEnhancement(Class<?> enhancementType)
 	{
 		return false;

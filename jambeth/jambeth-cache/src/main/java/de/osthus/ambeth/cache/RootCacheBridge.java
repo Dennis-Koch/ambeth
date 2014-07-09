@@ -32,7 +32,7 @@ public class RootCacheBridge implements ICacheRetriever
 	@Autowired
 	protected ICacheRetriever uncommittedCacheRetriever;
 
-	@Autowired(optional = true)
+	@Autowired
 	protected IInterningFeature interningFeature;
 
 	@Autowired(optional = true)
@@ -138,18 +138,19 @@ public class RootCacheBridge implements ICacheRetriever
 
 	protected void internStrings(List<ILoadContainer> loadContainers)
 	{
-		if (interningFeature == null)
-		{
-			// Feature is optional
-			return;
-		}
 		for (int a = loadContainers.size(); a-- > 0;)
 		{
 			ILoadContainer loadContainer = loadContainers.get(a);
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(loadContainer.getReference().getRealType());
 			Object[] primitives = loadContainer.getPrimitives();
-			internPrimitiveMember(metaData, primitives, metaData.getCreatedByMember());
-			internPrimitiveMember(metaData, primitives, metaData.getUpdatedByMember());
+			for (ITypeInfoItem member : metaData.getPrimitiveMembers())
+			{
+				if (!metaData.hasInterningBehavior(member))
+				{
+					continue;
+				}
+				internPrimitiveMember(metaData, primitives, member);
+			}
 		}
 	}
 

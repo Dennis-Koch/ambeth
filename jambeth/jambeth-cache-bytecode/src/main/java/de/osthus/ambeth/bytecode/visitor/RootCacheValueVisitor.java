@@ -5,6 +5,7 @@ import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.Script;
+import de.osthus.ambeth.bytecode.ScriptWithIndex;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -112,57 +113,39 @@ public class RootCacheValueVisitor extends ClassGenerator
 		implementGetPrimitive(primitiveMembers, f_primitives, f_nullFlags);
 	}
 
-	protected void implementGetPrimitive(ITypeInfoItem[] primitiveMember, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+	protected void implementGetPrimitive(ITypeInfoItem[] primitiveMember, final FieldInstance[] f_primitives, final FieldInstance[] f_nullFlags)
 	{
 		MethodInstance template_m_getPrimitive = new MethodInstance(null, RootCacheValue.class, Object.class, "getPrimitive", int.class);
 
-		MethodGenerator mv = visitMethod(template_m_getPrimitive);
-
-		if (f_primitives.length > 0)
+		implementSwitchByIndex(template_m_getPrimitive, "Given primitiveIndex not known", f_primitives.length, new ScriptWithIndex()
 		{
-			Label l_default = mv.newLabel();
-			Label[] l_primitives = new Label[f_primitives.length];
-			for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++)
-			{
-				l_primitives[primitiveIndex] = mv.newLabel();
-			}
-
-			mv.loadArg(0);
-			mv.visitTableSwitchInsn(0, l_primitives.length - 1, l_default, l_primitives);
-
-			for (int primitiveIndex = 0, size = f_primitives.length; primitiveIndex < size; primitiveIndex++)
+			@Override
+			public void execute(MethodGenerator mg, int primitiveIndex)
 			{
 				FieldInstance f_primitive = f_primitives[primitiveIndex];
 				FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
-
-				mv.mark(l_primitives[primitiveIndex]);
 
 				Label l_fieldIsNull = null;
 
 				if (f_nullFlag != null)
 				{
-					l_fieldIsNull = mv.newLabel();
+					l_fieldIsNull = mg.newLabel();
 					// only do something if the field is non-null
-					mv.getThisField(f_nullFlag);
-					mv.ifZCmp(GeneratorAdapter.NE, l_fieldIsNull);
+					mg.getThisField(f_nullFlag);
+					mg.ifZCmp(GeneratorAdapter.NE, l_fieldIsNull);
 				}
-				mv.getThisField(f_primitive);
-				mv.box(f_primitive.getType());
-				mv.returnValue();
+				mg.getThisField(f_primitive);
+				mg.box(f_primitive.getType());
+				mg.returnValue();
 
 				if (f_nullFlag != null)
 				{
-					mv.mark(l_fieldIsNull);
-					mv.pushNull();
+					mg.mark(l_fieldIsNull);
+					mg.pushNull();
 				}
-				mv.returnValue();
+				mg.returnValue();
 			}
-			mv.mark(l_default);
-		}
-		mv.throwException(Type.getType(IllegalArgumentException.class), "Given relationIndex not known");
-		mv.pushNull();
-		mv.returnValue();
-		mv.endMethod();
+		});
 	}
 
 	protected void implementGetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
@@ -356,38 +339,21 @@ public class RootCacheValueVisitor extends ClassGenerator
 		implementSetRelation(relationMembers, f_relations);
 	}
 
-	protected void implementGetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+	protected void implementGetRelation(IRelationInfoItem[] relationMembers, final FieldInstance[] f_relations)
 	{
 		MethodInstance template_m_getRelation = new MethodInstance(null, RootCacheValue.class, IObjRef[].class, "getRelation", int.class);
 
-		MethodGenerator mv = visitMethod(template_m_getRelation);
-
-		if (f_relations.length > 0)
+		implementSwitchByIndex(template_m_getRelation, "Given relationIndex not known", f_relations.length, new ScriptWithIndex()
 		{
-			Label l_default = mv.newLabel();
-			Label[] l_relations = new Label[f_relations.length];
-			for (int relationIndex = 0, size = l_relations.length; relationIndex < size; relationIndex++)
-			{
-				l_relations[relationIndex] = mv.newLabel();
-			}
-
-			mv.loadArg(0);
-			mv.visitTableSwitchInsn(0, l_relations.length - 1, l_default, l_relations);
-
-			for (int relationIndex = 0, size = f_relations.length; relationIndex < size; relationIndex++)
+			@Override
+			public void execute(MethodGenerator mg, int relationIndex)
 			{
 				FieldInstance f_relation = f_relations[relationIndex];
 
-				mv.mark(l_relations[relationIndex]);
-				mv.getThisField(f_relation);
-				mv.returnValue();
+				mg.getThisField(f_relation);
+				mg.returnValue();
 			}
-			mv.mark(l_default);
-		}
-		mv.throwException(Type.getType(IllegalArgumentException.class), "Given relationIndex not known");
-		mv.pushNull();
-		mv.returnValue();
-		mv.endMethod();
+		});
 	}
 
 	protected void implementSetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)

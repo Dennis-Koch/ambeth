@@ -8,11 +8,14 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.evaluation.ICreateEntityPropertyStep;
 import de.osthus.ambeth.privilege.evaluation.ICreateEntityStep;
+import de.osthus.ambeth.privilege.evaluation.IDeleteEntityPropertyStep;
 import de.osthus.ambeth.privilege.evaluation.IDeleteEntityStep;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.IExecuteEntityStep;
 import de.osthus.ambeth.privilege.evaluation.IScopedEntityPermissionEvaluation;
+import de.osthus.ambeth.privilege.evaluation.IUpdateEntityPropertyStep;
 import de.osthus.ambeth.privilege.evaluation.IUpdateEntityStep;
+import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 
 public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, ICreateEntityStep, IUpdateEntityStep, IDeleteEntityStep, IExecuteEntityStep
 {
@@ -30,9 +33,9 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 
 	protected Boolean create, read, update, delete, execute;
 
-	public EntityPermissionEvaluation(ISecurityScope[] scopes, boolean createTrueDefault, boolean readTrueDefault, boolean updateTrueDefault, boolean deleteTrueDefault,
-			boolean executeTrueDefault, boolean createPropertyTrueDefault, boolean readPropertyTrueDefault, boolean updatePropertyTrueDefault,
-			boolean deletePropertyTrueDefault)
+	public EntityPermissionEvaluation(ISecurityScope[] scopes, boolean createTrueDefault, boolean readTrueDefault, boolean updateTrueDefault,
+			boolean deleteTrueDefault, boolean executeTrueDefault, boolean createPropertyTrueDefault, boolean readPropertyTrueDefault,
+			boolean updatePropertyTrueDefault, boolean deletePropertyTrueDefault)
 	{
 		this.scopes = scopes;
 		this.createTrueDefault = createTrueDefault;
@@ -317,5 +320,36 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 		}
 		propertyPermissions.put(propertyName, propertyPermission);
 		return propertyPermission;
+	}
+
+	public void applyTypePropertyPrivilege(String propertyName, ITypePropertyPrivilege propertyPrivilege)
+	{
+		if (!propertyPrivilege.isReadAllowed())
+		{
+			denyReadProperty(propertyName);
+			return;
+		}
+		ICreateEntityPropertyStep createStep = allowReadProperty(propertyName);
+		Boolean createAllowed = propertyPrivilege.isCreateAllowed();
+		Boolean updateAllowed = propertyPrivilege.isUpdateAllowed();
+		Boolean deleteAllowed = propertyPrivilege.isDeleteAllowed();
+
+		IUpdateEntityPropertyStep updateStep = createAllowed != null ? (createAllowed.booleanValue() ? createStep.allowCreateProperty() : createStep
+				.denyCreateProperty()) : createStep.skipCreateProperty();
+		IDeleteEntityPropertyStep deleteStep = updateAllowed != null ? (updateAllowed.booleanValue() ? updateStep.allowUpdateProperty() : updateStep
+				.denyUpdateProperty()) : updateStep.skipUpdateProperty();
+		if (deleteAllowed == null)
+		{
+			deleteStep.skipDeleteProperty();
+		}
+		else if (deleteAllowed.booleanValue())
+		{
+			deleteStep.allowDeleteProperty();
+		}
+		else
+		{
+			deleteStep.denyDeleteProperty();
+		}
+
 	}
 }
