@@ -15,5 +15,5 @@ public interface IPasswordUtil
 
 	void rehashPassword(char[] clearTextPassword, IPassword existingPassword);
 
-	void reencryptAllSalts(char[] newSaltPassword, Class<? extends IPassword> passwordEntityType);
+	void reencryptAllSalts(byte[] newSaltBinaryPassword, Class<? extends IPassword> passwordEntityType);
 }

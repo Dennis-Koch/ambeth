@@ -4,24 +4,15 @@ import java.util.Collection;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.ITypePrivilege;
+import de.osthus.ambeth.privilege.model.ITypePrivilege;
 
 public interface IPrivilegeProvider
 {
-	boolean isReadAllowed(Object entity, ISecurityScope... securityScopes);
+	IPrivilege getPrivilege(Object entity);
 
-	boolean isCreateAllowed(Object entity, ISecurityScope... securityScopes);
-
-	boolean isUpdateAllowed(Object entity, ISecurityScope... securityScopes);
-
-	boolean isDeleteAllowed(Object entity, ISecurityScope... securityScopes);
-
-	boolean isExecutionAllowed(Object entity, ISecurityScope... securityScopes);
-
-	IPrivilege getPrivilege(Object entity, ISecurityScope... securityScopes);
-
-	IPrivilege getPrivilegeByObjRef(IObjRef objRef, ISecurityScope... securityScopes);
+	IPrivilege getPrivilegeByObjRef(IObjRef objRef);
 
 	/**
 	 * Result correlates by-index with the given objRefs
@@ -30,7 +21,7 @@ public interface IPrivilegeProvider
 	 * @param securityScopes
 	 * @return
 	 */
-	IList<IPrivilege> getPrivileges(Collection<?> entities, ISecurityScope... securityScopes);
+	IList<IPrivilege> getPrivileges(Collection<?> entities);
 
 	/**
 	 * Result correlates by-index with the given objRefs
@@ -39,9 +30,9 @@ public interface IPrivilegeProvider
 	 * @param securityScopes
 	 * @return
 	 */
-	IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope... securityScopes);
+	IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs);
 
-	IPrivilege getPrivilegeByType(Class<?> entityType, ISecurityScope... securityScopes);
+	ITypePrivilege getPrivilegeByType(Class<?> entityType);
 
-	IList<IPrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope... securityScopes);
+	IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes);
 }

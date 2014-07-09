@@ -6,6 +6,7 @@ import java.io.ObjectOutput;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -66,7 +67,7 @@ public abstract class AbstractTuple3KeyHashMap<Key1, Key2, Key3, V> implements I
 
 	protected int extractHash(final Key1 key1, final Key2 key2, final Key3 key3)
 	{
-		return key1.hashCode() ^ key2.hashCode() ^ key3.hashCode();
+		return (key1 != null ? key1.hashCode() : 3) ^ (key2 != null ? key2.hashCode() : 5) ^ (key3 != null ? key3.hashCode() : 7);
 	}
 
 	protected static int hash(int hash)
@@ -287,7 +288,7 @@ public abstract class AbstractTuple3KeyHashMap<Key1, Key2, Key3, V> implements I
 
 	protected boolean equalKeys(final Key1 key1, final Key2 key2, final Key3 key3, final Tuple3KeyEntry<Key1, Key2, Key3, V> entry)
 	{
-		return key1.equals(entry.getKey1()) && key2.equals(entry.getKey2()) && key3.equals(entry.getKey3());
+		return EqualsUtil.equals(key1, entry.getKey1()) && EqualsUtil.equals(key2, entry.getKey2()) && EqualsUtil.equals(key3, entry.getKey3());
 	}
 
 	public V put(final Key1 key1, final Key2 key2, final Key3 key3, final V value)

@@ -12,12 +12,12 @@ public class CacheEntityFactory extends EntityFactory
 	private ILogger log;
 
 	@Override
-	protected void postProcessEntity(Object entity, IEntityMetaData metaData)
+	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit)
 	{
 		if (entity instanceof IBeanContextAware)
 		{
 			((IBeanContextAware) entity).setBeanContext(beanContext);
 		}
-		super.postProcessEntity(entity, metaData);
+		super.postProcessEntity(entity, metaData, doEmptyInit);
 	}
 }

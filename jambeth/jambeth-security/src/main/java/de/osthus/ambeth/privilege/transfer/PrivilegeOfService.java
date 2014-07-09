@@ -106,7 +106,7 @@ public class PrivilegeOfService implements IPrivilegeOfService
 	}
 
 	@Override
-	public boolean isExecutionAllowed()
+	public boolean isExecuteAllowed()
 	{
 		return executeAllowed;
 	}
