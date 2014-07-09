@@ -7,7 +7,6 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -174,22 +173,6 @@ public class SqlTable extends Table
 	public IList<Object> acquireIds(int count)
 	{
 		return primaryKeyProvider.acquireIds(this, count);
-	}
-
-	protected void convertValueToFieldType(Class<?> fieldType, Object value, StringBuilder targetSb)
-	{
-		try
-		{
-			if (connectionDialect == null || !connectionDialect.handleField(fieldType, value, targetSb))
-			{
-				Object convertedValue = conversionHelper.convertValueToType(fieldType, value);
-				sqlBuilder.appendValue(convertedValue, targetSb);
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
 	}
 
 	@Override

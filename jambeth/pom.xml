@@ -119,7 +119,7 @@
 				<artifactId>jambeth-audit</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			
+
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-bytecode</artifactId>
@@ -318,6 +318,19 @@
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-api</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-h2</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-h2</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>

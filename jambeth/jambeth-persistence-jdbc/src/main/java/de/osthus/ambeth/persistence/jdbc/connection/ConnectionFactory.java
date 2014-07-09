@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -84,17 +83,6 @@ public class ConnectionFactory extends AbstractConnectionFactory
 			Connection connection = DriverManager.getConnection(databaseConnection, userName, userPass);
 			try
 			{
-				Statement stm = connection.createStatement();
-				try
-				{
-					stm.execute("CREATE SCHEMA IF NOT EXISTS iqdf_junit");
-					stm.execute("SET SCHEMA iqdf_junit");
-				}
-				finally
-				{
-					stm.close();
-				}
-
 				if (log.isDebugEnabled())
 				{
 					log.debug("Done creating jdbc connection");

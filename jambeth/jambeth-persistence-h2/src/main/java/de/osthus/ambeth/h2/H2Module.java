@@ -45,11 +45,11 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 	{
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
-			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionDialect.class);
 		}
 		else
 		{
-			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)

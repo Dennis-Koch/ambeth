@@ -3,15 +3,15 @@ package de.osthus.ambeth.persistence;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.IDatabasePool;
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.database.IDatabaseProvider;

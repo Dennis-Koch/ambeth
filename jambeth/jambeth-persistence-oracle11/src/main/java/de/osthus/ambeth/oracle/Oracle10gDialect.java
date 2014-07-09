@@ -10,7 +10,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
@@ -51,7 +50,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 {
 	public static class ConnectionKeyValue
 	{
-
 		protected String[] constraintSql;
 
 		protected String[][] disabledSql;
@@ -74,9 +72,9 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 	}
 
-	protected static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
-	protected static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
 
 	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
 
@@ -409,21 +407,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public boolean handleField(Class<?> fieldType, Object value, StringBuilder targetSb) throws Throwable
-	{
-		if (fieldType.equals(Date.class) || fieldType.equals(java.sql.Date.class))
-		{
-			Date date = conversionHelper.convertValueToType(Date.class, value);
-			targetSb.append("TO_DATE('");
-			targetSb.append(defaultDateFormat.format(date));
-			targetSb.append("','YYYY-MM-DD HH24-MI-SS')");
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public IList<String[]> disableConstraints(Connection connection)
+	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
 	{
 		ArrayList<String[]> disabled = new ArrayList<String[]>();
 
@@ -691,98 +675,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 	}
 
-	@SuppressWarnings("resource")
-	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException
-	{
-		Statement stmt = null;
-		ResultSet rs = null;
-		try
-		{
-			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT tname FROM tab");
-			while (rs.next())
-			{
-				if (!BIN_TABLE_NAME.matcher(rs.getString("tname")).matches() && !IDX_TABLE_NAME.matcher(rs.getString("tname")).matches())
-				{
-					return false;
-				}
-			}
-			rs.close();
-			rs = stmt
-					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'TABLE', 'TYPE', 'VIEW')");
-			return !rs.next();
-		}
-		finally
-		{
-			JdbcUtil.close(stmt, rs);
-		}
-	}
-
-	@Override
-	public String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
-	{
-		if (BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches())
-		{
-			return "";
-		}
-		int maxNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		StringBuilder sb = new StringBuilder();
-		String forTriggerName = tableName;
-		if (forTriggerName.length() >= maxNameLength - 3 - 3) // Substract 3 chars 'TR_' and 3 chars '_OL'
-		{
-			forTriggerName = forTriggerName.substring(0, maxNameLength - 3 - 3);
-		}
-		sb.append("create or replace TRIGGER \"TR_").append(forTriggerName).append("_OL\"");
-		sb.append("	BEFORE UPDATE ON \"").append(tableName).append("\" FOR EACH ROW");
-		sb.append(" BEGIN");
-		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
-		sb.append(" raise_application_error( -");
-		sb.append(getOptimisticLockErrorCode()).append(", 'Optimistic Lock Exception');");
-		sb.append(" end if;");
-		sb.append(" END;");
-		return sb.toString();
-	}
-
-	@Override
-	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException
-	{
-		Statement stmt = null;
-		ResultSet rs = null;
-		try
-		{
-			stmt = connection.createStatement();
-			stmt.execute("SELECT T.TNAME as TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE C.COLUMN_NAME = 'VERSION'");
-			rs = stmt.getResultSet();
-			ArrayList<String> tableNames = new ArrayList<String>();
-			while (rs.next())
-			{
-				String tableName = rs.getString("TNAME");
-				if (BIN_TABLE_NAME.matcher(tableName).matches())
-				{
-					continue;
-				}
-				String tableNameLower = tableName.toLowerCase();
-				if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
-				{
-					continue;
-				}
-				tableNames.add(tableName);
-			}
-			return tableNames;
-		}
-		finally
-		{
-			JdbcUtil.close(stmt, rs);
-		}
-	}
-
-	@Override
-	public String prepareCommand(String sqlCommand)
-	{
-		return sqlCommand;
-	}
-
 	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
 	{
@@ -815,6 +707,38 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 
 		return allTableNames;
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
+	{
+		List<String> allViewNames = new ArrayList<String>();
+
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			for (String schemaName : schemaNames)
+			{
+				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] { "VIEW" });
+
+				while (rs.next())
+				{
+					// String schemaName = rs.getString("TABLE_SCHEM");
+					String viewName = rs.getString("TABLE_NAME");
+					if (!BIN_TABLE_NAME.matcher(viewName).matches() && !IDX_TABLE_NAME.matcher(viewName).matches())
+					{
+						allViewNames.add("\"" + schemaName + "\".\"" + viewName + "\"");
+					}
+				}
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+
+		return allViewNames;
 	}
 
 	protected void buildOwnerInClause(final StringBuilder sb, final String... schemaNames)

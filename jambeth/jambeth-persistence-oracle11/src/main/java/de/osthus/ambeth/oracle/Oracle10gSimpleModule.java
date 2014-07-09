@@ -50,7 +50,7 @@ public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoad
 		}
 		else
 		{
-			beanContextFactory.registerBean("connectionDialect", Oracle10gDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean("connectionDialect", Oracle10gTestDialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)

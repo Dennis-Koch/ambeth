@@ -26,7 +26,6 @@ import de.osthus.ambeth.ioc.PersistenceJdbcModule;
 import de.osthus.ambeth.ioc.PersistenceModule;
 import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
-import de.osthus.ambeth.ioc.SecurityBytecodeModule;
 import de.osthus.ambeth.ioc.SecurityModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.ServiceModule;
@@ -45,7 +44,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
-		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, H2Module.class, SQLQueryModule.class,
+		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, H2Module.class, SQLQueryModule.class,
 		FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(NewAmbethPersistenceRunner.class)
