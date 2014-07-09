@@ -8,6 +8,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.filter.ioc.FilterPersistenceModule;
+import de.osthus.ambeth.h2.H2Module;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
@@ -25,6 +26,7 @@ import de.osthus.ambeth.ioc.PersistenceJdbcModule;
 import de.osthus.ambeth.ioc.PersistenceModule;
 import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
+import de.osthus.ambeth.ioc.SecurityBytecodeModule;
 import de.osthus.ambeth.ioc.SecurityModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.ServiceModule;
@@ -32,7 +34,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.oracle.Oracle10gModule;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.proxy.IEntityEquals;
@@ -44,7 +45,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
-		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, Oracle10gModule.class, SQLQueryModule.class,
+		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, H2Module.class, SQLQueryModule.class,
 		FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(NewAmbethPersistenceRunner.class)
@@ -60,8 +61,11 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 			props.put(ServiceConfigurationConstants.SlaveMode, "false");
 			props.put(ServiceConfigurationConstants.LogShortNames, "true");
 
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.oracle.Oracle10gConnectionModule");
+//			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "org.h2.jdbc.JdbcConnection");
+			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.h2.H2ConnectionModule");
+
+			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
+			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.oracle.Oracle10gConnectionModule");
 
 			// IocModule
 			props.put(IocConfigurationConstants.UseObjectCollector, "false");

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.List;
 
 import javax.persistence.PersistenceException;
 
@@ -42,9 +43,21 @@ public interface IConnectionDialect
 
 	boolean useVersionOnOptimisticUpdate();
 
+	boolean isEmptySchema(Connection connection) throws SQLException;
+
 	ResultSet getIndexInfo(Connection connection, String schemaName, String tableName, boolean unique) throws SQLException;
 
 	Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
 
 	String getFieldTypeNameByComponentType(Class<?> componentType);
+
+	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
+
+	String prepareCommand(String sqlCommand);
+
+	String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
+
+	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException;
+
+	List<String> buildDropAllSchemaContent(Connection conn, String schemaName);
 }

@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
@@ -36,17 +37,17 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
+import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.StringBuilderUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-public class Oracle10gDialect implements IConnectionDialect
+public class Oracle10gDialect extends AbstractConnectionDialect
 {
 	public static class ConnectionKeyValue
 	{
@@ -515,44 +516,6 @@ public class Oracle10gDialect implements IConnectionDialect
 	}
 
 	@Override
-	public void commit(Connection connection) throws SQLException
-	{
-		Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
-		if (active == null)
-		{
-			active = Boolean.valueOf(externalTransactionManager);
-		}
-		if (active.booleanValue())
-		{
-			// No Action!
-			// Transactions are externally managed.
-		}
-		else
-		{
-			connection.commit();
-		}
-	}
-
-	@Override
-	public void rollback(Connection connection) throws SQLException
-	{
-		Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
-		if (active == null)
-		{
-			active = Boolean.valueOf(externalTransactionManager);
-		}
-		if (active.booleanValue())
-		{
-			// No Action!
-			// Transactions are externally managed.
-		}
-		else
-		{
-			connection.rollback();
-		}
-	}
-
-	@Override
 	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
 	{
 		// noop: releaseSavepoint(Savepoint savepoint) is not supported by Oracle10g
@@ -595,12 +558,6 @@ public class Oracle10gDialect implements IConnectionDialect
 			return ex;
 		}
 		return null;
-	}
-
-	@Override
-	public boolean useVersionOnOptimisticUpdate()
-	{
-		return false;
 	}
 
 	@Override
@@ -731,6 +688,206 @@ public class Oracle10gDialect implements IConnectionDialect
 		{
 			JdbcUtil.close(createIndexStm);
 			JdbcUtil.close(stm, rs);
+		}
+	}
+
+	@SuppressWarnings("resource")
+	@Override
+	public boolean isEmptySchema(Connection connection) throws SQLException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = connection.createStatement();
+			rs = stmt.executeQuery("SELECT tname FROM tab");
+			while (rs.next())
+			{
+				if (!BIN_TABLE_NAME.matcher(rs.getString("tname")).matches() && !IDX_TABLE_NAME.matcher(rs.getString("tname")).matches())
+				{
+					return false;
+				}
+			}
+			rs.close();
+			rs = stmt
+					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'TABLE', 'TYPE', 'VIEW')");
+			return !rs.next();
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+	}
+
+	@Override
+	public String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
+	{
+		if (BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches())
+		{
+			return "";
+		}
+		int maxNameLength = connection.getMetaData().getMaxProcedureNameLength();
+		StringBuilder sb = new StringBuilder();
+		String forTriggerName = tableName;
+		if (forTriggerName.length() >= maxNameLength - 3 - 3) // Substract 3 chars 'TR_' and 3 chars '_OL'
+		{
+			forTriggerName = forTriggerName.substring(0, maxNameLength - 3 - 3);
+		}
+		sb.append("create or replace TRIGGER \"TR_").append(forTriggerName).append("_OL\"");
+		sb.append("	BEFORE UPDATE ON \"").append(tableName).append("\" FOR EACH ROW");
+		sb.append(" BEGIN");
+		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
+		sb.append(" raise_application_error( -");
+		sb.append(getOptimisticLockErrorCode()).append(", 'Optimistic Lock Exception');");
+		sb.append(" end if;");
+		sb.append(" END;");
+		return sb.toString();
+	}
+
+	@Override
+	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = connection.createStatement();
+			stmt.execute("SELECT T.TNAME as TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE C.COLUMN_NAME = 'VERSION'");
+			rs = stmt.getResultSet();
+			ArrayList<String> tableNames = new ArrayList<String>();
+			while (rs.next())
+			{
+				String tableName = rs.getString("TNAME");
+				if (BIN_TABLE_NAME.matcher(tableName).matches())
+				{
+					continue;
+				}
+				String tableNameLower = tableName.toLowerCase();
+				if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
+				{
+					continue;
+				}
+				tableNames.add(tableName);
+			}
+			return tableNames;
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+	}
+
+	@Override
+	public String prepareCommand(String sqlCommand)
+	{
+		return sqlCommand;
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
+	{
+		List<String> allTableNames = new ArrayList<String>();
+
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = connection.createStatement();
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("SELECT OWNER, TABLE_NAME FROM ALL_ALL_TABLES WHERE ");
+			buildOwnerInClause(sb, schemaNames);
+			stmt.execute(sb.toString());
+			rs = stmt.getResultSet();
+			while (rs.next())
+			{
+				String schemaName = rs.getString("OWNER");
+				String tableName = rs.getString("TABLE_NAME");
+				if (!BIN_TABLE_NAME.matcher(tableName).matches() && !IDX_TABLE_NAME.matcher(tableName).matches())
+				{
+					allTableNames.add("\"" + schemaName + "\".\"" + tableName + "\"");
+				}
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+
+		return allTableNames;
+	}
+
+	protected void buildOwnerInClause(final StringBuilder sb, final String... schemaNames)
+	{
+		sb.append("OWNER IN (");
+		boolean first = true;
+		for (int a = schemaNames.length; a-- > 0;)
+		{
+			if (!first)
+			{
+				sb.append(',');
+			}
+			sb.append('\'').append(schemaNames[a]).append('\'');
+			first = false;
+		}
+		sb.append(')');
+	}
+
+	@Override
+	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
+			rs = stmt.getResultSet();
+			List<String> sql = new ArrayList<String>();
+			while (rs.next())
+			{
+				String tableName = rs.getString(1);
+				if (BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches())
+				{
+					continue;
+				}
+				String tableType = rs.getString(2);
+				if ("VIEW".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+				}
+				else if ("TABLE".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+				}
+				else if ("SYNONYM".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP SYNONYM " + escapeName(schemaName, tableName));
+				}
+			}
+			JdbcUtil.close(rs);
+			rs = stmt
+					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
+			while (rs.next())
+			{
+				String objectType = rs.getString("object_type");
+				String objectName = rs.getString("object_name");
+				if (BIN_TABLE_NAME.matcher(objectName).matches() || IDX_TABLE_NAME.matcher(objectName).matches())
+				{
+					continue;
+				}
+				sql.add("DROP " + objectType + " " + escapeName(schemaName, objectName));
+			}
+			sql.add("PURGE RECYCLEBIN");
+			return sql;
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
 		}
 	}
 }
