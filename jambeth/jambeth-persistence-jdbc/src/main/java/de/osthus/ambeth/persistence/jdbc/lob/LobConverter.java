@@ -17,10 +17,10 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class LobConversionHelper implements IDedicatedConverter, IInitializingBean
+public class LobConverter implements IDedicatedConverter, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(LobConversionHelper.class)
+	@LogInstance(LobConverter.class)
 	private ILogger log;
 
 	protected Connection connection;
