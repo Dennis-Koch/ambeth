@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.objectcollector.NoOpObjectCollector;
 import de.osthus.ambeth.persistence.PersistenceHelper;
+import de.osthus.ambeth.sql.SqlBuilder;
 
 public class SqlBuilderTest
 {

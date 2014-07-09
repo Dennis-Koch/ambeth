@@ -8,13 +8,11 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -26,6 +24,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
+import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 
 public class H2Dialect extends AbstractConnectionDialect implements IInitializingBean
@@ -38,6 +37,8 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	protected IConnectionFactory connectionFactory;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -52,6 +53,10 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 		try
 		{
 			stm = connection.createStatement();
+			stm.execute("SET MULTI_THREADED 1");
+			stm.execute("SET DB_CLOSE_DELAY -1");
+			stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaNames[0] + "\"");
+			stm.execute("SET SCHEMA \"" + schemaNames[0] + "\"");
 
 			rs = stm.executeQuery("SELECT alias_name FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
 			HashSet<String> functionAliases = new HashSet<String>();
@@ -60,8 +65,6 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 				functionAliases.add(rs.getString("alias_name").toUpperCase());
 			}
 			rs.close();
-			rs = stm.executeQuery("SELECT * FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
-			printResultSet(rs);
 			createAliasIfNecessary("TO_TIMESTAMP", Functions.class.getName() + ".toTimestamp", functionAliases, stm);
 		}
 		catch (Throwable e)
@@ -130,22 +133,63 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 	}
 
 	@Override
-	public boolean handleField(Class<?> fieldType, Object value, StringBuilder targetSb) throws Throwable
+	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
 	{
-		throw new UnsupportedOperationException();
-	}
+		Statement stm = null;
+		try
+		{
+			List<String> allTableNames = getAllFullqualifiedTableNames(connection, schemaNames);
+			ArrayList<String[]> sql = new ArrayList<String[]>(allTableNames.size());
 
-	@Override
-	public IList<String[]> disableConstraints(Connection connection)
-	{
-		// H2 does not support deferrable constraints
-		return EmptyList.getInstance();
+			stm = connection.createStatement();
+			for (int i = allTableNames.size(); i-- > 0;)
+			{
+				String tableName = allTableNames.get(i);
+				String disableSql = "ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY FALSE";
+				sql.add(new String[] { disableSql, tableName });
+
+				stm.addBatch(disableSql);
+			}
+			stm.executeBatch();
+			return sql;
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			JdbcUtil.close(stm);
+		}
 	}
 
 	@Override
 	public void enableConstraints(Connection connection, IList<String[]> disabled)
 	{
-		// H2 does not support deferrable constraints
+		if (disabled == null || disabled.isEmpty())
+		{
+			return;
+		}
+		Statement stm = null;
+		try
+		{
+			stm = connection.createStatement();
+			for (int i = disabled.size(); i-- > 0;)
+			{
+				String tableName = disabled.get(i)[1];
+
+				stm.addBatch("ALTER TABLE " + tableName + " SET REFERENTIAL_INTEGRITY TRUE CHECK");
+			}
+			stm.executeBatch();
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			JdbcUtil.close(stm);
+		}
 	}
 
 	@Override
@@ -199,215 +243,49 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 	}
 
 	@Override
-	public boolean isEmptySchema(Connection connection) throws SQLException
-	{
-		Statement stm = null;
-		ResultSet rs = null;
-		try
-		{
-			stm = connection.createStatement();
-			rs = stm.executeQuery("SELECT TABLE_TYPE FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE<>'SYSTEM TABLE'");
-
-			while (rs.next())
-			{
-				return false;
-			}
-
-			return true;
-		}
-		finally
-		{
-			JdbcUtil.close(stm, rs);
-		}
-	}
-
-	@Override
-	public String prepareCommand(String sqlCommand)
-	{
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote("NUMBER(1,0)"), "BOOLEAN");
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote("NUMBER(9,0)"), "INT");
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote("NUMBER(18,0)"), "LONG");
-		sqlCommand = sqlCommand.replaceAll("VARCHAR2\\((\\d+) BYTE\\)", "VARCHAR($1)");
-		sqlCommand = sqlCommand.replaceAll("VARCHAR2\\((\\d+) CHAR\\)", "VARCHAR($1)");
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote(" DEFERRABLE INITIALLY DEFERRED"), "");
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote(" NOORDER"), "");
-		sqlCommand = sqlCommand.replaceAll(Pattern.quote(" USING INDEX"), "");
-		sqlCommand = sqlCommand.replaceAll("MAXVALUE 9{19,} ", "MAXVALUE 999999999999999999");
-
-		sqlCommand = sqlCommand.replaceAll("to_timestamp\\(", "TO_TIMESTAMP(");
-		return sqlCommand;
-	}
-
-	@Override
-	public String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
-	{
-		String forTriggerName = "TR_" + tableName + "_OL";
-		return "CREATE TRIGGER " + escapeName(null, forTriggerName) + " AFTER UPDATE ON " + escapeName(null, tableName) + " FOR EACH ROW CALL \""
-				+ OptimisticLockTrigger.class.getName() + "\"";
-	}
-
-	@Override
-	public List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException
-	{
-		Statement stm = null;
-		ResultSet rs = null;
-		try
-		{
-			stm = connection.createStatement();
-			rs = stm.executeQuery("SELECT tab.table_name AS table_nam FROM INFORMATION_SCHEMA.TABLES AS tab LEFT OUTER JOIN INFORMATION_SCHEMA.TRIGGERS AS tr ON tr.table_name=tab.table_name AND tr.table_schema=tab.table_schema WHERE tab.table_type<>'SYSTEM TABLE' and (tr.java_class IS NULL OR tr.java_class<>'"
-					+ OptimisticLockTrigger.class.getName() + "')");
-
-			ArrayList<String> tableNames = new ArrayList<String>();
-			// ResultSetMetaData metaData = rs.getMetaData();
-			// int columnCount = metaData.getColumnCount();
-			// for (int a = 0, size = columnCount; a < size; a++)
-			// {
-			// System.out.print(metaData.getColumnLabel(a + 1));
-			// System.out.print("\t\t");
-			// }
-			while (rs.next())
-			{
-				String tableName = rs.getString("table_nam");
-				String tableNameLower = tableName.toLowerCase();
-				if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
-				{
-					continue;
-				}
-				tableNames.add(tableName);
-			}
-			return tableNames;
-		}
-		finally
-		{
-			JdbcUtil.close(stm, rs);
-		}
-	}
-
-	@Override
 	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
 	{
-		Statement stm = null;
+		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try
 		{
-			stm = connection.createStatement();
-			rs = stm.executeQuery("SELECT tab.table_schema, tab.table_name AS table_nam FROM INFORMATION_SCHEMA.TABLES AS tab WHERE tab.table_type='TABLE'");
-
+			pstm = connection.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema IN (?)");
+			pstm.setObject(1, schemaNames);
+			rs = pstm.executeQuery();
 			ArrayList<String> tableNames = new ArrayList<String>();
 			while (rs.next())
 			{
 				String tableSchema = rs.getString("table_schema");
-				String tableName = rs.getString("table_nam");
+				String tableName = rs.getString("table_name");
 				tableNames.add(escapeName(tableSchema, tableName));
 			}
 			return tableNames;
 		}
 		finally
 		{
-			JdbcUtil.close(stm, rs);
+			JdbcUtil.close(pstm, rs);
 		}
 	}
 
 	@Override
-	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
+	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
 	{
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try
 		{
-			List<String> sql = new ArrayList<String>();
+			pstm = connection.prepareStatement("SELECT table_schema, table_name AS table_nam FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
+			pstm.setObject(1, schemaNames);
+			rs = pstm.executeQuery();
 
+			ArrayList<String> viewNames = new ArrayList<String>();
+			while (rs.next())
 			{
-				pstm = conn.prepareStatement("SELECT table_schema AS schema, index_name as name FROM INFORMATION_SCHEMA.INDEXES WHERE table_schema=?");
-				pstm.setString(1, schemaName);
-				//
-				// stmt.execute("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					String schema = rs.getString("schema");
-					String objectName = rs.getString("name");
-					sql.add("DROP INDEX " + escapeName(schema, objectName));
-				}
-				JdbcUtil.close(pstm, rs);
+				String tableSchema = rs.getString("table_schema");
+				String tableName = rs.getString("table_nam");
+				viewNames.add(escapeName(tableSchema, tableName));
 			}
-			{
-				pstm = conn.prepareStatement("SELECT table_schema AS schema, table_name AS name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema=?");
-				pstm.setString(1, schemaName);
-				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					String tableSchema = rs.getString("schema");
-					String tableName = rs.getString("name");
-					sql.add("DROP TABLE " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
-				}
-				JdbcUtil.close(pstm, rs);
-			}
-			{
-				pstm = conn.prepareStatement("SELECT table_schema AS schema, table_name AS name FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema=?");
-				pstm.setString(1, schemaName);
-				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					String tableSchema = rs.getString("schema");
-					String tableName = rs.getString("name");
-					sql.add("DROP VIEW " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
-				}
-				JdbcUtil.close(pstm, rs);
-			}
-			{
-				pstm = conn.prepareStatement("SELECT alias_schema AS schema, alias_name AS name FROM INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE alias_schema=?");
-				pstm.setString(1, schemaName);
-				//
-				// stmt.execute("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					String schema = rs.getString("schema");
-					String objectName = rs.getString("name");
-					sql.add("DROP ALIAS " + escapeName(schema, objectName));
-				}
-				JdbcUtil.close(pstm, rs);
-			}
-			{
-				pstm = conn
-						.prepareStatement("SELECT sequence_schema AS schema, sequence_name AS name FROM INFORMATION_SCHEMA.SEQUENCES WHERE sequence_schema=?");
-				pstm.setString(1, schemaName);
-				//
-				// stmt.execute("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-				rs = pstm.executeQuery();
-				while (rs.next())
-				{
-					String schema = rs.getString("schema");
-					String objectName = rs.getString("name");
-					sql.add("DROP SEQUENCE " + escapeName(schema, objectName));
-				}
-				JdbcUtil.close(pstm, rs);
-			}
-			{
-				pstm = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS WHERE trigger_schema=?");
-				// pstm =
-				// conn.prepareStatement("SELECT trigger_schema AS schema, trigger_name AS name FROM INFORMATION_SCHEMA.TRIGGERS WHERE trigger_schema=?");
-				pstm.setString(1, schemaName);
-
-				//
-				// stmt.execute("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-				rs = pstm.executeQuery();
-				printResultSet(rs);
-
-				while (rs.next())
-				{
-					String schema = rs.getString("schema");
-					String objectName = rs.getString("name");
-					sql.add("DROP TRIGGER " + escapeName(schema, objectName));
-				}
-				JdbcUtil.close(pstm, rs);
-			}
-			return sql;
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
+			return viewNames;
 		}
 		finally
 		{

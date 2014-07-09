@@ -41,7 +41,7 @@ import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.h2.H2Dialect;
+import de.osthus.ambeth.h2.H2TestDialect;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -53,6 +53,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -94,8 +95,8 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 						+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
 						+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
 			}
-			contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor", "INFO");
-			contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.JDBCDatabaseWrapper", "INFO");
+			// contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor", "INFO");
+			// contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.JDBCDatabaseWrapper", "INFO");
 		}
 
 		@Override
@@ -103,7 +104,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		{
 			beanContextFactory.registerAnonymousBean(IocBootstrapModule.class);
 			// beanContextFactory.registerBean("connectionDialect", Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerBean("connectionDialect", H2Dialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean("connectionDialect", H2TestDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean("connectionFactory", ConnectionFactory.class).autowireable(IConnectionFactory.class);
 			beanContextFactory.registerBean("persistenceExceptionUtil", PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 		}
@@ -295,8 +296,8 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		Class<?> callingClass = getTestClass().getJavaClass();
 		try
 		{
+			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
 			Connection connection = getConnection();
-
 			ensureSchemaEmpty(connection);
 
 			ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
@@ -567,69 +568,9 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 
 	private void ensureExistanceOfNeededDatabaseObjects(final Connection conn) throws SQLException
 	{
-		// List<String> required = new ArrayList<String>(Arrays.asList("TSEQ", "TSEQSET", "GETROWS"));
-		// Statement stmt = null;
-		// ResultSet rs = null;
-		// try
-		// {
-		// stmt = conn.createStatement();
-		// stmt.execute("SELECT object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'PROCEDURE', 'TYPE')");
-		// rs = stmt.getResultSet();
-		//
-		// while (rs.next())
-		// {
-		// required.remove(rs.getString("object_name"));
-		// }
-		// JdbcUtil.close(stmt, rs);
-		//
-		// List<String> sql = new ArrayList<String>();
-		// StringBuilder command = new StringBuilder();
-		// for (int i = 0; i < required.size(); i++)
-		// {
-		// String missing = required.get(i);
-		// if ("TSEQ".equalsIgnoreCase(missing))
-		// {
-		// command.append("Create TYPE TSeq AS OBJECT ( rowIndex Number(12) )");
-		// }
-		// else if ("TSEQSET".equalsIgnoreCase(missing))
-		// {
-		// command.append("Create TYPE TSeqSet AS TABLE OF TSeq");
-		// }
-		// else if ("GETROWS".equalsIgnoreCase(missing))
-		// {
-		// command.append("CREATE or replace FUNCTION getRows(ARowCount Number) RETURN TSeqSet ");
-		// command.append("PIPELINED IS ");
-		// command.append("out_rec TSeq := TSeq(null);");
-		// command.append("i Number(12);");
-		// command.append("BEGIN ");
-		// command.append("i := ARowCount; ");
-		// command.append("while (i > 0) loop ");
-		// command.append("out_rec.rowIndex := i;");
-		// command.append("PIPE ROW(out_rec);");
-		// command.append("i := i - 1;");
-		// command.append("end loop;");
-		// command.append("return;");
-		// command.append("END;");
-		// }
-		// else
-		// {
-		// throw new IllegalArgumentException("Unhandled missing database object: " + missing);
-		// }
-		// if (command.length() > 0)
-		// {
-		// sql.add(command.toString());
-		// command.setLength(0);
-		// }
-		// }
-		// executeScript(sql, conn, false);
-		// sql.clear();
-		// }
-		// finally
-		// {
-		// JdbcUtil.close(stmt, rs);
-		// }
 		createOptimisticLockingTriggers(conn);
 		getOrCreateSchemaContext().getService(IConnectionDialect.class).preProcessConnection(conn, getSchemaNames(), true);
+		getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preProcessConnectionForTest(conn, getSchemaNames(), true);
 	}
 
 	protected void logMeasurement(final String name, final Object value)
@@ -645,14 +586,6 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		if (connection != null && !connection.isClosed())
 		{
 			return connection;
-		}
-		try
-		{
-			Thread.currentThread().getContextClassLoader().loadClass("oracle.jdbc.OracleDriver");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		Connection conn;
 		try
@@ -746,7 +679,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	private void ensureSchemaEmpty(final Connection conn) throws SQLException
 	{
 		String[] schemaNames = getSchemaNames();
-		if (!getOrCreateSchemaContext().getService(IConnectionDialect.class).isEmptySchema(conn))
+		if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).isEmptySchema(conn))
 		{
 			truncateMainSchema(conn, schemaNames[0]);
 		}
@@ -919,12 +852,12 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 			boolean success = false;
 			try
 			{
-				IList<String[]> disabled = disableConstraints(conn);
+				IList<String[]> disabled = getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn, getSchemaNames());
 				for (ISchemaRunnable schemaRunnable : schemaRunnables)
 				{
 					schemaRunnable.executeSchemaSql(conn);
 				}
-				enableConstraints(disabled, conn);
+				getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, disabled);
 				conn.commit();
 				success = true;
 			}
@@ -1137,24 +1070,14 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 
 	private void tearDownAllSQLContents(final Connection conn, final String schemaName) throws SQLException
 	{
-		List<String> sql = getOrCreateSchemaContext().getService(IConnectionDialect.class).buildDropAllSchemaContent(conn, schemaName);
+		List<String> sql = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).buildDropAllSchemaContent(conn, schemaName);
 		executeScript(sql, conn);
 		sql.clear();
 	}
 
-	private IList<String[]> disableConstraints(final Connection conn) throws SQLException
-	{
-		return getOrCreateSchemaContext().getService(IConnectionDialect.class).disableConstraints(conn);
-	}
-
-	private void enableConstraints(final IList<String[]> disabled, final Connection conn) throws SQLException
-	{
-		getOrCreateSchemaContext().getService(IConnectionDialect.class).enableConstraints(conn, disabled);
-	}
-
 	private void createOptimisticLockingTriggers(final Connection conn) throws SQLException
 	{
-		IConnectionDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionDialect.class);
+		IConnectionTestDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionTestDialect.class);
 
 		List<String> tableNames = connectionDialect.getTablesWithoutOptimisticLockTrigger(conn);
 
@@ -1183,12 +1106,12 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 			return;
 		}
 		final List<String> sql = new ArrayList<String>();
+
 		for (int i = allTableNames.size(); i-- > 0;)
 		{
 			String tableName = allTableNames.get(i);
-			sql.add("DELETE FROM " + tableName);
+			sql.add("DELETE FROM " + tableName + " CASCADE");
 		}
-
 		executeWithDeferredConstraints(new ISchemaRunnable()
 		{
 
@@ -1384,7 +1307,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 				}
 			}
 		}
-		command = getOrCreateSchemaContext().getService(IConnectionDialect.class).prepareCommand(command);
+		command = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).prepareCommand(command);
 		int loopCount = ((Integer) options.get("loop")).intValue();
 		if (loopCount == 1)
 		{
