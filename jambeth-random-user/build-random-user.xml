@@ -1,7 +1,9 @@
 <project name="jambeth-random-user">
 
 	<path id="classpath.random-user">
-		<pathelement location="../jambeth-testutil-persistence/target/classes" />
+		<fileset dir="./">
+			<include name="*.jar" />
+		</fileset>
 	</path>
 
 	<target name="create-random-user">
