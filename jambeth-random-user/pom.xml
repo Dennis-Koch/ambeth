@@ -59,6 +59,7 @@
 							<includes>de.osthus.ambeth</includes>
 						</includes>
 					</artifactSet>
+					<promoteTransitiveDependencies>true</promoteTransitiveDependencies>
 				</configuration>
 				<executions>
 					<execution>
@@ -81,6 +82,11 @@
 		<repository>
 			<id>osthus-snapshots</id>
 			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
+		</repository>
+
+		<repository>
+			<id>third-party</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/thirdparty/</url>
 		</repository>
 	</repositories>
 
