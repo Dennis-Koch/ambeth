@@ -1,0 +1,32 @@
+<project name="jambeth-random-user">
+
+	<path id="classpath.random-user">
+		<fileset dir="./">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="create-random-user">
+		<java classname="de.osthus.ambeth.testutil.RandomUserScript" fork="true" failonerror="true" maxmemory="128m">
+			<arg value="script.create=true" />
+			<arg value="script.user.pass=citemp" />
+			<arg value="script.user.propertyfile=${citemp.properties}" />
+			<arg value="property.file=${property.file}" />
+			<classpath>
+				<path refid="classpath.random-user" />
+			</classpath>
+		</java>
+	</target>
+
+	<target name="remove-random-user">
+		<java classname="de.osthus.ambeth.testutil.RandomUserScript" fork="true" failonerror="false" maxmemory="128m">
+			<arg value="script.create=false" />
+			<arg value="script.user.propertyfile=${citemp.properties}" />
+			<arg value="property.file=${property.file}" />
+			<classpath>
+				<path refid="classpath.random-user" />
+			</classpath>
+		</java>
+	</target>
+
+</project>
