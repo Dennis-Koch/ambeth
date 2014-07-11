@@ -30,11 +30,7 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		if (!wrapAllInteractions || Callback.class.isAssignableFrom(type))
-		{
-			return null;
-		}
-		if (requestedTypes.size() > 2)
+		if (!type.isAnnotationPresent(LogException.class) && (!wrapAllInteractions || Callback.class.isAssignableFrom(type)))
 		{
 			return null;
 		}
