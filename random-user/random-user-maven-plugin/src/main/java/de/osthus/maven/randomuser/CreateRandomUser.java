@@ -38,6 +38,7 @@ public class CreateRandomUser extends AbstractMojo
 	{
 		try
 		{
+			citempFile.delete();
 			getLog().info("Creating citemp file '" + citempFile.getCanonicalPath() + "'");
 			citempFile.getParentFile().mkdirs();
 			citempFile.createNewFile();
