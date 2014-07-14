@@ -25,7 +25,7 @@ public class CreateRandomUser extends AbstractMojo
 	 * Location of the citemp properties file.
 	 */
 	@Parameter(property = "citemp.file", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
-	private File citempProperties;
+	private File citempFile;
 
 	/**
 	 * Location of the test database properties file.
@@ -38,8 +38,8 @@ public class CreateRandomUser extends AbstractMojo
 	{
 		try
 		{
-			propertyFile.getParentFile().mkdirs();
-			propertyFile.createNewFile();
+			citempFile.getParentFile().mkdirs();
+			citempFile.createNewFile();
 		}
 		catch (IOException e)
 		{
@@ -48,7 +48,7 @@ public class CreateRandomUser extends AbstractMojo
 
 		String[] args = { "script.create=true", //
 				"script.user.pass=citemp", //
-				"script.user.propertyfile=" + citempProperties, //
+				"script.user.propertyfile=" + citempFile, //
 				"property.file=" + propertyFile };
 		try
 		{
