@@ -10,7 +10,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import de.osthus.ambeth.testutil.RandomUserScript;
 
 /**
- * Goal which creates a oracle db user with a random name.
+ * Goal which creates an oracle db user with a random name.
  * 
  * Direct invocation is needed since there is no post-test phase to link the "remove" goal to.
  * 
