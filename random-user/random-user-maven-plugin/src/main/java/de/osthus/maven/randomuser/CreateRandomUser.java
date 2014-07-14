@@ -1,6 +1,7 @@
 package de.osthus.maven.randomuser;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -35,6 +36,16 @@ public class CreateRandomUser extends AbstractMojo
 	@Override
 	public void execute() throws MojoExecutionException
 	{
+		try
+		{
+			propertyFile.getParentFile().mkdirs();
+			propertyFile.createNewFile();
+		}
+		catch (IOException e)
+		{
+			throw new MojoExecutionException("Error during citemp file creation", e);
+		}
+
 		String[] args = { "script.create=true", //
 				"script.user.pass=citemp", //
 				"script.user.propertyfile=" + citempProperties, //
