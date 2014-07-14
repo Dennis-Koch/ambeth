@@ -285,6 +285,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		FileWriter fileWriter = null;
 		try
 		{
+			propertyFile.getParentFile().mkdirs();
+			propertyFile.createNewFile();
 			fileWriter = new FileWriter(propertyFile);
 			String content = createPropertyFileContent(createdUserNames, passwords);
 			fileWriter.append(content);

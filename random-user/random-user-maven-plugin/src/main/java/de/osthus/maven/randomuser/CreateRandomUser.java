@@ -23,7 +23,7 @@ public class CreateRandomUser extends AbstractMojo
 	/**
 	 * Location of the citemp properties file.
 	 */
-	@Parameter(property = "citemp.properties", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
+	@Parameter(property = "citemp.file", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
 	private File citempProperties;
 
 	/**
