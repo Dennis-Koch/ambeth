@@ -18,13 +18,13 @@ import de.osthus.ambeth.testutil.RandomUserScript;
 @Mojo(name = "remove", requiresDirectInvocation = true)
 public class RemoveRandomUser extends AbstractMojo
 {
-	private static final String CITEMP_PROPERTIES_NAME = "${project.build.directory}/citemp.properties";
+	private static final String CITEMP_PROPERTIES_NAME = "${basedir}/citemp.properties";
 
 	/**
 	 * Location of the citemp properties file.
 	 */
-	@Parameter(property = "citemp.properties", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
-	private File citempProperties;
+	@Parameter(property = "citemp.file", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
+	private File citempFile;
 
 	/**
 	 * Location of the test database properties file.
@@ -36,7 +36,7 @@ public class RemoveRandomUser extends AbstractMojo
 	public void execute() throws MojoExecutionException
 	{
 		String[] args = { "script.create=false", //
-				"script.user.propertyfile=" + citempProperties, //
+				"script.user.propertyfile=" + citempFile, //
 				"property.file=" + propertyFile };
 		try
 		{
