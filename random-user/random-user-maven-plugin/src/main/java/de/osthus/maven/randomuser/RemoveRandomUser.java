@@ -15,7 +15,7 @@ import de.osthus.ambeth.testutil.RandomUserScript;
  * Direct invocation is needed since there is no post-test phase to link the "remove" goal to.
  * 
  */
-@Mojo(name = "remove", requiresDirectInvocation = true)
+@Mojo(name = "remove", requiresDirectInvocation = true, aggregator = true)
 public class RemoveRandomUser extends AbstractMojo
 {
 	private static final String CITEMP_PROPERTIES_NAME = "${basedir}/citemp.properties";

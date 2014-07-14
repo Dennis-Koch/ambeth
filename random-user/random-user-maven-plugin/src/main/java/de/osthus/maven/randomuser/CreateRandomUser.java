@@ -16,7 +16,7 @@ import de.osthus.ambeth.testutil.RandomUserScript;
  * Direct invocation is needed since there is no post-test phase to link the "remove" goal to.
  * 
  */
-@Mojo(name = "create", requiresDirectInvocation = true)
+@Mojo(name = "create", requiresDirectInvocation = true, aggregator = true)
 public class CreateRandomUser extends AbstractMojo
 {
 	private static final String CITEMP_PROPERTIES_NAME = "${basedir}/citemp.properties";
@@ -38,7 +38,7 @@ public class CreateRandomUser extends AbstractMojo
 	{
 		try
 		{
-			citempFile.delete();
+			citempFile.delete(); // To remove a surviving file from last build
 			getLog().info("Creating citemp file '" + citempFile.getCanonicalPath() + "'");
 			citempFile.getParentFile().mkdirs();
 			citempFile.createNewFile();
