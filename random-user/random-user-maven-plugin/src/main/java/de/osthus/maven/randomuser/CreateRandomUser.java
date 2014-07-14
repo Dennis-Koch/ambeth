@@ -19,7 +19,7 @@ import de.osthus.ambeth.testutil.RandomUserScript;
 @Mojo(name = "create", requiresDirectInvocation = true)
 public class CreateRandomUser extends AbstractMojo
 {
-	private static final String CITEMP_PROPERTIES_NAME = "${project.build.directory}/citemp.properties";
+	private static final String CITEMP_PROPERTIES_NAME = "${basedir}/citemp.properties";
 
 	/**
 	 * Location of the citemp properties file.
