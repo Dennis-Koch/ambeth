@@ -1,14 +1,6 @@
 package de.osthus.maven.randomuser;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-
-import de.osthus.ambeth.testutil.RandomUserScript;
 
 /**
  * Goal which creates an oracle db user with a random name.
@@ -17,48 +9,22 @@ import de.osthus.ambeth.testutil.RandomUserScript;
  * 
  */
 @Mojo(name = "create", requiresDirectInvocation = true, aggregator = true)
-public class CreateRandomUser extends AbstractMojo
+public class CreateRandomUser extends AbstractRandomUserMojo
 {
-	private static final String CITEMP_PROPERTIES_NAME = "${basedir}/citemp.properties";
-
-	/**
-	 * Location of the citemp properties file.
-	 */
-	@Parameter(property = "citemp.file", defaultValue = CITEMP_PROPERTIES_NAME, required = true)
-	private File citempFile;
-
-	/**
-	 * Location of the test database properties file.
-	 */
-	@Parameter(property = "property.file", required = true)
-	private File propertyFile;
-
 	@Override
-	public void execute() throws MojoExecutionException
+	protected String[] getArgsArray()
 	{
-		try
-		{
-			citempFile.delete(); // To remove a surviving file from last build
-			getLog().info("Creating citemp file '" + citempFile.getCanonicalPath() + "'");
-			citempFile.getParentFile().mkdirs();
-			citempFile.createNewFile();
-		}
-		catch (IOException e)
-		{
-			throw new MojoExecutionException("Error during citemp file creation", e);
-		}
-
 		String[] args = { "script.create=true", //
 				"script.user.pass=citemp", //
 				"script.user.propertyfile=" + citempFile, //
 				"property.file=" + propertyFile };
-		try
-		{
-			RandomUserScript.main(args);
-		}
-		catch (Throwable e)
-		{
-			throw new MojoExecutionException("Error during Oracle DB temp user creation", e);
-		}
+
+		return args;
+	}
+
+	@Override
+	protected String getErrorMessage()
+	{
+		return "Error during Oracle DB temp user creation";
 	}
 }
