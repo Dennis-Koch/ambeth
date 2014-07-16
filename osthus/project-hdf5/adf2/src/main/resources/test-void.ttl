@@ -1,0 +1,33 @@
+@prefix void: <http://rdfs.org/ns/void#> .
+
+<http://purl.allotrope.org/member/ACME/test/studies#aggregation> 
+	a	void:Dataset;
+	void:vocabulary <http://www.openarchives.org/ore/terms/>, 
+				    <http://purl.obolibrary.org/obo/ms/2011-11-29/ms.owl#>,
+					<http://purl.obolibrary.org/obo/uo.owl#>,
+					<http://framework.allotrope.org/ontologies/adf/>,
+					<http://purl.org/dc/elements/1.1/>,
+					<http://purl.org/dc/terms/>,
+					<http://xmlns.com/foaf/0.1/>;	
+	void:subset		<http://purl.allotrope.org/member/ACME/test/studies/study1#aggregation>, 
+					<http://purl.allotrope.org/member/ACME/test/studies/study2#aggregation>; 
+	.
+	
+
+<http://purl.allotrope.org/member/ACME/test/studies/study1#aggregation>
+	a	void:Dataset;
+	void:subset		<http://purl.allotrope.org/member/ACME/test/studies/study1/t2013#aggregation>, 
+					<http://purl.allotrope.org/member/ACME/test/studies/study1/t2014#aggregation>; 
+	.
+						
+<http://purl.allotrope.org/member/ACME/test/studies/study1/t2013#aggregation>
+	a	void:Dataset;
+	void:subset 	<http://purl.allotrope.org/member/ACME/test/studies/study1/t2013/ms1>, 
+					<http://purl.allotrope.org/member/ACME/test/studies/study1/t2013/ms2>;
+    .
+<http://purl.allotrope.org/member/ACME/test/studies/study1/t2014#aggregation>
+	a	void:Dataset;
+	void:subset 	<http://purl.allotrope.org/member/ACME/test/studies/study1/t2014/ms1>, 
+					<http://purl.allotrope.org/member/ACME/test/studies/study1/t2014/ms2>;
+    .
+
