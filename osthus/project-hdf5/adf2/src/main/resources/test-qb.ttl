@@ -1,0 +1,79 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ore: <http://www.openarchives.org/ore/terms/> .
+@prefix rdfs: <http://www.w3.org/2001/01/rdf-schema#> .
+@prefix local: <info:BagIt/data/> .
+@prefix public: <http://purl.allotrope.org/member/ACME/test/> .
+@prefix adf: <http://framework.allotrope.org/ontologies/adf/> .
+@prefix uo: <http://purl.obolibrary.org/obo/uo.owl#> .
+@prefix ms: <http://purl.obolibrary.org/obo/ms/2011-11-29/ms.owl#> .
+@prefix xs: <http://www.w3.org/2001/XMLSchema> .
+@prefix qb:   <http://purl.org/linked-data/cube#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#>  .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+adf:mass-spectrum-series a qb:DataStructureDefinition;
+	qb:component adf:dimension-run;
+	qb:component adf:measure-mass-spectrum;
+	.
+
+adf:tic-chromatogram a qb:DataStructureDefinition;
+	qb:component adf:dimension-retention-time;
+	qb:component adf:measure-tic;
+	.
+
+adf:absorption-chromatogram a qb:DataStructureDefinition;
+	qb:component adf:dimension-retention-time;
+	qb:component adf:measure-absorption;
+	.
+
+adf:transmission-chromatogram a qb:DataStructureDefinition;
+	qb:component adf:dimension-retention-time;
+	qb:component adf:measure-transmission;
+	.
+	
+adf:dimension-run 			qb:dimension  adf:run.
+adf:dimension-precursor    qb:dimension  adf:precursor.
+adf:dimension-retention-time   qb:dimension  adf:retention-time.
+
+adf:retention-time a skos:Concept.
+adf:sample-id      a skos:Concept.
+adf:precursor      a skos:Concept.
+
+	
+adf:dimension-position-x    	qb:dimension  	adf:position-x.
+adf:dimension-position-y    	qb:dimension  	adf:position-y.
+adf:dimension-position-z    	qb:dimension  	adf:position-y.
+adf:measure-mass-spectrum		qb:measure   	ms:mass-spectrum.
+adf:measure-tic  				qb:measure   	ms:total-ion-count.
+adf:measure-absorption  		qb:measure   	ms:absorption.
+adf:measure-transmission  		qb:measure   	ms:transmission.
+	
+<http://purl.allotrope.org/member/ACME/test/data/mass-spectra/schema> 
+		a				qb:DataSet;
+		qb:structure	adf:mass-spectrum-series;
+		.
+
+<http://purl.allotrope.org/member/ACME/test/data/mass-spectra/1> 
+	a qb:Observation, ms:1000294;
+	qb:dataSet <http://purl.allotrope.org/member/ACME/test/data/mass-spectra/schema> ;
+	dc:created "2014-07-07T14:33:00Z"^^xs:dateTime;
+	adf:run "1"^^xs:integer;
+	ms:mass-spectrum "@[0]";
+	.
+
+
+<http://purl.allotrope.org/member/ACME/test/data/mass-spectra/1/dim/0> 
+	a ms:1000514; # m/z array
+	ms:has_units	ms:UO1000040;
+	rdf:label	    "m/z";
+	.
+									  
+<http://purl.allotrope.org/member/ACME/test/data/mass-spectra/1/dim/1> 
+	a ms:1000516; # charge array
+	ms:has_units	uo:UO0000189; # count
+	rdf:label	 "IC";
+	.
