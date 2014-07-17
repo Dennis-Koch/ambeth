@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -198,17 +199,103 @@ public class DirectoryPathTest
 	}
 
 	@Test
-	@Ignore
-	public void testResolvePath()
+	public void testResolvePath_otherEmpty()
 	{
-		fail("Not yet implemented");
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("");
+
+		Path resolved = path1.resolve(path2);
+		assertSame(path1, resolved);
 	}
 
 	@Test
-	@Ignore
-	public void testResolveString()
+	public void testResolvePath_bothAbsolute()
 	{
-		fail("Not yet implemented");
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+
+		Path resolved = path1.resolve(path2);
+		assertSame(path2, resolved);
+	}
+
+	@Test
+	public void testResolvePath_thisRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+
+		Path resolved = path1.resolve(path2);
+		assertSame(path2, resolved);
+	}
+
+	@Test
+	public void testResolvePath_otherRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+
+		Path resolved = path1.resolve(path2);
+		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+	}
+
+	@Test
+	public void testResolvePath_bothRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+
+		Path resolved = path1.resolve(path2);
+		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+	}
+
+	@Test
+	public void testResolveString_otherEmpty()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("");
+
+		Path resolved = path1.resolve(path2);
+		assertSame(path1, resolved);
+	}
+
+	@Test
+	public void testResolveString_bothAbsolute()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+
+		Path resolved = path1.resolve(path2.path);
+		assertEquals(path2, resolved);
+	}
+
+	@Test
+	public void testResolveString_thisRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+
+		Path resolved = path1.resolve(path2.path);
+		assertEquals(path2, resolved);
+	}
+
+	@Test
+	public void testResolveString_otherRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+
+		Path resolved = path1.resolve(path2.path);
+		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+	}
+
+	@Test
+	public void testResolveString_bothRelative()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+
+		Path resolved = path1.resolve(path2.path);
+		assertEquals(path1.path + "/" + path2.path, resolved.toString());
 	}
 
 	@Test

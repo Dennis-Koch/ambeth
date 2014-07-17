@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.spi.FileSystemProvider;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -70,7 +71,6 @@ public class PackAndUnpackTest
 	}
 
 	@Test
-	@Ignore
 	public void testPack() throws IOException
 	{
 		Path targetDirDirectory = targetFileSystem.getPath("/");
@@ -103,10 +103,11 @@ public class PackAndUnpackTest
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
-				System.out.println("file: " + file + " -> " + target);
-
 				Path relativPath = source.relativize(file);
 				Path newPath = target.resolve(relativPath);
+
+				System.out.println("file: " + file + " -> " + newPath);
+
 				Files.copy(file, newPath);
 
 				return FileVisitResult.CONTINUE;
@@ -115,24 +116,20 @@ public class PackAndUnpackTest
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
 			{
-				System.out.println("dir: " + dir + " -> " + target);
+				if (dir.equals(source))
+				{
+					return FileVisitResult.CONTINUE;
+				}
 
 				Path relativPath = source.relativize(dir);
 				Path newPath = target.resolve(relativPath);
-				Files.createDirectories(newPath);
 
-				// dir.toFile().deleteOnExit();
-				//
-				// FileSystem targetFileSystem = target.getFileSystem();
-				// FileSystemProvider targetFileSystemProvider = targetFileSystem.provider();
-				// try
-				// {
-				// targetFileSystemProvider.createDirectory(dir);
-				// }
-				// catch (IOException e)
-				// {
-				// throw new RuntimeException(e);
-				// }
+				System.out.println("dir: " + dir + " -> " + newPath);
+
+				FileSystem targetFileSystem = newPath.getFileSystem();
+				FileSystemProvider targetFileSystemProvider = targetFileSystem.provider();
+
+				targetFileSystemProvider.createDirectory(dir);
 
 				return FileVisitResult.CONTINUE;
 			}
