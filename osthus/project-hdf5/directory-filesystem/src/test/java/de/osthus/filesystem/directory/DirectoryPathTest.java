@@ -91,11 +91,45 @@ public class DirectoryPathTest
 	public void testGetParent()
 	{
 		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		// TODO replace with resolve() when implemented
 		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", root.path + "tmp");
 
 		DirectoryPath parent = path.getParent();
 		assertNotNull(parent);
 		assertEquals(root, parent);
+	}
+
+	@Test
+	public void testGetParent_relativeSingleName()
+	{
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "tmp");
+
+		DirectoryPath parent = path.getParent();
+		assertNull(parent);
+	}
+
+	@Test
+	public void testGetParent_relativeNames()
+	{
+		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
+		// TODO replace with resolve() when implemented
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.path + "/tmp");
+
+		DirectoryPath parent = path.getParent();
+		assertNotNull(parent);
+		assertEquals(expected, parent);
+	}
+
+	@Test
+	public void testGetParent_relativeNamesDir()
+	{
+		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
+		// TODO replace with resolve() when implemented
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.path + "/tmp/");
+
+		DirectoryPath parent = path.getParent();
+		assertNotNull(parent);
+		assertEquals(expected, parent);
 	}
 
 	@Test
