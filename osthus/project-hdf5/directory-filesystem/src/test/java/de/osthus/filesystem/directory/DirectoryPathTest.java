@@ -9,7 +9,6 @@ import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -33,7 +32,7 @@ public class DirectoryPathTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		DIRECTORY_FILE_SYSTEM_PROVIDER = new DirectoryFileSystemProvider();
-		URI uri = new URI(TestConstant.NAME_DIR_FS_C_TEMP);
+		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
 		DIRECTORY_FILE_SYSTEM = DIRECTORY_FILE_SYSTEM_PROVIDER.newFileSystem(uri, null);
 	}
 
@@ -45,46 +44,6 @@ public class DirectoryPathTest
 	@Before
 	public void setUp() throws Exception
 	{
-		Path path = Paths.get("\\test");
-		Path fileName = path.getFileName();
-		int nameCount = path.getNameCount();
-		Path parent = path.getParent();
-		Path root = path.getRoot();
-		Path rootFileName = root.getFileName();
-		Path rootRoot = root.getRoot();
-
-		path = Paths.get("test");
-		nameCount = path.getNameCount();
-		parent = path.getParent();
-		root = path.getRoot();
-
-		path = Paths.get("/test/test2/test2");
-		nameCount = path.getNameCount();
-		parent = path.getParent();
-		root = path.getRoot();
-
-		path = Paths.get("test/test2/test2");
-		nameCount = path.getNameCount();
-		parent = path.getParent();
-		root = path.getRoot();
-
-		path = Paths.get("c:\\test\\test2\\test2");
-		nameCount = path.getNameCount();
-		fileName = path.getFileName();
-		parent = path.getParent();
-		root = path.getRoot();
-		rootFileName = root.getFileName();
-		rootRoot = root.getRoot();
-
-		path = Paths.get("c:\\");
-		fileName = path.getFileName();
-		nameCount = path.getNameCount();
-		parent = path.getParent();
-		root = path.getRoot();
-		rootFileName = root.getFileName();
-		rootRoot = root.getRoot();
-
-		System.out.println();
 	}
 
 	@After

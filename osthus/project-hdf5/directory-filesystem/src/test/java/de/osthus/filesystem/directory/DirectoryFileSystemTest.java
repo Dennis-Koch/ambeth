@@ -8,11 +8,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.Set;
@@ -35,12 +35,7 @@ public class DirectoryFileSystemTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		defaultFileSystem = FileSystems.getDefault();
-
-		String tempDirName = System.getProperty("java.io.tmpdir");
-		Path tempPath = Paths.get(tempDirName);
-		URI tempUri = tempPath.toUri();
-
-		testUri = new URI("dir:///" + tempUri.toString());
+		testUri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
 		directoryFileSystemProvider = new DirectoryFileSystemProvider();
 	}
 
@@ -84,6 +79,13 @@ public class DirectoryFileSystemTest
 
 		directoryFileSystem.close();
 		assertFalse(directoryFileSystem.isOpen());
+	}
+
+	@Test(expected = ClosedFileSystemException.class)
+	public void testIsOpenCheck() throws IOException
+	{
+		directoryFileSystem.close();
+		directoryFileSystem.getSeparator();
 	}
 
 	@Test
@@ -165,6 +167,19 @@ public class DirectoryFileSystemTest
 	{
 		String first = "/data";
 		String second = "/test/";
+		String third = "/dir";
+		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
+		assertNotNull(path);
+		assertSame(directoryFileSystem, path.fileSystem);
+		assertEquals("/", path.root);
+		assertEquals("/data/test/dir", path.path);
+	}
+
+	@Test
+	public void testGetPath_concat2()
+	{
+		String first = "/data";
+		String second = "\\test\\";
 		String third = "/dir";
 		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
 		assertNotNull(path);
