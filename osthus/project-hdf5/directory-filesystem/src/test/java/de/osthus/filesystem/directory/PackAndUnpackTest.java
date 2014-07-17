@@ -58,7 +58,7 @@ public class PackAndUnpackTest
 		unpackDirectory = Paths.get(tempDirectory.toString(), "unpack");
 		Files.createDirectories(unpackDirectory);
 
-		URI uri = new URI("dir:///" + tempDirectory.toUri());
+		URI uri = new URI("dir:///" + targetDirectory.toUri());
 		targetFileSystem = directoryFileSystemProvider.useFileSystem(uri);
 	}
 
@@ -71,7 +71,8 @@ public class PackAndUnpackTest
 	@Test
 	public void testPack() throws IOException
 	{
-		recursiveCopyDirFS(sourceDirectory, targetDirectory);
+		Path targetDirDirectory = targetFileSystem.getPath("/");
+		recursiveCopyDirFS(sourceDirectory, targetDirDirectory);
 		// TODO copy all file and folders from the sourceDirectory to the targetDirectory via the DirectoryFileSystem.
 		// TODO check result
 	}

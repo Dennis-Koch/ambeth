@@ -8,10 +8,12 @@ import java.net.URISyntaxException;
 import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
-import java.nio.file.FileSystem;
+import java.nio.file.FileStore;
+import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
@@ -85,11 +87,23 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.newFileChannel(path, options, attrs);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetPathURI()
+	@Test
+	public void testGetPathURI() throws URISyntaxException
 	{
-		URI uri = null;
-		directoryFileSystemProvider.getPath(uri);
+		String dirFsUriString = "dir:///file:///C:/temp/target/";
+		String folderPathString = "/insideDirFs/folder";
+		// The two / at the join point are important
+		String fullUriString = dirFsUriString + folderPathString;
+		URI fullUri = new URI(fullUriString);
+
+		DirectoryPath path = directoryFileSystemProvider.getPath(fullUri);
+
+		URI dirFsUri = new URI(dirFsUriString);
+		DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
+		assertEquals(dirFileSystem, path.fileSystem);
+
+		assertEquals(dirFileSystem.getSeparator(), path.root);
+		assertEquals(folderPathString, path.path);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -157,13 +171,22 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.isHidden(path);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetFileStorePath() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.DIR_FS_NAME_C_TEMP);
-		FileSystem fileSystem = directoryFileSystemProvider.newFileSystem(uri, Collections.<String, Object> emptyMap());
-		Path path = new DirectoryPath(fileSystem, "", "");
-		directoryFileSystemProvider.getFileStore(path);
+		URI sysUri = new URI(TestConstant.NAME_FILE_FS_C_TEMP);
+		Path sysPath = Paths.get(sysUri);
+
+		// TODO Implement getPath to expect full uri, split it to get FS and from that the Path obj
+		// Path dirPath = directoryFileSystemProvider.getPath(uri);
+
+		URI dirUri = new URI(TestConstant.NAME_DIR_FS_C_TEMP);
+		DirectoryFileSystem fileSystem = directoryFileSystemProvider.newFileSystem(dirUri, Collections.<String, Object> emptyMap());
+		Path dirPath = new DirectoryPath(fileSystem, "", "");
+
+		FileStore expected = FileSystems.getDefault().provider().getFileStore(sysPath);
+		FileStore actual = directoryFileSystemProvider.getFileStore(dirPath);
+		assertEquals(expected, actual);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

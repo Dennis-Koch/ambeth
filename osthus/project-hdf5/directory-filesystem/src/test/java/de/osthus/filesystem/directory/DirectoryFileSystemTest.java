@@ -12,6 +12,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.Set;
@@ -24,7 +25,6 @@ import org.junit.Test;
 
 public class DirectoryFileSystemTest
 {
-
 	private static FileSystem defaultFileSystem;
 
 	private static URI testUri;
@@ -35,8 +35,12 @@ public class DirectoryFileSystemTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		defaultFileSystem = FileSystems.getDefault();
-		String schemeOfDefaultFileSystem = defaultFileSystem.provider().getScheme();
-		testUri = new URI("dir:///" + schemeOfDefaultFileSystem + ":///");
+
+		String tempDirName = System.getProperty("java.io.tmpdir");
+		Path tempPath = Paths.get(tempDirName);
+		URI tempUri = tempPath.toUri();
+
+		testUri = new URI("dir:///" + tempUri.toString());
 		directoryFileSystemProvider = new DirectoryFileSystemProvider();
 	}
 
@@ -45,7 +49,7 @@ public class DirectoryFileSystemTest
 	{
 	}
 
-	private FileSystem directoryFileSystem;
+	private DirectoryFileSystem directoryFileSystem;
 
 	@Before
 	public void setUp() throws Exception
@@ -123,12 +127,50 @@ public class DirectoryFileSystemTest
 		assertNotNull(supportedFileAttributeViews);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetPathStringStringArray()
+	@Test
+	public void testGetPath_empty()
 	{
-		String first = null;
-		Path path = directoryFileSystem.getPath(first);
+		String first = "";
+		DirectoryPath path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
+		assertSame(directoryFileSystem, path.fileSystem);
+		assertEquals("", path.root);
+		assertEquals("", path.path);
+	}
+
+	@Test
+	public void testGetPath_root()
+	{
+		String first = "/";
+		DirectoryPath path = directoryFileSystem.getPath(first);
+		assertNotNull(path);
+		assertSame(directoryFileSystem, path.fileSystem);
+		assertEquals("/", path.root);
+		assertEquals("/", path.path);
+	}
+
+	@Test
+	public void testGetPath_simple()
+	{
+		String first = "/data";
+		DirectoryPath path = directoryFileSystem.getPath(first);
+		assertNotNull(path);
+		assertSame(directoryFileSystem, path.fileSystem);
+		assertEquals("/", path.root);
+		assertEquals("/data", path.path);
+	}
+
+	@Test
+	public void testGetPath_concat1()
+	{
+		String first = "/data";
+		String second = "/test/";
+		String third = "/dir";
+		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
+		assertNotNull(path);
+		assertSame(directoryFileSystem, path.fileSystem);
+		assertEquals("/", path.root);
+		assertEquals("/data/test/dir", path.path);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

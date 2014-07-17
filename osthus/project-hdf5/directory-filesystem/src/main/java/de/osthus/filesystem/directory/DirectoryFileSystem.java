@@ -1,7 +1,6 @@
 package de.osthus.filesystem.directory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
@@ -13,9 +12,6 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
 /**
  * Sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
  * 
@@ -24,26 +20,24 @@ import lombok.Getter;
  */
 public class DirectoryFileSystem extends FileSystem
 {
-
 	private static final String SEPARATOR = "/";
 
-	private final DirectoryFileSystemProvider provider;
+	protected final DirectoryFileSystemProvider provider;
 
-	private final FileSystem underlyingFileSystem;
+	protected final FileSystem underlyingFileSystem;
 
-	@Getter(AccessLevel.PROTECTED)
-	private final URI underlyingFileSystemUri;
+	protected final Path underlyingFileSystemPath;
 
-	private final Path underlyingFileSystemPath;
+	protected final String fsIdentifyer;
 
-	private boolean closed = false;
+	private boolean isOpen = true;
 
-	public DirectoryFileSystem(FileSystem underlyingFileSystem, URI underlyingFileSystemUri, Path underlyingFileSystemPath, DirectoryFileSystemProvider provider)
+	public DirectoryFileSystem(DirectoryFileSystemProvider provider, FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer)
 	{
-		this.underlyingFileSystem = underlyingFileSystem;
-		this.underlyingFileSystemUri = underlyingFileSystemUri;
-		this.underlyingFileSystemPath = underlyingFileSystemPath;
 		this.provider = provider;
+		this.underlyingFileSystem = underlyingFileSystem;
+		this.underlyingFileSystemPath = underlyingFileSystemPath;
+		this.fsIdentifyer = fsIdentifyer;
 	}
 
 	/**
@@ -52,7 +46,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public FileSystemProvider provider()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -65,7 +59,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public void close() throws IOException
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			return;
 		}
@@ -74,7 +68,7 @@ public class DirectoryFileSystem extends FileSystem
 			underlyingFileSystem.close();
 		}
 		provider.fileSystemClosed(this);
-		closed = true;
+		isOpen = false;
 	}
 
 	/**
@@ -83,7 +77,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public boolean isOpen()
 	{
-		return !closed && underlyingFileSystem.isOpen();
+		return isOpen && underlyingFileSystem.isOpen();
 	}
 
 	/**
@@ -92,7 +86,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public boolean isReadOnly()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -105,7 +99,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public String getSeparator()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -118,7 +112,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Iterable<Path> getRootDirectories()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -133,7 +127,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Iterable<FileStore> getFileStores()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -148,7 +142,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Set<String> supportedFileAttributeViews()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -161,15 +155,44 @@ public class DirectoryFileSystem extends FileSystem
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getPath(String first, String... more)
+	public DirectoryPath getPath(String first, String... more)
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+
+		String pathName = first;
+		String separator = SEPARATOR;
+		if (more.length > 0)
+		{
+			StringBuilder sb = new StringBuilder(pathName);
+			for (String next : more)
+			{
+				if (sb.length() > 0)
+				{
+					sb.append(separator);
+				}
+				sb.append(next);
+			}
+			pathName = sb.toString();
+		}
+
+		pathName = pathName.replaceAll("//+", "/");
+
+		String rootName;
+		if (pathName.startsWith(separator))
+		{
+			rootName = separator;
+		}
+		else
+		{
+			rootName = "";
+		}
+
+		DirectoryPath path = new DirectoryPath(this, rootName, pathName);
+
+		return path;
 	}
 
 	/**
@@ -178,7 +201,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public PathMatcher getPathMatcher(String syntaxAndPattern)
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -193,7 +216,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public UserPrincipalLookupService getUserPrincipalLookupService()
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
@@ -208,7 +231,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public WatchService newWatchService() throws IOException
 	{
-		if (closed)
+		if (!isOpen)
 		{
 			throw new ClosedFileSystemException();
 		}
