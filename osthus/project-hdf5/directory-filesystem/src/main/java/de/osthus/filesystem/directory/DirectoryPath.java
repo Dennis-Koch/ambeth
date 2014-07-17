@@ -329,4 +329,10 @@ public class DirectoryPath implements Path
 	{
 		return root.equals(obj.root) && path.equals(obj.path) && fileSystem.equals(obj.fileSystem);
 	}
+
+	@Override
+	public String toString()
+	{
+		return path;
+	}
 }

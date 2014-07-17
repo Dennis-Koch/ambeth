@@ -88,10 +88,23 @@ public class DirectoryPathTest
 	}
 
 	@Test
-	@Ignore
 	public void testGetParent()
 	{
-		fail("Not yet implemented");
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", root.path + "tmp");
+
+		DirectoryPath parent = path.getParent();
+		assertNotNull(parent);
+		assertEquals(root, parent);
+	}
+
+	@Test
+	public void testGetParent_ofRoot()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+
+		DirectoryPath parent = root.getParent();
+		assertNull(parent);
 	}
 
 	@Test

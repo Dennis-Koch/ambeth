@@ -241,4 +241,10 @@ public class DirectoryFileSystem extends FileSystem
 		// return null;
 	}
 
+	@Override
+	public String toString()
+	{
+		return provider.toString() + fsIdentifyer;
+	}
+
 }
