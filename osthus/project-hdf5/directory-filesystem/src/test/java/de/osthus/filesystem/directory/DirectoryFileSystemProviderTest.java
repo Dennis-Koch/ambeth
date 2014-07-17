@@ -92,8 +92,7 @@ public class DirectoryFileSystemProviderTest
 	{
 		String dirFsUriString = "dir:///file:///C:/temp/target/";
 		String folderPathString = "/insideDirFs/folder";
-		// The two / at the join point are important
-		String fullUriString = dirFsUriString + folderPathString;
+		String fullUriString = dirFsUriString + "#" + folderPathString;
 		URI fullUri = new URI(fullUriString);
 
 		DirectoryPath path = directoryFileSystemProvider.getPath(fullUri);

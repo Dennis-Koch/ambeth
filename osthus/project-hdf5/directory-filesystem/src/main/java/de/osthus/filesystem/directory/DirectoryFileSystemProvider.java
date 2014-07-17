@@ -38,13 +38,13 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 {
 	private static final String SCHEME = "dir";
 
-	// example dir:///file:///C:/temp/target//insideDirFs/folder
-	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\:///)(.+/)))(/.+)?");
+	// example dir:///file:///C:/temp/target/#/insideDirFs/folder
+	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\:///)(.+/)))(#(/.+))?");
 	private static final int URI_GROUP_FS_URI = 1;
 	private static final int URI_GROUP_IDENTIFIER = 2;
 	private static final int URI_GROUP_SUB_SCHEME = 3;
 	private static final int URI_GROUP_SUB_PATH = 4;
-	private static final int URI_GROUP_PATH = 5;
+	private static final int URI_GROUP_PATH = 6;
 
 	private final HashMap<String, DirectoryFileSystem> openFileSystems = new HashMap<>();
 
@@ -129,7 +129,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	/**
 	 * {@inheritDoc} <br>
-	 * e.g. jar:///file:///C:/temp/target//insideDirFs/folder
+	 * e.g. dir:///file:///C:/temp/target/#/insideDirFs/folder <br>
+	 * e.g. hdf5:///file:///C:/temp/target/test.h5#/data/myExperiment
 	 */
 	@Override
 	public DirectoryPath getPath(URI uri)
