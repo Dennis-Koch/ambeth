@@ -47,7 +47,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getRoot()
+	public DirectoryPath getRoot()
 	{
 		if (root.isEmpty())
 		{
@@ -144,7 +144,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path subpath(int beginIndex, int endIndex)
+	public DirectoryPath subpath(int beginIndex, int endIndex)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -194,7 +194,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path normalize()
+	public DirectoryPath normalize()
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -206,8 +206,21 @@ public class DirectoryPath implements Path
 	@Override
 	public Path resolve(Path other)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// return null;
+		String otherPathString = other.toString();
+
+		if (otherPathString.isEmpty())
+		{
+			return this;
+		}
+		if (other.isAbsolute())
+		{
+			return other;
+		}
+		else
+		{
+			DirectoryPath resolved = fileSystem.getPath(path, otherPathString);
+			return resolved;
+		}
 	}
 
 	/**
@@ -216,15 +229,15 @@ public class DirectoryPath implements Path
 	@Override
 	public Path resolve(String other)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// return null;
+		DirectoryPath path = fileSystem.getPath(other);
+		return resolve(path);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path resolveSibling(Path other)
+	public DirectoryPath resolveSibling(Path other)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -234,7 +247,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path resolveSibling(String other)
+	public DirectoryPath resolveSibling(String other)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -244,7 +257,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path relativize(Path other)
+	public DirectoryPath relativize(Path other)
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -264,7 +277,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path toAbsolutePath()
+	public DirectoryPath toAbsolutePath()
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
@@ -274,7 +287,7 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path toRealPath(LinkOption... options) throws IOException
+	public DirectoryPath toRealPath(LinkOption... options) throws IOException
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
