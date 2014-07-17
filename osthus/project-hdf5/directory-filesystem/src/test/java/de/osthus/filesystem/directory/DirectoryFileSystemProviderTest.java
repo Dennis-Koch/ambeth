@@ -32,7 +32,6 @@ import org.junit.Test;
 
 public class DirectoryFileSystemProviderTest
 {
-
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{

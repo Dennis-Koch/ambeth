@@ -14,6 +14,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
+import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -39,7 +40,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	private static final String SCHEME = "dir";
 
 	// example dir:///file:///C:/temp/target/#/insideDirFs/folder
-	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\:///)(.+/)))(#(/.+))?");
+	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\://)(/.+/)))(#(/.+))?");
 	private static final int URI_GROUP_FS_URI = 1;
 	private static final int URI_GROUP_IDENTIFIER = 2;
 	private static final int URI_GROUP_SUB_SCHEME = 3;
@@ -324,6 +325,12 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	}
 
+	@Override
+	public String toString()
+	{
+		return SCHEME + ":///";
+	}
+
 	protected void fileSystemClosed(DirectoryFileSystem directoryFileSystem)
 	{
 		String fsIdentifier = directoryFileSystem.fsIdentifyer;
@@ -343,7 +350,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected URI createUnderlyingFileSystemUri(Matcher matcher)
 	{
-		String underlyingFileSystemScheme = matcher.group(URI_GROUP_SUB_SCHEME);
+		String underlyingFileSystemScheme = matcher.group(URI_GROUP_SUB_SCHEME) + "/";
 		URI underlyingFileSystemUri;
 		try
 		{
@@ -359,7 +366,16 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Matcher matcher)
 	{
 		String underlyingFileSystemPathName = matcher.group(URI_GROUP_SUB_PATH);
-		Path underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
+		Path underlyingFileSystemPath;
+		try
+		{
+			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
+		}
+		catch (InvalidPathException e)
+		{
+			underlyingFileSystemPathName = underlyingFileSystemPathName.substring(1);
+			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
+		}
 		return underlyingFileSystemPath;
 	}
 
