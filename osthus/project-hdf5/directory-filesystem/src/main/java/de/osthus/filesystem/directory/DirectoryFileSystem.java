@@ -178,6 +178,7 @@ public class DirectoryFileSystem extends FileSystem
 			pathName = sb.toString();
 		}
 
+		pathName = pathName.replaceAll("\\\\", "/");
 		pathName = pathName.replaceAll("//+", "/");
 
 		String rootName;

@@ -138,6 +138,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		Matcher matcher = createUriMatcher(uri);
 		String fsDirUriString = matcher.group(URI_GROUP_FS_URI);
 		String pathString = matcher.group(URI_GROUP_PATH);
+		if (pathString == null)
+		{
+			pathString = "";
+		}
 
 		URI dirUri;
 		try

@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class PackAndUnpackTest
@@ -69,6 +70,7 @@ public class PackAndUnpackTest
 	}
 
 	@Test
+	@Ignore
 	public void testPack() throws IOException
 	{
 		Path targetDirDirectory = targetFileSystem.getPath("/");
@@ -78,6 +80,7 @@ public class PackAndUnpackTest
 	}
 
 	@Test
+	@Ignore
 	public void testUnpack() throws IOException
 	{
 		recursiveCopyJava(sourceDirectory, targetDirectory);
@@ -86,6 +89,7 @@ public class PackAndUnpackTest
 	}
 
 	@Test
+	@Ignore
 	public void testRoundtrip()
 	{
 		// TODO copy all file and folders from the sourceDirectory to the targetDirectory and to the unpackDirectory via the DirectoryFileSystem.

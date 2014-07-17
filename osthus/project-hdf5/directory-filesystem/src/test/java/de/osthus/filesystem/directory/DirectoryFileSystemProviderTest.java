@@ -1,6 +1,7 @@
 package de.osthus.filesystem.directory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.net.URI;
@@ -9,6 +10,8 @@ import java.nio.file.AccessMode;
 import java.nio.file.CopyOption;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
+import java.nio.file.FileSystemAlreadyExistsException;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
@@ -25,7 +28,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class DirectoryFileSystemProviderTest
@@ -62,19 +64,41 @@ public class DirectoryFileSystemProviderTest
 	}
 
 	@Test
-	@Ignore
-	public void testNewFileSystemURIMapOfStringQ() throws IOException
+	public void testNewFileSystemURIMapOfStringQ() throws IOException, URISyntaxException
 	{
-		URI uri = null;
-		Map<String, ?> env = null;
+		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		Map<String, ?> env = Collections.emptyMap();
+		DirectoryFileSystem fileSystem = directoryFileSystemProvider.newFileSystem(uri, env);
+		assertNotNull(fileSystem);
+		assertEquals(TestConstant.NAME_FILE_FS_TEMP_FOLDER, fileSystem.underlyingFileSystemPath.toUri().toString());
+	}
+
+	@Test(expected = FileSystemAlreadyExistsException.class)
+	public void testNewFileSystemURIMapOfStringQ_existing() throws IOException, URISyntaxException
+	{
+		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		Map<String, ?> env = Collections.emptyMap();
+		directoryFileSystemProvider.newFileSystem(uri, env);
+
+		// second call throws exception
 		directoryFileSystemProvider.newFileSystem(uri, env);
 	}
 
 	@Test
-	@Ignore
-	public void testGetFileSystemURI()
+	public void testGetFileSystemURI() throws IOException, URISyntaxException
 	{
-		URI uri = null;
+		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		Map<String, ?> env = Collections.emptyMap();
+		DirectoryFileSystem expected = directoryFileSystemProvider.newFileSystem(uri, env);
+
+		DirectoryFileSystem actual = directoryFileSystemProvider.getFileSystem(uri);
+		assertEquals(expected, actual);
+	}
+
+	@Test(expected = FileSystemNotFoundException.class)
+	public void testGetFileSystemURI_notExisting() throws IOException, URISyntaxException
+	{
+		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
 		directoryFileSystemProvider.getFileSystem(uri);
 	}
 
@@ -173,15 +197,11 @@ public class DirectoryFileSystemProviderTest
 	@Test
 	public void testGetFileStorePath() throws IOException, URISyntaxException
 	{
-		URI sysUri = new URI(TestConstant.NAME_FILE_FS_C_TEMP);
+		URI sysUri = new URI(TestConstant.NAME_FILE_FS_TEMP_FOLDER);
 		Path sysPath = Paths.get(sysUri);
 
-		// TODO Implement getPath to expect full uri, split it to get FS and from that the Path obj
-		// Path dirPath = directoryFileSystemProvider.getPath(uri);
-
-		URI dirUri = new URI(TestConstant.NAME_DIR_FS_C_TEMP);
-		DirectoryFileSystem fileSystem = directoryFileSystemProvider.newFileSystem(dirUri, Collections.<String, Object> emptyMap());
-		Path dirPath = new DirectoryPath(fileSystem, "", "");
+		URI dirUri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		Path dirPath = directoryFileSystemProvider.getPath(dirUri);
 
 		FileStore expected = FileSystems.getDefault().provider().getFileStore(sysPath);
 		FileStore actual = directoryFileSystemProvider.getFileStore(dirPath);
