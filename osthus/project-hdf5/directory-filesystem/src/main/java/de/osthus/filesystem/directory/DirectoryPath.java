@@ -78,7 +78,7 @@ public class DirectoryPath implements Path
 
 		int lastSeparator = path.lastIndexOf(fileSystem.getSeparator());
 		String fileNameString;
-		if (lastSeparator == -1) // FIXME Is there a Constant for this meaning of -1
+		if (lastSeparator == -1)
 		{
 			fileNameString = path;
 		}
@@ -99,7 +99,22 @@ public class DirectoryPath implements Path
 			return null;
 		}
 
-		String parentName = path + "/.."; // TODO Shorten path to parent name
+		int lastIndex = path.lastIndexOf('/');
+		if (lastIndex == -1)
+		{
+			return null;
+		}
+		if (lastIndex == 0)
+		{
+			// Root is the parent. Modify lastIndex to leave the root slash.
+			lastIndex = 1;
+		}
+		else if (lastIndex == path.length() - 1)
+		{
+			lastIndex = path.lastIndexOf('/', lastIndex - 1);
+		}
+		String parentName = path.substring(0, lastIndex);
+
 		DirectoryPath parent = new DirectoryPath(fileSystem, root, parentName);
 		return parent;
 	}
