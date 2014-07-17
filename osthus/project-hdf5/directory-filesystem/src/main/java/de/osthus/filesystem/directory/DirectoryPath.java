@@ -3,7 +3,6 @@ package de.osthus.filesystem.directory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
@@ -26,39 +25,35 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Getter
-	private final FileSystem fileSystem;
+	protected final DirectoryFileSystem fileSystem;
 
-	private final String rootName;
+	protected final String root;
 
-	private final String pathName;
+	protected final String path;
+
+	protected DirectoryPath(DirectoryFileSystem fileSystem, String root, String path)
+	{
+		this.fileSystem = fileSystem;
+		this.root = root;
+		this.path = path;
+
+		if (!root.isEmpty() && !fileSystem.getSeparator().equals(root))
+		{
+			throw new RuntimeException("Illegal root: " + root);
+		}
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Getter
-	private final Path root;
-
-	protected DirectoryPath(FileSystem fileSystem, String rootName, String pathName)
+	@Override
+	public Path getRoot()
 	{
-		this.fileSystem = fileSystem;
-		this.rootName = rootName;
-		this.pathName = pathName;
-
-		if (isAbsolute())
+		if (root.isEmpty())
 		{
-			if (!pathName.isEmpty())
-			{
-				root = new DirectoryPath(fileSystem, rootName, "");
-			}
-			else
-			{
-				root = this;
-			}
+			return null;
 		}
-		else
-		{
-			root = null;
-		}
+		return new DirectoryPath(fileSystem, root, root);
 	}
 
 	/**
@@ -67,17 +62,29 @@ public class DirectoryPath implements Path
 	@Override
 	public boolean isAbsolute()
 	{
-		return !rootName.isEmpty();
+		return !root.isEmpty() && path.startsWith(root);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getFileName()
+	public DirectoryPath getFileName()
 	{
-		String fileNameString = pathName.substring(pathName.lastIndexOf(fileSystem.getSeparator()));
-		Path fileName = new DirectoryPath(fileSystem, rootName, fileNameString);
+		if (path.isEmpty() || path.equals(root))
+		{
+			return null;
+		}
+
+		int lastSeparator = path.lastIndexOf(fileSystem.getSeparator());
+		String fileNameString;
+		if (lastSeparator == -1) // FIXME Is there a Constant for this meaning of -1
+		{
+			fileNameString = path;
+		}
+		fileNameString = path.substring(lastSeparator + 1);
+		DirectoryPath fileName = new DirectoryPath(fileSystem, root, fileNameString);
+
 		return fileName;
 	}
 
@@ -85,10 +92,15 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getParent()
+	public DirectoryPath getParent()
 	{
-		String parentName = pathName + "/..";
-		Path parent = new DirectoryPath(fileSystem, rootName, parentName);
+		if (path.isEmpty() || root.equals(path))
+		{
+			return null;
+		}
+
+		String parentName = path + "/.."; // TODO Shorten path to parent name
+		DirectoryPath parent = new DirectoryPath(fileSystem, root, parentName);
 		return parent;
 	}
 
@@ -106,8 +118,9 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getName(int index)
+	public DirectoryPath getName(int index)
 	{
+		// TODO array for separator indexes
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return null;
 	}
@@ -300,5 +313,20 @@ public class DirectoryPath implements Path
 	{
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return 0;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (!(obj instanceof DirectoryPath))
+		{
+			return false;
+		}
+		return equals((DirectoryPath) obj);
+	}
+
+	public boolean equals(DirectoryPath obj)
+	{
+		return root.equals(obj.root) && path.equals(obj.path) && fileSystem.equals(obj.fileSystem);
 	}
 }

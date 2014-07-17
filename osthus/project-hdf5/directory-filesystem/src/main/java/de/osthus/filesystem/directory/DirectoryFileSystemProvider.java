@@ -36,11 +36,17 @@ import java.util.regex.Pattern;
  */
 public class DirectoryFileSystemProvider extends FileSystemProvider
 {
-	private static final String SCHEME_PREFIX = "dir";
+	private static final String SCHEME = "dir";
 
-	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME_PREFIX + ")\\:///([^:]+\\:///)(.+/)");
+	// example dir:///file:///C:/temp/target//insideDirFs/folder
+	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\:///)(.+/)))(/.+)?");
+	private static final int URI_GROUP_FS_URI = 1;
+	private static final int URI_GROUP_IDENTIFIER = 2;
+	private static final int URI_GROUP_SUB_SCHEME = 3;
+	private static final int URI_GROUP_SUB_PATH = 4;
+	private static final int URI_GROUP_PATH = 5;
 
-	private final HashMap<Path, DirectoryFileSystem> openFileSystems = new HashMap<>();
+	private final HashMap<String, DirectoryFileSystem> openFileSystems = new HashMap<>();
 
 	/**
 	 * {@inheritDoc}
@@ -48,7 +54,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public String getScheme()
 	{
-		return SCHEME_PREFIX;
+		return SCHEME;
 	}
 
 	/**
@@ -58,17 +64,19 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	public DirectoryFileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
 	{
 		Matcher matcher = createUriMatcher(uri);
-		URI underlyingFileSystemUri = createUnderlyingFileSystemUri(matcher);
-		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, matcher);
+		String dirFsIdentifier = matcher.group(URI_GROUP_IDENTIFIER);
 
-		if (openFileSystems.containsKey(underlyingFileSystemPath))
+		if (openFileSystems.containsKey(dirFsIdentifier))
 		{
 			throw new FileSystemAlreadyExistsException();
 		}
 
-		DirectoryFileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemUri, underlyingFileSystemPath, env);
-		openFileSystems.put(underlyingFileSystemPath, directoryFileSystem);
+		URI underlyingFileSystemUri = createUnderlyingFileSystemUri(matcher);
+		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
+		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, matcher);
+
+		DirectoryFileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, dirFsIdentifier, env);
+		openFileSystems.put(dirFsIdentifier, directoryFileSystem);
 
 		return directoryFileSystem;
 	}
@@ -80,19 +88,9 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	public DirectoryFileSystem getFileSystem(URI uri)
 	{
 		Matcher matcher = createUriMatcher(uri);
-		URI underlyingFileSystemUri = createUnderlyingFileSystemUri(matcher);
-		FileSystem underlyingFileSystem;
-		try
-		{
-			underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, Collections.<String, Object> emptyMap());
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, matcher);
+		String dirFsIdentifier = matcher.group(URI_GROUP_IDENTIFIER);
 
-		DirectoryFileSystem directoryFileSystem = openFileSystems.get(underlyingFileSystemPath);
+		DirectoryFileSystem directoryFileSystem = openFileSystems.get(dirFsIdentifier);
 		if (directoryFileSystem == null)
 		{
 			throw new FileSystemNotFoundException();
@@ -101,14 +99,14 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		return directoryFileSystem;
 	}
 
-	public DirectoryFileSystem useFileSystem(URI uri)
+	protected DirectoryFileSystem useFileSystem(URI uri)
 	{
 		DirectoryFileSystem fileSystem;
 		try
 		{
 			fileSystem = newFileSystem(uri, Collections.<String, Object> emptyMap());
 		}
-		catch (FileSystemNotFoundException e)
+		catch (FileSystemAlreadyExistsException e)
 		{
 			fileSystem = getFileSystem(uri);
 		}
@@ -130,14 +128,29 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * {@inheritDoc} <br>
+	 * e.g. jar:///file:///C:/temp/target//insideDirFs/folder
 	 */
 	@Override
-	public Path getPath(URI uri)
+	public DirectoryPath getPath(URI uri)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+		Matcher matcher = createUriMatcher(uri);
+		String fsDirUriString = matcher.group(URI_GROUP_FS_URI);
+		String pathString = matcher.group(URI_GROUP_PATH);
+
+		URI dirUri;
+		try
+		{
+			dirUri = new URI(fsDirUriString);
+		}
+		catch (URISyntaxException e)
+		{
+			throw new RuntimeException(e);
+		}
+		DirectoryFileSystem directoryFileSystem = useFileSystem(dirUri);
+		DirectoryPath path = directoryFileSystem.getPath(pathString);
+
+		return path;
 	}
 
 	/**
@@ -234,17 +247,21 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public FileStore getFileStore(Path path) throws IOException
 	{
-		FileSystem fileSystem = path.getFileSystem();
-		if (!(fileSystem instanceof DirectoryFileSystem))
+		if (!(path instanceof DirectoryPath))
 		{
-			throw new IOException("Path not linked to FileSystem");
+			throw new RuntimeException("Unsupported path type: " + path.getClass());
 		}
 
-		DirectoryFileSystem directoryFileSystem = (DirectoryFileSystem) fileSystem;
+		DirectoryPath dirPath = (DirectoryPath) path;
+		DirectoryFileSystem dirFileSystem = dirPath.getFileSystem();
 
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+		FileSystem underlyingFileSystem = dirFileSystem.underlyingFileSystem;
+		FileSystemProvider underlyingFileSystemProvider = underlyingFileSystem.provider();
+		Path underlyingFileSystemPath = dirFileSystem.underlyingFileSystemPath;
+
+		FileStore fileStore = underlyingFileSystemProvider.getFileStore(underlyingFileSystemPath);
+
+		return fileStore;
 	}
 
 	/**
@@ -304,8 +321,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected void fileSystemClosed(DirectoryFileSystem directoryFileSystem)
 	{
-		URI underlyingFileSystemUri = directoryFileSystem.getUnderlyingFileSystemUri();
-		openFileSystems.remove(underlyingFileSystemUri);
+		String fsIdentifier = directoryFileSystem.fsIdentifyer;
+		openFileSystems.remove(fsIdentifier);
 	}
 
 	protected Matcher createUriMatcher(URI uri)
@@ -321,11 +338,11 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected URI createUnderlyingFileSystemUri(Matcher matcher)
 	{
-		String underlyingFileSystemIdentifier = matcher.group(2);
+		String underlyingFileSystemScheme = matcher.group(URI_GROUP_SUB_SCHEME);
 		URI underlyingFileSystemUri;
 		try
 		{
-			underlyingFileSystemUri = new URI(underlyingFileSystemIdentifier);
+			underlyingFileSystemUri = new URI(underlyingFileSystemScheme);
 		}
 		catch (URISyntaxException e)
 		{
@@ -336,15 +353,15 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Matcher matcher)
 	{
-		String underlyingFileSystemPathName = matcher.group(3);
+		String underlyingFileSystemPathName = matcher.group(URI_GROUP_SUB_PATH);
 		Path underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
 		return underlyingFileSystemPath;
 	}
 
-	protected DirectoryFileSystem createFileSystem(FileSystem underlyingFileSystem, URI underlyingFileSystemUri, Path underlyingFileSystemPath,
-			Map<String, ?> env) throws IOException
+	protected DirectoryFileSystem createFileSystem(FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer, Map<String, ?> env)
+			throws IOException
 	{
-		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(underlyingFileSystem, underlyingFileSystemUri, underlyingFileSystemPath, this);
+		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(this, underlyingFileSystem, underlyingFileSystemPath, fsIdentifyer);
 		return directoryFileSystem;
 	}
 

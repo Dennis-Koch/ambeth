@@ -3,6 +3,7 @@ package de.osthus.filesystem.directory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -14,6 +15,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -31,8 +33,8 @@ public class DirectoryPathTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		DIRECTORY_FILE_SYSTEM_PROVIDER = new DirectoryFileSystemProvider();
-		URI uri = new URI(TestConstant.DIR_FS_NAME_C_TEMP);
-		DIRECTORY_FILE_SYSTEM = (DirectoryFileSystem) DIRECTORY_FILE_SYSTEM_PROVIDER.newFileSystem(uri, null);
+		URI uri = new URI(TestConstant.NAME_DIR_FS_C_TEMP);
+		DIRECTORY_FILE_SYSTEM = DIRECTORY_FILE_SYSTEM_PROVIDER.newFileSystem(uri, null);
 	}
 
 	@AfterClass
@@ -48,6 +50,8 @@ public class DirectoryPathTest
 		int nameCount = path.getNameCount();
 		Path parent = path.getParent();
 		Path root = path.getRoot();
+		Path rootFileName = root.getFileName();
+		Path rootRoot = root.getRoot();
 
 		path = Paths.get("test");
 		nameCount = path.getNameCount();
@@ -66,8 +70,19 @@ public class DirectoryPathTest
 
 		path = Paths.get("c:\\test\\test2\\test2");
 		nameCount = path.getNameCount();
+		fileName = path.getFileName();
 		parent = path.getParent();
 		root = path.getRoot();
+		rootFileName = root.getFileName();
+		rootRoot = root.getRoot();
+
+		path = Paths.get("c:\\");
+		fileName = path.getFileName();
+		nameCount = path.getNameCount();
+		parent = path.getParent();
+		root = path.getRoot();
+		rootFileName = root.getFileName();
+		rootRoot = root.getRoot();
 
 		System.out.println();
 	}
@@ -94,154 +109,181 @@ public class DirectoryPathTest
 	public void testGetFileName()
 	{
 		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
-		Path fileName = directoryPath.getFileName();
-		assertNotNull(fileName);
-		assertEquals("", fileName);
+		DirectoryPath fileName = directoryPath.getFileName();
+		assertNull(fileName);
 
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
-		assertEquals("test", fileName);
+		assertEquals("test", fileName.path);
 
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
-		assertEquals("test", fileName);
+		assertEquals("test", fileName.path);
+
+		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test/test2/test3");
+		fileName = directoryPath.getFileName();
+		assertNotNull(fileName);
+		assertEquals("test3", fileName.path);
 	}
 
 	@Test
+	@Ignore
 	public void testGetParent()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetNameCount()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetName()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testSubpath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testStartsWithPath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testStartsWithString()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testEndsWithPath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testEndsWithString()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testNormalize()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testResolvePath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testResolveString()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testResolveSiblingPath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testResolveSiblingString()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testRelativize()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testToUri()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testToAbsolutePath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testToRealPath()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testToFile()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testRegisterWatchServiceKindOfQArrayModifierArray()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testRegisterWatchServiceKindOfQArray()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testIterator()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testCompareTo()
 	{
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testGetFileSystem()
 	{
 		fail("Not yet implemented");
@@ -250,6 +292,22 @@ public class DirectoryPathTest
 	@Test
 	public void testGetRoot()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		Path root = directoryPath.getRoot();
+		assertNotNull(root);
+		assertEquals(root, root.getRoot());
+		assertNull(root.getFileName());
+		assertNull(root.getParent());
+
+		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test/test2/test3");
+		root = directoryPath.getRoot();
+		assertNotNull(root);
+		assertEquals(root, root.getRoot());
+		assertNull(root.getFileName());
+		assertNull(root.getParent());
+
+		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "test/test2/test3");
+		root = directoryPath.getRoot();
+		assertNull(root);
 	}
 }

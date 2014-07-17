@@ -7,7 +7,9 @@ package de.osthus.filesystem.directory;
  */
 public final class TestConstant
 {
-	public static final String DIR_FS_NAME_C_TEMP = "dir:///file:///c:/temp/";
+	public static final String NAME_FILE_FS_C_TEMP = "file:///c:/temp/";
+
+	public static final String NAME_DIR_FS_C_TEMP = "dir:///" + NAME_FILE_FS_C_TEMP;
 
 	private TestConstant()
 	{
