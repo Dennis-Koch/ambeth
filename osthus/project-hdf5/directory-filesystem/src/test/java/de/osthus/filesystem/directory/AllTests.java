@@ -6,7 +6,9 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({ DirectoryFileSystemProviderTest.class, //
-		DirectoryFileSystemTest.class })
+		DirectoryFileSystemTest.class, //
+		DirectoryPathTest.class, //
+		PackAndUnpackTest.class })
 public class AllTests
 {
 }

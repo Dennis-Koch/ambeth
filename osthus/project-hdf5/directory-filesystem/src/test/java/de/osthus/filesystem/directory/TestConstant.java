@@ -15,13 +15,16 @@ public final class TestConstant
 
 	public static final String NAME_DIR_FS_TEMP_FOLDER;
 
+	public static final String NAME_DIR_FS_TEMP_FOLDER_PATH;
+
 	static
 	{
 		String tempDirName = System.getProperty("java.io.tmpdir");
 		Path tempPath = Paths.get(tempDirName);
 		URI tempUri = tempPath.toUri();
 		NAME_FILE_FS_TEMP_FOLDER = tempUri.toString();
-		NAME_DIR_FS_TEMP_FOLDER = "dir:///" + NAME_FILE_FS_TEMP_FOLDER;
+		NAME_DIR_FS_TEMP_FOLDER = "dir:" + NAME_FILE_FS_TEMP_FOLDER;
+		NAME_DIR_FS_TEMP_FOLDER_PATH = NAME_DIR_FS_TEMP_FOLDER + "!/inside";
 	}
 
 	private TestConstant()
