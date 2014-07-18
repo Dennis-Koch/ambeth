@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.ProviderMismatchException;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchEvent.Modifier;
 import java.nio.file.WatchKey;
@@ -263,15 +264,21 @@ public class DirectoryPath implements Path
 		{
 			throw new IllegalArgumentException("Both paths have to be absolute");
 		}
+		boolean isSameFileSystem = fileSystem.equals(other.getFileSystem());
+		boolean isUnderlyingFileSystem = fileSystem.getUnderlyingFileSystem().equals(other.getFileSystem());
+		if (!isSameFileSystem && !isUnderlyingFileSystem)
+		{
+			throw new ProviderMismatchException();
+		}
 
 		// TODO just a quick and dirty implementation to get things working
-		if (fileSystem.equals(other.getFileSystem()) && other.toString().startsWith(path))
+		if (isSameFileSystem && other.toString().startsWith(path))
 		{
 			String relativePathString = other.toString().substring(path.length());
 			DirectoryPath relativePath = fileSystem.getPath(relativePathString);
 			return relativePath;
 		}
-		else if (fileSystem.getUnderlyingFileSystem().equals(other.getFileSystem()))
+		else if (isUnderlyingFileSystem)
 		{
 			Path relativePath = fileSystem.getUnderlyingFileSystemPath().relativize(other);
 			return relativePath;

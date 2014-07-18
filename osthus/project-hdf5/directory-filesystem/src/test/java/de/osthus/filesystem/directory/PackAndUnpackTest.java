@@ -3,12 +3,14 @@ package de.osthus.filesystem.directory;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,6 +22,8 @@ import org.junit.Test;
 public class PackAndUnpackTest
 {
 	private static final String FOLDER_1_NAME = "src/test/resources/folder1";
+
+	private static final String FILE_1_NAME = "src/test/resources/file1.zip";
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
@@ -39,9 +43,13 @@ public class PackAndUnpackTest
 
 	private Path targetDirectory;
 
+	private Path target2Directory;
+
 	private Path unpackDirectory;
 
 	private FileSystem targetFileSystem;
+
+	private FileSystem target2FileSystem;
 
 	@Before
 	public void setUp() throws Exception
@@ -56,11 +64,17 @@ public class PackAndUnpackTest
 		targetDirectory = Paths.get(tempDirectory.toString(), "target");
 		Files.createDirectories(targetDirectory);
 
+		target2Directory = Paths.get(tempDirectory.toString(), "target2");
+		Files.createDirectories(target2Directory);
+
 		unpackDirectory = Paths.get(tempDirectory.toString(), "unpack");
 		Files.createDirectories(unpackDirectory);
 
-		URI uri = new URI("dir:///" + targetDirectory.toUri());
+		URI uri = URI.create("dir:" + targetDirectory.toUri());
 		targetFileSystem = directoryFileSystemProvider.useFileSystem(uri);
+
+		URI uri2 = URI.create("dir:" + target2Directory.toUri());
+		target2FileSystem = directoryFileSystemProvider.useFileSystem(uri2);
 	}
 
 	@After
@@ -96,7 +110,66 @@ public class PackAndUnpackTest
 		recursiveCompare(sourceDirectory, unpackDirectory);
 	}
 
-	private static void recursiveCopy(final Path source, final Path target) throws IOException
+	@Test
+	public void testInternalCopy() throws IOException
+	{
+		recursiveCopy(sourceDirectory, targetDirectory);
+
+		Path targetDirDirectory = targetFileSystem.getPath("/");
+		Path target2DirDirectory = target2FileSystem.getPath("/");
+		recursiveCopy(targetDirDirectory, target2DirDirectory);
+		recursiveCompare(sourceDirectory, target2DirDirectory);
+	}
+
+	@Test
+	public void testDirToZip() throws IOException
+	{
+		recursiveCopy(sourceDirectory, targetDirectory);
+
+		Path targetDirDirectory = targetFileSystem.getPath("/");
+
+		URI zipFsUri = prepareEmptyZip();
+		FileSystem zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
+		Path zipFsDirectory = zipFs.getPath("/");
+
+		recursiveCopy(targetDirDirectory, zipFsDirectory);
+		zipFs.close(); // Close and reopen to write to file
+
+		zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
+		zipFsDirectory = zipFs.getPath("/");
+		recursiveCompare(sourceDirectory, zipFsDirectory);
+		zipFs.close();
+	}
+
+	// TODO The usage of folders inside a zip file is currently not supported due to problems with parsing the URI
+	// @Test
+	// public void testDirInZip() throws IOException
+	// {
+	// URI zipFsUri = copyEmptyZip();
+	//
+	// FileSystem zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
+	// Path zipFsTest = zipFs.getPath("/test");
+	// zipFs.provider().createDirectory(zipFsTest);
+	// URI zipRootUri = zipFsTest.toUri();
+	// System.out.println(zipRootUri.toString());
+	//
+	// String dirFsRoot = "dir:" + zipRootUri.toString();
+	// System.out.println(dirFsRoot.toString());
+	//
+	// // TODO
+	// }
+
+	protected URI prepareEmptyZip() throws IOException
+	{
+		Path file1Path = Paths.get(FILE_1_NAME);
+		Path zipPath = tempDirectory.resolve(file1Path.getFileName());
+		Files.copy(file1Path, zipPath);
+		String zipFsUriString = "jar:" + zipPath.toUri().toString();
+		URI zipFsUri = URI.create(zipFsUriString);
+		return zipFsUri;
+	}
+
+	private void recursiveCopy(final Path source, final Path target) throws IOException
 	{
 		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
 		{
@@ -124,16 +197,14 @@ public class PackAndUnpackTest
 			private void copyItem(final Path source, final Path target, Path file) throws IOException
 			{
 				Path relativPath = source.relativize(file);
-				Path newPath = target.resolve(relativPath);
-
-				System.out.println("copy " + file + " -> " + newPath);
-
+				String relativePathString = relativPath.toString();
+				Path newPath = target.resolve(relativePathString);
 				Files.copy(file, newPath);
 			}
 		});
 	}
 
-	private static void recursiveCompare(final Path source, final Path target) throws IOException
+	private void recursiveCompare(final Path source, final Path target) throws IOException
 	{
 		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
 		{
@@ -161,13 +232,14 @@ public class PackAndUnpackTest
 			private void compareItem(final Path source, final Path target, Path file) throws IOException
 			{
 				Path relativPath = source.relativize(file);
-				Path newPath = target.resolve(relativPath);
+				String relativePathString = relativPath.toString();
+				Path newPath = target.resolve(relativePathString);
 				Assert.assertTrue("Compare error: '" + file + "' vs. '" + newPath + "'", Files.exists(newPath));
 			}
 		});
 	}
 
-	private static void recursiveDeleteOnExit(Path path) throws IOException
+	private void recursiveDeleteOnExit(Path path) throws IOException
 	{
 		Files.walkFileTree(path, new SimpleFileVisitor<Path>()
 		{

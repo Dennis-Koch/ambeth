@@ -249,7 +249,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public String toString()
 	{
-		return provider.toString() + fsIdentifyer;
+		return underlyingFileSystemPath.toString();
 	}
 
 }

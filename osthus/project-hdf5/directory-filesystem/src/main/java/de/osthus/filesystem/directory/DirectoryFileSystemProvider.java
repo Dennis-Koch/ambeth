@@ -39,13 +39,19 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 {
 	private static final String SCHEME = "dir";
 
-	// example dir:///file:///C:/temp/target/#/insideDirFs/folder
-	private static final Pattern URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:///(([^:]+\\://)(/.+/)))(#(/.+))?");
-	private static final int URI_GROUP_FS_URI = 1;
-	private static final int URI_GROUP_IDENTIFIER = 2;
-	private static final int URI_GROUP_SUB_SCHEME = 3;
-	private static final int URI_GROUP_SUB_PATH = 4;
-	private static final int URI_GROUP_PATH = 6;
+	// example dir:file:///C:/temp/target/
+	protected static final Pattern FS_URI_PATTERN = Pattern.compile("" + SCHEME + "\\:(([^:]+\\:)[^/]*(//[^/]*)?(/(.+?/)))");
+	protected static final int FS_URI_GROUP_IDENTIFIER = 1; // Key for FS: 'file:///C:/temp/target/'
+	protected static final int FS_URI_GROUP_SUB_SCHEME = 2; // Scheme of underlying FS: 'file:'
+	// Group 3 are the // and the authority (server name), defined as group to be optional
+	protected static final int FS_URI_GROUP_SUB_PATH = 4; // Sub path in underlying FS: /C:/temp/target/
+	protected static final int FS_URI_GROUP_SUB_PATH_2 = 5; // Sub path for Windows: 'C:/temp/target/'
+
+	// example dir:file:///C:/temp/target/!/insideDirFs/folder
+	protected static final Pattern PATH_URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:[^:]+\\:[^/]*(//[^/]*)?/.+?/)(?<=/)!(/.+)");
+	protected static final int PATH_URI_GROUP_FS_URI = 1; // URI string for the FS: dir:file:///C:/temp/target/
+	// Group 2 are the // and the authority (server name), defined as group to be optional
+	protected static final int PATH_URI_GROUP_PATH = 3; // Path inside the FS: /insideDirFs/folder
 
 	private final HashMap<String, DirectoryFileSystem> openFileSystems = new HashMap<>();
 
@@ -64,8 +70,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryFileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
 	{
-		Matcher matcher = createUriMatcher(uri);
-		String dirFsIdentifier = matcher.group(URI_GROUP_IDENTIFIER);
+		Matcher matcher = createFsMatcher(uri);
+		String dirFsIdentifier = matcher.group(FS_URI_GROUP_IDENTIFIER);
 
 		if (openFileSystems.containsKey(dirFsIdentifier))
 		{
@@ -88,8 +94,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryFileSystem getFileSystem(URI uri)
 	{
-		Matcher matcher = createUriMatcher(uri);
-		String dirFsIdentifier = matcher.group(URI_GROUP_IDENTIFIER);
+		Matcher matcher = createFsMatcher(uri);
+		String dirFsIdentifier = matcher.group(FS_URI_GROUP_IDENTIFIER);
 
 		DirectoryFileSystem directoryFileSystem = openFileSystems.get(dirFsIdentifier);
 		if (directoryFileSystem == null)
@@ -130,15 +136,15 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	/**
 	 * {@inheritDoc} <br>
-	 * e.g. dir:///file:///C:/temp/target/#/insideDirFs/folder <br>
-	 * e.g. hdf5:///file:///C:/temp/target/test.h5#/data/myExperiment
+	 * e.g. dir:file:///C:/temp/target/!/insideDirFs/folder <br>
+	 * e.g. hdf5:file:///C:/temp/target/test.h5!/data/myExperiment
 	 */
 	@Override
 	public DirectoryPath getPath(URI uri)
 	{
-		Matcher matcher = createUriMatcher(uri);
-		String fsDirUriString = matcher.group(URI_GROUP_FS_URI);
-		String pathString = matcher.group(URI_GROUP_PATH);
+		Matcher matcher = createPathMatcher(uri);
+		String fsDirUriString = matcher.group(PATH_URI_GROUP_FS_URI);
+		String pathString = matcher.group(PATH_URI_GROUP_PATH);
 		if (pathString == null)
 		{
 			pathString = "";
@@ -340,10 +346,21 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		openFileSystems.remove(fsIdentifier);
 	}
 
-	protected Matcher createUriMatcher(URI uri)
+	protected Matcher createFsMatcher(URI uri)
 	{
 		String path = uri.toString();
-		Matcher matcher = URI_PATTERN.matcher(path);
+		Matcher matcher = FS_URI_PATTERN.matcher(path);
+		if (!matcher.matches())
+		{
+			throw new IllegalArgumentException("Illegal file system URI: " + uri);
+		}
+		return matcher;
+	}
+
+	protected Matcher createPathMatcher(URI uri)
+	{
+		String path = uri.toString();
+		Matcher matcher = PATH_URI_PATTERN.matcher(path);
 		if (!matcher.matches())
 		{
 			throw new IllegalArgumentException("Illegal file system URI: " + uri);
@@ -353,7 +370,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected URI createUnderlyingFileSystemUri(Matcher matcher)
 	{
-		String underlyingFileSystemScheme = matcher.group(URI_GROUP_SUB_SCHEME) + "/";
+		String underlyingFileSystemScheme = matcher.group(FS_URI_GROUP_SUB_SCHEME) + "/";
 		URI underlyingFileSystemUri;
 		try
 		{
@@ -382,7 +399,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Matcher matcher)
 	{
-		String underlyingFileSystemPathName = matcher.group(URI_GROUP_SUB_PATH);
+		String underlyingFileSystemPathName = matcher.group(FS_URI_GROUP_SUB_PATH);
 		Path underlyingFileSystemPath;
 		try
 		{
@@ -390,7 +407,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		}
 		catch (InvalidPathException e)
 		{
-			underlyingFileSystemPathName = underlyingFileSystemPathName.substring(1);
+			underlyingFileSystemPathName = matcher.group(FS_URI_GROUP_SUB_PATH_2);
 			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
 		}
 		return underlyingFileSystemPath;
