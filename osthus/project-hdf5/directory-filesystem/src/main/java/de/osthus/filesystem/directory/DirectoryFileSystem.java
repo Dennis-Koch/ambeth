@@ -12,6 +12,8 @@ import java.nio.file.attribute.UserPrincipalLookupService;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
+import lombok.Getter;
+
 /**
  * Sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
  * 
@@ -22,13 +24,16 @@ public class DirectoryFileSystem extends FileSystem
 {
 	private static final String SEPARATOR = "/";
 
-	protected final DirectoryFileSystemProvider provider;
+	private final DirectoryFileSystemProvider provider;
 
-	protected final FileSystem underlyingFileSystem;
+	@Getter
+	private final FileSystem underlyingFileSystem;
 
-	protected final Path underlyingFileSystemPath;
+	@Getter
+	private final Path underlyingFileSystemPath;
 
-	protected final String fsIdentifyer;
+	@Getter
+	private final String fsIdentifyer;
 
 	private boolean isOpen = true;
 

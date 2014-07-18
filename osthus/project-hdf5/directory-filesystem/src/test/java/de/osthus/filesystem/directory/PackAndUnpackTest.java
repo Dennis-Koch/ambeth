@@ -9,13 +9,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.spi.FileSystemProvider;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class PackAndUnpackTest
@@ -74,41 +73,37 @@ public class PackAndUnpackTest
 	public void testPack() throws IOException
 	{
 		Path targetDirDirectory = targetFileSystem.getPath("/");
-		recursiveCopyDirFS(sourceDirectory, targetDirDirectory);
-		// TODO copy all file and folders from the sourceDirectory to the targetDirectory via the DirectoryFileSystem.
-		// TODO check result
+		recursiveCopy(sourceDirectory, targetDirDirectory);
+		recursiveCompare(sourceDirectory, targetDirectory);
 	}
 
 	@Test
-	@Ignore
 	public void testUnpack() throws IOException
 	{
-		recursiveCopyJava(sourceDirectory, targetDirectory);
-		// TODO copy all file and folders from the targetDirectory to the unpackDirectory via the DirectoryFileSystem.
-		// TODO check result
+		recursiveCopy(sourceDirectory, targetDirectory);
+
+		Path targetDirDirectory = targetFileSystem.getPath("/");
+		recursiveCopy(targetDirDirectory, unpackDirectory);
+		recursiveCompare(sourceDirectory, unpackDirectory);
 	}
 
 	@Test
-	@Ignore
-	public void testRoundtrip()
+	public void testRoundtrip() throws IOException
 	{
-		// TODO copy all file and folders from the sourceDirectory to the targetDirectory and to the unpackDirectory via the DirectoryFileSystem.
-		// TODO check result
+		Path targetDirDirectory = targetFileSystem.getPath("/");
+		recursiveCopy(sourceDirectory, targetDirDirectory);
+		recursiveCopy(targetDirDirectory, unpackDirectory);
+		recursiveCompare(sourceDirectory, unpackDirectory);
 	}
 
-	private static void recursiveCopyDirFS(final Path source, final Path target) throws IOException
+	private static void recursiveCopy(final Path source, final Path target) throws IOException
 	{
 		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
 		{
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
-				Path relativPath = source.relativize(file);
-				Path newPath = target.resolve(relativPath);
-
-				System.out.println("file: " + file + " -> " + newPath);
-
-				Files.copy(file, newPath);
+				copyItem(source, target, file);
 
 				return FileVisitResult.CONTINUE;
 			}
@@ -121,31 +116,31 @@ public class PackAndUnpackTest
 					return FileVisitResult.CONTINUE;
 				}
 
-				Path relativPath = source.relativize(dir);
-				Path newPath = target.resolve(relativPath);
-
-				System.out.println("dir: " + dir + " -> " + newPath);
-
-				FileSystem targetFileSystem = newPath.getFileSystem();
-				FileSystemProvider targetFileSystemProvider = targetFileSystem.provider();
-
-				targetFileSystemProvider.createDirectory(dir);
+				copyItem(source, target, dir);
 
 				return FileVisitResult.CONTINUE;
+			}
+
+			private void copyItem(final Path source, final Path target, Path file) throws IOException
+			{
+				Path relativPath = source.relativize(file);
+				Path newPath = target.resolve(relativPath);
+
+				System.out.println("copy " + file + " -> " + newPath);
+
+				Files.copy(file, newPath);
 			}
 		});
 	}
 
-	private static void recursiveCopyJava(final Path source, final Path target) throws IOException
+	private static void recursiveCompare(final Path source, final Path target) throws IOException
 	{
 		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
 		{
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
 			{
-				Path relativPath = source.relativize(file);
-				Path newPath = target.resolve(relativPath);
-				Files.copy(file, newPath);
+				compareItem(source, target, file);
 
 				return FileVisitResult.CONTINUE;
 			}
@@ -153,11 +148,21 @@ public class PackAndUnpackTest
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
 			{
-				Path relativPath = source.relativize(dir);
-				Path newPath = target.resolve(relativPath);
-				Files.createDirectories(newPath);
+				if (dir.equals(source))
+				{
+					return FileVisitResult.CONTINUE;
+				}
+
+				compareItem(source, target, dir);
 
 				return FileVisitResult.CONTINUE;
+			}
+
+			private void compareItem(final Path source, final Path target, Path file) throws IOException
+			{
+				Path relativPath = source.relativize(file);
+				Path newPath = target.resolve(relativPath);
+				Assert.assertTrue("Compare error: '" + file + "' vs. '" + newPath + "'", Files.exists(newPath));
 			}
 		});
 	}

@@ -257,9 +257,27 @@ public class DirectoryPath implements Path
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DirectoryPath relativize(Path other)
+	public Path relativize(Path other)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		if (root.isEmpty() || other.getRoot() == null)
+		{
+			throw new IllegalArgumentException("Both paths have to be absolute");
+		}
+
+		// TODO just a quick and dirty implementation to get things working
+		if (fileSystem.equals(other.getFileSystem()) && other.toString().startsWith(path))
+		{
+			String relativePathString = other.toString().substring(path.length());
+			DirectoryPath relativePath = fileSystem.getPath(relativePathString);
+			return relativePath;
+		}
+		else if (fileSystem.getUnderlyingFileSystem().equals(other.getFileSystem()))
+		{
+			Path relativePath = fileSystem.getUnderlyingFileSystemPath().relativize(other);
+			return relativePath;
+		}
+
+		throw new UnsupportedOperationException("Not yet fully implemented");
 		// return null;
 	}
 

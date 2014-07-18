@@ -69,7 +69,7 @@ public class DirectoryFileSystemProviderTest
 		Map<String, ?> env = Collections.emptyMap();
 		DirectoryFileSystem fileSystem = directoryFileSystemProvider.newFileSystem(uri, env);
 		assertNotNull(fileSystem);
-		assertEquals(TestConstant.NAME_FILE_FS_TEMP_FOLDER, fileSystem.underlyingFileSystemPath.toUri().toString());
+		assertEquals(TestConstant.NAME_FILE_FS_TEMP_FOLDER, fileSystem.getUnderlyingFileSystemPath().toUri().toString());
 	}
 
 	@Test(expected = FileSystemAlreadyExistsException.class)
