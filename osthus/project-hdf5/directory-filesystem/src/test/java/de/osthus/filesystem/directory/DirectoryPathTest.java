@@ -313,9 +313,20 @@ public class DirectoryPathTest
 	}
 
 	@Test
-	@Ignore
-	public void testRelativize()
+	public void testRelativize_simple()
 	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+
+		Path relativized = path1.relativize(path2);
+		assertEquals("test", relativized.toString());
+	}
+
+	@Test
+	@Ignore
+	public void testRelativize_todo()
+	{
+		// TODO
 		fail("Not yet implemented");
 	}
 

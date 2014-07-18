@@ -165,9 +165,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+		Path realPath = getRealPath(path);
+		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
+		SeekableByteChannel newByteChannel = underlyingFileSystemProvider.newByteChannel(realPath, options, attrs);
+		return newByteChannel;
 	}
 
 	/**
@@ -176,9 +177,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+		Path realDir = getRealPath(dir);
+		FileSystemProvider underlyingFileSystemProvider = realDir.getFileSystem().provider();
+		DirectoryStream<Path> newDirectoryStream = underlyingFileSystemProvider.newDirectoryStream(realDir, filter);
+		return newDirectoryStream;
 	}
 
 	/**
@@ -187,9 +189,9 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-
+		Path realDir = getRealPath(dir);
+		FileSystemProvider underlyingFileSystemProvider = realDir.getFileSystem().provider();
+		underlyingFileSystemProvider.createDirectory(realDir, attrs);
 	}
 
 	/**
@@ -261,9 +263,9 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		DirectoryPath dirPath = (DirectoryPath) path;
 		DirectoryFileSystem dirFileSystem = dirPath.getFileSystem();
 
-		FileSystem underlyingFileSystem = dirFileSystem.underlyingFileSystem;
+		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystem();
 		FileSystemProvider underlyingFileSystemProvider = underlyingFileSystem.provider();
-		Path underlyingFileSystemPath = dirFileSystem.underlyingFileSystemPath;
+		Path underlyingFileSystemPath = dirFileSystem.getUnderlyingFileSystemPath();
 
 		FileStore fileStore = underlyingFileSystemProvider.getFileStore(underlyingFileSystemPath);
 
@@ -276,9 +278,9 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public void checkAccess(Path path, AccessMode... modes) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-
+		Path realPath = getRealPath(path);
+		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
+		underlyingFileSystemProvider.checkAccess(realPath, modes);
 	}
 
 	/**
@@ -298,9 +300,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
+		Path realPath = getRealPath(path);
+		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
+		A readAttributes = underlyingFileSystemProvider.readAttributes(realPath, type, options);
+		return readAttributes;
 	}
 
 	/**
@@ -333,7 +336,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	protected void fileSystemClosed(DirectoryFileSystem directoryFileSystem)
 	{
-		String fsIdentifier = directoryFileSystem.fsIdentifyer;
+		String fsIdentifier = directoryFileSystem.getFsIdentifyer();
 		openFileSystems.remove(fsIdentifier);
 	}
 
@@ -363,6 +366,20 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		return underlyingFileSystemUri;
 	}
 
+	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
+	{
+		FileSystem underlyingFileSystem;
+		try
+		{
+			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
+		}
+		catch (FileSystemAlreadyExistsException e)
+		{
+			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
+		}
+		return underlyingFileSystem;
+	}
+
 	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Matcher matcher)
 	{
 		String underlyingFileSystemPathName = matcher.group(URI_GROUP_SUB_PATH);
@@ -386,18 +403,19 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		return directoryFileSystem;
 	}
 
-	private FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
+	protected Path getRealPath(Path path)
 	{
-		FileSystem underlyingFileSystem;
-		try
+		FileSystem fileSystem = path.getFileSystem();
+		if (!(fileSystem instanceof DirectoryFileSystem))
 		{
-			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
+			throw new RuntimeException("Path '" + path + "' does not reside in a Directory File System");
 		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
-		}
-		return underlyingFileSystem;
-	}
 
+		Path relativePath = path.getRoot().relativize(path);
+
+		DirectoryFileSystem directoryFileSystem = (DirectoryFileSystem) fileSystem;
+		Path underlyingFileSystemPath = directoryFileSystem.getUnderlyingFileSystemPath();
+		Path realPath = underlyingFileSystemPath.resolve(relativePath.toString());
+		return realPath;
+	}
 }
