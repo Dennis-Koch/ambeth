@@ -16,7 +16,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.util.ParamChecker;
-import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRegistry
 {
@@ -131,9 +130,15 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	{
 		// if (escapedNames.contains(name.toUpperCase()))
 		// {
-		String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
 		try
 		{
+			if (name.startsWith("\""))
+			{
+				// already escaped
+				sb.append(name);
+				return sb;
+			}
+			String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
 			sb.append('\"').append(dotReplacedName).append('\"');
 		}
 		catch (IOException e)
@@ -151,8 +156,24 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	@Override
 	public String escapeName(CharSequence name)
 	{
+		if (name.length() == 0 || name.charAt(0) == '\"')
+		{
+			// already escaped
+			return name.toString();
+		}
 		String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
-		return StringBuilderUtil.concat(objectCollector.getCurrent(), "\"", dotReplacedName, "\"");
+		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+		try
+		{
+			sb.append('\"').append(dotReplacedName).append('\"');
+			return sb.toString();
+
+		}
+		finally
+		{
+			tlObjectCollector.dispose(sb);
+		}
 	}
 
 	@Override

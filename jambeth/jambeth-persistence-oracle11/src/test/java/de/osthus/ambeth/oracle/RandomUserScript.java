@@ -1,4 +1,4 @@
-package de.osthus.ambeth.testutil;
+package de.osthus.ambeth.oracle;
 
 import java.io.File;
 import java.io.FileWriter;

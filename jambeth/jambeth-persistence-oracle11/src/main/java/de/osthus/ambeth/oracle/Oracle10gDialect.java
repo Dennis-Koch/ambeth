@@ -10,7 +10,7 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
@@ -36,21 +36,20 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
+import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.StringBuilderUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
 
-public class Oracle10gDialect implements IConnectionDialect
+public class Oracle10gDialect extends AbstractConnectionDialect
 {
 	public static class ConnectionKeyValue
 	{
-
 		protected String[] constraintSql;
 
 		protected String[][] disabledSql;
@@ -73,9 +72,9 @@ public class Oracle10gDialect implements IConnectionDialect
 		}
 	}
 
-	protected static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
+	public static final Pattern BIN_TABLE_NAME = Pattern.compile("BIN\\$.{22}==\\$0", Pattern.CASE_INSENSITIVE);
 
-	protected static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
+	public static final Pattern IDX_TABLE_NAME = Pattern.compile("DR\\$.*?\\$.", Pattern.CASE_INSENSITIVE);
 
 	protected static final LinkedHashMap<Class<?>, String[]> typeToArrayTypeNameMap = new LinkedHashMap<Class<?>, String[]>(128, 0.5f);
 
@@ -116,6 +115,11 @@ public class Oracle10gDialect implements IConnectionDialect
 		}
 	}
 
+	public static int getOptimisticLockErrorCode()
+	{
+		return 20800;
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -151,6 +155,12 @@ public class Oracle10gDialect implements IConnectionDialect
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
+	}
+
+	@Override
+	public int getMaxInClauseBatchThreshold()
+	{
+		return 4000;
 	}
 
 	@Override
@@ -408,21 +418,7 @@ public class Oracle10gDialect implements IConnectionDialect
 	}
 
 	@Override
-	public boolean handleField(Class<?> fieldType, Object value, StringBuilder targetSb) throws Throwable
-	{
-		if (fieldType.equals(Date.class) || fieldType.equals(java.sql.Date.class))
-		{
-			Date date = conversionHelper.convertValueToType(Date.class, value);
-			targetSb.append("TO_DATE('");
-			targetSb.append(defaultDateFormat.format(date));
-			targetSb.append("','YYYY-MM-DD HH24-MI-SS')");
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public IList<String[]> disableConstraints(Connection connection)
+	public IList<String[]> disableConstraints(Connection connection, String... schemaNames)
 	{
 		ArrayList<String[]> disabled = new ArrayList<String[]>();
 
@@ -515,53 +511,9 @@ public class Oracle10gDialect implements IConnectionDialect
 	}
 
 	@Override
-	public void commit(Connection connection) throws SQLException
-	{
-		Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
-		if (active == null)
-		{
-			active = Boolean.valueOf(externalTransactionManager);
-		}
-		if (active.booleanValue())
-		{
-			// No Action!
-			// Transactions are externally managed.
-		}
-		else
-		{
-			connection.commit();
-		}
-	}
-
-	@Override
-	public void rollback(Connection connection) throws SQLException
-	{
-		Boolean active = transactionState != null ? transactionState.isExternalTransactionManagerActive() : null;
-		if (active == null)
-		{
-			active = Boolean.valueOf(externalTransactionManager);
-		}
-		if (active.booleanValue())
-		{
-			// No Action!
-			// Transactions are externally managed.
-		}
-		else
-		{
-			connection.rollback();
-		}
-	}
-
-	@Override
 	public void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException
 	{
 		// noop: releaseSavepoint(Savepoint savepoint) is not supported by Oracle10g
-	}
-
-	@Override
-	public int getOptimisticLockErrorCode()
-	{
-		return 20800;
 	}
 
 	@Override
@@ -595,12 +547,6 @@ public class Oracle10gDialect implements IConnectionDialect
 			return ex;
 		}
 		return null;
-	}
-
-	@Override
-	public boolean useVersionOnOptimisticUpdate()
-	{
-		return false;
 	}
 
 	@Override
@@ -732,5 +678,87 @@ public class Oracle10gDialect implements IConnectionDialect
 			JdbcUtil.close(createIndexStm);
 			JdbcUtil.close(stm, rs);
 		}
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException
+	{
+		List<String> allTableNames = new ArrayList<String>();
+
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = connection.createStatement();
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("SELECT OWNER, TABLE_NAME FROM ALL_ALL_TABLES WHERE ");
+			buildOwnerInClause(sb, schemaNames);
+			stmt.execute(sb.toString());
+			rs = stmt.getResultSet();
+			while (rs.next())
+			{
+				String schemaName = rs.getString("OWNER");
+				String tableName = rs.getString("TABLE_NAME");
+				if (!BIN_TABLE_NAME.matcher(tableName).matches() && !IDX_TABLE_NAME.matcher(tableName).matches())
+				{
+					allTableNames.add("\"" + schemaName + "\".\"" + tableName + "\"");
+				}
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+
+		return allTableNames;
+	}
+
+	@Override
+	public List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException
+	{
+		List<String> allViewNames = new ArrayList<String>();
+
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			for (String schemaName : schemaNames)
+			{
+				rs = connection.getMetaData().getTables(null, schemaName, null, new String[] { "VIEW" });
+
+				while (rs.next())
+				{
+					// String schemaName = rs.getString("TABLE_SCHEM");
+					String viewName = rs.getString("TABLE_NAME");
+					if (!BIN_TABLE_NAME.matcher(viewName).matches() && !IDX_TABLE_NAME.matcher(viewName).matches())
+					{
+						allViewNames.add("\"" + schemaName + "\".\"" + viewName + "\"");
+					}
+				}
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+
+		return allViewNames;
+	}
+
+	protected void buildOwnerInClause(final StringBuilder sb, final String... schemaNames)
+	{
+		sb.append("OWNER IN (");
+		boolean first = true;
+		for (int a = schemaNames.length; a-- > 0;)
+		{
+			if (!first)
+			{
+				sb.append(',');
+			}
+			sb.append('\'').append(schemaNames[a]).append('\'');
+			first = false;
+		}
+		sb.append(')');
 	}
 }

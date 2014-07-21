@@ -17,10 +17,10 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class LobConversionHelper implements IDedicatedConverter, IInitializingBean
+public class LobConverter implements IDedicatedConverter, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(LobConversionHelper.class)
+	@LogInstance(LobConverter.class)
 	private ILogger log;
 
 	protected Connection connection;
@@ -81,26 +81,33 @@ public class LobConversionHelper implements IDedicatedConverter, IInitializingBe
 				Clob clob = (Clob) value;
 
 				Reader reader = clob.getCharacterStream();
-				int length = (int) clob.length();
-				char[] array = new char[length];
-				int bytesRead = reader.read(array, 0, length);
-				if (bytesRead < length)
+				try
 				{
-					int index = bytesRead;
-					char[] oneChar = new char[1];
-					while ((bytesRead = reader.read(oneChar, index, 1)) != -1)
+					int length = (int) clob.length();
+					char[] array = new char[length];
+					int bytesRead = reader.read(array, 0, length);
+					if (bytesRead < length)
 					{
-						array[index] = oneChar[0];
-						index += bytesRead;
+						int index = bytesRead;
+						char[] oneChar = new char[1];
+						while ((bytesRead = reader.read(oneChar, index, 1)) != -1)
+						{
+							array[index] = oneChar[0];
+							index += bytesRead;
+						}
+					}
+					if (char[].class.equals(expectedType))
+					{
+						return array;
+					}
+					else if (String.class.equals(expectedType))
+					{
+						return new String(array);
 					}
 				}
-				if (char[].class.equals(expectedType))
+				finally
 				{
-					return array;
-				}
-				else if (String.class.equals(expectedType))
-				{
-					return new String(array);
+					reader.close();
 				}
 			}
 			else if (byte[].class.isAssignableFrom(sourceType))
@@ -108,9 +115,15 @@ public class LobConversionHelper implements IDedicatedConverter, IInitializingBe
 				if (Blob.class.isAssignableFrom(expectedType))
 				{
 					Blob blob = connection.createBlob();
-					OutputStream os = blob.setBinaryStream(0);
-					os.write((byte[]) value);
-					os.close();
+					OutputStream os = blob.setBinaryStream(1);
+					try
+					{
+						os.write((byte[]) value);
+					}
+					finally
+					{
+						os.close();
+					}
 					return blob;
 				}
 			}
@@ -121,39 +134,35 @@ public class LobConversionHelper implements IDedicatedConverter, IInitializingBe
 					Clob clob = connection.createClob();
 					IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 					StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-					Writer writer = clob.setCharacterStream(0);
+					Writer writer = clob.setCharacterStream(1);
 					try
 					{
 						sb.append((char[]) value);
 						writer.append(sb);
-						writer.flush();
 						return clob;
 					}
 					finally
 					{
+						writer.close();
 						tlObjectCollector.dispose(sb);
 					}
 				}
 			}
-			else if (String.class.isAssignableFrom(sourceType))
+			else if (CharSequence.class.isAssignableFrom(sourceType))
 			{
 				if (Clob.class.isAssignableFrom(expectedType))
 				{
 					Clob clob = connection.createClob();
-					IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-					StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
-					Writer writer = clob.setCharacterStream(0);
+					Writer writer = clob.setCharacterStream(1);
 					try
 					{
-						sb.append((String) value);
-						writer.append(sb);
-						writer.flush();
-						return clob;
+						writer.append((CharSequence) value);
 					}
 					finally
 					{
-						tlObjectCollector.dispose(sb);
+						writer.close();
 					}
+					return clob;
 				}
 			}
 			throw new IllegalArgumentException("Cannot convert from '" + sourceType + "' to '" + expectedType
