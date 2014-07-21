@@ -8,7 +8,6 @@ import java.sql.SQLException;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IConnectionTestDialect;
 
 public abstract class AbstractConnectionTestDialect implements IConnectionTestDialect
 {
@@ -47,7 +46,7 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
 	}
 
 	@Override
-	public boolean createTestUserIfSupported(SQLException reason, String userName, String userPassword, IProperties testProps) throws SQLException
+	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException
 	{
 		return false;
 	}

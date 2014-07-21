@@ -10,6 +10,8 @@ import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractIocTest;
 import de.osthus.ambeth.testutil.category.PerformanceTests;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
@@ -18,7 +20,10 @@ import de.osthus.ambeth.util.converter.BooleanArrayConverter;
 @Category(PerformanceTests.class)
 public class ContextLifecycleLoadTest extends AbstractIocTest
 {
-	private static class ContextConsumer implements Runnable
+	@LogInstance
+	private ILogger log;
+
+	private class ContextConsumer implements Runnable
 	{
 		public int i;
 
@@ -40,7 +45,7 @@ public class ContextLifecycleLoadTest extends AbstractIocTest
 				throw RuntimeExceptionUtil.mask(e);
 			}
 			context.dispose();
-			System.out.println("t+" + (System.currentTimeMillis() - t) + "ms: Consumer " + i + " shutting down");
+			log.info("t+" + (System.currentTimeMillis() - t) + "ms: Consumer " + i + " shutting down");
 		}
 	}
 
@@ -86,10 +91,14 @@ public class ContextLifecycleLoadTest extends AbstractIocTest
 			consumer.t = t;
 			consumer.context = childContext;
 			consumer.sleepTime = sleepTime;
-			System.out.println("t+" + diff + "ms: Starting consumer " + i + " with " + sleepTime + "ms sleep time");
+			log.info("t+" + diff + "ms: Starting consumer " + i + " with " + sleepTime + "ms sleep time");
 			pool.submit(consumer);
 			Thread.sleep(sleep);
 		}
-		pool.awaitTermination(2, TimeUnit.SECONDS);
+		pool.shutdown();
+		if (!pool.awaitTermination(2, TimeUnit.SECONDS))
+		{
+			throw new IllegalStateException("Threadpool did not shutdown properly");
+		}
 	}
 }

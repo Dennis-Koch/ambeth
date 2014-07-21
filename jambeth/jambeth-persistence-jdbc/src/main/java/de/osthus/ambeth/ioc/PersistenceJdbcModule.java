@@ -45,7 +45,6 @@ import de.osthus.ambeth.persistence.jdbc.lob.LobConverter;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.sql.ISqlConnection;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
-import de.osthus.ambeth.util.ParamChecker;
 
 @FrameworkModule
 public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoadingBean
@@ -85,8 +84,6 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
-
 		beanContextFactory.registerAutowireableBean(ITransaction.class, JdbcTransaction.class).autowireable(ITransactionState.class);
 
 		if (integratedConnectionPool)
@@ -116,10 +113,10 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 				.propertyValue("AdditionalModules", connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
 				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
 
-		beanContextFactory.registerBean("connectionHolderRegistry", ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
+		beanContextFactory.registerAnonymousBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
 				IConnectionHolderExtendable.class);
 
-		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerBean("connectionHolder", ConnectionHolderInterceptor.class)
+		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerAnonymousBean(ConnectionHolderInterceptor.class)
 				.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();
 		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 

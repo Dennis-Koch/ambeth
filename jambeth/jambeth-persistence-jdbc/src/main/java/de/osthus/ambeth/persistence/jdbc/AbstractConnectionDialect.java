@@ -26,6 +26,12 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect
 	protected boolean externalTransactionManager;
 
 	@Override
+	public int getMaxInClauseBatchThreshold()
+	{
+		return Integer.MAX_VALUE;
+	}
+
+	@Override
 	public boolean useVersionOnOptimisticUpdate()
 	{
 		return false;

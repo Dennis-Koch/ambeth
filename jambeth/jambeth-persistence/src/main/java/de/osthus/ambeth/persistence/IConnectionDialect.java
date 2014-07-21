@@ -32,8 +32,6 @@ public interface IConnectionDialect
 
 	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
 
-	int getOptimisticLockErrorCode();
-
 	int getResourceBusyErrorCode();
 
 	PersistenceException createPersistenceException(SQLException e, String relatedSql);
@@ -49,4 +47,6 @@ public interface IConnectionDialect
 	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException;
 
 	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException;
+
+	int getMaxInClauseBatchThreshold();
 }

@@ -9,22 +9,29 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.sql.ParamsUtil;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 {
+	@Property(name = PersistenceConfigurationConstants.BatchSize, defaultValue = "1000")
 	protected int batchSize;
 
+	@Property(name = PersistenceConfigurationConstants.PreparedBatchSize, defaultValue = "1000")
 	protected int preparedBatchSize;
 
 	protected int maxInClauseBatchThreshold;
 
+	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
 	@Override
@@ -38,36 +45,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 		{
 			throw new IllegalArgumentException("PreparedBatchSize must be >= 1: '" + PersistenceConfigurationConstants.PreparedBatchSize + "'");
 		}
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(sqlBuilder, "sqlBuilder");
-	}
-
-	@Property(name = PersistenceConfigurationConstants.BatchSize, defaultValue = "1000")
-	public void setBatchSize(int batchSize)
-	{
-		this.batchSize = batchSize;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.PreparedBatchSize, defaultValue = "1000")
-	public void setPreparedBatchSize(int preparedBatchSize)
-	{
-		this.preparedBatchSize = preparedBatchSize;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.MaxInClauseBatchThreshold, defaultValue = "8000")
-	public void setMaxInClauseBatchThreshold(int maxInClauseBatchThreshold)
-	{
-		this.maxInClauseBatchThreshold = maxInClauseBatchThreshold;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
+		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
 	}
 
 	@Override

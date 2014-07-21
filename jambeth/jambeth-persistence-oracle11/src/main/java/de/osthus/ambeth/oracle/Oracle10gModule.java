@@ -9,6 +9,11 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 @FrameworkModule
 public class Oracle10gModule extends Oracle10gSimpleModule
 {
+	public static boolean handlesDatabaseProtocol(String databaseProtocol)
+	{
+		return databaseProtocol.toLowerCase().startsWith("jdbc:oracle");
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

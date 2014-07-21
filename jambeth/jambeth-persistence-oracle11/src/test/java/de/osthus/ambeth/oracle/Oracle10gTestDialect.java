@@ -9,9 +9,11 @@ import java.util.List;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
+import de.osthus.ambeth.oracle.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
@@ -19,17 +21,21 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 {
 	@Override
-	public boolean createTestUserIfSupported(SQLException reason, String userName, String userPassword, IProperties testProps) throws SQLException
+	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException
 	{
-		if (reason.getErrorCode() != 1017) // ORA-01017: invalid username/password; logon denied
+		if (!(reason instanceof SQLException))
+		{
+			return false;
+		}
+		if (((SQLException) reason).getErrorCode() != 1017) // ORA-01017: invalid username/password; logon denied
 		{
 			return false;
 		}
 		// try to recover by trying to create the necessary user with the default credentials of sys
 		Properties createUserProps = new Properties(testProps);
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
-		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser));
-		createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass));
+		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
+		createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, userPassword);
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, "sys as sysdba");
 		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, "developer");
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
@@ -41,6 +47,13 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		{
 			bootstrapContext.dispose();
 		}
+		return true;
+	}
+
+	@Override
+	public void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing)
+	{
+		// intended blank
 	}
 
 	@SuppressWarnings("resource")
@@ -91,7 +104,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
-		sb.append(getOptimisticLockErrorCode()).append(", 'Optimistic Lock Exception');");
+		sb.append(Oracle10gDialect.getOptimisticLockErrorCode()).append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
 		return sb.toString();
@@ -111,7 +124,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
-				if (BIN_TABLE_NAME.matcher(tableName).matches())
+				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -136,4 +149,61 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		return sqlCommand;
 	}
 
+	@Override
+	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
+	{
+		Statement stmt = null;
+		ResultSet rs = null;
+		try
+		{
+			stmt = conn.createStatement();
+			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
+			rs = stmt.getResultSet();
+			List<String> sql = new ArrayList<String>();
+			while (rs.next())
+			{
+				String tableName = rs.getString(1);
+				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches() || Oracle10gDialect.IDX_TABLE_NAME.matcher(tableName).matches())
+				{
+					continue;
+				}
+				String tableType = rs.getString(2);
+				if ("VIEW".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+				}
+				else if ("TABLE".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+				}
+				else if ("SYNONYM".equalsIgnoreCase(tableType))
+				{
+					sql.add("DROP SYNONYM " + escapeName(schemaName, tableName));
+				}
+			}
+			JdbcUtil.close(rs);
+			rs = stmt
+					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
+			while (rs.next())
+			{
+				String objectType = rs.getString("object_type");
+				String objectName = rs.getString("object_name");
+				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(objectName).matches() || Oracle10gDialect.IDX_TABLE_NAME.matcher(objectName).matches())
+				{
+					continue;
+				}
+				sql.add("DROP " + objectType + " " + escapeName(schemaName, objectName));
+			}
+			sql.add("PURGE RECYCLEBIN");
+			return sql;
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			JdbcUtil.close(stmt, rs);
+		}
+	}
 }
