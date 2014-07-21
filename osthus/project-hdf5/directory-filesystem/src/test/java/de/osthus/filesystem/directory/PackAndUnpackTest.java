@@ -70,10 +70,10 @@ public class PackAndUnpackTest
 		unpackDirectory = Paths.get(tempDirectory.toString(), "unpack");
 		Files.createDirectories(unpackDirectory);
 
-		URI uri = URI.create("dir:" + targetDirectory.toUri());
+		DirectoryUri uri = DirectoryUri.create("dir:" + targetDirectory.toUri());
 		targetFileSystem = directoryFileSystemProvider.useFileSystem(uri);
 
-		URI uri2 = URI.create("dir:" + target2Directory.toUri());
+		DirectoryUri uri2 = DirectoryUri.create("dir:" + target2Directory.toUri());
 		target2FileSystem = directoryFileSystemProvider.useFileSystem(uri2);
 	}
 
@@ -141,23 +141,30 @@ public class PackAndUnpackTest
 		zipFs.close();
 	}
 
-	// TODO The usage of folders inside a zip file is currently not supported due to problems with parsing the URI
-	// @Test
-	// public void testDirInZip() throws IOException
-	// {
-	// URI zipFsUri = copyEmptyZip();
-	//
-	// FileSystem zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
-	// Path zipFsTest = zipFs.getPath("/test");
-	// zipFs.provider().createDirectory(zipFsTest);
-	// URI zipRootUri = zipFsTest.toUri();
-	// System.out.println(zipRootUri.toString());
-	//
-	// String dirFsRoot = "dir:" + zipRootUri.toString();
-	// System.out.println(dirFsRoot.toString());
-	//
-	// // TODO
-	// }
+	@Test
+	public void testDirInZip() throws IOException
+	{
+		URI zipFsUri = prepareEmptyZip();
+
+		FileSystem zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
+		Path zipFsTest = zipFs.getPath("/test/");
+		zipFs.provider().createDirectory(zipFsTest);
+		URI zipRootUri = zipFsTest.toUri();
+
+		String dirFsRoot = "dir:" + zipRootUri.toString() + "!/";
+		URI dirFsUri = URI.create(dirFsRoot);
+		DirectoryPath dirFsPath = directoryFileSystemProvider.getPath(dirFsUri);
+
+		recursiveCopy(sourceDirectory, dirFsPath);
+
+		// Close and reopen to write to file
+		zipFs.close();
+		zipFs = FileSystems.newFileSystem(zipFsUri, Collections.<String, Object> emptyMap());
+
+		Path zipFsDirectory = zipFs.getPath("/test/");
+		recursiveCompare(sourceDirectory, zipFsDirectory);
+		zipFs.close();
+	}
 
 	protected URI prepareEmptyZip() throws IOException
 	{
