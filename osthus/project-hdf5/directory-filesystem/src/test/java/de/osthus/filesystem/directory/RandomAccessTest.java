@@ -30,6 +30,8 @@ public class RandomAccessTest
 
 	private static long startIndex = 246 + 4 * System.getProperty("line.separator").length();
 
+	private static int desiredContextLength = 9;
+
 	private static DirectoryFileSystemProvider directoryFileSystemProvider;
 
 	private static DirectoryPath directoryPath;
@@ -68,9 +70,9 @@ public class RandomAccessTest
 	@Test
 	public void test() throws IOException
 	{
-		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, 9);
+		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, desiredContextLength);
 
-		byte[] bytes = new byte[9];
+		byte[] bytes = new byte[desiredContextLength];
 		byteBuffer.get(bytes);
 
 		String content = new String(bytes);

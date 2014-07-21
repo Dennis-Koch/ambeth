@@ -11,9 +11,7 @@ import static org.junit.Assert.fail;
 import java.net.URI;
 import java.nio.file.Path;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -23,68 +21,55 @@ import org.junit.Test;
  * @author jochen.hormes
  * @start 2014-07-21
  */
-// TODO Change for HDF5
-@Ignore
 public class Hdf5PathTest
 {
-	private static Hdf5FileSystemProvider DIRECTORY_FILE_SYSTEM_PROVIDER;
-
-	private static Hdf5FileSystem DIRECTORY_FILE_SYSTEM;
+	private static Hdf5FileSystem HDF5_FILE_SYSTEM;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		DIRECTORY_FILE_SYSTEM_PROVIDER = new Hdf5FileSystemProvider();
-		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
-		DIRECTORY_FILE_SYSTEM = DIRECTORY_FILE_SYSTEM_PROVIDER.newFileSystem(uri, null);
+		Hdf5FileSystemProvider hdf5FileSystemProvider = new Hdf5FileSystemProvider();
+		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		HDF5_FILE_SYSTEM = hdf5FileSystemProvider.newFileSystem(uri, null);
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception
 	{
-	}
-
-	@Before
-	public void setUp() throws Exception
-	{
-	}
-
-	@After
-	public void tearDown() throws Exception
-	{
+		HDF5_FILE_SYSTEM.close();
 	}
 
 	@Test
 	public void testIsAbsolute()
 	{
-		Hdf5Path directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/");
+		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
 		assertTrue(directoryPath.isAbsolute());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
 		assertTrue(directoryPath.isAbsolute());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "test");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "test");
 		assertFalse(directoryPath.isAbsolute());
 	}
 
 	@Test
 	public void testGetFileName()
 	{
-		Hdf5Path directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/");
+		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
 		Hdf5Path fileName = directoryPath.getFileName();
 		assertNull(fileName);
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
 		assertEquals("test", fileName.toString());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "test");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
 		assertEquals("test", fileName.toString());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/test/test2/test3");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test/test2/test3");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
 		assertEquals("test3", fileName.toString());
@@ -93,9 +78,9 @@ public class Hdf5PathTest
 	@Test
 	public void testGetParent()
 	{
-		Hdf5Path root = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/");
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
 		// TODO replace with resolve() when implemented
-		Hdf5Path path = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", root.toString() + "tmp");
+		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", root.toString() + "tmp");
 
 		Hdf5Path parent = path.getParent();
 		assertNotNull(parent);
@@ -105,7 +90,7 @@ public class Hdf5PathTest
 	@Test
 	public void testGetParent_relativeSingleName()
 	{
-		Hdf5Path path = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", "tmp");
+		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "", "tmp");
 
 		Hdf5Path parent = path.getParent();
 		assertNull(parent);
@@ -114,9 +99,9 @@ public class Hdf5PathTest
 	@Test
 	public void testGetParent_relativeNames()
 	{
-		Hdf5Path expected = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", "data");
+		Hdf5Path expected = new Hdf5Path(HDF5_FILE_SYSTEM, "", "data");
 		// TODO replace with resolve() when implemented
-		Hdf5Path path = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp");
+		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "", expected.toString() + "/tmp");
 
 		Hdf5Path parent = path.getParent();
 		assertNotNull(parent);
@@ -126,9 +111,9 @@ public class Hdf5PathTest
 	@Test
 	public void testGetParent_relativeNamesDir()
 	{
-		Hdf5Path expected = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", "data");
+		Hdf5Path expected = new Hdf5Path(HDF5_FILE_SYSTEM, "", "data");
 		// TODO replace with resolve() when implemented
-		Hdf5Path path = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp/");
+		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "", expected.toString() + "/tmp/");
 
 		Hdf5Path parent = path.getParent();
 		assertNotNull(parent);
@@ -138,7 +123,7 @@ public class Hdf5PathTest
 	@Test
 	public void testGetParent_ofRoot()
 	{
-		Hdf5Path root = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/");
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
 
 		Hdf5Path parent = root.getParent();
 		assertNull(parent);
@@ -203,8 +188,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolvePath_otherEmpty()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("");
 
 		Path resolved = path1.resolve(path2);
 		assertSame(path1, resolved);
@@ -213,8 +198,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolvePath_bothAbsolute()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test2");
 
 		Path resolved = path1.resolve(path2);
 		assertSame(path2, resolved);
@@ -223,8 +208,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolvePath_thisRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test2");
 
 		Path resolved = path1.resolve(path2);
 		assertSame(path2, resolved);
@@ -233,8 +218,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolvePath_otherRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2);
 		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
@@ -243,8 +228,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolvePath_bothRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2);
 		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
@@ -253,8 +238,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolveString_otherEmpty()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("");
 
 		Path resolved = path1.resolve(path2);
 		assertSame(path1, resolved);
@@ -263,8 +248,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolveString_bothAbsolute()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test2");
 
 		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path2, resolved);
@@ -273,8 +258,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolveString_thisRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test2");
 
 		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path2, resolved);
@@ -283,8 +268,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolveString_otherRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
@@ -293,8 +278,8 @@ public class Hdf5PathTest
 	@Test
 	public void testResolveString_bothRelative()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("test1");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
@@ -317,8 +302,8 @@ public class Hdf5PathTest
 	@Test
 	public void testRelativize_simple()
 	{
-		Hdf5Path path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
-		Hdf5Path path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test");
 
 		Path relativized = path1.relativize(path2);
 		assertEquals("test", relativized.toString());
@@ -398,21 +383,21 @@ public class Hdf5PathTest
 	@Test
 	public void testGetRoot()
 	{
-		Hdf5Path directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
 		Path root = directoryPath.getRoot();
 		assertNotNull(root);
 		assertEquals(root, root.getRoot());
 		assertNull(root.getFileName());
 		assertNull(root.getParent());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "/", "/test/test2/test3");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test/test2/test3");
 		root = directoryPath.getRoot();
 		assertNotNull(root);
 		assertEquals(root, root.getRoot());
 		assertNull(root.getFileName());
 		assertNull(root.getParent());
 
-		directoryPath = new Hdf5Path(DIRECTORY_FILE_SYSTEM, "", "test/test2/test3");
+		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "", "test/test2/test3");
 		root = directoryPath.getRoot();
 		assertNull(root);
 	}

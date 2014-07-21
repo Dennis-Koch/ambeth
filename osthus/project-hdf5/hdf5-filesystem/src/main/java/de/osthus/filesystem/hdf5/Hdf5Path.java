@@ -6,7 +6,7 @@ import java.nio.file.ProviderMismatchException;
 import de.osthus.filesystem.common.AbstractPath;
 
 /**
- * Path implementation for a ADF2-based FileSystem implementation.
+ * Path implementation for a HDF5-based FileSystem implementation.
  * 
  * @author jochen.hormes
  * @start 2014-07-21
@@ -28,29 +28,22 @@ public class Hdf5Path extends AbstractPath<Hdf5Path, Hdf5FileSystem> implements 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path relativize(Path other)
+	public Hdf5Path relativize(Path other)
 	{
 		if (root.isEmpty() || other.getRoot() == null)
 		{
 			throw new IllegalArgumentException("Both paths have to be absolute");
 		}
-		boolean isSameFileSystem = fileSystem.equals(other.getFileSystem());
-		boolean isUnderlyingFileSystem = fileSystem.getUnderlyingFileSystem().equals(other.getFileSystem());
-		if (!isSameFileSystem && !isUnderlyingFileSystem)
+		if (!fileSystem.equals(other.getFileSystem()))
 		{
 			throw new ProviderMismatchException();
 		}
 
 		// TODO just a quick and dirty implementation to get things working
-		if (isSameFileSystem && other.toString().startsWith(path))
+		if (other.toString().startsWith(path))
 		{
 			String relativePathString = other.toString().substring(path.length());
-			AbstractPath relativePath = fileSystem.getPath(relativePathString);
-			return relativePath;
-		}
-		else if (isUnderlyingFileSystem)
-		{
-			Path relativePath = fileSystem.getUnderlyingFileSystemPath().relativize(other);
+			Hdf5Path relativePath = fileSystem.getPath(relativePathString);
 			return relativePath;
 		}
 

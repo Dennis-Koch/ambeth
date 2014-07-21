@@ -1,6 +1,5 @@
 package de.osthus.filesystem.hdf5;
 
-
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,24 +7,24 @@ import java.nio.file.Paths;
 /**
  * 
  * @author jochen.hormes
- * @start 2014-07-16
+ * @start 2014-07-21
  */
 public final class TestConstant
 {
-	public static final String NAME_FILE_FS_TEMP_FOLDER;
+	public static final String NAME_FILE_FS_TEST_FILE;
 
-	public static final String NAME_DIR_FS_TEMP_FOLDER;
+	public static final String NAME_HDF5_FS_TEST_FILE;
 
-	public static final String NAME_DIR_FS_TEMP_FOLDER_PATH;
+	public static final String NAME_HDF5_FS_TEST_FILE_PATH;
 
 	static
 	{
-		String tempDirName = System.getProperty("java.io.tmpdir");
-		Path tempPath = Paths.get(tempDirName);
-		URI tempUri = tempPath.toUri();
-		NAME_FILE_FS_TEMP_FOLDER = tempUri.toString();
-		NAME_DIR_FS_TEMP_FOLDER = "dir:" + NAME_FILE_FS_TEMP_FOLDER;
-		NAME_DIR_FS_TEMP_FOLDER_PATH = NAME_DIR_FS_TEMP_FOLDER + "!/inside";
+		String testFileName = System.getProperty("java.io.tmpdir") + "test.h5";
+		Path testFilePath = Paths.get(testFileName);
+		URI testFileUri = testFilePath.toUri();
+		NAME_FILE_FS_TEST_FILE = testFileUri.toString();
+		NAME_HDF5_FS_TEST_FILE = Hdf5FileSystemProvider.SCHEME + ":" + NAME_FILE_FS_TEST_FILE;
+		NAME_HDF5_FS_TEST_FILE_PATH = NAME_HDF5_FS_TEST_FILE + "!/inside";
 	}
 
 	private TestConstant()
