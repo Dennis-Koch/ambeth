@@ -10,6 +10,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -79,10 +80,13 @@ public class Table implements ITable, IInitializingBean
 
 	protected String sequenceName;
 
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
+	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	protected IField[] alternateIdFields = EMPTY_FIELD_ARRAY;
@@ -98,22 +102,9 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	@Override
-	public void afterPropertiesSet()
+	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(name, "name");
-		ParamChecker.assertNotNull(typeInfoProvider, "typeInfoProvider");
-		ParamChecker.assertNotNull(alreadyLinkedCache, "alreadyLinkedCache");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-	}
-
-	public void setAlreadyLinkedCache(IAlreadyLinkedCache alreadyLinkedCache)
-	{
-		this.alreadyLinkedCache = alreadyLinkedCache;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
 	}
 
 	@Override
@@ -301,11 +292,6 @@ public class Table implements ITable, IInitializingBean
 	public ITypeInfoProvider getTypeInfoProvider()
 	{
 		return typeInfoProvider;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
 	}
 
 	@Override
