@@ -1,4 +1,4 @@
-package de.osthus.filesystem.directory;
+package de.osthus.filesystem.hdf5;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -22,22 +22,30 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class DirectoryFileSystemTest
+/**
+ * 
+ * @author jochen.hormes
+ * @start 2014-07-21
+ */
+// TODO Change for HDF5
+@Ignore
+public class Hdf5FileSystemTest
 {
 	private static FileSystem defaultFileSystem;
 
 	private static URI testUri;
 
-	private static DirectoryFileSystemProvider directoryFileSystemProvider;
+	private static Hdf5FileSystemProvider directoryFileSystemProvider;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
 		defaultFileSystem = FileSystems.getDefault();
 		testUri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
-		directoryFileSystemProvider = new DirectoryFileSystemProvider();
+		directoryFileSystemProvider = new Hdf5FileSystemProvider();
 	}
 
 	@AfterClass
@@ -45,7 +53,7 @@ public class DirectoryFileSystemTest
 	{
 	}
 
-	private DirectoryFileSystem directoryFileSystem;
+	private Hdf5FileSystem directoryFileSystem;
 
 	@Before
 	public void setUp() throws Exception
@@ -134,9 +142,9 @@ public class DirectoryFileSystemTest
 	public void testGetPath_empty()
 	{
 		String first = "";
-		DirectoryPath path = directoryFileSystem.getPath(first);
+		Hdf5Path path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem());
+		assertSame(directoryFileSystem, path.getFileSystem().toString());
 		assertNull(path.getRoot());
 		assertEquals("", path.toString());
 	}
@@ -145,7 +153,7 @@ public class DirectoryFileSystemTest
 	public void testGetPath_root()
 	{
 		String first = "/";
-		DirectoryPath path = directoryFileSystem.getPath(first);
+		Hdf5Path path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
 		assertSame(directoryFileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
@@ -156,7 +164,7 @@ public class DirectoryFileSystemTest
 	public void testGetPath_simple()
 	{
 		String first = "/data";
-		DirectoryPath path = directoryFileSystem.getPath(first);
+		Hdf5Path path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
 		assertSame(directoryFileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
@@ -169,7 +177,7 @@ public class DirectoryFileSystemTest
 		String first = "/data";
 		String second = "/test/";
 		String third = "/dir";
-		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
+		Hdf5Path path = directoryFileSystem.getPath(first, second, third);
 		assertNotNull(path);
 		assertSame(directoryFileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
@@ -182,7 +190,7 @@ public class DirectoryFileSystemTest
 		String first = "/data";
 		String second = "\\test\\";
 		String third = "/dir";
-		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
+		Hdf5Path path = directoryFileSystem.getPath(first, second, third);
 		assertNotNull(path);
 		assertSame(directoryFileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
