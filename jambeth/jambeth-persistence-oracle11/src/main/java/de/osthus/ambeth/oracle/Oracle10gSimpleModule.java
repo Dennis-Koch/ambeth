@@ -4,10 +4,9 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 
-import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.IPropertyLoadingBean;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -17,7 +16,7 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 
-public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoadingBean
+public class Oracle10gSimpleModule implements IInitializingModule
 {
 	@LogInstance
 	private ILogger log;
@@ -35,13 +34,6 @@ public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoad
 	protected boolean databasePassivate;
 
 	@Override
-	public void applyProperties(Properties contextProperties)
-	{
-		contextProperties.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
-		contextProperties.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, Oracle10gConnectionModule.class.getName());
-	}
-
-	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		if (!externalTransactionManager && !databaseBehaviourStrict)
@@ -50,7 +42,7 @@ public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoad
 		}
 		else
 		{
-			beanContextFactory.registerBean("connectionDialect", Oracle10gTestDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean("connectionDialect", Oracle10gDialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)
@@ -59,16 +51,16 @@ public class Oracle10gSimpleModule implements IInitializingModule, IPropertyLoad
 				}
 			}
 		}
-		beanContextFactory.registerBean("oracleSequencePrimaryKeyProvider", Oracle10gSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+		beanContextFactory.registerAnonymousBean(Oracle10gSequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
 
-		beanContextFactory.registerBean("oracleTimestampConverter", OracleTimestampConverter.class);
-		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.class);
-		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.TYPE);
-		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Date.class);
-		beanContextFactory.link("oracleTimestampConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Calendar.class);
+		IBeanConfiguration timestampConverter = beanContextFactory.registerAnonymousBean(OracleTimestampConverter.class);
+		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.class);
+		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Long.TYPE);
+		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Date.class);
+		beanContextFactory.link(timestampConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.TIMESTAMP.class, Calendar.class);
 
-		beanContextFactory.registerBean("oracleArrayConverter", OracleArrayConverter.class);
-		beanContextFactory.link("oracleArrayConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, Collection.class);
-		beanContextFactory.link("oracleArrayConverter").to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, String.class);
+		IBeanConfiguration arrayConverter = beanContextFactory.registerAnonymousBean(OracleArrayConverter.class);
+		beanContextFactory.link(arrayConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, Collection.class);
+		beanContextFactory.link(arrayConverter).to(IDedicatedConverterExtendable.class).with(oracle.sql.ARRAY.class, String.class);
 	}
 }

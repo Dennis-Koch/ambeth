@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
@@ -89,23 +90,29 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *3 *, *0 *\\)", " INT");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *9 *, *0 *\\)", " INT");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *10 *, *0 *\\)", " LONG");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *12 *, *0 *\\)", " LONG");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
-		sqlCommand = sqlCommand.replaceAll(" NUMBER", " DOUBLE");
-		sqlCommand = sqlCommand.replaceAll("VARCHAR2 *\\( *(\\d+) *BYTE *\\)", "VARCHAR($1)");
-		sqlCommand = sqlCommand.replaceAll("VARCHAR2 *\\( *(\\d+) *CHAR *\\)", "VARCHAR($1)");
-		sqlCommand = sqlCommand.replaceAll(" DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)", "");
-		sqlCommand = sqlCommand.replaceAll(" NOORDER", "");
-		sqlCommand = sqlCommand.replaceAll(" USING +INDEX", "");
-		sqlCommand = sqlCommand.replaceAll("MAXVALUE *9{19,} ", "MAXVALUE 999999999999999999 ");
-
-		sqlCommand = sqlCommand.replaceAll("to_timestamp\\(", "TO_TIMESTAMP(");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " DOUBLE");
+		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *BYTE *\\)", "VARCHAR($1)");
+		sqlCommand = prepareCommandIntern(sqlCommand, "VARCHAR2 *\\( *(\\d+) *CHAR *\\)", "VARCHAR($1)");
+		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE *INITIALLY *(?:DEFERRED|IMMEDIATE)", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NOORDER", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, " USING +INDEX", "");
+		sqlCommand = prepareCommandIntern(sqlCommand, "MAXVALUE *9{19,} ", "MAXVALUE 999999999999999999 ");
+		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
+		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
 		return sqlCommand;
+	}
+
+	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
+	{
+		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
 	}
 
 	@Override

@@ -17,6 +17,11 @@ import de.osthus.ambeth.sql.IPrimaryKeyProvider;
 @FrameworkModule
 public class H2Module implements IInitializingModule, IPropertyLoadingBean
 {
+	public static boolean handlesDatabaseProtocol(String databaseProtocol)
+	{
+		return databaseProtocol.toLowerCase().startsWith("jdbc:h2");
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,11 +50,11 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 	{
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
-			beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
 		}
 		else
 		{
-			beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)
@@ -58,7 +63,7 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 				}
 			}
 		}
-		beanContextFactory.registerBean("oracleSequencePrimaryKeyProvider", H2SequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+		beanContextFactory.registerAnonymousBean(H2SequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
 
 		beanContextFactory.registerAnonymousBean(H2ConnectionExtension.class).autowireable(IConnectionExtension.class);
 	}

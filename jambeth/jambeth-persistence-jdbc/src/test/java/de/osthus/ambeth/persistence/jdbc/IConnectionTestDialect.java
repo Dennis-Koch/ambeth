@@ -1,4 +1,4 @@
-package de.osthus.ambeth.persistence;
+package de.osthus.ambeth.persistence.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -12,7 +12,7 @@ public interface IConnectionTestDialect
 
 	String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
 
-	boolean createTestUserIfSupported(SQLException reason, String userName, String userPassword, IProperties testProps) throws SQLException;
+	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException;
 
 	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
 

@@ -43,6 +43,7 @@
 		<module>jambeth-merge-server</module>
 		<module>jambeth-persistence</module>
 		<module>jambeth-persistence-api</module>
+		<module>jambeth-persistence-h2</module>
 		<module>jambeth-persistence-jdbc</module>
 		<module>jambeth-persistence-oracle11</module>
 		<module>jambeth-platform</module>
@@ -350,6 +351,13 @@
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-persistence-oracle11</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-persistence-oracle11</artifactId>
+				<version>${project.version}</version>
+				<classifier>tests</classifier>
+				<scope>test</scope>
 			</dependency>
 
 			<dependency>

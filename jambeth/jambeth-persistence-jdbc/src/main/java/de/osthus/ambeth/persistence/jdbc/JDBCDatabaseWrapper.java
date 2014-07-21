@@ -483,7 +483,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			try
 			{
 				List<String> fqTableNamesList = connectionDialect.getAllFullqualifiedTableNames(connection, schemaNames);
-				List<String> viewNames = connectionDialect.getAllFullqualifiedViews(connection, schemaNames);
+				List<String> fqViewNamesList = connectionDialect.getAllFullqualifiedViews(connection, schemaNames);
 				for (String fqTableName : fqTableNamesList)
 				{
 					if (ignoredTables.contains(fqTableName))
@@ -492,12 +492,13 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 					}
 					fqTableNames.add(fqTableName);
 				}
-				for (String fqViewName : viewNames)
+				for (String fqViewName : fqViewNamesList)
 				{
 					if (ignoredTables.contains(fqViewName))
 					{
 						continue; // this is not a table we are interested in
 					}
+					fqTableNames.add(fqViewName);
 					viewNames.add(fqViewName);
 				}
 			}

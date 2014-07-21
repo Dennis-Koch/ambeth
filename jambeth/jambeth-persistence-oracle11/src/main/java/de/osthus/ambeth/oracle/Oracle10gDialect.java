@@ -115,6 +115,11 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 	}
 
+	public static int getOptimisticLockErrorCode()
+	{
+		return 20800;
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -150,6 +155,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
+	}
+
+	@Override
+	public int getMaxInClauseBatchThreshold()
+	{
+		return 4000;
 	}
 
 	@Override
@@ -506,12 +517,6 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	}
 
 	@Override
-	public int getOptimisticLockErrorCode()
-	{
-		return 20800;
-	}
-
-	@Override
 	public int getResourceBusyErrorCode()
 	{
 		return 54;
@@ -755,63 +760,5 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 			first = false;
 		}
 		sb.append(')');
-	}
-
-	@Override
-	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
-	{
-		Statement stmt = null;
-		ResultSet rs = null;
-		try
-		{
-			stmt = conn.createStatement();
-			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
-			rs = stmt.getResultSet();
-			List<String> sql = new ArrayList<String>();
-			while (rs.next())
-			{
-				String tableName = rs.getString(1);
-				if (BIN_TABLE_NAME.matcher(tableName).matches() || IDX_TABLE_NAME.matcher(tableName).matches())
-				{
-					continue;
-				}
-				String tableType = rs.getString(2);
-				if ("VIEW".equalsIgnoreCase(tableType))
-				{
-					sql.add("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
-				}
-				else if ("TABLE".equalsIgnoreCase(tableType))
-				{
-					sql.add("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
-				}
-				else if ("SYNONYM".equalsIgnoreCase(tableType))
-				{
-					sql.add("DROP SYNONYM " + escapeName(schemaName, tableName));
-				}
-			}
-			JdbcUtil.close(rs);
-			rs = stmt
-					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'SYNONYM', 'TABLE', 'TYPE', 'VIEW')");
-			while (rs.next())
-			{
-				String objectType = rs.getString("object_type");
-				String objectName = rs.getString("object_name");
-				if (BIN_TABLE_NAME.matcher(objectName).matches() || IDX_TABLE_NAME.matcher(objectName).matches())
-				{
-					continue;
-				}
-				sql.add("DROP " + objectType + " " + escapeName(schemaName, objectName));
-			}
-			sql.add("PURGE RECYCLEBIN");
-			return sql;
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stmt, rs);
-		}
 	}
 }

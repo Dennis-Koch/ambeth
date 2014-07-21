@@ -20,16 +20,14 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
-import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 
-public class H2Dialect extends AbstractConnectionDialect implements IInitializingBean
+public class H2Dialect extends AbstractConnectionDialect
 {
-	public static int getOptimisticLockErrorCodeStatic()
+	public static int getOptimisticLockErrorCode()
 	{
 		return 10001;
 	}
@@ -37,13 +35,6 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	protected IConnectionFactory connectionFactory;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-	}
 
 	@Override
 	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)
@@ -199,12 +190,6 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 	}
 
 	@Override
-	public int getOptimisticLockErrorCode()
-	{
-		return getOptimisticLockErrorCodeStatic();
-	}
-
-	@Override
 	public int getResourceBusyErrorCode()
 	{
 		throw new UnsupportedOperationException();
@@ -249,7 +234,8 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema IN (?)");
+			pstm = connection
+					.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_type='TABLE' AND table_schema IN (?)");
 			pstm.setObject(1, schemaNames);
 			rs = pstm.executeQuery();
 			ArrayList<String> tableNames = new ArrayList<String>();
@@ -274,15 +260,14 @@ public class H2Dialect extends AbstractConnectionDialect implements IInitializin
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement("SELECT table_schema, table_name AS table_nam FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
+			pstm = connection.prepareStatement("SELECT table_schema, table_name FROM INFORMATION_SCHEMA.VIEWS WHERE table_schema IN (?)");
 			pstm.setObject(1, schemaNames);
 			rs = pstm.executeQuery();
-
 			ArrayList<String> viewNames = new ArrayList<String>();
 			while (rs.next())
 			{
 				String tableSchema = rs.getString("table_schema");
-				String tableName = rs.getString("table_nam");
+				String tableName = rs.getString("table_name");
 				viewNames.add(escapeName(tableSchema, tableName));
 			}
 			return viewNames;

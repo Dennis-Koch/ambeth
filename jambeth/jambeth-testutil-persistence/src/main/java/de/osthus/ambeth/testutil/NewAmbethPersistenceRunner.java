@@ -41,24 +41,19 @@ import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.h2.H2TestDialect;
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.IPropertyLoadingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.persistence.IConnectionDialect;
-import de.osthus.ambeth.persistence.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
+import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -68,10 +63,7 @@ import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
-import de.osthus.ambeth.testutil.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.IPersistenceExceptionUtil;
-import de.osthus.ambeth.util.PersistenceExceptionUtil;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
 
@@ -81,34 +73,6 @@ import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
 public class NewAmbethPersistenceRunner extends AmbethIocRunner
 {
 	protected static final String MEASUREMENT_BEAN = "measurementBean";
-
-	@FrameworkModule
-	public static class AmbethPersistenceSchemaModule implements IInitializingModule, IPropertyLoadingBean
-	{
-		@Override
-		public void applyProperties(Properties contextProperties)
-		{
-			String databaseConnection = contextProperties.getString(PersistenceJdbcConfigurationConstants.DatabaseConnection);
-			if (databaseConnection == null)
-			{
-				contextProperties.put(PersistenceJdbcConfigurationConstants.DatabaseConnection, "${" + PersistenceJdbcConfigurationConstants.DatabaseProtocol
-						+ "}:@" + "${" + PersistenceJdbcConfigurationConstants.DatabaseHost + "}" + ":" + "${"
-						+ PersistenceJdbcConfigurationConstants.DatabasePort + "}" + ":" + "${" + PersistenceJdbcConfigurationConstants.DatabaseName + "}");
-			}
-			// contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor", "INFO");
-			// contextProperties.put("ambeth.log.level.de.osthus.ambeth.persistence.jdbc.JDBCDatabaseWrapper", "INFO");
-		}
-
-		@Override
-		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			beanContextFactory.registerAnonymousBean(IocBootstrapModule.class);
-			// beanContextFactory.registerBean("connectionDialect", Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerBean("connectionDialect", H2TestDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerBean("connectionFactory", ConnectionFactory.class).autowireable(IConnectionFactory.class);
-			beanContextFactory.registerBean("persistenceExceptionUtil", PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
-		}
-	}
 
 	private Connection connection;
 
@@ -128,10 +92,6 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	public NewAmbethPersistenceRunner(final Class<?> testClass) throws InitializationError
 	{
 		super(testClass);
-		if (AbstractJDBCTest.class.isAssignableFrom(testClass))
-		{
-			throw new IllegalArgumentException("This runner does not support tests which inherit from " + AbstractJDBCTest.class.getName());
-		}
 	}
 
 	public void setDoExecuteStrict(final boolean doExecuteStrict)
@@ -156,6 +116,22 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 			schemaContext.getRoot().dispose();
 			schemaContext = null;
 		}
+	}
+
+	@Override
+	protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
+	{
+		super.extendProperties(frameworkMethod, props);
+
+		DialectSelectorModule.fillTestProperties(props);
+	}
+
+	@Override
+	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
+	{
+		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(frameworkMethod);
+		frameworkTestModuleList.add(DialectSelectorModule.class);
+		return frameworkTestModuleList;
 	}
 
 	public void rebuildSchemaContext()
@@ -594,34 +570,20 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		}
 		catch (MaskingRuntimeException e)
 		{
-			if (!(e.getCause() instanceof SQLException))
+			Throwable cause = e.getCause();
+			while (cause instanceof MaskingRuntimeException)
+			{
+				cause = cause.getCause();
+			}
+			IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
+			if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).createTestUserIfSupported(cause,
+					testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
+					testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps))
 			{
 				throw e;
 			}
-			SQLException ex = (SQLException) e.getCause();
-			if (ex.getErrorCode() != 1017) // ORA-01017: invalid username/password; logon denied
-			{
-				throw e;
-			}
-			// try to recover by trying to create the necessary user with the default credentials of sys
 			try
 			{
-				IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
-				Properties createUserProps = new Properties(testProps);
-				createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
-				createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser));
-				createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass));
-				createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, "sys as sysdba");
-				createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, "developer");
-				IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
-				try
-				{
-					bootstrapContext.createService("randomUser", RandomUserModule.class, IocBootstrapModule.class);
-				}
-				finally
-				{
-					bootstrapContext.dispose();
-				}
 				conn = getOrCreateSchemaContext().getService(IConnectionFactory.class).create();
 			}
 			catch (Throwable t)

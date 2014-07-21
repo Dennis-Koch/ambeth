@@ -8,7 +8,6 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.filter.ioc.FilterPersistenceModule;
-import de.osthus.ambeth.h2.H2Module;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
@@ -34,7 +33,6 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
-import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.ioc.SQLQueryModule;
@@ -44,10 +42,9 @@ import de.osthus.ambeth.util.IConversionHelper;
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
-		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, H2Module.class, SQLQueryModule.class,
-		FilterPersistenceModule.class })
+		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, SQLQueryModule.class, FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
-@RunWith(NewAmbethPersistenceRunner.class)
+@RunWith(AmbethPersistenceRunner.class)
 public abstract class AbstractPersistenceTest extends AbstractIocTest
 {
 	public static class PersistencePropertiesProvider implements IPropertiesProvider
@@ -59,12 +56,6 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
 			props.put(ServiceConfigurationConstants.SlaveMode, "false");
 			props.put(ServiceConfigurationConstants.LogShortNames, "true");
-
-//			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "org.h2.jdbc.JdbcConnection");
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.h2.H2ConnectionModule");
-
-			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
-			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.oracle.Oracle10gConnectionModule");
 
 			// IocModule
 			props.put(IocConfigurationConstants.UseObjectCollector, "false");

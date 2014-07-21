@@ -53,7 +53,7 @@ public class OptimisticLockTrigger implements Trigger
 		{
 			return;
 		}
-		throw new SQLException("Optimistic Lock Exception", "", H2TestDialect.getOptimisticLockErrorCodeStatic());
+		throw new SQLException("Optimistic Lock Exception", "", H2Dialect.getOptimisticLockErrorCode());
 	}
 
 	@Override

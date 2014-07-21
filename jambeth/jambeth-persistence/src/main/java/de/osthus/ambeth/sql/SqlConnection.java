@@ -10,16 +10,16 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
-import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
 
-public abstract class SqlConnection implements ISqlConnection
+public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 {
 	// RegEx to add field aliases to paging subselects, e.g. S_A."ID":
 	// outer sql: "S_A.ID"
@@ -36,6 +36,9 @@ public abstract class SqlConnection implements ISqlConnection
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
+	protected IConnectionDialect connectionDialect;
+
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
 	@Autowired
@@ -44,8 +47,13 @@ public abstract class SqlConnection implements ISqlConnection
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	@Property(name = PersistenceConfigurationConstants.MaxInClauseBatchThreshold, defaultValue = "8000")
 	protected int maxInClauseBatchThreshold;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
+	}
 
 	public void directSql(String sql)
 	{
