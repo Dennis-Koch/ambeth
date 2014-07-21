@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNull;
 
 import java.net.URISyntaxException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -13,8 +12,6 @@ import org.junit.Test;
  * @author jochen.hormes
  * @start 2014-07-21
  */
-// TODO Change for HDF5
-@Ignore
 public class Hdf5UriTest
 {
 	private static final String SCHEME = Hdf5FileSystemProvider.SCHEME;
