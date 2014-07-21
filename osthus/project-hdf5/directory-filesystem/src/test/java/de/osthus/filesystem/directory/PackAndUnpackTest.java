@@ -70,10 +70,10 @@ public class PackAndUnpackTest
 		unpackDirectory = Paths.get(tempDirectory.toString(), "unpack");
 		Files.createDirectories(unpackDirectory);
 
-		DirectoryUri uri = DirectoryUri.create("dir:" + targetDirectory.toUri());
+		DirectoryUri uri = DirectoryUri.create(directoryFileSystemProvider.getScheme() + ":" + targetDirectory.toUri());
 		targetFileSystem = directoryFileSystemProvider.useFileSystem(uri);
 
-		DirectoryUri uri2 = DirectoryUri.create("dir:" + target2Directory.toUri());
+		DirectoryUri uri2 = DirectoryUri.create(directoryFileSystemProvider.getScheme() + ":" + target2Directory.toUri());
 		target2FileSystem = directoryFileSystemProvider.useFileSystem(uri2);
 	}
 

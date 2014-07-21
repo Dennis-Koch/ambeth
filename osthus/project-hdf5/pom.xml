@@ -14,8 +14,9 @@
 	</parent>
 
 	<modules>
-		<module>adf2</module>
+		<module>filesystem-common</module>
 		<module>directory-filesystem</module>
+		<module>adf2-filesystem</module>
 	</modules>
 
 	<build>
