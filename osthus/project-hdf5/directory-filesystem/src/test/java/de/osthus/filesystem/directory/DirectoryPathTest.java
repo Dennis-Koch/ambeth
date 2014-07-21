@@ -75,17 +75,17 @@ public class DirectoryPathTest
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
-		assertEquals("test", fileName.path);
+		assertEquals("test", fileName.toString());
 
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "test");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
-		assertEquals("test", fileName.path);
+		assertEquals("test", fileName.toString());
 
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test/test2/test3");
 		fileName = directoryPath.getFileName();
 		assertNotNull(fileName);
-		assertEquals("test3", fileName.path);
+		assertEquals("test3", fileName.toString());
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class DirectoryPathTest
 	{
 		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
 		// TODO replace with resolve() when implemented
-		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", root.path + "tmp");
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", root.toString() + "tmp");
 
 		DirectoryPath parent = path.getParent();
 		assertNotNull(parent);
@@ -114,7 +114,7 @@ public class DirectoryPathTest
 	{
 		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
 		// TODO replace with resolve() when implemented
-		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.path + "/tmp");
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp");
 
 		DirectoryPath parent = path.getParent();
 		assertNotNull(parent);
@@ -126,7 +126,7 @@ public class DirectoryPathTest
 	{
 		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
 		// TODO replace with resolve() when implemented
-		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.path + "/tmp/");
+		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp/");
 
 		DirectoryPath parent = path.getParent();
 		assertNotNull(parent);
@@ -235,7 +235,7 @@ public class DirectoryPathTest
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2);
-		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
 	}
 
 	@Test
@@ -245,7 +245,7 @@ public class DirectoryPathTest
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
 
 		Path resolved = path1.resolve(path2);
-		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
 	}
 
 	@Test
@@ -264,7 +264,7 @@ public class DirectoryPathTest
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
 
-		Path resolved = path1.resolve(path2.path);
+		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path2, resolved);
 	}
 
@@ -274,7 +274,7 @@ public class DirectoryPathTest
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test2");
 
-		Path resolved = path1.resolve(path2.path);
+		Path resolved = path1.resolve(path2.toString());
 		assertEquals(path2, resolved);
 	}
 
@@ -284,8 +284,8 @@ public class DirectoryPathTest
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/test1");
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
 
-		Path resolved = path1.resolve(path2.path);
-		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+		Path resolved = path1.resolve(path2.toString());
+		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
 	}
 
 	@Test
@@ -294,8 +294,8 @@ public class DirectoryPathTest
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("test1");
 		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("test2");
 
-		Path resolved = path1.resolve(path2.path);
-		assertEquals(path1.path + "/" + path2.path, resolved.toString());
+		Path resolved = path1.resolve(path2.toString());
+		assertEquals(path1.toString() + "/" + path2.toString(), resolved.toString());
 	}
 
 	@Test

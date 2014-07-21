@@ -3,6 +3,7 @@ package de.osthus.filesystem.directory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -135,9 +136,9 @@ public class DirectoryFileSystemTest
 		String first = "";
 		DirectoryPath path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.fileSystem);
-		assertEquals("", path.root);
-		assertEquals("", path.path);
+		assertSame(directoryFileSystem, path.getFileSystem());
+		assertNull(path.getRoot());
+		assertEquals("", path.toString());
 	}
 
 	@Test
@@ -146,9 +147,9 @@ public class DirectoryFileSystemTest
 		String first = "/";
 		DirectoryPath path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.fileSystem);
-		assertEquals("/", path.root);
-		assertEquals("/", path.path);
+		assertSame(directoryFileSystem, path.getFileSystem());
+		assertEquals("/", path.getRoot().toString());
+		assertEquals("/", path.toString());
 	}
 
 	@Test
@@ -157,9 +158,9 @@ public class DirectoryFileSystemTest
 		String first = "/data";
 		DirectoryPath path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.fileSystem);
-		assertEquals("/", path.root);
-		assertEquals("/data", path.path);
+		assertSame(directoryFileSystem, path.getFileSystem());
+		assertEquals("/", path.getRoot().toString());
+		assertEquals("/data", path.toString());
 	}
 
 	@Test
@@ -170,9 +171,9 @@ public class DirectoryFileSystemTest
 		String third = "/dir";
 		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.fileSystem);
-		assertEquals("/", path.root);
-		assertEquals("/data/test/dir", path.path);
+		assertSame(directoryFileSystem, path.getFileSystem());
+		assertEquals("/", path.getRoot().toString());
+		assertEquals("/data/test/dir", path.toString());
 	}
 
 	@Test
@@ -183,9 +184,9 @@ public class DirectoryFileSystemTest
 		String third = "/dir";
 		DirectoryPath path = directoryFileSystem.getPath(first, second, third);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.fileSystem);
-		assertEquals("/", path.root);
-		assertEquals("/data/test/dir", path.path);
+		assertSame(directoryFileSystem, path.getFileSystem());
+		assertEquals("/", path.getRoot().toString());
+		assertEquals("/data/test/dir", path.toString());
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
