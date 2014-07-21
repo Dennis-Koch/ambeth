@@ -28,6 +28,8 @@ public class RandomAccessTest
 
 	private static final Set<OpenOption> optionRead = Collections.<OpenOption> singleton(StandardOpenOption.READ);
 
+	private static long startIndex = 246 + 4 * System.getProperty("line.separator").length();
+
 	private static DirectoryFileSystemProvider directoryFileSystemProvider;
 
 	private static DirectoryPath directoryPath;
@@ -66,7 +68,7 @@ public class RandomAccessTest
 	@Test
 	public void test() throws IOException
 	{
-		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, 254, 9);
+		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, 9);
 
 		byte[] bytes = new byte[9];
 		byteBuffer.get(bytes);
