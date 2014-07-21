@@ -2,8 +2,6 @@ package de.osthus.filesystem.directory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -25,8 +23,6 @@ import java.nio.file.attribute.FileAttributeView;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -116,16 +112,16 @@ public class DirectoryFileSystemProviderTest
 	}
 
 	@Test
-	public void testGetPathURI() throws URISyntaxException
+	public void testGetPathURI()
 	{
 		String dirFsUriString = TestConstant.NAME_DIR_FS_TEMP_FOLDER;
 		String folderPathString = "/insideDirFs/folder";
 		String fullUriString = dirFsUriString + "!" + folderPathString;
-		URI fullUri = new URI(fullUriString);
+		URI fullUri = URI.create(fullUriString);
 
 		DirectoryPath path = directoryFileSystemProvider.getPath(fullUri);
 
-		URI dirFsUri = new URI(dirFsUriString);
+		DirectoryUri dirFsUri = DirectoryUri.create(dirFsUriString);
 		DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
 		assertEquals(dirFileSystem, path.fileSystem);
 
@@ -133,25 +129,25 @@ public class DirectoryFileSystemProviderTest
 		assertEquals(folderPathString, path.path);
 	}
 
-	// TODO The usage of folders inside a zip file is currently not supported due to problems with parsing the URI
-	// @Test
-	// public void testGetPathURI_inZip() throws URISyntaxException
-	// {
-	// String zipFsUriString = "jar:" + TestConstant.NAME_FILE_FS_TEMP_FOLDER + "test.zip!/insideZipFs/";
-	// String dirFsUriString = "dir:" + zipFsUriString;
-	// String folderPathString = "/insideDirFs/folder";
-	// String fullUriString = dirFsUriString + "!" + folderPathString;
-	// URI fullUri = new URI(fullUriString);
-	//
-	// DirectoryPath path = directoryFileSystemProvider.getPath(fullUri);
-	//
-	// URI dirFsUri = new URI(dirFsUriString);
-	// DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
-	// assertEquals(dirFileSystem, path.fileSystem);
-	//
-	// assertEquals(dirFileSystem.getSeparator(), path.root);
-	// assertEquals(folderPathString, path.path);
-	// }
+	@Test
+	public void testGetPathURI_inZip() throws URISyntaxException
+	{
+		Path zipFile1 = Paths.get("src/test/resources/file1.zip");
+		String zipFsUriString = "jar:" + zipFile1.toUri().toString() + "!/insideZipFs/";
+		String dirFsUriString = "dir:" + zipFsUriString;
+		String folderPathString = "/insideDirFs/folder";
+		String fullUriString = dirFsUriString + "!" + folderPathString;
+		URI fullUri = new URI(fullUriString);
+
+		DirectoryPath path = directoryFileSystemProvider.getPath(fullUri);
+
+		DirectoryUri dirFsUri = DirectoryUri.create(dirFsUriString);
+		DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
+		assertEquals(dirFileSystem, path.fileSystem);
+
+		assertEquals(dirFileSystem.getSeparator(), path.root);
+		assertEquals(folderPathString, path.path);
+	}
 
 	@Test
 	@Ignore
@@ -281,79 +277,5 @@ public class DirectoryFileSystemProviderTest
 		Object value = null;
 		LinkOption[] options = null;
 		directoryFileSystemProvider.setAttribute(path, attribute, value, options);
-	}
-
-	@Test
-	public void testFsPattern_defaultWindows()
-	{
-		String uriString = "dir:file:///C:/temp/target/";
-		Matcher matcher = patternHelper(DirectoryFileSystemProvider.FS_URI_PATTERN, uriString);
-		assertEquals(5, matcher.groupCount());
-		assertEquals(uriString, matcher.group(0));
-		assertEquals("file:///C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_IDENTIFIER));
-		assertEquals("file:", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_SCHEME));
-		assertEquals("//", matcher.group(3));
-		assertEquals("/C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH));
-		assertEquals("C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH_2));
-	}
-
-	@Test
-	public void testFsPattern_shortenedWindows()
-	{
-		String uriString = "dir:file:/C:/temp/target/";
-		Matcher matcher = patternHelper(DirectoryFileSystemProvider.FS_URI_PATTERN, uriString);
-		assertEquals(5, matcher.groupCount());
-		assertEquals(uriString, matcher.group(0));
-		assertEquals("file:/C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_IDENTIFIER));
-		assertEquals("file:", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_SCHEME));
-		assertNull(matcher.group(3));
-		assertEquals("/C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH));
-		assertEquals("C:/temp/target/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH_2));
-	}
-
-	// TODO The usage of folders inside a zip file is currently not supported due to problems with parsing the URI
-	// @Test
-	// public void testFsPattern_inZipFile()
-	// {
-	// String uriString = "dir:jar:file:///C:/temp/target/test.zip!/test/";
-	// Matcher matcher = patternHelper(DirectoryFileSystemProvider.FS_URI_PATTERN, uriString);
-	// assertEquals(5, matcher.groupCount());
-	// assertEquals(uriString, matcher.group(0));
-	// assertEquals("jar:file:///C:/temp/target/test.zip!/test/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_IDENTIFIER));
-	// assertEquals("jar:file:///C:/temp/target/test.zip", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_SCHEME));
-	// assertEquals("//", matcher.group(3));
-	// assertEquals("/test/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH));
-	// assertEquals("test/", matcher.group(DirectoryFileSystemProvider.FS_URI_GROUP_SUB_PATH_2));
-	// }
-
-	@Test
-	public void testPathPattern_defaultWindows()
-	{
-		String uriString = "dir:file:///C:/temp/target/!/insideDirFs/folder";
-		Matcher matcher = patternHelper(DirectoryFileSystemProvider.PATH_URI_PATTERN, uriString);
-		assertEquals(3, matcher.groupCount());
-		assertEquals(uriString, matcher.group(0));
-		assertEquals("dir:file:///C:/temp/target/", matcher.group(DirectoryFileSystemProvider.PATH_URI_GROUP_FS_URI));
-		assertEquals("//", matcher.group(2));
-		assertEquals("/insideDirFs/folder", matcher.group(DirectoryFileSystemProvider.PATH_URI_GROUP_PATH));
-	}
-
-	@Test
-	public void testPathPattern_inZipFile()
-	{
-		String uriString = "dir:jar:file:///C:/temp/target/test.zip!/test/!/insideDirFs/folder";
-		Matcher matcher = patternHelper(DirectoryFileSystemProvider.PATH_URI_PATTERN, uriString);
-		assertEquals(3, matcher.groupCount());
-		assertEquals(uriString, matcher.group(0));
-		assertEquals("dir:jar:file:///C:/temp/target/test.zip!/test/", matcher.group(DirectoryFileSystemProvider.PATH_URI_GROUP_FS_URI));
-		assertEquals("//", matcher.group(2));
-		assertEquals("/insideDirFs/folder", matcher.group(DirectoryFileSystemProvider.PATH_URI_GROUP_PATH));
-	}
-
-	private Matcher patternHelper(Pattern pattern, String string)
-	{
-		Matcher matcher = pattern.matcher(string);
-		assertTrue(pattern.pattern() + " => " + string, matcher.matches());
-		return matcher;
 	}
 }

@@ -2,7 +2,6 @@ package de.osthus.filesystem.directory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.AccessMode;
@@ -26,8 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * FileSystemProvider for a sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
@@ -37,21 +34,7 @@ import java.util.regex.Pattern;
  */
 public class DirectoryFileSystemProvider extends FileSystemProvider
 {
-	private static final String SCHEME = "dir";
-
-	// example dir:file:///C:/temp/target/
-	protected static final Pattern FS_URI_PATTERN = Pattern.compile("" + SCHEME + "\\:(([^:]+\\:)[^/]*(//[^/]*)?(/(.+?/)))");
-	protected static final int FS_URI_GROUP_IDENTIFIER = 1; // Key for FS: 'file:///C:/temp/target/'
-	protected static final int FS_URI_GROUP_SUB_SCHEME = 2; // Scheme of underlying FS: 'file:'
-	// Group 3 are the // and the authority (server name), defined as group to be optional
-	protected static final int FS_URI_GROUP_SUB_PATH = 4; // Sub path in underlying FS: /C:/temp/target/
-	protected static final int FS_URI_GROUP_SUB_PATH_2 = 5; // Sub path for Windows: 'C:/temp/target/'
-
-	// example dir:file:///C:/temp/target/!/insideDirFs/folder
-	protected static final Pattern PATH_URI_PATTERN = Pattern.compile("(" + SCHEME + "\\:[^:]+\\:[^/]*(//[^/]*)?/.+?/)(?<=/)!(/.+)");
-	protected static final int PATH_URI_GROUP_FS_URI = 1; // URI string for the FS: dir:file:///C:/temp/target/
-	// Group 2 are the // and the authority (server name), defined as group to be optional
-	protected static final int PATH_URI_GROUP_PATH = 3; // Path inside the FS: /insideDirFs/folder
+	protected static final String SCHEME = "dir";
 
 	private final HashMap<String, DirectoryFileSystem> openFileSystems = new HashMap<>();
 
@@ -70,21 +53,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryFileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
 	{
-		Matcher matcher = createFsMatcher(uri);
-		String dirFsIdentifier = matcher.group(FS_URI_GROUP_IDENTIFIER);
-
-		if (openFileSystems.containsKey(dirFsIdentifier))
-		{
-			throw new FileSystemAlreadyExistsException();
-		}
-
-		URI underlyingFileSystemUri = createUnderlyingFileSystemUri(matcher);
-		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, matcher);
-
-		DirectoryFileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, dirFsIdentifier, env);
-		openFileSystems.put(dirFsIdentifier, directoryFileSystem);
-
+		DirectoryUri directoryUri = DirectoryUri.create(uri);
+		DirectoryFileSystem directoryFileSystem = newFileSystem(directoryUri, env);
 		return directoryFileSystem;
 	}
 
@@ -94,8 +64,33 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryFileSystem getFileSystem(URI uri)
 	{
-		Matcher matcher = createFsMatcher(uri);
-		String dirFsIdentifier = matcher.group(FS_URI_GROUP_IDENTIFIER);
+		DirectoryUri directoryUri = DirectoryUri.create(uri);
+		DirectoryFileSystem directoryFileSystem = getFileSystem(directoryUri);
+		return directoryFileSystem;
+	}
+
+	protected DirectoryFileSystem newFileSystem(DirectoryUri directoryUri, Map<String, ?> env) throws IOException
+	{
+		String dirFsIdentifier = directoryUri.getIdentifier();
+
+		if (openFileSystems.containsKey(dirFsIdentifier))
+		{
+			throw new FileSystemAlreadyExistsException();
+		}
+
+		URI underlyingFileSystemUri = URI.create(directoryUri.getUnderlyingFileSystem());
+		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
+		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, directoryUri);
+
+		DirectoryFileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, dirFsIdentifier, env);
+		openFileSystems.put(dirFsIdentifier, directoryFileSystem);
+
+		return directoryFileSystem;
+	}
+
+	protected DirectoryFileSystem getFileSystem(DirectoryUri directoryUri)
+	{
+		String dirFsIdentifier = directoryUri.getIdentifier();
 
 		DirectoryFileSystem directoryFileSystem = openFileSystems.get(dirFsIdentifier);
 		if (directoryFileSystem == null)
@@ -106,16 +101,16 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		return directoryFileSystem;
 	}
 
-	protected DirectoryFileSystem useFileSystem(URI uri)
+	protected DirectoryFileSystem useFileSystem(DirectoryUri directoryUri)
 	{
 		DirectoryFileSystem fileSystem;
 		try
 		{
-			fileSystem = newFileSystem(uri, Collections.<String, Object> emptyMap());
+			fileSystem = newFileSystem(directoryUri, Collections.<String, Object> emptyMap());
 		}
 		catch (FileSystemAlreadyExistsException e)
 		{
-			fileSystem = getFileSystem(uri);
+			fileSystem = getFileSystem(directoryUri);
 		}
 		catch (IOException e)
 		{
@@ -142,24 +137,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryPath getPath(URI uri)
 	{
-		Matcher matcher = createPathMatcher(uri);
-		String fsDirUriString = matcher.group(PATH_URI_GROUP_FS_URI);
-		String pathString = matcher.group(PATH_URI_GROUP_PATH);
-		if (pathString == null)
-		{
-			pathString = "";
-		}
+		DirectoryUri directoryUri = DirectoryUri.create(uri);
+		DirectoryFileSystem directoryFileSystem = useFileSystem(directoryUri);
 
-		URI dirUri;
-		try
-		{
-			dirUri = new URI(fsDirUriString);
-		}
-		catch (URISyntaxException e)
-		{
-			throw new RuntimeException(e);
-		}
-		DirectoryFileSystem directoryFileSystem = useFileSystem(dirUri);
+		String pathString = directoryUri.getPath();
 		DirectoryPath path = directoryFileSystem.getPath(pathString);
 
 		return path;
@@ -346,43 +327,6 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		openFileSystems.remove(fsIdentifier);
 	}
 
-	protected Matcher createFsMatcher(URI uri)
-	{
-		String path = uri.toString();
-		Matcher matcher = FS_URI_PATTERN.matcher(path);
-		if (!matcher.matches())
-		{
-			throw new IllegalArgumentException("Illegal file system URI: " + uri);
-		}
-		return matcher;
-	}
-
-	protected Matcher createPathMatcher(URI uri)
-	{
-		String path = uri.toString();
-		Matcher matcher = PATH_URI_PATTERN.matcher(path);
-		if (!matcher.matches())
-		{
-			throw new IllegalArgumentException("Illegal file system URI: " + uri);
-		}
-		return matcher;
-	}
-
-	protected URI createUnderlyingFileSystemUri(Matcher matcher)
-	{
-		String underlyingFileSystemScheme = matcher.group(FS_URI_GROUP_SUB_SCHEME) + "/";
-		URI underlyingFileSystemUri;
-		try
-		{
-			underlyingFileSystemUri = new URI(underlyingFileSystemScheme);
-		}
-		catch (URISyntaxException e)
-		{
-			throw new RuntimeException(e);
-		}
-		return underlyingFileSystemUri;
-	}
-
 	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
 	{
 		FileSystem underlyingFileSystem;
@@ -397,9 +341,9 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		return underlyingFileSystem;
 	}
 
-	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Matcher matcher)
+	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, DirectoryUri directoryUri)
 	{
-		String underlyingFileSystemPathName = matcher.group(FS_URI_GROUP_SUB_PATH);
+		String underlyingFileSystemPathName = directoryUri.getUnderlyingPath();
 		Path underlyingFileSystemPath;
 		try
 		{
@@ -407,7 +351,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		}
 		catch (InvalidPathException e)
 		{
-			underlyingFileSystemPathName = matcher.group(FS_URI_GROUP_SUB_PATH_2);
+			underlyingFileSystemPathName = directoryUri.getUnderlyingPath2();
 			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
 		}
 		return underlyingFileSystemPath;
