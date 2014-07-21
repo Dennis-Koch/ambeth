@@ -16,7 +16,7 @@
 	<modules>
 		<module>filesystem-common</module>
 		<module>directory-filesystem</module>
-		<module>adf2-filesystem</module>
+		<module>hdf5-filesystem</module>
 	</modules>
 
 	<build>

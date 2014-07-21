@@ -9,7 +9,8 @@ import org.junit.runners.Suite.SuiteClasses;
 		DirectoryFileSystemProviderTest.class, //
 		DirectoryFileSystemTest.class, //
 		DirectoryPathTest.class, //
-		PackAndUnpackTest.class })
+		PackAndUnpackTest.class, //
+		RandomAccessTest.class })
 public class AllTests
 {
 }

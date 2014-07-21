@@ -103,6 +103,7 @@ public class DirectoryFileSystemProviderTest
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
+	@Ignore
 	public void testNewFileChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
 	{
 		Path path = null;
@@ -123,10 +124,10 @@ public class DirectoryFileSystemProviderTest
 
 		DirectoryUri dirFsUri = DirectoryUri.create(dirFsUriString);
 		DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
-		assertEquals(dirFileSystem, path.fileSystem);
+		assertEquals(dirFileSystem, path.getFileSystem());
 
-		assertEquals(dirFileSystem.getSeparator(), path.root);
-		assertEquals(folderPathString, path.path);
+		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
+		assertEquals(folderPathString, path.toString());
 	}
 
 	@Test
@@ -143,10 +144,10 @@ public class DirectoryFileSystemProviderTest
 
 		DirectoryUri dirFsUri = DirectoryUri.create(dirFsUriString);
 		DirectoryFileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
-		assertEquals(dirFileSystem, path.fileSystem);
+		assertEquals(dirFileSystem, path.getFileSystem());
 
-		assertEquals(dirFileSystem.getSeparator(), path.root);
-		assertEquals(folderPathString, path.path);
+		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
+		assertEquals(folderPathString, path.toString());
 	}
 
 	@Test

@@ -125,8 +125,10 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	@Override
 	public FileChannel newFileChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException
 	{
-		// TODO
-		return super.newFileChannel(path, options, attrs);
+		Path realPath = getRealPath(path);
+		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
+		FileChannel fileChannel = underlyingFileSystemProvider.newFileChannel(realPath, options, attrs);
+		return fileChannel;
 	}
 
 	/**
@@ -154,8 +156,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	{
 		Path realPath = getRealPath(path);
 		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
-		SeekableByteChannel newByteChannel = underlyingFileSystemProvider.newByteChannel(realPath, options, attrs);
-		return newByteChannel;
+		SeekableByteChannel byteChannel = underlyingFileSystemProvider.newByteChannel(realPath, options, attrs);
+		return byteChannel;
 	}
 
 	/**
@@ -166,8 +168,8 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	{
 		Path realDir = getRealPath(dir);
 		FileSystemProvider underlyingFileSystemProvider = realDir.getFileSystem().provider();
-		DirectoryStream<Path> newDirectoryStream = underlyingFileSystemProvider.newDirectoryStream(realDir, filter);
-		return newDirectoryStream;
+		DirectoryStream<Path> directoryStream = underlyingFileSystemProvider.newDirectoryStream(realDir, filter);
+		return directoryStream;
 	}
 
 	/**
