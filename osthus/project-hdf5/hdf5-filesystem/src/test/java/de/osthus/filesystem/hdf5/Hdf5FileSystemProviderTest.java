@@ -50,12 +50,12 @@ public class Hdf5FileSystemProviderTest
 	{
 	}
 
-	private Hdf5FileSystemProvider directoryFileSystemProvider;
+	private Hdf5FileSystemProvider hdf5FileSystemProvider;
 
 	@Before
 	public void setUp() throws Exception
 	{
-		directoryFileSystemProvider = new Hdf5FileSystemProvider();
+		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
 	}
 
 	@After
@@ -66,47 +66,47 @@ public class Hdf5FileSystemProviderTest
 	@Test
 	public void testGetScheme()
 	{
-		String schema = directoryFileSystemProvider.getScheme();
-		assertEquals("dir", schema);
+		String schema = hdf5FileSystemProvider.getScheme();
+		assertEquals("hdf5", schema);
 	}
 
 	@Test
 	public void testNewFileSystemURIMapOfStringQ() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
 		Map<String, ?> env = Collections.emptyMap();
-		Hdf5FileSystem fileSystem = directoryFileSystemProvider.newFileSystem(uri, env);
+		Hdf5FileSystem fileSystem = hdf5FileSystemProvider.newFileSystem(uri, env);
 		assertNotNull(fileSystem);
-		assertEquals(TestConstant.NAME_FILE_FS_TEMP_FOLDER, fileSystem.getUnderlyingFileSystemPath().toUri().toString());
+		assertEquals(TestConstant.NAME_FILE_FS_TEST_FILE, fileSystem.getUnderlyingFileSystemPath().toUri().toString());
 	}
 
 	@Test(expected = FileSystemAlreadyExistsException.class)
 	public void testNewFileSystemURIMapOfStringQ_existing() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
 		Map<String, ?> env = Collections.emptyMap();
-		directoryFileSystemProvider.newFileSystem(uri, env);
+		hdf5FileSystemProvider.newFileSystem(uri, env);
 
 		// second call throws exception
-		directoryFileSystemProvider.newFileSystem(uri, env);
+		hdf5FileSystemProvider.newFileSystem(uri, env);
 	}
 
 	@Test
 	public void testGetFileSystemURI() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
+		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
 		Map<String, ?> env = Collections.emptyMap();
-		Hdf5FileSystem expected = directoryFileSystemProvider.newFileSystem(uri, env);
+		Hdf5FileSystem expected = hdf5FileSystemProvider.newFileSystem(uri, env);
 
-		Hdf5FileSystem actual = directoryFileSystemProvider.getFileSystem(uri);
+		Hdf5FileSystem actual = hdf5FileSystemProvider.getFileSystem(uri);
 		assertEquals(expected, actual);
 	}
 
 	@Test(expected = FileSystemNotFoundException.class)
 	public void testGetFileSystemURI_notExisting() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
-		directoryFileSystemProvider.getFileSystem(uri);
+		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		hdf5FileSystemProvider.getFileSystem(uri);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -115,21 +115,21 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
-		directoryFileSystemProvider.newFileChannel(path, options, attrs);
+		hdf5FileSystemProvider.newFileChannel(path, options, attrs);
 	}
 
 	@Test
 	public void testGetPathURI()
 	{
-		String dirFsUriString = TestConstant.NAME_DIR_FS_TEMP_FOLDER;
+		String dirFsUriString = TestConstant.NAME_HDF5_FS_TEST_FILE;
 		String folderPathString = "/insideDirFs/folder";
 		String fullUriString = dirFsUriString + "!" + folderPathString;
 		URI fullUri = URI.create(fullUriString);
 
-		Hdf5Path path = directoryFileSystemProvider.getPath(fullUri);
+		Hdf5Path path = hdf5FileSystemProvider.getPath(fullUri);
 
 		Hdf5Uri dirFsUri = Hdf5Uri.create(dirFsUriString);
-		Hdf5FileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
+		Hdf5FileSystem dirFileSystem = hdf5FileSystemProvider.useFileSystem(dirFsUri);
 		assertEquals(dirFileSystem, path.getFileSystem());
 
 		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
@@ -146,10 +146,10 @@ public class Hdf5FileSystemProviderTest
 		String fullUriString = dirFsUriString + "!" + folderPathString;
 		URI fullUri = new URI(fullUriString);
 
-		Hdf5Path path = directoryFileSystemProvider.getPath(fullUri);
+		Hdf5Path path = hdf5FileSystemProvider.getPath(fullUri);
 
 		Hdf5Uri dirFsUri = Hdf5Uri.create(dirFsUriString);
-		Hdf5FileSystem dirFileSystem = directoryFileSystemProvider.useFileSystem(dirFsUri);
+		Hdf5FileSystem dirFileSystem = hdf5FileSystemProvider.useFileSystem(dirFsUri);
 		assertEquals(dirFileSystem, path.getFileSystem());
 
 		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
@@ -163,7 +163,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
-		directoryFileSystemProvider.newByteChannel(path, options, attrs);
+		hdf5FileSystemProvider.newByteChannel(path, options, attrs);
 	}
 
 	@Test
@@ -172,7 +172,7 @@ public class Hdf5FileSystemProviderTest
 	{
 		Path dir = null;
 		Filter<? super Path> filter = null;
-		directoryFileSystemProvider.newDirectoryStream(dir, filter);
+		hdf5FileSystemProvider.newDirectoryStream(dir, filter);
 	}
 
 	@Test
@@ -182,14 +182,14 @@ public class Hdf5FileSystemProviderTest
 		// TODO
 		Path dir = null;
 		FileAttribute<?> attrs = null;
-		directoryFileSystemProvider.createDirectory(dir, attrs);
+		hdf5FileSystemProvider.createDirectory(dir, attrs);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testDeletePath() throws IOException
 	{
 		Path path = null;
-		directoryFileSystemProvider.delete(path);
+		hdf5FileSystemProvider.delete(path);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -198,7 +198,7 @@ public class Hdf5FileSystemProviderTest
 		Path source = null;
 		Path target = null;
 		CopyOption options = null;
-		directoryFileSystemProvider.copy(source, target, options);
+		hdf5FileSystemProvider.copy(source, target, options);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -207,7 +207,7 @@ public class Hdf5FileSystemProviderTest
 		Path source = null;
 		Path target = null;
 		CopyOption options = null;
-		directoryFileSystemProvider.move(source, target, options);
+		hdf5FileSystemProvider.move(source, target, options);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -215,27 +215,27 @@ public class Hdf5FileSystemProviderTest
 	{
 		Path path = null;
 		Path path2 = null;
-		directoryFileSystemProvider.isSameFile(path, path2);
+		hdf5FileSystemProvider.isSameFile(path, path2);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testIsHiddenPath() throws IOException
 	{
 		Path path = null;
-		directoryFileSystemProvider.isHidden(path);
+		hdf5FileSystemProvider.isHidden(path);
 	}
 
 	@Test
 	public void testGetFileStorePath() throws IOException, URISyntaxException
 	{
-		URI sysUri = new URI(TestConstant.NAME_FILE_FS_TEMP_FOLDER);
+		URI sysUri = new URI(TestConstant.NAME_FILE_FS_TEST_FILE);
 		Path sysPath = Paths.get(sysUri);
 
-		URI dirUri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER_PATH);
-		Path dirPath = directoryFileSystemProvider.getPath(dirUri);
+		URI dirUri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE_PATH);
+		Path dirPath = hdf5FileSystemProvider.getPath(dirUri);
 
 		FileStore expected = FileSystems.getDefault().provider().getFileStore(sysPath);
-		FileStore actual = directoryFileSystemProvider.getFileStore(dirPath);
+		FileStore actual = hdf5FileSystemProvider.getFileStore(dirPath);
 		assertEquals(expected, actual);
 	}
 
@@ -245,7 +245,7 @@ public class Hdf5FileSystemProviderTest
 	{
 		Path path = null;
 		AccessMode modes = null;
-		directoryFileSystemProvider.checkAccess(path, modes);
+		hdf5FileSystemProvider.checkAccess(path, modes);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -254,7 +254,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Class<FileAttributeView> type = null;
 		LinkOption options = null;
-		directoryFileSystemProvider.getFileAttributeView(path, type, options);
+		hdf5FileSystemProvider.getFileAttributeView(path, type, options);
 	}
 
 	@Test
@@ -264,7 +264,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Class<? extends BasicFileAttributes> type = null;
 		LinkOption[] options = null;
-		directoryFileSystemProvider.readAttributes(path, type, options);
+		hdf5FileSystemProvider.readAttributes(path, type, options);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -273,7 +273,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		String attributes = null;
 		LinkOption[] options = null;
-		directoryFileSystemProvider.readAttributes(path, attributes, options);
+		hdf5FileSystemProvider.readAttributes(path, attributes, options);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -283,6 +283,6 @@ public class Hdf5FileSystemProviderTest
 		String attribute = null;
 		Object value = null;
 		LinkOption[] options = null;
-		directoryFileSystemProvider.setAttribute(path, attribute, value, options);
+		hdf5FileSystemProvider.setAttribute(path, attribute, value, options);
 	}
 }

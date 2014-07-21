@@ -11,9 +11,7 @@ import static org.junit.Assert.fail;
 import java.net.URI;
 import java.nio.file.Path;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -25,31 +23,20 @@ import org.junit.Test;
  */
 public class DirectoryPathTest
 {
-	private static DirectoryFileSystemProvider DIRECTORY_FILE_SYSTEM_PROVIDER;
-
 	private static DirectoryFileSystem DIRECTORY_FILE_SYSTEM;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		DIRECTORY_FILE_SYSTEM_PROVIDER = new DirectoryFileSystemProvider();
+		DirectoryFileSystemProvider directoryFileSystemProvider = new DirectoryFileSystemProvider();
 		URI uri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
-		DIRECTORY_FILE_SYSTEM = DIRECTORY_FILE_SYSTEM_PROVIDER.newFileSystem(uri, null);
+		DIRECTORY_FILE_SYSTEM = directoryFileSystemProvider.newFileSystem(uri, null);
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception
 	{
-	}
-
-	@Before
-	public void setUp() throws Exception
-	{
-	}
-
-	@After
-	public void tearDown() throws Exception
-	{
+		DIRECTORY_FILE_SYSTEM.close();
 	}
 
 	@Test
