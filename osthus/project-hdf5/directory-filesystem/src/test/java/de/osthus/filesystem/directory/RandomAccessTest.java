@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,27 +29,18 @@ public class RandomAccessTest
 
 	private static long startIndex = 246 + 4 * System.getProperty("line.separator").length();
 
-	private static int desiredContextLength = 9;
+	private static int length = 9;
 
-	private static DirectoryFileSystemProvider directoryFileSystemProvider;
-
-	private static DirectoryPath directoryPath;
+	private static Path directoryPath;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		directoryFileSystemProvider = new DirectoryFileSystemProvider();
 		Path fsPath = Paths.get(randomAccessFsDir);
-		String str = directoryFileSystemProvider.getScheme() + ":" + fsPath.toUri().toString() + "!" + randomAccessPath;
+		String str = "dir:" + fsPath.toUri().toString() + "!" + randomAccessPath;
 
 		URI uri = URI.create(str);
-
-		directoryPath = directoryFileSystemProvider.getPath(uri);
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+		directoryPath = Paths.get(uri);
 	}
 
 	private FileChannel fileChannel;
@@ -70,9 +60,9 @@ public class RandomAccessTest
 	@Test
 	public void test() throws IOException
 	{
-		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, desiredContextLength);
+		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, length);
 
-		byte[] bytes = new byte[desiredContextLength];
+		byte[] bytes = new byte[length];
 		byteBuffer.get(bytes);
 
 		String content = new String(bytes);

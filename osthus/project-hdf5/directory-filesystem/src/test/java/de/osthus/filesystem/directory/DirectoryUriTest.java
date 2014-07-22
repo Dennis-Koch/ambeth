@@ -11,10 +11,22 @@ public class DirectoryUriTest
 {
 	private static final String SCHEME = DirectoryFileSystemProvider.SCHEME;
 
+	@Test(expected = IllegalArgumentException.class)
+	public void test_faultyUri() throws URISyntaxException
+	{
+		DirectoryUri.create(SCHEME + "s:file:///c:/temp/dir/");
+	}
+
+	@Test(expected = URISyntaxException.class)
+	public void test_faultyUri2() throws URISyntaxException
+	{
+		new DirectoryUri(SCHEME + ":/file:///c/:temp/dir/");
+	}
+
 	@Test
 	public void test_longWindowsFsUri() throws URISyntaxException
 	{
-		DirectoryUri directoryUri = DirectoryUri.create(SCHEME + ":file:///c:/temp/dir/");
+		DirectoryUri directoryUri = new DirectoryUri(SCHEME + ":file:///c:/temp/dir/");
 
 		assertEquals("file:///c:/temp/dir/", directoryUri.getIdentifier());
 		assertEquals("file:/", directoryUri.getUnderlyingFileSystem());

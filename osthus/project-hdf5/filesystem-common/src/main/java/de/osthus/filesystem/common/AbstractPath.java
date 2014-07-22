@@ -290,8 +290,7 @@ public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends FileS
 	@Override
 	public File toFile()
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// return null;
+		throw new UnsupportedOperationException();
 	}
 
 	/**

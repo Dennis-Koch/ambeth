@@ -15,7 +15,7 @@ import java.util.Set;
 import lombok.Getter;
 
 /**
- * Sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
+ * HDF5-based File System implementation. It works like the zipfs.
  * 
  * @author jochen.hormes
  * @start 2014-07-21
