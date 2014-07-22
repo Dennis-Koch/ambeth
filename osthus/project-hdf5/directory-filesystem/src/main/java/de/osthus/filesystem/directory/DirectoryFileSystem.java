@@ -51,10 +51,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public FileSystemProvider provider()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		return provider;
 	}
 
@@ -91,10 +88,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public boolean isReadOnly()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		return underlyingFileSystem.isReadOnly();
 	}
 
@@ -104,10 +98,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public String getSeparator()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		return SEPARATOR;
 	}
 
@@ -117,10 +108,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Iterable<Path> getRootDirectories()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -132,10 +120,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Iterable<FileStore> getFileStores()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -147,10 +132,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public Set<String> supportedFileAttributeViews()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -162,10 +144,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public DirectoryPath getPath(String first, String... more)
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 
 		String pathName = first;
 		String separator = SEPARATOR;
@@ -207,10 +186,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public PathMatcher getPathMatcher(String syntaxAndPattern)
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -222,10 +198,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public UserPrincipalLookupService getUserPrincipalLookupService()
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -237,10 +210,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public WatchService newWatchService() throws IOException
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		checkIsOpen();
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
@@ -250,6 +220,14 @@ public class DirectoryFileSystem extends FileSystem
 	public String toString()
 	{
 		return underlyingFileSystemPath.toString();
+	}
+
+	protected void checkIsOpen()
+	{
+		if (!isOpen)
+		{
+			throw new ClosedFileSystemException();
+		}
 	}
 
 }

@@ -10,6 +10,8 @@ import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -309,6 +311,33 @@ public class DirectoryPathTest
 		assertEquals("test", relativized.toString());
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRelativize_simpleFail1()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testRelativize_simpleFail2()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = ProviderMismatchException.class)
+	public void testRelativize_simpleFail3()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
+		Path path2 = Paths.get("/test");
+
+		path2.relativize(path1);
+	}
+
 	@Test
 	@Ignore
 	public void testRelativize_todo()
@@ -338,11 +367,11 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testToFile()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath.toFile();
 	}
 
 	@Test
@@ -366,18 +395,19 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testCompareTo()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath.compareTo(directoryPath);
 	}
 
 	@Test
-	@Ignore
 	public void testGetFileSystem()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		DirectoryFileSystem fileSystem = directoryPath.getFileSystem();
+		assertEquals(DIRECTORY_FILE_SYSTEM, fileSystem);
 	}
 
 	@Test
@@ -400,5 +430,16 @@ public class DirectoryPathTest
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "test/test2/test3");
 		root = directoryPath.getRoot();
 		assertNull(root);
+	}
+
+	@Test
+	public void testEquals()
+	{
+		DirectoryPath directoryPath1 = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		DirectoryPath directoryPath2 = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test2");
+
+		assertTrue(directoryPath1.equals(directoryPath1));
+		assertFalse(directoryPath1.equals(directoryPath2));
+		assertFalse(directoryPath1.equals(directoryPath1.toString()));
 	}
 }

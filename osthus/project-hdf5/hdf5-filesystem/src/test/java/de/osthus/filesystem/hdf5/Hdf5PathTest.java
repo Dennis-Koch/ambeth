@@ -10,6 +10,8 @@ import static org.junit.Assert.fail;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -309,6 +311,33 @@ public class Hdf5PathTest
 		assertEquals("test", relativized.toString());
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRelativize_simpleFail1()
+	{
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testRelativize_simpleFail2()
+	{
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = ProviderMismatchException.class)
+	public void testRelativize_simpleFail3()
+	{
+		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/");
+		Path path2 = Paths.get("/test");
+
+		path2.relativize(path1);
+	}
+
 	@Test
 	@Ignore
 	public void testRelativize_todo()
@@ -338,11 +367,11 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testToFile()
 	{
-		fail("Not yet implemented");
+		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		directoryPath.toFile();
 	}
 
 	@Test
@@ -366,39 +395,51 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testCompareTo()
 	{
-		fail("Not yet implemented");
+		Hdf5Path hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		hdf5Path.compareTo(hdf5Path);
 	}
 
 	@Test
-	@Ignore
 	public void testGetFileSystem()
 	{
-		fail("Not yet implemented");
+		Hdf5Path hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		Hdf5FileSystem fileSystem = hdf5Path.getFileSystem();
+		assertEquals(HDF5_FILE_SYSTEM, fileSystem);
 	}
 
 	@Test
 	public void testGetRoot()
 	{
-		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
-		Path root = directoryPath.getRoot();
+		Hdf5Path hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		Path root = hdf5Path.getRoot();
 		assertNotNull(root);
 		assertEquals(root, root.getRoot());
 		assertNull(root.getFileName());
 		assertNull(root.getParent());
 
-		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test/test2/test3");
-		root = directoryPath.getRoot();
+		hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test/test2/test3");
+		root = hdf5Path.getRoot();
 		assertNotNull(root);
 		assertEquals(root, root.getRoot());
 		assertNull(root.getFileName());
 		assertNull(root.getParent());
 
-		directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "", "test/test2/test3");
-		root = directoryPath.getRoot();
+		hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "", "test/test2/test3");
+		root = hdf5Path.getRoot();
 		assertNull(root);
+	}
+
+	@Test
+	public void testEquals()
+	{
+		Hdf5Path hdf5Path1 = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		Hdf5Path hdf5Path2 = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test2");
+
+		assertTrue(hdf5Path1.equals(hdf5Path1));
+		assertFalse(hdf5Path1.equals(hdf5Path2));
+		assertFalse(hdf5Path1.equals(hdf5Path1.toString()));
 	}
 }

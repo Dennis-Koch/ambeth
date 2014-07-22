@@ -13,10 +13,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class PackAndUnpackTest
@@ -24,16 +22,6 @@ public class PackAndUnpackTest
 	private static final String FOLDER_1_NAME = "src/test/resources/folder1";
 
 	private static final String FILE_1_NAME = "src/test/resources/file1.zip";
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
-	}
 
 	private DirectoryFileSystemProvider directoryFileSystemProvider;
 

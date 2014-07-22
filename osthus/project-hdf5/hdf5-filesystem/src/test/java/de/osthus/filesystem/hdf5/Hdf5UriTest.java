@@ -22,11 +22,23 @@ public class Hdf5UriTest
 
 	private static final String PATH = "/data/file.txt";
 
+	@Test(expected = IllegalArgumentException.class)
+	public void test_faultyUri() throws URISyntaxException
+	{
+		Hdf5Uri.create(SCHEME + "s:file:///c:/temp/dir/" + TEST_FILENAME);
+	}
+
+	@Test(expected = URISyntaxException.class)
+	public void test_faultyUri2() throws URISyntaxException
+	{
+		new Hdf5Uri(SCHEME + ":/file:///c/:temp/dir/" + TEST_FILENAME);
+	}
+
 	@Test
 	public void test_longWindowsFsUri() throws URISyntaxException
 	{
 		String str = SCHEME + ":file:///c:/temp/" + TEST_FILENAME;
-		Hdf5Uri hdf5Uri = Hdf5Uri.create(str);
+		Hdf5Uri hdf5Uri = new Hdf5Uri(str);
 
 		assertEquals("file:///c:/temp/" + TEST_FILENAME, hdf5Uri.getIdentifier());
 		assertEquals("file:/", hdf5Uri.getUnderlyingFileSystem());

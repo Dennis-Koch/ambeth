@@ -102,6 +102,13 @@ public class DirectoryFileSystemTest
 		assertSame(directoryFileSystemProvider, provider);
 	}
 
+	@Test(expected = ClosedFileSystemException.class)
+	public void testProvider_closed() throws IOException
+	{
+		directoryFileSystem.close();
+		directoryFileSystem.provider();
+	}
+
 	@Test
 	public void testGetSeparator()
 	{
