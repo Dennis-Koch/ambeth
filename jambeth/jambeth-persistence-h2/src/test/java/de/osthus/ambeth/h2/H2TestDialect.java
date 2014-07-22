@@ -161,14 +161,14 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
+	public void dropAllSchemaContent(Connection conn, String schemaName)
 	{
 		PreparedStatement pstm = null;
+		Statement stmt2 = null;
 		ResultSet rs = null;
 		try
 		{
-			List<String> sql = new ArrayList<String>();
-
+			stmt2 = conn.createStatement();
 			{
 				pstm = conn.prepareStatement("SELECT table_schema AS schema, table_name AS name FROM INFORMATION_SCHEMA.TABLES WHERE table_schema=?");
 				pstm.setString(1, schemaName);
@@ -177,7 +177,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 				{
 					String tableSchema = rs.getString("schema");
 					String tableName = rs.getString("name");
-					sql.add("DROP TABLE " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
+					stmt2.execute("DROP TABLE " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
 				}
 				JdbcUtil.close(pstm, rs);
 			}
@@ -189,7 +189,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 				{
 					String tableSchema = rs.getString("schema");
 					String tableName = rs.getString("name");
-					sql.add("DROP VIEW " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
+					stmt2.execute("DROP VIEW " + escapeName(tableSchema, tableName) + " CASCADE CONSTRAINTS");
 				}
 				JdbcUtil.close(pstm, rs);
 			}
@@ -201,7 +201,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 				{
 					String schema = rs.getString("schema");
 					String objectName = rs.getString("name");
-					sql.add("DROP ALIAS " + escapeName(schema, objectName));
+					stmt2.execute("DROP ALIAS " + escapeName(schema, objectName));
 				}
 				JdbcUtil.close(pstm, rs);
 			}
@@ -214,11 +214,10 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 				{
 					String schema = rs.getString("schema");
 					String objectName = rs.getString("name");
-					sql.add("DROP SEQUENCE " + escapeName(schema, objectName));
+					stmt2.execute("DROP SEQUENCE " + escapeName(schema, objectName));
 				}
 				JdbcUtil.close(pstm, rs);
 			}
-			return sql;
 		}
 		catch (SQLException e)
 		{
@@ -227,6 +226,7 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 		finally
 		{
 			JdbcUtil.close(pstm, rs);
+			JdbcUtil.close(stmt2);
 		}
 	}
 

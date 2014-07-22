@@ -652,7 +652,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	{
 		if (hasStructureAnnotation())
 		{
-			tearDownAllSQLContents(conn, mainSchemaName);
+			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).dropAllSchemaContent(conn, mainSchemaName);
 		}
 		else
 		{
@@ -900,7 +900,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			}
 			if (sqlFile == null)
 			{
-				ILogger log = LoggerFactory.getLogger(NewAmbethPersistenceRunner.class);
+				ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
 				if (log.isWarnEnabled())
 				{
 					String error = "Cannot find '" + relativePath + "' in class path:" + nl;
@@ -915,7 +915,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			}
 		}
 
-		ILogger log = LoggerFactory.getLogger(NewAmbethPersistenceRunner.class);
+		ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
 
 		if (log.isDebugEnabled())
 		{
@@ -1028,13 +1028,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 
 		return sql;
-	}
-
-	private void tearDownAllSQLContents(final Connection conn, final String schemaName) throws SQLException
-	{
-		List<String> sql = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).buildDropAllSchemaContent(conn, schemaName);
-		executeScript(sql, conn);
-		sql.clear();
 	}
 
 	private void createOptimisticLockingTriggers(final Connection conn) throws SQLException
@@ -1162,7 +1155,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 						// When executing multiple sql files some statements collide and cannot all be executed
 						if (!doExecuteStrict && canFailBeTolerated(command))
 						{
-							ILogger log = LoggerFactory.getLogger(NewAmbethPersistenceRunner.class);
+							ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
 
 							if (log.isWarnEnabled())
 							{

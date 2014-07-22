@@ -8,7 +8,7 @@ import de.osthus.ambeth.config.IProperties;
 
 public interface IConnectionTestDialect
 {
-	List<String> buildDropAllSchemaContent(Connection conn, String schemaName);
+	void dropAllSchemaContent(Connection conn, String schemaName);
 
 	String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
 

@@ -2,12 +2,9 @@ package de.osthus.ambeth.cache;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.cache.model.IObjRelationResult;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
@@ -22,10 +19,10 @@ import de.osthus.ambeth.proxy.AbstractCascadePostProcessor;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
+import de.osthus.ambeth.proxy.MethodLevelHashMap;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
-import de.osthus.ambeth.util.MethodKey;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class CommittedRootCachePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
@@ -42,7 +39,7 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 		{
 			return null;
 		}
-		Map<MethodKey, SecurityContextType> methodLevelBehaviour = null;
+		MethodLevelHashMap<SecurityContextType> methodLevelBehaviour = null;
 
 		Method[] methods = ReflectUtil.getMethods(type);
 		for (int a = methods.length; a-- > 0;)
@@ -68,14 +65,13 @@ public class CommittedRootCachePostProcessor extends AbstractCascadePostProcesso
 			}
 			if (methodLevelBehaviour == null)
 			{
-				methodLevelBehaviour = new HashMap<MethodKey, SecurityContextType>();
+				methodLevelBehaviour = new MethodLevelHashMap<SecurityContextType>();
 			}
-			MethodKey methodKey = new MethodKey(method.getName(), method.getParameterTypes());
-			methodLevelBehaviour.put(methodKey, SecurityContextType.AUTHENTICATED);
+			methodLevelBehaviour.put(method.getName(), method.getParameterTypes(), SecurityContextType.AUTHENTICATED);
 		}
 		if (methodLevelBehaviour == null)
 		{
-			methodLevelBehaviour = Collections.<MethodKey, SecurityContextType> emptyMap();
+			methodLevelBehaviour = new MethodLevelHashMap<SecurityContextType>(0);
 		}
 		IMethodLevelBehavior<SecurityContextType> behaviour = new MethodLevelBehavior<SecurityContextType>(SecurityContextType.NOT_REQUIRED,
 				methodLevelBehaviour);
