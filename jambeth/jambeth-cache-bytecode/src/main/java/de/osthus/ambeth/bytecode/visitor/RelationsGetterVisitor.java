@@ -28,9 +28,11 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
+import de.osthus.ambeth.typeinfo.EmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
+import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.INamed;
@@ -157,7 +159,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		for (int a = relationMembers.length; a-- > 0;)
 		{
 			IRelationInfoItem relationMember = relationMembers[a];
-			relationMember = getApplicableMember(relationMember);
+			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
@@ -327,7 +329,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
 			IRelationInfoItem relationMember = relationMembers[relationIndex];
-			relationMember = getApplicableMember(relationMember);
+			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
@@ -360,7 +362,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 	}
 
-	protected IRelationInfoItem getApplicableMember(IRelationInfoItem relationMember)
+	public static ITypeInfoItem getApplicableMember(ITypeInfoItem relationMember)
 	{
 		String propertyName = relationMember.getName();
 		if (relationMember instanceof IEmbeddedTypeInfoItem)
@@ -379,7 +381,14 @@ public class RelationsGetterVisitor extends ClassGenerator
 					// This relation has to be handled by another child embedded type of this embedded type
 					return null;
 				}
-				relationMember = ((EmbeddedRelationInfoItem) relationMember).getChildMember();
+				if (relationMember instanceof EmbeddedRelationInfoItem)
+				{
+					relationMember = ((EmbeddedRelationInfoItem) relationMember).getChildMember();
+				}
+				else
+				{
+					relationMember = ((EmbeddedTypeInfoItem) relationMember).getChildMember();
+				}
 			}
 			else if (propertyName.contains("."))
 			{

@@ -6,15 +6,15 @@ import java.util.Map;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.QueryConstants;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.ArrayQueryItem;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.TwoPlaceOperator;
 import de.osthus.ambeth.sql.ParamsUtil;
-import de.osthus.ambeth.util.ParamChecker;
 
 abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 {
@@ -22,12 +22,18 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	@LogInstance
 	private ILogger log;
 
-	protected boolean caseSensitive = true;
+	@Property(defaultValue = "true")
+	protected boolean caseSensitive;
+
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
 	protected int maxInClauseBatchThreshold;
 
+	@Autowired
 	protected ListToSqlUtil listToSqlUtil;
 
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
 	@Override
@@ -35,29 +41,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	{
 		super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(listToSqlUtil, "ListToSqlUtil");
-		ParamChecker.assertNotNull(persistenceHelper, "PersistenceHelper");
-	}
-
-	public void setListToSqlUtil(ListToSqlUtil listToSqlUtil)
-	{
-		this.listToSqlUtil = listToSqlUtil;
-	}
-
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
-	{
-		this.persistenceHelper = persistenceHelper;
-	}
-
-	public void setCaseSensitive(boolean caseSensitive)
-	{
-		this.caseSensitive = caseSensitive;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.MaxInClauseBatchThreshold, defaultValue = "8000")
-	public void setMaxInClauseBatchThreshold(int maxInClauseBatchThreshold)
-	{
-		this.maxInClauseBatchThreshold = maxInClauseBatchThreshold;
+		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
 	}
 
 	@Override
@@ -151,7 +135,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 			IList<Object> values = operand.getMultiValue(nameToValueMap);
 			if (values.size() > maxInClauseBatchThreshold)
 			{
-				splitValues = persistenceHelper.splitValues(values, 4000);
+				splitValues = persistenceHelper.splitValues(values, maxInClauseBatchThreshold);
 				handleWithMultiValueLeftField(querySB, nameToValueMap, params, splitValues);
 				return;
 			}

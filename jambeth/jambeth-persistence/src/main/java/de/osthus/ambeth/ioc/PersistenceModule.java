@@ -8,6 +8,7 @@ import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.IDatabaseSessionIdController;
 import de.osthus.ambeth.database.ITransactionListenerExtendable;
 import de.osthus.ambeth.database.ITransactionListenerProvider;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
@@ -37,7 +38,6 @@ import de.osthus.ambeth.sql.ISqlKeywordRegistry;
 import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.threading.FastThreadPool;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.PersistenceExceptionUtil;
 import de.osthus.ambeth.util.XmlConfigUtil;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
@@ -47,27 +47,28 @@ public class PersistenceModule implements IInitializingModule
 {
 	public static final String DEFAULT_PARALLEL_READ_EXECUTOR_NAME = "entityLoaderExecutorService";
 
+	@Property(name = PersistenceConfigurationConstants.ParallelReadActive, defaultValue = "true")
 	protected boolean parallelReadActive;
 
+	@Property(name = PersistenceConfigurationConstants.ParallelReadExecutorName, defaultValue = DEFAULT_PARALLEL_READ_EXECUTOR_NAME)
 	protected String parallelReadExecutorName;
 
+	@Autowired
 	protected IProxyFactory proxyFactory;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
+		beanContextFactory.registerAnonymousBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
+		beanContextFactory.registerAnonymousBean(PersistencePostProcessor.class);
 
-		beanContextFactory.registerBean("persistenceHelper", PersistenceHelper.class).autowireable(IPersistenceHelper.class);
-		beanContextFactory.registerBean("persistencePostProcessor", PersistencePostProcessor.class);
+		beanContextFactory.registerAnonymousBean(QueryPostProcessor.class);
 
-		beanContextFactory.registerBean("queryPostProcessor", QueryPostProcessor.class);
-
-		beanContextFactory.registerBean("entityLoader", EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
+		beanContextFactory.registerAnonymousBean(EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class, ITransactionListenerExtendable.class);
 
-		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerBean("entityLoaderParallelInvoker", EntityLoaderParallelInvoker.class)
+		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerAnonymousBean(EntityLoaderParallelInvoker.class)
 				.propertyRefs("databaseProvider").autowireable(IEntityLoaderParallelInvoker.class);
 		if (parallelReadActive)
 		{
@@ -85,49 +86,32 @@ public class PersistenceModule implements IInitializingModule
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class);
 
-		beanContextFactory.registerBean("databaseProviderRegistry", DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
+		beanContextFactory.registerAnonymousBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
 				IDatabaseProviderExtendable.class);
 
 		beanContextFactory.registerBean("databaseSessionIdController", DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
-		beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-		beanContextFactory.registerBean("xmlDatabaseMapper", XmlDatabaseMapper.class);
+		beanContextFactory.registerAnonymousBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
+		beanContextFactory.registerAnonymousBean(XmlDatabaseMapper.class);
 
-		beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
+		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerAnonymousBean(OrmXmlReaderLegathy.class);
 
 		beanContextFactory.registerBean("ormXmlReader", ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, IOrmXmlReaderRegistry.class)
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class)
-				.propertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
+				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class).propertyRef(ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy)
+				.autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
 
 		IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
 		beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
 
-		beanContextFactory.registerBean("sqlBuilder", SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
+		beanContextFactory.registerAnonymousBean(SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
 
 		TargetingInterceptor databaseInterceptor = (TargetingInterceptor) beanContextFactory.registerAnonymousBean(TargetingInterceptor.class)
 				.propertyRef("TargetProvider", "databaseProvider").getInstance();
 
 		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 
-		beanContextFactory.registerExternalBean("database", databaseTlProxy).autowireable(IDatabase.class);
+		beanContextFactory.registerExternalBean(databaseTlProxy).autowireable(IDatabase.class);
 
-		beanContextFactory.registerBean("persistenceExceptionUtil", PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
-	}
-
-	@Property(name = PersistenceConfigurationConstants.ParallelReadActive, defaultValue = "true")
-	public void setParallelReadActive(boolean parallelReadActive)
-	{
-		this.parallelReadActive = parallelReadActive;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.ParallelReadExecutorName, defaultValue = DEFAULT_PARALLEL_READ_EXECUTOR_NAME)
-	public void setParallelReadExecutorName(String parallelReadExecutorName)
-	{
-		this.parallelReadExecutorName = parallelReadExecutorName;
-	}
-
-	public void setProxyFactory(IProxyFactory proxyFactory)
-	{
-		this.proxyFactory = proxyFactory;
+		beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 	}
 }

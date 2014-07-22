@@ -10,7 +10,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -71,7 +70,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		}
 	};
 
-	protected final HashMap<Class<?>, Object> typeToConstructorMap = new HashMap<Class<?>, Object>();
+	protected final Tuple2KeyHashMap<Class<?>, Class<?>, Object> typeWithDelegateToConstructorMap = new Tuple2KeyHashMap<Class<?>, Class<?>, Object>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -139,7 +138,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 	@Override
 	public <V> V getConstructorType(Class<V> delegateType, Class<?> targetType)
 	{
-		Object constructorDelegate = typeToConstructorMap.get(targetType);
+		Object constructorDelegate = typeWithDelegateToConstructorMap.get(targetType, delegateType);
 		if (constructorDelegate != null)
 		{
 			return (V) constructorDelegate;
@@ -149,14 +148,14 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		try
 		{
 			// concurrent thread might have been faster
-			constructorDelegate = typeToConstructorMap.get(targetType);
+			constructorDelegate = typeWithDelegateToConstructorMap.get(targetType, delegateType);
 			if (constructorDelegate != null)
 			{
 				return (V) constructorDelegate;
 			}
 			Class<?> enhancedType = getConstructorTypeIntern(delegateType, targetType);
 			constructorDelegate = enhancedType.newInstance();
-			typeToConstructorMap.put(targetType, constructorDelegate);
+			typeWithDelegateToConstructorMap.put(targetType, delegateType, constructorDelegate);
 			return (V) constructorDelegate;
 		}
 		catch (Throwable e)

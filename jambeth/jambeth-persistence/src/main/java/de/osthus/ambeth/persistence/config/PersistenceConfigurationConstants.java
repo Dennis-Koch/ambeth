@@ -14,9 +14,6 @@ public final class PersistenceConfigurationConstants
 	public static final String PreparedBatchSize = "persistence.ids.preparedbatchsize";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String MaxInClauseBatchThreshold = "persistence.query.max_in_clause_batch_threshold";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String SequencePrefetchSize = "persistence.ids.sequence.prefetchsize";
 
 	@ConfigurationConstantDescription("TODO")

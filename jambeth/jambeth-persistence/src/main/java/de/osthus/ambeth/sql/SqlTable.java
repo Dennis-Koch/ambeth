@@ -7,7 +7,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -31,69 +31,40 @@ public class SqlTable extends Table
 	@LogInstance
 	private ILogger log;
 
-	protected ISqlConnection sqlConnection;
-	protected IPersistenceHelper persistenceHelper;
-	protected IContextProvider contextProvider;
-	protected ISqlBuilder sqlBuilder;
-	protected Object initialVersion;
-	protected IConversionHelper conversionHelper;
-
+	@Autowired
 	protected IConnectionDialect connectionDialect;
 
+	@Autowired
+	protected IContextProvider contextProvider;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IPersistenceHelper persistenceHelper;
+
+	@Autowired
 	protected IPrimaryKeyProvider primaryKeyProvider;
 
+	@Autowired
+	protected ISqlConnection sqlConnection;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
+
+	protected Object initialVersion;
+
 	@Override
-	public void afterPropertiesSet()
+	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
-		ParamChecker.assertNotNull(sqlConnection, "sqlConnection");
-		ParamChecker.assertNotNull(persistenceHelper, "persistenceHelper");
+
 		ParamChecker.assertNotNull(initialVersion, "initialVersion");
-		ParamChecker.assertNotNull(contextProvider, "contextProvider");
-		ParamChecker.assertNotNull(sqlBuilder, "sqlBuilder");
-		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
-		ParamChecker.assertNotNull(connectionDialect, "connectionDialect");
-		ParamChecker.assertNotNull(primaryKeyProvider, "primaryKeyProvider");
-	}
-
-	public void setSqlConnection(ISqlConnection sqlConnection)
-	{
-		this.sqlConnection = sqlConnection;
-	}
-
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
-	{
-		this.persistenceHelper = persistenceHelper;
-	}
-
-	public void setContextProvider(IContextProvider contextProvider)
-	{
-		this.contextProvider = contextProvider;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
 	}
 
 	public void setInitialVersion(Object initialVersion)
 	{
 		this.initialVersion = initialVersion;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setConnectionDialect(IConnectionDialect connectionDialect)
-	{
-		this.connectionDialect = connectionDialect;
-	}
-
-	public void setPrimaryKeyProvider(IPrimaryKeyProvider primaryKeyProvider)
-	{
-		this.primaryKeyProvider = primaryKeyProvider;
 	}
 
 	@Override
@@ -174,22 +145,6 @@ public class SqlTable extends Table
 	public IList<Object> acquireIds(int count)
 	{
 		return primaryKeyProvider.acquireIds(this, count);
-	}
-
-	protected void convertValueToFieldType(Class<?> fieldType, Object value, StringBuilder targetSb)
-	{
-		try
-		{
-			if (connectionDialect == null || !connectionDialect.handleField(fieldType, value, targetSb))
-			{
-				Object convertedValue = conversionHelper.convertValueToType(fieldType, value);
-				sqlBuilder.appendValue(convertedValue, targetSb);
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
 	}
 
 	@Override

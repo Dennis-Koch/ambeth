@@ -439,6 +439,22 @@ public class MethodGenerator extends GeneratorAdapter
 		push(type != null ? Type.getType(type) : null);
 	}
 
+	public void push(Boolean value)
+	{
+		if (value == null)
+		{
+			pushNull();
+		}
+		else if (value.booleanValue())
+		{
+			getThisField(new FieldInstance(ReflectUtil.getDeclaredField(Boolean.class, "TRUE")));
+		}
+		else
+		{
+			getThisField(new FieldInstance(ReflectUtil.getDeclaredField(Boolean.class, "FALSE")));
+		}
+	}
+
 	public <V extends Enum<?>> void pushEnum(V enumInstance)
 	{
 		ParamChecker.assertParamNotNull(enumInstance, "enumInstance");

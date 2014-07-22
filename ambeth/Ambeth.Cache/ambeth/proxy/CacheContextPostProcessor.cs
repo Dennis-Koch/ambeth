@@ -8,13 +8,14 @@ using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Cache.Interceptor;
 using De.Osthus.Ambeth.Cache.Config;
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Proxy
 {
     public class CacheContextPostProcessor : AbstractCascadePostProcessor
     {
         [LogInstance]
-		public ILogger Log { private get; set; }
+        public ILogger Log { private get; set; }
 
         public class CacheContextAnnotationCache : AnnotationCache<CacheContext>
         {
@@ -26,6 +27,9 @@ namespace De.Osthus.Ambeth.Proxy
 
         protected AnnotationCache<CacheContext> annotationCache = new CacheContextAnnotationCache();
 
+        [Autowired]
+        public CachePostProcessor CachePostProcessor { protected get; set; }
+
         protected override ICascadedInterceptor HandleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IBeanConfiguration beanConfiguration, Type type, ISet<Type> requestedTypes)
         {
             CacheContext cacheContext = annotationCache.GetAnnotation(type);
@@ -33,6 +37,18 @@ namespace De.Osthus.Ambeth.Proxy
             {
                 return null;
             }
+            IMethodLevelBehavior<Attribute> cacheBehavior = CachePostProcessor.CreateInterceptorModeBehavior(type);
+
+            CacheInterceptor interceptor = new CacheInterceptor();
+            if (beanContext.IsRunning)
+            {
+                interceptor = beanContext.RegisterWithLifecycle(interceptor).PropertyValue("Behavior", cacheBehavior).IgnoreProperties("ProcessService").Finish();
+            }
+            else
+            {
+                beanContextFactory.RegisterWithLifecycle(interceptor).PropertyValue("Behavior", cacheBehavior).IgnoreProperties("ProcessService");
+            }
+
             CacheType cacheType = cacheContext.CacheType;
             String cacheProviderName;
             switch (cacheType)
@@ -52,22 +68,26 @@ namespace De.Osthus.Ambeth.Proxy
                         cacheProviderName = CacheNamedBeans.CacheProviderThreadLocal;
                         break;
                     }
+                case CacheType.DEFAULT:
+                    {
+                        return interceptor;
+                    }
                 default:
                     throw new Exception("Not supported type: " + cacheType);
             }
+            CacheContextInterceptor ccInterceptor = new CacheContextInterceptor();
             if (beanContext.IsRunning)
             {
-                IBeanRuntime<CacheContextInterceptor> interceptorBR = beanContext.RegisterAnonymousBean<CacheContextInterceptor>();
-                interceptorBR.PropertyRef("CacheProvider", cacheProviderName);
-
-                // beanContextFactory.link(beanName, IServiceExtendable.class, value);
-                return interceptorBR.Finish();
+                IBeanRuntime<CacheContextInterceptor> interceptorBR = beanContext.RegisterWithLifecycle(ccInterceptor);
+                interceptorBR.PropertyRef("CacheProvider", cacheProviderName).PropertyValue("Target", interceptor);
+                ccInterceptor = interceptorBR.Finish();
             }
-            IBeanConfiguration interceptorBC = beanContextFactory.RegisterAnonymousBean<CacheContextInterceptor>();
-            interceptorBC.PropertyRef("CacheProvider", cacheProviderName);
-
-            // beanContextFactory.link(beanName, IServiceExtendable.class, value);
-            return (ICascadedInterceptor)interceptorBC.GetInstance();
+            else
+            {
+                IBeanConfiguration interceptorBC = beanContextFactory.RegisterWithLifecycle(ccInterceptor);
+                interceptorBC.PropertyRef("CacheProvider", cacheProviderName).PropertyValue("Target", interceptor);
+            }
+            return ccInterceptor;
         }
     }
 }

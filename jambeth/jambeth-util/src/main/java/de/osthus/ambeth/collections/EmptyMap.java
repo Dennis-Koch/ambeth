@@ -2,9 +2,10 @@ package de.osthus.ambeth.collections;
 
 import java.lang.reflect.Array;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-public final class EmptyMap<K, V> implements IMap<K, V>
+public final class EmptyMap<K, V> implements ILinkedMap<K, V>
 {
 	public static final class EmptyMapIterator<K, V> implements Iterator<Entry<K, V>>
 	{
@@ -81,6 +82,12 @@ public final class EmptyMap<K, V> implements IMap<K, V>
 	}
 
 	@Override
+	public Iterator<Entry<K, V>> iterator(boolean removeAllowed)
+	{
+		return EmptyMapIterator.emptyIterator();
+	}
+
+	@Override
 	public void clear()
 	{
 		throw new UnsupportedOperationException("Map is read-only");
@@ -124,6 +131,12 @@ public final class EmptyMap<K, V> implements IMap<K, V>
 
 	@Override
 	public void keySet(ISet<K> targetKeySet)
+	{
+		// intended blank
+	}
+
+	@Override
+	public void toKeysList(List<K> list)
 	{
 		// intended blank
 	}

@@ -10,9 +10,11 @@ public interface IPrivilege
 
 	boolean isDeleteAllowed();
 
-	boolean isExecutionAllowed();
+	boolean isExecuteAllowed();
 
-	String[] getConfiguredPropertyNames();
+	IPropertyPrivilege getDefaultPropertyPrivilegeIfValid();
 
-	IPropertyPrivilege getPropertyPrivilege(String propertyName);
+	IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex);
+
+	IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
 }

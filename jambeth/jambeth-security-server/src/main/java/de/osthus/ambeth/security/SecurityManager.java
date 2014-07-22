@@ -26,6 +26,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
@@ -34,7 +35,7 @@ import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ReadPermission;
@@ -60,7 +61,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IPrivilegeProvider privilegeProvider;
+	protected IPrivilegeProviderIntern privilegeProvider;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
@@ -439,13 +440,24 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 	protected void evaluatePermissionOnEntityCreate(CreateContainer changeContainer, IPrivilege privilege)
 	{
+		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
+		IEntityMetaData metaData = defaultPropertyPrivilege == null ? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
 		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
 		IRelationUpdateItem[] relations = changeContainer.getRelations();
 		if (primitives != null)
 		{
 			for (IPrimitiveUpdateItem pui : primitives)
 			{
-				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(pui.getMemberName());
+				IPropertyPrivilege propertyPrivilege;
+				if (metaData != null)
+				{
+					int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
+					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
+				}
+				else
+				{
+					propertyPrivilege = defaultPropertyPrivilege;
+				}
 				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
 				if (!createPrivilege)
 				{
@@ -458,7 +470,16 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		{
 			for (IRelationUpdateItem rui : relations)
 			{
-				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(rui.getMemberName());
+				IPropertyPrivilege propertyPrivilege;
+				if (metaData != null)
+				{
+					int relationIndex = metaData.getIndexByPrimitiveName(rui.getMemberName());
+					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(relationIndex);
+				}
+				else
+				{
+					propertyPrivilege = defaultPropertyPrivilege;
+				}
 				boolean createPrivilege = propertyPrivilege != null ? propertyPrivilege.isCreateAllowed() : true;
 				if (!createPrivilege)
 				{
@@ -471,13 +492,24 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 
 	protected void evaluatePermissionOnEntityUpdate(UpdateContainer changeContainer, IPrivilege privilege)
 	{
+		IPropertyPrivilege defaultPropertyPrivilege = privilege.getDefaultPropertyPrivilegeIfValid();
+		IEntityMetaData metaData = defaultPropertyPrivilege == null ? entityMetaDataProvider.getMetaData(changeContainer.getReference().getRealType()) : null;
 		IPrimitiveUpdateItem[] primitives = changeContainer.getPrimitives();
 		IRelationUpdateItem[] relations = changeContainer.getRelations();
 		if (primitives != null)
 		{
 			for (IPrimitiveUpdateItem pui : primitives)
 			{
-				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(pui.getMemberName());
+				IPropertyPrivilege propertyPrivilege;
+				if (metaData != null)
+				{
+					int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
+					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(primitiveIndex);
+				}
+				else
+				{
+					propertyPrivilege = defaultPropertyPrivilege;
+				}
 				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
 				if (!updatePrivilege)
 				{
@@ -490,7 +522,16 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 		{
 			for (IRelationUpdateItem rui : relations)
 			{
-				IPropertyPrivilege propertyPrivilege = privilege.getPropertyPrivilege(rui.getMemberName());
+				IPropertyPrivilege propertyPrivilege;
+				if (metaData != null)
+				{
+					int relationIndex = metaData.getIndexByPrimitiveName(rui.getMemberName());
+					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(relationIndex);
+				}
+				else
+				{
+					propertyPrivilege = defaultPropertyPrivilege;
+				}
 				boolean updatePrivilege = propertyPrivilege != null ? propertyPrivilege.isUpdateAllowed() : true;
 				if (!updatePrivilege)
 				{

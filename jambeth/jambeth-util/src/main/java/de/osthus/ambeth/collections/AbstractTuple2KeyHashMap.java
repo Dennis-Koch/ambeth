@@ -6,6 +6,7 @@ import java.io.ObjectOutput;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -66,7 +67,7 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrinta
 
 	protected int extractHash(final Key1 key1, final Key2 key2)
 	{
-		return key1.hashCode() ^ key2.hashCode();
+		return (key1 != null ? key1.hashCode() : 3) ^ (key2 != null ? key2.hashCode() : 5);
 	}
 
 	protected static int hash(int hash)
@@ -285,7 +286,7 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrinta
 
 	protected boolean equalKeys(final Key1 key1, final Key2 key2, final Tuple2KeyEntry<Key1, Key2, V> entry)
 	{
-		return key1.equals(entry.getKey1()) && key2.equals(entry.getKey2());
+		return EqualsUtil.equals(key1, entry.getKey1()) && EqualsUtil.equals(key2, entry.getKey2());
 	}
 
 	public V put(final Key1 key1, final Key2 key2, final V value)

@@ -16,7 +16,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
+import de.osthus.ambeth.objectcollector.NoOpObjectCollector;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.typeinfo.TypeInfoProvider;
 import de.osthus.ambeth.util.AlreadyLinkedCache;
@@ -52,9 +52,9 @@ public class TableTest
 		this.fixture.setIdField(new Field());
 		this.fixture.setVersionField(new Field());
 		this.fixture.setName("Test table name");
-		this.fixture.setTypeInfoProvider(new TypeInfoProvider());
-		this.fixture.setAlreadyLinkedCache(new AlreadyLinkedCache());
-		this.fixture.setObjectCollector(new ThreadLocalObjectCollector());
+		this.fixture.typeInfoProvider = new TypeInfoProvider();
+		this.fixture.alreadyLinkedCache = new AlreadyLinkedCache();
+		this.fixture.objectCollector = new NoOpObjectCollector();
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class TableTest
 	 * Test method for {@link de.osthus.ambeth.persistence.Table#afterPropertiesSet()}.
 	 */
 	@Test
-	public final void testAfterPropertiesSet()
+	public final void testAfterPropertiesSet() throws Throwable
 	{
 		this.fixture.afterPropertiesSet();
 	}
@@ -87,7 +87,7 @@ public class TableTest
 	 * Test method for {@link de.osthus.ambeth.persistence.Table#afterPropertiesSet()}.
 	 */
 	@Test(expected = IllegalArgumentException.class)
-	public final void testAfterPropertiesSet_noIdField()
+	public final void testAfterPropertiesSet_noIdField() throws Throwable
 	{
 		this.fixture.setIdField(null);
 		this.fixture.afterPropertiesSet();
@@ -100,7 +100,7 @@ public class TableTest
 	@Test(expected = IllegalArgumentException.class)
 	@Ignore
 	// 2012-06-25 JH Now it is allowed to have a table without a version column
-	public final void testAfterPropertiesSet_noVersionField()
+	public final void testAfterPropertiesSet_noVersionField() throws Throwable
 	{
 		this.fixture.setVersionField(null);
 		this.fixture.afterPropertiesSet();
@@ -110,19 +110,9 @@ public class TableTest
 	 * Test method for {@link de.osthus.ambeth.persistence.Table#afterPropertiesSet()}.
 	 */
 	@Test(expected = IllegalArgumentException.class)
-	public final void testAfterPropertiesSet_noName()
+	public final void testAfterPropertiesSet_noName() throws Throwable
 	{
 		this.fixture.setName(null);
-		this.fixture.afterPropertiesSet();
-	}
-
-	/**
-	 * Test method for {@link de.osthus.ambeth.persistence.Table#afterPropertiesSet()}.
-	 */
-	@Test(expected = IllegalArgumentException.class)
-	public final void testAfterPropertiesSet_noTypeInfoProvider()
-	{
-		this.fixture.setTypeInfoProvider(null);
 		this.fixture.afterPropertiesSet();
 	}
 
@@ -227,7 +217,7 @@ public class TableTest
 	{
 		ITypeInfoProvider actual = new TypeInfoProvider();
 		assertNotSame("Should not be same object!", actual, this.fixture.getTypeInfoProvider());
-		this.fixture.setTypeInfoProvider(actual);
+		this.fixture.typeInfoProvider = actual;
 		assertSame("Should be same object!", actual, this.fixture.getTypeInfoProvider());
 	}
 

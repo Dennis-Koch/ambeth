@@ -181,9 +181,9 @@ namespace De.Osthus.Ambeth.Ioc
             }
             beanContextFactory.Link(defaultCacheProviderBeanName).To<ICacheProviderExtendable>();
 
-            // CacheContextPostProcessor must be registered BEFORE CachePostProcessor...
-            beanContextFactory.RegisterBean<CacheContextPostProcessor>("cacheContextPostProcessor");
-            beanContextFactory.RegisterBean<CachePostProcessor>("cachePostProcessor");
+            // CacheContextPostProcessor must be registered AFTER CachePostProcessor...
+            Object cachePostProcessor = beanContextFactory.RegisterAnonymousBean<CachePostProcessor>().GetInstance();
+            beanContextFactory.RegisterAnonymousBean<CacheContextPostProcessor>().PropertyValue("CachePostProcessor", cachePostProcessor);
 
             if (IsNetworkClientMode && IsCacheServiceBeanActive)
             {

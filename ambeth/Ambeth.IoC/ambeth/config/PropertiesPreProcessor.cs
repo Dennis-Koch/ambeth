@@ -38,11 +38,14 @@ namespace De.Osthus.Ambeth.Config
                     continue;
                 }
                 PropertyAttribute propertyAttribute = prop.GetAnnotation<PropertyAttribute>();
-                if (propertyAttribute == null || PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.Name))
+                if (propertyAttribute == null)
                 {
                     continue;
                 }
-
+                if (PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.Name) && PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.DefaultValue))
+                {
+                    continue;
+                }
                 Object value = props != null ? props.GetString(propertyAttribute.Name) : null;
 
                 if (value == null)

@@ -4,6 +4,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,6 +37,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamHolder;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExtendable
 {
@@ -204,32 +207,73 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			IBytecodeBehavior[] extensions = bytecodeBehaviorExtensions.getExtensions();
 			pendingBehaviors.addAll(extensions);
 
-			Class<?> enhancedEntityType;
+			Class<?> enhancedType;
 			if (pendingBehaviors.size() > 0)
 			{
-				enhancedEntityType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
+				enhancedType = enhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
 			}
 			else
 			{
-				enhancedEntityType = typeToEnhance;
+				enhancedType = typeToEnhance;
 			}
 			Reference<Class<?>> entityTypeR = typeToExtendedType.getWeakReferenceEntry(typeToEnhance);
 			if (entityTypeR == null)
 			{
 				throw new IllegalStateException("Must never happen");
 			}
-			WeakReference<Class<?>> enhancedEntityTypeR = new WeakReference<Class<?>>(enhancedEntityType);
-			valueType.put(hint, enhancedEntityTypeR);
-			extendedTypeToType.put(enhancedEntityType, entityTypeR);
 			if (log.isDebugEnabled())
 			{
-				log.debug(bytecodeClassLoader.toPrintableBytecode(enhancedEntityType));
+				log.debug(bytecodeClassLoader.toPrintableBytecode(enhancedType));
 			}
-			return enhancedEntityType;
+			checkEnhancedTypeConsistency(enhancedType);
+
+			WeakReference<Class<?>> enhancedTypeR = new WeakReference<Class<?>>(enhancedType);
+			valueType.put(hint, enhancedTypeR);
+			extendedTypeToType.put(enhancedType, entityTypeR);
+			return enhancedType;
 		}
 		finally
 		{
 			writeLock.unlock();
+		}
+	}
+
+	protected void checkEnhancedTypeConsistency(Class<?> type)
+	{
+		Method[] methods = ReflectUtil.getDeclaredMethods(type);
+		if (methods.length == 0)
+		{
+			throw new IllegalStateException("Type invalid (not a single method): " + type);
+		}
+		if (type.getConstructors().length == 0)
+		{
+			throw new IllegalStateException("Type invalid (not a single constructor): " + type);
+		}
+		if (!Modifier.isAbstract(type.getModifiers()))
+		{
+			for (Method method : methods)
+			{
+				if (Modifier.isAbstract(method.getModifiers()))
+				{
+					throw new IllegalStateException("Type is not abstract but has at least one abstract method: " + method);
+				}
+			}
+		}
+		Class<?>[] interfaces = type.getInterfaces();
+		for (Class<?> interf : interfaces)
+		{
+			Method[] interfaceMethods = ReflectUtil.getDeclaredMethods(interf);
+			for (Method interfaceMethod : interfaceMethods)
+			{
+				try
+				{
+					type.getMethod(interfaceMethod.getName(), interfaceMethod.getParameterTypes());
+				}
+				catch (NoSuchMethodException e)
+				{
+					throw new IllegalStateException("Type is not abstract but has at least one abstract method: " + interfaceMethod);
+				}
+			}
 		}
 	}
 
