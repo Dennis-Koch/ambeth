@@ -12,6 +12,8 @@ import java.util.Set;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 
+import org.h2.Driver;
+
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
@@ -35,6 +37,12 @@ public class H2Dialect extends AbstractConnectionDialect
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Override
+	protected Class<?> getDriverType()
+	{
+		return Driver.class;
+	}
 
 	@Override
 	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)

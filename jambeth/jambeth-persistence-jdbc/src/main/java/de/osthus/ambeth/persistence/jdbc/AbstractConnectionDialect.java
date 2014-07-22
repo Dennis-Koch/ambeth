@@ -1,19 +1,24 @@
 package de.osthus.ambeth.persistence.jdbc;
 
 import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 
-public abstract class AbstractConnectionDialect implements IConnectionDialect
+public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -22,8 +27,48 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseConnection)
+	protected String connectionString;
+
 	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		registerDriverIfNeeded();
+	}
+
+	protected abstract Class<?> getDriverType();
+
+	protected void registerDriverIfNeeded()
+	{
+		Class<?> databaseDriver = getDriverType();
+		if (databaseDriver == null || !Driver.class.isAssignableFrom(databaseDriver))
+		{
+			return;
+		}
+		try
+		{
+			try
+			{
+				DriverManager.getDriver(connectionString);
+			}
+			catch (SQLException e)
+			{
+				if (!"08001".equals(e.getSQLState()))
+				{
+					throw e;
+				}
+				Driver driver = (Driver) databaseDriver.newInstance();
+				DriverManager.registerDriver(driver);
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
 
 	@Override
 	public int getMaxInClauseBatchThreshold()

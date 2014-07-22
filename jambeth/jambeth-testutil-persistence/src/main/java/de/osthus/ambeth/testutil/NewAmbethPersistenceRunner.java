@@ -652,7 +652,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	{
 		if (hasStructureAnnotation())
 		{
-			tearDownAllSQLContents(conn, mainSchemaName);
+			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).dropAllSchemaContent(conn, mainSchemaName);
 		}
 		else
 		{
@@ -1028,13 +1028,6 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 		}
 
 		return sql;
-	}
-
-	private void tearDownAllSQLContents(final Connection conn, final String schemaName) throws SQLException
-	{
-		List<String> sql = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).buildDropAllSchemaContent(conn, schemaName);
-		executeScript(sql, conn);
-		sql.clear();
 	}
 
 	private void createOptimisticLockingTriggers(final Connection conn) throws SQLException

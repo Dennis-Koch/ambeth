@@ -67,7 +67,7 @@ namespace De.Osthus.Ambeth.Proxy
                 return null;
             }
             T defaultBehaviour = behaviourTypeExtractor.ExtractBehaviorType(annotation);
-            IMap<MethodKey, T> methodLevelBehaviour = null;
+            MethodLevelHashMap<T> methodLevelBehaviour = null;
 
             MethodInfo[] methods = ReflectUtil.GetMethods(beanType);
             for (int a = methods.Length; a-- > 0; )
@@ -78,19 +78,18 @@ namespace De.Osthus.Ambeth.Proxy
                 {
                     if (methodLevelBehaviour == null)
                     {
-                        methodLevelBehaviour = new HashMap<MethodKey, T>();
+                        methodLevelBehaviour = new MethodLevelHashMap<T>();
                     }
-                    MethodKey methodKey = new MethodKey(method);
                     T behaviourTypeOnMethod = behaviourTypeExtractor.ExtractBehaviorType(annotationOnMethod);
                     if (behaviourTypeOnMethod != null)
                     {
-                        methodLevelBehaviour.Put(methodKey, behaviourTypeOnMethod);
+                        methodLevelBehaviour.Put(method, behaviourTypeOnMethod);
                     }
                 }
             }
             if (methodLevelBehaviour == null)
             {
-                methodLevelBehaviour = new HashMap<MethodKey, T>(0);
+                methodLevelBehaviour = new MethodLevelHashMap<T>(0);
             }
             behavior = new MethodLevelBehavior<T>(defaultBehaviour, methodLevelBehaviour);
             beanTypeToBehavior.Put(key, behavior);
@@ -99,9 +98,9 @@ namespace De.Osthus.Ambeth.Proxy
 
         protected readonly T defaultBehaviour;
 
-        protected readonly IMap<MethodKey, T> methodLevelBehaviour;
+        protected readonly MethodLevelHashMap<T> methodLevelBehaviour;
 
-        public MethodLevelBehavior(T defaultBehaviour, IMap<MethodKey, T> methodLevelBehaviour)
+        public MethodLevelBehavior(T defaultBehaviour, MethodLevelHashMap<T> methodLevelBehaviour)
         {
             this.defaultBehaviour = defaultBehaviour;
             this.methodLevelBehaviour = methodLevelBehaviour;
@@ -112,15 +111,14 @@ namespace De.Osthus.Ambeth.Proxy
             return defaultBehaviour;
         }
 
-        public IMap<MethodKey, T> GetMethodLevelBehaviour()
+        public MethodLevelHashMap<T> GetMethodLevelBehaviour()
         {
             return methodLevelBehaviour;
         }
 
         public T GetBehaviourOfMethod(MethodInfo method)
         {
-            MethodKey methodKey = new MethodKey(method);
-            T behaviourOfMethod = methodLevelBehaviour.Get(methodKey);
+            T behaviourOfMethod = methodLevelBehaviour.Get(method);
 
             if (behaviourOfMethod == null)
             {
