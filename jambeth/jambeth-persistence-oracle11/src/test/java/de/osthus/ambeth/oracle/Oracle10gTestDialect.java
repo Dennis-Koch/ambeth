@@ -150,16 +150,16 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 	}
 
 	@Override
-	public List<String> buildDropAllSchemaContent(Connection conn, String schemaName)
+	public void dropAllSchemaContent(Connection conn, String schemaName)
 	{
-		Statement stmt = null;
+		Statement stmt = null, stmt2 = null;
 		ResultSet rs = null;
 		try
 		{
 			stmt = conn.createStatement();
+			stmt2 = conn.createStatement();
 			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
 			rs = stmt.getResultSet();
-			List<String> sql = new ArrayList<String>();
 			while (rs.next())
 			{
 				String tableName = rs.getString(1);
@@ -170,15 +170,15 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 				String tableType = rs.getString(2);
 				if ("VIEW".equalsIgnoreCase(tableType))
 				{
-					sql.add("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+					stmt2.execute("DROP VIEW " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
 				}
 				else if ("TABLE".equalsIgnoreCase(tableType))
 				{
-					sql.add("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
+					stmt2.execute("DROP TABLE " + escapeName(schemaName, tableName) + " CASCADE CONSTRAINTS");
 				}
 				else if ("SYNONYM".equalsIgnoreCase(tableType))
 				{
-					sql.add("DROP SYNONYM " + escapeName(schemaName, tableName));
+					stmt2.execute("DROP SYNONYM " + escapeName(schemaName, tableName));
 				}
 			}
 			JdbcUtil.close(rs);
@@ -192,10 +192,9 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 				{
 					continue;
 				}
-				sql.add("DROP " + objectType + " " + escapeName(schemaName, objectName));
+				stmt2.execute("DROP " + objectType + " " + escapeName(schemaName, objectName));
 			}
-			sql.add("PURGE RECYCLEBIN");
-			return sql;
+			stmt2.execute("PURGE RECYCLEBIN");
 		}
 		catch (SQLException e)
 		{
@@ -204,6 +203,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		finally
 		{
 			JdbcUtil.close(stmt, rs);
+			JdbcUtil.close(stmt2);
 		}
 	}
 }

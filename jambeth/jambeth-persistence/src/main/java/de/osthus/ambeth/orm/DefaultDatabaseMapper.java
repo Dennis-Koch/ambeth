@@ -15,7 +15,7 @@ import de.osthus.ambeth.util.ParamChecker;
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(DefaultDatabaseMapper.class)
+	@LogInstance
 	private ILogger log;
 
 	protected ITypeInfoProvider typeInfoProvider;

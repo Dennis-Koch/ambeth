@@ -167,7 +167,6 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		{
 			PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "Schema '" + schemaName + "' contains no data tables");
 		}
-		HashSet<String> softNameAmbiguousSet = new HashSet<String>();
 
 		for (String fqTableName : fqDataTableNames)
 		{
@@ -235,31 +234,8 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			table.setAlternateIdFields(alternateIdFields.toArray(new IField[alternateIdFields.size()]));
 
 			getTables().add(table);
-			Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqTableName);
-			if (!matcher.matches())
-			{
-				throw new IllegalStateException("Table name not valid: " + fqTableName);
-			}
-			String schemaName = matcher.group(1);
-			String softTableName = matcher.group(2);
-			if (!nameToTableDict.putIfNotExists(fqTableName, table))
-			{
-				throw new IllegalStateException("Must never happen");
-			}
-			if (!nameToTableDict.putIfNotExists(schemaName + "." + softTableName, table))
-			{
-				throw new IllegalStateException("Must never happen");
-			}
-			if (softNameAmbiguousSet.contains(softTableName))
-			{
-				continue;
-			}
-			if (nameToTableDict.remove(softTableName) != null)
-			{
-				softNameAmbiguousSet.add(softTableName);
-				continue;
-			}
-			nameToTableDict.put(softTableName, table);
+
+			putTableByName(fqTableName, table);
 		}
 		findAndAssignFulltextFields();
 
@@ -961,7 +937,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	@Override
 	public ILink mapLink(ILink link)
 	{
-		nameToLinkDict.put(link.getName(), link);
+		putLinkByName(link.getName(), link);
 		links.add(link);
 
 		Table fromTable = (Table) link.getFromTable();
@@ -1061,7 +1037,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 		link = serviceContext.registerWithLifecycle(link).finish();
 
-		definingNameToLinkDict.put(link.getName(), link);
+		putLinkByDefiningName(link.getName(), link);
 		addLinkByTables(link);
 
 		if (log.isDebugEnabled())
@@ -1069,6 +1045,53 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection,
 					"Recognizing table '" + link.getName() + "' as link between table '" + fromTable.getName() + "' and '" + toTable.getName() + "'");
 		}
+	}
+
+	protected void putLinkByDefiningName(String name, ILink link)
+	{
+		putObjectByName(name, link, definingNameToLinkDict);
+	}
+
+	protected void putLinkByName(String name, ILink link)
+	{
+		putObjectByName(name, link, nameToLinkDict);
+	}
+
+	protected void putTableByName(String name, ITable table)
+	{
+		putObjectByName(name, table, nameToTableDict);
+	}
+
+	protected <T> void putObjectByName(String name, T link, IMap<String, T> nameToObjectMap)
+	{
+		Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(name);
+		String schemaName = null, softName = null;
+		if (splitMatcher.matches())
+		{
+			schemaName = splitMatcher.group(1);
+			softName = splitMatcher.group(2);
+		}
+		else
+		{
+			splitMatcher = XmlDatabaseMapper.softTableNamePattern.matcher(name);
+			if (splitMatcher.matches())
+			{
+				// set "default" schema name
+				schemaName = schemaNames[0];
+				softName = splitMatcher.group(1);
+			}
+			else
+			{
+				throw new IllegalArgumentException("Illegal link name '" + name + "'");
+			}
+		}
+		if (schemaName.equals(schemaNames[0]))
+		{
+			nameToObjectMap.put(softName, link);
+			nameToObjectMap.put("\"" + softName + "\"", link);
+		}
+		nameToObjectMap.put(schemaName + "." + softName, link);
+		nameToObjectMap.put("\"" + schemaName + "\".\"" + softName + "\"", link);
 	}
 
 	protected void handleLinkTableToExtern(String linkName, List<String[]> values) throws SQLException
@@ -1150,8 +1173,8 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		link.setDirectedLink(directedLink);
 		link.setReverseDirectedLink(revDirectedLink);
 
-		nameToLinkDict.put(link.getName(), link);
-		definingNameToLinkDict.put(link.getName(), link);
+		putLinkByName(link.getName(), link);
+		putLinkByDefiningName(link.getName(), link);
 		addLinkByTables(link);
 
 		if (log.isDebugEnabled())
@@ -1215,7 +1238,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 			link = serviceContext.registerWithLifecycle(link).finish();
 
-			definingNameToLinkDict.put(constraintName, link);
+			putLinkByDefiningName(constraintName, link);
 			addLinkByTables(link);
 
 			if (log.isDebugEnabled())

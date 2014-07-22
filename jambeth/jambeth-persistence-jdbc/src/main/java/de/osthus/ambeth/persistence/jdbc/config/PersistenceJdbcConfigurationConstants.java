@@ -58,9 +58,6 @@ public final class PersistenceJdbcConfigurationConstants
 	public static final String DatabaseProtocol = "database.protocol";
 
 	@ConfigurationConstantDescription("TODO")
-	public static final String DatabaseDriver = "database.driver";
-
-	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseName = "database.name";
 
 	@ConfigurationConstantDescription("TODO")

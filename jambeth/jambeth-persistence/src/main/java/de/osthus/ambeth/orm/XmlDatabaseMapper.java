@@ -56,7 +56,34 @@ import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean
 {
-	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("\"(.+)\".\"(.+)\"");
+	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("\"?(.+?)\"?\\.\"?(.+?)\"?");
+
+	public static final Pattern softTableNamePattern = Pattern.compile("\"?(.+?)\"?");
+
+	public static String[] splitSchemaAndName(String fqName)
+	{
+		Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqName);
+		String schemaName = null, softName = null;
+		if (splitMatcher.matches())
+		{
+			schemaName = splitMatcher.group(1);
+			softName = splitMatcher.group(2);
+		}
+		else
+		{
+			splitMatcher = XmlDatabaseMapper.softTableNamePattern.matcher(fqName);
+			if (splitMatcher.matches())
+			{
+				// set "default" schema name
+				softName = splitMatcher.group(1);
+			}
+			else
+			{
+				throw new IllegalArgumentException("Illegal full qualified name '" + fqName + "'");
+			}
+		}
+		return new String[] { schemaName, softName };
+	}
 
 	@LogInstance
 	private ILogger log;
