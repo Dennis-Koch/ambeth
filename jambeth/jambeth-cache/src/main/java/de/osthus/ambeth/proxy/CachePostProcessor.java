@@ -1,7 +1,7 @@
 package de.osthus.ambeth.proxy;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -163,13 +163,13 @@ public class CachePostProcessor extends MergePostProcessor
 	}
 
 	@Override
-	protected Annotation lookForAnnotation(Method method)
+	protected Annotation lookForAnnotation(AnnotatedElement member)
 	{
-		Annotation annotation = super.lookForAnnotation(method);
+		Annotation annotation = super.lookForAnnotation(member);
 		if (annotation != null)
 		{
 			return annotation;
 		}
-		return method.getAnnotation(Cached.class);
+		return member.getAnnotation(Cached.class);
 	}
 }

@@ -152,7 +152,7 @@ namespace De.Osthus.Ambeth.Proxy
             return "cacheInterceptor." + serviceName;
         }
 
-        protected override Attribute LookForAnnotation(MethodInfo method)
+        protected override Attribute LookForAnnotation(MemberInfo method)
         {
             Attribute annotation = base.LookForAnnotation(method);
             if (annotation != null)

@@ -21,6 +21,7 @@ import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.persistence.PessimisticLockException;
 
+import oracle.jdbc.driver.OracleDriver;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
@@ -155,6 +156,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 		readLock = rwLock.readLock();
 		writeLock = rwLock.writeLock();
+	}
+
+	@Override
+	protected Class<?> getDriverType()
+	{
+		return OracleDriver.class;
 	}
 
 	@Override
