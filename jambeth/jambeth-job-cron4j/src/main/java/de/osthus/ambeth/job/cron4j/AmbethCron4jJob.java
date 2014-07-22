@@ -6,6 +6,7 @@ import it.sauronsoftware.cron4j.TaskExecutionContext;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -30,10 +31,13 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	@Autowired
 	protected IJob job;
 
+	@Property
 	protected String jobName;
 
+	@Property
 	protected String userName;
 
+	@Property
 	protected char[] userPass;
 
 	protected Lock writeLock = new ReentrantLock();
@@ -45,16 +49,6 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	{
 		ParamChecker.assertNotNull(jobName, "jobName");
 		ParamChecker.assertNotNull(userName, "userName");
-	}
-
-	public void setJobName(String jobName)
-	{
-		this.jobName = jobName;
-	}
-
-	public void setUserName(String userName)
-	{
-		this.userName = userName;
 	}
 
 	@Override
