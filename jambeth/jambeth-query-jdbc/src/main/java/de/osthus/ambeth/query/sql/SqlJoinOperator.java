@@ -107,7 +107,7 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 			default:
 				throw RuntimeExceptionUtil.createEnumNotSupportedException(joinType);
 		}
-		querySB.append(" JOIN ").append('"').append(tableName.replace(".", "\".\"")).append("\" ").append(getTableAlias()).append(" ON ");
+		querySB.append(" JOIN ").append(tableName).append(' ').append(getTableAlias()).append(" ON ");
 		clause.expandQuery(querySB, nameToValueMap, joinQuery, params);
 	}
 }

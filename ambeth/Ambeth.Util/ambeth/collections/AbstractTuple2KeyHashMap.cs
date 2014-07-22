@@ -59,7 +59,7 @@ namespace De.Osthus.Ambeth.Collections
 
         }
 
-        protected int ExtractHash(Key1 key1, Key2 key2)
+        protected virtual int ExtractHash(Key1 key1, Key2 key2)
         {
             return key1.GetHashCode() ^ key2.GetHashCode();
         }
@@ -241,7 +241,7 @@ namespace De.Osthus.Ambeth.Collections
             return false;
         }
 
-        protected bool EqualKeys(Key1 key1, Key2 key2, Tuple2KeyEntry<Key1, Key2, V> entry)
+        protected virtual bool EqualKeys(Key1 key1, Key2 key2, Tuple2KeyEntry<Key1, Key2, V> entry)
         {
             return key1.Equals(entry.GetKey1()) && key2.Equals(entry.GetKey2());
         }

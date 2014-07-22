@@ -355,6 +355,12 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
+	public boolean isPrimitiveMember(String primitiveMemberName)
+	{
+		return primMemberNameToIndexDict.containsKey(primitiveMemberName);
+	}
+
+	@Override
 	public boolean isRelationMember(String relationMemberName)
 	{
 		return relMemberNameToIndexDict.containsKey(relationMemberName);

@@ -4,7 +4,8 @@ import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
+import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.service.PrivilegeService;
 
@@ -19,7 +20,7 @@ public class PrivilegeServerModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		beanContextFactory.registerBean("privilegeService", PrivilegeService.class).autowireable(IPrivilegeService.class,
-				IPrivilegeProviderExtensionExtendable.class);
+				IEntityPermissionRuleExtendable.class, IEntityTypePermissionRuleExtendable.class);
 
 	}
 }

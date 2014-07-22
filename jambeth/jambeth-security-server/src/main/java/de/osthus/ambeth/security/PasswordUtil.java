@@ -31,7 +31,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeFinishedCallback;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
-import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
@@ -52,9 +52,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
-
-	@Autowired
-	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Property(name = SecurityServerConfigurationConstants.LoginPasswordAlgorithmName, defaultValue = "PBKDF2WithHmacSHA1")
 	protected String algorithm;
@@ -191,14 +188,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	{
 		try
 		{
-			byte[] decodedSaltPassword = Base64.decode(newSaltPassword);
-			if (decodedSaltPassword.length < 16)
-			{
-				byte[] paddedDecodedSaltPassword = new byte[16];
-				System.arraycopy(decodedSaltPassword, 0, paddedDecodedSaltPassword, 0, decodedSaltPassword.length);
-				decodedSaltPassword = paddedDecodedSaltPassword;
-			}
-			return new SecretKeySpec(decodedSaltPassword, saltKeySpec);
+			return createSaltKeyFromPassword(Base64.decode(newSaltPassword));
 		}
 		catch (IOException e)
 		{
@@ -206,21 +196,37 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 	}
 
-	@Override
-	public void reencryptAllSalts(char[] newSaltPassword, Class<? extends IPassword> passwordEntityType)
+	protected SecretKeySpec createSaltKeyFromPassword(byte[] newSaltBinaryPassword)
 	{
-		ParamChecker.assertParamNotNull(newSaltPassword, "newSaltPassword");
+		// byte[] dummySalt = { 0 };
+		// PBEKeySpec spec = new PBEKeySpec(newSaltPassword, dummySalt, 1, 160);
+		// SecretKeyFactory factory = getSecretKeyFactory(password.getAlgorithm());
+		// byte[] decodedSaltPassword = Base64.decode(newSaltPassword);
+		// if (decodedSaltPassword.length < 16)
+		// {
+		// byte[] paddedDecodedSaltPassword = new byte[16];
+		// System.arraycopy(decodedSaltPassword, 0, paddedDecodedSaltPassword, 0, decodedSaltPassword.length);
+		// decodedSaltPassword = paddedDecodedSaltPassword;
+		// }
+		// return new SecretKeySpec(decodedSaltPassword, saltKeySpec);
+		return new SecretKeySpec(newSaltBinaryPassword, saltKeySpec);
+	}
+
+	@Override
+	public void reencryptAllSalts(byte[] newSaltBinaryPassword, Class<? extends IPassword> passwordEntityType)
+	{
+		ParamChecker.assertParamNotNull(newSaltBinaryPassword, "newSaltBinaryPassword");
 		ParamChecker.assertParamNotNull(passwordEntityType, "passwordEntityType");
-		IPrivilege privilegeOnPassword = privilegeProvider.getPrivilegeByType(passwordEntityType, securityScopeProvider.getSecurityScopes());
-		if (!privilegeOnPassword.isUpdateAllowed())
+		ITypePrivilege privilegeOnPasswordType = privilegeProvider.getPrivilegeByType(passwordEntityType);
+		if (!Boolean.TRUE.equals(privilegeOnPasswordType.isReadAllowed()) || !Boolean.TRUE.equals(privilegeOnPasswordType.isUpdateAllowed()))
 		{
 			// if the current user has no general right to modify ALL password entities we can not change the password salt consistently!
-			throw new SecurityException("Current user has no right to update all instances of " + passwordEntityType.getName());
+			throw new SecurityException("Current user has no right to read & update all instances of " + passwordEntityType.getName());
 		}
 		saltReencryptionLock.lock();
 		try
 		{
-			final SecretKeySpec newDecodedLoginSaltPassword = createSaltKeyFromPassword(newSaltPassword);
+			final SecretKeySpec newDecodedLoginSaltPassword = createSaltKeyFromPassword(newSaltBinaryPassword);
 			if (log.isInfoEnabled())
 			{
 				log.info("Reencrypt all salts with new salt-password...");

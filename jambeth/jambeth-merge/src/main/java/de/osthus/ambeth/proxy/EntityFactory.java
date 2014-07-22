@@ -197,7 +197,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
 			entityMetaDataRefresher.refreshMembers(metaData);
 		}
-		Object entity = createEntityIntern(metaData);
+		Object entity = createEntityIntern(metaData, true);
 		if (extension != null && extension != this)
 		{
 			entity = extension.postProcessMappedEntity(entityType, metaData, entity);
@@ -207,6 +207,17 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 
 	@Override
 	public Object createEntity(IEntityMetaData metaData)
+	{
+		return createEntityIntern(metaData, true);
+	}
+
+	@Override
+	public Object createEntityNoEmptyInit(IEntityMetaData metaData)
+	{
+		return createEntityIntern(metaData, false);
+	}
+
+	protected Object createEntityIntern(IEntityMetaData metaData, boolean doEmptyInit)
 	{
 		Class<?> entityType = metaData.getEntityType();
 		IEntityFactoryExtension extension = entityFactoryExtensions.getExtension(entityType);
@@ -220,7 +231,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
 			entityMetaDataRefresher.refreshMembers(metaData);
 		}
-		Object entity = createEntityIntern(metaData);
+		Object entity = createEntityIntern2(metaData, doEmptyInit);
 		if (extension != null && extension != this)
 		{
 			entity = extension.postProcessMappedEntity(entityType, metaData, entity);
@@ -228,14 +239,14 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 		return entity;
 	}
 
-	protected Object createEntityIntern(IEntityMetaData metaData)
+	protected Object createEntityIntern2(IEntityMetaData metaData, boolean doEmptyInit)
 	{
 		try
 		{
 			FastConstructor constructor = getConstructor(typeToConstructorMap, metaData.getEnhancedType());
 			Object[] args = getConstructorArguments(constructor);
 			Object entity = constructor.newInstance(args);
-			postProcessEntity(entity, metaData);
+			postProcessEntity(entity, metaData, doEmptyInit);
 			return entity;
 		}
 		catch (Throwable e)
@@ -297,7 +308,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 		return embeddedTypeInfoItems;
 	}
 
-	protected void postProcessEntity(Object entity, IEntityMetaData metaData)
+	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit)
 	{
 		ICacheModification cacheModification = this.cacheModification;
 		boolean oldCacheModActive = cacheModification.isActive();
@@ -323,13 +334,16 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 					currPath.setLength(0);
 				}
 			}
-			for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
+			if (doEmptyInit)
 			{
-				// Check for embedded members
-				if (!(primitiveMember instanceof IEmbeddedTypeInfoItem))
+				for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
 				{
-					handlePrimitiveMember(primitiveMember, entity);
-					continue;
+					// Check for embedded members
+					if (!(primitiveMember instanceof IEmbeddedTypeInfoItem))
+					{
+						handlePrimitiveMember(primitiveMember, entity);
+						continue;
+					}
 				}
 			}
 		}

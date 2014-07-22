@@ -27,7 +27,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-@SQLStructure("/DataChangeEvent_structure.sql")
+@SQLStructure("DataChangeEvent_structure.sql")
 @SQLData("DataChangeEvent_data.sql")
 @TestModule(DataChangePersistenceModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "datachange-orm.xml")

@@ -208,8 +208,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		beanContextFactory.link(defaultCacheProviderBeanName).to(ICacheProviderExtendable.class);
 
 		// CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-		beanContextFactory.registerBean("cachePostProcessor", CachePostProcessor.class);
-		beanContextFactory.registerBean("cacheContextPostProcessor", CacheContextPostProcessor.class);
+		Object cachePostProcessor = beanContextFactory.registerAnonymousBean(CachePostProcessor.class).getInstance();
+		beanContextFactory.registerAnonymousBean(CacheContextPostProcessor.class).propertyValue("CachePostProcessor", cachePostProcessor);
 
 		if (isNetworkClientMode)
 		{

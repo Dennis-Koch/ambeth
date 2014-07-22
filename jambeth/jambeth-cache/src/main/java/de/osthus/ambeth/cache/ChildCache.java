@@ -183,7 +183,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		{
 			return obj;
 		}
-		return entityFactory.createEntity(metaData);
+		return entityFactory.createEntityNoEmptyInit(metaData);
 	}
 
 	@Override

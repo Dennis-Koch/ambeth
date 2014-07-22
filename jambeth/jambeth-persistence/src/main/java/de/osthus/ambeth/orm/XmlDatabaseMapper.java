@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.w3c.dom.Document;
 
@@ -51,8 +53,38 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
+
 public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartingBean, IDisposableBean
 {
+	public static final Pattern fqToSoftTableNamePattern = Pattern.compile("\"?(.+?)\"?\\.\"?(.+?)\"?");
+
+	public static final Pattern softTableNamePattern = Pattern.compile("\"?(.+?)\"?");
+
+	public static String[] splitSchemaAndName(String fqName)
+	{
+		Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(fqName);
+		String schemaName = null, softName = null;
+		if (splitMatcher.matches())
+		{
+			schemaName = splitMatcher.group(1);
+			softName = splitMatcher.group(2);
+		}
+		else
+		{
+			splitMatcher = XmlDatabaseMapper.softTableNamePattern.matcher(fqName);
+			if (splitMatcher.matches())
+			{
+				// set "default" schema name
+				softName = splitMatcher.group(1);
+			}
+			else
+			{
+				throw new IllegalArgumentException("Illegal full qualified name '" + fqName + "'");
+			}
+		}
+		return new String[] { schemaName, softName };
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -232,7 +264,6 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 			Class<?> entityType = entityConfig.getEntityType();
 			Class<?> realType = entityConfig.getRealType();
-			String sequenceName = entityConfig.getSequenceName();
 			String idName = this.idName;
 			String versionName = this.versionName;
 
@@ -245,10 +276,18 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				database.mapArchiveTable(archiveTable.getName(), entityType);
 			}
 
+			String sequenceName = entityConfig.getSequenceName();
+
 			if (sequenceName == null)
 			{
-				sequenceName = sequencePrefix + table.getName() + sequencePostfix;
+				Matcher matcher = fqToSoftTableNamePattern.matcher(table.getName());
+				if (!matcher.matches())
+				{
+					throw new IllegalStateException("Must never happen");
+				}
+				sequenceName = sequencePrefix + matcher.group(2) + sequencePostfix;
 			}
+			sequenceName = getFqObjectName(table, sequenceName);
 			if (table instanceof Table)
 			{
 				((Table) table).setSequenceName(sequenceName);
@@ -591,13 +630,32 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		}
 	}
 
+	protected String getFqJoinTableName(ITable table, RelationConfigLegathy relationConfig)
+	{
+		return getFqObjectName(table, relationConfig.getJoinTableName());
+	}
+
+	protected String getFqObjectName(ITable table, String objectName)
+	{
+		if (objectName == null || objectName.contains("."))
+		{
+			return objectName;
+		}
+		Matcher matcher = fqToSoftTableNamePattern.matcher(table.getName());
+		if (!matcher.matches())
+		{
+			throw new IllegalStateException("Must never happen");
+		}
+		return "\"" + matcher.group(1) + "\".\"" + objectName + "\"";
+	}
+
 	protected void mapToOne(Database database, ITable table, RelationConfigLegathy relationConfig)
 	{
 		String memberName = relationConfig.getName();
 		Class<?> linkedEntityType = relationConfig.getLinkedEntityType();
 		boolean doDelete = relationConfig.doDelete();
 		boolean mayDelete = relationConfig.mayDelete();
-		String joinTableName = relationConfig.getJoinTableName();
+		String joinTableName = getFqJoinTableName(table, relationConfig);
 		String linkName;
 
 		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType, true);
@@ -672,7 +730,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		Class<?> linkedEntityType = relationConfig.getLinkedEntityType();
 		boolean doDelete = relationConfig.doDelete();
 		boolean mayDelete = relationConfig.mayDelete();
-		String joinTableName = relationConfig.getJoinTableName();
+		String joinTableName = getFqJoinTableName(table, relationConfig);
 		String linkName;
 
 		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType, true);
@@ -890,7 +948,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 	protected String mapDataTableWithLink(Database database, ITable table, ITable table2, RelationConfigLegathy relationConfig, boolean reverse)
 	{
-		String joinTableName = relationConfig.getJoinTableName();
+		String joinTableName = getFqJoinTableName(table, relationConfig);
 		ITable fromTable, toTable;
 		if (table.getName().equals(joinTableName))
 		{

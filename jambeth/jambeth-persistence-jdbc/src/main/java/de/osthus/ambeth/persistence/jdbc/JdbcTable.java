@@ -17,15 +17,15 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ILobHandler;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.sql.CompositeResultSet;
 import de.osthus.ambeth.sql.IResultSet;
 import de.osthus.ambeth.sql.IResultSetProvider;
@@ -40,50 +40,33 @@ public class JdbcTable extends SqlTable
 	@LogInstance
 	private ILogger log;
 
-	protected Connection connection;
+	@Autowired
+	protected IConnectionDialect connectionDialect;
 
-	protected ILobHandler lobHandler;
+	@Autowired
+	protected Connection connection;
 
 	protected boolean batching = false;
 
 	protected LinkedHashMap<Object, Object> persistedIdToVersionMap = new LinkedHashMap<Object, Object>();
 
 	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToInsertStmtMap = new LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>>();
+
 	protected LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>> fieldsToUpdateStmtMap = new LinkedHashMap<Integer, ILinkedMap<String, PreparedStatement>>();
+
 	protected PreparedStatement deleteStmt;
 
+	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
 	protected boolean exactVersionForOptimisticLockingRequired;
 
 	protected int maxInClauseBatchThreshold;
 
 	@Override
-	public void afterPropertiesSet()
+	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(connection, "connection");
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setLobHandler(ILobHandler lobHandler)
-	{
-		this.lobHandler = lobHandler;
-	}
-
-	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
-	public void setExactVersionForOptimisticLockingRequired(boolean exactVersionForOptimisticLockingRequired)
-	{
-		this.exactVersionForOptimisticLockingRequired = exactVersionForOptimisticLockingRequired;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.MaxInClauseBatchThreshold, defaultValue = "8000")
-	public void setMaxInClauseBatchThreshold(int maxInClauseBatchThreshold)
-	{
-		this.maxInClauseBatchThreshold = maxInClauseBatchThreshold;
+		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
 	}
 
 	@Override

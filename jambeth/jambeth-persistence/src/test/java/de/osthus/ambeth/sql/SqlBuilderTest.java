@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import de.osthus.ambeth.objectcollector.NoOpObjectCollector;
 import de.osthus.ambeth.persistence.PersistenceHelper;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class SqlBuilderTest
 {
@@ -37,8 +38,8 @@ public class SqlBuilderTest
 		this.fixture = new SqlBuilder();
 
 		PersistenceHelper persistenceHelper = new PersistenceHelper();
-		persistenceHelper.setBatchSize(batchSize);
-		persistenceHelper.setObjectCollector(oc);
+		ReflectUtil.getDeclaredField(persistenceHelper.getClass(), "batchSize").set(persistenceHelper, batchSize);
+		ReflectUtil.getDeclaredField(persistenceHelper.getClass(), "objectCollector").set(persistenceHelper, oc);
 		this.fixture.setObjectCollector(oc);
 		this.fixture.setPersistenceHelper(persistenceHelper);
 

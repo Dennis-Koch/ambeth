@@ -72,7 +72,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -83,12 +83,29 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-h2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-h2</artifactId>
+			<classifier>tests</classifier>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+			<classifier>tests</classifier>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -100,6 +117,11 @@
 			<artifactId>jambeth-security</artifactId>
 			<classifier>tests</classifier>
 			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-bytecode</artifactId>
 		</dependency>
 
 		<dependency>
@@ -131,7 +153,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -142,7 +164,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-mapping</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
@@ -153,7 +175,7 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
 			<classifier>tests</classifier>
-			<scope>test</scope>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>

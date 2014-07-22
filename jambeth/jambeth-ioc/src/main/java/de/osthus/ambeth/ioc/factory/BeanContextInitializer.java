@@ -28,6 +28,7 @@ import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.BeanMonitoringSupport;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
@@ -731,6 +732,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 		if (e != null)
 		{
+			while (e instanceof MaskingRuntimeException && e.getMessage() == null)
+			{
+				e = e.getCause();
+			}
 			return new BeanContextDeclarationException(declarationStackTrace, e);
 		}
 		return new BeanContextDeclarationException(declarationStackTrace);

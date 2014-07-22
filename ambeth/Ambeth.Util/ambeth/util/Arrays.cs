@@ -11,7 +11,7 @@ namespace De.Osthus.Ambeth.Util
         {
         }
 
-        public static bool Equals(Array left, Array right)
+        public static bool Equals<T>(T[] left, T[] right)
         {
             if (left == null)
             {
@@ -27,12 +27,28 @@ namespace De.Osthus.Ambeth.Util
             }
             for (int a = left.Length; a-- > 0; )
             {
-                if (!Object.Equals(left.GetValue(a), right.GetValue(a)))
+                if (!Object.Equals(left[a], right[a]))
                 {
                     return false;
                 }
             }
             return true;
+        }
+
+        public static int GetHashCode<T>(T[] left)
+        {
+            if (left == null)
+            {
+                return 0;
+            }
+
+            int result = 1;
+
+            foreach (T element in left)
+            {
+                result = 31 * result + (element == null ? 0 : element.GetHashCode());
+            }
+            return result;
         }
 
         public static String ToString(Object[] array)
