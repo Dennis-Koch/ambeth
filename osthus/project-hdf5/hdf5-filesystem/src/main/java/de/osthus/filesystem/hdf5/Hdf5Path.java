@@ -60,19 +60,4 @@ public class Hdf5Path extends AbstractPath<Hdf5Path, Hdf5FileSystem> implements 
 		throw new UnsupportedOperationException("Not yet implemented");
 		// return 0;
 	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (!(obj instanceof Hdf5Path))
-		{
-			return false;
-		}
-		return equals((Hdf5Path) obj);
-	}
-
-	public boolean equals(Hdf5Path obj)
-	{
-		return root.equals(obj.root) && path.equals(obj.path) && fileSystem.equals(obj.fileSystem);
-	}
 }

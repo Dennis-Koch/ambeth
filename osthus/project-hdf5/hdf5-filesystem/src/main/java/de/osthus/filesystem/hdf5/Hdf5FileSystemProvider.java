@@ -10,10 +10,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -21,24 +17,22 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import de.osthus.filesystem.common.AbstractFileSystemProvider;
 
 /**
  * FileSystemProvider for a HDF5-based FileSystem implementation. It works like the zipFs.
  * 
  * @author jochen.hormes
- * @start 2014-07-21
+ * @start 2014-07-23
  */
-public class Hdf5FileSystemProvider extends FileSystemProvider
+public class Hdf5FileSystemProvider extends AbstractFileSystemProvider<Hdf5FileSystemProvider, Hdf5FileSystem, Hdf5Uri, Hdf5Path>
 {
 	protected static final String SCHEME = "hdf5";
 
 	protected static final String FILENAME_EXTENSION = "h5";
-
-	private final HashMap<String, Hdf5FileSystem> openFileSystems = new HashMap<>();
 
 	/**
 	 * {@inheritDoc}
@@ -53,99 +47,11 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Hdf5FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
-	{
-		Hdf5Uri directoryUri = Hdf5Uri.create(uri);
-		Hdf5FileSystem directoryFileSystem = newFileSystem(directoryUri, env);
-		return directoryFileSystem;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Hdf5FileSystem getFileSystem(URI uri)
-	{
-		Hdf5Uri directoryUri = Hdf5Uri.create(uri);
-		Hdf5FileSystem directoryFileSystem = getFileSystem(directoryUri);
-		return directoryFileSystem;
-	}
-
-	protected Hdf5FileSystem newFileSystem(Hdf5Uri directoryUri, Map<String, ?> env) throws IOException
-	{
-		String dirFsIdentifier = directoryUri.getIdentifier();
-
-		if (openFileSystems.containsKey(dirFsIdentifier))
-		{
-			throw new FileSystemAlreadyExistsException();
-		}
-
-		URI underlyingFileSystemUri = URI.create(directoryUri.getUnderlyingFileSystem());
-		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, directoryUri);
-
-		Hdf5FileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, dirFsIdentifier, env);
-		openFileSystems.put(dirFsIdentifier, directoryFileSystem);
-
-		return directoryFileSystem;
-	}
-
-	protected Hdf5FileSystem getFileSystem(Hdf5Uri directoryUri)
-	{
-		String dirFsIdentifier = directoryUri.getIdentifier();
-
-		Hdf5FileSystem directoryFileSystem = openFileSystems.get(dirFsIdentifier);
-		if (directoryFileSystem == null)
-		{
-			throw new FileSystemNotFoundException();
-		}
-
-		return directoryFileSystem;
-	}
-
-	protected Hdf5FileSystem useFileSystem(Hdf5Uri directoryUri)
-	{
-		Hdf5FileSystem fileSystem;
-		try
-		{
-			fileSystem = newFileSystem(directoryUri, Collections.<String, Object> emptyMap());
-		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			fileSystem = getFileSystem(directoryUri);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		return fileSystem;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public FileChannel newFileChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException
 	{
-		// TODO
-		return super.newFileChannel(path, options, attrs);
-	}
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
 
-	/**
-	 * {@inheritDoc} <br>
-	 * e.g. dir:file:///C:/temp/target/!/insideDirFs/folder <br>
-	 * e.g. hdf5:file:///C:/temp/target/test.h5!/data/myExperiment
-	 */
-	@Override
-	public Hdf5Path getPath(URI uri)
-	{
-		Hdf5Uri directoryUri = Hdf5Uri.create(uri);
-		Hdf5FileSystem directoryFileSystem = useFileSystem(directoryUri);
-
-		String pathString = directoryUri.getPath();
-		Hdf5Path path = directoryFileSystem.getPath(pathString);
-
-		return path;
 	}
 
 	/**
@@ -154,10 +60,9 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException
 	{
-		Path realPath = getRealPath(path);
-		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
-		SeekableByteChannel newByteChannel = underlyingFileSystemProvider.newByteChannel(realPath, options, attrs);
-		return newByteChannel;
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -166,10 +71,9 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, Filter<? super Path> filter) throws IOException
 	{
-		Path realDir = getRealPath(dir);
-		FileSystemProvider underlyingFileSystemProvider = realDir.getFileSystem().provider();
-		DirectoryStream<Path> newAdf2Stream = underlyingFileSystemProvider.newDirectoryStream(realDir, filter);
-		return newAdf2Stream;
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -178,9 +82,9 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException
 	{
-		Path realDir = getRealPath(dir);
-		FileSystemProvider underlyingFileSystemProvider = realDir.getFileSystem().provider();
-		underlyingFileSystemProvider.createDirectory(realDir, attrs);
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -249,14 +153,14 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 			throw new RuntimeException("Unsupported path type: " + path.getClass());
 		}
 
-		Hdf5Path dirPath = (Hdf5Path) path;
-		Hdf5FileSystem dirFileSystem = dirPath.getFileSystem();
+		Hdf5Path hdf5Path = (Hdf5Path) path;
+		Hdf5FileSystem fileSystem = hdf5Path.getFileSystem();
 
-		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystem();
+		Path underlyingFile = fileSystem.getUnderlyingFile();
+		FileSystem underlyingFileSystem = underlyingFile.getFileSystem();
 		FileSystemProvider underlyingFileSystemProvider = underlyingFileSystem.provider();
-		Path underlyingFileSystemPath = dirFileSystem.getUnderlyingFileSystemPath();
 
-		FileStore fileStore = underlyingFileSystemProvider.getFileStore(underlyingFileSystemPath);
+		FileStore fileStore = underlyingFileSystemProvider.getFileStore(underlyingFile);
 
 		return fileStore;
 	}
@@ -267,9 +171,8 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	@Override
 	public void checkAccess(Path path, AccessMode... modes) throws IOException
 	{
-		Path realPath = getRealPath(path);
-		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
-		underlyingFileSystemProvider.checkAccess(realPath, modes);
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -289,10 +192,8 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 	@Override
 	public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException
 	{
-		Path realPath = getRealPath(path);
-		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
-		A readAttributes = underlyingFileSystemProvider.readAttributes(realPath, type, options);
-		return readAttributes;
+		throw new UnsupportedOperationException("Not yet implemented");
+		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -317,68 +218,37 @@ public class Hdf5FileSystemProvider extends FileSystemProvider
 
 	}
 
+	// protected Path getRealPath(Path path)
+	// {
+	// FileSystem fileSystem = path.getFileSystem();
+	// if (!(fileSystem instanceof Hdf5FileSystem))
+	// {
+	// throw new RuntimeException("Path '" + path + "' does not reside in an Hdf5 File System");
+	// }
+	//
+	// Path relativePath = path.getRoot().relativize(path);
+	//
+	// Hdf5FileSystem directoryFileSystem = (Hdf5FileSystem) fileSystem;
+	// Path underlyingFileSystemPath = directoryFileSystem.getUnderlyingFileSystemPath();
+	// Path realPath = underlyingFileSystemPath.resolve(relativePath.toString());
+	// return realPath;
+	// }
+
 	@Override
-	public String toString()
+	protected Hdf5Uri buildInternalUri(URI uri)
 	{
-		return SCHEME + ":///";
+		Hdf5Uri internalUri = Hdf5Uri.create(uri);
+		return internalUri;
 	}
 
-	protected void fileSystemClosed(Hdf5FileSystem directoryFileSystem)
+	@Override
+	protected Hdf5FileSystem buildFileSystem(Hdf5Uri internalUri, Map<String, ?> env) throws IOException
 	{
-		String fsIdentifier = directoryFileSystem.getFsIdentifyer();
-		openFileSystems.remove(fsIdentifier);
-	}
-
-	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
-	{
-		FileSystem underlyingFileSystem;
-		try
-		{
-			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
-		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
-		}
-		return underlyingFileSystem;
-	}
-
-	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, Hdf5Uri directoryUri)
-	{
-		String underlyingFileSystemPathName = directoryUri.getUnderlyingPath();
-		Path underlyingFileSystemPath;
-		try
-		{
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		catch (InvalidPathException e)
-		{
-			underlyingFileSystemPathName = directoryUri.getUnderlyingPath2();
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		return underlyingFileSystemPath;
-	}
-
-	protected Hdf5FileSystem createFileSystem(FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer, Map<String, ?> env)
-			throws IOException
-	{
-		Hdf5FileSystem directoryFileSystem = new Hdf5FileSystem(this, underlyingFileSystem, underlyingFileSystemPath, fsIdentifyer);
-		return directoryFileSystem;
-	}
-
-	protected Path getRealPath(Path path)
-	{
-		FileSystem fileSystem = path.getFileSystem();
-		if (!(fileSystem instanceof Hdf5FileSystem))
-		{
-			throw new RuntimeException("Path '" + path + "' does not reside in an Adf2 File System");
-		}
-
-		Path relativePath = path.getRoot().relativize(path);
-
-		Hdf5FileSystem directoryFileSystem = (Hdf5FileSystem) fileSystem;
-		Path underlyingFileSystemPath = directoryFileSystem.getUnderlyingFileSystemPath();
-		Path realPath = underlyingFileSystemPath.resolve(relativePath.toString());
-		return realPath;
+		URI underlyingFileSystemUri = URI.create(internalUri.getUnderlyingFileSystem());
+		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
+		Path underlyingFilePath = buildUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
+		String identifier = internalUri.getIdentifier();
+		Hdf5FileSystem fileSystem = new Hdf5FileSystem(this, underlyingFilePath, identifier);
+		return fileSystem;
 	}
 }

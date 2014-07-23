@@ -10,9 +10,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystems;
-import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -225,42 +222,6 @@ public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<Dire
 
 	}
 
-	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
-	{
-		FileSystem underlyingFileSystem;
-		try
-		{
-			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
-		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
-		}
-		return underlyingFileSystem;
-	}
-
-	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, DirectoryUri directoryUri)
-	{
-		String underlyingFileSystemPathName = directoryUri.getUnderlyingPath();
-		Path underlyingFileSystemPath;
-		try
-		{
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		catch (InvalidPathException e)
-		{
-			underlyingFileSystemPathName = directoryUri.getUnderlyingPath2();
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		return underlyingFileSystemPath;
-	}
-
-	protected DirectoryFileSystem createFileSystem(Path underlyingFileSystemPath, String identifier, Map<String, ?> env) throws IOException
-	{
-		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(this, underlyingFileSystemPath, identifier);
-		return directoryFileSystem;
-	}
-
 	protected Path getRealPath(Path path)
 	{
 		FileSystem fileSystem = path.getFileSystem();
@@ -288,8 +249,9 @@ public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<Dire
 	{
 		URI underlyingFileSystemUri = URI.create(internalUri.getUnderlyingFileSystem());
 		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
-		DirectoryFileSystem fileSystem = createFileSystem(underlyingFileSystemPath, internalUri.getIdentifier(), env);
+		Path underlyingFileSystemPath = buildUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
+		String identifier = internalUri.getIdentifier();
+		DirectoryFileSystem fileSystem = new DirectoryFileSystem(this, underlyingFileSystemPath, identifier);
 		return fileSystem;
 	}
 }

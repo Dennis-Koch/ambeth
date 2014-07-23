@@ -3,7 +3,6 @@ package de.osthus.filesystem.common;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent.Kind;
@@ -20,7 +19,7 @@ import lombok.Getter;
  * @author jochen.hormes
  * @start 2014-07-21
  */
-public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends FileSystem> implements Path
+public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends AbstractFileSystem<F, ?, P>> implements Path
 {
 	/**
 	 * {@inheritDoc}
@@ -219,7 +218,7 @@ public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends FileS
 		}
 		else
 		{
-			Path resolved = fileSystem.getPath(path, otherPathString);
+			P resolved = fileSystem.getPath(path, otherPathString);
 			return resolved;
 		}
 	}
@@ -230,7 +229,7 @@ public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends FileS
 	@Override
 	public Path resolve(String other)
 	{
-		Path path = fileSystem.getPath(other);
+		P path = fileSystem.getPath(other);
 		return resolve(path);
 	}
 
@@ -327,6 +326,37 @@ public abstract class AbstractPath<P extends AbstractPath<P, F>, F extends FileS
 	public String toString()
 	{
 		return path;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == null)
+		{
+			return false;
+		}
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!this.getClass().equals(obj.getClass()))
+		{
+			return false;
+		}
+		@SuppressWarnings("unchecked")
+		P other = (P) obj;
+		return equalsInternal(other);
+	}
+
+	public boolean equalsInternal(P obj)
+	{
+		return root.equals(obj.root) && path.equals(obj.path) && fileSystem.equals(obj.fileSystem);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return fileSystem.hashCode() + 17 * root.hashCode() + 23 * path.hashCode();
 	}
 
 	protected abstract P create(F fileSystem, String root, String path);

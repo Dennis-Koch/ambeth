@@ -19,7 +19,7 @@ public final class TestConstant
 
 	static
 	{
-		String testFileName = System.getProperty("java.io.tmpdir") + "test.h5";
+		String testFileName = "src/test/resources/empty.h5";
 		Path testFilePath = Paths.get(testFileName);
 		URI testFileUri = testFilePath.toUri();
 		NAME_FILE_FS_TEST_FILE = testFileUri.toString();

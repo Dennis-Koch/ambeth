@@ -17,10 +17,10 @@ public abstract class AbstractFileSystem<F extends AbstractFileSystem<F, S, P>, 
 {
 	private static final String SEPARATOR = "/";
 
-	private final S provider;
+	protected final S provider;
 
 	@Getter
-	private final String identifier;
+	protected final String identifier;
 
 	private boolean isOpen = true;
 
@@ -115,6 +115,37 @@ public abstract class AbstractFileSystem<F extends AbstractFileSystem<F, S, P>, 
 		P path = buildPath(rootName, pathName);
 
 		return path;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == null)
+		{
+			return false;
+		}
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!this.getClass().equals(obj.getClass()))
+		{
+			return false;
+		}
+		@SuppressWarnings("unchecked")
+		F other = (F) obj;
+		return equalsInternal(other);
+	}
+
+	public boolean equalsInternal(F obj)
+	{
+		return identifier.equals(obj.identifier) && provider.equals(obj.provider);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return provider.hashCode() + 17 * identifier.hashCode();
 	}
 
 	protected void checkIsOpen()

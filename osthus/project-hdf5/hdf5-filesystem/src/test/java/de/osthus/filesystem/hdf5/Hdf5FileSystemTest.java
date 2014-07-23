@@ -22,16 +22,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * 
  * @author jochen.hormes
- * @start 2014-07-21
+ * @start 2014-07-23
  */
-// TODO Change for HDF5
-@Ignore
 public class Hdf5FileSystemTest
 {
 	private static FileSystem defaultFileSystem;
@@ -144,7 +141,7 @@ public class Hdf5FileSystemTest
 		String first = "";
 		Hdf5Path path = directoryFileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem().toString());
+		assertSame(directoryFileSystem, path.getFileSystem());
 		assertNull(path.getRoot());
 		assertEquals("", path.toString());
 	}

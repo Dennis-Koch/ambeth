@@ -64,7 +64,8 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 	public boolean isReadOnly()
 	{
 		checkIsOpen();
-		return underlyingFileSystemPath.getFileSystem().isReadOnly();
+		boolean readOnly = underlyingFileSystemPath.getFileSystem().isReadOnly();
+		return readOnly;
 	}
 
 	/**
