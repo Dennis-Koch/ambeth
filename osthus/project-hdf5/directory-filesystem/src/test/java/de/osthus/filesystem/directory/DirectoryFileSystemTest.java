@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URI;
@@ -19,9 +20,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DirectoryFileSystemTest
@@ -38,11 +39,6 @@ public class DirectoryFileSystemTest
 		defaultFileSystem = FileSystems.getDefault();
 		testUri = new URI(TestConstant.NAME_DIR_FS_TEMP_FOLDER);
 		directoryFileSystemProvider = new DirectoryFileSystemProvider();
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
 	}
 
 	private DirectoryFileSystem directoryFileSystem;
@@ -116,22 +112,43 @@ public class DirectoryFileSystemTest
 		assertEquals("/", separator);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetRootDirectories()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetRootDirectories_unsupported()
 	{
 		Iterable<Path> rootDirectories = directoryFileSystem.getRootDirectories();
 		assertNotNull(rootDirectories);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetFileStores()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetFileStores_unsupported()
 	{
 		Iterable<FileStore> fileStores = directoryFileSystem.getFileStores();
 		assertNotNull(fileStores);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testSupportedFileAttributeViews()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSupportedFileAttributeViews_unsupported()
 	{
 		Set<String> supportedFileAttributeViews = directoryFileSystem.supportedFileAttributeViews();
 		assertNotNull(supportedFileAttributeViews);
@@ -196,21 +213,42 @@ public class DirectoryFileSystemTest
 		assertEquals("/data/test/dir", path.toString());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetPathMatcherString()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetPathMatcherString_unsupported()
 	{
 		String syntaxAndPattern = "";
 		directoryFileSystem.getPathMatcher(syntaxAndPattern);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetUserPrincipalLookupService()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetUserPrincipalLookupService_unsupported()
 	{
 		directoryFileSystem.getUserPrincipalLookupService();
 	}
 
+	@Test
+	@Ignore
+	public void testNewWatchService()
+	{
+		fail("Not yet implemented");
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
-	public void testNewWatchService() throws IOException
+	public void testNewWatchService_unsupported() throws IOException
 	{
 		directoryFileSystem.newWatchService();
 	}
