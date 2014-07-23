@@ -82,9 +82,9 @@ public class Hdf5PathTest
 	{
 		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
 		// TODO replace with resolve() when implemented
-		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", root.toString() + "tmp");
+		Path path = root.resolve("tmp");
 
-		Hdf5Path parent = path.getParent();
+		Path parent = path.getParent();
 		assertNotNull(parent);
 		assertEquals(root, parent);
 	}

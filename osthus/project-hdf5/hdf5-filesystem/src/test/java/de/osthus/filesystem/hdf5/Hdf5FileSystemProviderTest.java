@@ -28,16 +28,13 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * 
  * @author jochen.hormes
- * @start 2014-07-21
+ * @start 2014-07-23
  */
-// TODO Change for HDF5
-@Ignore
 public class Hdf5FileSystemProviderTest
 {
 	@BeforeClass
@@ -75,9 +72,11 @@ public class Hdf5FileSystemProviderTest
 	{
 		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
 		Map<String, ?> env = Collections.emptyMap();
+
 		Hdf5FileSystem fileSystem = hdf5FileSystemProvider.newFileSystem(uri, env);
+
 		assertNotNull(fileSystem);
-		assertEquals(TestConstant.NAME_FILE_FS_TEST_FILE, fileSystem.getUnderlyingFileSystemPath().toUri().toString());
+		assertEquals(TestConstant.NAME_FILE_FS_TEST_FILE, fileSystem.getUnderlyingFile().toUri().toString());
 	}
 
 	@Test(expected = FileSystemAlreadyExistsException.class)
@@ -115,6 +114,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
+
 		hdf5FileSystemProvider.newFileChannel(path, options, attrs);
 	}
 
@@ -136,52 +136,31 @@ public class Hdf5FileSystemProviderTest
 		assertEquals(folderPathString, path.toString());
 	}
 
-	@Test
-	public void testGetPathURI_inZip() throws URISyntaxException
-	{
-		Path zipFile1 = Paths.get("src/test/resources/file1.zip");
-		String zipFsUriString = "jar:" + zipFile1.toUri().toString() + "!/insideZipFs/";
-		String dirFsUriString = "dir:" + zipFsUriString;
-		String folderPathString = "/insideDirFs/folder";
-		String fullUriString = dirFsUriString + "!" + folderPathString;
-		URI fullUri = new URI(fullUriString);
-
-		Hdf5Path path = hdf5FileSystemProvider.getPath(fullUri);
-
-		Hdf5Uri dirFsUri = Hdf5Uri.create(dirFsUriString);
-		Hdf5FileSystem dirFileSystem = hdf5FileSystemProvider.useFileSystem(dirFsUri);
-		assertEquals(dirFileSystem, path.getFileSystem());
-
-		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
-		assertEquals(folderPathString, path.toString());
-	}
-
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testNewByteChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
 	{
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
+
 		hdf5FileSystemProvider.newByteChannel(path, options, attrs);
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testNewDirectoryStreamPathFilterOfQsuperPath() throws IOException
 	{
 		Path dir = null;
 		Filter<? super Path> filter = null;
+
 		hdf5FileSystemProvider.newDirectoryStream(dir, filter);
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testCreateDirectoryPathFileAttributeOfQArray() throws IOException
 	{
-		// TODO
 		Path dir = null;
 		FileAttribute<?> attrs = null;
+
 		hdf5FileSystemProvider.createDirectory(dir, attrs);
 	}
 
@@ -198,6 +177,7 @@ public class Hdf5FileSystemProviderTest
 		Path source = null;
 		Path target = null;
 		CopyOption options = null;
+
 		hdf5FileSystemProvider.copy(source, target, options);
 	}
 
@@ -239,12 +219,12 @@ public class Hdf5FileSystemProviderTest
 		assertEquals(expected, actual);
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testCheckAccessPathAccessModeArray() throws IOException
 	{
 		Path path = null;
 		AccessMode modes = null;
+
 		hdf5FileSystemProvider.checkAccess(path, modes);
 	}
 
@@ -254,16 +234,17 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		Class<FileAttributeView> type = null;
 		LinkOption options = null;
+
 		hdf5FileSystemProvider.getFileAttributeView(path, type, options);
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
 	public void testReadAttributesPathClassOfALinkOptionArray() throws IOException
 	{
 		Path path = null;
 		Class<? extends BasicFileAttributes> type = null;
 		LinkOption[] options = null;
+
 		hdf5FileSystemProvider.readAttributes(path, type, options);
 	}
 
@@ -273,6 +254,7 @@ public class Hdf5FileSystemProviderTest
 		Path path = null;
 		String attributes = null;
 		LinkOption[] options = null;
+
 		hdf5FileSystemProvider.readAttributes(path, attributes, options);
 	}
 
@@ -283,6 +265,7 @@ public class Hdf5FileSystemProviderTest
 		String attribute = null;
 		Object value = null;
 		LinkOption[] options = null;
+
 		hdf5FileSystemProvider.setAttribute(path, attribute, value, options);
 	}
 }

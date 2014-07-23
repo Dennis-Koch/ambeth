@@ -2,8 +2,12 @@ package de.osthus.filesystem.common;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
 import java.util.HashMap;
@@ -109,6 +113,67 @@ public abstract class AbstractFileSystemProvider<S extends AbstractFileSystemPro
 	public String toString()
 	{
 		return getScheme() + ":///";
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (obj == null)
+		{
+			return false;
+		}
+		if (this == obj)
+		{
+			return true;
+		}
+		if (!this.getClass().equals(obj.getClass()))
+		{
+			return false;
+		}
+		@SuppressWarnings("unchecked")
+		S other = (S) obj;
+		return equalsInternal(other);
+	}
+
+	public boolean equalsInternal(S obj)
+	{
+		return getScheme().equals(obj.getScheme());
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return 17 * getScheme().hashCode();
+	}
+
+	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
+	{
+		FileSystem underlyingFileSystem;
+		try
+		{
+			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
+		}
+		catch (FileSystemAlreadyExistsException e)
+		{
+			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
+		}
+		return underlyingFileSystem;
+	}
+
+	protected Path buildUnderlyingFileSystemPath(FileSystem underlyingFileSystem, U internalUri)
+	{
+		String underlyingFileSystemPathName = internalUri.getUnderlyingPath();
+		Path underlyingFileSystemPath;
+		try
+		{
+			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
+		}
+		catch (InvalidPathException e)
+		{
+			underlyingFileSystemPathName = internalUri.getUnderlyingPath2();
+			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
+		}
+		return underlyingFileSystemPath;
 	}
 
 	protected void fileSystemClosed(F fileSystem)
