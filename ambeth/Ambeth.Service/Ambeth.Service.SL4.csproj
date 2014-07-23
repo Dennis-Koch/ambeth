@@ -101,6 +101,7 @@
     <Compile Include="ambeth\proxy\IBehaviorTypeExtractor.cs" />
     <Compile Include="ambeth\proxy\IMethodLevelBehavior.cs" />
     <Compile Include="ambeth\proxy\MethodLevelBehavior.cs" />
+    <Compile Include="ambeth\proxy\MethodLevelHashMap.cs" />
     <Compile Include="ambeth\proxy\NoBehavior.cs" />
     <Compile Include="ambeth\proxy\ServiceClientAttribute.cs" />
     <Compile Include="ambeth\remote\ClientServiceBean.cs" />

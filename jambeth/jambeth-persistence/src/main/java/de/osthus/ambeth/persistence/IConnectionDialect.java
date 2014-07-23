@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.List;
 
 import javax.persistence.PersistenceException;
 
@@ -13,7 +14,6 @@ import de.osthus.ambeth.collections.IMap;
 
 public interface IConnectionDialect
 {
-
 	void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing);
 
 	IList<IMap<String, String>> getExportedKeys(Connection connection, String schemaName) throws SQLException;
@@ -22,9 +22,7 @@ public interface IConnectionDialect
 
 	boolean isSystemTable(String tableName);
 
-	boolean handleField(Class<?> fieldType, Object value, StringBuilder targetSb) throws Throwable;
-
-	IList<String[]> disableConstraints(Connection connection);
+	IList<String[]> disableConstraints(Connection connection, String... schemaNames);
 
 	void enableConstraints(Connection connection, IList<String[]> disabled);
 
@@ -33,8 +31,6 @@ public interface IConnectionDialect
 	void rollback(Connection connection) throws SQLException;
 
 	void releaseSavepoint(Savepoint savepoint, Connection connection) throws SQLException;
-
-	int getOptimisticLockErrorCode();
 
 	int getResourceBusyErrorCode();
 
@@ -47,4 +43,10 @@ public interface IConnectionDialect
 	Class<?> getComponentTypeByFieldTypeName(String additionalFieldInfo);
 
 	String getFieldTypeNameByComponentType(Class<?> componentType);
+
+	List<String> getAllFullqualifiedTableNames(Connection connection, String... schemaNames) throws SQLException;
+
+	List<String> getAllFullqualifiedViews(Connection connection, String... schemaNames) throws SQLException;
+
+	int getMaxInClauseBatchThreshold();
 }

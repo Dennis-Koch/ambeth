@@ -17,7 +17,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -26,70 +26,30 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionHolder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IParamHolder;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 
-public class EntityLoaderParallelInvoker implements IInitializingBean, IEntityLoaderParallelInvoker
+public class EntityLoaderParallelInvoker implements IEntityLoaderParallelInvoker
 {
+	@Autowired
 	protected IConnectionHolder connectionHolder;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
 	protected IDatabasePool databasePool;
 
+	@Autowired
 	protected IDatabaseProvider databaseProvider;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired(optional = true)
 	protected ExecutorService executor;
 
+	@Autowired
 	protected IThreadLocalCleanupController threadLocalCleanupController;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connectionHolder, "ConnectionHolder");
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(databasePool, "DatabasePool");
-		ParamChecker.assertNotNull(databaseProvider, "DatabaseProvider");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(threadLocalCleanupController, "ThreadLocalCleanupController");
-	}
-
-	public void setConnectionHolder(IConnectionHolder connectionHolder)
-	{
-		this.connectionHolder = connectionHolder;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setDatabasePool(IDatabasePool databasePool)
-	{
-		this.databasePool = databasePool;
-	}
-
-	public void setDatabaseProvider(IDatabaseProvider databaseProvider)
-	{
-		this.databaseProvider = databaseProvider;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setExecutor(ExecutorService executor)
-	{
-		this.executor = executor;
-	}
-
-	public void setThreadLocalCleanupController(IThreadLocalCleanupController threadLocalCleanupController)
-	{
-		this.threadLocalCleanupController = threadLocalCleanupController;
-	}
 
 	/**
 	 * If the database is marked as 'modifying' no parallel execution is allowed. This is due to the fact that the execution of modifying SQL operations within

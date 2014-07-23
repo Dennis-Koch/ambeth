@@ -2,10 +2,7 @@ package de.osthus.ambeth.persistence.jdbc.connection;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Driver;
 import java.sql.DriverManager;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.PersistenceException;
 
@@ -30,44 +27,8 @@ public class ConnectionFactory extends AbstractConnectionFactory
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabasePass)
 	protected String userPass;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseDriver, mandatory = false)
-	protected Class<?> databaseDriver;
-
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseRetryConnect, defaultValue = "1")
 	protected int tryCount;
-
-	protected volatile boolean isDriverRegistered;
-
-	protected final Lock writeLock = new ReentrantLock();
-
-	protected void registerDriverIfNeeded()
-	{
-		Class<?> databaseDriver = this.databaseDriver;
-		if (databaseDriver == null || !Driver.class.isAssignableFrom(databaseDriver))
-		{
-			return;
-		}
-		Lock writeLock = this.writeLock;
-		writeLock.lock();
-		try
-		{
-			if (isDriverRegistered)
-			{
-				return;
-			}
-			Driver driver = (Driver) databaseDriver.newInstance();
-			DriverManager.registerDriver(driver);
-			isDriverRegistered = true;
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-	}
 
 	@Override
 	protected Connection createIntern() throws Exception
@@ -78,7 +39,6 @@ public class ConnectionFactory extends AbstractConnectionFactory
 			{
 				log.info("Creating jdbc connection to '" + databaseConnection + "' with user='" + userName + "'");
 			}
-			registerDriverIfNeeded();
 			boolean success = false;
 			Connection connection = DriverManager.getConnection(databaseConnection, userName, userPass);
 			try

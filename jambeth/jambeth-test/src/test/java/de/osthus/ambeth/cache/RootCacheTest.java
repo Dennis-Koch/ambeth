@@ -319,7 +319,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		ArrayList<IObjRef> tempObjRefList = new ArrayList<IObjRef>(1);
 		tempObjRefList.add(new ObjRef());
 
-		Object actual = fixture.createObjectFromScratch(metaData, rcv, targetCache, tempObjRefList, false);
+		Object actual = fixture.createObjectFromScratch(metaData, rcv, targetCache, tempObjRefList, false, null);
 		assertNotNull("Returned null!", actual);
 		assertEquals("Wrong type!", entityType, proxyHelper.getRealType(actual.getClass()));
 		Unit castedActual = (Unit) actual;
@@ -342,7 +342,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		rcv.setPrimitives(container.getPrimitives());
 		rcv.setRelations(container.getRelations());
 
-		fixture.updateExistingObject(metaData, rcv, obj, targetCache, false);
+		fixture.updateExistingObject(metaData, rcv, obj, targetCache, false, null);
 
 		assertTrue(material.equals(obj));
 	}
@@ -362,7 +362,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		rcv.setRelations(container.getRelations());
 		try
 		{
-			fixture.updateExistingObject(metaData, rcv, obj, targetCache, false);
+			fixture.updateExistingObject(metaData, rcv, obj, targetCache, false, null);
 		}
 		catch (Throwable e)
 		{

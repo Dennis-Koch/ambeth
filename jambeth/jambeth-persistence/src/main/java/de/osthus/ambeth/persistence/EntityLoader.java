@@ -829,7 +829,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 					{
 						ITypeInfoItem fieldMember = field.getMember();
 						Class<?> expectedType = fieldMember.getRealType();
-						if (java.util.Date.class.isAssignableFrom(expectedType))
+						if (java.util.Date.class.isAssignableFrom(expectedType) || java.util.Calendar.class.isAssignableFrom(expectedType))
 						{
 							// store Date-instances only with their long-value for decreased heap consumption
 							expectedType = long.class;

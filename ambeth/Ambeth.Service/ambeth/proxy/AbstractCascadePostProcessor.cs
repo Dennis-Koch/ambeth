@@ -78,5 +78,42 @@ namespace De.Osthus.Ambeth.Proxy
         {
             return null;
         }
+
+        public IMethodLevelBehavior<Attribute> CreateInterceptorModeBehavior(Type beanType)
+        {
+            MethodLevelHashMap<Attribute> methodToAnnotationMap = new MethodLevelHashMap<Attribute>();
+            MethodInfo[] methods = ReflectUtil.GetMethods(beanType);
+            foreach (MethodInfo method in methods)
+            {
+                Attribute annotation = LookForAnnotation(method);
+                if (annotation != null)
+                {
+                    methodToAnnotationMap.Put(method, annotation);
+                    continue;
+                }
+                Type[] parameters = TypeUtil.GetParameterTypesToTypes(method.GetParameters());
+                foreach (Type currInterface in beanType.GetInterfaces())
+                {
+                    MethodInfo methodOnInterface = ReflectUtil.GetDeclaredMethod(true, currInterface, null, method.Name, parameters);
+                    if (methodOnInterface == null)
+                    {
+                        continue;
+                    }
+                    annotation = LookForAnnotation(methodOnInterface);
+                    if (annotation == null)
+                    {
+                        continue;
+                    }
+                    methodToAnnotationMap.Put(method, annotation);
+                    break;
+                }
+            }
+            return new MethodLevelBehavior<Attribute>(LookForAnnotation(beanType), methodToAnnotationMap);
+        }
+
+        protected virtual Attribute LookForAnnotation(MemberInfo method)
+        {
+            return null;
+        }
     }
 }

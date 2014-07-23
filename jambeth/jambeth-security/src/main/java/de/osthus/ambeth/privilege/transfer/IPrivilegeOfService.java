@@ -19,7 +19,7 @@ public interface IPrivilegeOfService
 
 	boolean isDeleteAllowed();
 
-	boolean isExecutionAllowed();
+	boolean isExecuteAllowed();
 
 	String[] getPropertyPrivilegeNames();
 

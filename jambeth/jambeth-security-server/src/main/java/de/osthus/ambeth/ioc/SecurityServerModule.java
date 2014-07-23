@@ -7,7 +7,11 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
-import de.osthus.ambeth.privilege.IPrivilegeProviderExtensionExtendable;
+import de.osthus.ambeth.privilege.IEntityPermissionRule;
+import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IPermissionRule;
 import de.osthus.ambeth.security.AuthenticationManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
@@ -17,7 +21,7 @@ import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
 import de.osthus.ambeth.security.PasswordUtil;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
-import de.osthus.ambeth.security.privilegeprovider.ActionPermissionPrivilegeProviderExtension;
+import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
 @FrameworkModule
@@ -44,11 +48,40 @@ public class SecurityServerModule implements IInitializingModule
 			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
 					IMergeSecurityManager.class, IServiceFilterExtendable.class);
 
-			IBeanConfiguration actionPermissionExtensionBC = beanContextFactory.registerAnonymousBean(ActionPermissionPrivilegeProviderExtension.class);
-			beanContextFactory.link(actionPermissionExtensionBC).to(IPrivilegeProviderExtensionExtendable.class).with(IActionPermission.class);
+			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class, IActionPermission.class);
 
 			IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerAnonymousBean(DefaultServiceFilter.class);
 			beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
+		}
+	}
+
+	public static void registerAndLinkPermissionRule(IBeanContextFactory beanContextFactory, Class<? extends IPermissionRule> permissionRuleType,
+			Class<?>... entityTypes)
+	{
+		IBeanConfiguration permissionRule = beanContextFactory.registerAnonymousBean(permissionRuleType);
+		for (Class<?> entityType : entityTypes)
+		{
+			linkPermissionRule(beanContextFactory, permissionRule, entityType);
+		}
+	}
+
+	public static void linkPermissionRule(IBeanContextFactory beanContextFactory, IBeanConfiguration entityOrEntityTypePermissionRule, Class<?> entityType)
+	{
+		boolean atLeastOneRegisterMatched = false;
+		if (IEntityPermissionRule.class.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType()))
+		{
+			beanContextFactory.link(entityOrEntityTypePermissionRule).to(IEntityPermissionRuleExtendable.class).with(entityType);
+			atLeastOneRegisterMatched = true;
+		}
+		if (IEntityTypePermissionRule.class.isAssignableFrom(entityOrEntityTypePermissionRule.getBeanType()))
+		{
+			beanContextFactory.link(entityOrEntityTypePermissionRule).to(IEntityTypePermissionRuleExtendable.class).with(entityType);
+			atLeastOneRegisterMatched = true;
+		}
+		if (!atLeastOneRegisterMatched)
+		{
+			throw new IllegalArgumentException("Given bean does not implement any of the permission rule interfaces:"
+					+ entityOrEntityTypePermissionRule.getBeanType());
 		}
 	}
 }

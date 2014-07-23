@@ -230,14 +230,15 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	@Override
 	public void link()
 	{
+		Object registry = null, listener = null;
 		try
 		{
-			Object registry = resolveRegistry();
+			registry = resolveRegistry();
 			if (registry == null)
 			{
 				return;
 			}
-			Object listener = resolveListener();
+			listener = resolveListener();
 			if (listener == null)
 			{
 				return;

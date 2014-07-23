@@ -360,7 +360,7 @@ namespace De.Osthus.Ambeth.Cache
                 try
                 {
                     IList<ILoadContainer> loadedEntities;
-				    if (Privileged)
+                    if (Privileged && SecurityActivation != null && SecurityActivation.Secured)
 				    {
 						loadedEntities = SecurityActivation.ExecuteWithoutSecurity(delegate()
 						{
@@ -498,7 +498,7 @@ namespace De.Osthus.Ambeth.Cache
                     if (objRelMisses.Count > 0)
                     {
                         IList<IObjRelationResult> loadedObjectRelations;
-					    if (Privileged)
+                        if (Privileged && SecurityActivation != null && SecurityActivation.Secured)
 					    {
 							loadedObjectRelations = SecurityActivation.ExecuteWithoutSecurity(delegate()
 							{
@@ -974,7 +974,7 @@ namespace De.Osthus.Ambeth.Cache
         protected bool IsFilteringNecessary(ICacheIntern targetCache)
         {
             return SecurityActive && (Privileged && targetCache != null && !targetCache.Privileged)
-                    || (targetCache == null && SecurityActivation.FilterActivated);
+                    || (targetCache == null && SecurityActivation != null && SecurityActivation.FilterActivated);
         }
 
         protected IList<Object> CreateResult(IList<IObjRef> objRefsToGet, RootCacheValue[] rootCacheValuesToGet, CacheDirective cacheDirective, ICacheIntern targetCache, bool checkVersion)
