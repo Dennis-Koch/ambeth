@@ -36,12 +36,14 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 	@Override
 	public void close() throws IOException
 	{
-		if (!isOpen())
+		boolean open = isOpen();
+		super.close();
+		if (!open)
 		{
 			return;
 		}
-		super.close();
 		FileSystem underlyingFileSystem = underlyingFileSystemPath.getFileSystem();
+		// The default file system cannot be closed.
 		if (!FileSystems.getDefault().equals(underlyingFileSystem))
 		{
 			underlyingFileSystem.close();
@@ -66,18 +68,6 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 		checkIsOpen();
 		boolean readOnly = underlyingFileSystemPath.getFileSystem().isReadOnly();
 		return readOnly;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Iterable<Path> getRootDirectories()
-	{
-		checkIsOpen();
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
 	}
 
 	/**

@@ -2,8 +2,7 @@ package de.osthus.filesystem.hdf5;
 
 import java.io.IOException;
 import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
@@ -36,16 +35,14 @@ public class Hdf5FileSystem extends AbstractFileSystem<Hdf5FileSystem, Hdf5FileS
 	@Override
 	public void close() throws IOException
 	{
-		if (!isOpen())
+		boolean open = isOpen();
+		super.close();
+		if (!open)
 		{
 			return;
 		}
-		super.close();
-		FileSystem underlyingFileSystem = underlyingFile.getFileSystem();
-		if (!FileSystems.getDefault().equals(underlyingFileSystem))
-		{
-			underlyingFileSystem.close();
-		}
+
+		// TODO Close all open streams etc.
 	}
 
 	/**
@@ -54,7 +51,7 @@ public class Hdf5FileSystem extends AbstractFileSystem<Hdf5FileSystem, Hdf5FileS
 	@Override
 	public boolean isOpen()
 	{
-		return super.isOpen() && underlyingFile.getFileSystem().isOpen();
+		return super.isOpen() && underlyingFile.getFileSystem().isOpen() && Files.isReadable(underlyingFile);
 	}
 
 	/**
@@ -65,19 +62,8 @@ public class Hdf5FileSystem extends AbstractFileSystem<Hdf5FileSystem, Hdf5FileS
 	{
 		checkIsOpen();
 		boolean readOnly = underlyingFile.getFileSystem().isReadOnly();
+		readOnly |= !Files.isWritable(underlyingFile);
 		return readOnly;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Iterable<Path> getRootDirectories()
-	{
-		checkIsOpen();
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
-		// return null;
 	}
 
 	/**

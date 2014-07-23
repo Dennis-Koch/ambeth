@@ -376,7 +376,7 @@ public class DirectoryPathTest
 	public void testRelativize_simple()
 	{
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
-		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("", "/test"); // for better coverage
 
 		Path relativized = path1.relativize(path2);
 		assertEquals("test", relativized.toString());

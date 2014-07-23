@@ -17,6 +17,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.After;
@@ -65,6 +66,8 @@ public class DirectoryFileSystemTest
 
 		directoryFileSystem.close();
 		assertFalse(directoryFileSystem.isOpen());
+
+		directoryFileSystem.close();
 	}
 
 	@Test
@@ -113,17 +116,19 @@ public class DirectoryFileSystemTest
 	}
 
 	@Test
-	@Ignore
 	public void testGetRootDirectories()
-	{
-		fail("Not yet implemented");
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetRootDirectories_unsupported()
 	{
 		Iterable<Path> rootDirectories = directoryFileSystem.getRootDirectories();
 		assertNotNull(rootDirectories);
+
+		Iterator<Path> iter = rootDirectories.iterator();
+		assertTrue(iter.hasNext());
+
+		Path expected = directoryFileSystem.getPath("/");
+		Path actual = iter.next();
+		assertEquals(expected, actual);
+
+		assertFalse(iter.hasNext());
 	}
 
 	@Test
