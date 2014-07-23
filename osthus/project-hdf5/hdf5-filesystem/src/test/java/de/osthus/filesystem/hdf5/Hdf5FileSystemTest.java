@@ -17,6 +17,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.After;
@@ -76,6 +77,8 @@ public class Hdf5FileSystemTest
 
 		hdf5FileSystem.close();
 		assertFalse(hdf5FileSystem.isOpen());
+
+		hdf5FileSystem.close();
 	}
 
 	@Test
@@ -117,17 +120,19 @@ public class Hdf5FileSystemTest
 	}
 
 	@Test
-	@Ignore
 	public void testGetRootDirectories()
-	{
-		fail("Not yet implemented");
-	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testGetRootDirectories_unsupported()
 	{
 		Iterable<Path> rootDirectories = hdf5FileSystem.getRootDirectories();
 		assertNotNull(rootDirectories);
+
+		Iterator<Path> iter = rootDirectories.iterator();
+		assertTrue(iter.hasNext());
+
+		Path expected = hdf5FileSystem.getPath("/");
+		Path actual = iter.next();
+		assertEquals(expected, actual);
+
+		assertFalse(iter.hasNext());
 	}
 
 	@Test

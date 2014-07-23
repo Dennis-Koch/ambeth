@@ -3,6 +3,9 @@ package de.osthus.filesystem.common;
 import java.io.IOException;
 import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 
 import lombok.Getter;
 
@@ -73,6 +76,18 @@ public abstract class AbstractFileSystem<F extends AbstractFileSystem<F, S, P>, 
 	{
 		checkIsOpen();
 		return SEPARATOR;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Iterable<Path> getRootDirectories()
+	{
+		checkIsOpen();
+		Path root = getPath("/");
+		List<Path> iterable = Arrays.asList(root);
+		return iterable;
 	}
 
 	/**

@@ -376,7 +376,7 @@ public class Hdf5PathTest
 	public void testRelativize_simple()
 	{
 		Hdf5Path path1 = HDF5_FILE_SYSTEM.getPath("/");
-		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("/test");
+		Hdf5Path path2 = HDF5_FILE_SYSTEM.getPath("", "/test"); // for better coverage
 
 		Path relativized = path1.relativize(path2);
 		assertEquals("test", relativized.toString());
