@@ -113,7 +113,7 @@ public abstract class AbstractFileSystemProvider<S extends AbstractFileSystemPro
 
 	protected void fileSystemClosed(F fileSystem)
 	{
-		String identifier = fileSystem.getIdentifyer();
+		String identifier = fileSystem.getIdentifier();
 		openFileSystems.remove(identifier);
 	}
 
