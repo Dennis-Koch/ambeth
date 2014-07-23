@@ -1,7 +1,6 @@
 package de.osthus.filesystem.directory;
 
 import java.io.IOException;
-import java.nio.file.ClosedFileSystemException;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -9,10 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.spi.FileSystemProvider;
 import java.util.Set;
 
 import lombok.Getter;
+import de.osthus.filesystem.common.AbstractFileSystem;
 
 /**
  * Sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
@@ -20,39 +19,19 @@ import lombok.Getter;
  * @author jochen.hormes
  * @start 2014-07-15
  */
-public class DirectoryFileSystem extends FileSystem
+public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem, DirectoryFileSystemProvider, DirectoryPath>
 {
-	private static final String SEPARATOR = "/";
-
-	private final DirectoryFileSystemProvider provider;
-
 	@Getter
 	private final FileSystem underlyingFileSystem;
 
 	@Getter
 	private final Path underlyingFileSystemPath;
 
-	@Getter
-	private final String fsIdentifyer;
-
-	private boolean isOpen = true;
-
-	public DirectoryFileSystem(DirectoryFileSystemProvider provider, FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer)
+	public DirectoryFileSystem(DirectoryFileSystemProvider provider, FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String identifyer)
 	{
-		this.provider = provider;
+		super(provider, identifyer);
 		this.underlyingFileSystem = underlyingFileSystem;
 		this.underlyingFileSystemPath = underlyingFileSystemPath;
-		this.fsIdentifyer = fsIdentifyer;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FileSystemProvider provider()
-	{
-		checkIsOpen();
-		return provider;
 	}
 
 	/**
@@ -61,16 +40,15 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public void close() throws IOException
 	{
-		if (!isOpen)
+		if (!isOpen())
 		{
 			return;
 		}
+		super.close();
 		if (!FileSystems.getDefault().equals(underlyingFileSystem))
 		{
 			underlyingFileSystem.close();
 		}
-		provider.fileSystemClosed(this);
-		isOpen = false;
 	}
 
 	/**
@@ -79,7 +57,7 @@ public class DirectoryFileSystem extends FileSystem
 	@Override
 	public boolean isOpen()
 	{
-		return isOpen && underlyingFileSystem.isOpen();
+		return super.isOpen() && underlyingFileSystem.isOpen();
 	}
 
 	/**
@@ -90,16 +68,6 @@ public class DirectoryFileSystem extends FileSystem
 	{
 		checkIsOpen();
 		return underlyingFileSystem.isReadOnly();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String getSeparator()
-	{
-		checkIsOpen();
-		return SEPARATOR;
 	}
 
 	/**
@@ -136,48 +104,6 @@ public class DirectoryFileSystem extends FileSystem
 		throw new UnsupportedOperationException("Not yet implemented");
 		// TODO Auto-generated method stub
 		// return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public DirectoryPath getPath(String first, String... more)
-	{
-		checkIsOpen();
-
-		String pathName = first;
-		String separator = SEPARATOR;
-		if (more.length > 0)
-		{
-			StringBuilder sb = new StringBuilder(pathName);
-			for (String next : more)
-			{
-				if (sb.length() > 0)
-				{
-					sb.append(separator);
-				}
-				sb.append(next);
-			}
-			pathName = sb.toString();
-		}
-
-		pathName = pathName.replaceAll("\\\\", "/");
-		pathName = pathName.replaceAll("//+", "/");
-
-		String rootName;
-		if (pathName.startsWith(separator))
-		{
-			rootName = separator;
-		}
-		else
-		{
-			rootName = "";
-		}
-
-		DirectoryPath path = new DirectoryPath(this, rootName, pathName);
-
-		return path;
 	}
 
 	/**
@@ -222,12 +148,10 @@ public class DirectoryFileSystem extends FileSystem
 		return underlyingFileSystemPath.toString();
 	}
 
-	protected void checkIsOpen()
+	@Override
+	protected DirectoryPath buildPath(String rootName, String pathName)
 	{
-		if (!isOpen)
-		{
-			throw new ClosedFileSystemException();
-		}
+		DirectoryPath path = new DirectoryPath(this, rootName, pathName);
+		return path;
 	}
-
 }
