@@ -20,14 +20,14 @@ public abstract class AbstractFileSystem<F extends AbstractFileSystem<F, S, P>, 
 	private final S provider;
 
 	@Getter
-	private final String identifyer;
+	private final String identifier;
 
 	private boolean isOpen = true;
 
-	public AbstractFileSystem(S provider, String identifyer)
+	public AbstractFileSystem(S provider, String identifier)
 	{
 		this.provider = provider;
-		this.identifyer = identifyer;
+		this.identifier = identifier;
 	}
 
 	/**

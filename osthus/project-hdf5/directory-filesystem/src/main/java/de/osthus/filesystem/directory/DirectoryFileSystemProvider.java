@@ -160,7 +160,7 @@ public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<Dire
 		DirectoryPath dirPath = (DirectoryPath) path;
 		DirectoryFileSystem dirFileSystem = dirPath.getFileSystem();
 
-		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystem();
+		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystemPath().getFileSystem();
 		FileSystemProvider underlyingFileSystemProvider = underlyingFileSystem.provider();
 		Path underlyingFileSystemPath = dirFileSystem.getUnderlyingFileSystemPath();
 
@@ -255,10 +255,9 @@ public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<Dire
 		return underlyingFileSystemPath;
 	}
 
-	protected DirectoryFileSystem createFileSystem(FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer, Map<String, ?> env)
-			throws IOException
+	protected DirectoryFileSystem createFileSystem(Path underlyingFileSystemPath, String identifier, Map<String, ?> env) throws IOException
 	{
-		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(this, underlyingFileSystem, underlyingFileSystemPath, fsIdentifyer);
+		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(this, underlyingFileSystemPath, identifier);
 		return directoryFileSystem;
 	}
 
@@ -290,7 +289,7 @@ public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<Dire
 		URI underlyingFileSystemUri = URI.create(internalUri.getUnderlyingFileSystem());
 		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
 		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
-		DirectoryFileSystem fileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, internalUri.getIdentifier(), env);
+		DirectoryFileSystem fileSystem = createFileSystem(underlyingFileSystemPath, internalUri.getIdentifier(), env);
 		return fileSystem;
 	}
 }

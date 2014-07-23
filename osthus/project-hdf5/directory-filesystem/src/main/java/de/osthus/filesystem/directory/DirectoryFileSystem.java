@@ -22,15 +22,11 @@ import de.osthus.filesystem.common.AbstractFileSystem;
 public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem, DirectoryFileSystemProvider, DirectoryPath>
 {
 	@Getter
-	private final FileSystem underlyingFileSystem;
-
-	@Getter
 	private final Path underlyingFileSystemPath;
 
-	public DirectoryFileSystem(DirectoryFileSystemProvider provider, FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String identifyer)
+	public DirectoryFileSystem(DirectoryFileSystemProvider provider, Path underlyingFileSystemPath, String identifier)
 	{
-		super(provider, identifyer);
-		this.underlyingFileSystem = underlyingFileSystem;
+		super(provider, identifier);
 		this.underlyingFileSystemPath = underlyingFileSystemPath;
 	}
 
@@ -45,6 +41,7 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 			return;
 		}
 		super.close();
+		FileSystem underlyingFileSystem = underlyingFileSystemPath.getFileSystem();
 		if (!FileSystems.getDefault().equals(underlyingFileSystem))
 		{
 			underlyingFileSystem.close();
@@ -57,7 +54,7 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 	@Override
 	public boolean isOpen()
 	{
-		return super.isOpen() && underlyingFileSystem.isOpen();
+		return super.isOpen() && underlyingFileSystemPath.getFileSystem().isOpen();
 	}
 
 	/**
@@ -67,7 +64,7 @@ public class DirectoryFileSystem extends AbstractFileSystem<DirectoryFileSystem,
 	public boolean isReadOnly()
 	{
 		checkIsOpen();
-		return underlyingFileSystem.isReadOnly();
+		return underlyingFileSystemPath.getFileSystem().isReadOnly();
 	}
 
 	/**
