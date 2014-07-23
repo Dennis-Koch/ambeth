@@ -8,10 +8,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.ProviderMismatchException;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchEvent.Kind;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -81,7 +85,6 @@ public class Hdf5PathTest
 	public void testGetParent()
 	{
 		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
-		// TODO replace with resolve() when implemented
 		Path path = root.resolve("tmp");
 
 		Path parent = path.getParent();
@@ -102,7 +105,6 @@ public class Hdf5PathTest
 	public void testGetParent_relativeNames()
 	{
 		Hdf5Path expected = new Hdf5Path(HDF5_FILE_SYSTEM, "", "data");
-		// TODO replace with resolve() when implemented
 		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "", expected.toString() + "/tmp");
 
 		Hdf5Path parent = path.getParent();
@@ -114,7 +116,6 @@ public class Hdf5PathTest
 	public void testGetParent_relativeNamesDir()
 	{
 		Hdf5Path expected = new Hdf5Path(HDF5_FILE_SYSTEM, "", "data");
-		// TODO replace with resolve() when implemented
 		Hdf5Path path = new Hdf5Path(HDF5_FILE_SYSTEM, "", expected.toString() + "/tmp/");
 
 		Hdf5Path parent = path.getParent();
@@ -138,11 +139,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetNameCount_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.getNameCount();
+	}
+
 	@Test
 	@Ignore
 	public void testGetName()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetName_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.getName(0);
 	}
 
 	@Test
@@ -152,11 +167,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSubpath_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.subpath(0, 1);
+	}
+
 	@Test
 	@Ignore
 	public void testStartsWithPath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testStartsWithPath_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.startsWith(root);
 	}
 
 	@Test
@@ -166,11 +195,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testStartsWithString_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.startsWith(root.toString());
+	}
+
 	@Test
 	@Ignore
 	public void testEndsWithPath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEndsWithPath_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.endsWith(root);
 	}
 
 	@Test
@@ -180,11 +223,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEndsWithString_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.endsWith(root.toString());
+	}
+
 	@Test
 	@Ignore
 	public void testNormalize()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNormalize_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.normalize();
 	}
 
 	@Test
@@ -294,11 +351,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testResolveSiblingPath_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.resolveSibling(root);
+	}
+
 	@Test
 	@Ignore
 	public void testResolveSiblingString()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testResolveSiblingString_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.resolveSibling(root.toString());
 	}
 
 	@Test
@@ -353,6 +424,13 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToUri_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.toUri();
+	}
+
 	@Test
 	@Ignore
 	public void testToAbsolutePath()
@@ -360,11 +438,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToAbsolutePath_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.toAbsolutePath();
+	}
+
 	@Test
 	@Ignore
 	public void testToRealPath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToRealPath_unsupported() throws IOException
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.toRealPath((LinkOption) null);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
@@ -381,11 +473,25 @@ public class Hdf5PathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRegisterWatchServiceKindOfQArrayModifierArray_unsupported() throws IOException
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.register(null, null, (WatchEvent.Modifier) null);
+	}
+
 	@Test
 	@Ignore
 	public void testRegisterWatchServiceKindOfQArray()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRegisterWatchServiceKindOfQArray_unsupported() throws IOException
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.register(null, (Kind<?>) null);
 	}
 
 	@Test
@@ -396,10 +502,24 @@ public class Hdf5PathTest
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
+	public void testIterator_unsupported()
+	{
+		Hdf5Path root = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/");
+		root.iterator();
+	}
+
+	@Test
+	@Ignore
 	public void testCompareTo()
 	{
-		Hdf5Path hdf5Path = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
-		hdf5Path.compareTo(hdf5Path);
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCompareTo_unsupported()
+	{
+		Hdf5Path directoryPath = new Hdf5Path(HDF5_FILE_SYSTEM, "/", "/test");
+		directoryPath.compareTo(directoryPath);
 	}
 
 	@Test

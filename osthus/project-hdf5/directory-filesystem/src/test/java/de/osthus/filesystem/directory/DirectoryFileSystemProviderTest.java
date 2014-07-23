@@ -2,6 +2,7 @@ package de.osthus.filesystem.directory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URI;
@@ -84,10 +85,11 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.getFileSystem(uri);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	@Ignore
 	public void testNewFileChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
 	{
+		// TODO
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
@@ -136,6 +138,7 @@ public class DirectoryFileSystemProviderTest
 	@Ignore
 	public void testNewByteChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
 	{
+		// TODO
 		Path path = null;
 		Set<? extends OpenOption> options = null;
 		FileAttribute<?> attrs = null;
@@ -146,6 +149,7 @@ public class DirectoryFileSystemProviderTest
 	@Ignore
 	public void testNewDirectoryStreamPathFilterOfQsuperPath() throws IOException
 	{
+		// TODO
 		Path dir = null;
 		Filter<? super Path> filter = null;
 		directoryFileSystemProvider.newDirectoryStream(dir, filter);
@@ -161,15 +165,29 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.createDirectory(dir, attrs);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testDeletePath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testDeletePath_unsupported() throws IOException
 	{
 		Path path = null;
 		directoryFileSystemProvider.delete(path);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testCopyPathPathCopyOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCopyPathPathCopyOptionArray_unsupported() throws IOException
 	{
 		Path source = null;
 		Path target = null;
@@ -177,8 +195,15 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.copy(source, target, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testMovePathPathCopyOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testMovePathPathCopyOptionArray_unsupported() throws IOException
 	{
 		Path source = null;
 		Path target = null;
@@ -186,16 +211,30 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.move(source, target, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testIsSameFilePathPath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIsSameFilePathPath_unsupported() throws IOException
 	{
 		Path path = null;
 		Path path2 = null;
 		directoryFileSystemProvider.isSameFile(path, path2);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testIsHiddenPath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIsHiddenPath_unsupported() throws IOException
 	{
 		Path path = null;
 		directoryFileSystemProvider.isHidden(path);
@@ -219,13 +258,21 @@ public class DirectoryFileSystemProviderTest
 	@Ignore
 	public void testCheckAccessPathAccessModeArray() throws IOException
 	{
+		// TODO
 		Path path = null;
 		AccessMode modes = null;
 		directoryFileSystemProvider.checkAccess(path, modes);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetFileAttributeViewPathClassOfVLinkOptionArray()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetFileAttributeViewPathClassOfVLinkOptionArray_unsupported()
 	{
 		Path path = null;
 		Class<FileAttributeView> type = null;
@@ -237,14 +284,22 @@ public class DirectoryFileSystemProviderTest
 	@Ignore
 	public void testReadAttributesPathClassOfALinkOptionArray() throws IOException
 	{
+		// TODO
 		Path path = null;
 		Class<? extends BasicFileAttributes> type = null;
 		LinkOption[] options = null;
 		directoryFileSystemProvider.readAttributes(path, type, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testReadAttributesPathStringLinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testReadAttributesPathStringLinkOptionArray_unsupported() throws IOException
 	{
 		Path path = null;
 		String attributes = null;
@@ -252,8 +307,15 @@ public class DirectoryFileSystemProviderTest
 		directoryFileSystemProvider.readAttributes(path, attributes, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testSetAttributePathStringObjectLinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSetAttributePathStringObjectLinkOptionArray_unsupported() throws IOException
 	{
 		Path path = null;
 		String attribute = null;

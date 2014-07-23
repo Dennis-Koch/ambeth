@@ -2,6 +2,7 @@ package de.osthus.filesystem.hdf5;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,10 +25,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -37,27 +36,12 @@ import org.junit.Test;
  */
 public class Hdf5FileSystemProviderTest
 {
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
-	}
-
 	private Hdf5FileSystemProvider hdf5FileSystemProvider;
 
 	@Before
 	public void setUp() throws Exception
 	{
 		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
-	}
-
-	@After
-	public void tearDown() throws Exception
-	{
 	}
 
 	@Test
@@ -108,8 +92,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.getFileSystem(uri);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testNewFileChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNewFileChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray_unsupported() throws IOException
 	{
 		Path path = null;
 		Set<? extends OpenOption> options = null;
@@ -136,8 +127,15 @@ public class Hdf5FileSystemProviderTest
 		assertEquals(folderPathString, path.toString());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testNewByteChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNewByteChannelPathSetOfQextendsOpenOptionFileAttributeOfQArray_unsupported() throws IOException
 	{
 		Path path = null;
 		Set<? extends OpenOption> options = null;
@@ -146,8 +144,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.newByteChannel(path, options, attrs);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testNewDirectoryStreamPathFilterOfQsuperPath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNewDirectoryStreamPathFilterOfQsuperPath_unsupported() throws IOException
 	{
 		Path dir = null;
 		Filter<? super Path> filter = null;
@@ -155,8 +160,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.newDirectoryStream(dir, filter);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testCreateDirectoryPathFileAttributeOfQArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCreateDirectoryPathFileAttributeOfQArray_unsupported() throws IOException
 	{
 		Path dir = null;
 		FileAttribute<?> attrs = null;
@@ -164,15 +176,29 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.createDirectory(dir, attrs);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testDeletePath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testDeletePath_unsupported() throws IOException
 	{
 		Path path = null;
 		hdf5FileSystemProvider.delete(path);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testCopyPathPathCopyOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCopyPathPathCopyOptionArray_unsupported() throws IOException
 	{
 		Path source = null;
 		Path target = null;
@@ -181,8 +207,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.copy(source, target, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testMovePathPathCopyOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testMovePathPathCopyOptionArray_unsupported() throws IOException
 	{
 		Path source = null;
 		Path target = null;
@@ -190,16 +223,30 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.move(source, target, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testIsSameFilePathPath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIsSameFilePathPath_unsupported() throws IOException
 	{
 		Path path = null;
 		Path path2 = null;
 		hdf5FileSystemProvider.isSameFile(path, path2);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testIsHiddenPath() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIsHiddenPath_unsupported() throws IOException
 	{
 		Path path = null;
 		hdf5FileSystemProvider.isHidden(path);
@@ -219,8 +266,15 @@ public class Hdf5FileSystemProviderTest
 		assertEquals(expected, actual);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testCheckAccessPathAccessModeArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCheckAccessPathAccessModeArray_unsupported() throws IOException
 	{
 		Path path = null;
 		AccessMode modes = null;
@@ -228,8 +282,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.checkAccess(path, modes);
 	}
 
+	@Test
+	@Ignore
+	public void testGetFileAttributeViewPathClassOfVLinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
 	@Test(expected = UnsupportedOperationException.class)
-	public void testGetFileAttributeViewPathClassOfVLinkOptionArray()
+	public void testGetFileAttributeViewPathClassOfVLinkOptionArray_unsupported()
 	{
 		Path path = null;
 		Class<FileAttributeView> type = null;
@@ -238,8 +299,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.getFileAttributeView(path, type, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testReadAttributesPathClassOfALinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testReadAttributesPathClassOfALinkOptionArray_unsupported() throws IOException
 	{
 		Path path = null;
 		Class<? extends BasicFileAttributes> type = null;
@@ -248,8 +316,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.readAttributes(path, type, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testReadAttributesPathStringLinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testReadAttributesPathStringLinkOptionArray_unsupported() throws IOException
 	{
 		Path path = null;
 		String attributes = null;
@@ -258,8 +333,15 @@ public class Hdf5FileSystemProviderTest
 		hdf5FileSystemProvider.readAttributes(path, attributes, options);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testSetAttributePathStringObjectLinkOptionArray() throws IOException
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSetAttributePathStringObjectLinkOptionArray_unsupported() throws IOException
 	{
 		Path path = null;
 		String attribute = null;
