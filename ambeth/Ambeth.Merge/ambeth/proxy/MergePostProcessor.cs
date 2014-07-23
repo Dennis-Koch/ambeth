@@ -43,41 +43,14 @@ namespace De.Osthus.Ambeth.Proxy
             beanContextFactory.RegisterWithLifecycle(mergeInterceptor).PropertyValue("Behavior", behavior);
             return mergeInterceptor;
         }
-
-        protected IMethodLevelBehavior<Attribute> CreateInterceptorModeBehavior(Type beanType)
+                
+        protected override Attribute LookForAnnotation(MemberInfo method)
         {
-            HashMap<MethodKey, Attribute> methodToAnnotationMap = new HashMap<MethodKey, Attribute>();
-            MethodInfo[] methods = ReflectUtil.GetMethods(beanType);
-            foreach (MethodInfo method in methods)
+            Attribute annotation = base.LookForAnnotation(method);
+            if (annotation != null)
             {
-                Attribute annotation = LookForAnnotation(method);
-                if (annotation != null)
-                {
-                    methodToAnnotationMap.Put(new MethodKey(method), annotation);
-                    continue;
-                }
-                Type[] parameters = TypeUtil.GetParameterTypesToTypes(method.GetParameters());
-                foreach (Type currInterface in beanType.GetInterfaces())
-                {
-                    MethodInfo methodOnInterface = ReflectUtil.GetDeclaredMethod(true, currInterface, null, method.Name, parameters);
-                    if (methodOnInterface == null)
-                    {
-                        continue;
-                    }
-                    annotation = LookForAnnotation(methodOnInterface);
-                    if (annotation == null)
-                    {
-                        continue;
-                    }
-                    methodToAnnotationMap.Put(new MethodKey(method), annotation);
-                    break;
-                }
+                return annotation;
             }
-            return new MethodLevelBehavior<Attribute>(null, methodToAnnotationMap);
-        }
-
-        protected virtual Attribute LookForAnnotation(MethodInfo method)
-        {
             IgnoreAttribute noProxy = AnnotationUtil.GetAnnotation<IgnoreAttribute>(method, false);
             if (noProxy != null)
             {

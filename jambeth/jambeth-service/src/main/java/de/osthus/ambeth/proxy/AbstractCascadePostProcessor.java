@@ -1,5 +1,8 @@
 package de.osthus.ambeth.proxy;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import net.sf.cglib.proxy.Callback;
@@ -12,6 +15,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean
 {
@@ -92,6 +96,42 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
 
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
+	{
+		return null;
+	}
+
+	public IMethodLevelBehavior<Annotation> createInterceptorModeBehavior(Class<?> beanType)
+	{
+		MethodLevelHashMap<Annotation> methodToAnnotationMap = new MethodLevelHashMap<Annotation>();
+		Method[] methods = ReflectUtil.getMethods(beanType);
+		for (Method method : methods)
+		{
+			Annotation annotation = lookForAnnotation(method);
+			if (annotation != null)
+			{
+				methodToAnnotationMap.put(method.getName(), method.getParameterTypes(), annotation);
+				continue;
+			}
+			for (Class<?> currInterface : beanType.getInterfaces())
+			{
+				Method methodOnInterface = ReflectUtil.getDeclaredMethod(true, currInterface, null, method.getName(), method.getParameterTypes());
+				if (methodOnInterface == null)
+				{
+					continue;
+				}
+				annotation = lookForAnnotation(methodOnInterface);
+				if (annotation == null)
+				{
+					continue;
+				}
+				methodToAnnotationMap.put(method.getName(), method.getParameterTypes(), annotation);
+				break;
+			}
+		}
+		return new MethodLevelBehavior<Annotation>(lookForAnnotation(beanType), methodToAnnotationMap);
+	}
+
+	protected Annotation lookForAnnotation(AnnotatedElement member)
 	{
 		return null;
 	}

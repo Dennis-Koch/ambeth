@@ -26,7 +26,7 @@ public class RebuildSchema
 	public static void main(final String[] args, Class<?> testClass, String recommendedPropertyFileName) throws InitializationError
 	{
 		Properties.getApplication().fillWithCommandLineArgs(args);
-		NewAmbethPersistenceRunner runner = new NewAmbethPersistenceRunner(testClass)
+		AmbethPersistenceRunner runner = new AmbethPersistenceRunner(testClass)
 		{
 			@Override
 			protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)

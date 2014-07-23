@@ -2,15 +2,12 @@ package de.osthus.ambeth.proxy;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Map;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.util.MethodKey;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
@@ -75,7 +72,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 			return null;
 		}
 		T defaultBehaviour = behaviourTypeExtractor.extractBehaviorType(annotation);
-		Map<MethodKey, T> methodLevelBehaviour = null;
+		MethodLevelHashMap<T> methodLevelBehaviour = null;
 
 		Method[] methods = ReflectUtil.getMethods(beanType);
 		for (int a = methods.length; a-- > 0;)
@@ -86,19 +83,18 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 			{
 				if (methodLevelBehaviour == null)
 				{
-					methodLevelBehaviour = new HashMap<MethodKey, T>();
+					methodLevelBehaviour = new MethodLevelHashMap<T>();
 				}
-				MethodKey methodKey = new MethodKey(method.getName(), method.getParameterTypes());
 				T behaviourTypeOnMethod = behaviourTypeExtractor.extractBehaviorType(annotationOnMethod);
 				if (behaviourTypeOnMethod != null)
 				{
-					methodLevelBehaviour.put(methodKey, behaviourTypeOnMethod);
+					methodLevelBehaviour.put(method.getName(), method.getParameterTypes(), behaviourTypeOnMethod);
 				}
 			}
 		}
 		if (methodLevelBehaviour == null)
 		{
-			methodLevelBehaviour = Collections.<MethodKey, T> emptyMap();
+			methodLevelBehaviour = new MethodLevelHashMap<T>(0);
 		}
 		behavior = new MethodLevelBehavior<T>(defaultBehaviour, methodLevelBehaviour);
 		beanTypeToBehavior.put(key, behavior);
@@ -107,9 +103,9 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 
 	protected final T defaultBehaviour;
 
-	protected final Map<MethodKey, T> methodLevelBehaviour;
+	protected final MethodLevelHashMap<T> methodLevelBehaviour;
 
-	public MethodLevelBehavior(T defaultBehaviour, Map<MethodKey, T> methodLevelBehaviour)
+	public MethodLevelBehavior(T defaultBehaviour, MethodLevelHashMap<T> methodLevelBehaviour)
 	{
 		super();
 		this.defaultBehaviour = defaultBehaviour;
@@ -122,7 +118,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 		return defaultBehaviour;
 	}
 
-	public Map<MethodKey, T> getMethodLevelBehaviour()
+	public Tuple2KeyHashMap<String, Class<?>[], T> getMethodLevelBehaviour()
 	{
 		return methodLevelBehaviour;
 	}
@@ -130,8 +126,7 @@ public class MethodLevelBehavior<T> implements IMethodLevelBehavior<T>
 	@Override
 	public T getBehaviourOfMethod(Method method)
 	{
-		MethodKey methodKey = new MethodKey(method.getName(), method.getParameterTypes());
-		T behaviourOfMethod = methodLevelBehaviour.get(methodKey);
+		T behaviourOfMethod = methodLevelBehaviour.get(method.getName(), method.getParameterTypes());
 
 		if (behaviourOfMethod == null)
 		{

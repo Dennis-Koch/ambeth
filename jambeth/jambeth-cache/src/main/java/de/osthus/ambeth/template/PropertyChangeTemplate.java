@@ -395,6 +395,7 @@ public class PropertyChangeTemplate implements IPropertyChangeExtensionExtendabl
 		ICacheModification cacheModification = this.cacheModification;
 		if (cacheModification.isActive())
 		{
+			int a = 5;
 			cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate()
 			{
 				@Override

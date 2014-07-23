@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Util;
 using System.Collections;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Threading
 {
@@ -48,6 +49,7 @@ namespace De.Osthus.Ambeth.Threading
 
         public TimeSpan CheckInterval { protected get; set; }
 
+        [Autowired]
         public IThreadLocalCleanupController ThreadLocalCleanupController { protected get; set; }
 
         public ThreadPool()
@@ -57,7 +59,6 @@ namespace De.Osthus.Ambeth.Threading
 
         public virtual void AfterPropertiesSet()
         {
-            ParamChecker.AssertNotNull(ThreadLocalCleanupController, "ThreadLocalCleanupController");
             // Start a perma-background thread to check for QueueGroups ready to fire
             Queue(CheckForPendingQueueRunnable);
         }
@@ -273,7 +274,7 @@ namespace De.Osthus.Ambeth.Threading
                 queueGroupKeyToExecutionTimeDict.Add(queueGroupKey, queueGroup);
 
                 queueGroup.Queue.Add(item);
-                QueueIntern<T>(queueGroup, item);
+                QueueIntern<T>(queueGroup);
             }
         }
 
@@ -299,12 +300,12 @@ namespace De.Osthus.Ambeth.Threading
                 foreach (T item in items)
                 {
                     queue.Add(item);
-                    QueueIntern<T>(queueGroup, item);
                 }
+                QueueIntern<T>(queueGroup);
             }
         }
 
-        protected void QueueIntern<T>(QueueGroup queueGroup, T item)
+        protected void QueueIntern<T>(QueueGroup queueGroup)
         {
             bool queueGroupAdded = false;
 

@@ -12,5 +12,7 @@ public interface IEntityFactory
 
 	Object createEntity(IEntityMetaData metaData);
 
+	Object createEntityNoEmptyInit(IEntityMetaData metaData);
+
 	boolean supportsEnhancement(Class<?> enhancementType);
 }

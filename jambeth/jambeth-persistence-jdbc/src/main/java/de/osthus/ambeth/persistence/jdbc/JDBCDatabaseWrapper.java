@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -35,6 +36,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.Database;
 import de.osthus.ambeth.persistence.DirectedExternalLink;
 import de.osthus.ambeth.persistence.DirectedLink;
@@ -114,8 +117,6 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 	protected Class<? extends SqlLink> linkType;
 
-	protected final LinkedHashMap<String, String> tableNamesFullToSimple = new LinkedHashMap<String, String>();
-
 	protected final HashSet<String> viewNames = new HashSet<String>();
 
 	protected final HashSet<String> ignoredTables = new HashSet<String>();
@@ -148,8 +149,8 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 		LinkedHashMap<String, List<String[]>> linkNameToEntryMap = new LinkedHashMap<String, List<String[]>>();
 		Set<String> fkFields = new HashSet<String>();
-		Set<String> tableNames = new LinkedHashSet<String>();
-		Set<String> dataTableNames = new LinkedHashSet<String>();
+		Set<String> fqTableNames = new LinkedHashSet<String>();
+		Set<String> fqDataTableNames = new LinkedHashSet<String>();
 		final Map<String, List<SqlField>> tableNameToFields = new HashMap<String, List<SqlField>>();
 		Map<String, List<String>> tableNameToPkFieldsMap = new HashMap<String, List<String>>();
 
@@ -157,34 +158,31 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 		// Load required database metadata
 		loadLinkInfos(linkNameToEntryMap, fkFields);
-		loadTableNames(tableNames);
-		loadTableFields(tableNames, tableNameToFields);
-		grepDataTables(tableNames, dataTableNames, tableNameToFields, linkNameToEntryMap);
-		mapPrimaryKeys(dataTableNames, tableNameToPkFieldsMap);
+		loadTableNames(fqTableNames);
+		loadTableFields(fqTableNames, tableNameToFields);
+		grepDataTables(fqTableNames, fqDataTableNames, tableNameToFields, linkNameToEntryMap);
+		mapPrimaryKeys(fqDataTableNames, tableNameToPkFieldsMap);
 
-		if (dataTableNames.isEmpty() && log.isWarnEnabled())
+		if (fqDataTableNames.isEmpty() && log.isWarnEnabled())
 		{
 			PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "Schema '" + schemaName + "' contains no data tables");
 		}
 
-		Iterator<String> tableIter = dataTableNames.iterator();
-		while (tableIter.hasNext())
+		for (String fqTableName : fqDataTableNames)
 		{
-			String tableName = tableIter.next();
-
 			if (log.isDebugEnabled())
 			{
-				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table '" + tableName
-						+ "' as data table waiting for entity mapping");
+				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName
+						+ " as data table waiting for entity mapping");
 			}
 
 			JdbcTable table = new JdbcTable();
 			table.setInitialVersion(1);
-			table.setName(tableName);
-			table.setViewBased(viewNames.contains(tableName));
+			table.setName(fqTableName);
+			table.setViewBased(viewNames.contains(fqTableName));
 
-			List<String> pkFieldNames = tableNameToPkFieldsMap.get(tableName);
-			List<SqlField> fields = tableNameToFields.get(tableName);
+			List<String> pkFieldNames = tableNameToPkFieldsMap.get(fqTableName);
+			List<SqlField> fields = tableNameToFields.get(fqTableName);
 
 			if (pkFieldNames == null)
 			{
@@ -221,7 +219,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 				{
 					continue;
 				}
-				String fkFieldsKey = tableAndFieldToFKKey(tableName, columnNames[0]);
+				String fkFieldsKey = tableAndFieldToFKKey(fqTableName, columnNames[0]);
 				if (fkFields.contains(fkFieldsKey))
 				{
 					continue;
@@ -235,21 +233,10 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			}
 			table.setAlternateIdFields(alternateIdFields.toArray(new IField[alternateIdFields.size()]));
 
-			nameToTableDict.put(table.getName(), table);
+			getTables().add(table);
 
-			tables.add(table);
+			putTableByName(fqTableName, table);
 		}
-		for (Entry<String, String> entry : tableNamesFullToSimple)
-		{
-			String fqTableName = entry.getKey();
-			String tableName = entry.getValue();
-			ITable table = nameToTableDict.get(tableName);
-			if (table != null)
-			{
-				nameToTableDict.put(fqTableName, table);
-			}
-		}
-
 		findAndAssignFulltextFields();
 
 		for (Entry<String, List<String[]>> entry : linkNameToEntryMap)
@@ -432,13 +419,10 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 					String linkTableName = foreignKey.get("FKTABLE_NAME");
 					String linkColumnName = foreignKey.get("FKCOLUMN_NAME");
 
-					if (!singleSchema)
-					{
-						sb.setLength(0);
-						pkTableName = sb.append(schemaName).append('.').append(pkTableName).toString();
-						sb.setLength(0);
-						linkTableName = sb.append(schemaName).append('.').append(linkTableName).toString();
-					}
+					sb.setLength(0);
+					pkTableName = sb.append('\"').append(schemaName).append("\".\"").append(pkTableName).append('\"').toString();
+					sb.setLength(0);
+					linkTableName = sb.append('\"').append(schemaName).append("\".\"").append(linkTableName).append('\"').toString();
 
 					List<String[]> tableLinks = linkNameToEntryMap.get(linkTableName);
 					if (tableLinks == null)
@@ -463,65 +447,50 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void loadTableNames(Set<String> tableNames) throws SQLException
+	protected void loadTableNames(Set<String> fqTableNames) throws SQLException
 	{
 		String tableNamesKey = "tableNames";
 		String viewNamesKey = "viewNames";
 		Set<String> cachedTableNames = (Set<String>) cachedSchemaInfos.get(tableNamesKey);
 		if (cachedTableNames == null)
 		{
-			StringBuilder sb = objectCollector.create(StringBuilder.class);
+			IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 			try
 			{
-				for (String schemaName : schemaNames)
+				List<String> fqTableNamesList = connectionDialect.getAllFullqualifiedTableNames(connection, schemaNames);
+				List<String> fqViewNamesList = connectionDialect.getAllFullqualifiedViews(connection, schemaNames);
+				for (String fqTableName : fqTableNamesList)
 				{
-					ResultSet tablesRS = connection.getMetaData().getTables(null, schemaName, null, null);
-					try
+					if (ignoredTables.contains(fqTableName))
 					{
-						while (tablesRS.next())
-						{
-							String tableName = tablesRS.getString("TABLE_NAME").toUpperCase();
-							String tableType = tablesRS.getString("TABLE_TYPE");
-							if (!("TABLE".equals(tableType) || "VIEW".equals(tableType)) || connectionDialect.isSystemTable(tableName)
-									|| ignoredTables.contains(tableName))
-							{
-								continue; // this is not a table we are interested in
-							}
-
-							sb.setLength(0);
-							String fqTableName = sb.append(schemaName).append('.').append(tableName).toString();
-							tableNamesFullToSimple.put(fqTableName, tableName);
-							if (!singleSchema)
-							{
-								tableName = fqTableName;
-							}
-
-							tableNames.add(tableName);
-							if ("VIEW".equals(tableType))
-							{
-								viewNames.add(tableName);
-							}
-						}
+						continue; // this is not a table we are interested in
 					}
-					finally
+					fqTableNames.add(fqTableName);
+				}
+				for (String fqViewName : fqViewNamesList)
+				{
+					if (ignoredTables.contains(fqViewName))
 					{
-						JdbcUtil.close(tablesRS);
+						continue; // this is not a table we are interested in
 					}
+					fqTableNames.add(fqViewName);
+					viewNames.add(fqViewName);
 				}
 			}
 			finally
 			{
-				objectCollector.dispose(sb);
+				tlObjectCollector.dispose(sb);
 			}
 
-			cachedTableNames = new HashSet<String>(tableNames);
+			cachedTableNames = new HashSet<String>(fqTableNames);
 			cachedSchemaInfos.put(tableNamesKey, cachedTableNames);
 			Set<String> cachedViewNames = new HashSet<String>(viewNames);
 			cachedSchemaInfos.put(viewNamesKey, cachedViewNames);
 		}
 		else
 		{
-			tableNames.addAll(cachedTableNames);
+			fqTableNames.addAll(cachedTableNames);
 			Set<String> cachedViewNames = (Set<String>) cachedSchemaInfos.get(viewNamesKey);
 			viewNames.addAll(cachedViewNames);
 		}
@@ -529,15 +498,12 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 	protected String[] getSchemaAndTableName(String tableName)
 	{
-		if (singleSchema)
+		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
+		if (!matcher.matches())
 		{
-			return new String[] { schemaName, tableName };
+			throw new IllegalStateException("Must never happen");
 		}
-		else
-		{
-			String[] parts = tableName.split("\\.");
-			return parts;
-		}
+		return new String[] { matcher.group(1), matcher.group(2) };
 	}
 
 	protected void loadTableFields(Set<String> tableNames, Map<String, List<SqlField>> tableNameToFields) throws SQLException
@@ -626,19 +592,19 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		return cachedFieldValues;
 	}
 
-	protected void grepDataTables(Set<String> tableNames, Set<String> dataTableNames, Map<String, List<SqlField>> tableNameToFields,
+	protected void grepDataTables(Set<String> fqTableNames, Set<String> fqDataTableNames, Map<String, List<SqlField>> tableNameToFields,
 			Map<String, List<String[]>> linkNameToEntryMap) throws SQLException
 	{
-		for (String tableName : tableNames)
+		for (String fqTableName : fqTableNames)
 		{
-			List<SqlField> fields = tableNameToFields.get(tableName);
-			if (isLinkTable(tableName, fields, linkNameToEntryMap) || isLinkTableToExtern(tableName, fields, linkNameToEntryMap)
-					|| isLinkArchiveTable(tableName, fields))
+			List<SqlField> fields = tableNameToFields.get(fqTableName);
+			if (isLinkTable(fqTableName, fields, linkNameToEntryMap) || isLinkTableToExtern(fqTableName, fields, linkNameToEntryMap)
+					|| isLinkArchiveTable(fqTableName, fields))
 			{
 				// This is a pure link table
 				continue;
 			}
-			dataTableNames.add(tableName);
+			fqDataTableNames.add(fqTableName);
 		}
 	}
 
@@ -971,7 +937,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	@Override
 	public ILink mapLink(ILink link)
 	{
-		nameToLinkDict.put(link.getName(), link);
+		putLinkByName(link.getName(), link);
 		links.add(link);
 
 		Table fromTable = (Table) link.getFromTable();
@@ -1071,7 +1037,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 		link = serviceContext.registerWithLifecycle(link).finish();
 
-		definingNameToLinkDict.put(link.getName(), link);
+		putLinkByDefiningName(link.getName(), link);
 		addLinkByTables(link);
 
 		if (log.isDebugEnabled())
@@ -1079,6 +1045,53 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection,
 					"Recognizing table '" + link.getName() + "' as link between table '" + fromTable.getName() + "' and '" + toTable.getName() + "'");
 		}
+	}
+
+	protected void putLinkByDefiningName(String name, ILink link)
+	{
+		putObjectByName(name, link, definingNameToLinkDict);
+	}
+
+	protected void putLinkByName(String name, ILink link)
+	{
+		putObjectByName(name, link, nameToLinkDict);
+	}
+
+	protected void putTableByName(String name, ITable table)
+	{
+		putObjectByName(name, table, nameToTableDict);
+	}
+
+	protected <T> void putObjectByName(String name, T link, IMap<String, T> nameToObjectMap)
+	{
+		Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(name);
+		String schemaName = null, softName = null;
+		if (splitMatcher.matches())
+		{
+			schemaName = splitMatcher.group(1);
+			softName = splitMatcher.group(2);
+		}
+		else
+		{
+			splitMatcher = XmlDatabaseMapper.softTableNamePattern.matcher(name);
+			if (splitMatcher.matches())
+			{
+				// set "default" schema name
+				schemaName = schemaNames[0];
+				softName = splitMatcher.group(1);
+			}
+			else
+			{
+				throw new IllegalArgumentException("Illegal link name '" + name + "'");
+			}
+		}
+		if (schemaName.equals(schemaNames[0]))
+		{
+			nameToObjectMap.put(softName, link);
+			nameToObjectMap.put("\"" + softName + "\"", link);
+		}
+		nameToObjectMap.put(schemaName + "." + softName, link);
+		nameToObjectMap.put("\"" + schemaName + "\".\"" + softName + "\"", link);
 	}
 
 	protected void handleLinkTableToExtern(String linkName, List<String[]> values) throws SQLException
@@ -1160,8 +1173,8 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		link.setDirectedLink(directedLink);
 		link.setReverseDirectedLink(revDirectedLink);
 
-		nameToLinkDict.put(link.getName(), link);
-		definingNameToLinkDict.put(link.getName(), link);
+		putLinkByName(link.getName(), link);
+		putLinkByDefiningName(link.getName(), link);
 		addLinkByTables(link);
 
 		if (log.isDebugEnabled())
@@ -1225,7 +1238,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 			link = serviceContext.registerWithLifecycle(link).finish();
 
-			definingNameToLinkDict.put(constraintName, link);
+			putLinkByDefiningName(constraintName, link);
 			addLinkByTables(link);
 
 			if (log.isDebugEnabled())
