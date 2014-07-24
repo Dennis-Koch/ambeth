@@ -71,7 +71,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 
 		Class<?> entityType = subQuery.getEntityType();
 		ITable table = database.getTableByType(entityType);
-		String tableName = table.getName();
+		String tableName = table.getFullqualifiedEscapedName();
 		String tableAlias = subQuery.getMainTableAlias();
 
 		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, linkedParams, Collections.<String> emptyList());

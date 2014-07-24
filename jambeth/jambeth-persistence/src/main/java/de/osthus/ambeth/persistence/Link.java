@@ -22,9 +22,9 @@ public class Link implements ILink, IInitializingBean
 
 	protected String name;
 
-	protected String tableName = null;
+	protected String tableName;
 
-	protected String archiveTableName = null;
+	protected String archiveTableName;
 
 	@Override
 	public void afterPropertiesSet()
@@ -142,6 +142,12 @@ public class Link implements ILink, IInitializingBean
 	public void setTableName(String tableName)
 	{
 		this.tableName = tableName;
+	}
+
+	@Override
+	public String getFullqualifiedEscapedTableName()
+	{
+		return getTableName();
 	}
 
 	@Override

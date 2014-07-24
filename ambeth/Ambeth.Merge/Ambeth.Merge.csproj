@@ -91,7 +91,6 @@
     <Compile Include="ambeth\merge\IProxyHelper.cs" />
     <Compile Include="ambeth\merge\EntityInitializedState.cs" />
     <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
-    <Compile Include="ambeth\merge\IEntityChecker.cs" />
     <Compile Include="ambeth\merge\IMergeController.cs" />
     <Compile Include="ambeth\merge\IRevertChangesHelper.cs" />
     <Compile Include="ambeth\merge\IUnmodifiedObjectProvider.cs" />
@@ -127,8 +126,10 @@
     <Compile Include="ambeth\proxy\DefaultSet.cs" />
     <Compile Include="ambeth\proxy\EntityFactory.cs" />
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
+    <Compile Include="ambeth\proxy\IEntityMetaDataHolder.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
+    <Compile Include="ambeth\proxy\IObjRefContainer.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />

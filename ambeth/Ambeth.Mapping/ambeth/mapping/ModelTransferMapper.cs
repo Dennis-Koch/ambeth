@@ -57,10 +57,7 @@ namespace De.Osthus.Ambeth.Mapping
 
         [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
-
-        [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
-
+        
         [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
@@ -125,7 +122,6 @@ namespace De.Osthus.Ambeth.Mapping
             }
             ICacheIntern childCache = this.ChildCache;
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-            IProxyHelper proxyHelper = this.ProxyHelper;
             IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
             List<Object> allValueObjects = new List<Object>(valueObjectList.Count);
             bool acquiredHardRefs = childCache.AcquireHardRefTLIfNotAlready();
@@ -212,14 +208,19 @@ namespace De.Osthus.Ambeth.Mapping
                     }
                     IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(businessObject.GetType());
                     IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-                    for (int b = relationMembers.Length; b-- > 0; )
+                    if (relationMembers.Length == 0)
                     {
-                        IRelationInfoItem relationMember = relationMembers[b];
-                        if (proxyHelper.IsInitialized(businessObject, relationMember))
+                        continue;
+                    }
+                    IValueHolderContainer vhc = (IValueHolderContainer)businessObject;
+                    for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+                    {
+                        IRelationInfoItem relationMember = relationMembers[relationIndex];
+                        if (ValueHolderState.INIT == vhc.Get__State(relationIndex))
                         {
                             continue;
                         }
-                        objRefContainers.Add(new DirectValueHolderRef(businessObject, relationMember));
+                        objRefContainers.Add(new DirectValueHolderRef(vhc, relationMember));
                     }
                 }
                 if (objRefContainers.Count > 0)
@@ -369,8 +370,16 @@ namespace De.Osthus.Ambeth.Mapping
 
             CopyPrimitives(businessObject, valueObject, config, CopyDirection.BO_TO_VO, businessObjectMetaData, boNameToVoMember);
 
-            foreach (IRelationInfoItem boMember in businessObjectMetaData.RelationMembers)
+            IRelationInfoItem[] relationMembers = businessObjectMetaData.RelationMembers;
+		    if (relationMembers.Length == 0)
+		    {
+			    return;
+		    }
+		    IObjRefContainer vhc = (IObjRefContainer) businessObject;
+
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
+                IRelationInfoItem boMember = relationMembers[relationIndex];
                 String boMemberName = boMember.Name;
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
                 ITypeInfoItem voMember = boNameToVoMember.Get(boMemberName);
@@ -378,7 +387,7 @@ namespace De.Osthus.Ambeth.Mapping
                 {
                     continue;
                 }
-                Object voMemberValue = CreateVOMemberValue(businessObject, boMember, config, voMember, pendingValueHolders, runnables);
+                Object voMemberValue = CreateVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
                 if (!Object.ReferenceEquals(voMemberValue, NOT_YET_READY))
                 {
                     voMember.SetValue(valueObject, voMemberValue);
@@ -387,7 +396,7 @@ namespace De.Osthus.Ambeth.Mapping
                 {
                     runnables.Add(delegate()
                     {
-                        Object voMemberValue2 = CreateVOMemberValue(businessObject, boMember, config, voMember, pendingValueHolders, runnables);
+                        Object voMemberValue2 = CreateVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
                         if (Object.ReferenceEquals(voMemberValue2, NOT_YET_READY))
                         {
                             throw new Exception("Must never happen");
@@ -489,7 +498,13 @@ namespace De.Osthus.Ambeth.Mapping
             IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
             IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
-            Object businessObject = voToBoMap.Get(valueObject);
+
+            IRelationInfoItem[] relationMembers = boMetaData.RelationMembers;
+            if (relationMembers.Length == 0)
+            {
+                return;
+            }
+            IValueHolderContainer businessObject = (IValueHolderContainer) voToBoMap.Get(valueObject);
             if (businessObject == null)
             {
                 throw new Exception("Must never happen");
@@ -498,10 +513,10 @@ namespace De.Osthus.Ambeth.Mapping
             IConversionHelper conversionHelper = this.ConversionHelper;
             IListTypeHelper listTypeHelper = this.ListTypeHelper;
             HashMap<CompositIdentityClassKey, Object> reverseRelationMap = this.reverseRelationMap;
-            IProxyHelper proxyHelper = this.ProxyHelper;
 
-            foreach (IRelationInfoItem boMember in boMetaData.RelationMembers)
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
+                IRelationInfoItem boMember = relationMembers[relationIndex];
                 String boMemberName = boMember.Name;
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
 
@@ -537,9 +552,9 @@ namespace De.Osthus.Ambeth.Mapping
                         // TODO value ueber die Rueckreferenz finden
                         // Bis dahin wird es nach dem Mapping beim Speichern knallen, weil der LazyValueHolder bei neuen
                         // Entitaeten nicht aufgeloest werden kann.
-                        if (!proxyHelper.IsInitialized(businessObject, boMember))
+                        if (ValueHolderState.INIT != businessObject.Get__State(relationIndex))
                         {
-                            proxyHelper.SetUninitialized(businessObject, boMember, null);
+                            businessObject.Set__Uninitialized(relationIndex, null);
                         }
                     }
                     else if (boMember.RealType.Equals(boMember.ElementType))
@@ -634,8 +649,8 @@ namespace De.Osthus.Ambeth.Mapping
                 else
                 {
                     IObjRef[] objRefs = pendingRelations.Count > 0 ? pendingRelations.ToArray() : ObjRef.EMPTY_ARRAY;
-                    proxyHelper.SetObjRefs(businessObject, boMember, objRefs);
-				    ((IValueHolderContainer) businessObject).__TargetCache = ChildCache;
+                    businessObject.Set__ObjRefs(relationIndex, objRefs);
+				    businessObject.__TargetCache = ChildCache;
                     referencedBOsSet.AddAll(objRefs);
                     boToPendingRelationsList.Add(new DirectValueHolderRef(businessObject, boMember));
                 }
@@ -654,7 +669,7 @@ namespace De.Osthus.Ambeth.Mapping
             return usingObjRef;
         }
 
-        protected Object CreateVOMemberValue(Object businessObject, IRelationInfoItem boMember, IValueObjectConfig config, ITypeInfoItem voMember,
+        protected Object CreateVOMemberValue(IObjRefContainer businessObject, int relationIndex, IRelationInfoItem boMember, IValueObjectConfig config, ITypeInfoItem voMember,
                 ICollection<Object> pendingValueHolders, ICollection<IBackgroundWorkerDelegate> runnables)
         {
             Object voMemberValue = null;
@@ -667,7 +682,7 @@ namespace De.Osthus.Ambeth.Mapping
             //{
             //    throw new ArgumentException("Unsupportet collection type '" + voMemberType.getName() + "'");
             //}
-            if (!ProxyHelper.IsInitialized(businessObject, boMember))
+            if (ValueHolderState.INIT != businessObject.Get__State(relationIndex))
             {
                 pendingValueHolders.Add(new DirectValueHolderRef(businessObject, boMember));
                 return NOT_YET_READY;

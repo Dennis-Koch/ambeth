@@ -159,9 +159,9 @@ public class OracleDatabaseChangeRegistration implements IInitializingBean, ISta
 
 				for (ITable table : database.getTables())
 				{
-					String tableName = table.getName();
+					String tableName = table.getFullqualifiedEscapedName();
 
-					stm.execute("SELECT \"" + table.getIdField().getName() + "\" FROM \"" + tableName + "\"");
+					stm.execute("SELECT \"" + table.getIdField().getName() + "\" FROM " + tableName + "");
 				}
 				if (log.isDebugEnabled())
 				{

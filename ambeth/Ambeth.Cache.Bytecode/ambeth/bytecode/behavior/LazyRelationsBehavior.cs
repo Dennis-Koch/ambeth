@@ -119,6 +119,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 }
                 // Add this interface only for real entities, not for embedded types
 			    visitor = new InterfaceAdder(visitor, typeof(IValueHolderContainer));
+                visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
             }
             visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper);
             visitor = new SetCacheModificationMethodCreator(visitor);

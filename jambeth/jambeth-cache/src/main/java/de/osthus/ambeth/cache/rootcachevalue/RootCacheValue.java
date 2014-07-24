@@ -1,16 +1,19 @@
 package de.osthus.ambeth.cache.rootcachevalue;
 
 import de.osthus.ambeth.cache.AbstractCacheValue;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.IListElem;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 
-public abstract class RootCacheValue extends AbstractCacheValue implements IListElem<RootCacheValue>
+public abstract class RootCacheValue extends AbstractCacheValue implements IListElem<RootCacheValue>, IObjRefContainer
 {
 	protected Object listHandle;
 
 	protected IListElem<RootCacheValue> next, prev;
 
-	public RootCacheValue(Class<?> entityType)
+	public RootCacheValue(IEntityMetaData metaData)
 	{
 		// Intended blank
 	}
@@ -75,5 +78,29 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 	public void setElemValue(RootCacheValue value)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ValueHolderState get__State(int relationIndex)
+	{
+		return ValueHolderState.LAZY;
+	}
+
+	@Override
+	public boolean is__Initialized(int relationIndex)
+	{
+		return false;
+	}
+
+	@Override
+	public IObjRef[] get__ObjRefs(int relationIndex)
+	{
+		return getRelation(relationIndex);
+	}
+
+	@Override
+	public void set__ObjRefs(int relationIndex, IObjRef[] objRefs)
+	{
+		setRelation(relationIndex, objRefs);
 	}
 }

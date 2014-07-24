@@ -11,6 +11,7 @@ import java.util.Set;
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ICacheModification;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
@@ -32,10 +33,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
@@ -65,9 +67,6 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
@@ -307,27 +306,33 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 						// Merge the root prefetch path with the relative prefetch path
 						cachePaths = mergeCachePaths(cascadeLoadItem.realType, cachePaths, typeToMembersToInitialize);
 
+						IObjRefContainer vhc;
+						ICacheIntern targetCache;
+						IRelationInfoItem member;
+						boolean doSetValue = false;
 						Object obj;
 						if (valueHolder instanceof IndirectValueHolderRef)
 						{
 							IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef) valueHolder;
-							RootCacheValue rcv = (RootCacheValue) valueHolderKey.getVhc();
-							IRelationInfoItem member = valueHolderKey.getMember();
-							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(rcv.getEntityType());
-							int relationIndex = metaData.getIndexByRelation(member);
-							IObjRef[] objRefs = rcv.getRelation(relationIndex);
-							obj = valueHolderContainerTemplate.getValue(rcv, member, valueHolderKey.getRootCache(), objRefs, CacheDirective.failEarly());
+							vhc = valueHolderKey.getVhc();
+							targetCache = valueHolderKey.getRootCache();
+							member = valueHolderKey.getMember();
 						}
 						else
 						{
 							DirectValueHolderRef valueHolderKey = (DirectValueHolderRef) valueHolder;
-							Object vhc = valueHolderKey.getVhc();
-							IRelationInfoItem member = valueHolderKey.getMember();
-							obj = valueHolderContainerTemplate.getValue(vhc, member, CacheDirective.failEarly());
-							if (obj != null)
-							{
-								member.setValue(vhc, obj);
-							}
+							IValueHolderContainer vhcTemp = (IValueHolderContainer) valueHolderKey.getVhc();
+							vhc = vhcTemp;
+							targetCache = vhcTemp.get__TargetCache();
+							member = valueHolderKey.getMember();
+							doSetValue = true;
+						}
+						int relationIndex = vhc.get__EntityMetaData().getIndexByRelation(member);
+						IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
+						obj = valueHolderContainerTemplate.getValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.failEarly());
+						if (doSetValue && obj != null)
+						{
+							member.setValue(vhc, obj);
 						}
 						ensureInitializedRelationsIntern(obj, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
 								cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
@@ -500,18 +505,23 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-		IProxyHelper proxyHelper = this.proxyHelper;
+		if (relationMembers.length == 0)
+		{
+			return;
+		}
+		IValueHolderContainer vhc = (IValueHolderContainer) obj;
 		for (int a = cachePaths.size(); a-- > 0;)
 		{
 			CachePath path = cachePaths.get(a);
 
-			IRelationInfoItem member = relationMembers[path.memberIndex];
+			int relationIndex = path.memberIndex;
+			IRelationInfoItem member = relationMembers[relationIndex];
 
-			if (!proxyHelper.isInitialized(obj, member))
+			if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 			{
-				DirectValueHolderRef vhk = new DirectValueHolderRef(obj, member);
+				DirectValueHolderRef vhk = new DirectValueHolderRef(vhc, member);
 				ensureInitializedRelationsIntern(vhk, path.children, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
 						cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
 				continue;
@@ -592,15 +602,17 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return false;
 		}
 		IValueHolderContainer vhc = (IValueHolderContainer) vhr.getVhc();
-		if (proxyHelper.isInitialized(vhc, member))
+		int relationIndex = vhc.get__EntityMetaData().getIndexByRelationName(member.getName());
+
+		if (ValueHolderState.INIT == vhc.get__State(relationIndex))
 		{
 			return true;
 		}
 		ICacheIntern cache = vhc.get__TargetCache();
-		IObjRef[] objRefs = proxyHelper.getObjRefs(vhc, member);
+		IObjRef[] objRefs = vhc.get__ObjRefs(relationIndex);
 		if (objRefs == null)
 		{
-			IObjRelation self = vhc.get__Self(member);
+			IObjRelation self = vhc.get__Self(relationIndex);
 			ArrayList<IObjRelation> orels = new ArrayList<IObjRelation>();
 			orels.add(self);
 			IList<IObjRelationResult> orelResults = cache.getObjRelations(orels, cache, failEarlyReturnMisses);
@@ -626,7 +638,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			objRefs = orelResult.getRelations();
 			if (objRefs != null)
 			{
-				proxyHelper.setObjRefs(vhc, member, objRefs);
+				vhc.set__ObjRefs(relationIndex, objRefs);
 			}
 		}
 		if (objRefs != null && objRefs.length > 0)
@@ -773,20 +785,18 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return ObjRef.EMPTY_ARRAY_ARRAY;
 		}
+		IValueHolderContainer vhc = (IValueHolderContainer) obj;
 		IObjRef[][] relations = new IObjRef[relationMembers.length][];
 
 		IObjRefHelper oriHelper = this.oriHelper;
-		IProxyHelper proxyHelper = this.proxyHelper;
 		for (int a = relationMembers.length; a-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-
-			if (!proxyHelper.isInitialized(obj, relationMember))
+			if (ValueHolderState.INIT != vhc.get__State(a))
 			{
-				relations[a] = proxyHelper.getObjRefs(obj, relationMember);
+				relations[a] = vhc.get__ObjRefs(a);
 				continue;
 			}
-			Object relationValue = relationMember.getValue(obj, false);
+			Object relationValue = relationMembers[a].getValue(obj, false);
 			if (relationValue == null)
 			{
 				relations[a] = ObjRef.EMPTY_ARRAY;

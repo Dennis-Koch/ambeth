@@ -327,7 +327,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (!isBoxingNeededForHasPropertyChanged && propertyType.IsValueType)
             {
                 // old value has not already been boxed but it is now necessary
-                mg.Box(propertyType);
+                mg.ValueOf(propertyType);
             }
             // newValue
             if (loc_newValue != null)
@@ -339,7 +339,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mg.LoadArg(0);
                 if (propertyType.IsValueType)
                 {
-                    mg.Box(propertyType);
+                    mg.ValueOf(propertyType);
                 }
             }
             // firePropertyChange(propertyChangeSupport, property, oldValue, newValue)
