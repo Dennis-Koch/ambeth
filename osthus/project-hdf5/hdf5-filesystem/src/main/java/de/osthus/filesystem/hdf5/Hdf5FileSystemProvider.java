@@ -1,5 +1,10 @@
 package de.osthus.filesystem.hdf5;
 
+import static ncsa.hdf.hdf5lib.H5.H5Fcreate;
+import static ncsa.hdf.hdf5lib.H5.H5Gcreate;
+import static ncsa.hdf.hdf5lib.HDF5Constants.H5F_ACC_TRUNC;
+import static ncsa.hdf.hdf5lib.HDF5Constants.H5P_DEFAULT;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
@@ -10,6 +15,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
+import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -20,6 +26,8 @@ import java.nio.file.spi.FileSystemProvider;
 import java.util.Map;
 import java.util.Set;
 
+import ncsa.hdf.hdf5lib.H5;
+import ncsa.hdf.hdf5lib.exceptions.HDF5LibraryException;
 import de.osthus.filesystem.common.AbstractFileSystemProvider;
 
 /**
@@ -82,9 +90,55 @@ public class Hdf5FileSystemProvider extends AbstractFileSystemProvider<Hdf5FileS
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
-		// TODO Auto-generated method stub
+		if (attrs.length > 0)
+		{
+			throw new UnsupportedOperationException("Not yet implemented");
+		}
+		if (!(dir instanceof Hdf5Path))
+		{
+			throw new IllegalArgumentException("Path not in HDF5 file system: '" + dir + "'");
+		}
 
+		Hdf5Path hdf5Dir = (Hdf5Path) dir;
+		Hdf5FileSystem fileSystem = hdf5Dir.getFileSystem();
+		Path underlyingFile = fileSystem.getUnderlyingFile();
+
+		int file = 0;
+		int data = 0;
+		try
+		{
+			file = H5.H5Fopen(underlyingFile.toString(), H5P_DEFAULT, H5P_DEFAULT);
+			data = H5Gcreate(file, "data", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		}
+		catch (HDF5LibraryException | NullPointerException e)
+		{
+			throw new IOException(e);
+		}
+		finally
+		{
+			if (data != 0)
+			{
+				try
+				{
+					H5.H5Gclose(data);
+				}
+				catch (HDF5LibraryException e)
+				{
+					throw new IOException(e);
+				}
+			}
+			if (file != 0)
+			{
+				try
+				{
+					H5.H5Fclose(file);
+				}
+				catch (HDF5LibraryException e)
+				{
+					throw new IOException(e);
+				}
+			}
+		}
 	}
 
 	/**
@@ -247,8 +301,26 @@ public class Hdf5FileSystemProvider extends AbstractFileSystemProvider<Hdf5FileS
 		URI underlyingFileSystemUri = URI.create(internalUri.getUnderlyingFileSystem());
 		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
 		Path underlyingFilePath = buildUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
+		if (!Files.exists(underlyingFilePath))
+		{
+			createHdf5File(underlyingFilePath);
+		}
+
 		String identifier = internalUri.getIdentifier();
 		Hdf5FileSystem fileSystem = new Hdf5FileSystem(this, underlyingFilePath, identifier);
 		return fileSystem;
+	}
+
+	protected void createHdf5File(Path underlyingFilePath) throws IOException
+	{
+		try
+		{
+			int file = H5Fcreate(underlyingFilePath.toString(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+			H5.H5Fclose(file);
+		}
+		catch (HDF5LibraryException | NullPointerException e)
+		{
+			throw new IOException(e);
+		}
 	}
 }
