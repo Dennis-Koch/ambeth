@@ -21,6 +21,10 @@ public class DialectSelectorModule implements IInitializingModule
 	{
 		String databaseProtocol = props.getString(PersistenceJdbcConfigurationConstants.DatabaseProtocol);
 
+		if (databaseProtocol == null)
+		{
+			return;
+		}
 		if (H2Module.handlesDatabaseProtocol(databaseProtocol))
 		{
 			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "org.h2.jdbc.JdbcConnection");

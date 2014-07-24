@@ -54,17 +54,31 @@ public class SqlTable extends Table
 
 	protected Object initialVersion;
 
+	protected String fullqualifiedEscapedName;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		super.afterPropertiesSet();
 
 		ParamChecker.assertNotNull(initialVersion, "initialVersion");
+		ParamChecker.assertNotNull(fullqualifiedEscapedName, "fullqualifiedEscapedName");
 	}
 
 	public void setInitialVersion(Object initialVersion)
 	{
 		this.initialVersion = initialVersion;
+	}
+
+	@Override
+	public String getFullqualifiedEscapedName()
+	{
+		return fullqualifiedEscapedName;
+	}
+
+	public void setFullqualifiedEscapedName(String fullqualifiedEscapedName)
+	{
+		this.fullqualifiedEscapedName = fullqualifiedEscapedName;
 	}
 
 	@Override

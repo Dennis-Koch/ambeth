@@ -13,6 +13,7 @@ import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.IWritableCache;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -34,7 +35,6 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IObjRefProvider;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.ValueObjectMemberType;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -42,6 +42,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
@@ -93,9 +94,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -178,7 +176,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		}
 		ICacheIntern childCache = this.childCache;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-		IProxyHelper proxyHelper = this.proxyHelper;
 		IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
 		ArrayList<Object> allValueObjects = new ArrayList<Object>(valueObjectList.size());
 		boolean acquiredHardRefs = childCache.acquireHardRefTLIfNotAlready();
@@ -265,14 +262,18 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				}
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(businessObject.getClass());
 				IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-				for (int b = relationMembers.length; b-- > 0;)
+				if (relationMembers.length == 0)
 				{
-					IRelationInfoItem relationMember = relationMembers[b];
-					if (proxyHelper.isInitialized(businessObject, relationMember))
+					continue;
+				}
+				IValueHolderContainer vhc = (IValueHolderContainer) businessObject;
+				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+				{
+					if (ValueHolderState.INIT == vhc.get__State(relationIndex))
 					{
 						continue;
 					}
-					objRefContainers.add(new DirectValueHolderRef(businessObject, relationMember));
+					objRefContainers.add(new DirectValueHolderRef(vhc, relationMembers[relationIndex]));
 				}
 			}
 			if (!objRefContainers.isEmpty())
@@ -436,7 +437,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		return refList;
 	}
 
-	protected void resolveProperties(final Object businessObject, final Object valueObject, final Collection<Object> pendingValueHolders,
+	protected void resolveProperties(Object businessObject, final Object valueObject, final Collection<Object> pendingValueHolders,
 			final Collection<Runnable> runnables)
 	{
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
@@ -446,8 +447,16 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 
 		copyPrimitives(businessObject, valueObject, config, CopyDirection.BO_TO_VO, businessObjectMetaData, boNameToVoMember);
 
-		for (IRelationInfoItem boMember : businessObjectMetaData.getRelationMembers())
+		IRelationInfoItem[] relationMembers = businessObjectMetaData.getRelationMembers();
+		if (relationMembers.length == 0)
 		{
+			return;
+		}
+		final IObjRefContainer vhc = (IObjRefContainer) businessObject;
+
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			IRelationInfoItem boMember = relationMembers[relationIndex];
 			String boMemberName = boMember.getName();
 			String voMemberName = config.getValueObjectMemberName(boMemberName);
 			final ITypeInfoItem voMember = boNameToVoMember.get(boMemberName);
@@ -455,7 +464,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			{
 				continue;
 			}
-			Object voMemberValue = createVOMemberValue(businessObject, boMember, config, voMember, pendingValueHolders, runnables);
+			Object voMemberValue = createVOMemberValue(vhc, relationIndex, boMember, config, voMember, pendingValueHolders, runnables);
 			if (voMemberValue != NOT_YET_READY)
 			{
 				voMember.setValue(valueObject, voMemberValue);
@@ -463,13 +472,14 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			else
 			{
 				final IRelationInfoItem fBoMember = boMember;
+				final int fRelationIndex = relationIndex;
 				runnables.add(new Runnable()
 				{
 
 					@Override
 					public void run()
 					{
-						Object voMemberValue = createVOMemberValue(businessObject, fBoMember, config, voMember, pendingValueHolders, runnables);
+						Object voMemberValue = createVOMemberValue(vhc, fRelationIndex, fBoMember, config, voMember, pendingValueHolders, runnables);
 						if (voMemberValue == NOT_YET_READY)
 						{
 							throw new IllegalStateException("Must never happen");
@@ -572,7 +582,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(config);
 
 		IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
-		Object businessObject = voToBoMap.get(valueObject);
+
+		IRelationInfoItem[] relationMembers = boMetaData.getRelationMembers();
+		if (relationMembers.length == 0)
+		{
+			return;
+		}
+		IValueHolderContainer businessObject = (IValueHolderContainer) voToBoMap.get(valueObject);
 		if (businessObject == null)
 		{
 			throw new IllegalStateException("Must never happen");
@@ -581,10 +597,10 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IListTypeHelper listTypeHelper = this.listTypeHelper;
 		HashMap<CompositIdentityClassKey, Object> reverseRelationMap = this.reverseRelationMap;
-		IProxyHelper proxyHelper = this.proxyHelper;
 
-		for (IRelationInfoItem boMember : boMetaData.getRelationMembers())
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
+			IRelationInfoItem boMember = relationMembers[relationIndex];
 			String boMemberName = boMember.getName();
 			String voMemberName = config.getValueObjectMemberName(boMemberName);
 
@@ -620,9 +636,9 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 					// TODO value ueber die Rueckreferenz finden
 					// Bis dahin wird es nach dem Mapping beim Speichern knallen, weil der LazyValueHolder bei neuen
 					// Entitaeten nicht aufgeloest werden kann.
-					if (!proxyHelper.isInitialized(businessObject, boMember))
+					if (ValueHolderState.INIT != businessObject.get__State(relationIndex))
 					{
-						proxyHelper.setUninitialized(businessObject, boMember, null);
+						businessObject.set__Uninitialized(relationIndex, null);
 					}
 				}
 				else if (boMember.getRealType().equals(boMember.getElementType()))
@@ -717,8 +733,8 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			else
 			{
 				IObjRef[] objRefs = pendingRelations.size() > 0 ? pendingRelations.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
-				proxyHelper.setObjRefs(businessObject, boMember, objRefs);
-				((IValueHolderContainer) businessObject).set__TargetCache(childCache);
+				businessObject.set__ObjRefs(relationIndex, objRefs);
+				businessObject.set__TargetCache(childCache);
 				referencedBOsSet.addAll(objRefs);
 				boToPendingRelationsList.add(new DirectValueHolderRef(businessObject, boMember));
 			}
@@ -737,8 +753,8 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		return usingObjRef;
 	}
 
-	protected Object createVOMemberValue(Object businessObject, IRelationInfoItem boMember, IValueObjectConfig config, ITypeInfoItem voMember,
-			Collection<Object> pendingValueHolders, Collection<Runnable> runnables)
+	protected Object createVOMemberValue(IObjRefContainer businessObject, int relationIndex, IRelationInfoItem boMember, IValueObjectConfig config,
+			ITypeInfoItem voMember, Collection<Object> pendingValueHolders, Collection<Runnable> runnables)
 	{
 		Object voMemberValue = null;
 		Class<?> voMemberType = voMember.getRealType();
@@ -749,7 +765,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		{
 			throw new IllegalArgumentException("Unsupportet collection type '" + voMemberType.getName() + "'");
 		}
-		if (!proxyHelper.isInitialized(businessObject, boMember))
+		if (ValueHolderState.INIT != businessObject.get__State(relationIndex))
 		{
 			pendingValueHolders.add(new DirectValueHolderRef(businessObject, boMember));
 			return NOT_YET_READY;

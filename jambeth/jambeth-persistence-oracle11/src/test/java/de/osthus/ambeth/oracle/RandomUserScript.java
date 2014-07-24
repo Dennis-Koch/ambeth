@@ -23,7 +23,6 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.oracle.Oracle10gThinDialect;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
@@ -84,10 +83,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean("oracle10gThinDialect", Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerBean("persistenceExceptionUtil", PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
-			beanContextFactory.registerBean("connectionFactory", ConnectionFactory.class).autowireable(IConnectionFactory.class);
-			beanContextFactory.registerBean("randomUserScript", RandomUserScript.class);
+			beanContextFactory.registerAnonymousBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+			beanContextFactory.registerAnonymousBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+			beanContextFactory.registerAnonymousBean(RandomUserScript.class);
 		}
 	}
 
@@ -226,7 +225,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "create procedure", "create sequence", "create session", "create table", "create trigger",
 				"create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL",
 				"EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY", "EXECUTE ON CTXSYS.CTX_REPORT",
-				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER" };
+				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA" };
 
 		String createdUserName = null;
 		Statement stm = connection.createStatement();

@@ -3,53 +3,33 @@ package de.osthus.ambeth.relations;
 import org.junit.Assert;
 
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.merge.IProxyHelper;
+import de.osthus.ambeth.cache.ValueHolderState;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.TestModule;
-import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule(RelationsTestModule.class)
 public abstract class AbstractRelationsTest extends AbstractPersistenceTest
 {
+	@Autowired
 	protected ICache cache;
 
-	protected IProxyHelper proxyHelper;
-
+	@Autowired
 	protected IRelationsService relationsService;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(cache, "cache");
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-		ParamChecker.assertNotNull(relationsService, "relationsService");
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setRelationsService(IRelationsService relationsService)
-	{
-		this.relationsService = relationsService;
-	}
 
 	protected void assertBeforePrefetch(Object entity, String propertyName)
 	{
-		Assert.assertTrue(Boolean.FALSE.equals(proxyHelper.isInitialized(entity, propertyName)));
+		IObjRefContainer vhc = (IObjRefContainer) entity;
+		int relationIndex = vhc.get__EntityMetaData().getIndexByRelationName(propertyName);
+		Assert.assertTrue(ValueHolderState.LAZY == vhc.get__State(relationIndex));
 	}
 
 	protected void assertAfterPrefetch(Object entity, String propertyName)
 	{
-		Assert.assertTrue(Boolean.TRUE.equals(proxyHelper.isInitialized(entity, propertyName)));
-		Assert.assertNull(proxyHelper.getObjRefs(entity, propertyName));
+		IObjRefContainer vhc = (IObjRefContainer) entity;
+		int relationIndex = vhc.get__EntityMetaData().getIndexByRelationName(propertyName);
+		Assert.assertTrue(ValueHolderState.INIT == vhc.get__State(relationIndex));
+		Assert.assertNull(vhc.get__ObjRefs(relationIndex));
 	}
 }

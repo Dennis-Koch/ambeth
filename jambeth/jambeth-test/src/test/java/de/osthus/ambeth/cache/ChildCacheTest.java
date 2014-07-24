@@ -38,11 +38,11 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.model.Unit;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestRebuildContext;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.CacheHelperFake;
 import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.ICacheHelper;
@@ -282,28 +282,27 @@ public class ChildCacheTest extends AbstractInformationBusTest
 
 		Object id = 2;
 		Object version = 1;
-		Material primitiveFilledObject = entityFactory.createEntity(Material.class);
+		IObjRefContainer vhc = (IObjRefContainer) entityFactory.createEntity(Material.class);
 		IObjRef[][] relations = new IObjRef[][] { {}, {} };
 
-		Object[] primitives = cacheHelper.extractPrimitives(metaData, primitiveFilledObject);
+		Object[] primitives = cacheHelper.extractPrimitives(metaData, vhc);
 		assertNull(childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id));
 
-		childCache.addDirect(metaData, id, version, primitiveFilledObject, primitives, relations);
+		childCache.addDirect(metaData, id, version, vhc, primitives, relations);
 		Object actual = childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 		assertNotNull(actual);
-		assertSame(primitiveFilledObject, actual);
-		IRelationInfoItem unitMember = (IRelationInfoItem) entityMetaDataProvider.getMetaData(Material.class).getMemberByName("Unit");
-		assertTrue(!proxyHelper.isInitialized(primitiveFilledObject, unitMember));
-		assertTrue(proxyHelper.getObjRefs(primitiveFilledObject, unitMember).length == 0);
-
+		assertSame(vhc, actual);
 		int unitIndex = metaData.getIndexByRelationName("Unit");
+		assertTrue(!vhc.is__Initialized(unitIndex));
+		assertTrue(vhc.get__ObjRefs(unitIndex).length == 0);
+
 		relations[unitIndex] = new IObjRef[] { new ObjRef(Unit.class, 4, 2) };
-		childCache.addDirect(metaData, id, version, primitiveFilledObject, primitives, relations);
+		childCache.addDirect(metaData, id, version, vhc, primitives, relations);
 		actual = childCache.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 		assertNotNull(actual);
-		assertSame(primitiveFilledObject, actual);
-		assertTrue(!proxyHelper.isInitialized(primitiveFilledObject, unitMember));
-		assertTrue(proxyHelper.getObjRefs(primitiveFilledObject, unitMember) == relations[unitIndex]);
+		assertSame(vhc, actual);
+		assertTrue(!vhc.is__Initialized(unitIndex));
+		assertTrue(vhc.get__ObjRefs(unitIndex) == relations[unitIndex]);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

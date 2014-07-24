@@ -20,6 +20,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
@@ -35,7 +36,6 @@ import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
-import de.osthus.ambeth.util.INamed;
 
 public class RelationsGetterVisitor extends ClassGenerator
 {
@@ -51,20 +51,57 @@ public class RelationsGetterVisitor extends ClassGenerator
 			ICacheIntern.class, false);
 
 	private static final MethodInstance m_vhce_getState_Member = new MethodInstance(null, ValueHolderContainerEntry.class, ValueHolderState.class, "getState",
-			Object.class, IRelationInfoItem.class);
+			Object.class, int.class);
+
+	private static final MethodInstance m_vhce_setInitPending_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class, "setInitPending",
+			Object.class, int.class);
+
+	private static final MethodInstance m_vhce_isInitialized_Member = new MethodInstance(null, ValueHolderContainerEntry.class, boolean.class, "isInitialized",
+			Object.class, int.class);
 
 	private static final MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, IObjRef[].class, "getObjRefs",
-			Object.class, IRelationInfoItem.class);
+			Object.class, int.class);
 
-	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IValueHolderContainer.class, ValueHolderState.class,
-			"get__State", IRelationInfoItem.class);
+	private static final MethodInstance m_vhce_setObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class, "setObjRefs",
+			Object.class, int.class, IObjRef[].class);
 
-	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IValueHolderContainer.class, IObjRef[].class, "get__ObjRefs",
-			IRelationInfoItem.class);
+	private static final MethodInstance m_vhce_getValueDirect_Member = new MethodInstance(null, ValueHolderContainerEntry.class, Object.class,
+			"getValueDirect", Object.class, int.class);
 
-	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, IObjRelation.class, "getSelf", Object.class, String.class);
+	private static final MethodInstance m_vhce_setValueDirect_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class, "setValueDirect",
+			Object.class, int.class, Object.class);
 
-	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, Object.class, "getValue", Object.class,
+	private static final MethodInstance m_vhce_setUninitialized_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class,
+			"setUninitialized", Object.class, int.class, IObjRef[].class);
+
+	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IObjRefContainer.class, ValueHolderState.class, "get__State",
+			int.class);
+
+	private static final MethodInstance m_template_setInitPending_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
+			"set__InitPending", int.class);
+
+	private static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
+			int.class);
+
+	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, IObjRef[].class, "get__ObjRefs",
+			int.class);
+
+	private static final MethodInstance m_template_setObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, void.class, "set__ObjRefs", int.class,
+			IObjRef[].class);
+
+	private static final MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, Object.class,
+			"get__ValueDirect", int.class);
+
+	private static final MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
+			"set__ValueDirect", int.class, Object.class);
+
+	private static final MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
+			"set__Uninitialized", int.class, IObjRef[].class);
+
+	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, IObjRelation.class, "getSelf", IObjRefContainer.class,
+			int.class);
+
+	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, Object.class, "getValue", IObjRefContainer.class,
 			IRelationInfoItem[].class, int.class, ICacheIntern.class, IObjRef[].class);
 
 	public static PropertyInstance getValueHolderContainerTemplatePI(ClassGenerator cv)
@@ -138,7 +175,12 @@ public class RelationsGetterVisitor extends ClassGenerator
 				}
 			});
 			implementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementIsInitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementGetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementSetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementGetValueDirect(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementSetValueDirect(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementSetUninitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 		}
 
 		implementValueHolderCode(p_valueHolderContainerTemplate, p_targetCache, p_relationMembers);
@@ -258,6 +300,32 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 	}
 
+	protected void implementSetInitPending(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_setInitPending_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_setInitPending_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
+	protected void implementIsInitialized(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_isInitialized_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_isInitialized_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
 	protected void implementGetObjRefs(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
 	{
 		{
@@ -266,6 +334,58 @@ public class RelationsGetterVisitor extends ClassGenerator
 			mv.loadThis();
 			mv.loadArgs();
 			mv.invokeVirtual(m_vhce_getObjRefs_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
+	protected void implementGetValueDirect(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_getValueDirect_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_getValueDirect_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
+	protected void implementSetValueDirect(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_setValueDirect_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_setValueDirect_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
+	protected void implementSetObjRefs(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_setObjRefs_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_setObjRefs_Member);
+			mv.returnValue();
+			mv.endMethod();
+		}
+	}
+
+	protected void implementSetUninitialized(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+	{
+		{
+			MethodGenerator mv = visitMethod(m_template_setUninitialized_Member);
+			mv.callThisGetter(p_valueHolderContainerEntry);
+			mv.loadThis();
+			mv.loadArgs();
+			mv.invokeVirtual(m_vhce_setUninitialized_Member);
 			mv.returnValue();
 			mv.endMethod();
 		}
@@ -285,7 +405,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 					mg.callThisGetter(p_rootEntity);
 					mg.dup();
 					mg.ifNull(l_finish);
-					mg.checkCast(IValueHolderContainer.class);
+					mg.checkCast(IObjRefContainer.class);
 					mg.invokeInterface(p_template_targetCache.getGetter());
 					mg.mark(l_finish);
 					mg.returnValue();
@@ -407,36 +527,52 @@ public class RelationsGetterVisitor extends ClassGenerator
 	protected void implementSelfGetter(PropertyInstance p_valueHolderContainerTemplate)
 	{
 		Type owner = BytecodeBehaviorState.getState().getNewType();
-		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", String.class);
+		MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", int.class);
 		{
-			// public IObjRelation getSelf(String memberName)
+			// public IObjRelation getSelf(int relationIndex)
 			// {
-			// return RelationsGetterVisitor.valueHolderContainer_getSelf(this, this.$beanContext, memberName);
+			// return valueHolderContainerTemplate.getSelf(this, relationIndex);
 			// }
 			MethodGenerator mv = visitMethod(m_getSelf);
 			mv.callThisGetter(p_valueHolderContainerTemplate);
 			// this
 			mv.loadThis();
-			// memberName
+			// relationIndex
 			mv.loadArgs();
 			mv.invokeVirtual(m_template_getSelf);
 			mv.returnValue();
 			mv.endMethod();
 		}
-		{
-			// public IObjRelation getSelf(IRelationInfoItem member)
-			// {
-			// return getSelf(member.getName());
-			// }
-			MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", IRelationInfoItem.class);
-			MethodGenerator mv = visitMethod(method);
-			mv.loadThis();
-			mv.loadArg(0);
-			mv.invokeInterface(new MethodInstance(null, INamed.class, String.class, "getName"));
-			mv.invokeVirtual(m_getSelf);
-			mv.returnValue();
-			mv.endMethod();
-		}
+		// MethodInstance m_getSelf = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", String.class);
+		// {
+		// // public IObjRelation getSelf(String memberName)
+		// // {
+		// // return RelationsGetterVisitor.valueHolderContainer_getSelf(this, this.$beanContext, memberName);
+		// // }
+		// MethodGenerator mv = visitMethod(m_getSelf);
+		// mv.callThisGetter(p_valueHolderContainerTemplate);
+		// // this
+		// mv.loadThis();
+		// // memberName
+		// mv.loadArgs();
+		// mv.invokeVirtual(m_template_getSelf);
+		// mv.returnValue();
+		// mv.endMethod();
+		// }
+		// {
+		// // public IObjRelation getSelf(IRelationInfoItem member)
+		// // {
+		// // return getSelf(member.getName());
+		// // }
+		// MethodInstance method = new MethodInstance(owner, IValueHolderContainer.class, IObjRelation.class, "get__Self", IRelationInfoItem.class);
+		// MethodGenerator mv = visitMethod(method);
+		// mv.loadThis();
+		// mv.loadArg(0);
+		// mv.invokeInterface(new MethodInstance(null, INamed.class, String.class, "getName"));
+		// mv.invokeVirtual(m_getSelf);
+		// mv.returnValue();
+		// mv.endMethod();
+		// }
 	}
 
 	protected void implementRelationGetter(String propertyName, MethodInstance m_getMethod_template, final MethodInstance m_setMethod, final int relationIndex,

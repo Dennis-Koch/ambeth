@@ -523,7 +523,7 @@ public class JdbcTable extends SqlTable
 		try
 		{
 			sqlSB.append("INSERT INTO ");
-			sqlBuilder.appendName(getName(), sqlSB).append(" (");
+			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB).append(" (");
 			sqlBuilder.appendName(idField.getName(), sqlSB);
 			variableCount++;
 			if (versionField != null)
@@ -647,7 +647,7 @@ public class JdbcTable extends SqlTable
 			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, params, whereSQL);
 			whereSQL.append(" FOR UPDATE NOWAIT");
 
-			return sqlConnection.selectFields(getName(), fieldNamesSQL, whereSQL, params);
+			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, params);
 		}
 		finally
 		{
@@ -666,7 +666,7 @@ public class JdbcTable extends SqlTable
 		try
 		{
 			sqlSB.append("UPDATE ");
-			sqlBuilder.appendName(getName(), sqlSB);
+			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB);
 			sqlSB.append(" SET ");
 
 			boolean firstField = true;
@@ -750,7 +750,7 @@ public class JdbcTable extends SqlTable
 		try
 		{
 			sqlSB.append("DELETE FROM ");
-			sqlBuilder.appendName(getName(), sqlSB).append(" WHERE ");
+			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB).append(" WHERE ");
 			sqlBuilder.appendName(idField.getName(), sqlSB);
 			sqlSB.append("=?");
 			deleteStmt = connection.prepareStatement(sqlSB.toString());

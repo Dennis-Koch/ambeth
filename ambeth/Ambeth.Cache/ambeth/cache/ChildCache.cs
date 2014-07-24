@@ -511,8 +511,9 @@ namespace De.Osthus.Ambeth.Cache
             {
                 IRelationInfoItem[] relationMembers = metaData.RelationMembers;
 
-                ((IValueHolderContainer)primitiveFilledObject).__TargetCache = this;
-                HandleValueHolderContainer(primitiveFilledObject, relationMembers, relations);
+                IValueHolderContainer vhc = (IValueHolderContainer)primitiveFilledObject;
+                vhc.__TargetCache = this;
+                HandleValueHolderContainer(vhc, relationMembers, relations);
             }
             if (primitiveFilledObject is IDataObject)
             {
@@ -520,23 +521,22 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void HandleValueHolderContainer(Object primitiveFilledObject, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+        protected void HandleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
         {
             ICacheHelper cacheHelper = this.CacheHelper;
             ICacheIntern parent = this.Parent;
             IProxyHelper proxyHelper = this.ProxyHelper;
-            for (int a = relationMembers.Length; a-- > 0; )
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[a];
-                IObjRef[] relationsOfMember = relations[a];
+                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                IObjRef[] relationsOfMember = relations[relationIndex];
 
                 if (!CascadeLoadMode.EAGER.Equals(relationMember.CascadeLoadMode))
                 {
-                    bool? isinitializedV = proxyHelper.IsInitialized(primitiveFilledObject, relationMember);
-                    if (!isinitializedV.Value)
+                    if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                     {
                         // Update ObjRef information within the entity and do nothing else
-                        proxyHelper.SetObjRefs(primitiveFilledObject, relationMember, relationsOfMember);
+                        vhc.Set__ObjRefs(relationIndex, relationsOfMember);
                         continue;
                     }
                 }
@@ -544,10 +544,10 @@ namespace De.Osthus.Ambeth.Cache
                 if (relationsOfMember == null)
                 {
                     // Reset value holder state because we do not know the content currently
-                    proxyHelper.SetUninitialized(primitiveFilledObject, relationMember, relationsOfMember);
+                    vhc.Set__Uninitialized(relationIndex, null);
                     continue;
                 }
-                Object relationValue = relationMember.GetValue(primitiveFilledObject);
+                Object relationValue = relationMember.GetValue(vhc);
                 if (relationsOfMember.Length == 0)
                 {
                     if (!relationMember.IsToMany)
@@ -555,7 +555,7 @@ namespace De.Osthus.Ambeth.Cache
                         if (relationValue != null)
                         {
                             // Relation has to be flushed
-                            relationMember.SetValue(primitiveFilledObject, null);
+                            relationMember.SetValue(vhc, null);
                         }
                     }
                     else
@@ -569,7 +569,7 @@ namespace De.Osthus.Ambeth.Cache
                         {
                             // We have to create a new empty collection
                             relationValue = cacheHelper.CreateInstanceOfTargetExpectedType(relationMember.RealType, relationMember.ElementType);
-                            relationMember.SetValue(primitiveFilledObject, relationValue);
+                            relationMember.SetValue(vhc, relationValue);
                         }
                     }
                     continue;
@@ -585,7 +585,7 @@ namespace De.Osthus.Ambeth.Cache
                     Object newRelationValue = cacheHelper.ConvertResultListToExpectedType(potentialNewItems, relationMember.RealType,
                             relationMember.ElementType);
                     // Set new to-many-relation, even if there has not changed anything in its item content
-                    relationMember.SetValue(primitiveFilledObject, newRelationValue);
+                    relationMember.SetValue(vhc, newRelationValue);
                     continue;
                 }
                 IList<Object> relationItems = ListUtil.AnyToList(relationValue);
@@ -617,7 +617,7 @@ namespace De.Osthus.Ambeth.Cache
                     // We have to create a new empty collection or replace the to-one value
                     Object newRelationValue = cacheHelper.ConvertResultListToExpectedType(potentialNewItems, relationMember.RealType,
                             relationMember.ElementType);
-                    relationMember.SetValue(primitiveFilledObject, newRelationValue);
+                    relationMember.SetValue(vhc, newRelationValue);
                 }
             }
         }
@@ -722,13 +722,14 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override void PutInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
         {
-            IRelationInfoItem member = (IRelationInfoItem)metaData.GetMemberByName(objRelation.MemberName);
-            if (ProxyHelper.IsInitialized(cacheValue, member))
+            int relationIndex = metaData.GetIndexByRelationName(objRelation.MemberName);
+            IObjRefContainer vhc = (IObjRefContainer)cacheValue;
+            if (ValueHolderState.INIT == vhc.Get__State(relationIndex))
             {
                 // It is not allowed to set ObjRefs for an already initialized relation
                 return;
             }
-            ProxyHelper.SetObjRefs(cacheValue, member, relationsOfMember);
+            vhc.Set__ObjRefs(relationIndex, relationsOfMember);
         }
     }
 }

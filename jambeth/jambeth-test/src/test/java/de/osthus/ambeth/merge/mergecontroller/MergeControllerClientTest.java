@@ -25,7 +25,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
-import de.osthus.ambeth.merge.MergeController;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
@@ -34,6 +33,7 @@ import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.util.MultithreadingHelper;
+import de.osthus.ambeth.util.ReflectUtil;
 
 @SQLStructure("MergeControllerTest_structure.sql")
 @SQLData("MergeControllerTest_data.sql")
@@ -63,7 +63,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 
 		// To simulate client behavior the entityMetaDataProvider has to return an entityPersistOrder
 		IEntityMetaDataProvider orderedEntityMetaDataProvider = new OrderedEntityMetaDataServer(entityMetaDataProvider);
-		((MergeController) mergeController).setEntityMetaDataProvider(orderedEntityMetaDataProvider);
+		ReflectUtil.getDeclaredField(mergeController.getClass(), "entityMetaDataProvider").set(mergeController, orderedEntityMetaDataProvider);
 	}
 
 	@Test

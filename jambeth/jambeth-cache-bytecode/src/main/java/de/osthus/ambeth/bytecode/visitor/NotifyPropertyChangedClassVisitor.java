@@ -307,10 +307,10 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		mg.callThisGetter(p_setterMethodHandle);
 		// oldValue
 		mg.loadLocal(loc_oldValue);
-		mg.box(propertyType);
+		mg.valueOf(propertyType);
 		// newValue
 		mg.loadArg(0);
-		mg.box(propertyType);
+		mg.valueOf(propertyType);
 		// firePropertyChange(propertyChangeSupport, property, oldValue, newValue)
 		mg.invokeVirtual(m_firePropertyChange);
 
