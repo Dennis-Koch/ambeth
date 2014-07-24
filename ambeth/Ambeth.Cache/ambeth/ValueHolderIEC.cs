@@ -20,18 +20,21 @@ using De.Osthus.Ambeth.Exceptions;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class ValueHolderContainerEntry : HashMap<ITypeInfoItem, AbstractValueHolderEntry>
+    public class ValueHolderContainerEntry
     {
+        protected readonly AbstractValueHolderEntry2[] entries;
+
         public ValueHolderContainerEntry(Type targetType, IRelationInfoItem[] members, IBytecodeEnhancer bytecodeEnhancer,
             IPropertyInfoProvider propertyInfoProvider)
-            : base(0.5f)
         {
+            entries = new AbstractValueHolderEntry2[members.Length];
             try
             {
-                foreach (IRelationInfoItem member in members)
+                for (int relationIndex = members.Length; relationIndex-- > 0; )
                 {
-                    AbstractValueHolderEntry vhEntry = new AbstractValueHolderEntry2(targetType, member, bytecodeEnhancer, propertyInfoProvider);
-                    Put(member, vhEntry);
+                    IRelationInfoItem member = members[relationIndex];
+                    AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, bytecodeEnhancer, propertyInfoProvider);
+                    entries[relationIndex] = vhEntry;
                 }
             }
             catch (Exception e)
@@ -40,39 +43,54 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        public IObjRef[] GetObjRefs(Object obj, IRelationInfoItem member)
+        public void SetUninitialized(Object obj, int relationIndex, IObjRef[] objRefs)
         {
-            return Get(member).GetObjRefs(obj);
+            entries[relationIndex].SetUninitialized(obj, objRefs);
         }
 
-        public void SetUninitialized(Object obj, IRelationInfoItem member, IObjRef[] objRefs)
+        public void SetInitialized(Object obj, int relationIndex, Object value)
         {
-            Get(member).SetUninitialized(obj, objRefs);
+            entries[relationIndex].SetInitialized(obj, value);
         }
 
-        public void SetInitialized(Object obj, IRelationInfoItem member, Object value)
+        public void SetInitPending(Object obj, int relationIndex)
         {
-            Get(member).SetInitialized(obj, value);
+            entries[relationIndex].SetInitPending(obj);
         }
 
-        public void SetObjRefs(Object obj, IRelationInfoItem member, IObjRef[] objRefs)
+        public IObjRef[] GetObjRefs(Object obj, int relationIndex)
         {
-            Get(member).SetObjRefs(obj, objRefs);
+            return entries[relationIndex].GetObjRefs(obj);
         }
 
-        public Object GetValueDirect(Object obj, IRelationInfoItem member)
+        public void SetObjRefs(Object obj, int relationIndex, IObjRef[] objRefs)
         {
-            return Get(member).GetValueDirect(obj);
+            entries[relationIndex].SetObjRefs(obj, objRefs);
         }
 
-        public ValueHolderState GetState(Object obj, IRelationInfoItem member)
+        public Object GetValueDirect(Object obj, int relationIndex)
         {
-            return Get(member).GetState(obj);
+            return entries[relationIndex].GetValueDirect(obj);
         }
 
-        public void SetState(Object obj, IRelationInfoItem member, ValueHolderState state)
+        public void SetValueDirect(Object obj, int relationIndex, Object value)
         {
-            Get(member).SetState(obj, state);
+            entries[relationIndex].SetInitialized(obj, value);
+        }
+
+        public bool IsInitialized(Object obj, int relationIndex)
+        {
+            return ValueHolderState.INIT == GetState(obj, relationIndex);
+        }
+
+        public ValueHolderState GetState(Object obj, int relationIndex)
+        {
+            return entries[relationIndex].GetState(obj);
+        }
+
+        public void SetState(Object obj, int relationIndex, ValueHolderState state)
+        {
+            entries[relationIndex].SetState(obj, state);
         }
     }
 
@@ -83,6 +101,8 @@ namespace De.Osthus.Ambeth.Cache
         public abstract void SetUninitialized(Object obj, IObjRef[] objRefs);
 
         public abstract void SetInitialized(Object obj, Object value);
+
+        public abstract void SetInitPending(Object obj);
 
         public abstract IObjRef[] GetObjRefs(Object obj);
 
@@ -320,10 +340,12 @@ namespace De.Osthus.Ambeth.Cache
 
         public override void SetInitialized(Object obj, Object value)
         {
-            //setState(obj, ValueHolderState.INIT);
-            //setObjRefs(obj, null);
-            //setDirectValue(obj, value);
             member.SetValue(obj, value);
+        }
+
+        public override void SetInitPending(Object obj)
+        {
+            setState(obj, ValueHolderState.PENDING);
         }
 
         public override IObjRef[] GetObjRefs(Object obj)
@@ -347,7 +369,7 @@ namespace De.Osthus.Ambeth.Cache
         }
     }
 
-    public class ValueHolderIEC : SmartCopyMap<Type, Type>, IEntityChecker, IProxyHelper, IInitializingBean
+    public class ValueHolderIEC : SmartCopyMap<Type, Type>, IProxyHelper, IInitializingBean
     {
         public static String GetObjRefsFieldName(String propertyName)
         {
@@ -414,68 +436,6 @@ namespace De.Osthus.Ambeth.Cache
             return GetVhcEntry(parentObj.GetType());
         }
 
-        public bool IsInitialized(Object parentObj, String memberName)
-        {
-            IRelationInfoItem member = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(parentObj.GetType()).GetMemberByName(memberName);
-            return IsInitialized(parentObj, member);
-        }
-
-        public bool IsInitialized(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            return ValueHolderState.INIT == vhcEntry.GetState(parentObj, member);
-        }
-
-        public ValueHolderState GetState(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            if (vhcEntry == null)
-            {
-                return ValueHolderState.INIT;
-            }
-            return vhcEntry.GetState(parentObj, member);
-        }
-
-        public IObjRef[] GetObjRefs(Object parentObj, String memberName)
-        {
-            IRelationInfoItem member = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(parentObj.GetType()).GetMemberByName(memberName);
-            return GetObjRefs(parentObj, member);
-        }
-
-        public IObjRef[] GetObjRefs(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            return vhcEntry.GetObjRefs(parentObj, member);
-        }
-
-        public void SetUninitialized(Object parentObj, IRelationInfoItem member, IObjRef[] objRefs)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            vhcEntry.SetUninitialized(parentObj, member, objRefs);
-            // This may fire a property change listener, so it is important to set this AFTER if resetted the value holder above
-        }
-
-        public void SetInitialized(Object parentObj, IRelationInfoItem member, Object value)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            vhcEntry.SetInitialized(parentObj, member, value);
-        }
-
-        public void SetObjRefs(Object parentObj, IRelationInfoItem member, IObjRef[] objRefs)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            vhcEntry.SetObjRefs(parentObj, member, objRefs);
-        }
-
-        public EntityTypeResult CheckForEntityType(Type entityType)
-        {
-            if (typeof(ILoadContainer).IsAssignableFrom(entityType))
-            {
-                return EntityTypeResult.ENTITY_TRUE;
-            }
-            return EntityTypeResult.UNDEFINED;
-        }
-
         public Type GetRealType(Type type)
         {
             Type realType = Get(type);
@@ -501,29 +461,6 @@ namespace De.Osthus.Ambeth.Cache
             }
             Put(type, realType);
             return realType;
-        }
-
-        public Object GetValueDirect(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            return vhcEntry.GetValueDirect(parentObj, member);
-        }
-
-        public void SetInitPending(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            vhcEntry.SetState(parentObj, member, ValueHolderState.PENDING);
-        }
-
-        public bool GetInitPending(Object parentObj, IRelationInfoItem member)
-        {
-            ValueHolderContainerEntry vhcEntry = GetVhcEntry(parentObj);
-            return ValueHolderState.PENDING.Equals(vhcEntry.GetState(parentObj, member));
-        }
-
-        public void SetValueDirect(Object parentObj, IRelationInfoItem member, Object value)
-        {
-            member.SetValue(parentObj, value);
         }
 
         public bool ObjectEquals(Object leftObject, Object rightObject)

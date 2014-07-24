@@ -24,6 +24,7 @@ import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
@@ -31,7 +32,6 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("alternateid_data.sql")
@@ -250,8 +250,8 @@ public class AlternateIdTest extends AbstractPersistenceTest
 				Assert.assertEquals(1, result.size());
 				AlternateIdEntity item = result.get(0);
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-				IRelationInfoItem member = (IRelationInfoItem) metaData.getMemberByName("BaseEntities2");
-				Assert.assertTrue(!proxyHelper.isInitialized(item, member));
+				int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
+				Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
 				List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
 				BaseEntity2 baseEntity2 = baseEntities2.get(0);
 				Assert.assertNotNull(baseEntity2);

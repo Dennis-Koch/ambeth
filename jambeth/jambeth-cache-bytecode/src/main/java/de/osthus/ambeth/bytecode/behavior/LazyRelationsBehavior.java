@@ -5,6 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.util.EntityUtil;
+import de.osthus.ambeth.bytecode.visitor.EntityMetaDataHolderVisitor;
 import de.osthus.ambeth.bytecode.visitor.InterfaceAdder;
 import de.osthus.ambeth.bytecode.visitor.RelationsGetterVisitor;
 import de.osthus.ambeth.bytecode.visitor.SetCacheModificationMethodCreator;
@@ -14,6 +15,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
@@ -36,7 +38,7 @@ public class LazyRelationsBehavior extends AbstractBehavior
 	@Override
 	public Class<?>[] getEnhancements()
 	{
-		return new Class<?>[] { IValueHolderContainer.class };
+		return new Class<?>[] { IObjRefContainer.class, IValueHolderContainer.class };
 	}
 
 	@Override
@@ -90,6 +92,7 @@ public class LazyRelationsBehavior extends AbstractBehavior
 			}
 			// Add this interface only for real entities, not for embedded types
 			visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
+			visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
 		}
 		visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper);
 		visitor = new SetCacheModificationMethodCreator(visitor);

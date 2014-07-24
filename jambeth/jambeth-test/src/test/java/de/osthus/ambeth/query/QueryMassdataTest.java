@@ -1,6 +1,8 @@
 package de.osthus.ambeth.query;
 
+import java.sql.Array;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,12 +41,15 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
+import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
@@ -66,7 +71,7 @@ import de.osthus.ambeth.util.ParamHolder;
 @SQLStructure("QueryMassdata_structure.sql")
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
 		@TestProperties(name = IocConfigurationConstants.MonitorBeansActive, value = "false"),
-		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "300"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
+		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "100"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
 		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
@@ -88,7 +93,7 @@ import de.osthus.ambeth.util.ParamHolder;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.proxy.AbstractCascadePostProcessor", value = "INFO"),
-		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.MergeService", value = "INFO") })
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.PersistenceMergeServiceExtension", value = "INFO") })
 public class QueryMassdataTest extends AbstractPersistenceTest
 {
 	public static final String THREAD_COUNT = "QueryMassdataTest.threads";
@@ -108,36 +113,28 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 	@LogInstance
 	private ILogger log;
 
-	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+	@Autowired
+	protected Connection connection;
 
-	protected int duration;
-	protected int threads;
-	protected int size;
-	protected int dataCount;
+	@Autowired
+	protected IConnectionExtension connectionExtension;
+
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
+	protected String[] schemaNames;
 
 	@Property(name = DURATION_PER_TEST)
-	public void setDuration(int duration)
-	{
-		this.duration = duration;
-	}
+	protected int duration;
 
 	@Property(name = THREAD_COUNT)
-	public void setThreads(int threads)
-	{
-		this.threads = threads;
-	}
+	protected int threads;
 
 	@Property(name = QUERY_PAGE_SIZE)
-	public void setSize(int size)
-	{
-		this.size = size;
-	}
+	protected int size;
 
 	@Property(name = ROW_COUNT)
-	public void setDataCount(int dataCount)
-	{
-		this.dataCount = dataCount;
-	}
+	protected int dataCount;
+
+	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 
 	@Test
 	public void massDataReadFalseFalseFalse() throws Exception
@@ -405,19 +402,26 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 		measurement.log(prefix + " Time spent per execution (ms)", timeSpentPerExecution);
 		measurement.log(prefix + " CPU usage for scenario (%)", (int) (100 * cpuUsage / (float) timeSpent));
 
-		final String sql = "SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions,parse_calls,disk_reads,buffer_gets,rows_processed FROM v$sqlarea WHERE PARSING_SCHEMA_NAME='JAMBETH' AND MODULE='JDBC Thin Client' ORDER BY executions DESC";
-
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
 			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
 			{
-				Connection connection = beanContext.getService(Connection.class);
-				Statement stm = connection.createStatement();
+				PreparedStatement pstm = null;
 				ResultSet rs = null;
+				Array array = null;
 				try
 				{
-					rs = stm.executeQuery(sql);
+					pstm = connection
+							.prepareStatement("SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions,parse_calls,disk_reads,buffer_gets,rows_processed FROM v$sqlarea WHERE PARSING_SCHEMA_NAME IN (SELECT COLUMN_VALUE FROM TABLE(?)) AND MODULE='JDBC Thin Client' ORDER BY executions DESC");
+					String[] uppercaseSchemaNames = new String[schemaNames.length];
+					for (int a = schemaNames.length; a-- > 0;)
+					{
+						uppercaseSchemaNames[a] = schemaNames[a].toUpperCase();
+					}
+					array = connectionExtension.createJDBCArray(String.class, uppercaseSchemaNames);
+					pstm.setArray(1, array);
+					rs = pstm.executeQuery();
 					final int columnCount = rs.getMetaData().getColumnCount();
 					while (rs.next())
 					{
@@ -448,7 +452,8 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 				}
 				finally
 				{
-					JdbcUtil.close(stm, rs);
+					JdbcUtil.close(array);
+					JdbcUtil.close(pstm, rs);
 				}
 			}
 		});

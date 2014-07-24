@@ -43,21 +43,55 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         private static readonly PropertyInstance p_template_targetCache = new PropertyInstance(typeof(IValueHolderContainer).GetProperty("__TargetCache"));
 
         private static readonly MethodInstance m_vhce_getState_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(ValueHolderState), "GetState", typeof(Object),
-            typeof(IRelationInfoItem));
+            typeof(int));
+
+        private static readonly MethodInstance m_vhce_setInitPending_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(void), "SetInitPending", typeof(Object),
+            typeof(int));
+
+        private static readonly MethodInstance m_vhce_isInitialized_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(bool), "IsInitialized", typeof(Object),
+            typeof(int));
 
         private static readonly MethodInstance m_vhce_getObjRefs_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(IObjRef[]), "GetObjRefs", typeof(Object),
-            typeof(IRelationInfoItem));
+            typeof(int));
 
-        private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(ValueHolderState), "GetState", typeof(IRelationInfoItem));
+       	private static readonly MethodInstance m_vhce_setObjRefs_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(void), "SetObjRefs",
+			typeof(Object), typeof(int), typeof(IObjRef[]));
 
-        private static readonly MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(IObjRef[]), "GetObjRefs",
-            typeof(IRelationInfoItem));
+        private static readonly MethodInstance m_vhce_getValueDirect_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(Object), "GetValueDirect", typeof(Object),
+            typeof(int));
+
+        private static readonly MethodInstance m_vhce_setValueDirect_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(void), "SetValueDirect",
+            typeof(Object), typeof(int), typeof(Object));
+
+    	private static readonly MethodInstance m_vhce_setUninitialized_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(void),
+			"SetUninitialized", typeof(Object), typeof(int), typeof(IObjRef[]));
+
+        private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(ValueHolderState), "Get__State", typeof(int));
+
+        private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__InitPending", typeof(int));
+
+        private static readonly MethodInstance m_template_isInitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(bool), "Is__Initialized", typeof(int));
+
+        private static readonly MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(IObjRef[]), "Get__ObjRefs",
+            typeof(int));
+
+       	private static readonly MethodInstance m_template_setObjRefs_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__ObjRefs",
+			typeof(int), typeof(IObjRef[]));
+
+        private static readonly MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(Object), "Get__ValueDirect",
+            typeof(int));
+
+        private static readonly MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__ValueDirect",
+            typeof(int), typeof(Object));
+
+    	private static readonly MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__Uninitialized",
+			typeof(int), typeof(IObjRef[]));
 
         private static readonly MethodInstance m_template_getSelf = new MethodInstance(null, templateType, typeof(IObjRelation), "GetSelf",
-                typeof(Object), typeof(String));
+                typeof(IObjRefContainer), typeof(int));
 
         private static readonly MethodInstance m_template_getValue = new MethodInstance(null, templateType, typeof(Object), "GetValue",
-                typeof(Object), typeof(IRelationInfoItem[]), typeof(int), typeof(ICacheIntern), typeof(IObjRef[]));
+                typeof(IValueHolderContainer), typeof(IRelationInfoItem[]), typeof(int), typeof(ICacheIntern), typeof(IObjRef[]));
 
         public static PropertyInstance GetValueHolderContainerTemplatePI(IClassVisitor cv)
         {
@@ -116,7 +150,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 PropertyInstance p_valueHolderContainerEntry = ImplementAssignedReadonlyProperty("ValueHolderContainerEntry", new ValueHolderContainerEntryValueResolver(valueHolderContainerHelper));
                 ImplementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementSetInitPending(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementIsInitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
                 ImplementGetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementSetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementGetValueDirect(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementSetValueDirect(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+                ImplementSetUninitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
             }
 
             ImplementValueHolderCode(p_valueHolderContainerTemplate, p_targetCache, p_relationMembers);
@@ -224,6 +264,32 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        protected void ImplementSetInitPending(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_setInitPending_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_setInitPending_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
+        protected void ImplementIsInitialized(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_isInitialized_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_isInitialized_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
         protected void ImplementGetObjRefs(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
         {
             {
@@ -232,6 +298,58 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mv.LoadThis();
                 mv.LoadArgs();
                 mv.InvokeVirtual(m_vhce_getObjRefs_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
+        protected void ImplementGetValueDirect(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_getValueDirect_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_getValueDirect_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
+        protected void ImplementSetValueDirect(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_setValueDirect_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_setValueDirect_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
+        protected void ImplementSetObjRefs(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_setObjRefs_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_setObjRefs_Member);
+                mv.ReturnValue();
+                mv.EndMethod();
+            }
+        }
+
+        protected void ImplementSetUninitialized(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_valueHolderContainerEntry)
+        {
+            {
+                IMethodVisitor mv = VisitMethod(m_template_setUninitialized_Member);
+                mv.CallThisGetter(p_valueHolderContainerEntry);
+                mv.LoadThis();
+                mv.LoadArgs();
+                mv.InvokeVirtual(m_vhce_setUninitialized_Member);
                 mv.ReturnValue();
                 mv.EndMethod();
             }
@@ -350,33 +468,19 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected void ImplementSelfGetter(PropertyInstance p_valueHolderContainerTemplate)
         {
             NewType owner = State.NewType;
-            MethodInstance m_getSelf = new MethodInstance(owner, typeof(IValueHolderContainer), typeof(IObjRelation), "GetSelf", typeof(String));
+            MethodInstance m_getSelf = new MethodInstance(owner, typeof(IValueHolderContainer), typeof(IObjRelation), "Get__Self", typeof(int));
             {
                 // public IObjRelation getSelf(String memberName)
                 // {
-                // return RelationsGetterVisitor.valueHolderContainer_getSelf(this, this.$beanContext, memberName);
+                // return ValueHolderContainerTemplate.GetSelf(this, relationIndex);
                 // }
                 IMethodVisitor mv = VisitMethod(m_getSelf);
                 mv.CallThisGetter(p_valueHolderContainerTemplate);
                 // this
                 mv.LoadThis();
-                // memberName
+                // relationIndex
                 mv.LoadArgs();
                 mv.InvokeVirtual(m_template_getSelf);
-                mv.ReturnValue();
-                mv.EndMethod();
-            }
-            {
-                // public IObjRelation getSelf(IRelationInfoItem member)
-                // {
-                // return getSelf(member.getName());
-                // }
-                MethodInstance method = new MethodInstance(owner, typeof(IValueHolderContainer), typeof(IObjRelation), "GetSelf", typeof(IRelationInfoItem));
-                IMethodVisitor mv = VisitMethod(method);
-                mv.LoadThis();
-                mv.LoadArg(0);
-                mv.InvokeInterface(new MethodInstance(null, typeof(INamed), typeof(String), "get_Name"));
-                mv.InvokeVirtual(m_getSelf);
                 mv.ReturnValue();
                 mv.EndMethod();
             }

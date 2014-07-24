@@ -16,13 +16,14 @@ import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.IWritableCache;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
@@ -34,16 +35,16 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.RelationUpdateItem;
 import de.osthus.ambeth.model.IDataObject;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.OptimisticLockUtil;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ValueHolderRef;
 
-public class MergeController implements IMergeController, IMergeExtendable, IInitializingBean
+public class MergeController implements IMergeController, IMergeExtendable
 {
 	protected static final Set<CacheDirective> failEarlyAndReturnMissesSet = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
 
@@ -51,100 +52,37 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 	@LogInstance
 	private ILogger log;
 
-	protected final List<IMergeExtension> mergeExtensions = new ArrayList<IMergeExtension>();
-
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
 	protected ICacheModification cacheModification;
 
+	@Autowired
 	protected ICacheProvider cacheProvider;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
-	protected IProxyHelper proxyHelper;
-
+	@Autowired
 	protected ICUDResultHelper cudResultHelper;
 
+	@Autowired
 	protected IObjRefHelper oriHelper;
 
+	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
 	protected boolean exactVersionForOptimisticLockingRequired;
 
+	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, defaultValue = "false")
 	protected boolean alwaysUpdateVersionInChangedEntities;
 
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(cacheFactory, "CacheFactory");
-		ParamChecker.assertNotNull(cacheModification, "CacheModification");
-		ParamChecker.assertNotNull(cacheProvider, "CacheProvider");
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(prefetchHelper, "PrefetchHelper");
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-		ParamChecker.assertNotNull(cudResultHelper, "CudResultHelper");
-		ParamChecker.assertNotNull(oriHelper, "OriHelper");
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCacheModification(ICacheModification cacheModification)
-	{
-		this.cacheModification = cacheModification;
-	}
-
-	public void setCacheProvider(ICacheProvider cacheProvider)
-	{
-		this.cacheProvider = cacheProvider;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setPrefetchHelper(IPrefetchHelper prefetchHelper)
-	{
-		this.prefetchHelper = prefetchHelper;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setCUDResultHelper(ICUDResultHelper cudResultHelper)
-	{
-		this.cudResultHelper = cudResultHelper;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	@Property(name = MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, defaultValue = "false")
-	public void setExactVersionForOptimisticLockingRequired(boolean exactVersionForOptimisticLockingRequired)
-	{
-		this.exactVersionForOptimisticLockingRequired = exactVersionForOptimisticLockingRequired;
-	}
-
-	@Property(name = MergeConfigurationConstants.AlwaysUpdateVersionInChangedEntities, defaultValue = "false")
-	public void setAlwaysUpdateVersionInChangedEntities(boolean alwaysUpdateVersionInChangedEntities)
-	{
-		this.alwaysUpdateVersionInChangedEntities = alwaysUpdateVersionInChangedEntities;
-	}
+	protected final List<IMergeExtension> mergeExtensions = new ArrayList<IMergeExtension>();
 
 	@Override
 	public void registerMergeExtension(IMergeExtension mergeExtension)
@@ -320,22 +258,21 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 				{
 					objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
 				}
-				IProxyHelper proxyHelper = this.proxyHelper;
 				IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
 				for (int a = valueHolderKeys.size(); a-- > 0;)
 				{
-					Object objectOfVhk = objectsOfVhks.get(a);
+					IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
 					if (objectOfVhk == null)
 					{
 						continue;
 					}
 					ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
-					IRelationInfoItem member = valueHolderRef.getMember();
-					if (!proxyHelper.isInitialized(objectOfVhk, member))
+					if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex()))
 					{
-						DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
-						handle.getPendingValueHolders().add(vhcKey);
+						continue;
 					}
+					DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
+					handle.getPendingValueHolders().add(vhcKey);
 				}
 			}
 		}
@@ -439,18 +376,22 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 			return;
 		}
 		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-		IProxyHelper proxyHelper = this.proxyHelper;
-		for (int a = relationMembers.length; a-- > 0;)
+		if (relationMembers.length == 0)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-			if (!proxyHelper.isInitialized(obj, relationMember))
+			return;
+		}
+		IObjRefContainer vhc = (IObjRefContainer) obj;
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 			{
 				continue;
 			}
+			IRelationInfoItem relationMember = relationMembers[relationIndex];
 			Object item = relationMember.getValue(obj);
 			if (objRef != null && item != null)
 			{
-				ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember);
+				ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember, relationIndex);
 				valueHolderKeys.add(vhk);
 			}
 			scanForInitializedObjectsIntern(item, isDeepMerge, objects, typeToObjectsToMerge, alreadyHandledObjectsSet, objRefs, valueHolderKeys);
@@ -580,24 +521,30 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 	protected void persist(Object obj, MergeHandle handle)
 	{
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
-		IProxyHelper proxyHelper = this.proxyHelper;
 
 		// Ensure entity will be persisted even if no single property is specified
 		addModification(obj, handle);
 
-		for (IRelationInfoItem relationMember : metaData.getRelationMembers())
+		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		if (relationMembers.length > 0)
 		{
-			if (!proxyHelper.isInitialized(obj, relationMember))
-			{
-				continue;
-			}
-			Object objMember = relationMember.getValue(obj, false);
+			IObjRefContainer vhc = (IObjRefContainer) obj;
 
-			if (objMember == null)
+			for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 			{
-				continue;
+				IRelationInfoItem relationMember = relationMembers[relationIndex];
+				if (ValueHolderState.INIT != vhc.get__State(relationIndex))
+				{
+					continue;
+				}
+				Object objMember = relationMember.getValue(obj, false);
+
+				if (objMember == null)
+				{
+					continue;
+				}
+				addOriModification(obj, relationMember.getName(), objMember, null, handle);
 			}
-			addOriModification(obj, relationMember.getName(), objMember, null, handle);
 		}
 		for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
 		{
@@ -618,41 +565,47 @@ public class MergeController implements IMergeController, IMergeExtendable, IIni
 	protected void merge(final Object obj, final Object clone, final MergeHandle handle)
 	{
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-		IProxyHelper proxyHelper = this.proxyHelper;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
 
 		boolean fieldBasedMergeActive = handle.isFieldBasedMergeActive();
 		boolean oneChangeOccured = false;
 		try
 		{
-			for (IRelationInfoItem relationMember : metaData.getRelationMembers())
+			IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+			if (relationMembers.length > 0)
 			{
-				if (!metaData.isMergeRelevant(relationMember))
+				IObjRefContainer vhc = (IObjRefContainer) obj;
+
+				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 				{
-					continue;
-				}
-				if (!proxyHelper.isInitialized(obj, relationMember))
-				{
-					// v2 valueholder is not initialized. so a change is impossible
-					continue;
-				}
-				Object objMember = relationMember.getValue(obj, false);
-				Object cloneMember = relationMember.getValue(clone, false);
-				if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges())
-				{
-					IEntityMetaData relationMetaData = entityMetaDataProvider.getMetaData(relationMember.getRealType());
-					if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData))
+					IRelationInfoItem relationMember = relationMembers[relationIndex];
+					if (!metaData.isMergeRelevant(relationMember))
 					{
 						continue;
 					}
-				}
+					if (ValueHolderState.INIT != vhc.get__State(relationIndex))
+					{
+						// v2 valueholder is not initialized. so a change is impossible
+						continue;
+					}
+					Object objMember = relationMember.getValue(obj, false);
+					Object cloneMember = relationMember.getValue(clone, false);
+					if (objMember instanceof IDataObject && !((IDataObject) objMember).hasPendingChanges())
+					{
+						IEntityMetaData relationMetaData = entityMetaDataProvider.getMetaData(relationMember.getRealType());
+						if (equalsReferenceOrId(objMember, cloneMember, handle, relationMetaData))
+						{
+							continue;
+						}
+					}
 
-				IEntityMetaData childMetaData = entityMetaDataProvider.getMetaData(relationMember.getElementType());
+					IEntityMetaData childMetaData = entityMetaDataProvider.getMetaData(relationMember.getElementType());
 
-				if (isMemberModified(objMember, cloneMember, handle, childMetaData))
-				{
-					oneChangeOccured = true;
-					addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
+					if (isMemberModified(objMember, cloneMember, handle, childMetaData))
+					{
+						oneChangeOccured = true;
+						addOriModification(obj, relationMember.getName(), objMember, cloneMember, handle);
+					}
 				}
 			}
 			if (fieldBasedMergeActive)

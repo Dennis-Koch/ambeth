@@ -120,15 +120,6 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 		}
 	}
 
-	protected String escapeName(String schemaName, String tableName)
-	{
-		if (schemaName == null)
-		{
-			return "\"" + tableName + "\"";
-		}
-		return "\"" + schemaName + "\".\"" + tableName + "\"";
-	}
-
 	protected void printResultSet(ResultSet rs) throws SQLException
 	{
 		ResultSetMetaData metaData = rs.getMetaData();

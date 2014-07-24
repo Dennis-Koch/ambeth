@@ -1,8 +1,8 @@
 package de.osthus.ambeth.persistence.jdbc.connection;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,7 +21,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.format.PaddingDecimalFormat;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -31,9 +31,8 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.persistence.jdbc.connection.DefaultStatementPerformanceLogger.StatementInfo;
 import de.osthus.ambeth.sensor.IntervalInfo;
 import de.osthus.ambeth.sensor.ReentrantIntervalSensor;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<StatementInfo> implements IStatementPerformanceReport, IInitializingBean
+public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<StatementInfo> implements IStatementPerformanceReport
 {
 	public static class StatementInfo extends IntervalInfo
 	{
@@ -64,37 +63,16 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Connection connection;
 
-	protected String schemaName;
-
+	@Autowired
 	protected ITransaction transaction;
 
-	protected final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<String, StatementEntry>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connection, "connection");
-		ParamChecker.assertNotNull(schemaName, "schemaName");
-		ParamChecker.assertNotNull(transaction, "transaction");
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
-	public void setSchemaName(String schemaName)
-	{
-		this.schemaName = schemaName;
-	}
+	protected String[] schemaNames;
 
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
+	protected final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<String, StatementEntry>();
 
 	@Override
 	protected StatementInfo createIntervalInfo(String sensorName)
@@ -182,7 +160,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 	@Override
 	public void printTop(StringBuilder sb, boolean reset)
 	{
-		IMap<String, StatementEntry> sqlToRemoteEntryMap = joinRemoteDatabaseInfo(schemaName);
+		IMap<String, StatementEntry> sqlToRemoteEntryMap = joinRemoteDatabaseInfo(schemaNames);
 		final long currentTime;
 		final LinkedHashMap<String, StatementEntry> sqlToEntryMap = new LinkedHashMap<String, StatementEntry>();
 		ArrayList<StatementInfo> statementInfos = new ArrayList<StatementInfo>();
@@ -266,7 +244,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 		DecimalFormat floatDF = new PaddingDecimalFormat("######0.00");
 		DecimalFormat integerDF = new PaddingDecimalFormat("#######");
 
-		String ignoreSql = getRemoteDatabaseInfoSql(schemaName);
+		String ignoreSql = getRemoteDatabaseInfoSql(schemaNames);
 		for (int a = 0, size = keysList.size(); a < size; a++)
 		{
 			String sql = keysList.get(a);
@@ -317,28 +295,34 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 		return (long) (100 * duration / (double) count) / 100.0;
 	}
 
-	protected String getRemoteDatabaseInfoSql(String schemaName)
+	protected String getRemoteDatabaseInfoSql(String[] schemaNames)
 	{
-		return "SELECT sql_text, elapsed_time/1000 elapsed_time, executions FROM v$sqlarea WHERE PARSING_SCHEMA_NAME='" + schemaName.toUpperCase()
-				+ "' AND MODULE='JDBC Thin Client' ORDER BY executions DESC";
+		return "SELECT sql_text,cpu_time/1000000 cpu_time,elapsed_time/1000000 elapsed_time,executions FROM v_$sqlarea WHERE parsing_schema_name IN (?) AND module='JDBC Thin Client' ORDER BY executions DESC";
 	}
 
-	protected IMap<String, StatementEntry> joinRemoteDatabaseInfo(String schemaName)
+	protected IMap<String, StatementEntry> joinRemoteDatabaseInfo(final String... schemaNames)
 	{
 		final LinkedHashMap<String, StatementEntry> statementInfoMap = new LinkedHashMap<String, StatementEntry>();
 
-		final String sql = getRemoteDatabaseInfoSql(schemaName);
+		final String sql = getRemoteDatabaseInfoSql(schemaNames);
 
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
 			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Exception
 			{
-				Statement stm = connection.createStatement();
+				PreparedStatement pstm = null;
 				ResultSet rs = null;
 				try
 				{
-					rs = stm.executeQuery(sql);
+					pstm = connection.prepareStatement(sql);
+					String[] uppercaseSchemaNames = new String[schemaNames.length];
+					for (int a = schemaNames.length; a-- > 0;)
+					{
+						uppercaseSchemaNames[a] = schemaNames[a].toUpperCase();
+					}
+					pstm.setObject(1, uppercaseSchemaNames);
+					rs = pstm.executeQuery();
 					while (rs.next())
 					{
 						String sql = rs.getString("sql_text");
@@ -353,7 +337,7 @@ public class DefaultStatementPerformanceLogger extends ReentrantIntervalSensor<S
 				}
 				finally
 				{
-					JdbcUtil.close(stm, rs);
+					JdbcUtil.close(pstm, rs);
 				}
 			}
 		});

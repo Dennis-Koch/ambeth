@@ -1,10 +1,11 @@
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Proxy;
 using System;
 
 namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 {
-    public abstract class RootCacheValue : AbstractCacheValue, IListElem<RootCacheValue>
+    public abstract class RootCacheValue : AbstractCacheValue, IListElem<RootCacheValue>, IObjRefContainer
     {
 	    protected Object listHandle;
 
@@ -12,7 +13,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 
         public IListElem<RootCacheValue> Next { get; set; }
 
-	    protected RootCacheValue(Type entityType)
+	    protected RootCacheValue(IEntityMetaData metaData)
 	    {
 		    // Intended blank
 	    }
@@ -54,5 +55,37 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
                 throw new NotSupportedException();
             }
 	    }
+
+	    public ValueHolderState Get__State(int relationIndex)
+	    {
+		    return ValueHolderState.LAZY;
+	    }
+
+        public void Set__InitPending(int relationIndex)
+        {
+            // intended blank
+        }
+
+        public bool Is__Initialized(int relationIndex)
+        {
+            return false;
+        }
+
+	    public IObjRef[] Get__ObjRefs(int relationIndex)
+	    {
+		    return GetRelation(relationIndex);
+	    }
+
+	    public void Set__ObjRefs(int relationIndex, IObjRef[] objRefs)
+	    {
+		    SetRelation(relationIndex, objRefs);
+	    }
+
+	    public void Set__Uninitialized(int relationIndex, IObjRef[] objRefs)
+	    {
+		    throw new NotSupportedException();
+	    }
+
+        public abstract IEntityMetaData Get__EntityMetaData();
     }
 }

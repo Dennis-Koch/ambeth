@@ -5,7 +5,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 {
 	public class DefaultRootCacheValue : RootCacheValue
 	{
-		protected readonly Type entityType;
+        protected readonly IEntityMetaData metaData;
 
 		protected Object[] primitives;
 
@@ -15,9 +15,9 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 
 		private Object version;
 
-		public DefaultRootCacheValue(Type entityType) : base(entityType)
+		public DefaultRootCacheValue(IEntityMetaData metaData) : base(metaData)
 		{
-			this.entityType = entityType;
+            this.metaData = metaData;
 		}
 
         public override Object Id
@@ -83,8 +83,13 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 		{
             get
             {
-                return entityType;
+                return metaData.EntityType;
             }
 		}
+
+        public override IEntityMetaData Get__EntityMetaData()
+        {
+            return metaData;
+        }
 	}
 }

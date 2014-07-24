@@ -130,7 +130,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                         mv.IfZCmp(CompareOperator.NE, l_fieldIsNull.Value);
                     }
                     mv.GetThisField(f_primitive);
-                    mv.Box(f_primitive.Type.Type);
+                    mv.ValueOf(f_primitive.Type.Type);
                     mv.ReturnValue();
 
                     if (f_nullFlag != null)
@@ -177,7 +177,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mv.Push(primitiveIndex);
                 mv.GetThisField(f_primitive);
 
-                mv.Box(f_primitive.Type.Type);
+                mv.ValueOf(f_primitive.Type.Type);
                 mv.ArrayStore(objType);
 
                 if (f_nullFlag != null)

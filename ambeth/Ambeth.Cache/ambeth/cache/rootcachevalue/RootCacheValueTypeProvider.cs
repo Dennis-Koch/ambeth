@@ -2,6 +2,7 @@ using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 
 	    static RootCacheValueTypeProvider()
 	    {
-    	    ci = typeof(DefaultRootCacheValue).GetConstructor(new Type[] { typeof(Type) });
+    	    ci = typeof(DefaultRootCacheValue).GetConstructor(new Type[] { typeof(IEntityMetaData) });
 	    }
 
 	    [LogInstance]
@@ -71,7 +72,7 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 				}
 				else
 				{
-                    constructor = enhancedType.GetConstructor(new Type[] { typeof(Type) });
+                    constructor = enhancedType.GetConstructor(new Type[] { typeof(IEntityMetaData) });
 				}
 				typeToConstructorMap.Put(entityType, constructor);
 			    return constructor;
