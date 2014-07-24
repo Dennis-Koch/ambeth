@@ -44,7 +44,7 @@ public class Hdf5FileSystemTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		defaultFileSystem = FileSystems.getDefault();
-		testUri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		testUri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
 	}
 
