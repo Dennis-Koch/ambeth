@@ -61,11 +61,6 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 		    return ValueHolderState.LAZY;
 	    }
 
-        public void Set__InitPending(int relationIndex)
-        {
-            // intended blank
-        }
-
         public bool Is__Initialized(int relationIndex)
         {
             return false;
@@ -79,11 +74,6 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 	    public void Set__ObjRefs(int relationIndex, IObjRef[] objRefs)
 	    {
 		    SetRelation(relationIndex, objRefs);
-	    }
-
-	    public void Set__Uninitialized(int relationIndex, IObjRef[] objRefs)
-	    {
-		    throw new NotSupportedException();
 	    }
 
         public abstract IEntityMetaData Get__EntityMetaData();

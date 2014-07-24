@@ -65,7 +65,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_vhce_setObjRefs_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class, "setObjRefs",
 			Object.class, int.class, IObjRef[].class);
 
-	private static final MethodInstance m_vhce_getValueDirect_Member = new MethodInstance(null, ValueHolderContainerEntry.class, IObjRef[].class,
+	private static final MethodInstance m_vhce_getValueDirect_Member = new MethodInstance(null, ValueHolderContainerEntry.class, Object.class,
 			"getValueDirect", Object.class, int.class);
 
 	private static final MethodInstance m_vhce_setValueDirect_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class, "setValueDirect",
@@ -77,8 +77,8 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IObjRefContainer.class, ValueHolderState.class, "get__State",
 			int.class);
 
-	private static final MethodInstance m_template_setInitPending_Member = new MethodInstance(null, IObjRefContainer.class, void.class, "set__InitPending",
-			int.class);
+	private static final MethodInstance m_template_setInitPending_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
+			"set__InitPending", int.class);
 
 	private static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
 			int.class);
@@ -95,8 +95,8 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
 			"set__ValueDirect", int.class, Object.class);
 
-	private static final MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, IObjRefContainer.class, void.class, "set__Uninitialized",
-			int.class, IObjRef[].class);
+	private static final MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
+			"set__Uninitialized", int.class, IObjRef[].class);
 
 	private static final MethodInstance m_template_getSelf = new MethodInstance(null, templateType, IObjRelation.class, "getSelf", IObjRefContainer.class,
 			int.class);

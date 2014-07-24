@@ -577,7 +577,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void handleValueHolderContainer(IObjRefContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+	protected void handleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
 	{
 		ICacheHelper cacheHelper = this.cacheHelper;
 		ICacheIntern parent = this.parent;

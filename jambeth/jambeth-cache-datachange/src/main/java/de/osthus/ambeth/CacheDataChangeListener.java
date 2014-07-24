@@ -43,6 +43,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
@@ -394,7 +395,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					}
 					if (versionInDCE != null)
 					{
-						IEntityMetaData metaData = entityMetaDataProvider.getMetaData(tempORI.getRealType());
+						IEntityMetaData metaData = ((IEntityMetaDataHolder) result).get__EntityMetaData();
 						Object versionInCache = metaData.getVersionMember() != null ? metaData.getVersionMember().getValue(result, false) : null;
 						if (versionInCache != null && ((Comparable<Object>) versionInDCE).compareTo(versionInCache) <= 0)
 						{
@@ -449,7 +450,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			}
 			return;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 		Object id = metaData.getIdMember().getValue(obj, false);
 		if (id == null)
 		{
@@ -547,7 +548,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					return;
 				}
 				IObjRef[][] relations = loadContainer.getRelations();
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(oriToUpdate.getRealType());
+				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToUpdate).get__EntityMetaData();
 				Class<?> entityType = metaData.getEntityType();
 				IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
 				if (relationMembers.length == 0)
@@ -642,7 +643,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 						for (int b = deletedObjects.size(); b-- > 0;)
 						{
 							Object deletedObject = deletedObjects.get(b);
-							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(deletedObject.getClass());
+							IEntityMetaData metaData = ((IEntityMetaDataHolder) deletedObject).get__EntityMetaData();
 							metaData.getIdMember().setValue(deletedObject, null);
 							if (metaData.getVersionMember() != null)
 							{
@@ -660,7 +661,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 						{
 							// Check if the objects still have their id. They may have lost them concurrently because this
 							// method here may be called from another thread (e.g. UI thread)
-							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objectInCache.getClass());
+							IEntityMetaData metaData = ((IEntityMetaDataHolder) objectInCache).get__EntityMetaData();
 							Object id = metaData.getIdMember().getValue(objectInCache, false);
 							if (id == null)
 							{
