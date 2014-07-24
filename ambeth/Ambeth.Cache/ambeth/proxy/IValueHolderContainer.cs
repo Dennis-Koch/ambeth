@@ -7,16 +7,14 @@ using De.Osthus.Ambeth.Typeinfo;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public interface IValueHolderContainer
+    public interface IValueHolderContainer : IObjRefContainer
     {
-	    IObjRelation GetSelf(IRelationInfoItem member);
-
-      	IObjRelation GetSelf(String memberName);
+        IObjRelation Get__Self(int relationIndex);
 
 	    ICacheIntern __TargetCache { get; set; }
 
-        ValueHolderState GetState(IRelationInfoItem member);
+        Object Get__ValueDirect(int relationIndex);
 
-	    IObjRef[] GetObjRefs(IRelationInfoItem member);
+        void Set__ValueDirect(int relationIndex, Object value);
     }
 }

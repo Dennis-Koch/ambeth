@@ -177,7 +177,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 			mv.push(primitiveIndex);
 			mv.getThisField(f_primitive);
 
-			mv.box(f_primitive.getType());
+			mv.valueOf(f_primitive.getType());
 			mv.arrayStore(objType);
 
 			if (f_nullFlag != null)

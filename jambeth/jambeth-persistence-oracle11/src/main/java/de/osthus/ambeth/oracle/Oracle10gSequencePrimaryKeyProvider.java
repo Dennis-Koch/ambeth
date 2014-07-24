@@ -9,11 +9,10 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.AbstractCachingPrimaryKeyProvider;
-import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvider
 {
@@ -22,20 +21,23 @@ public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryK
 	private ILogger log;
 
 	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
-
-	@Autowired
 	protected Connection connection;
 
 	@Override
 	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
 	{
-		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getSequenceName(), ".nextval FROM DUAL CONNECT BY level<=?");
+		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
+		if (schemaAndName[0] == null)
+		{
+			// if no schema is explicitly specified in the sequence we look in the schema of the table
+			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getFullqualifiedEscapedName())[0];
+		}
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try
 		{
-			pstm = connection.prepareStatement(sql);
+			pstm = connection.prepareStatement("SELECT " + XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1])
+					+ ".nextval FROM DUAL CONNECT BY level<=?");
 			pstm.setInt(1, count);
 			rs = pstm.executeQuery();
 			while (rs.next())

@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -14,6 +15,7 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -44,33 +46,33 @@ public class EntityBytecodeTest extends AbstractInformationBusTest
 	@Test
 	public void testValueHolderWithoutField() throws Exception
 	{
-		TestEntity testEntity = entityFactory.createEntity(TestEntity.class);
-
-		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenNoField"));
+		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
+		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenNoField");
+		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
 	public void testValueHolderWithProtectedField() throws Exception
 	{
-		TestEntity testEntity = entityFactory.createEntity(TestEntity.class);
-
-		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithProtectedField"));
+		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
+		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
 	public void testValueHolderWithPrivateField() throws Exception
 	{
-		TestEntity testEntity = entityFactory.createEntity(TestEntity.class);
-
-		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithPrivateField"));
+		IObjRefContainer testEntity = (IObjRefContainer) entityFactory.createEntity(TestEntity.class);
+		int relationIndex = testEntity.get__EntityMetaData().getIndexByRelationName("ChildrenWithPrivateField");
+		Assert.assertFalse(ValueHolderState.INIT == testEntity.get__State(relationIndex));
 	}
 
 	@Test
 	public void testInterfaceEntity() throws Exception
 	{
-		ITestEntity2 testEntity = entityFactory.createEntity(ITestEntity2.class);
-
-		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithProtectedField"));
+		IObjRefContainer testEntity2 = (IObjRefContainer) entityFactory.createEntity(ITestEntity2.class);
+		int relationIndex = testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+		Assert.assertFalse(ValueHolderState.INIT == testEntity2.get__State(relationIndex));
 	}
 
 	@Test
@@ -85,6 +87,9 @@ public class EntityBytecodeTest extends AbstractInformationBusTest
 
 		rootCache.put(testEntity);
 
-		Assert.assertFalse(proxyHelper.isInitialized(testEntity, "ChildrenWithProtectedField"));
+		IObjRefContainer testEntity2 = (IObjRefContainer) testEntity;
+		int relationIndex = testEntity2.get__EntityMetaData().getIndexByRelationName("ChildrenWithProtectedField");
+
+		Assert.assertFalse(ValueHolderState.INIT == testEntity2.get__State(relationIndex));
 	}
 }

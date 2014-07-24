@@ -215,6 +215,15 @@
   <ItemGroup>
     <Compile Include="ambeth\ioc\extendable\ClassExtendableListContainer.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\converter\StringToClassArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToDoubleArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToFloatArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToIntArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToLongArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToPatternConverter.cs" />
+    <Compile Include="ambeth\converter\StringToStringArrayConverter.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

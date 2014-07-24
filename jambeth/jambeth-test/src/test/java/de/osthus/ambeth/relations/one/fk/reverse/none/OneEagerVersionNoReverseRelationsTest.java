@@ -3,6 +3,7 @@ package de.osthus.ambeth.relations.one.fk.reverse.none;
 import org.junit.Assert;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.testutil.TestProperties;
 
 @TestProperties(name = ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, value = "EAGER_VERSION")
@@ -12,6 +13,8 @@ public class OneEagerVersionNoReverseRelationsTest extends AbstractOneNoReverseR
 	protected void assertBeforePrefetch(EntityB entityB, String propertyName)
 	{
 		super.assertBeforePrefetch(entityB, propertyName);
-		Assert.assertNotNull(proxyHelper.getObjRefs(entityB, propertyName));
+
+		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+		Assert.assertNotNull(((IObjRefContainer) entityB).get__ObjRefs(relationIndex));
 	}
 }

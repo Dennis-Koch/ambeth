@@ -823,5 +823,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             gen.Emit(OpCodes.Unbox_Any, unboxedType);
         }
+
+        public virtual void ValueOf(Type type)
+        {
+            Box(type);
+        }
     }
 }

@@ -10,11 +10,11 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.sql.SqlLink;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class JdbcLink extends SqlLink
 {
@@ -22,30 +22,13 @@ public class JdbcLink extends SqlLink
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConnectionExtension connectionExtension;
 
+	@Autowired
 	protected Connection connection;
 
 	protected ILinkedMap<String, PreparedStatement> namesToPstmMap;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(connectionExtension, "ConnectionExtension");
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setConnectionExtension(IConnectionExtension connectionExtension)
-	{
-		this.connectionExtension = connectionExtension;
-	}
 
 	@Override
 	public void startBatch()

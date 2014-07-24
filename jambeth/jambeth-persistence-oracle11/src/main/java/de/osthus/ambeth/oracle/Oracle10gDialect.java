@@ -709,7 +709,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 				String tableName = rs.getString("TABLE_NAME");
 				if (!BIN_TABLE_NAME.matcher(tableName).matches() && !IDX_TABLE_NAME.matcher(tableName).matches())
 				{
-					allTableNames.add("\"" + schemaName + "\".\"" + tableName + "\"");
+					allTableNames.add(schemaName + "." + tableName);
 				}
 			}
 		}
@@ -740,7 +740,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 					String viewName = rs.getString("TABLE_NAME");
 					if (!BIN_TABLE_NAME.matcher(viewName).matches() && !IDX_TABLE_NAME.matcher(viewName).matches())
 					{
-						allViewNames.add("\"" + schemaName + "\".\"" + viewName + "\"");
+						allViewNames.add(schemaName + "." + viewName);
 					}
 				}
 			}
