@@ -15,6 +15,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.ICgLibUtil;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
@@ -525,7 +526,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 			// Real entity types are not equal
 			return false;
 		}
-		IEntityMetaData leftMetaData = entityMetaDataProvider.getMetaData(leftType);
+		IEntityMetaData leftMetaData = ((IEntityMetaDataHolder) leftObject).get__EntityMetaData();
 		Object leftId = leftMetaData.getIdMember().getValue(leftObject, false);
 		Object rightId = leftMetaData.getIdMember().getValue(rightObject, false);
 		if (leftId == null || rightId == null)

@@ -16,5 +16,9 @@ namespace De.Osthus.Ambeth.Proxy
         Object Get__ValueDirect(int relationIndex);
 
         void Set__ValueDirect(int relationIndex, Object value);
+        
+        void Set__InitPending(int relationIndex);
+        
+        void Set__Uninitialized(int relationIndex, IObjRef[] objRefs);
     }
 }

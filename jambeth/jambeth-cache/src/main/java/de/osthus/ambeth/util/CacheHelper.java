@@ -36,6 +36,7 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
@@ -504,7 +505,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			return;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length == 0)
 		{

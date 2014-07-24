@@ -521,7 +521,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void HandleValueHolderContainer(IObjRefContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+        protected void HandleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
         {
             ICacheHelper cacheHelper = this.CacheHelper;
             ICacheIntern parent = this.Parent;

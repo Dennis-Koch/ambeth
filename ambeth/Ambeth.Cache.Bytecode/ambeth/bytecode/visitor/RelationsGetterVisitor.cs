@@ -68,7 +68,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(ValueHolderState), "Get__State", typeof(int));
 
-        private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__InitPending", typeof(int));
+        private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__InitPending", typeof(int));
 
         private static readonly MethodInstance m_template_isInitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(bool), "Is__Initialized", typeof(int));
 
@@ -84,7 +84,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         private static readonly MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__ValueDirect",
             typeof(int), typeof(Object));
 
-    	private static readonly MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__Uninitialized",
+        private static readonly MethodInstance m_template_setUninitialized_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__Uninitialized",
 			typeof(int), typeof(IObjRef[]));
 
         private static readonly MethodInstance m_template_getSelf = new MethodInstance(null, templateType, typeof(IObjRelation), "GetSelf",

@@ -53,6 +53,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.privilege.IPrivilegeCache;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
@@ -1853,7 +1854,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		cacheModification.setActive(true);
 		try
 		{
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(targetObject.getClass());
+			IEntityMetaData metaData = ((IEntityMetaDataHolder) targetObject).get__EntityMetaData();
 			Object id = metaData.getIdMember().getValue(targetObject, false);
 			RootCacheValue cacheValue = getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 			if (cacheValue == null) // Cache miss

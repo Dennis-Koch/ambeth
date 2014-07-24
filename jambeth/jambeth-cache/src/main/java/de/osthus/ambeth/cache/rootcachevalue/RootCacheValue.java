@@ -103,10 +103,4 @@ public abstract class RootCacheValue extends AbstractCacheValue implements IList
 	{
 		setRelation(relationIndex, objRefs);
 	}
-
-	@Override
-	public void set__Uninitialized(int relationIndex, IObjRef[] objRefs)
-	{
-		throw new UnsupportedOperationException();
-	}
 }
