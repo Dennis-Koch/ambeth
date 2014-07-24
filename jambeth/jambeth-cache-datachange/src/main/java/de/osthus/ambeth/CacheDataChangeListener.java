@@ -14,6 +14,7 @@ import de.osthus.ambeth.cache.IFirstLevelCacheManager;
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.ISecondLevelCacheManager;
 import de.osthus.ambeth.cache.IWritableCache;
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
@@ -37,12 +38,12 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -76,9 +77,6 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Autowired
 	protected ISecondLevelCacheManager secondLevelCacheManager;
@@ -461,16 +459,19 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 		ObjRef objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
 		objRefs.add(objRef);
-		IProxyHelper proxyHelper = this.proxyHelper;
 		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-		for (int a = relationMembers.length; a-- > 0;)
+		if (relationMembers.length == 0)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-			if (!proxyHelper.isInitialized(obj, relationMember))
+			return;
+		}
+		IObjRefContainer vhc = (IObjRefContainer) obj;
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 			{
 				continue;
 			}
-			Object value = relationMember.getValue(obj, false);
+			Object value = relationMembers[relationIndex].getValue(obj, false);
 			scanForInitializedObjects(value, alreadyScannedObjects, objRefs);
 		}
 	}
@@ -549,18 +550,22 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(oriToUpdate.getRealType());
 				Class<?> entityType = metaData.getEntityType();
 				IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
-
+				if (relationMembers.length == 0)
+				{
+					continue;
+				}
+				IObjRefContainer vhc = (IObjRefContainer) objectToUpdate;
 				for (int b = relationMembers.length; b-- > 0;)
 				{
-					IRelationInfoItem member = relationMembers[b];
-					if (proxyHelper.isInitialized(objectToUpdate, member))
+					if (ValueHolderState.INIT != vhc.get__State(b))
 					{
-						// the object which has to be updated has initialized relations. So we have to ensure
-						// that these relations are in the RootCache at the time the target object will be updated.
-						// This is because initialized relations have to remain initialized after update but the relations
-						// may have updated, too
-						batchPendingRelations(objectToUpdate, member, relations[b], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
+						continue;
 					}
+					// the object which has to be updated has initialized relations. So we have to ensure
+					// that these relations are in the RootCache at the time the target object will be updated.
+					// This is because initialized relations have to remain initialized after update but the relations
+					// may have updated, too
+					batchPendingRelations(vhc, relationMembers[b], relations[b], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
 				}
 
 				if (typeToCachePathsDict == null || typeToCachePathsDict.size() == 0)
@@ -577,15 +582,14 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				{
 					CachePath cachePath = cachePaths.get(b);
 					int memberIndex = metaData.getIndexByRelationName(cachePath.memberName);
-					batchPendingRelations(objectToUpdate, relationMembers[memberIndex], relations[memberIndex], cascadeRefreshObjRefsSet,
-							cascadeRefreshObjRelationsSet);
+					batchPendingRelations(vhc, relationMembers[memberIndex], relations[memberIndex], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
 				}
 			}
 		}
 	}
 
-	protected void batchPendingRelations(Object entity, IRelationInfoItem member, IObjRef[] relationsOfMember, ISet<IObjRef> cascadeRefreshObjRefsSet,
-			ISet<IObjRelation> cascadeRefreshObjRelationsSet)
+	protected void batchPendingRelations(IObjRefContainer entity, IRelationInfoItem member, IObjRef[] relationsOfMember,
+			ISet<IObjRef> cascadeRefreshObjRefsSet, ISet<IObjRelation> cascadeRefreshObjRelationsSet)
 	{
 		if (relationsOfMember == null)
 		{

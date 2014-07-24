@@ -48,6 +48,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
@@ -491,8 +492,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 	private final String nl = System.getProperty("line.separator");
 
-	private final Pattern binTableName = Pattern.compile("(?:BIN\\$.{22}==\\$0)|(?:DR\\$[^\\$]+\\$\\w)", Pattern.CASE_INSENSITIVE);
-
 	private final Pattern lineSeparator = Pattern.compile(nl);
 
 	private final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
@@ -696,7 +695,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			try
 			{
 				stmt = conn.createStatement();
-				stmt.execute("SELECT * FROM " + tableName + " WHERE ROWNUM = 1");
+				stmt.execute("SELECT * FROM " + XmlDatabaseMapper.escapeName(tableName) + " WHERE ROWNUM = 1");
 				rs = stmt.getResultSet();
 				if (rs.next())
 				{
@@ -1065,7 +1064,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		for (int i = allTableNames.size(); i-- > 0;)
 		{
 			String tableName = allTableNames.get(i);
-			sql.add("DELETE FROM " + tableName + " CASCADE");
+			sql.add("DELETE FROM " + XmlDatabaseMapper.escapeName(tableName) + " CASCADE");
 		}
 		executeWithDeferredConstraints(new ISchemaRunnable()
 		{
@@ -1098,7 +1097,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		for (int i = explicitTableNames.length; i-- > 0;)
 		{
 			String tableName = explicitTableNames[i];
-			sql.add("DELETE FROM " + tableName);
+			sql.add("DELETE FROM " + XmlDatabaseMapper.escapeName(tableName));
 		}
 
 		executeWithDeferredConstraints(new ISchemaRunnable()

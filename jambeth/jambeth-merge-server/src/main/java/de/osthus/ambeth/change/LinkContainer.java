@@ -7,7 +7,7 @@ import de.osthus.ambeth.merge.transfer.AbstractChangeContainer;
 public class LinkContainer extends AbstractChangeContainer
 {
 	@SuppressWarnings("unused")
-	@LogInstance(LinkContainer.class)
+	@LogInstance
 	private ILogger log;
 
 	protected ILinkChangeCommand command;

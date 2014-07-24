@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -142,11 +143,13 @@ public class ManyLazyNoReverseRelationsTest extends AbstractRelationsTest
 		String propertyName = "EntityAs";
 		EntityB entityB = cache.getObject(EntityB.class, 12);
 
-		Assert.assertTrue(Boolean.FALSE.equals(proxyHelper.isInitialized(entityB, propertyName)));
+		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+
+		Assert.assertTrue(!((IObjRefContainer) entityB).is__Initialized(relationIndex));
 		IPrefetchHandle prefetch = beanContext.getService(IPrefetchHelper.class).createPrefetch().add(EntityB.class, propertyName).build();
 		prefetch.prefetch(entityB);
 
-		Assert.assertTrue(Boolean.TRUE.equals(proxyHelper.isInitialized(entityB, propertyName)));
+		Assert.assertTrue(((IObjRefContainer) entityB).is__Initialized(relationIndex));
 		Assert.assertEquals(0, entityB.getEntityAs().size());
 	}
 }

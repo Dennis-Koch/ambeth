@@ -136,7 +136,6 @@
     <Compile Include="ambeth\merge\EntityInitializedState.cs" />
     <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
     <Compile Include="ambeth\merge\ICUDResultHelper.cs" />
-    <Compile Include="ambeth\merge\IEntityChecker.cs" />
     <Compile Include="ambeth\merge\IEntityFactory.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataExtendable.cs" />
     <Compile Include="ambeth\merge\IMergeProcess.cs" />
@@ -182,7 +181,9 @@
     <Compile Include="ambeth\proxy\EntityFactory.cs" />
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\IEnhancedType.cs" />
+    <Compile Include="ambeth\proxy\IEntityMetaDataHolder.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\proxy\IObjRefContainer.cs" />
     <Compile Include="ambeth\proxy\MergeContext.cs" />
     <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />

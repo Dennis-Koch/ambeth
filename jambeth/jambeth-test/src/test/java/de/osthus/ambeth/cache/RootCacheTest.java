@@ -310,7 +310,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		Object[] primitives = new Object[metaData.getPrimitiveMembers().length];
 		primitives[metaData.getIndexByPrimitiveName("Name")] = name;
 
-		RootCacheValue rcv = new DefaultRootCacheValue(entityType);
+		RootCacheValue rcv = new DefaultRootCacheValue(metaData);
 		rcv.setId(id);
 		rcv.setVersion(version);
 		rcv.setPrimitives(primitives);
@@ -336,7 +336,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		ILoadContainer container = entityToLoadContainer(material);
 		Object obj = entityFactory.createEntity(Material.class);
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
-		RootCacheValue rcv = new DefaultRootCacheValue(metaData.getEntityType());
+		RootCacheValue rcv = new DefaultRootCacheValue(metaData);
 		rcv.setId(material.getId());
 		rcv.setVersion(material.getVersion());
 		rcv.setPrimitives(container.getPrimitives());
@@ -355,7 +355,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		ILoadContainer container = entityToLoadContainer(material);
 		Object obj = entityFactory.createEntity(Unit.class);
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
-		RootCacheValue rcv = new DefaultRootCacheValue(metaData.getEntityType());
+		RootCacheValue rcv = new DefaultRootCacheValue(metaData);
 		rcv.setId(2);
 		rcv.setVersion(2);
 		rcv.setPrimitives(container.getPrimitives());
@@ -487,7 +487,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		LinkedHashSet<IObjRef> cascadeNeededORIs = null;
 		ArrayList<DirectValueHolderRef> pendingValueHolders = new ArrayList<DirectValueHolderRef>();
 
-		RootCacheValue cacheValue = new DefaultRootCacheValue(Material.class);
+		RootCacheValue cacheValue = new DefaultRootCacheValue(metaData);
 		cacheValue.setId(1);
 		cacheValue.setVersion(1);
 		cacheValue.setRelations(relations);
@@ -504,9 +504,10 @@ public class RootCacheTest extends AbstractInformationBusTest
 		fixture.ensureRelationsExist(cacheValue, metaData, cascadeNeededORIs, pendingValueHolders);
 		assertEquals(3, pendingValueHolders.size());
 		DirectValueHolderRef vhr = pendingValueHolders.get(2);
-		assertNotNull(proxyHelper.getObjRefs(vhr.getVhc(), vhr.getMember()));
-		assertEquals(1, proxyHelper.getObjRefs(vhr.getVhc(), vhr.getMember()).length);
-		assertEquals(unitRef, proxyHelper.getObjRefs(vhr.getVhc(), vhr.getMember())[0]);
+		int relationIndex = metaData.getIndexByRelation(vhr.getMember());
+		assertNotNull(vhr.getVhc().get__ObjRefs(relationIndex));
+		assertEquals(1, vhr.getVhc().get__ObjRefs(relationIndex).length);
+		assertEquals(unitRef, vhr.getVhc().get__ObjRefs(relationIndex)[0]);
 	}
 
 	@Test

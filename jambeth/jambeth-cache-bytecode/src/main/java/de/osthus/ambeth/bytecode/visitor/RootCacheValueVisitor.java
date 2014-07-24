@@ -147,7 +147,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 					mv.ifZCmp(GeneratorAdapter.NE, l_fieldIsNull);
 				}
 				mv.getThisField(f_primitive);
-				mv.box(f_primitive.getType());
+				mv.valueOf(f_primitive.getType());
 				mv.returnValue();
 
 				if (f_nullFlag != null)
@@ -194,7 +194,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 			mv.push(primitiveIndex);
 			mv.getThisField(f_primitive);
 
-			mv.box(f_primitive.getType());
+			mv.valueOf(f_primitive.getType());
 			mv.arrayStore(objType);
 
 			if (f_nullFlag != null)

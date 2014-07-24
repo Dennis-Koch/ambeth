@@ -35,6 +35,7 @@ import de.osthus.ambeth.model.IEmbeddedType;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.proxy.IEntityEquals;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
@@ -350,17 +351,20 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(0, ReflectUtil.getDeclaredFieldInHierarchy(obj.getClass(), ValueHolderIEC.getInitializedFieldName("EmbMat.EmbMatType")).length);
 		Assert.assertEquals(1, ReflectUtil.getDeclaredFieldInHierarchy(obj.getEmbMat().getClass(), ValueHolderIEC.getInitializedFieldName("EmbMatType")).length);
 
-		IRelationInfoItem embMatTypeRI = (IRelationInfoItem) entityMetaDataProvider.getMetaData(obj.getClass()).getMemberByName("EmbMat.EmbMatType");
+		IObjRefContainer vhc = (IObjRefContainer) obj;
 
-		Assert.assertFalse(proxyHelper.isInitialized(obj, embMatTypeRI));
+		IEntityMetaData metaData = vhc.get__EntityMetaData();
+		int embMatTypeIndex = metaData.getIndexByRelationName("EmbMat.EmbMatType");
+
+		Assert.assertFalse(vhc.is__Initialized(embMatTypeIndex));
 
 		IObjRef[] emptyRefs = ObjRef.EMPTY_ARRAY;
-		proxyHelper.setObjRefs(obj, embMatTypeRI, emptyRefs);
-		IObjRef[] objRefs = proxyHelper.getObjRefs(obj, embMatTypeRI);
+		((IObjRefContainer) obj).set__ObjRefs(embMatTypeIndex, emptyRefs);
+		IObjRef[] objRefs = vhc.get__ObjRefs(embMatTypeIndex);
 		Assert.assertSame(emptyRefs, objRefs);
 
 		Assert.assertNull(obj.getEmbMat().getEmbMatType());
-		Assert.assertTrue(proxyHelper.isInitialized(obj, embMatTypeRI));
+		Assert.assertTrue(vhc.is__Initialized(embMatTypeIndex));
 
 		// Test EmbMat.getEmbMat2().EmbMatType2
 		Assert.assertTrue(obj.getEmbMat().getEmbMat2() instanceof IEmbeddedType);
@@ -374,16 +378,16 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(1,
 				ReflectUtil.getDeclaredFieldInHierarchy(obj.getEmbMat().getEmbMat2().getClass(), ValueHolderIEC.getInitializedFieldName("EmbMatType2")).length);
 
-		embMatTypeRI = (IRelationInfoItem) entityMetaDataProvider.getMetaData(obj.getClass()).getMemberByName("EmbMat.EmbMat2.EmbMatType2");
+		embMatTypeIndex = metaData.getIndexByRelationName("EmbMat.EmbMat2.EmbMatType2");
 
-		Assert.assertFalse(proxyHelper.isInitialized(obj, embMatTypeRI));
+		Assert.assertFalse(vhc.is__Initialized(embMatTypeIndex));
 
-		proxyHelper.setObjRefs(obj, embMatTypeRI, emptyRefs);
-		objRefs = proxyHelper.getObjRefs(obj, embMatTypeRI);
+		((IObjRefContainer) obj).set__ObjRefs(embMatTypeIndex, emptyRefs);
+		objRefs = ((IObjRefContainer) obj).get__ObjRefs(embMatTypeIndex);
 		Assert.assertSame(emptyRefs, objRefs);
 
 		Assert.assertNull(obj.getEmbMat().getEmbMat2().getEmbMatType2());
-		Assert.assertTrue(proxyHelper.isInitialized(obj, embMatTypeRI));
+		Assert.assertTrue(vhc.is__Initialized(embMatTypeIndex));
 
 		// Test EmbMat3.EmbMatType
 		Assert.assertTrue(obj.getEmbMat3() instanceof IEmbeddedType);
@@ -727,12 +731,12 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		obj2.setVersion(1);
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Material.class);
-		IRelationInfoItem member = (IRelationInfoItem) metaData.getMemberByName("Types");
+		int relationIndex = metaData.getIndexByRelationName("Types");
 
 		Material parentEntity = entityFactory.createEntity(Material.class);
 		Assert.assertTrue(parentEntity instanceof IValueHolderContainer);
-		Assert.assertEquals(ValueHolderState.LAZY, ((IValueHolderContainer) parentEntity).get__State(member));
-		Assert.assertEquals(0, ((IValueHolderContainer) parentEntity).get__ObjRefs(member).length);
+		Assert.assertEquals(ValueHolderState.LAZY, ((IObjRefContainer) parentEntity).get__State(relationIndex));
+		Assert.assertEquals(0, ((IObjRefContainer) parentEntity).get__ObjRefs(relationIndex).length);
 
 		parentEntity.setId(1);
 		parentEntity.setName("name1");
@@ -744,12 +748,12 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 
 		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
 		((IValueHolderContainer) parentEntity).set__TargetCache((ICacheIntern) cache);
-		proxyHelper.setObjRefs(parentEntity, member, new IObjRef[] { typeObjRef });
+		((IObjRefContainer) parentEntity).set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
-		Assert.assertEquals(ValueHolderState.INIT, ((IValueHolderContainer) parentEntity).get__State(member));
-		Assert.assertEquals(1, ((IValueHolderContainer) parentEntity).get__ObjRefs(member).length);
+		Assert.assertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).get__State(relationIndex));
+		Assert.assertEquals(1, ((IObjRefContainer) parentEntity).get__ObjRefs(relationIndex).length);
 
-		Object value = valueHolderContainerTemplate.getValue(parentEntity, member);
+		Object value = valueHolderContainerTemplate.getValue((IValueHolderContainer) parentEntity, relationIndex);
 	}
 
 	@Test

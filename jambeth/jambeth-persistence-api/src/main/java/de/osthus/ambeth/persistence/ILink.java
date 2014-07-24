@@ -24,6 +24,13 @@ public interface ILink
 
 	String getTableName();
 
+	/**
+	 * Getter for the table name which is in quotes to allow to include the value directly in a query string
+	 * 
+	 * @return
+	 */
+	String getFullqualifiedEscapedTableName();
+
 	String getArchiveTableName();
 
 	ILinkCursor findAllLinked(IDirectedLink fromLink, List<?> fromIds);

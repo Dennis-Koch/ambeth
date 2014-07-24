@@ -321,17 +321,20 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(0, ReflectUtil.GetDeclaredFieldInHierarchy(obj.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMat.EmbMatType")).Length);
             Assert.AssertEquals(1, ReflectUtil.GetDeclaredFieldInHierarchy(obj.EmbMat.GetType(), ValueHolderIEC.GetInitializedFieldName("EmbMatType")).Length);
 
-            IRelationInfoItem embMatTypeRI = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(obj.GetType()).GetMemberByName("EmbMat.EmbMatType");
+            IObjRefContainer vhc = (IObjRefContainer)obj;
 
-            Assert.AssertFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            IEntityMetaData metaData = vhc.Get__EntityMetaData();
+            int embMatTypeIndex = metaData.GetIndexByRelationName("EmbMat.EmbMatType");
+
+            Assert.AssertFalse(vhc.Is__Initialized(embMatTypeIndex));
 
             IObjRef[] emptyRefs = ObjRef.EMPTY_ARRAY;
-            ProxyHelper.SetObjRefs(obj, embMatTypeRI, emptyRefs);
-            IObjRef[] objRefs = ProxyHelper.GetObjRefs(obj, embMatTypeRI);
+            ((IObjRefContainer)obj).Set__ObjRefs(embMatTypeIndex, emptyRefs);
+            IObjRef[] objRefs = vhc.Get__ObjRefs(embMatTypeIndex);
             Assert.AssertSame(emptyRefs, objRefs);
 
             Assert.AssertNull(obj.EmbMat.EmbMatType);
-            Assert.AssertTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertTrue(vhc.Is__Initialized(embMatTypeIndex));
 
             // Test EmbMat.EmbMat2.EmbMatType2
             Assert.IsInstanceOfType(obj.EmbMat.EmbMat2, typeof(IEmbeddedType));
@@ -342,16 +345,16 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertNull(obj.EmbMat.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMat2.EmbMatType2")));
             Assert.AssertNotNull(obj.EmbMat.EmbMat2.GetType().GetField(ValueHolderIEC.GetInitializedFieldName("EmbMatType2")));
 
-            embMatTypeRI = (IRelationInfoItem)EntityMetaDataProvider.GetMetaData(obj.GetType()).GetMemberByName("EmbMat.EmbMat2.EmbMatType2");
+            embMatTypeIndex = metaData.GetIndexByRelationName("EmbMat.EmbMat2.EmbMatType2");
 
-            Assert.AssertFalse(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertFalse(vhc.Is__Initialized(embMatTypeIndex));
 
-            ProxyHelper.SetObjRefs(obj, embMatTypeRI, emptyRefs);
-            objRefs = ProxyHelper.GetObjRefs(obj, embMatTypeRI);
+            ((IObjRefContainer)obj).Set__ObjRefs(embMatTypeIndex, emptyRefs);
+            objRefs = ((IObjRefContainer)obj).Get__ObjRefs(embMatTypeIndex);
             Assert.AssertSame(emptyRefs, objRefs);
 
             Assert.AssertNull(obj.EmbMat.EmbMat2.EmbMatType2);
-            Assert.AssertTrue(ProxyHelper.IsInitialized(obj, embMatTypeRI));
+            Assert.AssertTrue(vhc.Is__Initialized(embMatTypeIndex));
 
             // Test EmbMat3.EmbMatType
             Assert.IsInstanceOfType(obj.EmbMat3, typeof(IEmbeddedType));
@@ -702,12 +705,12 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             obj2.Version = 1;
 
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(typeof(Material));
-            IRelationInfoItem member = (IRelationInfoItem)metaData.GetMemberByName("Types");
+            int relationIndex = metaData.GetIndexByRelationName("Types");
 
             Material parentEntity = EntityFactory.CreateEntity<Material>();
             Assert.IsInstanceOfType(parentEntity, typeof(IValueHolderContainer));
-            Assert.AssertEquals(ValueHolderState.LAZY, ((IValueHolderContainer)parentEntity).GetState(member));
-            Assert.AssertEquals(0, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
+            Assert.AssertEquals(ValueHolderState.LAZY, ((IObjRefContainer)parentEntity).Get__State(relationIndex));
+            Assert.AssertEquals(0, ((IObjRefContainer)parentEntity).Get__ObjRefs(relationIndex).Length);
 
             parentEntity.Id = 1;
             parentEntity.Name = "name1";
@@ -719,12 +722,12 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
             IDisposableCache cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
             ((IValueHolderContainer)parentEntity).__TargetCache = (ICacheIntern)cache;
-            ProxyHelper.SetObjRefs(parentEntity, member, new IObjRef[] { typeObjRef });
+            ((IObjRefContainer)parentEntity).Set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
-            Assert.AssertEquals(ValueHolderState.INIT, ((IValueHolderContainer)parentEntity).GetState(member));
-            Assert.AssertEquals(1, ((IValueHolderContainer)parentEntity).GetObjRefs(member).Length);
+            Assert.AssertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).Get__State(relationIndex));
+            Assert.AssertEquals(1, ((IObjRefContainer) parentEntity).Get__ObjRefs(relationIndex).Length);
 
-            Object value = ValueHolderContainerTemplate.GetValue(parentEntity, member);
+            Object value = ValueHolderContainerTemplate.GetValue((IValueHolderContainer) parentEntity, relationIndex);
         }
 
         [TestMethod]
