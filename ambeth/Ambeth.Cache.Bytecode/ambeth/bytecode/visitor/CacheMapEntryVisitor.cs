@@ -122,7 +122,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 IMethodVisitor mv = cv.VisitMethod(m_get);
                 mv.GetThisField(f_id);
-                mv.Box(nativeType);
+                mv.ValueOf(nativeType);
                 mv.ReturnValue();
                 mv.EndMethod();
             }

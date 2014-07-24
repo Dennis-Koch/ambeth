@@ -1011,7 +1011,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(clause, "clause");
-		String tableName = database.getTableByType(entityType).getName();
+		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
 		try
 		{
 			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", tableName).propertyValue("Clause", clause)
@@ -1035,7 +1035,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
-		String tableName = database.getTableByType(entityType).getName();
+		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
 		return join(tableName, columnBase, columnJoined, joinType);
 	}
 

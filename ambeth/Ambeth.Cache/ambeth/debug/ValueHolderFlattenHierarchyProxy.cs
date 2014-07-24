@@ -3,6 +3,7 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
 using System.Collections.Generic;
@@ -83,8 +84,6 @@ namespace De.Osthus.Ambeth.Debug
             {
                 return base.BuildMemberList();
             }
-            IProxyHelper proxyHelper = Context.GetService<IProxyHelper>();
-
             HashSet<String> suppressedPropertyNames = new HashSet<String>();
             foreach (IRelationInfoItem member in metaData.RelationMembers)
             {
@@ -118,10 +117,11 @@ namespace De.Osthus.Ambeth.Debug
                 if (relMember != null)
                 {
                     propertyName = relMember.Name;
-                    ValueHolderState state = proxyHelper.GetState(_target, relMember);
+                    int relationIndex = metaData.GetIndexByRelationName(propertyName);
+                    ValueHolderState state = ((IObjRefContainer)_target).Get__State(relationIndex);
                     if (!ValueHolderState.INIT.Equals(state))
                     {
-                        IObjRef[] objRefs = proxyHelper.GetObjRefs(_target, relMember);
+                        IObjRef[] objRefs = ((IObjRefContainer)_target).Get__ObjRefs(relationIndex);
                         if (objRefs == null)
                         {
                             list.Add(new LazyUnknownMember(propertyName, state, member.RealType));

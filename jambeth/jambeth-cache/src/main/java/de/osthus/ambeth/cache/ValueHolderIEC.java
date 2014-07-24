@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -16,7 +15,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.proxy.ICgLibUtil;
-import de.osthus.ambeth.proxy.IValueHolderContainer;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
@@ -35,22 +34,25 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements IProxyHelper, IInitializingBean
 {
-	public static class ValueHolderContainerEntry extends HashMap<ITypeInfoItem, AbstractValueHolderEntry>
+	public static class ValueHolderContainerEntry
 	{
+		protected final AbstractValueHolderEntry2[] entries;
+
 		public ValueHolderContainerEntry(Class<?> targetType, IRelationInfoItem[] members, IBytecodeEnhancer bytecodeEnhancer,
 				IPropertyInfoProvider propertyInfoProvider)
 		{
-			super(0.5f);
+			entries = new AbstractValueHolderEntry2[members.length];
 			try
 			{
 				FieldAccess targetFieldAccess = FieldAccess.get(targetType);
 				MethodAccess targetMethodAccess = MethodAccess.get(targetType);
 
-				for (IRelationInfoItem member : members)
+				for (int relationIndex = members.length; relationIndex-- > 0;)
 				{
-					AbstractValueHolderEntry vhEntry = new AbstractValueHolderEntry2(targetType, member, targetMethodAccess, targetFieldAccess,
+					IRelationInfoItem member = members[relationIndex];
+					AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, targetMethodAccess, targetFieldAccess,
 							bytecodeEnhancer, propertyInfoProvider);
-					put(member, vhEntry);
+					entries[relationIndex] = vhEntry;
 				}
 			}
 			catch (Throwable e)
@@ -59,39 +61,54 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 			}
 		}
 
-		public IObjRef[] getObjRefs(Object obj, IRelationInfoItem member)
+		public void setUninitialized(Object obj, int relationIndex, IObjRef[] objRefs)
 		{
-			return get(member).getObjRefs(obj);
+			entries[relationIndex].setUninitialized(obj, objRefs);
 		}
 
-		public void setObjRefs(Object obj, IRelationInfoItem member, IObjRef[] objRefs)
+		public void setInitialized(Object obj, int relationIndex, Object value)
 		{
-			get(member).setObjRefs(obj, objRefs);
+			entries[relationIndex].setInitialized(obj, value);
 		}
 
-		public void setUninitialized(Object obj, IRelationInfoItem member, IObjRef[] objRefs)
+		public void setInitPending(Object obj, int relationIndex)
 		{
-			get(member).setUninitialized(obj, objRefs);
+			entries[relationIndex].setInitPending(obj);
 		}
 
-		public void setInitialized(Object obj, IRelationInfoItem member, Object value)
+		public IObjRef[] getObjRefs(Object obj, int relationIndex)
 		{
-			get(member).setInitialized(obj, value);
+			return entries[relationIndex].getObjRefs(obj);
 		}
 
-		public Object getValueDirect(Object obj, IRelationInfoItem member)
+		public void setObjRefs(Object obj, int relationIndex, IObjRef[] objRefs)
 		{
-			return get(member).getValueDirect(obj);
+			entries[relationIndex].setObjRefs(obj, objRefs);
 		}
 
-		public ValueHolderState getState(Object obj, IRelationInfoItem member)
+		public Object getValueDirect(Object obj, int relationIndex)
 		{
-			return get(member).getState(obj);
+			return entries[relationIndex].getValueDirect(obj);
 		}
 
-		public void setState(Object obj, IRelationInfoItem member, ValueHolderState state)
+		public void setValueDirect(Object obj, int relationIndex, Object value)
 		{
-			get(member).setState(obj, state);
+			entries[relationIndex].setInitialized(obj, value);
+		}
+
+		public boolean isInitialized(Object obj, int relationIndex)
+		{
+			return ValueHolderState.INIT == getState(obj, relationIndex);
+		}
+
+		public ValueHolderState getState(Object obj, int relationIndex)
+		{
+			return entries[relationIndex].getState(obj);
+		}
+
+		public void setState(Object obj, int relationIndex, ValueHolderState state)
+		{
+			entries[relationIndex].setState(obj, state);
 		}
 	}
 
@@ -102,6 +119,8 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		public abstract void setUninitialized(Object obj, IObjRef[] objRefs);
 
 		public abstract void setInitialized(Object obj, Object value);
+
+		public abstract void setInitPending(Object obj);
 
 		public abstract IObjRef[] getObjRefs(Object obj);
 
@@ -291,9 +310,12 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		public void setInitialized(Object obj, Object value)
 		{
 			member.setValue(obj, value);
-			// state.setValue(obj, ValueHolderState.INIT);
-			// objRefs.setValue(obj, null);
-			// directValue.setValue(obj, value);
+		}
+
+		@Override
+		public void setInitPending(Object obj)
+		{
+			state.setValue(obj, ValueHolderState.PENDING);
 		}
 
 		@Override
@@ -438,7 +460,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 
 	protected ValueHolderContainerEntry getVhcEntry(Object parentObj)
 	{
-		if (!(parentObj instanceof IValueHolderContainer))
+		if (!(parentObj instanceof IObjRefContainer))
 		{
 			return null;
 		}
@@ -455,49 +477,6 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 			typeToVhcEntryMap.put(targetType, vhcEntry);
 		}
 		return vhcEntry;
-	}
-
-	@Override
-	public boolean isInitialized(Object parentObj, String memberName)
-	{
-		IRelationInfoItem member = (IRelationInfoItem) entityMetaDataProvider.getMetaData(parentObj.getClass()).getMemberByName(memberName);
-		return isInitialized(parentObj, member);
-	}
-
-	@Override
-	public boolean isInitialized(Object parentObj, IRelationInfoItem member)
-	{
-		ValueHolderContainerEntry vhcEntry = getVhcEntry(parentObj);
-		return ValueHolderState.INIT == vhcEntry.getState(parentObj, member);
-	}
-
-	@Override
-	public IObjRef[] getObjRefs(Object parentObj, String memberName)
-	{
-		IRelationInfoItem member = (IRelationInfoItem) entityMetaDataProvider.getMetaData(parentObj.getClass()).getMemberByName(memberName);
-		return getObjRefs(parentObj, member);
-	}
-
-	@Override
-	public IObjRef[] getObjRefs(Object parentObj, IRelationInfoItem member)
-	{
-		ValueHolderContainerEntry vhcEntry = getVhcEntry(parentObj);
-		return vhcEntry.getObjRefs(parentObj, member);
-	}
-
-	@Override
-	public void setUninitialized(Object parentObj, IRelationInfoItem member, IObjRef[] objRefs)
-	{
-		ValueHolderContainerEntry vhcEntry = getVhcEntry(parentObj);
-		vhcEntry.setUninitialized(parentObj, member, objRefs);
-		// This may fire a property change listener, so it is important to set this AFTER if resetted the value holder above
-	}
-
-	@Override
-	public void setObjRefs(Object parentObj, IRelationInfoItem member, IObjRef[] objRefs)
-	{
-		ValueHolderContainerEntry vhcEntry = getVhcEntry(parentObj);
-		vhcEntry.setObjRefs(parentObj, member, objRefs);
 	}
 
 	@Override
@@ -523,19 +502,6 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		}
 		put(type, realType);
 		return realType;
-	}
-
-	@Override
-	public Object getValueDirect(Object parentObj, IRelationInfoItem member)
-	{
-		ValueHolderContainerEntry vhcEntry = getVhcEntry(parentObj);
-		return vhcEntry.getValueDirect(parentObj, member);
-	}
-
-	@Override
-	public void setValueDirect(Object parentObj, IRelationInfoItem member, Object value)
-	{
-		member.setValue(parentObj, value);
 	}
 
 	@Override

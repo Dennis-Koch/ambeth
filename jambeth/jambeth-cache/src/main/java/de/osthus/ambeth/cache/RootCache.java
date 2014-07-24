@@ -53,6 +53,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.privilege.IPrivilegeCache;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
@@ -232,7 +233,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		FastConstructor constructor = rootCacheValueTypeProvider.getRootCacheValueType(entityType);
 		try
 		{
-			return (RootCacheValue) constructor.newInstance(new Object[] { entityType });
+			return (RootCacheValue) constructor.newInstance(new Object[] { metaData });
 		}
 		catch (Throwable e)
 		{
@@ -559,10 +560,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 							IList<Object> cacheResult = targetCache.getObjects(objRel.getObjRefs(), CacheDirective.failEarly());
 							if (cacheResult.size() > 0)
 							{
-								Object item = cacheResult.get(0); // Only one hit is necessary of given group of objRefs
-								IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
-								IRelationInfoItem member = (IRelationInfoItem) metaData.getMemberByName(objRel.getMemberName());
-								if (proxyHelper.isInitialized(item, member) || proxyHelper.getObjRefs(item, member) != null)
+								IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only one hit is necessary of given group of objRefs
+								int relationIndex = item.get__EntityMetaData().getIndexByRelationName(objRel.getMemberName());
+								if (ValueHolderState.INIT == item.get__State(relationIndex) || item.get__ObjRefs(relationIndex) != null)
 								{
 									continue;
 								}
@@ -702,13 +702,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				continue;
 			}
-			Object item = cacheResult.get(0); // Only first hit is needed
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRel.getRealType());
-			IRelationInfoItem member = (IRelationInfoItem) metaData.getMemberByName(objRel.getMemberName());
+			IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only first hit is needed
+			IEntityMetaData metaData = item.get__EntityMetaData();
+			int relationIndex = metaData.getIndexByRelationName(objRel.getMemberName());
+			IRelationInfoItem member = metaData.getRelationMembers()[relationIndex];
 
-			if (!proxyHelper.isInitialized(item, member))
+			if (ValueHolderState.INIT != item.get__State(relationIndex))
 			{
-				IObjRef[] objRefs = proxyHelper.getObjRefs(item, member);
+				IObjRef[] objRefs = item.get__ObjRefs(relationIndex);
 				if (objRefs != null)
 				{
 					ObjRelationResult selfResult = new ObjRelationResult();

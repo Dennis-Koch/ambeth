@@ -2,7 +2,13 @@ package de.osthus.ambeth.ioc;
 
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.converter.StringToClassArrayConverter;
+import de.osthus.ambeth.converter.StringToDoubleArrayConverter;
+import de.osthus.ambeth.converter.StringToFloatArrayConverter;
+import de.osthus.ambeth.converter.StringToIntArrayConverter;
+import de.osthus.ambeth.converter.StringToLongArrayConverter;
 import de.osthus.ambeth.converter.StringToPatternConverter;
+import de.osthus.ambeth.converter.StringToStringArrayConverter;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -13,9 +19,6 @@ import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.threading.GuiThreadHelper;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
-import de.osthus.ambeth.util.DelegatingConversionHelper;
-import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 import de.osthus.ambeth.util.IInterningFeature;
 import de.osthus.ambeth.util.InterningFeature;
 import de.osthus.ambeth.util.converter.BooleanArrayConverter;
@@ -32,9 +35,6 @@ public class IocBootstrapModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("conversionHelper", DelegatingConversionHelper.class).propertyRefs("*conversionHelper")
-				.autowireable(IConversionHelper.class, IDedicatedConverterExtendable.class);
-
 		beanContextFactory.registerBean("booleanArrayConverter", BooleanArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "booleanArrayConverter", String.class, boolean[].class);
 
@@ -44,9 +44,27 @@ public class IocBootstrapModule implements IInitializingModule
 		beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
 
+		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerAnonymousBean(StringToClassArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class, Class[].class);
+
+		IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory.registerAnonymousBean(StringToDoubleArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToDoubleArrayConverter, String.class, double[].class);
+
+		IBeanConfiguration stringToFloatArrayConverter = beanContextFactory.registerAnonymousBean(StringToFloatArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToFloatArrayConverter, String.class, float[].class);
+
+		IBeanConfiguration stringToIntArrayConverter = beanContextFactory.registerAnonymousBean(StringToIntArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToIntArrayConverter, String.class, int[].class);
+
+		IBeanConfiguration stringToLongArrayConverter = beanContextFactory.registerAnonymousBean(StringToLongArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToLongArrayConverter, String.class, long[].class);
+
 		IBeanConfiguration stringToPatternConverterBC = beanContextFactory.registerAnonymousBean(StringToPatternConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern[].class);
+
+		IBeanConfiguration stringToStringArrayConverter = beanContextFactory.registerAnonymousBean(StringToStringArrayConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToStringArrayConverter, String.class, String[].class);
 
 		beanContextFactory.registerBean("interningFeature", InterningFeature.class).autowireable(IInterningFeature.class);
 

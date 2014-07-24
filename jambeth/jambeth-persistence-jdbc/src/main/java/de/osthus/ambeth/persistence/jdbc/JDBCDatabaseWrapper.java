@@ -175,10 +175,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName
 						+ " as data table waiting for entity mapping");
 			}
-
+			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(fqTableName);
 			JdbcTable table = new JdbcTable();
-			table.setInitialVersion(1);
-			table.setName(fqTableName);
+			table.setInitialVersion(Integer.valueOf(1));
+			table.setName(schemaAndName[0] + "." + schemaAndName[1]);
+			table.setFullqualifiedEscapedName(fqTableName);
 			table.setViewBased(viewNames.contains(fqTableName));
 
 			List<String> pkFieldNames = tableNameToPkFieldsMap.get(fqTableName);
@@ -420,9 +421,9 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 					String linkColumnName = foreignKey.get("FKCOLUMN_NAME");
 
 					sb.setLength(0);
-					pkTableName = sb.append('\"').append(schemaName).append("\".\"").append(pkTableName).append('\"').toString();
+					pkTableName = sb.append(schemaName).append(".").append(pkTableName).toString();
 					sb.setLength(0);
-					linkTableName = sb.append('\"').append(schemaName).append("\".\"").append(linkTableName).append('\"').toString();
+					linkTableName = sb.append(schemaName).append(".").append(linkTableName).toString();
 
 					List<String[]> tableLinks = linkNameToEntryMap.get(linkTableName);
 					if (tableLinks == null)
@@ -1030,6 +1031,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		}
 
 		SqlLink link = buildAndMapLink(linkName, fromTable, fromField, toTable, toField, true);
+		link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(linkName));
 		((DirectedLink) link.getDirectedLink()).setConstraintName(fromConstraint);
 		((DirectedLink) link.getDirectedLink()).setStandaloneLink(true);
 		((DirectedLink) link.getReverseDirectedLink()).setStandaloneLink(true);
@@ -1064,34 +1066,18 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 	protected <T> void putObjectByName(String name, T link, IMap<String, T> nameToObjectMap)
 	{
-		Matcher splitMatcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(name);
-		String schemaName = null, softName = null;
-		if (splitMatcher.matches())
+		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(name);
+		String schemaName = schemaAndName[0];
+		String softName = schemaAndName[1];
+		if (schemaName == null)
 		{
-			schemaName = splitMatcher.group(1);
-			softName = splitMatcher.group(2);
-		}
-		else
-		{
-			splitMatcher = XmlDatabaseMapper.softTableNamePattern.matcher(name);
-			if (splitMatcher.matches())
-			{
-				// set "default" schema name
-				schemaName = schemaNames[0];
-				softName = splitMatcher.group(1);
-			}
-			else
-			{
-				throw new IllegalArgumentException("Illegal link name '" + name + "'");
-			}
+			schemaName = schemaNames[0];
 		}
 		if (schemaName.equals(schemaNames[0]))
 		{
 			nameToObjectMap.put(softName, link);
-			nameToObjectMap.put("\"" + softName + "\"", link);
 		}
 		nameToObjectMap.put(schemaName + "." + softName, link);
-		nameToObjectMap.put("\"" + schemaName + "\".\"" + softName + "\"", link);
 	}
 
 	protected void handleLinkTableToExtern(String linkName, List<String[]> values) throws SQLException
@@ -1145,6 +1131,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		}
 
 		link.setName(linkName);
+		link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(linkName));
 		link.setFromTable(fromTable);
 		link.setFromField(fromField);
 		link.setToField(toField);
@@ -1230,6 +1217,8 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 					fromField, toTable, toField, nullable);
 			link.setConstraintName(constraintName);
 			link.setTableName(linkName);
+			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(linkName);
+			link.setFullqualifiedEscapedTableName(XmlDatabaseMapper.escapeName(schemaAndName[0], schemaAndName[1]));
 
 			boolean fromIsStandalone = fromField.isAlternateId() || (fromTable.getIdField() != null && fromTable.getIdField().equals(fromField));
 			boolean toIsStandalone = toField.isAlternateId() || toTable.getIdField().equals(toField);

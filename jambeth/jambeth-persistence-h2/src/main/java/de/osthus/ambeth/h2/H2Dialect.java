@@ -251,7 +251,7 @@ public class H2Dialect extends AbstractConnectionDialect
 			{
 				String tableSchema = rs.getString("table_schema");
 				String tableName = rs.getString("table_name");
-				tableNames.add(escapeName(tableSchema, tableName));
+				tableNames.add(tableSchema + "." + tableName);
 			}
 			return tableNames;
 		}
@@ -276,7 +276,7 @@ public class H2Dialect extends AbstractConnectionDialect
 			{
 				String tableSchema = rs.getString("table_schema");
 				String tableName = rs.getString("table_name");
-				viewNames.add(escapeName(tableSchema, tableName));
+				viewNames.add(tableSchema + "." + tableName);
 			}
 			return viewNames;
 		}

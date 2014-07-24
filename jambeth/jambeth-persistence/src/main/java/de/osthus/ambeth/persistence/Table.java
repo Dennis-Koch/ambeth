@@ -119,6 +119,12 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	@Override
+	public String getFullqualifiedEscapedName()
+	{
+		return getName();
+	}
+
+	@Override
 	public boolean isViewBased()
 	{
 		return viewBased;

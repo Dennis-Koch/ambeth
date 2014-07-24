@@ -153,22 +153,17 @@ namespace De.Osthus.Ambeth.Template
             }
         }
 
-        public Object GetValue(Object entity, IRelationInfoItem[] relationMembers, int indexOfProperty, ICacheIntern targetCache, IObjRef[] objRefs)
+        public Object GetValue(IValueHolderContainer entity, IRelationInfoItem[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs)
         {
-            return GetValue(entity, relationMembers[indexOfProperty], targetCache, objRefs);
+            return GetValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs, CacheDirective.None);
         }
 
-        public Object GetValue(Object entity, IRelationInfoItem relationMember, ICacheIntern targetCache, IObjRef[] objRefs)
+        public Object GetValue(IValueHolderContainer vhc, int relationIndex)
         {
-            return GetValue(entity, relationMember);
+            return GetValue(vhc, relationIndex, CacheDirective.None);
         }
 
-        public Object GetValue(Object vhc, IRelationInfoItem member)
-        {
-            return GetValue(vhc, member, CacheDirective.None);
-        }
-
-        public Object GetValue(Object entity, IRelationInfoItem relationMember, ICacheIntern targetCache, IObjRef[] objRefs, CacheDirective cacheDirective)
+        public Object GetValue(IObjRefContainer entity, int relationIndex, IRelationInfoItem relationMember, ICacheIntern targetCache, IObjRef[] objRefs, CacheDirective cacheDirective)
         {
             Object value;
             if (targetCache == null)
@@ -181,7 +176,7 @@ namespace De.Osthus.Ambeth.Template
                 IList<Object> results;
                 if (objRefs == null)
                 {
-                    IObjRelation self = GetSelf(entity, relationMember.Name);
+                    IObjRelation self = GetSelf(entity, relationIndex);
                     List<IObjRelation> selfs = new List<IObjRelation>(1);
                     selfs.Add(self);
                     IList<IObjRelationResult> objRelResults = targetCache.GetObjRelations(selfs, targetCache, cacheDirective);
@@ -204,26 +199,24 @@ namespace De.Osthus.Ambeth.Template
             return value;
         }
 
-        public Object GetValue(Object vhc, IRelationInfoItem member, CacheDirective cacheDirectiveHint)
+        public Object GetValue(IValueHolderContainer vhc, int relationIndex, CacheDirective cacheDirectiveHint)
         {
-            IProxyHelper proxyHelper = this.ProxyHelper;
-            bool? isInitializedV = proxyHelper.IsInitialized(vhc, member);
-            bool isInitialized = isInitializedV.HasValue ? isInitializedV.Value : false;
+            bool isInitialized = vhc.Is__Initialized(relationIndex);
             if (isInitialized)
             {
-                return proxyHelper.GetValueDirect(vhc, member);
+                return vhc.Get__ValueDirect(relationIndex);
             }
             ParamHolder<bool> lockAcquired = null;
             Monitor.Enter(this);
             try
             {
                 // Double-checked locking pattern
-                Object value = proxyHelper.GetValueDirect(vhc, member);
+                Object value = vhc.Get__ValueDirect(relationIndex);
                 if (isInitialized)
                 {
                     return value;
                 }
-                if (value != null && proxyHelper.GetInitPending(vhc, member))
+                if (value != null && ValueHolderState.PENDING == vhc.Get__State(relationIndex))
                 {
                     Monitor.Wait(this);
                     if (!isInitialized)
@@ -233,7 +226,7 @@ namespace De.Osthus.Ambeth.Template
                     return value;
                 }
                 lockAcquired = new ParamHolder<bool>(true);
-                EnsureValue(cacheDirectiveHint, true, lockAcquired, (IValueHolderContainer)vhc, member, value);
+                EnsureValue(cacheDirectiveHint, true, lockAcquired, (IValueHolderContainer)vhc, relationIndex, value);
             }
             finally
             {
@@ -242,17 +235,16 @@ namespace De.Osthus.Ambeth.Template
                     Monitor.Exit(this);
                 }
             }
-            return proxyHelper.GetValueDirect(vhc, member);
+            return vhc.Get__ValueDirect(relationIndex);
         }
 
         protected bool EnsureValue(CacheDirective cacheDirectiveHint, bool synchronousResultExpected, IParamHolder<bool> lockAcquired,
-            IValueHolderContainer vhc, IRelationInfoItem member, Object value)
+            IValueHolderContainer vhc, int relationIndex, Object value)
         {
             IGuiThreadHelper guiThreadHelper = this.GuiThreadHelper;
-            IProxyHelper proxyHelper = this.ProxyHelper;
             bool isInGuiThread = guiThreadHelper != null && guiThreadHelper.IsInGuiThread();
-            ValueHolderState state = vhc.GetState(member);
-            bool initPending = ValueHolderState.PENDING.Equals(state);
+            ValueHolderState state = vhc.Get__State(relationIndex);
+            bool initPending = ValueHolderState.PENDING == state;
             if (isInGuiThread && initPending)
             {
                 // Content is not really loaded, but instance is available to use (SOLELY for DataBinding in GUI Thread)
@@ -262,7 +254,8 @@ namespace De.Osthus.Ambeth.Template
                 }
                 return value != null;
             }
-            bool isInitialized = ValueHolderState.INIT.Equals(state);
+            IRelationInfoItem member = vhc.Get__EntityMetaData().RelationMembers[relationIndex];
+            bool isInitialized = ValueHolderState.INIT == state;
             ICacheIntern targetCache = null;
             Type expectedType = member.RealType;
             Type elementType = member.ElementType;
@@ -294,10 +287,10 @@ namespace De.Osthus.Ambeth.Template
                     }
 
                     bool loadAsync = false;
-                    objRefs = proxyHelper.GetObjRefs(vhc, member);
+                    objRefs = vhc.Get__ObjRefs(relationIndex);
                     if (objRefs == null)
                     {
-                        IObjRelation self = vhc.GetSelf(member);
+                        IObjRelation self = vhc.Get__Self(relationIndex);
                         if (targetCache == null)
                         {
                             targetCache = vhc.__TargetCache;
@@ -313,7 +306,7 @@ namespace De.Osthus.Ambeth.Template
                         else
                         {
                             objRefs = temporaryObjRelResults[0].Relations;
-                            proxyHelper.SetObjRefs(vhc, member, objRefs);
+                            vhc.Set__ObjRefs(relationIndex, objRefs);
                         }
                     }
                     IList<Object> temporaryResults = null;
@@ -384,7 +377,7 @@ namespace De.Osthus.Ambeth.Template
                         value = null;
                     }
                     initPending = true;
-                    ProxyHelper.SetInitPending(vhc, member);
+                    vhc.Set__InitPending(relationIndex);
                     ThreadPool.Queue(loadAllPendingValueHoldersQGK, new DirectValueHolderRef(vhc, member));
                     if (value == null && synchronousResultExpected)
                     {
@@ -399,12 +392,12 @@ namespace De.Osthus.Ambeth.Template
                 Monitor.Exit(this);
                 lockAcquired.Value = false;
             }
-            objRefs = proxyHelper.GetObjRefs(vhc, member);
+            objRefs = vhc.Get__ObjRefs(relationIndex);
             // Release vh lock while calling the __TargetCache. This is important due to potential deadlocks between UI & workers
             IList<Object> results = null;
             if (objRefs == null)
             {
-                IObjRelation self = vhc.GetSelf(member);
+                IObjRelation self = GetSelf(vhc, relationIndex);
                 if (targetCache == null)
                 {
                     targetCache = vhc.__TargetCache;
@@ -418,7 +411,7 @@ namespace De.Osthus.Ambeth.Template
                     }
                 }
                 objRefs = objRelResults[0].Relations;
-                proxyHelper.SetObjRefs(vhc, member, objRefs);
+                vhc.Set__ObjRefs(relationIndex, objRefs);
             }
             if (objRefs != null)
             {
@@ -443,7 +436,7 @@ namespace De.Osthus.Ambeth.Template
                     // We are still valid and are allowed to use our 'results'
                     value = cacheHelper.ConvertResultListToExpectedType(results, expectedType, elementType);
                     isInitialized = true;
-                    proxyHelper.SetInitialized(vhc, member, value);
+                    member.SetValue(vhc, value);
                     if (value is INotifyPropertyChanged)
                     {
                         HandleValueSetAsynchronously(new DirectValueHolderRef(vhc, member), (INotifyPropertyChanged)value);
@@ -458,8 +451,15 @@ namespace De.Osthus.Ambeth.Template
             return Object.ReferenceEquals(parentEntity, parent);
         }
 
-        public IObjRelation GetSelf(Object entity, String memberName)
+       	public IObjRelation GetSelf(IObjRefContainer entity, String memberName)
+	    {
+		    IList<IObjRef> allObjRefs = OriHelper.EntityToAllObjRefs(entity);
+		    return new ObjRelation(ListUtil.ToArray(allObjRefs), memberName);
+	    }
+
+        public IObjRelation GetSelf(IObjRefContainer entity, int relationIndex)
         {
+            String memberName = entity.Get__EntityMetaData().RelationMembers[relationIndex].Name;
             IList<IObjRef> allObjRefs = OriHelper.EntityToAllObjRefs(entity);
             return new ObjRelation(ListUtil.ToArray(allObjRefs), memberName);
         }

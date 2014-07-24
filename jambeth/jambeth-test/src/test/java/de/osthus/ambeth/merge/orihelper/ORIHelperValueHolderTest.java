@@ -16,12 +16,11 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.Employee;
-import de.osthus.ambeth.proxy.IValueHolderContainer;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
@@ -67,16 +66,16 @@ public class ORIHelperValueHolderTest extends AbstractPersistenceTest
 		Employee employee2 = cache.getObject(Employee.class, 2);
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(Employee.class);
-		IRelationInfoItem primaryAddressMember = (IRelationInfoItem) metaData.getMemberByName("PrimaryAddress");
+		int relationIndex = metaData.getIndexByRelationName("PrimaryAddress");
 
-		assertTrue(employee1 instanceof IValueHolderContainer);
-		assertTrue(employee2 instanceof IValueHolderContainer);
-		assertTrue(!proxyHelper.isInitialized(employee1, primaryAddressMember));
-		assertTrue(!proxyHelper.isInitialized(employee2, primaryAddressMember));
+		assertTrue(employee1 instanceof IObjRefContainer);
+		assertTrue(employee2 instanceof IObjRefContainer);
+		assertTrue(!((IObjRefContainer) employee1).is__Initialized(relationIndex));
+		assertTrue(!((IObjRefContainer) employee2).is__Initialized(relationIndex));
 
 		IList<IObjRef> extractedORIList = new ArrayList<IObjRef>();
-		extractedORIList.addAll(proxyHelper.getObjRefs(employee1, primaryAddressMember));
-		extractedORIList.addAll(proxyHelper.getObjRefs(employee2, primaryAddressMember));
+		extractedORIList.addAll(((IObjRefContainer) employee1).get__ObjRefs(relationIndex));
+		extractedORIList.addAll(((IObjRefContainer) employee2).get__ObjRefs(relationIndex));
 
 		assertEquals(2, extractedORIList.size());
 
@@ -95,5 +94,4 @@ public class ORIHelperValueHolderTest extends AbstractPersistenceTest
 		assertEquals(ObjRef.PRIMARY_KEY_INDEX, ori2.getIdNameIndex());
 		assertEquals(address2.getVersion(), ori2.getVersion());
 	}
-
 }

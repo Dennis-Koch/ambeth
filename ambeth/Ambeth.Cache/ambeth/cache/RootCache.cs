@@ -35,6 +35,7 @@ using De.Osthus.Ambeth.Privilege;
 using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Privilege.Model;
 using De.Osthus.Ambeth.Security.Config;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -170,7 +171,7 @@ namespace De.Osthus.Ambeth.Cache
         {
             Type entityType = metaData.EntityType;
             ConstructorInfo constructor = RootCacheValueTypeProvider.GetRootCacheValueType(entityType);
-            return (RootCacheValue)constructor.Invoke(new Object[] { entityType });
+            return (RootCacheValue)constructor.Invoke(new Object[] { metaData });
         }
 
         protected override Object GetIdOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue)
@@ -470,10 +471,9 @@ namespace De.Osthus.Ambeth.Cache
                                 IList<Object> cacheResult = targetCache.GetObjects(objRel.ObjRefs, CacheDirective.FailEarly);
                                 if (cacheResult.Count > 0)
                                 {
-                                    Object item = cacheResult[0]; // Only one hit is necessary of given group of objRefs
-                                    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRel.RealType);
-                                    IRelationInfoItem member = (IRelationInfoItem)metaData.GetMemberByName(objRel.MemberName);
-                                    if (proxyHelper.IsInitialized(item, member) || proxyHelper.GetObjRefs(item, member) != null)
+                                    IObjRefContainer item = (IObjRefContainer)cacheResult[0]; // Only one hit is necessary of given group of objRefs
+                                    int relationIndex = item.Get__EntityMetaData().GetIndexByRelationName(objRel.MemberName);
+                                    if (ValueHolderState.INIT == item.Get__State(relationIndex) || item.Get__ObjRefs(relationIndex) != null)
                                     {
                                         continue;
                                     }
@@ -603,13 +603,14 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     continue;
                 }
-                Object item = cacheResult[0]; // Only first hit is needed
-                IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(objRel.RealType);
-                IRelationInfoItem member = (IRelationInfoItem)metaData.GetMemberByName(objRel.MemberName);
+                IObjRefContainer item = (IObjRefContainer)cacheResult[0]; // Only first hit is needed
+                IEntityMetaData metaData = item.Get__EntityMetaData();
+                int relationIndex = metaData.GetIndexByRelationName(objRel.MemberName);
+                IRelationInfoItem member = metaData.RelationMembers[relationIndex];
 
-                if (!proxyHelper.IsInitialized(item, member))
+                if (ValueHolderState.INIT != item.Get__State(relationIndex))
                 {
-                    IObjRef[] objRefs = proxyHelper.GetObjRefs(item, member);
+                    IObjRef[] objRefs = item.Get__ObjRefs(relationIndex);
                     if (objRefs != null)
                     {
                         ObjRelationResult selfResult = new ObjRelationResult();

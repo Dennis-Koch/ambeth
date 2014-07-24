@@ -85,6 +85,21 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		return new String[] { schemaName, softName };
 	}
 
+	public static String escapeName(String tableName)
+	{
+		String[] schemaAndName = splitSchemaAndName(tableName);
+		return escapeName(schemaAndName[0], schemaAndName[1]);
+	}
+
+	public static String escapeName(String schemaName, String tableName)
+	{
+		if (schemaName == null)
+		{
+			return "\"" + tableName + "\"";
+		}
+		return "\"" + schemaName + "\".\"" + tableName + "\"";
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -646,7 +661,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			throw new IllegalStateException("Must never happen");
 		}
-		return "\"" + matcher.group(1) + "\".\"" + objectName + "\"";
+		return matcher.group(1) + "." + objectName;
 	}
 
 	protected void mapToOne(Database database, ITable table, RelationConfigLegathy relationConfig)
@@ -1166,6 +1181,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 		link.setName(linkName);
 		link.setTableName(fromTable.getName());
+		link.setFullqualifiedEscapedTableName(fromTable.getFullqualifiedEscapedName());
 		link.setFromTable(fromTable);
 		link.setFromField(fromField);
 		link.setToField(toField);

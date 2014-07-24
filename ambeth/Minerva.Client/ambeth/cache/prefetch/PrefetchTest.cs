@@ -3,6 +3,8 @@ using De.Osthus.Ambeth.Helloworld.Transfer;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Test;
 using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Util;
@@ -16,6 +18,9 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
     [TestClass]
     public class PrefetchTest : AbstractHelloWorldTest
     {
+        [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
         [TestMethod]
         public void Test_Prefetch()
         {
@@ -27,10 +32,14 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
 
             prefetch.Prefetch(testEntities);
 
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(typeof(TestEntity));
+            int indexOfRelation = metaData.GetIndexByRelationName("Relation");
+            int indexOfRelations = metaData.GetIndexByRelationName("Relations");
+
             foreach (TestEntity testEntity in testEntities)
             {
-                Assert.AssertTrue(ProxyHelper.IsInitialized(testEntity, "Relation"));
-                Assert.AssertTrue(ProxyHelper.IsInitialized(testEntity, "Relations"));
+                Assert.AssertTrue(((IObjRefContainer)testEntity).Is__Initialized(indexOfRelation));
+                Assert.AssertTrue(((IObjRefContainer)testEntity).Is__Initialized(indexOfRelations));
             }
         }
     }
