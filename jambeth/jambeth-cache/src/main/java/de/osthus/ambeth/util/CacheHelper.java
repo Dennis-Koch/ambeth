@@ -260,7 +260,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 					List<CachePath> cachePaths = null;
 					if (typeToMembersToInitialize != null)
 					{
-						IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objects.getClass());
+						IEntityMetaData metaData = ((IEntityMetaDataHolder) objects).get__EntityMetaData();
 						cachePaths = typeToMembersToInitialize.get(metaData.getEntityType());
 
 						if (cachePaths == null)
