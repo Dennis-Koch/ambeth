@@ -1,7 +1,9 @@
 package de.osthus.filesystem.hdf5;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.nio.file.FileStore;
 import java.nio.file.FileSystemAlreadyExistsException;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -25,6 +28,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -36,12 +40,22 @@ import org.junit.Test;
  */
 public class Hdf5FileSystemProviderTest
 {
+	private static final Path TEST_PATH = Paths.get(TestConstant.TEST_FILE_SYS_NAME);
+
 	private Hdf5FileSystemProvider hdf5FileSystemProvider;
 
 	@Before
 	public void setUp() throws Exception
 	{
+		Files.deleteIfExists(TEST_PATH);
+
 		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
+	}
+
+	@After
+	public void tearDown() throws Exception
+	{
+		Files.deleteIfExists(TEST_PATH);
 	}
 
 	@Test
@@ -54,19 +68,19 @@ public class Hdf5FileSystemProviderTest
 	@Test
 	public void testNewFileSystemURIMapOfStringQ() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		URI uri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		Map<String, ?> env = Collections.emptyMap();
 
 		Hdf5FileSystem fileSystem = hdf5FileSystemProvider.newFileSystem(uri, env);
 
 		assertNotNull(fileSystem);
-		assertEquals(TestConstant.NAME_FILE_FS_TEST_FILE, fileSystem.getUnderlyingFile().toUri().toString());
+		assertEquals(TestConstant.EMPTY_FILE_SYS_URI, fileSystem.getUnderlyingFile().toUri().toString());
 	}
 
 	@Test(expected = FileSystemAlreadyExistsException.class)
 	public void testNewFileSystemURIMapOfStringQ_existing() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		URI uri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		Map<String, ?> env = Collections.emptyMap();
 		hdf5FileSystemProvider.newFileSystem(uri, env);
 
@@ -77,7 +91,7 @@ public class Hdf5FileSystemProviderTest
 	@Test
 	public void testGetFileSystemURI() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		URI uri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		Map<String, ?> env = Collections.emptyMap();
 		Hdf5FileSystem expected = hdf5FileSystemProvider.newFileSystem(uri, env);
 
@@ -88,7 +102,7 @@ public class Hdf5FileSystemProviderTest
 	@Test(expected = FileSystemNotFoundException.class)
 	public void testGetFileSystemURI_notExisting() throws IOException, URISyntaxException
 	{
-		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		URI uri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		hdf5FileSystemProvider.getFileSystem(uri);
 	}
 
@@ -112,19 +126,17 @@ public class Hdf5FileSystemProviderTest
 	@Test
 	public void testGetPathURI()
 	{
-		String dirFsUriString = TestConstant.NAME_HDF5_FS_TEST_FILE;
-		String folderPathString = "/insideDirFs/folder";
-		String fullUriString = dirFsUriString + "!" + folderPathString;
+		String fullUriString = TestConstant.TEST_FILE_HDF5_DATA_URI;
 		URI fullUri = URI.create(fullUriString);
 
 		Hdf5Path path = hdf5FileSystemProvider.getPath(fullUri);
 
-		Hdf5Uri dirFsUri = Hdf5Uri.create(dirFsUriString);
+		Hdf5Uri dirFsUri = Hdf5Uri.create(fullUriString);
 		Hdf5FileSystem dirFileSystem = hdf5FileSystemProvider.useFileSystem(dirFsUri);
 		assertEquals(dirFileSystem, path.getFileSystem());
 
 		assertEquals(dirFileSystem.getSeparator(), path.getRoot().toString());
-		assertEquals(folderPathString, path.toString());
+		assertEquals(TestConstant.DATA_FOLDER, path.toString());
 	}
 
 	@Test
@@ -158,6 +170,14 @@ public class Hdf5FileSystemProviderTest
 		Filter<? super Path> filter = null;
 
 		hdf5FileSystemProvider.newDirectoryStream(dir, filter);
+	}
+
+	@Test
+	public void testCreateDirectoryPathFileAttributeOfQArray_simple() throws IOException
+	{
+		URI uri = URI.create(TestConstant.TEST_FILE_HDF5_DATA_URI);
+		Hdf5Path dir = hdf5FileSystemProvider.getPath(uri);
+		hdf5FileSystemProvider.createDirectory(dir);
 	}
 
 	@Test
@@ -255,10 +275,9 @@ public class Hdf5FileSystemProviderTest
 	@Test
 	public void testGetFileStorePath() throws IOException, URISyntaxException
 	{
-		URI sysUri = new URI(TestConstant.NAME_FILE_FS_TEST_FILE);
-		Path sysPath = Paths.get(sysUri);
+		Path sysPath = TEST_PATH;
 
-		URI dirUri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE_PATH);
+		URI dirUri = new URI(TestConstant.TEST_FILE_HDF5_DATA_URI);
 		Path dirPath = hdf5FileSystemProvider.getPath(dirUri);
 
 		FileStore expected = FileSystems.getDefault().provider().getFileStore(sysPath);
@@ -349,5 +368,13 @@ public class Hdf5FileSystemProviderTest
 		LinkOption[] options = null;
 
 		hdf5FileSystemProvider.setAttribute(path, attribute, value, options);
+	}
+
+	@Test
+	public void testCreateHdf5FilePath() throws IOException
+	{
+		assertFalse(Files.exists(TEST_PATH));
+		hdf5FileSystemProvider.createHdf5File(TEST_PATH);
+		assertTrue(Files.exists(TEST_PATH));
 	}
 }

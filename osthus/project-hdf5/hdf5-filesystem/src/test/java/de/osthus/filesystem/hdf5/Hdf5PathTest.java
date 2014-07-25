@@ -35,7 +35,7 @@ public class Hdf5PathTest
 	public static void setUpBeforeClass() throws Exception
 	{
 		Hdf5FileSystemProvider hdf5FileSystemProvider = new Hdf5FileSystemProvider();
-		URI uri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
+		URI uri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
 		HDF5_FILE_SYSTEM = hdf5FileSystemProvider.newFileSystem(uri, null);
 	}
 
