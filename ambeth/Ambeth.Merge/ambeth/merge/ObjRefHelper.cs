@@ -8,22 +8,17 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class ORIHelper : IObjRefHelper
+    public class ObjRefHelper : IObjRefHelper
     {
         [Autowired]
         public ICompositeIdFactory CompositeIdFactory { protected get; set; }
 
         [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
-
-        [Autowired]
-        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
-
-        [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
 
         public IList<IObjRef> ExtractObjRefList(Object objValue, MergeHandle mergeHandle)
         {
@@ -163,7 +158,7 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return (IObjRef)obj;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             return oriProvider.GetORI(obj, metaData);
         }
 
@@ -187,7 +182,7 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return (IObjRef)obj;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
             Object keyValue = metaData.IdMember.GetValue(obj, false);
             if (keyValue == null || mergeHandle != null && mergeHandle.HandleExistingIdAsNewId)
@@ -219,17 +214,17 @@ namespace De.Osthus.Ambeth.Merge
 
         public IObjRef EntityToObjRef(Object entity)
         {
-            return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, EntityMetaDataProvider.GetMetaData(entity.GetType()));
+            return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
         }
 
         public IObjRef EntityToObjRef(Object entity, bool forceOri)
         {
-            return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, EntityMetaDataProvider.GetMetaData(entity.GetType()), forceOri);
+            return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder)entity).Get__EntityMetaData(), forceOri);
         }
 
         public IObjRef EntityToObjRef(Object entity, sbyte idIndex)
         {
-            return EntityToObjRef(entity, idIndex, EntityMetaDataProvider.GetMetaData(entity.GetType()));
+            return EntityToObjRef(entity, idIndex, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
         }
 
         public IObjRef EntityToObjRef(Object entity, IEntityMetaData metaData)
@@ -336,17 +331,7 @@ namespace De.Osthus.Ambeth.Merge
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity)
         {
-            Type entityType;
-            if (entity is AbstractCacheValue)
-            {
-                entityType = ((AbstractCacheValue)entity).EntityType;
-            }
-            else
-            {
-                entityType = entity.GetType();
-            }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
-            return EntityToAllObjRefs(entity, metaData);
+            return EntityToAllObjRefs(entity, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
         }
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity, IEntityMetaData metaData)

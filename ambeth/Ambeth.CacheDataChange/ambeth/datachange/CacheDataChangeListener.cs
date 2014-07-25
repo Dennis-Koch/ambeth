@@ -342,7 +342,7 @@ namespace De.Osthus.Ambeth.Cache
                         }
                         if (versionInDCE != null)
                         {
-                            IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(tempORI.RealType);
+                            IEntityMetaData metaData = ((IEntityMetaDataHolder)result).Get__EntityMetaData();
                             Object versionInCache = metaData.VersionMember != null ? metaData.VersionMember.GetValue(result, false) : null;
                             if (versionInCache != null && ((IComparable)versionInDCE).CompareTo(versionInCache) <= 0)
                             {
@@ -397,7 +397,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 return;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             Object id = metaData.IdMember.GetValue(obj, false);
             if (id == null)
             {
@@ -490,7 +490,7 @@ namespace De.Osthus.Ambeth.Cache
                         return;
                     }
                     IObjRef[][] relations = loadContainer.Relations;
-                    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(oriToUpdate.RealType);
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToUpdate).Get__EntityMetaData();
                     Type entityType = metaData.EntityType;
                     IRelationInfoItem[] relationMembers = metaData.RelationMembers;
                     if (relationMembers.Length == 0)
@@ -588,7 +588,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 // Check if the objects still have their id. They may have lost them concurrently because this
                                 // method here may be called from another thread (e.g. UI thread)
-                                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objectInCache.GetType());
+                                IEntityMetaData metaData = ((IEntityMetaDataHolder)objectInCache).Get__EntityMetaData();
                                 Object id = metaData.IdMember.GetValue(objectInCache, false);
                                 if (id == null)
                                 {

@@ -238,7 +238,7 @@ namespace De.Osthus.Ambeth.Util
                             IList<CachePath> cachePaths = null;
                             if (typeToMembersToInitialize != null)
                             {
-                                IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(objects.GetType());
+                                IEntityMetaData metaData = ((IEntityMetaDataHolder) objects).Get__EntityMetaData();
                                 cachePaths = DictionaryExtension.ValueOrDefault(typeToMembersToInitialize, metaData.EntityType);
 
                                 if (cachePaths == null)
@@ -520,7 +520,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             IRelationInfoItem[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {

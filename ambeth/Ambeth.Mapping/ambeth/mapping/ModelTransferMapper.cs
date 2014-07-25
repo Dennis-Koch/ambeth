@@ -206,7 +206,7 @@ namespace De.Osthus.Ambeth.Mapping
                     {
                         continue;
                     }
-                    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(businessObject.GetType());
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder)businessObject).Get__EntityMetaData();
                     IRelationInfoItem[] relationMembers = metaData.RelationMembers;
                     if (relationMembers.Length == 0)
                     {
@@ -293,7 +293,7 @@ namespace De.Osthus.Ambeth.Mapping
             // Ensure all potential value-holders of To-One BOs are initialized in a batch
             prefetchHelper.Prefetch(businessObjectList);
             // Checking for correct types
-            IEntityMetaData boMetaData = EntityMetaDataProvider.GetMetaData(businessObjectList[0].GetType());
+            IEntityMetaData boMetaData = ((IEntityMetaDataHolder)businessObjectList[0]).Get__EntityMetaData();
             Type businessObjectType = boMetaData.EntityType;
             IValueObjectConfig config = GetValueObjectConfig(valueObjectType);
             if (!config.EntityType.Equals(businessObjectType))
@@ -347,7 +347,7 @@ namespace De.Osthus.Ambeth.Mapping
             for (int a = 0, size = businessObjectList.Count; a < size; a++)
             {
                 Object businessObject = businessObjectList[a];
-                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(businessObject.GetType());
+                IEntityMetaData metaData = ((IEntityMetaDataHolder)businessObject).Get__EntityMetaData();
 
                 ITypeInfoItem idMember = SelectIdMember(metaData);
                 Object id = idMember.GetValue(businessObject, false);
@@ -364,7 +364,7 @@ namespace De.Osthus.Ambeth.Mapping
                 ICollection<IBackgroundWorkerDelegate> runnables)
         {
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-            IEntityMetaData businessObjectMetaData = entityMetaDataProvider.GetMetaData(businessObject.GetType());
+            IEntityMetaData businessObjectMetaData = ((IEntityMetaDataHolder)businessObject).Get__EntityMetaData();
             IValueObjectConfig config = entityMetaDataProvider.GetValueObjectConfig(valueObject.GetType());
             IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
@@ -873,7 +873,7 @@ namespace De.Osthus.Ambeth.Mapping
                 boVOsMap = new IdentityHashMap<Type, Object>();
                 boToSpecifiedVOMap.Put(subBusinessObject, boVOsMap);
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(subBusinessObject.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)subBusinessObject).Get__EntityMetaData();
             Object subValueObject = boVOsMap.Get(valueObjectType);
             if (subValueObject == null)
             {
@@ -990,7 +990,7 @@ namespace De.Osthus.Ambeth.Mapping
                 ObjRef objRef = new ObjRef();
                 foreach (Object bo in bosToRemoveTempIdFrom)
                 {
-                    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(bo.GetType());
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder)bo).Get__EntityMetaData();
                     RemoveTempIdFromBusinessObject(bo, metaData, objRef);
                 }
                 bosToRemoveTempIdFrom.Clear();

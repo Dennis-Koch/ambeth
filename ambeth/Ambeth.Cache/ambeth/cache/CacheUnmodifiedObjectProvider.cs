@@ -5,6 +5,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -31,7 +32,7 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return null;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(modifiedObject.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)modifiedObject).Get__EntityMetaData();
             Object id = metaData.IdMember.GetValue(modifiedObject, false);
             return GetUnmodifiedObject(metaData.EntityType, id);
         }
