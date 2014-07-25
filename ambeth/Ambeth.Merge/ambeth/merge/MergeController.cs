@@ -89,7 +89,7 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         continue;
                     }
-                    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(originalRef.GetType());
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder) originalRef).Get__EntityMetaData();
                     ITypeInfoItem versionMember = metaData.VersionMember;
 
                     ITypeInfoItem keyMember = metaData.IdMember;
@@ -435,7 +435,7 @@ namespace De.Osthus.Ambeth.Merge
                     return;
                 }
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             metaData.PrePersist(obj);
             Object key = metaData.IdMember.GetValue(obj, false);
             if (key == null)
@@ -457,7 +457,7 @@ namespace De.Osthus.Ambeth.Merge
 
         protected virtual void Persist(Object obj, MergeHandle handle)
         {
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
             AddModification(obj, handle); // Ensure entity will be persisted even if no single property is specified
 
@@ -499,7 +499,7 @@ namespace De.Osthus.Ambeth.Merge
         protected virtual void Merge(Object obj, Object clone, MergeHandle handle)
         {
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-            IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
             bool fieldBasedMergeActive = handle.FieldBasedMergeActive;
             bool oneChangeOccured = false;

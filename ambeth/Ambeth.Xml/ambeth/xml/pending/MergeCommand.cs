@@ -57,8 +57,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
 
             Object entity = ObjectFuture.Value;
-            Type realType = entity.GetType();
-            IEntityMetaData metadata = EntityMetaDataProvider.GetMetaData(realType);
+            IEntityMetaData metadata = ((IEntityMetaDataHolder)entity).Get__EntityMetaData();
             ApplyPrimitiveUpdateItems(entity, puis, metadata);
 
             if (ruis != null && ruis.Length > 0)

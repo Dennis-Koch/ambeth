@@ -53,7 +53,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
-            beanContextFactory.RegisterAutowireableBean<IObjRefHelper, ORIHelper>();
+            beanContextFactory.RegisterAutowireableBean<IObjRefHelper, ObjRefHelper>();
             beanContextFactory.RegisterBean<CUDResultHelper>("cudResultHelper").Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
 
             beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
