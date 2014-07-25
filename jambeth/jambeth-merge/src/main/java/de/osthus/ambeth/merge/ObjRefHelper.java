@@ -15,22 +15,17 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 
-public class ORIHelper implements IObjRefHelper
+public class ObjRefHelper implements IObjRefHelper
 {
 	@Autowired
 	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
-
-	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Override
 	public IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle)
@@ -168,7 +163,7 @@ public class ORIHelper implements IObjRefHelper
 		{
 			return (IObjRef) obj;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 		return oriProvider.getORI(obj, metaData);
 	}
 
@@ -193,7 +188,7 @@ public class ORIHelper implements IObjRefHelper
 		{
 			return (IObjRef) obj;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(obj.getClass());
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
 		Object keyValue = metaData.getIdMember().getValue(obj, false);
 		if (keyValue == null || mergeHandle != null && mergeHandle.isHandleExistingIdAsNewId())
@@ -237,19 +232,19 @@ public class ORIHelper implements IObjRefHelper
 	@Override
 	public IObjRef entityToObjRef(Object entity)
 	{
-		return entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, entityMetaDataProvider.getMetaData(entity.getClass()));
+		return entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
 	}
 
 	@Override
 	public IObjRef entityToObjRef(Object entity, boolean forceOri)
 	{
-		return entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, entityMetaDataProvider.getMetaData(entity.getClass()), forceOri);
+		return entityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder) entity).get__EntityMetaData(), forceOri);
 	}
 
 	@Override
 	public IObjRef entityToObjRef(Object entity, byte idIndex)
 	{
-		return entityToObjRef(entity, idIndex, entityMetaDataProvider.getMetaData(entity.getClass()));
+		return entityToObjRef(entity, idIndex, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
 	}
 
 	@Override
@@ -366,17 +361,7 @@ public class ORIHelper implements IObjRefHelper
 	@Override
 	public IList<IObjRef> entityToAllObjRefs(Object entity)
 	{
-		Class<?> entityType;
-		if (entity instanceof AbstractCacheValue)
-		{
-			entityType = ((AbstractCacheValue) entity).getEntityType();
-		}
-		else
-		{
-			entityType = entity.getClass();
-		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		return entityToAllObjRefs(entity, metaData);
+		return entityToAllObjRefs(entity, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
 	}
 
 	/*

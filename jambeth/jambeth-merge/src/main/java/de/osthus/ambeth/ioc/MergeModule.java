@@ -25,7 +25,7 @@ import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.MergeController;
 import de.osthus.ambeth.merge.MergeProcess;
 import de.osthus.ambeth.merge.MergeServiceRegistry;
-import de.osthus.ambeth.merge.ORIHelper;
+import de.osthus.ambeth.merge.ObjRefHelper;
 import de.osthus.ambeth.merge.ValueObjectMap;
 import de.osthus.ambeth.merge.config.EntityMetaDataReader;
 import de.osthus.ambeth.merge.config.IEntityMetaDataReader;
@@ -82,7 +82,7 @@ public class MergeModule implements IInitializingModule
 		// }
 		beanContextFactory.registerAnonymousBean(CacheModification.class).autowireable(ICacheModification.class);
 
-		beanContextFactory.registerAutowireableBean(IObjRefHelper.class, ORIHelper.class);
+		beanContextFactory.registerAutowireableBean(IObjRefHelper.class, ObjRefHelper.class);
 		beanContextFactory.registerAnonymousBean(CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
 
 		beanContextFactory.registerAnonymousBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);

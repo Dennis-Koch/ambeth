@@ -20,6 +20,7 @@ import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -71,8 +72,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		}
 
 		Object entity = objectFuture.getValue();
-		Class<?> realType = entity.getClass();
-		IEntityMetaData metadata = entityMetaDataProvider.getMetaData(realType);
+		IEntityMetaData metadata = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
 		applyPrimitiveUpdateItems(entity, puis, metadata);
 
 		if (ruis != null && ruis.length > 0)
