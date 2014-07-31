@@ -11,7 +11,8 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<!-- Since this is a test-util project, other test-jars are included for compile scope -->
+	<!-- Since this is a test-util project, other test-jars are included for 
+		compile scope -->
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -184,6 +185,16 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>compile</scope>
+		</dependency>
+
+		<!-- Contains data for a junit test -->
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>resource</artifactId>
+			<version>1.0.0</version>
+			<scope>system</scope>
+			<systemPath>${project.build.directory}/../src/test/resources/resource-1.0.0.jar</systemPath>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 

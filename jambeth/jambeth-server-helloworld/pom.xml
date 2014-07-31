@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-server-helloworld</artifactId>
-	<version>2.1.X-SNAPSHOT</version>
+	<version>${ambeth.version}</version>
 	<packaging>war</packaging>
 
 	<parent>
@@ -12,17 +12,21 @@
 		<version>0.0.20</version>
 	</parent>
 
+	<properties>
+		<ambeth.version>2.1.X-SNAPSHOT</ambeth.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-with-persistence</artifactId>
-			<version>2.1.X-SNAPSHOT</version>
+			<version>${ambeth.version}</version>
 			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
-			<version>2.1.X-SNAPSHOT</version>
+			<version>${ambeth.version}</version>
 		</dependency>
 
 		<dependency>
