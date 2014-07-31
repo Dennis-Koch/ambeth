@@ -3,53 +3,53 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-server-helloworld</artifactId>
+	<version>2.1.X-SNAPSHOT</version>
+	<packaging>war</packaging>
 
 	<parent>
-		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
-		<version>2.1.X-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.20</version>
 	</parent>
 
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
+			<artifactId>jambeth-server-with-persistence</artifactId>
+			<version>2.1.X-SNAPSHOT</version>
+			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-job</artifactId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+			<version>2.1.X-SNAPSHOT</version>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-log</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security-server</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
+			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<version>2.1.X-SNAPSHOT</version>
 			<scope>test</scope>
+			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil-persistence</artifactId>
+			<version>2.1.X-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
-		</dependency>
 	</dependencies>
+
+	<repositories>
+		<!-- Location of the osthus-pom -->
+		<repository>
+			<id>osthus-releases</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
+		</repository>
+		<repository>
+			<id>osthus-snapshots</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
+		</repository>
+	</repositories>
 
 </project>

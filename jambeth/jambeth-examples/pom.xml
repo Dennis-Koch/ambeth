@@ -19,8 +19,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		
 		<dependency>
