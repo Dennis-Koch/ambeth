@@ -2,8 +2,11 @@ package de.osthus.ambeth.testutil;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -14,7 +17,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,7 @@ import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
@@ -838,92 +841,37 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 	private List<String> readSqlFile(final String fileName, final AnnotatedElement callingClass) throws IOException
 	{
-		File sqlFile = null;
-		File tempFile = new File(fileName);
-		if (tempFile.canRead())
-		{
-			sqlFile = tempFile;
-		}
-		if (sqlFile == null)
-		{
-			String callingNamespace;
-			if (callingClass instanceof Class)
-			{
-				callingNamespace = ((Class<?>) callingClass).getPackage().getName();
-			}
-			else if (callingClass instanceof Method)
-			{
-				callingNamespace = ((Method) callingClass).getDeclaringClass().getPackage().getName();
-			}
-			else if (callingClass instanceof Field)
-			{
-				callingNamespace = ((Field) callingClass).getDeclaringClass().getPackage().getName();
-			}
-			else
-			{
-				throw new IllegalStateException("Value not supported: " + callingClass);
-			}
-			String relativePath = fileName.startsWith("/") ? "." + fileName : callingNamespace.replace(".", File.separator) + File.separator + fileName;
-			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
-			for (int i = 0; i < classPaths.length; i++)
-			{
-				tempFile = new File(classPaths[i], relativePath);
-				if (tempFile.canRead())
-				{
-					sqlFile = tempFile;
-					break;
-				}
-			}
-			if (sqlFile == null)
-			{
-				Pattern fileSuffixPattern = Pattern.compile(".+\\.(?:[^\\.]*)");
-				Matcher matcher = fileSuffixPattern.matcher(relativePath);
-				if (!matcher.matches())
-				{
-					relativePath += ".sql";
-					for (int i = 0; i < classPaths.length; i++)
-					{
-						tempFile = new File(classPaths[i], relativePath);
-						if (tempFile.canRead())
-						{
-							sqlFile = tempFile;
-							break;
-						}
-					}
-				}
-			}
-			if (sqlFile == null && !fileName.startsWith("/"))
-			{
-				// Path is not with root-slash specified. Try to add this before giving up:
-				return readSqlFile("/" + fileName, callingClass);
-			}
-			if (sqlFile == null)
-			{
-				ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
-				if (log.isWarnEnabled())
-				{
-					String error = "Cannot find '" + relativePath + "' in class path:" + nl;
-					Arrays.sort(classPaths);
-					for (int i = 0; i < classPaths.length; i++)
-					{
-						error += "\t" + classPaths[i] + nl;
-					}
-					log.warn(error);
-				}
-				return Collections.<String> emptyList();
-			}
-		}
-
 		ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
+
+		BufferedReader br = null;
+		try
+		{
+			InputStream sqlStream = FileUtil.openFileStream(fileName, log);
+			if (sqlStream != null)
+			{
+				br = new BufferedReader(new InputStreamReader(sqlStream));
+			}
+		}
+		catch (IllegalArgumentException e)
+		{
+			// Opening as Stream failed. Try old file code next.
+			br = openSqlAsFile(fileName, callingClass, log);
+		}
 
 		if (log.isDebugEnabled())
 		{
-			log.debug("Using sql file: " + sqlFile.getAbsolutePath());
+			if (br != null)
+			{
+				log.debug("Using sql resource '" + fileName + "'");
+			}
+			else
+			{
+				log.debug("Cannot find sql resource '" + fileName + "'");
+			}
 		}
 
 		StringBuilder sb = new StringBuilder();
 		List<String> sql = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new FileReader(sqlFile));
 		try
 		{
 			String line = null;
@@ -1027,6 +975,92 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 
 		return sql;
+	}
+
+	protected BufferedReader openSqlAsFile(String fileName, AnnotatedElement callingClass, ILogger log) throws IOException, FileNotFoundException
+	{
+		File sqlFile = null;
+		File tempFile = new File(fileName);
+		if (tempFile.canRead())
+		{
+			sqlFile = tempFile;
+		}
+		if (sqlFile == null)
+		{
+			String callingNamespace;
+			if (callingClass instanceof Class)
+			{
+				callingNamespace = ((Class<?>) callingClass).getPackage().getName();
+			}
+			else if (callingClass instanceof Method)
+			{
+				callingNamespace = ((Method) callingClass).getDeclaringClass().getPackage().getName();
+			}
+			else if (callingClass instanceof Field)
+			{
+				callingNamespace = ((Field) callingClass).getDeclaringClass().getPackage().getName();
+			}
+			else
+			{
+				throw new IllegalStateException("Value not supported: " + callingClass);
+			}
+			String relativePath = fileName.startsWith("/") ? "." + fileName : callingNamespace.replace(".", File.separator) + File.separator + fileName;
+			String[] classPaths = pathSeparator.split(System.getProperty("java.class.path"));
+			for (int i = 0; i < classPaths.length; i++)
+			{
+				tempFile = new File(classPaths[i], relativePath);
+				if (tempFile.canRead())
+				{
+					sqlFile = tempFile;
+					break;
+				}
+			}
+			if (sqlFile == null)
+			{
+				Pattern fileSuffixPattern = Pattern.compile(".+\\.(?:[^\\.]*)");
+				Matcher matcher = fileSuffixPattern.matcher(relativePath);
+				if (!matcher.matches())
+				{
+					relativePath += ".sql";
+					for (int i = 0; i < classPaths.length; i++)
+					{
+						tempFile = new File(classPaths[i], relativePath);
+						if (tempFile.canRead())
+						{
+							sqlFile = tempFile;
+							break;
+						}
+					}
+				}
+			}
+			if (sqlFile == null && !fileName.startsWith("/"))
+			{
+				// Path is not with root-slash specified. Try to add this before giving up:
+				return openSqlAsFile("/" + fileName, callingClass, log);
+			}
+			if (sqlFile == null)
+			{
+				if (log.isWarnEnabled())
+				{
+					String error = "Cannot find '" + relativePath + "' in class path:" + nl;
+					Arrays.sort(classPaths);
+					for (int i = 0; i < classPaths.length; i++)
+					{
+						error += "\t" + classPaths[i] + nl;
+					}
+					log.warn(error);
+				}
+				return null;
+			}
+		}
+
+		BufferedReader br = null;
+		if (sqlFile != null)
+		{
+			br = new BufferedReader(new FileReader(sqlFile));
+		}
+
+		return br;
 	}
 
 	private void createOptimisticLockingTriggers(final Connection conn) throws SQLException
