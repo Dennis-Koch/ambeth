@@ -479,6 +479,19 @@
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server-with-persistence</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-server-with-persistence-test</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
