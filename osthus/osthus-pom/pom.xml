@@ -8,7 +8,7 @@
 	<name>Osthus super POM</name>
 	<packaging>pom</packaging>
 
-	<version>0.0.21-SNAPSHOT</version>
+	<version>0.0.21</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
