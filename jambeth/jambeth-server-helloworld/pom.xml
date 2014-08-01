@@ -3,13 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-server-helloworld</artifactId>
-	<version>${ambeth.version}</version>
 	<packaging>war</packaging>
 
 	<parent>
-		<groupId>de.osthus</groupId>
-		<artifactId>osthus-pom</artifactId>
-		<version>0.0.21</version>
+		<groupId>de.osthus.ambeth</groupId>
+		<artifactId>jambeth-pom</artifactId>
+		<version>2.1.X-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -26,7 +25,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
-			<version>${ambeth.version}</version>
 		</dependency>
 
 		<dependency>
@@ -39,21 +37,8 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil-persistence</artifactId>
-			<version>${ambeth.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<!-- Location of the osthus-pom -->
-		<repository>
-			<id>osthus-releases</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
-		</repository>
-		<repository>
-			<id>osthus-snapshots</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
-		</repository>
-	</repositories>
 
 </project>
