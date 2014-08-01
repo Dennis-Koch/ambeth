@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import de.osthus.ambeth.model.ISecurityScope;
 
-@XmlRootElement(name = "PrivilegeResult", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement(name = "PrivilegeResult2", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TypePrivilegeOfService implements ITypePrivilegeOfService
 {
