@@ -24,11 +24,11 @@ import de.osthus.ambeth.merge.interceptor.MergeInterceptor;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.transfer.ServiceDescription;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ListUtil;
@@ -91,7 +91,7 @@ public class CacheInterceptor extends MergeInterceptor
 					+ method.toString());
 		}
 		IEntityMetaData metaData = getSpecifiedMetaData(method, Cached.class, entityType);
-		ITypeInfoItem member = getSpecifiedMember(method, Cached.class, metaData, cached.alternateIdName());
+		Member member = getSpecifiedMember(method, Cached.class, metaData, cached.alternateIdName());
 
 		byte idIndex;
 		try

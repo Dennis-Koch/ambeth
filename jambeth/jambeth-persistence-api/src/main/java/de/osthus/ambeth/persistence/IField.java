@@ -2,7 +2,7 @@ package de.osthus.ambeth.persistence;
 
 import java.util.List;
 
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.INamed;
 
 public interface IField extends ILinqFinder, INamed
@@ -61,7 +61,7 @@ public interface IField extends ILinqFinder, INamed
 	 * 
 	 * @return Type info of the linked member.
 	 */
-	ITypeInfoItem getMember();
+	Member getMember();
 
 	/**
 	 * Selects ID and version of all entities with a given value in this field.

@@ -7,28 +7,17 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.datachange.model.IDataChange;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class LocalToPublicDispatcher implements IEventListener, IInitializingBean
+public class LocalToPublicDispatcher implements IEventListener
 {
 	protected final HashMap<Long, IList<IDataChange>> databaseToChangeDict = new HashMap<Long, IList<IDataChange>>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
+	@Autowired
 	protected IEventDispatcher publicEventDispatcher;
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(publicEventDispatcher, "PublicEventDispatcher");
-	}
-
-	public void setPublicEventDispatcher(IEventDispatcher publicEventDispatcher)
-	{
-		this.publicEventDispatcher = publicEventDispatcher;
-	}
 
 	@Override
 	public void handleEvent(Object localEventObject, long dispatchTime, long sequenceId)

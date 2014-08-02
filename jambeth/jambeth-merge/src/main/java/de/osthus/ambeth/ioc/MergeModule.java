@@ -13,7 +13,7 @@ import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.ICUDResultExtendable;
 import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityFactory;
-import de.osthus.ambeth.merge.IEntityFactoryExtensionExtendable;
+import de.osthus.ambeth.merge.IEntityInstantiationExtensionExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IEntityMetaDataRefresher;
@@ -35,6 +35,8 @@ import de.osthus.ambeth.merge.converter.EntityMetaDataConverter;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
@@ -42,6 +44,7 @@ import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
 import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.template.CompositeIdTemplate;
+import de.osthus.ambeth.template.EmbeddedMemberTemplate;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
@@ -117,15 +120,18 @@ public class MergeModule implements IInitializingModule
 		}
 		beanContextFactory.registerAnonymousBean(RelationProvider.class).autowireable(IRelationProvider.class);
 
+		beanContextFactory.registerAnonymousBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class);
+		beanContextFactory.registerAnonymousBean(EmbeddedMemberTemplate.class).autowireable(EmbeddedMemberTemplate.class);
+
 		Class<?> entityFactoryType = this.entityFactoryType;
 		if (entityFactoryType == null)
 		{
 			entityFactoryType = EntityFactory.class;
 		}
 		IBeanConfiguration entityFactoryBC = beanContextFactory.registerBean("entityFactory", entityFactoryType).autowireable(IEntityFactory.class);
-		if (IEntityFactoryExtensionExtendable.class.isAssignableFrom(entityFactoryType))
+		if (IEntityInstantiationExtensionExtendable.class.isAssignableFrom(entityFactoryType))
 		{
-			entityFactoryBC.autowireable(IEntityFactoryExtensionExtendable.class);
+			entityFactoryBC.autowireable(IEntityInstantiationExtensionExtendable.class);
 		}
 
 		// if (isNetworkClientMode)

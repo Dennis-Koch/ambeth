@@ -8,8 +8,9 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -20,7 +21,6 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.template.DataObjectTemplate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class DataObjectVisitor extends ClassGenerator
 {
@@ -168,11 +168,11 @@ public class DataObjectVisitor extends ClassGenerator
 	{
 		MethodGenerator mg = visitMethod(p_toBeCreated.getGetter());
 		p_toBeCreated = PropertyInstance.findByTemplate(p_toBeCreated, false);
-		ITypeInfoItem idMember = metaData.getIdMember();
-		if (idMember instanceof CompositeIdTypeInfoItem)
+		Member idMember = metaData.getIdMember();
+		if (idMember instanceof CompositeIdMember)
 		{
 			ArrayList<String> names = new ArrayList<String>();
-			for (ITypeInfoItem itemMember : ((CompositeIdTypeInfoItem) idMember).getMembers())
+			for (Member itemMember : ((CompositeIdMember) idMember).getMembers())
 			{
 				names.add(itemMember.getName());
 			}

@@ -19,9 +19,9 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ICacheHelper;
 
 public class ValueHolderContainerTemplate
@@ -52,12 +52,12 @@ public class ValueHolderContainerTemplate
 		return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
 	}
 
-	public Object getValue(IObjRefContainer entity, IRelationInfoItem[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs)
+	public Object getValue(IObjRefContainer entity, RelationMember[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs)
 	{
 		return getValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs, CacheDirective.none());
 	}
 
-	public Object getValue(IObjRefContainer entity, int relationindex, IRelationInfoItem relationMember, ICacheIntern targetCache, IObjRef[] objRefs,
+	public Object getValue(IObjRefContainer entity, int relationindex, RelationMember relationMember, ICacheIntern targetCache, IObjRef[] objRefs,
 			Set<CacheDirective> cacheDirective)
 	{
 		Object value;
@@ -100,7 +100,7 @@ public class ValueHolderContainerTemplate
 	public Object getValue(IValueHolderContainer vhc, int relationIndex, Set<CacheDirective> cacheDirective)
 	{
 		IEntityMetaData metaData = vhc.get__EntityMetaData();
-		IRelationInfoItem relationMember = metaData.getRelationMembers()[relationIndex];
+		RelationMember relationMember = metaData.getRelationMembers()[relationIndex];
 		if (ValueHolderState.INIT == vhc.get__State(relationIndex))
 		{
 			return relationMember.getValue(vhc);

@@ -5,7 +5,6 @@ import java.util.List;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class EventDispatcherFake implements IEventDispatcher
 {
@@ -59,12 +58,6 @@ public class EventDispatcherFake implements IEventDispatcher
 
 	@Override
 	public void flushEventQueue()
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public <R> R invokeWithoutLocks(IResultingBackgroundWorkerDelegate<R> runnable)
 	{
 		throw new UnsupportedOperationException();
 	}

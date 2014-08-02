@@ -21,13 +21,13 @@ import de.osthus.ambeth.merge.ProceedWithMergeHook;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.proxy.AbstractInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.ServiceClient;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class MergeInterceptor extends AbstractInterceptor
@@ -150,7 +150,7 @@ public class MergeInterceptor extends AbstractInterceptor
 			MergeFinishedCallback finishedCallback)
 	{
 		IEntityMetaData metaData = getSpecifiedMetaData(method, Remove.class, entityType);
-		ITypeInfoItem idMember = getSpecifiedMember(method, Remove.class, metaData, idName);
+		Member idMember = getSpecifiedMember(method, Remove.class, metaData, idName);
 		byte idIndex = metaData.getIdIndexByMemberName(idName);
 
 		Class<?> idType = idMember.getRealType();
@@ -211,13 +211,13 @@ public class MergeInterceptor extends AbstractInterceptor
 		return metaData;
 	}
 
-	protected ITypeInfoItem getSpecifiedMember(Method method, Class<? extends Annotation> annotation, IEntityMetaData metaData, String memberName)
+	protected Member getSpecifiedMember(Method method, Class<? extends Annotation> annotation, IEntityMetaData metaData, String memberName)
 	{
 		if (memberName == null || memberName.isEmpty())
 		{
 			return metaData.getIdMember();
 		}
-		ITypeInfoItem member = metaData.getMemberByName(memberName);
+		Member member = metaData.getMemberByName(memberName);
 		if (member == null)
 		{
 			throw new IllegalArgumentException("No member " + metaData.getEntityType().getName() + "." + memberName + " found. Please check your "

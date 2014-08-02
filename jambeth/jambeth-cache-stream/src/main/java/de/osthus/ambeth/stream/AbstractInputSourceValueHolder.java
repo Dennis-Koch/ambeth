@@ -13,7 +13,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractInputSourceValueHolder implements IInputSource, IParentEntityAware, IInitializingBean
@@ -24,7 +24,7 @@ public abstract class AbstractInputSourceValueHolder implements IInputSource, IP
 
 	protected String chunkProviderName;
 
-	protected ITypeInfoItem member;
+	protected Member member;
 
 	protected Object parentEntity;
 
@@ -51,7 +51,7 @@ public abstract class AbstractInputSourceValueHolder implements IInputSource, IP
 	}
 
 	@Override
-	public void setParentEntity(Object parentEntity, ITypeInfoItem member)
+	public void setParentEntity(Object parentEntity, Member member)
 	{
 		this.parentEntity = parentEntity;
 		this.member = member;

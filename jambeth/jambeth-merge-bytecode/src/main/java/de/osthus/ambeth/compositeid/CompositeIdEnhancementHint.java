@@ -2,15 +2,15 @@ package de.osthus.ambeth.compositeid;
 
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrintable;
 
 public class CompositeIdEnhancementHint implements IEnhancementHint, IPrintable, ITargetNameEnhancementHint
 {
-	private final ITypeInfoItem[] idMembers;
+	private final Member[] idMembers;
 
-	public CompositeIdEnhancementHint(ITypeInfoItem[] idMembers)
+	public CompositeIdEnhancementHint(Member[] idMembers)
 	{
 		this.idMembers = idMembers;
 	}
@@ -22,7 +22,7 @@ public class CompositeIdEnhancementHint implements IEnhancementHint, IPrintable,
 		sb.append(getClass().getPackage().getName()).append('.').append("CompositeId");
 		for (int a = 0, size = idMembers.length; a < size; a++)
 		{
-			ITypeInfoItem idMember = idMembers[a];
+			Member idMember = idMembers[a];
 			sb.append('$').append(idMember.getName());
 		}
 		return sb.toString();
@@ -46,8 +46,8 @@ public class CompositeIdEnhancementHint implements IEnhancementHint, IPrintable,
 		}
 		for (int a = idMembers.length; a-- > 0;)
 		{
-			ITypeInfoItem idMember = idMembers[a];
-			ITypeInfoItem otherIdMember = other.idMembers[a];
+			Member idMember = idMembers[a];
+			Member otherIdMember = other.idMembers[a];
 			if (!EqualsUtil.equals(idMember.getName(), otherIdMember.getName()) || !EqualsUtil.equals(idMember.getRealType(), otherIdMember.getRealType()))
 			{
 				return false;
@@ -62,13 +62,13 @@ public class CompositeIdEnhancementHint implements IEnhancementHint, IPrintable,
 		int hash = CompositeIdEnhancementHint.class.hashCode();
 		for (int a = idMembers.length; a-- > 0;)
 		{
-			ITypeInfoItem idMember = idMembers[a];
+			Member idMember = idMembers[a];
 			hash ^= idMember.getName().hashCode() ^ idMember.getRealType().hashCode();
 		}
 		return hash;
 	}
 
-	public ITypeInfoItem[] getIdMembers()
+	public Member[] getIdMembers()
 	{
 		return idMembers;
 	}

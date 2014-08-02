@@ -24,6 +24,8 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
@@ -50,7 +52,6 @@ import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IInterningFeature;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
@@ -478,13 +479,13 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			return;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 		{
 			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getPrimitivePropertyPrivilege(primitiveIndex);
 			pe.applyTypePropertyPrivilege(primitiveMembers[primitiveIndex].getName(), propertyPrivilege);
 		}
-		ITypeInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
 			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getPrimitivePropertyPrivilege(relationIndex);

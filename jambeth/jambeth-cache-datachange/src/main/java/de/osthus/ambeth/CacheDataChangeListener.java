@@ -41,6 +41,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
@@ -49,7 +50,6 @@ import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.Lock;
 import de.osthus.ambeth.util.StringBuilderUtil;
@@ -460,7 +460,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 		ObjRef objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
 		objRefs.add(objRef);
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length == 0)
 		{
 			return;
@@ -550,7 +550,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				IObjRef[][] relations = loadContainer.getRelations();
 				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToUpdate).get__EntityMetaData();
 				Class<?> entityType = metaData.getEntityType();
-				IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+				RelationMember[] relationMembers = metaData.getRelationMembers();
 				if (relationMembers.length == 0)
 				{
 					continue;
@@ -589,8 +589,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 	}
 
-	protected void batchPendingRelations(IObjRefContainer entity, IRelationInfoItem member, IObjRef[] relationsOfMember,
-			ISet<IObjRef> cascadeRefreshObjRefsSet, ISet<IObjRelation> cascadeRefreshObjRelationsSet)
+	protected void batchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, ISet<IObjRef> cascadeRefreshObjRefsSet,
+			ISet<IObjRelation> cascadeRefreshObjRelationsSet)
 	{
 		if (relationsOfMember == null)
 		{

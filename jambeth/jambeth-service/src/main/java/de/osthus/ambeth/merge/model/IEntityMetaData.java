@@ -1,7 +1,8 @@
 package de.osthus.ambeth.merge.model;
 
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
 
 public interface IEntityMetaData
 {
@@ -13,49 +14,49 @@ public interface IEntityMetaData
 
 	boolean isLocalEntity();
 
-	ITypeInfoItem getIdMember();
+	PrimitiveMember getIdMember();
 
-	ITypeInfoItem getIdMemberByIdIndex(byte idIndex);
+	PrimitiveMember getIdMemberByIdIndex(byte idIndex);
 
 	byte getIdIndexByMemberName(String memberName);
 
-	ITypeInfoItem getVersionMember();
+	PrimitiveMember getVersionMember();
 
-	ITypeInfoItem[] getAlternateIdMembers();
+	PrimitiveMember[] getAlternateIdMembers();
 
 	int[][] getAlternateIdMemberIndicesInPrimitives();
 
 	int getAlternateIdCount();
 
-	ITypeInfoItem getCreatedOnMember();
+	PrimitiveMember getCreatedOnMember();
 
-	ITypeInfoItem getCreatedByMember();
+	PrimitiveMember getCreatedByMember();
 
-	ITypeInfoItem getUpdatedOnMember();
+	PrimitiveMember getUpdatedOnMember();
 
-	ITypeInfoItem getUpdatedByMember();
+	PrimitiveMember getUpdatedByMember();
 
-	ITypeInfoItem[] getFulltextMembers();
+	PrimitiveMember[] getFulltextMembers();
 
-	ITypeInfoItem[] getPrimitiveMembers();
+	PrimitiveMember[] getPrimitiveMembers();
 
-	IRelationInfoItem[] getRelationMembers();
+	RelationMember[] getRelationMembers();
 
-	boolean isFulltextRelevant(ITypeInfoItem primitiveMember);
+	boolean isFulltextRelevant(Member primitiveMember);
 
-	boolean isMergeRelevant(ITypeInfoItem primitiveMember);
+	boolean isMergeRelevant(Member primitiveMember);
 
-	boolean isAlternateId(ITypeInfoItem primitiveMember);
+	boolean isAlternateId(Member primitiveMember);
 
-	ITypeInfoItem getMemberByName(String memberName);
+	Member getMemberByName(String memberName);
 
 	int getIndexByRelationName(String relationMemberName);
 
-	int getIndexByRelation(IRelationInfoItem relationMember);
+	int getIndexByRelation(RelationMember relationMember);
 
 	int getIndexByPrimitiveName(String primitiveMemberName);
 
-	int getIndexByPrimitive(ITypeInfoItem primitiveMember);
+	int getIndexByPrimitive(Member primitiveMember);
 
 	boolean isPrimitiveMember(String primitiveMemberName);
 
@@ -67,9 +68,11 @@ public interface IEntityMetaData
 
 	boolean isCascadeDelete(Class<?> other);
 
-	boolean hasInterningBehavior(ITypeInfoItem primitiveMember);
+	boolean hasInterningBehavior(Member primitiveMember);
 
-	void changeInterningBehavior(ITypeInfoItem primitiveMember, boolean state);
+	void changeInterningBehavior(Member primitiveMember, boolean state);
+
+	void postProcessNewEntity(Object newEntity);
 
 	void postLoad(Object entity);
 

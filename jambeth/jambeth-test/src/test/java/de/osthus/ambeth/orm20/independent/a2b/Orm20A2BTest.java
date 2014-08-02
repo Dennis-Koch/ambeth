@@ -7,9 +7,9 @@ import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.orm20.independent.AbstractIndependentOrm20Test;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 /**
  * Test for uni-directional one-to-one relation
@@ -21,10 +21,10 @@ public class Orm20A2BTest extends AbstractIndependentOrm20Test
 	public void testRelationMembersA()
 	{
 		IEntityMetaData metaData = retrieveMetaData(EntityA.class);
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		assertEquals(1, relationMembers.length);
 
-		IRelationInfoItem relationMember = relationMembers[0];
+		RelationMember relationMember = relationMembers[0];
 		assertEquals("B", relationMember.getName());
 		assertEquals(0, metaData.getIndexByRelationName(relationMember.getName()));
 		assertEquals(relationMember, metaData.getMemberByName(relationMember.getName()));

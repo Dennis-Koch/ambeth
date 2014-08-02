@@ -9,7 +9,7 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 
 public class EntityMetaDataHolderVisitor extends ClassGenerator
 {
-	private static final MethodInstance m_template_getEntityMetaData = new MethodInstance(null, IEntityMetaDataHolder.class, IEntityMetaData.class,
+	public static final MethodInstance m_template_getEntityMetaData = new MethodInstance(null, IEntityMetaDataHolder.class, IEntityMetaData.class,
 			"get__EntityMetaData");
 
 	protected IEntityMetaData metaData;

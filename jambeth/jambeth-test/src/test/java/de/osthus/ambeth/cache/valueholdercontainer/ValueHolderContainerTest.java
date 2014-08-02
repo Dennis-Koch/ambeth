@@ -45,7 +45,6 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.AsyncPropertyChangeActive, value = "false"),

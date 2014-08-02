@@ -20,10 +20,10 @@ import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.ListUtil;
 import de.osthus.ambeth.util.OptimisticLockUtil;
@@ -92,7 +92,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		{
 			String memberName = pui.getMemberName();
 			Object newValue = pui.getNewValue();
-			ITypeInfoItem member = metadata.getMemberByName(memberName);
+			Member member = metadata.getMemberByName(memberName);
 			member.setValue(entity, newValue);
 		}
 	}
@@ -100,7 +100,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 	protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, boolean isUpdate, IEntityMetaData metadata, IReader reader)
 	{
 		IList<Object> toPrefetch = new ArrayList<Object>();
-		IRelationInfoItem[] relationMembers = metadata.getRelationMembers();
+		RelationMember[] relationMembers = metadata.getRelationMembers();
 		for (IRelationUpdateItem rui : ruis)
 		{
 			String memberName = rui.getMemberName();
@@ -157,7 +157,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 				}
 			}
 
-			IRelationInfoItem member = relationMembers[relationIndex];
+			RelationMember member = relationMembers[relationIndex];
 			if (isUpdate)
 			{
 				entity.set__ObjRefs(relationIndex, newORIs);
@@ -180,7 +180,7 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		}
 	}
 
-	protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, IRelationInfoItem member, IReader reader)
+	protected void resolveAndSetEntities(Object entity, IObjRef[] newORIs, RelationMember member, IReader reader)
 	{
 		if (!member.isToMany())
 		{

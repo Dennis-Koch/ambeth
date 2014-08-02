@@ -9,7 +9,6 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
@@ -18,32 +17,37 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
-	protected ITypeInfoProvider typeInfoProvider;
-
 	protected String idName = "Id";
 
 	protected String versionName = "Version";
 
-	protected String tablePrefix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseTablePrefix, defaultValue = "")
+	protected String tablePrefix;
 
-	protected String tablePostfix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseTablePostfix, defaultValue = "")
+	protected String tablePostfix;
 
-	protected String archiveTablePrefix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePrefix, defaultValue = "")
+	protected String archiveTablePrefix;
 
-	protected String archiveTablePostfix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, defaultValue = "")
+	protected String archiveTablePostfix;
 
-	protected String fieldPrefix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, defaultValue = "")
+	protected String fieldPrefix;
 
-	protected String fieldPostfix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPostfix, defaultValue = "")
+	protected String fieldPostfix;
 
-	protected String sequencePrefix = "";
+	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePrefix, defaultValue = "")
+	protected String sequencePrefix;
 
+	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePostfix, defaultValue = "")
 	protected String sequencePostfix = "";
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(typeInfoProvider, "typeInfoProvider");
 		ParamChecker.assertNotNull(idName, "idName");
 		ParamChecker.assertNotNull(versionName, "versionName");
 
@@ -55,59 +59,6 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 		{
 			this.sequencePostfix = "_SEQ";
 		}
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePrefix, mandatory = false)
-	public void setTablePrefix(String prefix)
-	{
-		this.tablePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePostfix, mandatory = false)
-	public void setTablePostfix(String postfix)
-	{
-		this.tablePostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePrefix, mandatory = false)
-	public void setArchiveTablePrefix(String prefix)
-	{
-		this.archiveTablePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, mandatory = false)
-	public void setArchiveTablePostfix(String postfix)
-	{
-		this.archiveTablePostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, mandatory = false)
-	public void setFieldPrefix(String prefix)
-	{
-		this.fieldPrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPostfix, mandatory = false)
-	public void setFieldPostfix(String postfix)
-	{
-		this.fieldPostfix = postfix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePrefix, mandatory = false)
-	public void setSequencePrefix(String prefix)
-	{
-		this.sequencePrefix = prefix;
-	}
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePostfix, mandatory = false)
-	public void setSequencePostfix(String postfix)
-	{
-		this.sequencePostfix = postfix;
 	}
 
 	/**

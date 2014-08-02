@@ -25,6 +25,7 @@ import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
@@ -41,10 +42,12 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
+import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
@@ -53,8 +56,6 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
-import de.osthus.ambeth.testutil.SQLData;
-import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -66,12 +67,12 @@ import de.osthus.ambeth.util.ParamHolder;
 
 @Category(PerformanceTests.class)
 @TestModule({ TestServicesModule.class, QueryMassDataModule.class })
-@SQLDataRebuild(false)
-@SQLData("QueryMassdata_data.sql")
+// @SQLDataRebuild(false)
+// @SQLData("QueryMassdata_data.sql")
 @SQLStructure("QueryMassdata_structure.sql")
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
 		@TestProperties(name = IocConfigurationConstants.MonitorBeansActive, value = "false"),
-		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "100"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
+		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "300"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
 		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
@@ -94,7 +95,7 @@ import de.osthus.ambeth.util.ParamHolder;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.proxy.AbstractCascadePostProcessor", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.PersistenceMergeServiceExtension", value = "INFO") })
-public class QueryMassdataTest extends AbstractPersistenceTest
+public class QueryMassdataTest extends AbstractPersistenceTest implements IStartingBean
 {
 	public static final String THREAD_COUNT = "QueryMassdataTest.threads";
 
@@ -135,6 +136,18 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 	protected int dataCount;
 
 	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
+
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		ArrayList<QueryEntity> entities = new ArrayList<QueryEntity>();
+		for (int a = 0; a < dataCount; a++)
+		{
+			QueryEntity qe = entityFactory.createEntity(QueryEntity.class);
+			entities.add(qe);
+		}
+		beanContext.getService(IMergeProcess.class).process(entities, null, null, null);
+	}
 
 	@Test
 	public void massDataReadFalseFalseFalse() throws Exception
@@ -269,6 +282,9 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 				{
 					IRootCache rootCache = beanContext.getService("rootCache", IRootCache.class);
 					IThreadLocalCleanupController threadLocalCleanupController = beanContext.getService(IThreadLocalCleanupController.class);
+
+					final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
+
 					while (System.currentTimeMillis() <= finishTime && throwableHolder.getValue() == null)
 					{
 						try
@@ -276,53 +292,50 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 							final PagingRequest randomPReq = new PagingRequest();
 							randomPReq.setNumber((int) (Math.random() * dataCount / size));
 							randomPReq.setSize(size);
-							final IPagingQuery<QueryEntity> randomPagingQuery = ftqb.buildQuery(fd, new ISortDescriptor[] { sd1, sd2 });
 
-							IPagingResponse<QueryEntity> response = cacheContext.executeWithCache(cacheProvider,
-									new ISingleCacheRunnable<IPagingResponse<QueryEntity>>()
-									{
-										@Override
-										public IPagingResponse<QueryEntity> run() throws Throwable
-										{
-											return randomPagingQuery.retrieve(randomPReq);
-										}
-									});
-							randomPagingQuery.dispose();
-
-							List<QueryEntity> result = response.getResult();
-
-							Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
-							if (response.getNumber() == lastPageNumber)
+							cacheContext.executeWithCache(cacheProvider, new ISingleCacheRunnable<Object>()
 							{
-								Assert.assertEquals(lastPageNumberSize, result.size());
-							}
-							else
-							{
-								Assert.assertEquals(size, result.size());
-							}
-							QueryEntity objectBefore = result.get(0);
-							for (int a = 1, resultSize = result.size(); a < resultSize; a++)
-							{
-								QueryEntity objectCurrent = result.get(a);
-								// IDs descending
-								// Version ascending
-								Assert.assertFalse(objectBefore.equals(objectCurrent));
-								Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
-								if (objectBefore.getId() == objectCurrent.getId())
+								@Override
+								public Object run() throws Throwable
 								{
-									Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
+									IPagingResponse<QueryEntity> response = randomPagingQuery.retrieve(randomPReq);
+									List<QueryEntity> result = response.getResult();
+
+									Assert.assertEquals(randomPReq.getNumber(), response.getNumber());
+									if (response.getNumber() == lastPageNumber)
+									{
+										Assert.assertEquals(lastPageNumberSize, result.size());
+									}
+									else
+									{
+										Assert.assertEquals(size, result.size());
+									}
+									QueryEntity objectBefore = result.get(0);
+									for (int a = 1, resultSize = result.size(); a < resultSize; a++)
+									{
+										QueryEntity objectCurrent = result.get(a);
+										// IDs descending
+										// Version ascending
+										Assert.assertFalse(objectBefore.equals(objectCurrent));
+										Assert.assertTrue(objectBefore.getId() >= objectCurrent.getId());
+										if (objectBefore.getId() == objectCurrent.getId())
+										{
+											Assert.assertTrue(objectBefore.getVersion() <= objectCurrent.getVersion());
+										}
+										objectBefore = objectCurrent;
+									}
+									oqciLock.lock();
+									try
+									{
+										overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
+									}
+									finally
+									{
+										oqciLock.unlock();
+									}
+									return null;
 								}
-								objectBefore = objectCurrent;
-							}
-							oqciLock.lock();
-							try
-							{
-								overallQueryCountIndex.setValue(new Integer(overallQueryCountIndex.getValue().intValue() + 1));
-							}
-							finally
-							{
-								oqciLock.unlock();
-							}
+							});
 						}
 						finally
 						{
@@ -333,6 +346,7 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 							threadLocalCleanupController.cleanupThreadLocal();
 						}
 					}
+					randomPagingQuery.dispose();
 				}
 				catch (Throwable e)
 				{

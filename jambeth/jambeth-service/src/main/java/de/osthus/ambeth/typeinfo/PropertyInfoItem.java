@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
-public class PropertyInfoItem extends RelationInfoItem
+public class PropertyInfoItem extends TypeInfoItem
 {
 	protected IPropertyInfoIntern property;
 
@@ -166,6 +166,12 @@ public class PropertyInfoItem extends RelationInfoItem
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	@Override
+	public void setPrimitiveValue(Object obj, IPrimitiveValueProvider primitiveValueProvider, int index)
+	{
+		setValue(obj, primitiveValueProvider.getBoxedValue(index));
 	}
 
 	@Override

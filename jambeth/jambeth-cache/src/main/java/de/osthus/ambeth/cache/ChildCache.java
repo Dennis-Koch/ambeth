@@ -29,12 +29,12 @@ import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IDefaultCollection;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -201,7 +201,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Override
 	protected Object getVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return null;
@@ -212,7 +212,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Override
 	protected void setVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue, Object version)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
@@ -492,7 +492,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray,
+			IObjRef[][] relations)
 	{
 		if (id == null)
 		{
@@ -541,12 +542,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			if (newAlternateCacheKeys == null)
 			{
 				// Allocate new array to hold alternate ids
-				newAlternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
+				newAlternateCacheKeys = extractAlternateCacheKeys(metaData, parentCacheValueOrArray);
 			}
 			else
 			{
 				// reuse existing array for new alternate id-values
-				extractAlternateCacheKeys(metaData, primitives, newAlternateCacheKeys);
+				extractAlternateCacheKeys(metaData, parentCacheValueOrArray, newAlternateCacheKeys);
 			}
 			if (newAlternateCacheKeys.length > 0)
 			{
@@ -564,7 +565,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		}
 		if (relations != null && relations.length > 0)
 		{
-			IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+			RelationMember[] relationMembers = metaData.getRelationMembers();
 
 			IValueHolderContainer vhc = (IValueHolderContainer) primitiveFilledObject;
 			vhc.set__TargetCache(this);
@@ -577,13 +578,13 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void handleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+	protected void handleValueHolderContainer(IValueHolderContainer vhc, RelationMember[] relationMembers, IObjRef[][] relations)
 	{
 		ICacheHelper cacheHelper = this.cacheHelper;
 		ICacheIntern parent = this.parent;
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
+			RelationMember relationMember = relationMembers[relationIndex];
 			IObjRef[] relationsOfMember = relations[relationIndex];
 
 			if (!CascadeLoadMode.EAGER.equals(relationMember.getCascadeLoadMode()))

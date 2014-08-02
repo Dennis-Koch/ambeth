@@ -9,13 +9,13 @@ import de.osthus.ambeth.bytecode.ScriptWithIndex;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
 
@@ -72,14 +72,14 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementPrimitives()
 	{
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		FieldInstance[] f_primitives = new FieldInstance[primitiveMembers.length];
 		FieldInstance[] f_nullFlags = new FieldInstance[primitiveMembers.length];
 		Class<?>[] fieldType = new Class<?>[primitiveMembers.length];
 
 		for (int primitiveIndex = 0, size = primitiveMembers.length; primitiveIndex < size; primitiveIndex++)
 		{
-			ITypeInfoItem member = primitiveMembers[primitiveIndex];
+			Member member = primitiveMembers[primitiveIndex];
 			Class<?> realType = member.getRealType();
 			Class<?> nativeType = ImmutableTypeSet.getUnwrappedType(realType);
 			boolean isNullable = true;
@@ -113,7 +113,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		implementGetPrimitive(primitiveMembers, f_primitives, f_nullFlags);
 	}
 
-	protected void implementGetPrimitive(ITypeInfoItem[] primitiveMember, final FieldInstance[] f_primitives, final FieldInstance[] f_nullFlags)
+	protected void implementGetPrimitive(Member[] primitiveMember, final FieldInstance[] f_primitives, final FieldInstance[] f_nullFlags)
 	{
 		MethodInstance template_m_getPrimitive = new MethodInstance(null, RootCacheValue.class, Object.class, "getPrimitive", int.class);
 
@@ -148,7 +148,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		});
 	}
 
-	protected void implementGetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+	protected void implementGetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	{
 		MethodInstance template_m_getPrimitives = new MethodInstance(null, RootCacheValue.class, Object[].class, "getPrimitives");
 
@@ -189,7 +189,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		mv.endMethod();
 	}
 
-	protected void implementSetPrimitives(ITypeInfoItem[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
+	protected void implementSetPrimitives(Member[] primitiveMembers, FieldInstance[] f_primitives, FieldInstance[] f_nullFlags)
 	{
 		MethodInstance template_m_setPrimitives = new MethodInstance(null, RootCacheValue.class, void.class, "setPrimitives", Object[].class);
 
@@ -200,7 +200,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		{
 			final FieldInstance f_primitive = f_primitives[primitiveIndex];
 			FieldInstance f_nullFlag = f_nullFlags[primitiveIndex];
-			ITypeInfoItem member = primitiveMembers[primitiveIndex];
+			Member member = primitiveMembers[primitiveIndex];
 			final Class<?> originalType = member.getRealType();
 
 			final int fPrimitiveIndex = primitiveIndex;
@@ -324,12 +324,12 @@ public class RootCacheValueVisitor extends ClassGenerator
 
 	protected void implementRelations()
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		FieldInstance[] f_relations = new FieldInstance[relationMembers.length];
 
 		for (int relationIndex = 0, size = relationMembers.length; relationIndex < size; relationIndex++)
 		{
-			IRelationInfoItem member = relationMembers[relationIndex];
+			RelationMember member = relationMembers[relationIndex];
 			FieldInstance f_relation = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, CacheMapEntryVisitor.getFieldName(member), null, IObjRef[].class));
 			f_relations[relationIndex] = f_relation;
 		}
@@ -339,7 +339,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		implementSetRelation(relationMembers, f_relations);
 	}
 
-	protected void implementGetRelation(IRelationInfoItem[] relationMembers, final FieldInstance[] f_relations)
+	protected void implementGetRelation(RelationMember[] relationMembers, final FieldInstance[] f_relations)
 	{
 		MethodInstance template_m_getRelation = new MethodInstance(null, RootCacheValue.class, IObjRef[].class, "getRelation", int.class);
 
@@ -356,7 +356,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		});
 	}
 
-	protected void implementSetRelation(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+	protected void implementSetRelation(RelationMember[] relationMembers, FieldInstance[] f_relations)
 	{
 		MethodInstance template_m_setRelation = new MethodInstance(null, RootCacheValue.class, void.class, "setRelation", int.class, IObjRef[].class);
 
@@ -391,7 +391,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		mv.endMethod();
 	}
 
-	protected void implementSetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] fields)
+	protected void implementSetRelations(RelationMember[] relationMembers, FieldInstance[] fields)
 	{
 		MethodInstance template_m_setRelations = new MethodInstance(null, RootCacheValue.class, void.class, "setRelations", IObjRef[][].class);
 
@@ -417,7 +417,7 @@ public class RootCacheValueVisitor extends ClassGenerator
 		mv.endMethod();
 	}
 
-	protected void implementGetRelations(IRelationInfoItem[] relationMembers, FieldInstance[] f_relations)
+	protected void implementGetRelations(RelationMember[] relationMembers, FieldInstance[] f_relations)
 	{
 		MethodInstance template_m_getRelations = new MethodInstance(null, RootCacheValue.class, IObjRef[][].class, "getRelations");
 

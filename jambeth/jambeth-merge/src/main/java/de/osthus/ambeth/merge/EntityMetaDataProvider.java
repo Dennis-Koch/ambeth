@@ -11,6 +11,8 @@ import javax.persistence.PostLoad;
 import javax.persistence.PrePersist;
 
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
+import de.osthus.ambeth.bytecode.EntityEnhancementHint;
+import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -36,24 +38,22 @@ import de.osthus.ambeth.merge.model.IEntityLifecycleExtension;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.PostLoadMethodLifecycleExtension;
 import de.osthus.ambeth.merge.model.PrePersistMethodLifecycleExtension;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
-import de.osthus.ambeth.typeinfo.AbstractPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfoASM;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.xml.IXmlTypeHelper;
 
 public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData> implements IEntityMetaDataProvider, IEntityMetaDataRefresher,
-		IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
+		IEntityMetaDataExtendable, IEntityInstantiationExtensionExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -65,11 +65,17 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
+	protected IBytecodeEnhancer bytecodeEnhancer;
+
 	@Autowired(optional = true)
 	protected IEntityFactory entityFactory;
 
 	@Autowired
 	protected IEventDispatcher eventDispatcher;
+
+	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -93,7 +99,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected Class<?>[] businessObjectSaveOrder;
 
-	protected final IMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Class<?>, IMap<String, ITypeInfoItem>>();
+	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<IEntityInstantiationExtension>(
+			"entityFactoryExtension", "entityType");
+
+	protected final HashMap<Class<?>, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Class<?>, IMap<String, ITypeInfoItem>>();
 
 	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<IEntityLifecycleExtension>(
 			"entityLifecycleExtension", "entityType");
@@ -126,7 +135,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(getExtensions().values());
 		for (IEntityMetaData metaData : extensions)
 		{
-			for (IRelationInfoItem relationMember : metaData.getRelationMembers())
+			for (RelationMember relationMember : metaData.getRelationMembers())
 			{
 				addTypeRelatedByTypes(typeRelatedByTypes, metaData.getEntityType(), relationMember.getElementType());
 			}
@@ -140,6 +149,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
+			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
+			Class<?> baseType = eie != null ? eie.getMappedEntityType(entityType) : entityType;
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.EntityEnhancementHint));
+			refreshMembers(metaData);
 			((EntityMetaData) metaData).initialize(entityFactory);
 		}
 	}
@@ -147,36 +160,38 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public void refreshMembers(IEntityMetaData metaData)
 	{
-		for (ITypeInfoItem member : metaData.getRelationMembers())
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		for (int a = relationMembers.length; a-- > 0;)
 		{
-			refreshMember(metaData, member);
+			relationMembers[a] = (RelationMember) refreshMember(metaData, relationMembers[a]);
 		}
-		for (ITypeInfoItem member : metaData.getPrimitiveMembers())
+		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+		for (int a = primitiveMembers.length; a-- > 0;)
 		{
-			refreshMember(metaData, member);
+			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
 		}
-		refreshMember(metaData, metaData.getIdMember());
-		refreshMember(metaData, metaData.getVersionMember());
+		((EntityMetaData) metaData).setIdMember((PrimitiveMember) refreshMember(metaData, metaData.getIdMember()));
+		((EntityMetaData) metaData).setVersionMember((PrimitiveMember) refreshMember(metaData, metaData.getVersionMember()));
+		((EntityMetaData) metaData).setUpdatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedByMember()));
+		((EntityMetaData) metaData).setUpdatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getUpdatedOnMember()));
+		((EntityMetaData) metaData).setCreatedByMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedByMember()));
+		((EntityMetaData) metaData).setCreatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedOnMember()));
 
 		updateEntityMetaDataWithLifecycleExtensions(metaData);
+		((EntityMetaData) metaData).initialize(entityFactory);
 	}
 
-	protected void refreshMember(IEntityMetaData metaData, ITypeInfoItem member)
+	protected Member refreshMember(IEntityMetaData metaData, Member member)
 	{
-		if (!(member instanceof PropertyInfoItem))
+		if (member == null)
 		{
-			return;
+			return null;
 		}
-		PropertyInfoItem pMember = (PropertyInfoItem) member;
-		AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.getProperty();
-		propertyInfo.refreshAccessors(metaData.getEnhancedType());
-		if (propertyInfo instanceof MethodPropertyInfo && !(propertyInfo instanceof MethodPropertyInfoASM))
+		if (member instanceof RelationMember)
 		{
-			MethodPropertyInfo mpi = (MethodPropertyInfo) propertyInfo;
-			MethodAccess methodAcess = MethodAccess.get(metaData.getEnhancedType());
-			mpi = new MethodPropertyInfoASM(metaData.getEnhancedType(), propertyInfo.getName(), mpi.getGetter(), mpi.getSetter(), null, methodAcess);
-			pMember.setProperty(mpi);
+			return memberTypeProvider.getRelationMember(metaData.getEnhancedType(), member.getName());
 		}
+		return memberTypeProvider.getPrimitiveMember(metaData.getEnhancedType(), member.getName());
 	}
 
 	protected IList<Class<?>> addLoadedMetaData(List<Class<?>> entityTypes, List<IEntityMetaData> loadedMetaData)
@@ -196,7 +211,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				}
 				register(missingMetaDataItem, entityType);
 
-				for (ITypeInfoItem relationMember : missingMetaDataItem.getRelationMembers())
+				for (RelationMember relationMember : missingMetaDataItem.getRelationMembers())
 				{
 					Class<?> relationMemberType = relationMember.getElementType();
 					if (!containsKey(relationMemberType))
@@ -554,7 +569,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				}
 				Map<String, ITypeInfoItem> boNameToVoMember = getTypeInfoMapForVo(valueType);
 
-				for (IRelationInfoItem boMember : metaData.getRelationMembers())
+				for (RelationMember boMember : metaData.getRelationMembers())
 				{
 					String boMemberName = boMember.getName();
 					String voMemberName = voConfig.getValueObjectMemberName(boMemberName);
@@ -742,11 +757,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			{
 				addTypeInfoMapping(typeInfoMap, config, boMetaData.getVersionMember().getName(), sb);
 			}
-			for (ITypeInfoItem primitiveMember : boMetaData.getPrimitiveMembers())
+			for (Member primitiveMember : boMetaData.getPrimitiveMembers())
 			{
 				addTypeInfoMapping(typeInfoMap, config, primitiveMember.getName(), sb);
 			}
-			for (ITypeInfoItem relationMember : boMetaData.getRelationMembers())
+			for (RelationMember relationMember : boMetaData.getRelationMembers())
 			{
 				addTypeInfoMapping(typeInfoMap, config, relationMember.getName(), null);
 			}
@@ -788,5 +803,19 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	public Class<?>[] getEntityPersistOrder()
 	{
 		return businessObjectSaveOrder;
+	}
+
+	@Override
+	public void registerEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type)
+	{
+		entityInstantiationExtensions.register(entityFactoryExtension, type);
+		initialize();
+	}
+
+	@Override
+	public void unregisterEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type)
+	{
+		entityInstantiationExtensions.unregister(entityFactoryExtension, type);
+		initialize();
 	}
 }

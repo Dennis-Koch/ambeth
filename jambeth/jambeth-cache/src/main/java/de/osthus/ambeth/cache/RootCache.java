@@ -50,11 +50,14 @@ import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.privilege.IPrivilegeCache;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
@@ -62,8 +65,6 @@ import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
@@ -263,7 +264,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Override
 	protected void setVersionOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue, Object version)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
@@ -706,7 +707,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			IObjRefContainer item = (IObjRefContainer) cacheResult.get(0); // Only first hit is needed
 			IEntityMetaData metaData = item.get__EntityMetaData();
 			int relationIndex = metaData.getIndexByRelationName(objRel.getMemberName());
-			IRelationInfoItem member = metaData.getRelationMembers()[relationIndex];
+			RelationMember member = metaData.getRelationMembers()[relationIndex];
 
 			if (ValueHolderState.INIT != item.get__State(relationIndex))
 			{
@@ -1241,8 +1242,19 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				return cacheObject;
 			}
 			cacheObject = targetCache.createCacheValueInstance(metaData, null);
+			IPropertyChangeConfigurable pcc = null;
+			if (cacheObject instanceof IPropertyChangeConfigurable)
+			{
+				// we deactivate the current PCE processing because we just created the entity
+				// we know that there is no property change listener that might handle the initial PCEs
+				pcc = (IPropertyChangeConfigurable) cacheObject;
+				pcc.set__PropertyChangeActive(false);
+			}
 			updateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary, privilegeOfObjRef);
-
+			if (pcc != null)
+			{
+				pcc.set__PropertyChangeActive(true);
+			}
 			metaData.postLoad(cacheObject);
 			return cacheObject;
 		}
@@ -1265,20 +1277,37 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			((IParentCacheValueHardRef) obj).setParentCacheValueHardRef(cacheValue);
 		}
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember != null)
 		{
 			versionMember.setValue(obj, version);
 		}
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
-		Object[] primitiveTemplates = cacheValue.getPrimitives();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 
-		for (int a = primitiveMembers.length; a-- > 0;)
+		for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 		{
-			ITypeInfoItem primitiveMember = primitiveMembers[a];
-			Class<?> memberType = primitiveMember.getRealType();
+			Member primitiveMember = primitiveMembers[primitiveIndex];
 
-			Object primitiveTemplate = primitiveTemplates[a];
+			Object primitiveTemplate = null;
+			if (!filteringNecessary)
+			{
+				primitiveTemplate = cacheValue.getPrimitive(primitiveIndex);
+			}
+			else
+			{
+				if (privilegeOfObjRef == null)
+				{
+					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version),
+							privilegeCache);
+				}
+				if (privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
+				{
+					// current user has no permission to read the property of the given entity
+					// so we treat this case as if the property is null/empty anyway
+					// effectively we handle user-specific data-blinding this way
+					primitiveTemplate = cacheValue.getPrimitive(primitiveIndex);
+				}
+			}
 
 			if (primitiveTemplate != null && filteringNecessary)
 			{
@@ -1287,7 +1316,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version),
 							privilegeCache);
 				}
-				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(a).isReadAllowed())
+				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
 				{
 					// current user has no permission to read the property of the given entity
 					// so we treat this case as if the property is null/empty anyway
@@ -1296,6 +1325,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 			}
 			Object primitive = null;
+
+			Class<?> memberType = primitiveMember.getRealType();
 
 			if (Collection.class.isAssignableFrom(memberType))
 			{
@@ -1352,7 +1383,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 		IObjRef[][] relations = cacheValue.getRelations();
 		relations = filterRelations(relations, filteringNecessary);
-		targetCache.addDirect(metaData, id, version, obj, primitiveTemplates, relations);
+		targetCache.addDirect(metaData, id, version, obj, cacheValue, relations);
 	}
 
 	protected IObjRef[][] filterRelations(IObjRef[][] relations, boolean filteringNecessary)
@@ -1575,7 +1606,8 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+	public void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray,
+			IObjRef[][] relations)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -1781,7 +1813,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember == null)
 		{
 			return;
@@ -1805,13 +1837,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected void ensureRelationsExist(RootCacheValue cacheValue, IEntityMetaData metaData, LinkedHashSet<IObjRef> cascadeNeededORIs,
 			ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		IObjRef[][] relations = cacheValue.getRelations();
 		for (int a = relations.length; a-- > 0;)
 		{
 			IObjRef[] relationsOfMember = relations[a];
 
-			IRelationInfoItem relationMember = relationMembers[a];
+			RelationMember relationMember = relationMembers[a];
 
 			CascadeLoadMode loadCascadeMode = relationMember.getCascadeLoadMode();
 			switch (loadCascadeMode)

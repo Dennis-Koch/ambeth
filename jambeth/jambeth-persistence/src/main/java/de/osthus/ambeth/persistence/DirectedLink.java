@@ -4,9 +4,9 @@ import java.util.List;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -22,7 +22,7 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 
 	protected IField toField;
 
-	protected IRelationInfoItem member;
+	protected RelationMember member;
 
 	protected ILink link;
 
@@ -129,13 +129,13 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	}
 
 	@Override
-	public ITypeInfoItem getFromMember()
+	public Member getFromMember()
 	{
 		return fromField.getMember();
 	}
 
 	@Override
-	public ITypeInfoItem getToMember()
+	public Member getToMember()
 	{
 		return toField.getMember();
 	}
@@ -157,12 +157,12 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	}
 
 	@Override
-	public IRelationInfoItem getMember()
+	public RelationMember getMember()
 	{
 		return member;
 	}
 
-	public void setMember(IRelationInfoItem member)
+	public void setMember(RelationMember member)
 	{
 		this.member = member;
 	}
@@ -216,7 +216,7 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	@Override
 	public CascadeLoadMode getCascadeLoadMode()
 	{
-		IRelationInfoItem member = this.member;
+		RelationMember member = this.member;
 		return member != null ? member.getCascadeLoadMode() : CascadeLoadMode.LAZY;
 	}
 

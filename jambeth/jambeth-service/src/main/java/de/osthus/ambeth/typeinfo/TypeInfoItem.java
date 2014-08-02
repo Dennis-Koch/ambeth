@@ -7,8 +7,9 @@ import de.osthus.ambeth.collections.ObservableArrayList;
 import de.osthus.ambeth.collections.ObservableHashSet;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.merge.model.IPrimitiveMember;
 
-public abstract class TypeInfoItem implements ITypeInfoItem
+public abstract class TypeInfoItem implements ITypeInfoItem, IPrimitiveMember
 {
 	public static void setEntityType(Class<?> entityType, ITypeInfoItem member, IProperties properties)
 	{
@@ -19,10 +20,6 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 		else
 		{
 			throw new IllegalStateException("TypeInfoItem not supported: " + member);
-		}
-		if (member instanceof RelationInfoItem)
-		{
-			((RelationInfoItem) member).configure(properties);
 		}
 	}
 
@@ -47,7 +44,7 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 	public Class<?> getDeclaringType()
 	{
 		return declaringType;
-		}
+	}
 
 	@Override
 	public boolean canRead()
@@ -90,7 +87,7 @@ public abstract class TypeInfoItem implements ITypeInfoItem
 				if (Set.class.isAssignableFrom(realType))
 				{
 					return new ObservableHashSet<Object>();
-}
+				}
 				return new ObservableArrayList<Object>();
 			}
 			try

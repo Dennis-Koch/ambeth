@@ -14,8 +14,8 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IInterningFeature;
 
 public class RootCacheBridge implements ICacheRetriever
@@ -143,7 +143,7 @@ public class RootCacheBridge implements ICacheRetriever
 			ILoadContainer loadContainer = loadContainers.get(a);
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(loadContainer.getReference().getRealType());
 			Object[] primitives = loadContainer.getPrimitives();
-			for (ITypeInfoItem member : metaData.getPrimitiveMembers())
+			for (Member member : metaData.getPrimitiveMembers())
 			{
 				if (!metaData.hasInterningBehavior(member))
 				{
@@ -154,7 +154,7 @@ public class RootCacheBridge implements ICacheRetriever
 		}
 	}
 
-	protected void internPrimitiveMember(IEntityMetaData metaData, Object[] primitives, ITypeInfoItem member)
+	protected void internPrimitiveMember(IEntityMetaData metaData, Object[] primitives, Member member)
 	{
 		if (member == null)
 		{

@@ -41,6 +41,8 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDirectedLink;
@@ -51,7 +53,6 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHandle;
@@ -131,7 +132,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		{
 			IRelationUpdateItem rui = ruis[i];
 
-			ITypeInfoItem relationMethod = parentMetaData.getMemberByName(rui.getMemberName());
+			Member relationMethod = parentMetaData.getMemberByName(rui.getMemberName());
 			Class<?> childType = relationMethod.getElementType();
 			if (!parentMetaData.isRelatingToThis(childType))
 			{
@@ -167,7 +168,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		IDirectedLink fromLink = changeCommand.getDirectedLink();
 		IDirectedLink toLink = fromLink.getReverse();
 
-		ITypeInfoItem member = toLink.getMember();
+		RelationMember member = toLink.getMember();
 		if (member != null)
 		{
 			ITable table = toLink.getFromTable();
@@ -309,7 +310,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		for (int a = oris.size(); a-- > 0;)
 		{
 			IObjRef ori = oris.get(a);
-			ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
+			Member idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
 			IList<Object> idsList = propertyNameToIdsMap.get(idMember.getName());
 			if (idsList == null)
 			{
@@ -384,7 +385,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	{
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		ITypeInfoItem member = metaData.getMemberByName(memberName);
+		Member member = metaData.getMemberByName(memberName);
 		Class<?> parentType = metaData.getEntityType();
 
 		ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(oris, member.getElementType());
@@ -435,7 +436,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IDirectedLink reverseLink = link.getReverse();
 			if (reverseLink.getMember() != null)
 			{
-				ITypeInfoItem member = reverseLink.getMember();
+				RelationMember member = reverseLink.getMember();
 				Class<?> entityType = reverseLink.getFromTable().getEntityType();
 				CheckForPreviousParentKey key = new CheckForPreviousParentKey(entityType, member.getName());
 				IList<IObjRef> movedOris = previousParentToMovedOrisMap.get(key);
@@ -516,7 +517,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		ArrayList<IChangeContainer> changeContainers = new ArrayList<IChangeContainer>();
 
 		IEntityMetaData metadata = entityMetaDataProvider.getMetaData(references.get(0).getRealType());
-		ITypeInfoItem member = link.getMember();
+		RelationMember member = link.getMember();
 
 		List<Object> entities = new ArrayList<Object>();
 		for (IObjRef reference : references)
@@ -624,7 +625,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
 		Class<?> entityType = metadata.getEntityType();
 		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
-		for (ITypeInfoItem member : metadata.getRelationMembers())
+		for (RelationMember member : metadata.getRelationMembers())
 		{
 			prefetchConfig.add(entityType, member.getName());
 		}
@@ -705,7 +706,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		IObjRefHelper oriHelper = this.oriHelper;
 		IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getEntityType());
 		Class<?> relatedType = relatedMetaData.getEntityType();
-		ITypeInfoItem member = becauseOfSelfRelation ? link.getMember() : link.getReverse().getMember();
+		RelationMember member = becauseOfSelfRelation ? link.getMember() : link.getReverse().getMember();
 		removeRelations &= becauseOfSelfRelation ? link.isNullable() : link.getReverse().isNullable();
 
 		ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(references, member.getElementType());

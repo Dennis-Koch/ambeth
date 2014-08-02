@@ -6,14 +6,14 @@ import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
 public class CacheMapEntryVisitor extends ClassGenerator
@@ -84,12 +84,12 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		super.visitEnd();
 	}
 
-	public static String getFieldName(ITypeInfoItem member)
+	public static String getFieldName(Member member)
 	{
 		return "$" + member.getName().replaceAll("\\.", "_");
 	}
 
-	public static FieldInstance implementNativeField(ClassGenerator cv, ITypeInfoItem member, MethodInstance m_get, MethodInstance m_set)
+	public static FieldInstance implementNativeField(ClassGenerator cv, Member member, MethodInstance m_get, MethodInstance m_set)
 	{
 		if (member == null)
 		{
@@ -107,8 +107,7 @@ public class CacheMapEntryVisitor extends ClassGenerator
 			}
 			return null;
 		}
-		if (member instanceof CompositeIdTypeInfoItem
-				|| (!member.getRealType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(member.getRealType()) == null))
+		if (member instanceof CompositeIdMember || (!member.getRealType().isPrimitive() && ImmutableTypeSet.getUnwrappedType(member.getRealType()) == null))
 		{
 			// no business case for any complex efforts
 			FieldInstance f_id = cv.implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, Object.class));

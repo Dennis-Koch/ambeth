@@ -16,9 +16,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.objectcollector.NoOpObjectCollector;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.typeinfo.TypeInfoProvider;
 import de.osthus.ambeth.util.AlreadyLinkedCache;
 
 public class TableTest
@@ -52,7 +51,7 @@ public class TableTest
 		this.fixture.setIdField(new Field());
 		this.fixture.setVersionField(new Field());
 		this.fixture.setName("Test table name");
-		this.fixture.typeInfoProvider = new TypeInfoProvider();
+		this.fixture.memberTypeProvider = new MemberTypeProvider();
 		this.fixture.alreadyLinkedCache = new AlreadyLinkedCache();
 		this.fixture.objectCollector = new NoOpObjectCollector();
 	}
@@ -207,18 +206,6 @@ public class TableTest
 	public final void testGetTypeInfoProvider()
 	{
 		assertNotNull("Returns null!", this.fixture.getIdField());
-	}
-
-	/**
-	 * Test method for {@link de.osthus.ambeth.persistence.Table#setTypeInfoProvider(de.osthus.ambeth.typeinfo.ITypeInfoProvider)} .
-	 */
-	@Test
-	public final void testSetTypeInfoProvider()
-	{
-		ITypeInfoProvider actual = new TypeInfoProvider();
-		assertNotSame("Should not be same object!", actual, this.fixture.getTypeInfoProvider());
-		this.fixture.typeInfoProvider = actual;
-		assertSame("Should be same object!", actual, this.fixture.getTypeInfoProvider());
 	}
 
 	/**

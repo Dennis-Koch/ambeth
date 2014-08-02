@@ -2,15 +2,15 @@ package de.osthus.ambeth.compositeid;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
-public class CompositeIdTypeInfoItem implements ITypeInfoItem
+public class CompositeIdMember extends PrimitiveMember
 {
 	public static String filterEmbeddedFieldName(String fieldName)
 	{
@@ -21,7 +21,7 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 
 	protected final Class<?> realType;
 
-	protected final ITypeInfoItem[] members;
+	protected final PrimitiveMember[] members;
 
 	protected final Constructor<?> realTypeConstructorAccess;
 
@@ -33,8 +33,9 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 
 	protected boolean technicalMember;
 
-	public CompositeIdTypeInfoItem(Class<?> declaringType, Class<?> realType, String name, ITypeInfoItem[] members)
+	public CompositeIdMember(Class<?> declaringType, Class<?> realType, String name, PrimitiveMember[] members)
 	{
+		super(declaringType, null);
 		this.declaringType = declaringType;
 		this.realType = realType;
 		this.name = name;
@@ -44,8 +45,8 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 		Class<?>[] paramTypes = new Class<?>[members.length];
 		for (int a = 0, size = members.length; a < size; a++)
 		{
-			ITypeInfoItem member = members[a];
-			fieldIndexOfMembers[a] = realTypeFieldAccess.getIndex(CompositeIdTypeInfoItem.filterEmbeddedFieldName(member.getName()));
+			Member member = members[a];
+			fieldIndexOfMembers[a] = realTypeFieldAccess.getIndex(CompositeIdMember.filterEmbeddedFieldName(member.getName()));
 			paramTypes[a] = member.getRealType();
 		}
 		try
@@ -59,33 +60,14 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 	}
 
 	@Override
-	public Object getDefaultValue()
+	public boolean isTechnicalMember()
 	{
-		return null;
+		return technicalMember;
 	}
 
-	@Override
-	public void setDefaultValue(Object defaultValue)
+	public void setTechnicalMember(boolean technicalMember)
 	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Collection<?> createInstanceOfCollection()
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Object getNullEquivalentValue()
-	{
-		return null;
-	}
-
-	@Override
-	public void setNullEquivalentValue(Object nullEquivalentValue)
-	{
-		throw new UnsupportedOperationException();
+		this.technicalMember = technicalMember;
 	}
 
 	@Override
@@ -118,18 +100,6 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 		return true;
 	}
 
-	@Override
-	public boolean isTechnicalMember()
-	{
-		return technicalMember;
-	}
-
-	@Override
-	public void setTechnicalMember(boolean technicalMember)
-	{
-		this.technicalMember = technicalMember;
-	}
-
 	public Object getDecompositedValue(Object compositeId, int compositeMemberIndex)
 	{
 		int fieldIndexOfMember = fieldIndexOfMembers[compositeMemberIndex];
@@ -156,9 +126,15 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 		return fieldIndexOfMembers;
 	}
 
-	public ITypeInfoItem[] getMembers()
+	public Member[] getMembers()
 	{
 		return members;
+	}
+
+	@Override
+	public Object getNullEquivalentValue()
+	{
+		return null;
 	}
 
 	@Override
@@ -170,7 +146,7 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 	@Override
 	public Object getValue(Object obj, boolean allowNullEquivalentValue)
 	{
-		ITypeInfoItem[] members = this.members;
+		Member[] members = this.members;
 		Object[] args = new Object[members.length];
 		for (int a = members.length; a-- > 0;)
 		{
@@ -194,7 +170,7 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 	@Override
 	public void setValue(Object obj, Object compositeId)
 	{
-		ITypeInfoItem[] members = this.members;
+		Member[] members = this.members;
 		FieldAccess realTypeFieldAccess = this.realTypeFieldAccess;
 		int[] fieldIndexOfMembers = this.fieldIndexOfMembers;
 		if (compositeId != null)
@@ -225,18 +201,6 @@ public class CompositeIdTypeInfoItem implements ITypeInfoItem
 	public String getName()
 	{
 		return name;
-	}
-
-	@Override
-	public String getXMLName()
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean isXMLIgnore()
-	{
-		return true;
 	}
 
 	@Override

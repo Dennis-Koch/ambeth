@@ -4,28 +4,24 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
-import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
+import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.Lock;
-import de.osthus.ambeth.util.LockState;
-import de.osthus.ambeth.util.ReadWriteLock;
 
 public class EventListenerRegistry implements IEventListenerExtendable, IEventBatcherExtendable, IEventTargetExtractorExtendable, IEventBatcher,
 		IEventDispatcher, IEventListener, IEventQueue
@@ -33,22 +29,19 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	@LogInstance
 	private ILogger log;
 
-	protected final HashMap<Class<?>, List<IEventListenerMarker>> typeToListenersDict = new HashMap<Class<?>, List<IEventListenerMarker>>();
+	protected final ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<IEventListenerMarker>(
+			"eventListener", "eventType");
 
 	protected final ClassExtendableContainer<IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<IEventBatcher>("eventBatcher", "eventType");
 
 	protected final ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<IEventTargetExtractor>(
 			"eventTargetExtractor", "eventType");
 
-	protected final ArrayList<IEventListenerMarker> globalListenerList = new ArrayList<IEventListenerMarker>();
-
 	protected final ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL = new SensitiveThreadLocal<IList<IList<IQueuedEvent>>>();
 
 	protected final IdentityLinkedSet<WaitForResumeItem> waitForResumeSet = new IdentityLinkedSet<WaitForResumeItem>();
 
-	protected final LinkedHashSet<PausedEventTargetItem> pausedTargetsSet = new LinkedHashSet<PausedEventTargetItem>();
-
-	protected final Lock readLock, writeLock;
+	protected final IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = new IdentityLinkedMap<Object, PausedEventTargetItem>();
 
 	protected final Lock listenersReadLock, listenersWriteLock;
 
@@ -57,12 +50,8 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 
 	public EventListenerRegistry()
 	{
-		ReadWriteLock rwLock = new ReadWriteLock();
-		readLock = rwLock.getReadLock();
-		writeLock = rwLock.getWriteLock();
-		ReadWriteLock listenersRwLock = new ReadWriteLock();
-		listenersReadLock = listenersRwLock.getReadLock();
-		listenersWriteLock = listenersRwLock.getWriteLock();
+		listenersReadLock = typeToListenersDict.getWriteLock();
+		listenersWriteLock = typeToListenersDict.getWriteLock();
 	}
 
 	@Override
@@ -214,75 +203,52 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 			tlEventQueue.add(new QueuedEvent(eventObject, dispatchTime, sequenceId));
 			return;
 		}
-		IdentityHashSet<IEventListenerMarker> interestedEventListeners;
+		IList<IEventListenerMarker> interestedEventListeners;
 		List<Object> pausedEventTargets;
 		Lock listenersReadLock = this.listenersReadLock;
 		listenersReadLock.lock();
 		try
 		{
-			interestedEventListeners = new IdentityHashSet<IEventListenerMarker>();
-
-			interestedEventListeners.addAll(globalListenerList); // Copy all global listeners as interested
-
 			pausedEventTargets = evaluatePausedEventTargets();
 
-			Class<?> currentType = eventObject.getClass();
-			while (currentType != null)
-			{
-				evaluateType(currentType, interestedEventListeners);
-				Class<?>[] interfaces = currentType.getInterfaces();
-				for (Class<?> typeInterface : interfaces)
-				{
-					evaluateType(typeInterface, interestedEventListeners);
-				}
-				currentType = currentType.getSuperclass();
-			}
+			interestedEventListeners = typeToListenersDict.getExtensions(eventObject.getClass());
 		}
 		finally
 		{
 			listenersReadLock.unlock();
 		}
-		for (IEventListenerMarker interestedEventListener : interestedEventListeners)
+		for (int a = 0, size = interestedEventListeners.size(); a < size; a++)
 		{
-			notifyEventListener(interestedEventListener, eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
+			notifyEventListener(interestedEventListeners.get(a), eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
 		}
 	}
 
 	protected IList<Object> evaluatePausedEventTargets()
 	{
-		LinkedHashSet<PausedEventTargetItem> pausedTargetsSet = this.pausedTargetsSet;
-		ArrayList<Object> pausedEventTargets = new ArrayList<Object>(pausedTargetsSet.size());
-		for (PausedEventTargetItem pauseETI : pausedTargetsSet)
+		IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		ArrayList<Object> pausedEventTargets = new ArrayList<Object>(pausedTargets.size());
+		for (Entry<Object, PausedEventTargetItem> entry : pausedTargets)
 		{
+			PausedEventTargetItem pauseETI = entry.getValue();
 			pausedEventTargets.add(pauseETI.getEventTarget());
 		}
 		return pausedEventTargets;
 	}
 
-	protected void evaluateType(Class<?> type, Set<IEventListenerMarker> interestedEventListeners)
+	protected IList<Object> evaluatePausedEventTargetsOfForeignThreads()
 	{
-		List<IEventListenerMarker> eventTypeListeners = typeToListenersDict.get(type);
-		if (eventTypeListeners != null)
+		Thread currentThread = Thread.currentThread();
+		IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		ArrayList<Object> pausedEventTargets = new ArrayList<Object>(pausedTargets.size());
+		for (Entry<Object, PausedEventTargetItem> entry : pausedTargets)
 		{
-			interestedEventListeners.addAll(eventTypeListeners);
-		}
-	}
-
-	protected void evaluateTypeForEventTarget(Class<?> type, Set<IEventTargetEventListener> interestedEventListeners)
-	{
-		List<IEventListenerMarker> eventTypeListeners = typeToListenersDict.get(type);
-		if (eventTypeListeners == null)
-		{
-			return;
-		}
-		for (int a = 0, size = eventTypeListeners.size(); a < size; a++)
-		{
-			IEventListenerMarker eventListener = eventTypeListeners.get(a);
-			if (eventListener instanceof IEventTargetEventListener)
+			PausedEventTargetItem pauseETI = entry.getValue();
+			if (pauseETI.getThread() != currentThread)
 			{
-				interestedEventListeners.add((IEventTargetEventListener) eventListener);
+				pausedEventTargets.add(pauseETI.getEventTarget());
 			}
 		}
+		return pausedEventTargets;
 	}
 
 	protected void notifyEventListener(IEventListenerMarker eventListener, Object eventObject, Object eventTarget, List<Object> pausedEventTargets,
@@ -317,52 +283,11 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	@Override
 	public void registerEventListener(IEventListenerMarker eventListener, Class<?> eventType)
 	{
-		if (eventListener == null)
+		if (eventType == null)
 		{
-			throw new IllegalArgumentException("Argument must not be null: eventListener");
+			eventType = Object.class;
 		}
-		listenersWriteLock.lock();
-		try
-		{
-			boolean success = true;
-			try
-			{
-				if (eventType == null)
-				{
-					if (globalListenerList.contains(eventListener))
-					{
-						throw new IllegalArgumentException("Given eventListener already registered with this type");
-					}
-					globalListenerList.add(eventListener);
-				}
-				else
-				{
-					List<IEventListenerMarker> eventListeners = typeToListenersDict.get(eventType);
-					if (eventListeners == null)
-					{
-						eventListeners = new ArrayList<IEventListenerMarker>();
-						typeToListenersDict.put(eventType, eventListeners);
-					}
-					if (eventListeners.contains(eventListener))
-					{
-						throw new IllegalArgumentException("Given eventListener already registered with this type");
-					}
-					eventListeners.add(eventListener);
-				}
-				success = true;
-			}
-			finally
-			{
-				if (!success)
-				{
-					unregisterEventListenerForCleanup(eventListener);
-				}
-			}
-		}
-		finally
-		{
-			listenersWriteLock.unlock();
-		}
+		typeToListenersDict.register(eventListener, eventType);
 	}
 
 	@Override
@@ -374,62 +299,11 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	@Override
 	public void unregisterEventListener(IEventListenerMarker eventListener, Class<?> eventType)
 	{
-		if (eventListener == null)
+		if (eventType == null)
 		{
-			throw new IllegalArgumentException("Argument must not be null: eventListener");
+			eventType = Object.class;
 		}
-		listenersWriteLock.lock();
-		try
-		{
-			boolean success = false;
-			try
-			{
-				if (eventType == null)
-				{
-					if (!globalListenerList.remove(eventListener))
-					{
-						throw new IllegalArgumentException("Given eventListener is not registered to this type");
-					}
-				}
-				else
-				{
-					List<IEventListenerMarker> eventListeners = typeToListenersDict.get(eventType);
-					if (eventListeners == null || !eventListeners.remove(eventListener))
-					{
-						throw new IllegalArgumentException("Given dataChangeListener is not registered to this type");
-					}
-					if (eventListeners != null && eventListeners.size() == 0)
-					{
-						typeToListenersDict.remove(eventType);
-					}
-				}
-				success = true;
-			}
-			finally
-			{
-				if (!success)
-				{
-					unregisterEventListenerForCleanup(eventListener);
-				}
-			}
-		}
-		finally
-		{
-			listenersWriteLock.unlock();
-		}
-	}
-
-	protected void unregisterEventListenerForCleanup(final IEventListenerMarker eventListener)
-	{
-		globalListenerList.remove(eventListener);
-		for (Entry<Class<?>, List<IEventListenerMarker>> entry : typeToListenersDict)
-		{
-			List<IEventListenerMarker> eventListeners = entry.getValue();
-			if (eventListeners != null)
-			{
-				eventListeners.remove(eventListener);
-			}
-		}
+		typeToListenersDict.unregister(eventListener, eventType);
 	}
 
 	@Override
@@ -442,24 +316,6 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	public void unregisterEventBatcher(IEventBatcher eventBatcher, Class<?> eventType)
 	{
 		typeToBatchersDict.unregister(eventBatcher, eventType);
-	}
-
-	@Override
-	public <T> T invokeWithoutLocks(IResultingBackgroundWorkerDelegate<T> runnable)
-	{
-		LockState lockState = writeLock.releaseAllLocks();
-		try
-		{
-			return runnable.invoke();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			writeLock.reacquireLocks(lockState);
-		}
 	}
 
 	@Override
@@ -479,16 +335,15 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 				return;
 			}
 		}
-		PausedEventTargetItem etiKey = new PausedEventTargetItem(eventTarget);
 		Lock listenersWriteLock = this.listenersWriteLock;
 		listenersWriteLock.lock();
 		try
 		{
-			PausedEventTargetItem pauseETI = pausedTargetsSet.get(etiKey);
+			PausedEventTargetItem pauseETI = pausedTargets.get(eventTarget);
 			if (pauseETI == null)
 			{
-				pauseETI = etiKey;
-				pausedTargetsSet.add(pauseETI);
+				pauseETI = new PausedEventTargetItem(eventTarget);
+				pausedTargets.put(eventTarget, pauseETI);
 			}
 			pauseETI.setPauseCount(pauseETI.getPauseCount() + 1);
 		}
@@ -518,14 +373,13 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 		IdentityLinkedSet<WaitForResumeItem> freeLatchMap = null;
 		try
 		{
-			PausedEventTargetItem etiKey = new PausedEventTargetItem(eventTarget);
 			PausedEventTargetItem pauseETI;
 			Lock listenersWriteLock = this.listenersWriteLock;
 			listenersWriteLock.lock();
 			try
 			{
-				LinkedHashSet<PausedEventTargetItem> pausedTargetsSet = this.pausedTargetsSet;
-				pauseETI = pausedTargetsSet.get(etiKey);
+				IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+				pauseETI = pausedTargets.get(eventTarget);
 				if (pauseETI == null)
 				{
 					throw new IllegalStateException("No pause() active for target " + eventTarget);
@@ -535,7 +389,7 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 				{
 					return;
 				}
-				pausedTargetsSet.remove(etiKey);
+				pausedTargets.remove(eventTarget);
 				if (waitForResumeSet.size() > 0)
 				{
 					IList<Object> remainingPausedEventTargets = evaluatePausedEventTargets();
@@ -609,7 +463,7 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 			listenersWriteLock.lock();
 			try
 			{
-				IList<Object> remainingPausedEventTargets = evaluatePausedEventTargets();
+				IList<Object> remainingPausedEventTargets = evaluatePausedEventTargetsOfForeignThreads();
 				IdentityLinkedSet<Object> remainingPausedEventTargetsSet = new IdentityLinkedSet<Object>(remainingPausedEventTargets);
 				remainingPausedEventTargetsSet.retainAll(pendingSet);
 
