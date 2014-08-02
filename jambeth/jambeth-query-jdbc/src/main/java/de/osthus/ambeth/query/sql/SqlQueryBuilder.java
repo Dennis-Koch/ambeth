@@ -26,6 +26,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDirectedLink;
@@ -48,7 +49,6 @@ import de.osthus.ambeth.query.QueryDelegate;
 import de.osthus.ambeth.query.QueryWeakReference;
 import de.osthus.ambeth.query.StringQuery;
 import de.osthus.ambeth.query.SubQueryWeakReference;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -346,7 +346,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 						break;
 					}
 					relatedEntityTypes.add(currentEntityType);
-					ITypeInfoItem member = metaData.getMemberByName(currentPropertyName);
+					Member member = metaData.getMemberByName(currentPropertyName);
 					if (member != null)
 					{
 						stepViaEntity.add(currentEntityType);
@@ -393,7 +393,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 								continue;
 							}
 							IEntityMetaData metaData2 = entityMetaDataProvider.getMetaData(other);
-							ITypeInfoItem backwardsMember = metaData2.getMemberByName(backwardsPropertyName);
+							Member backwardsMember = metaData2.getMemberByName(backwardsPropertyName);
 							if (backwardsMember != null)
 							{
 								if (nextEntityType != null)

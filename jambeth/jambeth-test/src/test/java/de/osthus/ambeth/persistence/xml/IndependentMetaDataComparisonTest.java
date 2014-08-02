@@ -45,6 +45,8 @@ import de.osthus.ambeth.merge.config.ValueObjectConfigReader;
 import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
@@ -63,7 +65,6 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.category.ReminderTests;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
 import de.osthus.ambeth.typeinfo.TypeInfoProvider;
@@ -244,8 +245,8 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 			Assert.assertEquals(entityName, expectedIIP.length, actualIIP.length);
 			for (int j = expectedIIP.length; j-- > 0;)
 			{
-				ITypeInfoItem expectedTypeInfoItem = expected.getPrimitiveMembers()[expectedIIP[i]];
-				ITypeInfoItem actualTypeInfoItem = actual.getPrimitiveMembers()[actualIIP[i]];
+				PrimitiveMember expectedTypeInfoItem = expected.getPrimitiveMembers()[expectedIIP[i]];
+				PrimitiveMember actualTypeInfoItem = actual.getPrimitiveMembers()[actualIIP[i]];
 				Assert.assertEquals(entityName, expectedTypeInfoItem.getName(), actualTypeInfoItem.getName());
 			}
 		}
@@ -266,13 +267,13 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 	}
 
 	// Asserts the existence of content, not the order.
-	private static void assertEquals(String message, ITypeInfoItem[] expected, ITypeInfoItem[] actual)
+	private static void assertEquals(String message, Member[] expected, Member[] actual)
 	{
 		Assert.assertEquals(message, expected.length, actual.length);
 
-		outerLoop: for (ITypeInfoItem actualItem : actual)
+		outerLoop: for (Member actualItem : actual)
 		{
-			for (ITypeInfoItem expectedItem : expected)
+			for (Member expectedItem : expected)
 			{
 				if (expectedItem.getName().equals(actualItem.getName()))
 				{
@@ -284,19 +285,16 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 		}
 	}
 
-	private static void assertEquals(String message, ITypeInfoItem expected, ITypeInfoItem actual)
+	private static void assertEquals(String message, Member expected, Member actual)
 	{
 		message += "." + expected.getName();
 		Assert.assertEquals(message, expected.getName(), actual.getName());
-		Assert.assertEquals(message, expected.getXMLName(), actual.getXMLName());
-		Assert.assertEquals(message, expected.getDefaultValue(), actual.getDefaultValue());
 		Assert.assertEquals(message, expected.getNullEquivalentValue(), actual.getNullEquivalentValue());
 		Assert.assertEquals(message, expected.canRead(), actual.canRead());
 		Assert.assertEquals(message, expected.canWrite(), actual.canWrite());
 		Assert.assertEquals(message, expected.getDeclaringType(), actual.getDeclaringType());
 		Assert.assertEquals(message, expected.getElementType(), actual.getElementType());
 		Assert.assertEquals(message, expected.getRealType(), actual.getRealType());
-		Assert.assertEquals(message, expected.isXMLIgnore(), actual.isXMLIgnore());
 	}
 
 }

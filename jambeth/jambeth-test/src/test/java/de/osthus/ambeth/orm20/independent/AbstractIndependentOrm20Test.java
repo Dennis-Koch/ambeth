@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 public abstract class AbstractIndependentOrm20Test extends AbstractInformationBusTest
 {
@@ -27,7 +27,7 @@ public abstract class AbstractIndependentOrm20Test extends AbstractInformationBu
 	{
 		IEntityMetaData metaData = retrieveMetaData(entityType);
 
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		assertEquals(0, relationMembers.length);
 	}
 }

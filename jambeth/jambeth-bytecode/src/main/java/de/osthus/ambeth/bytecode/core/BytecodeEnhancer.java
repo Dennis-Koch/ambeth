@@ -23,6 +23,7 @@ import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -225,7 +226,18 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			{
 				log.debug(bytecodeClassLoader.toPrintableBytecode(enhancedType));
 			}
-			checkEnhancedTypeConsistency(enhancedType);
+			try
+			{
+				checkEnhancedTypeConsistency(enhancedType);
+			}
+			catch (RuntimeException e)
+			{
+				if (log.isErrorEnabled())
+				{
+					log.error(bytecodeClassLoader.toPrintableBytecode(enhancedType));
+				}
+				throw e;
+			}
 
 			WeakReference<Class<?>> enhancedTypeR = new WeakReference<Class<?>>(enhancedType);
 			valueType.put(hint, enhancedTypeR);
@@ -244,20 +256,31 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	protected void checkEnhancedTypeConsistency(Class<?> type)
 	{
-		Method[] methods = ReflectUtil.getDeclaredMethods(type);
-		if (methods.length == 0)
+		IdentityHashSet<Method> allMethods = new IdentityHashSet<Method>();
+		for (Class<?> interf : type.getInterfaces())
+		{
+			allMethods.addAll(interf.getMethods());
+		}
+		Class<?> currType = type;
+		while (currType != Object.class && currType != null)
+		{
+			allMethods.addAll(currType.getDeclaredMethods());
+			currType = currType.getSuperclass();
+		}
+		if (allMethods.size() == 0)
 		{
 			throw new IllegalStateException("Type invalid (not a single method): " + type);
 		}
-		if (type.getConstructors().length == 0)
+		if (type.getDeclaredConstructors().length == 0)
 		{
 			throw new IllegalStateException("Type invalid (not a single constructor): " + type);
 		}
 		if (!Modifier.isAbstract(type.getModifiers()))
 		{
-			for (Method method : methods)
+			for (Method method : allMethods)
 			{
-				if (Modifier.isAbstract(method.getModifiers()))
+				Method method2 = ReflectUtil.getDeclaredMethod(true, type, method.getReturnType(), method.getName(), method.getParameterTypes());
+				if (method2 == null || Modifier.isAbstract(method2.getModifiers()))
 				{
 					throw new IllegalStateException("Type is not abstract but has at least one abstract method: " + method);
 				}

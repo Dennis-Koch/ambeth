@@ -17,10 +17,10 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
@@ -81,10 +81,10 @@ public class Table implements ITable, IInitializingBean
 	protected String sequenceName;
 
 	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
+	protected IAlreadyLinkedCache alreadyLinkedCache;
 
 	@Autowired
-	protected IAlreadyLinkedCache alreadyLinkedCache;
+	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -295,11 +295,6 @@ public class Table implements ITable, IInitializingBean
 		this.updatedOnField = updatedOnField;
 	}
 
-	public ITypeInfoProvider getTypeInfoProvider()
-	{
-		return typeInfoProvider;
-	}
-
 	@Override
 	public List<IField> getPrimitiveFields()
 	{
@@ -382,7 +377,7 @@ public class Table implements ITable, IInitializingBean
 	@Override
 	public IField mapField(String fieldName, String memberName)
 	{
-		ITypeInfoItem member = typeInfoProvider.getHierarchicMember(getEntityType(), memberName);
+		Member member = memberTypeProvider.getPrimitiveMember(getEntityType(), memberName);
 
 		if (member == null)
 		{
@@ -444,7 +439,7 @@ public class Table implements ITable, IInitializingBean
 	@Override
 	public IDirectedLink mapLink(String linkName, String memberName)
 	{
-		IRelationInfoItem member = (IRelationInfoItem) typeInfoProvider.getTypeInfo(getEntityType()).getMemberByName(memberName);
+		RelationMember member = memberTypeProvider.getRelationMember(getEntityType(), memberName);
 		if (member == null)
 		{
 			throw new NullPointerException("Member '" + getEntityType().getName() + "." + memberName + "' not found to map to link '" + linkName + "'");

@@ -6,6 +6,7 @@ import de.osthus.ambeth.bytecode.behavior.DefaultPropertiesBehavior;
 import de.osthus.ambeth.bytecode.behavior.EmbeddedTypeBehavior;
 import de.osthus.ambeth.bytecode.behavior.EnhancedTypeBehavior;
 import de.osthus.ambeth.bytecode.behavior.EntityEqualsBehavior;
+import de.osthus.ambeth.bytecode.behavior.InitializeEmbeddedMemberBehavior;
 import de.osthus.ambeth.bytecode.behavior.LazyRelationsBehavior;
 import de.osthus.ambeth.bytecode.behavior.NotifyPropertyChangedBehavior;
 import de.osthus.ambeth.bytecode.behavior.ParentCacheHardRefBehavior;
@@ -31,6 +32,8 @@ public class CacheBytecodeModule implements IInitializingModule
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, DefaultPropertiesBehavior.class);
 		// cascade $2
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, LazyRelationsBehavior.class);
+
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, InitializeEmbeddedMemberBehavior.class);
 		// cascade $3
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, NotifyPropertyChangedBehavior.class);
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, ParentCacheHardRefBehavior.class);

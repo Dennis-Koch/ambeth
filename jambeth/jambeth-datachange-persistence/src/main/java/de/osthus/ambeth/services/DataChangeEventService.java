@@ -26,10 +26,10 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.model.DataChangeEntryBO;
 import de.osthus.ambeth.model.DataChangeEventBO;
 import de.osthus.ambeth.model.EntityType;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
@@ -217,11 +217,11 @@ public class DataChangeEventService implements IDataChangeEventService, IStartin
 
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 			Object id = bo.getObjectId();
-			ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(idIndex);
+			Member idMember = metaData.getIdMemberByIdIndex(idIndex);
 			id = conversionHelper.convertValueToType(idMember.getRealType(), id);
 			entry.setId(id);
 			Object version = bo.getObjectVersion();
-			ITypeInfoItem versionMember = metaData.getVersionMember();
+			Member versionMember = metaData.getVersionMember();
 			version = conversionHelper.convertValueToType(versionMember.getRealType(), version);
 			entry.setVersion(version);
 

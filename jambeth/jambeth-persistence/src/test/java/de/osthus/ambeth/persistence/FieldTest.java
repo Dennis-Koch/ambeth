@@ -6,9 +6,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-import java.lang.annotation.Annotation;
-import java.util.Collection;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -16,7 +13,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.Properties;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class FieldTest
 {
@@ -150,129 +146,6 @@ public class FieldTest
 	public final void testGetMember()
 	{
 		assertNull("Does not return null!", fixture.getMember());
-	}
-
-	/**
-	 * Test method for {@link de.osthus.ambeth.persistence.Field#setMember(de.osthus.ambeth.typeinfo.ITypeInfoItem)} .
-	 */
-	@Test
-	public final void testSetMember()
-	{
-		ITypeInfoItem actual = new ITypeInfoItem()
-		{
-			@Override
-			public boolean canRead()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean canWrite()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean isTechnicalMember()
-			{
-				return false;
-			}
-
-			@Override
-			public void setTechnicalMember(boolean technicalMember)
-			{
-			}
-
-			@Override
-			public Class<?> getDeclaringType()
-			{
-				return null;
-			}
-
-			@Override
-			public Object getDefaultValue()
-			{
-				return null;
-			}
-
-			@Override
-			public Collection<?> createInstanceOfCollection()
-			{
-				return null;
-			}
-
-			@Override
-			public Object getNullEquivalentValue()
-			{
-				return null;
-			}
-
-			@Override
-			public Class<?> getRealType()
-			{
-				return null;
-			}
-
-			@Override
-			public Class<?> getElementType()
-			{
-				return null;
-			}
-
-			@Override
-			public void setValue(Object obj, Object value)
-			{
-			}
-
-			@Override
-			public Object getValue(Object obj)
-			{
-				return null;
-			}
-
-			@Override
-			public Object getValue(Object obj, boolean allowNullEquivalentValue)
-			{
-				return null;
-			}
-
-			@Override
-			public String getName()
-			{
-				return null;
-			}
-
-			@Override
-			public String getXMLName()
-			{
-				return null;
-			}
-
-			@Override
-			public boolean isXMLIgnore()
-			{
-				return false;
-			}
-
-			@Override
-			public void setDefaultValue(Object defaultValue)
-			{
-			}
-
-			@Override
-			public void setNullEquivalentValue(Object nullEquivalentValue)
-			{
-			}
-
-			@Override
-			public <V extends Annotation> V getAnnotation(Class<V> annotationType)
-			{
-				return null;
-			}
-		};
-		assertNotSame("Should not be same object!", actual, fixture.getMember());
-		fixture.setMember(actual);
-		assertSame("Should be same object!", actual, fixture.getMember());
 	}
 
 	/**

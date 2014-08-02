@@ -5,8 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.TypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class Field implements IField, IInitializingBean
@@ -17,7 +16,7 @@ public class Field implements IField, IInitializingBean
 
 	protected String name;
 
-	protected ITypeInfoItem member;
+	protected Member member;
 
 	protected Class<?> fieldType;
 
@@ -86,12 +85,12 @@ public class Field implements IField, IInitializingBean
 	}
 
 	@Override
-	public ITypeInfoItem getMember()
+	public Member getMember()
 	{
 		return member;
 	}
 
-	public void setMember(ITypeInfoItem member)
+	public void setMember(Member member)
 	{
 		if (this.member == member)
 		{
@@ -102,10 +101,6 @@ public class Field implements IField, IInitializingBean
 			throw new IllegalStateException("Member already configured and can not be changed later. A call to this method here is a bug");
 		}
 		this.member = member;
-		if (member != null && Object.class.equals(member.getElementType()))
-		{
-			TypeInfoItem.setEntityType(getFieldType(), member, properties);
-		}
 	}
 
 	@Override

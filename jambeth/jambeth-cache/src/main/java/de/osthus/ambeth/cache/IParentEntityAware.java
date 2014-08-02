@@ -1,8 +1,8 @@
 package de.osthus.ambeth.cache;
 
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 
 public interface IParentEntityAware
 {
-	void setParentEntity(Object parentEntity, ITypeInfoItem member);
+	void setParentEntity(Object parentEntity, Member member);
 }

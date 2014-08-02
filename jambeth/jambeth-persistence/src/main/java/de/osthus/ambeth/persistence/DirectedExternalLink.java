@@ -3,14 +3,14 @@ package de.osthus.ambeth.persistence;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class DirectedExternalLink extends DirectedLink implements IDirectedLink, IInitializingBean
 {
-	protected ITypeInfoItem toMember;
+	protected Member toMember;
 
-	protected ITypeInfoItem fromMember;
+	protected Member fromMember;
 
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
@@ -95,23 +95,23 @@ public class DirectedExternalLink extends DirectedLink implements IDirectedLink,
 	}
 
 	@Override
-	public ITypeInfoItem getFromMember()
+	public Member getFromMember()
 	{
 		return fromMember;
 	}
 
-	public void setFromMember(ITypeInfoItem fromMember)
+	public void setFromMember(Member fromMember)
 	{
 		this.fromMember = fromMember;
 	}
 
 	@Override
-	public ITypeInfoItem getToMember()
+	public Member getToMember()
 	{
 		return toMember;
 	}
 
-	public void setToMember(ITypeInfoItem toMember)
+	public void setToMember(Member toMember)
 	{
 		this.toMember = toMember;
 	}

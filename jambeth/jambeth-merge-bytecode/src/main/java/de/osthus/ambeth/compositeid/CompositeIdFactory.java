@@ -8,7 +8,8 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBean
@@ -32,13 +33,13 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 	}
 
 	@Override
-	public ITypeInfoItem createCompositeIdMember(IEntityMetaData metaData, ITypeInfoItem[] idMembers)
+	public PrimitiveMember createCompositeIdMember(IEntityMetaData metaData, PrimitiveMember[] idMembers)
 	{
 		return createCompositeIdMember(metaData.getEntityType(), idMembers);
 	}
 
 	@Override
-	public ITypeInfoItem createCompositeIdMember(Class<?> entityType, ITypeInfoItem[] idMembers)
+	public PrimitiveMember createCompositeIdMember(Class<?> entityType, PrimitiveMember[] idMembers)
 	{
 		if (bytecodeEnhancer == null)
 		{
@@ -58,7 +59,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		Class<?> compositeIdType = bytecodeEnhancer.getEnhancedType(Object.class, new CompositeIdEnhancementHint(idMembers));
 		try
 		{
-			return new CompositeIdTypeInfoItem(entityType, compositeIdType, nameSB.toString(), idMembers);
+			return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers);
 		}
 		catch (Throwable e)
 		{
@@ -67,11 +68,11 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 	}
 
 	@Override
-	public Object createCompositeId(IEntityMetaData metaData, ITypeInfoItem compositeIdMember, Object... ids)
+	public Object createCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, Object... ids)
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
-		CompositeIdTypeInfoItem cIdTypeInfoItem = (CompositeIdTypeInfoItem) compositeIdMember;
-		ITypeInfoItem[] members = cIdTypeInfoItem.getMembers();
+		CompositeIdMember cIdTypeInfoItem = (CompositeIdMember) compositeIdMember;
+		Member[] members = cIdTypeInfoItem.getMembers();
 		for (int a = ids.length; a-- > 0;)
 		{
 			Object id = ids[a];
@@ -101,7 +102,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		{
 			return primitives[compositeIndex[0]];
 		}
-		ITypeInfoItem compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
 		Object[] ids = new Object[compositeIndex.length];
 		for (int a = compositeIndex.length; a-- > 0;)
 		{
@@ -120,7 +121,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		{
 			return cacheValue.getPrimitive(compositeIndex[0]);
 		}
-		ITypeInfoItem compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
 		Object[] ids = new Object[compositeIndex.length];
 		for (int a = compositeIndex.length; a-- > 0;)
 		{

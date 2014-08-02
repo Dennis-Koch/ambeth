@@ -1,5 +1,6 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.bytecode.behavior.EntityMetaDataMemberBehavior;
 import de.osthus.ambeth.compositeid.CompositeIdBehavior;
 import de.osthus.ambeth.compositeid.CompositeIdFactory;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
@@ -15,5 +16,6 @@ public class CompositeIdModule implements IInitializingModule
 		beanContextFactory.registerBean("compositeIdFactory", CompositeIdFactory.class).autowireable(ICompositeIdFactory.class);
 
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, CompositeIdBehavior.class);
+		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, EntityMetaDataMemberBehavior.class);
 	}
 }

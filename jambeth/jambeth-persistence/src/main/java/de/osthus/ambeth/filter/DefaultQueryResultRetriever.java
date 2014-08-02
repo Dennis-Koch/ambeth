@@ -10,12 +10,12 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.query.IQueryIntern;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 import de.osthus.ambeth.util.ParamChecker;
@@ -87,7 +87,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever, IInit
 		IQueryIntern<?> query = this.query;
 		Class<?> entityType = query.getEntityType();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+		Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 		int length = alternateIdMembers.length + 1;
 
 		ArrayList<Object>[] idLists = new ArrayList[length];

@@ -21,11 +21,11 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -160,7 +160,7 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 			IObjRelation orelToLoad = orisToLoad.get(i);
 			Class<?> typeOfContainerBO = orelToLoad.getRealType();
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(typeOfContainerBO);
-			ITypeInfoItem relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
+			Member relationMember = metaData.getMemberByName(orelToLoad.getMemberName());
 
 			Class<?> type = relationMember.getElementType();
 			IList<IObjRelation> objRefs = sortedIObjRefs.get(type);

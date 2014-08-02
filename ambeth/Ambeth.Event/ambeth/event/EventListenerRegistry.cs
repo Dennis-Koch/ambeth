@@ -16,30 +16,25 @@ namespace De.Osthus.Ambeth.Event
         [LogInstance]
         public ILogger Log { private get; set; }
 
-        protected readonly HashMap<Type, List<IEventListenerMarker>> typeToListenersDict = new HashMap<Type, List<IEventListenerMarker>>();
+        protected readonly ClassExtendableListContainer<IEventListenerMarker> typeToListenersDict = new ClassExtendableListContainer<IEventListenerMarker>("eventListener", "eventType");
 
-        protected readonly IMapExtendableContainer<Type, IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<IEventBatcher>("eventBatcher", "eventType");
+        protected readonly ClassExtendableContainer<IEventBatcher> typeToBatchersDict = new ClassExtendableContainer<IEventBatcher>("eventBatcher", "eventType");
 
-        protected readonly IMapExtendableContainer<Type, IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<IEventTargetExtractor>("eventTargetExtractor", "eventType");
-
-        protected readonly IList<IEventListenerMarker> globalListenerList = new List<IEventListenerMarker>();
+        protected readonly ClassExtendableContainer<IEventTargetExtractor> typeToEventTargetExtractorsDict = new ClassExtendableContainer<IEventTargetExtractor>("eventTargetExtractor", "eventType");
 
 	    protected readonly ThreadLocal<IList<IList<IQueuedEvent>>> eventQueueTL = new ThreadLocal<IList<IList<IQueuedEvent>>>();
 
         protected readonly IdentityLinkedSet<WaitForResumeItem> waitForResumeSet = new IdentityLinkedSet<WaitForResumeItem>();
 
-        protected readonly IDictionary<PausedEventTargetItem, PausedEventTargetItem> pausedTargetsSet = new Dictionary<PausedEventTargetItem, PausedEventTargetItem>();
+        protected readonly IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = new IdentityLinkedMap<Object, PausedEventTargetItem>();
 
-        protected readonly Lock readLock, writeLock, listenersReadLock, listenersWriteLock;
+        protected readonly Lock listenersReadLock, listenersWriteLock;
 
         [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
 	    public EventListenerRegistry()
 	    {
-            ReadWriteLock rwLock = new ReadWriteLock();
-		    readLock = rwLock.ReadLock;
-		    writeLock = rwLock.WriteLock;
             ReadWriteLock listenersRwLock = new ReadWriteLock();
             listenersReadLock = listenersRwLock.ReadLock;
             listenersWriteLock = listenersRwLock.WriteLock;
@@ -189,75 +184,52 @@ namespace De.Osthus.Ambeth.Event
                 tlEventQueue.Add(new QueuedEvent(eventObject, dispatchTime, sequenceId));
                 return;
             }
-            IdentityLinkedSet<IEventListenerMarker> interestedEventListeners;
+            IList<IEventListenerMarker> interestedEventListeners;
             IList<Object> pausedEventTargets;
             Lock listenersReadLock = this.listenersReadLock;
             listenersReadLock.Lock();
             try
             {
-                interestedEventListeners = new IdentityLinkedSet<IEventListenerMarker>();
-                interestedEventListeners.AddAll(globalListenerList); // Copy all global listeners as interested
-
                 pausedEventTargets = EvaluatePausedEventTargets();
 
-                Type currentType = eventObject.GetType();
-                while (currentType != null)
-                {
-                    EvaluateType(currentType, interestedEventListeners);
-                    Type[] interfaces = currentType.GetInterfaces();
-                    foreach (Type typeInterface in interfaces)
-                    {
-                        EvaluateType(typeInterface, interestedEventListeners);
-                    }
-                    currentType = currentType.BaseType;
-                }
+                interestedEventListeners = typeToListenersDict.GetExtensions(eventObject.GetType());
             }
             finally
             {
                 listenersReadLock.Unlock();
             }
-            foreach (IEventListenerMarker interestedEventListener in interestedEventListeners)
+            for (int a = 0, size = interestedEventListeners.Count; a < size; a++)
             {
-                NotifyEventListener(interestedEventListener, eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
+                NotifyEventListener(interestedEventListeners[a], eventObject, null, pausedEventTargets, dispatchTime, sequenceId);
             }
         }
 
         protected IList<Object> EvaluatePausedEventTargets()
-        {
-            ICollection<PausedEventTargetItem> keys = pausedTargetsSet.Keys;
-            List<Object> pausedEventTargets = new List<Object>(keys.Count);
-            foreach (PausedEventTargetItem pauseETI in keys)
-            {
-                pausedEventTargets.Add(pauseETI.EventTarget);
-            }
-            return pausedEventTargets;
-        }
-
-        protected void EvaluateType(Type type, IISet<IEventListenerMarker> interestedEventListeners)
-        {
-            List<IEventListenerMarker> eventTypeListeners = typeToListenersDict.Get(type);
-
-            if (eventTypeListeners != null)
-            {
-                interestedEventListeners.AddAll(eventTypeListeners);
-            }
-        }
-
-        protected void EvaluateTypeForEventTarget(Type type, ISet<IEventTargetEventListener> interestedEventListeners)
 	    {
-		    List<IEventListenerMarker> eventTypeListeners = typeToListenersDict.Get(type);
-		    if (eventTypeListeners == null)
+            IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		    List<Object> pausedEventTargets = new List<Object>(pausedTargets.Count);
+            foreach (Entry<Object, PausedEventTargetItem> entry in pausedTargets)
 		    {
-                return;
-            }
-			for (int a = 0, size = eventTypeListeners.Count; a < size; a++)
-			{
-				IEventListenerMarker eventListener = eventTypeListeners[a];
-				if (eventListener is IEventTargetEventListener)
-				{
-					interestedEventListeners.Add((IEventTargetEventListener) eventListener);
-				}
-			}
+                PausedEventTargetItem pauseETI = entry.Value;
+			    pausedEventTargets.Add(pauseETI.EventTarget);
+		    }
+		    return pausedEventTargets;
+	    }
+
+        protected IList<Object> EvaluatePausedEventTargetsOfForeignThreads()
+	    {
+		    Thread currentThread = Thread.CurrentThread;
+            IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+		    List<Object> pausedEventTargets = new List<Object>(pausedTargets.Count);
+            foreach (Entry<Object, PausedEventTargetItem> entry in pausedTargets)
+            {
+                PausedEventTargetItem pauseETI = entry.Value;
+			    if (!Object.ReferenceEquals(pauseETI.Thread, currentThread))
+			    {
+				    pausedEventTargets.Add(pauseETI.EventTarget);
+			    }
+		    }
+		    return pausedEventTargets;
 	    }
 
         protected void NotifyEventListener(IEventListenerMarker eventListener, Object eventObject, Object eventTarget, IList<Object> pausedEventTargets,
@@ -290,52 +262,11 @@ namespace De.Osthus.Ambeth.Event
 
         public void RegisterEventListener(IEventListenerMarker eventListener, Type eventType)
         {
-            if (eventListener == null)
-            {
-                throw new ArgumentException("Argument must not be null", "eventListener");
-            }
-            listenersWriteLock.Lock();
-            try
-            {
-                bool success = true;
-                try
-                {
-                    if (eventType == null)
-                    {
-                        if (globalListenerList.Contains(eventListener))
-                        {
-                            throw new ArgumentException("Given eventListener already registered with this type");
-                        }
-                        globalListenerList.Add(eventListener);
-                    }
-                    else
-                    {
-                        List<IEventListenerMarker> eventListeners = typeToListenersDict.Get(eventType);
-                        if (eventListeners == null)
-                        {
-                            eventListeners = new List<IEventListenerMarker>();
-                            typeToListenersDict.Put(eventType, eventListeners);
-                        }
-                        if (eventListeners.Contains(eventListener))
-                        {
-                            throw new ArgumentException("Given eventListener already registered with this type");
-                        }
-                        eventListeners.Add(eventListener);
-                    }
-                    success = true;
-                }
-                finally
-                {
-                    if (!success)
-                    {
-                        UnregisterEventListenerForCleanup(eventListener);
-                    }
-                }
-            }
-            finally
-            {
-                listenersWriteLock.Unlock();
-            }
+            if (eventType == null)
+		    {
+			    eventType = typeof(Object);
+		    }
+		    typeToListenersDict.Register(eventListener, eventType);
         }
 
         public void UnregisterEventListener(IEventListenerMarker eventListener)
@@ -345,62 +276,11 @@ namespace De.Osthus.Ambeth.Event
 
         public void UnregisterEventListener(IEventListenerMarker eventListener, Type eventType)
         {
-            if (eventListener == null)
+            if (eventType == null)
             {
-                throw new ArgumentException("Argument must not be null", "eventListener");
+                eventType = typeof(Object);
             }
-            listenersWriteLock.Lock();
-            try
-            {
-                bool success = false;
-                try
-                {
-                    if (eventType == null)
-                    {
-                        if (!globalListenerList.Remove(eventListener))
-                        {
-                            throw new ArgumentException("Given eventListener is not registered to this type");
-                        }
-                    }
-                    else
-                    {
-                        List<IEventListenerMarker> eventListeners = typeToListenersDict.Get(eventType);
-                        if (eventListeners == null || !eventListeners.Remove(eventListener))
-                        {
-                            throw new ArgumentException("Given dataChangeListener is not registered to this type");
-                        }
-                        if (eventListeners != null && eventListeners.Count == 0)
-                        {
-                            typeToListenersDict.Remove(eventType);
-                        }
-                    }
-                    success = true;
-                }
-                finally
-                {
-                    if (!success)
-                    {
-                        UnregisterEventListenerForCleanup(eventListener);
-                    }
-                }
-            }
-            finally
-            {
-                listenersWriteLock.Unlock();
-            }
-        }
-
-        protected void UnregisterEventListenerForCleanup(IEventListenerMarker eventListener)
-        {
-            globalListenerList.Remove(eventListener);
-            foreach (Entry<Type, IList<IEventListenerMarker>> entry in typeToListenersDict)
-            {
-                IList<IEventListenerMarker> eventListeners = entry.Value;
-                if (eventListeners != null)
-                {
-                    eventListeners.Remove(eventListener);
-                }
-            }
+            typeToListenersDict.Unregister(eventListener, eventType);
         }
 
         public void RegisterEventBatcher(IEventBatcher eventBatcher, Type eventType)
@@ -411,19 +291,6 @@ namespace De.Osthus.Ambeth.Event
         public void UnregisterEventBatcher(IEventBatcher eventBatcher, Type eventType)
         {
             typeToBatchersDict.Unregister(eventBatcher, eventType);
-        }
-
-        public T InvokeWithoutLocks<T>(IResultingBackgroundWorkerDelegate<T> run)
-        {
-            LockState lockState = writeLock.ReleaseAllLocks();
-            try
-            {
-                return run.Invoke();
-            }
-            finally
-            {
-                writeLock.ReacquireLocks(lockState);
-            }
         }
 
         public void Pause(Object eventTarget)
@@ -447,11 +314,11 @@ namespace De.Osthus.Ambeth.Event
 		    listenersWriteLock.Lock();
 		    try
 		    {
-			    PausedEventTargetItem pauseETI = DictionaryExtension.ValueOrDefault(pausedTargetsSet, etiKey);
+			    PausedEventTargetItem pauseETI = pausedTargets.Get(eventTarget);
 			    if (pauseETI == null)
 			    {
-				    pauseETI = etiKey;
-				    pausedTargetsSet.Add(pauseETI, pauseETI);
+                    pauseETI = new PausedEventTargetItem(eventTarget);
+                    pausedTargets.Put(eventTarget, pauseETI);
 			    }
 			    pauseETI.PauseCount++;
 		    }
@@ -481,12 +348,12 @@ namespace De.Osthus.Ambeth.Event
             IdentityLinkedSet<WaitForResumeItem> freeLatchMap = null;
             try
             {
-                PausedEventTargetItem etiKey = new PausedEventTargetItem(eventTarget);
                 PausedEventTargetItem pauseETI;
                 listenersWriteLock.Lock();
                 try
                 {
-                    pauseETI = DictionaryExtension.ValueOrDefault(pausedTargetsSet, etiKey);
+                    IdentityLinkedMap<Object, PausedEventTargetItem> pausedTargets = this.pausedTargets;
+                    pauseETI = pausedTargets.Get(eventTarget);
                     if (pauseETI == null)
                     {
                         throw new System.Exception("No pause() active for target " + eventTarget);
@@ -496,7 +363,7 @@ namespace De.Osthus.Ambeth.Event
                     {
                         return;
                     }
-                    pausedTargetsSet.Remove(etiKey);
+                    pausedTargets.Remove(eventTarget);
 
                     IList<Object> remainingPausedEventTargets = EvaluatePausedEventTargets();
                     IdentityHashSet<Object> remainingPausedEventTargetsSet = new IdentityHashSet<Object>();
@@ -564,7 +431,7 @@ namespace De.Osthus.Ambeth.Event
                 listenersWriteLock.Lock();
                 try
                 {
-                    IList<Object> remainingPausedEventTargets = EvaluatePausedEventTargets();
+                    IList<Object> remainingPausedEventTargets = EvaluatePausedEventTargetsOfForeignThreads();
                     IdentityLinkedSet<Object> remainingPausedEventTargetsSet = new IdentityLinkedSet<Object>(remainingPausedEventTargets);
                     remainingPausedEventTargetsSet.RetainAll(pendingSet);
 

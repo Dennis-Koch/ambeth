@@ -1,17 +1,17 @@
 package de.osthus.ambeth.util;
 
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
+import de.osthus.ambeth.metadata.RelationMember;
 
 public class ValueHolderRef
 {
 	protected IObjRef objRef;
 
-	protected IRelationInfoItem member;
+	protected RelationMember member;
 
 	protected int relationIndex;
 
-	public ValueHolderRef(IObjRef objRef, IRelationInfoItem member, int relationIndex)
+	public ValueHolderRef(IObjRef objRef, RelationMember member, int relationIndex)
 	{
 		this.objRef = objRef;
 		this.member = member;
@@ -23,7 +23,7 @@ public class ValueHolderRef
 		return objRef;
 	}
 
-	public IRelationInfoItem getMember()
+	public RelationMember getMember()
 	{
 		return member;
 	}

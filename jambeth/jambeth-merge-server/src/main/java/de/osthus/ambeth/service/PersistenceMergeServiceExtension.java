@@ -56,6 +56,7 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.OriCollection;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IContextProvider;
@@ -67,7 +68,6 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.OptimisticLockUtil;
@@ -248,7 +248,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 				throw OptimisticLockUtil.throwDeleted(oriToLoad);
 			}
 			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(oriToLoad.getRealType());
-			ITypeInfoItem versionMember = metaData.getVersionMember();
+			Member versionMember = metaData.getVersionMember();
 			Object expectedVersion = oriToLoad.getVersion();
 			if (expectedVersion == null && versionMember != null)
 			{
@@ -531,7 +531,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 					}
 					else if (metaData.getEntityType().isAssignableFrom(directRef.getClass()))
 					{
-						ITypeInfoItem idMethod = metaData.getIdMember();
+						Member idMethod = metaData.getIdMember();
 						id = idMethod.getValue(directRef, false);
 					}
 					else

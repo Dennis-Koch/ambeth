@@ -12,8 +12,9 @@ import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.compositeid.CompositeIdEnhancementHint;
-import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
@@ -91,7 +92,7 @@ public class CompositeIdCreator extends ClassGenerator
 	public void visitEnd()
 	{
 		CompositeIdEnhancementHint context = BytecodeBehaviorState.getState().getContext(CompositeIdEnhancementHint.class);
-		ITypeInfoItem[] idMembers = context.getIdMembers();
+		Member[] idMembers = context.getIdMembers();
 
 		PropertyInstance p_compositeIdTemplate = getCompositeIdTemplatePI(this);
 
@@ -100,8 +101,8 @@ public class CompositeIdCreator extends ClassGenerator
 		// order does matter here (to maintain field order for debugging purpose on later objects)
 		for (int a = 0, size = idMembers.length; a < size; a++)
 		{
-			ITypeInfoItem member = idMembers[a];
-			String fieldName = CompositeIdTypeInfoItem.filterEmbeddedFieldName(member.getName());
+			Member member = idMembers[a];
+			String fieldName = CompositeIdMember.filterEmbeddedFieldName(member.getName());
 			constructorTypes[a] = Type.getType(member.getRealType());
 			fields[a] = new FieldInstance(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL, fieldName, null, constructorTypes[a]);
 			implementField(fields[a]);

@@ -12,10 +12,10 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.OperandConstants;
 import de.osthus.ambeth.sql.ISqlBuilder;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ParamChecker;
 
 public final class ListToSqlUtil implements IInitializingBean
@@ -215,7 +215,7 @@ public final class ListToSqlUtil implements IInitializingBean
 		{
 			return value;
 		}
-		ITypeInfoItem member = valueMetaData.getMemberByName(propertyName);
+		Member member = valueMetaData.getMemberByName(propertyName);
 		return member.getValue(value);
 	}
 

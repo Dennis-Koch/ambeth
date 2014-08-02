@@ -11,6 +11,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IContextProvider;
@@ -21,7 +22,6 @@ import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.Table;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -235,7 +235,7 @@ public class SqlTable extends Table
 			for (int a = fields.size(); a-- > 0;)
 			{
 				IField field = fields.get(a);
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					// Ignore fields which can not be loaded into entities
@@ -328,7 +328,7 @@ public class SqlTable extends Table
 			for (int a = alternateIdFields.length; a-- > 0;)
 			{
 				IField field = alternateIdFields[a];
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					// Ignore fields which can not be loaded into entities
@@ -420,7 +420,7 @@ public class SqlTable extends Table
 			for (int a = 0; a < alternateIdFields.length; a++)
 			{
 				IField field = alternateIdFields[a];
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					// Ignore fields which can not be loaded into entities
@@ -499,7 +499,7 @@ public class SqlTable extends Table
 			for (int a = alternateIdFields.length; a-- > 0;)
 			{
 				IField field = alternateIdFields[a];
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					// Ignore fields which can not be loaded into entities

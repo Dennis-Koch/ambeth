@@ -36,13 +36,13 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 
 public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHelper
 {
@@ -66,10 +66,10 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
+	protected IObjRefHelper oriHelper;
 
 	@Autowired
 	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
@@ -122,7 +122,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
-		ITypeInfoItem member = metaData.getMemberByName(memberName);
+		Member member = metaData.getMemberByName(memberName);
 		if (member == null)
 		{
 			throw new IllegalArgumentException("Member " + entityType.getName() + "." + memberName + " not found");
@@ -308,7 +308,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 
 						IObjRefContainer vhc;
 						ICacheIntern targetCache;
-						IRelationInfoItem member;
+						RelationMember member;
 						boolean doSetValue = false;
 						Object obj;
 						if (valueHolder instanceof IndirectValueHolderRef)
@@ -506,7 +506,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			return;
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length == 0)
 		{
 			return;
@@ -517,7 +517,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			CachePath path = cachePaths.get(a);
 
 			int relationIndex = path.memberIndex;
-			IRelationInfoItem member = relationMembers[relationIndex];
+			RelationMember member = relationMembers[relationIndex];
 
 			if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 			{
@@ -540,7 +540,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsToLoad, Map<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory,
 			Map<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory, Set<AlreadyHandledItem> alreadyHandledSet, List<CascadeLoadItem> cascadeLoadItems)
 	{
-		IRelationInfoItem member = vhr.getMember();
+		RelationMember member = vhr.getMember();
 		boolean newOriToLoad = false;
 		if (vhr instanceof IndirectValueHolderRef)
 		{
@@ -743,7 +743,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Override
 	public Object[] extractPrimitives(IEntityMetaData metaData, Object obj)
 	{
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		Object[] primitives;
 
 		if (primitiveMembers.length == 0)
@@ -755,7 +755,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			primitives = new Object[primitiveMembers.length];
 			for (int a = primitiveMembers.length; a-- > 0;)
 			{
-				ITypeInfoItem primitiveMember = primitiveMembers[a];
+				Member primitiveMember = primitiveMembers[a];
 
 				Object primitiveValue = primitiveMember.getValue(obj, false);
 
@@ -779,7 +779,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Override
 	public IObjRef[][] extractRelations(IEntityMetaData metaData, Object obj, List<Object> relationValues)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 
 		if (relationMembers.length == 0)
 		{
@@ -821,13 +821,13 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType)
 	{
 		// Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C') selbststaendig traversiert
-		ITypeInfoItem member = typeInfoProvider.getHierarchicMember(sourceEntityType, sourceToTargetEntityPropertyPath);
+		RelationMember member = memberTypeProvider.getRelationMember(sourceEntityType, sourceToTargetEntityPropertyPath);
 
 		// MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein DISTINCT-Behavior durch
 		// eine Map als Zwischenstruktur zu
 		// erreichen
 		IEntityMetaData targetMetaData = entityMetaDataProvider.getMetaData(member.getElementType());
-		ITypeInfoItem targetIdMember = targetMetaData.getIdMember();
+		Member targetIdMember = targetMetaData.getIdMember();
 
 		// Damit bei der Traversion keine Initialisierungen mit DB-Roundtrips entstehen, machen wir vorher eine Prefetch
 		// passend zum PropertyPath auf allen

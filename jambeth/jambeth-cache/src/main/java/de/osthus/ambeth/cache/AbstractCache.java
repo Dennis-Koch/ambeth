@@ -26,9 +26,9 @@ import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IDisposable;
@@ -217,7 +217,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	protected V existsValue(IObjRef ori)
 	{
 		IEntityMetaData metaData = this.entityMetaDataProvider.getMetaData(ori.getRealType());
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
+		Member idMember = metaData.getIdMemberByIdIndex(ori.getIdNameIndex());
 		Object id = conversionHelper.convertValueToType(idMember.getRealType(), ori.getId());
 		Lock readLock = getReadLock();
 		readLock.lock();
@@ -229,7 +229,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			{
 				return null;
 			}
-			ITypeInfoItem versionMember = metaData.getVersionMember();
+			Member versionMember = metaData.getVersionMember();
 			if (versionMember == null)
 			{
 				if (weakEntries)
@@ -362,7 +362,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	protected void removeCacheValueFromCacheCascade(IEntityMetaData metaData, byte idIndex, Object id)
 	{
 		Class<?> entityType = metaData.getEntityType();
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(idIndex);
+		Member idMember = metaData.getIdMemberByIdIndex(idIndex);
 		id = conversionHelper.convertValueToType(idMember.getRealType(), id);
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
@@ -436,7 +436,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected void removeCacheValueFromCacheSingle(IEntityMetaData metaData, byte idIndex, Object id)
 	{
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(idIndex);
+		Member idMember = metaData.getIdMemberByIdIndex(idIndex);
 		id = conversionHelper.convertValueToType(idMember.getRealType(), id);
 		removeKeyFromCache(metaData.getEntityType(), idIndex, id);
 	}
@@ -495,7 +495,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected Object getVersionOfObject(IEntityMetaData metaData, Object obj)
 	{
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		return versionMember != null ? versionMember.getValue(obj, false) : null;
 	}
 
@@ -665,7 +665,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		{
 			return null;
 		}
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (checkVersion && versionMember != null && objRef.getVersion() != null)
 		{
 			Object cacheVersion = getVersionOfCacheValue(metaData, cacheValue);
@@ -683,7 +683,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	protected Object getCacheValueR(IEntityMetaData metaData, byte idIndex, Object id)
 	{
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(idIndex);
+		Member idMember = metaData.getIdMemberByIdIndex(idIndex);
 		id = conversionHelper.convertValueToType(idMember.getRealType(), id);
 		Object cacheValueR = keyToCacheValueDict.get(metaData.getEntityType(), idIndex, id);
 		cacheValueHasBeenRead(cacheValueR);

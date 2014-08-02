@@ -20,6 +20,10 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.EmbeddedPrimitiveMember;
+import de.osthus.ambeth.metadata.IEmbeddedMember;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -28,14 +32,9 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
-import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
-import de.osthus.ambeth.typeinfo.EmbeddedTypeInfoItem;
-import de.osthus.ambeth.typeinfo.IEmbeddedTypeInfoItem;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 
 public class RelationsGetterVisitor extends ClassGenerator
 {
@@ -102,7 +101,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 			int.class);
 
 	private static final MethodInstance m_template_getValue = new MethodInstance(null, templateType, Object.class, "getValue", IObjRefContainer.class,
-			IRelationInfoItem[].class, int.class, ICacheIntern.class, IObjRef[].class);
+			RelationMember[].class, int.class, ICacheIntern.class, IObjRef[].class);
 
 	public static PropertyInstance getValueHolderContainerTemplatePI(ClassGenerator cv)
 	{
@@ -141,13 +140,17 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	private final IEntityMetaData metaData;
 
+	private final IPropertyInfoProvider propertyInfoProvider;
+
 	private final ValueHolderIEC valueHolderContainerHelper;
 
-	public RelationsGetterVisitor(ClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper)
+	public RelationsGetterVisitor(ClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper,
+			IPropertyInfoProvider propertyInfoProvider)
 	{
 		super(cv);
 		this.metaData = metaData;
 		this.valueHolderContainerHelper = valueHolderContainerHelper;
+		this.propertyInfoProvider = propertyInfoProvider;
 	}
 
 	@Override
@@ -195,13 +198,13 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			return;
 		}
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		final ArrayList<FieldInstance[]> fieldsList = new ArrayList<FieldInstance[]>();
 
 		for (int a = relationMembers.length; a-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
+			RelationMember relationMember = relationMembers[a];
+			relationMember = (RelationMember) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
@@ -445,18 +448,18 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	protected void implementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_targetCache, PropertyInstance p_relationMembers)
 	{
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
-			relationMember = (IRelationInfoItem) getApplicableMember(relationMember);
+			RelationMember relationMember = relationMembers[relationIndex];
+			relationMember = (RelationMember) getApplicableMember(relationMember);
 			if (relationMember == null)
 			{
 				// member is handled in another type
 				continue;
 			}
 			String propertyName = relationMember.getName();
-			IPropertyInfo propertyInfo = ((PropertyInfoItem) relationMember).getProperty();
+			IPropertyInfo propertyInfo = propertyInfoProvider.getProperty(relationMember.getDeclaringType(), propertyName);
 			PropertyInstance prop = PropertyInstance.findByTemplate(propertyInfo, true);
 			MethodInstance m_get = prop != null ? prop.getGetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getGetter());
 			MethodInstance m_set = prop != null ? prop.getSetter() : new MethodInstance(((MethodPropertyInfo) propertyInfo).getSetter());
@@ -482,10 +485,10 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 	}
 
-	public static ITypeInfoItem getApplicableMember(ITypeInfoItem relationMember)
+	public static Member getApplicableMember(Member relationMember)
 	{
 		String propertyName = relationMember.getName();
-		if (relationMember instanceof IEmbeddedTypeInfoItem)
+		if (relationMember instanceof IEmbeddedMember)
 		{
 			String memberPath = EmbeddedEnhancementHint.getMemberPath(getState().getContext());
 			if (memberPath != null)
@@ -501,13 +504,13 @@ public class RelationsGetterVisitor extends ClassGenerator
 					// This relation has to be handled by another child embedded type of this embedded type
 					return null;
 				}
-				if (relationMember instanceof EmbeddedRelationInfoItem)
+				if (relationMember instanceof IEmbeddedMember)
 				{
-					relationMember = ((EmbeddedRelationInfoItem) relationMember).getChildMember();
+					relationMember = ((IEmbeddedMember) relationMember).getChildMember();
 				}
 				else
 				{
-					relationMember = ((EmbeddedTypeInfoItem) relationMember).getChildMember();
+					relationMember = ((EmbeddedPrimitiveMember) relationMember).getChildMember();
 				}
 			}
 			else if (propertyName.contains("."))

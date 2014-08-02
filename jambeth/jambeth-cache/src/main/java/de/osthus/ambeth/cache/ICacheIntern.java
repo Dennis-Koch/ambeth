@@ -13,7 +13,7 @@ public interface ICacheIntern extends ICache
 {
 	Object createCacheValueInstance(IEntityMetaData metaData, Object obj);
 
-	void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations);
+	void addDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations);
 
 	Object getObject(IObjRef oriToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective);
 

@@ -32,6 +32,8 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.persistence.parallel.IEntityLoaderParallelInvoker;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadCascadeItem;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadItem;
@@ -206,11 +208,11 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			ITable targetingRequestTable = database.getTableByType(targetingRequestType);
 			IDirectedLink targetingRequestLink = targetingRequestTable.getLinkByMemberName(objRelType.getMemberName());
 
-			ITypeInfoItem relationMember = targetingRequestLink.getMember();
+			RelationMember relationMember = targetingRequestLink.getMember();
 			Class<?> requestedType = relationMember.getElementType();
 			ITable requestedTable = database.getTableByType(requestedType);
 			IEntityMetaData requestedMetaData = entityMetaDataProvider.getMetaData(requestedType);
-			ITypeInfoItem targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
+			Member targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
 
 			ArrayList<Object> fromIds = new ArrayList<Object>();
 			LinkedHashMap<Object, Object[]> targetingIdsMap = new LinkedHashMap<Object, Object[]>();
@@ -234,7 +236,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				byte toIdIndex = cursor.getToIdIndex();
 				Class<?> idType = toIdIndex == ObjRef.PRIMARY_KEY_INDEX ? requestedTable.getIdField().getFieldType()
 						: requestedTable.getAlternateIdFields()[toIdIndex].getFieldType();
-				ITypeInfoItem toIdMember = requestedMetaData.getIdMemberByIdIndex(toIdIndex);
+				Member toIdMember = requestedMetaData.getIdMemberByIdIndex(toIdIndex);
 				Class<?> toIdTypeOfObject = toIdMember.getRealType();
 				while (cursor.moveNext())
 				{
@@ -285,7 +287,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	protected ILinkedMap<ObjRelationType, IList<OrelLoadItem>> bucketSortObjRelations(IDatabase database, List<IObjRelation> orisToLoad)
 	{
 		ILinkedMap<ObjRelationType, IList<OrelLoadItem>> sortedIObjRefs = new LinkedHashMap<ObjRelationType, IList<OrelLoadItem>>();
-		ILinkedMap<Class<?>, ILinkedMap<ITypeInfoItem, IList<Object>>> typeToMissingOris = new LinkedHashMap<Class<?>, ILinkedMap<ITypeInfoItem, IList<Object>>>();
+		ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris = new LinkedHashMap<Class<?>, ILinkedMap<Member, IList<Object>>>();
 		IMap<CacheKey, IList<IObjRef>> keyToEmptyOris = new HashMap<CacheKey, IList<IObjRef>>();
 
 		for (int i = orisToLoad.size(); i-- > 0;)
@@ -334,18 +336,18 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		return sortedIObjRefs;
 	}
 
-	protected IObjRef batchMissingORIs(ILinkedMap<Class<?>, ILinkedMap<ITypeInfoItem, IList<Object>>> typeToMissingOris,
-			IMap<CacheKey, IList<IObjRef>> keyToEmptyOri, IObjRef[] objRefItems, Class<?> targetingRequestType, byte idIndex)
+	protected IObjRef batchMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOri,
+			IObjRef[] objRefItems, Class<?> targetingRequestType, byte idIndex)
 	{
 		// Batch first given ori to resolve the missing one
 		IObjRef givenOri = objRefItems[0];
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(targetingRequestType);
-		ITypeInfoItem idMember = metaData.getIdMemberByIdIndex(givenOri.getIdNameIndex());
+		Member idMember = metaData.getIdMemberByIdIndex(givenOri.getIdNameIndex());
 
-		ILinkedMap<ITypeInfoItem, IList<Object>> givenMemberToValues = typeToMissingOris.get(targetingRequestType);
+		ILinkedMap<Member, IList<Object>> givenMemberToValues = typeToMissingOris.get(targetingRequestType);
 		if (givenMemberToValues == null)
 		{
-			givenMemberToValues = new LinkedHashMap<ITypeInfoItem, IList<Object>>();
+			givenMemberToValues = new LinkedHashMap<Member, IList<Object>>();
 			typeToMissingOris.put(targetingRequestType, givenMemberToValues);
 		}
 		IList<Object> values = givenMemberToValues.get(idMember);
@@ -372,22 +374,21 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		return objRef;
 	}
 
-	protected void loadMissingORIs(ILinkedMap<Class<?>, ILinkedMap<ITypeInfoItem, IList<Object>>> typeToMissingOris,
-			IMap<CacheKey, IList<IObjRef>> keyToEmptyOris)
+	protected void loadMissingORIs(ILinkedMap<Class<?>, ILinkedMap<Member, IList<Object>>> typeToMissingOris, IMap<CacheKey, IList<IObjRef>> keyToEmptyOris)
 	{
 		CacheKey lookupKey = new CacheKey();
-		for (Entry<Class<?>, ILinkedMap<ITypeInfoItem, IList<Object>>> entry : typeToMissingOris)
+		for (Entry<Class<?>, ILinkedMap<Member, IList<Object>>> entry : typeToMissingOris)
 		{
 			Class<?> entityType = entry.getKey();
-			ILinkedMap<ITypeInfoItem, IList<Object>> givenMemberToValues = entry.getValue();
+			ILinkedMap<Member, IList<Object>> givenMemberToValues = entry.getValue();
 
 			IQueryBuilder<?> qb = queryBuilderFactory.create(entityType);
 
 			IOperator[] wheres = new IOperator[givenMemberToValues.size()];
 			int index = 0;
-			for (Entry<ITypeInfoItem, IList<Object>> entry2 : givenMemberToValues)
+			for (Entry<Member, IList<Object>> entry2 : givenMemberToValues)
 			{
-				ITypeInfoItem idMember = entry2.getKey();
+				Member idMember = entry2.getKey();
 				IList<Object> values = entry2.getValue();
 				IOperator inOperator = qb.isIn(qb.property(idMember.getName()), qb.value(values));
 				wheres[index++] = inOperator;
@@ -397,8 +398,8 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			try
 			{
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-				ITypeInfoItem idMember = metaData.getIdMember();
-				ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+				Member idMember = metaData.getIdMember();
+				Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 				lookupKey.setEntityType(entityType);
 				while (versionCursor.moveNext())
 				{
@@ -422,11 +423,11 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 	}
 
-	protected void lookupMissingORIs(IMap<CacheKey, IList<IObjRef>> keyToEmptyOris, CacheKey lookupKey, ITypeInfoItem idMember,
-			ITypeInfoItem[] alternateIdMembers, IVersionItem item, Object[] ids)
+	protected void lookupMissingORIs(IMap<CacheKey, IList<IObjRef>> keyToEmptyOris, CacheKey lookupKey, Member idMember, Member[] alternateIdMembers,
+			IVersionItem item, Object[] ids)
 	{
 		byte lookupIdIndex = lookupKey.getIdNameIndex();
-		ITypeInfoItem lookupIdMember;
+		Member lookupIdMember;
 		if (lookupIdIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{
 			lookupIdMember = idMember;
@@ -827,7 +828,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 					if (dirLinkIndex == null || field.isAlternateId())
 					{
-						ITypeInfoItem fieldMember = field.getMember();
+						Member fieldMember = field.getMember();
 						Class<?> expectedType = fieldMember.getRealType();
 						if (java.util.Date.class.isAssignableFrom(expectedType) || java.util.Calendar.class.isAssignableFrom(expectedType))
 						{
@@ -935,7 +936,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 							dbValue = interningFeature.intern(dbValue);
 						}
 						Class<?> toEntityType = columnBasedDirectedLink.getToEntityType();
-						ITypeInfoItem toMember = columnBasedDirectedLink.getToMember();
+						Member toMember = columnBasedDirectedLink.getToMember();
 						IEntityMetaData toEntityMetaData = entityMetaDataProvider.getMetaData(toEntityType);
 						byte toIdIndex = toEntityMetaData.getIdIndexByMemberName(toMember.getName());
 
@@ -985,7 +986,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 					}
 					if (supportsLazyBehavior())
 					{
-						ITypeInfoItem member = link.getMember();
+						RelationMember member = link.getMember();
 						if (!member.getRealType().equals(member.getElementType()))
 						{
 							continue;
@@ -1095,15 +1096,15 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(table.getEntityType());
 		Arrays.fill(cursorFieldToPrimitiveIndex, -1);
 		IField[] cursorFields = cursor.getFields();
-		ITypeInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		int[] memberCounts = { 0, 0 };
 
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 
 		int nextIndex = 0;
 		for (int a = 0, size = primitiveMembers.length; a < size; a++)
 		{
-			ITypeInfoItem primitiveMember = primitiveMembers[a];
+			Member primitiveMember = primitiveMembers[a];
 
 			IField field = table.getFieldByMemberName(primitiveMember.getName());
 
@@ -1136,7 +1137,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 		for (int a = relationMembers.length; a-- > 0;)
 		{
-			ITypeInfoItem relationMember = relationMembers[a];
+			RelationMember relationMember = relationMembers[a];
 			String memberName = relationMember.getName();
 
 			IDirectedLink directedLink = table.getLinkByMemberName(memberName);
@@ -1191,7 +1192,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		else
 		{
-			ITypeInfoItem toMember = link.getToMember();
+			Member toMember = link.getToMember();
 			toIdIndex = linkedEntityMetaData.getIdIndexByMemberName(toMember.getName());
 			toIdType = toMember.getRealType();
 		}

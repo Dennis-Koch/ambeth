@@ -15,13 +15,14 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.IEmbeddedMember;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.typeinfo.EmbeddedRelationInfoItem;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
+import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 
 public class LazyRelationsBehavior extends AbstractBehavior
 {
@@ -31,6 +32,9 @@ public class LazyRelationsBehavior extends AbstractBehavior
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Autowired
 	protected ValueHolderIEC valueHolderContainerHelper;
@@ -57,14 +61,14 @@ public class LazyRelationsBehavior extends AbstractBehavior
 		}
 		if (EmbeddedEnhancementHint.hasMemberPath(state.getContext()))
 		{
-			for (IRelationInfoItem member : metaData.getRelationMembers())
+			for (RelationMember member : metaData.getRelationMembers())
 			{
-				if (!(member instanceof EmbeddedRelationInfoItem))
+				if (!(member instanceof IEmbeddedMember))
 				{
 					continue;
 				}
-				IRelationInfoItem cMember = ((EmbeddedRelationInfoItem) member).getChildMember();
-				MethodPropertyInfo prop = (MethodPropertyInfo) ((PropertyInfoItem) cMember).getProperty();
+				Member cMember = ((IEmbeddedMember) member).getChildMember();
+				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider.getProperty(cMember.getDeclaringType(), cMember.getName());
 				if (state.hasMethod(new MethodInstance(prop.getGetter())) || state.hasMethod(new MethodInstance(prop.getSetter())))
 				{
 					// Handle this behavior in the next iteration
@@ -75,13 +79,13 @@ public class LazyRelationsBehavior extends AbstractBehavior
 		}
 		else
 		{
-			for (IRelationInfoItem member : metaData.getRelationMembers())
+			for (RelationMember member : metaData.getRelationMembers())
 			{
-				if (!(member instanceof PropertyInfoItem))
+				if (member instanceof IEmbeddedMember)
 				{
 					continue;
 				}
-				MethodPropertyInfo prop = (MethodPropertyInfo) ((PropertyInfoItem) member).getProperty();
+				MethodPropertyInfo prop = (MethodPropertyInfo) propertyInfoProvider.getProperty(member.getDeclaringType(), member.getName());
 				if ((prop.getGetter() != null && state.hasMethod(new MethodInstance(prop.getGetter())))
 						|| (prop.getSetter() != null && state.hasMethod(new MethodInstance(prop.getSetter()))))
 				{
@@ -94,7 +98,7 @@ public class LazyRelationsBehavior extends AbstractBehavior
 			visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
 			visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
 		}
-		visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper);
+		visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper, propertyInfoProvider);
 		visitor = new SetCacheModificationMethodCreator(visitor);
 		return visitor;
 	}

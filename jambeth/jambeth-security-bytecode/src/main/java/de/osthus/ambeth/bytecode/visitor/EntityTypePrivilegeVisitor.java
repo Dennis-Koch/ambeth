@@ -13,13 +13,13 @@ import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 import de.osthus.ambeth.privilege.model.impl.AbstractTypePrivilege;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class EntityTypePrivilegeVisitor extends ClassGenerator
 {
@@ -142,14 +142,13 @@ public class EntityTypePrivilegeVisitor extends ClassGenerator
 		mg.endMethod();
 	}
 
-	protected void implementGetSetPropertyPrivilege(ITypeInfoItem[] members, MethodInstance template_getPropertyPrivilege,
-			MethodInstance template_setPropertyPrivilege)
+	protected void implementGetSetPropertyPrivilege(Member[] members, MethodInstance template_getPropertyPrivilege, MethodInstance template_setPropertyPrivilege)
 	{
 		FieldInstance[] fields = new FieldInstance[members.length];
 
 		for (int index = 0, size = members.length; index < size; index++)
 		{
-			ITypeInfoItem member = members[index];
+			Member member = members[index];
 			FieldInstance field = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, getFieldName(member), null, ITypePropertyPrivilege.class));
 			fields[index] = field;
 		}
@@ -190,7 +189,7 @@ public class EntityTypePrivilegeVisitor extends ClassGenerator
 		});
 	}
 
-	public static String getFieldName(ITypeInfoItem member)
+	public static String getFieldName(Member member)
 	{
 		return member.getName().replaceAll("\\.", "_");
 	}

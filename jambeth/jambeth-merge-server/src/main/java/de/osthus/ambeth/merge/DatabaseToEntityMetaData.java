@@ -14,14 +14,15 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDirectedLink;
 import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDisposableBean
 {
@@ -98,60 +99,60 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			}
 			// metaData.setEntityType(entityType);
 			// metaData.setRealType(null);
-			if (checkMemberToSet(entityType, metaData.getIdMember(), table.getIdField()))
+			if (isMemberOnFieldBetter(entityType, metaData.getIdMember(), table.getIdField()))
 			{
-				metaData.setIdMember(table.getIdField().getMember());
+				metaData.setIdMember((PrimitiveMember) table.getIdField().getMember());
 			}
 			alreadyHandledFields.add(table.getIdField());
 			IField versionField = table.getVersionField();
 			if (versionField != null)
 			{
 				alreadyHandledFields.add(versionField);
-				if (checkMemberToSet(entityType, metaData.getVersionMember(), versionField))
+				if (isMemberOnFieldBetter(entityType, metaData.getVersionMember(), versionField))
 				{
-					metaData.setVersionMember(versionField.getMember());
+					metaData.setVersionMember((PrimitiveMember) versionField.getMember());
 				}
 			}
 
 			if (table.getCreatedOnField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getCreatedOnMember(), table.getCreatedOnField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getCreatedOnMember(), table.getCreatedOnField()))
 				{
-					metaData.setCreatedOnMember(table.getCreatedOnField().getMember());
+					metaData.setCreatedOnMember((PrimitiveMember) table.getCreatedOnField().getMember());
 				}
 			}
 			if (table.getCreatedByField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getCreatedByMember(), table.getCreatedByField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getCreatedByMember(), table.getCreatedByField()))
 				{
-					metaData.setCreatedByMember(table.getCreatedByField().getMember());
+					metaData.setCreatedByMember((PrimitiveMember) table.getCreatedByField().getMember());
 				}
 			}
 			if (table.getUpdatedOnField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getUpdatedOnMember(), table.getUpdatedOnField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getUpdatedOnMember(), table.getUpdatedOnField()))
 				{
-					metaData.setUpdatedOnMember(table.getUpdatedOnField().getMember());
+					metaData.setUpdatedOnMember((PrimitiveMember) table.getUpdatedOnField().getMember());
 				}
 			}
 			if (table.getUpdatedByField() != null)
 			{
-				if (checkMemberToSet(entityType, metaData.getUpdatedByMember(), table.getUpdatedByField()))
+				if (isMemberOnFieldBetter(entityType, metaData.getUpdatedByMember(), table.getUpdatedByField()))
 				{
-					metaData.setUpdatedByMember(table.getUpdatedByField().getMember());
+					metaData.setUpdatedByMember((PrimitiveMember) table.getUpdatedByField().getMember());
 				}
 			}
 
 			IField[] alternateIdFields = table.getAlternateIdFields();
-			ITypeInfoItem[] alternateIdMembers = new ITypeInfoItem[alternateIdFields.length];
+			PrimitiveMember[] alternateIdMembers = new PrimitiveMember[alternateIdFields.length];
 			for (int b = alternateIdFields.length; b-- > 0;)
 			{
 				IField alternateIdField = alternateIdFields[b];
-				alternateIdMembers[b] = alternateIdField.getMember();
+				alternateIdMembers[b] = (PrimitiveMember) alternateIdField.getMember();
 			}
-			ArrayList<ITypeInfoItem> fulltextMembers = new ArrayList<ITypeInfoItem>();
-			HashSet<ITypeInfoItem> primitiveMembers = new HashSet<ITypeInfoItem>();
-			HashSet<IRelationInfoItem> relationMembers = new HashSet<IRelationInfoItem>();
+			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
+			HashSet<Member> primitiveMembers = new HashSet<Member>();
+			HashSet<RelationMember> relationMembers = new HashSet<RelationMember>();
 
 			// IField[] fulltextFieldsContains = table.getFulltextFieldsContains();
 			// for (int a = 0; a < fulltextFieldsContains.length; a++)
@@ -171,7 +172,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			for (int a = 0; a < fulltextFields.size(); a++)
 			{
 				IField field = fulltextFields.get(a);
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member != null)
 				{
 					fulltextMembers.add(member);
@@ -183,7 +184,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			{
 				IField field = fields.get(a);
 
-				ITypeInfoItem member = field.getMember();
+				Member member = field.getMember();
 				if (member == null)
 				{
 					continue;
@@ -211,12 +212,12 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			}
 
-			IList<IRelationInfoItem> relationMembersList = relationMembers.toList();
-			Collections.sort(relationMembersList, new Comparator<IRelationInfoItem>()
+			IList<RelationMember> relationMembersList = relationMembers.toList();
+			Collections.sort(relationMembersList, new Comparator<RelationMember>()
 			{
 
 				@Override
-				public int compare(IRelationInfoItem o1, IRelationInfoItem o2)
+				public int compare(RelationMember o1, RelationMember o2)
 				{
 					return o1.getName().compareTo(o2.getName());
 				}
@@ -244,10 +245,10 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			{
 				metaData.setUpdatedOnMember(null);
 			}
-			metaData.setPrimitiveMembers(primitiveMembers.toArray(ITypeInfoItem.class));
-			metaData.setFulltextMembers(fulltextMembers.toArray(ITypeInfoItem.class));
+			metaData.setPrimitiveMembers(primitiveMembers.toArray(PrimitiveMember.class));
+			metaData.setFulltextMembers(fulltextMembers.toArray(PrimitiveMember.class));
 			metaData.setAlternateIdMembers(alternateIdMembers);
-			metaData.setRelationMembers(relationMembersList.toArray(IRelationInfoItem.class));
+			metaData.setRelationMembers(relationMembersList.toArray(RelationMember.class));
 
 			metaData.initialize(entityFactory);
 			newMetaDatas.add(metaData);
@@ -268,9 +269,13 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		}
 	}
 
-	protected boolean checkMemberToSet(Class<?> entityType, ITypeInfoItem existingMember, IField newMemberField)
+	protected boolean isMemberOnFieldBetter(Class<?> entityType, Member existingMember, IField newMemberField)
 	{
-		ITypeInfoItem member = newMemberField.getMember();
+		if (newMemberField == null)
+		{
+			return false;
+		}
+		Member member = newMemberField.getMember();
 		if (member == null)
 		{
 			return false;
@@ -279,7 +284,30 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		{
 			return true;
 		}
-		if (existingMember == member)
+		if (existingMember == member || existingMember.getName().equals(member.getName()))
+		{
+			return false;
+		}
+		throw new IllegalStateException("Inconsistent metadata configuration on member '" + existingMember.getName() + "' of entity '" + entityType.getName()
+				+ "'");
+	}
+
+	protected boolean isMemberOnMetaDataBetter(Class<?> entityType, Member existingMember, IField newMemberField)
+	{
+		if (newMemberField == null)
+		{
+			return false;
+		}
+		Member member = newMemberField.getMember();
+		if (member == null)
+		{
+			return false;
+		}
+		if (existingMember == null)
+		{
+			return false;
+		}
+		if (existingMember == member || existingMember.getName().equals(member.getName()))
 		{
 			return false;
 		}

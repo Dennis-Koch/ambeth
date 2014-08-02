@@ -11,8 +11,8 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
@@ -22,7 +22,7 @@ public class TableFake extends Table
 	public int nextId = 1;
 	public Map<Object, Map<String, Object>> content = new HashMap<Object, Map<String, Object>>();
 
-	public TableFake(String name, Class<?> entityType, ITypeInfoProvider typeInfoProvider, IAlreadyLinkedCache alreadyLinkedCache,
+	public TableFake(String name, Class<?> entityType, IMemberTypeProvider memberTypeProvider, IAlreadyLinkedCache alreadyLinkedCache,
 			IThreadLocalObjectCollector objectCollector, IEntityMetaDataProvider entityMetaDataProvider)
 	{
 		Field idField = new Field();
@@ -40,7 +40,7 @@ public class TableFake extends Table
 
 		setName(name);
 		setEntityType(entityType);
-		this.typeInfoProvider = typeInfoProvider;
+		this.memberTypeProvider = memberTypeProvider;
 		this.alreadyLinkedCache = alreadyLinkedCache;
 		this.objectCollector = objectCollector;
 	}

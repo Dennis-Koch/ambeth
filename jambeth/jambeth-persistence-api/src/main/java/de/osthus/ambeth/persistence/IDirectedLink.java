@@ -3,8 +3,8 @@ package de.osthus.ambeth.persistence;
 import java.util.List;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 
 public interface IDirectedLink
 {
@@ -17,7 +17,7 @@ public interface IDirectedLink
 
 	byte getFromIdIndex();
 
-	ITypeInfoItem getFromMember();
+	Member getFromMember();
 
 	ITable getToTable();
 
@@ -27,7 +27,7 @@ public interface IDirectedLink
 
 	byte getToIdIndex();
 
-	ITypeInfoItem getToMember();
+	Member getToMember();
 
 	String getName();
 
@@ -48,7 +48,7 @@ public interface IDirectedLink
 
 	Class<?> getEntityType();
 
-	IRelationInfoItem getMember();
+	RelationMember getMember();
 
 	ILink getLink();
 

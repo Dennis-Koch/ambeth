@@ -34,11 +34,12 @@ import de.osthus.ambeth.merge.model.IUpdateItem;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.RelationUpdateItem;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.OptimisticLockUtil;
@@ -138,10 +139,10 @@ public class MergeController implements IMergeController, IMergeExtendable
 				}
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
 
-				ITypeInfoItem keyMember = metaData.getIdMember();
-				ITypeInfoItem versionMember = metaData.getVersionMember();
+				Member keyMember = metaData.getIdMember();
+				Member versionMember = metaData.getVersionMember();
 
-				ITypeInfoItem onMember, byMember;
+				Member onMember, byMember;
 				if (keyMember.getValue(originalRef, false) == null)
 				{
 					onMember = metaData.getCreatedOnMember();
@@ -375,7 +376,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 		{
 			return;
 		}
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length == 0)
 		{
 			return;
@@ -387,7 +388,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 			{
 				continue;
 			}
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
+			RelationMember relationMember = relationMembers[relationIndex];
 			Object item = relationMember.getValue(obj);
 			if (objRef != null && item != null)
 			{
@@ -525,14 +526,14 @@ public class MergeController implements IMergeController, IMergeExtendable
 		// Ensure entity will be persisted even if no single property is specified
 		addModification(obj, handle);
 
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		if (relationMembers.length > 0)
 		{
 			IObjRefContainer vhc = (IObjRefContainer) obj;
 
 			for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 			{
-				IRelationInfoItem relationMember = relationMembers[relationIndex];
+				RelationMember relationMember = relationMembers[relationIndex];
 				if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 				{
 					continue;
@@ -546,9 +547,9 @@ public class MergeController implements IMergeController, IMergeExtendable
 				addOriModification(obj, relationMember.getName(), objMember, null, handle);
 			}
 		}
-		for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
+		for (Member primitiveMember : metaData.getPrimitiveMembers())
 		{
-			if (primitiveMember.isTechnicalMember())
+			if (!metaData.isMergeRelevant(primitiveMember))
 			{
 				continue;
 			}
@@ -571,14 +572,14 @@ public class MergeController implements IMergeController, IMergeExtendable
 		boolean oneChangeOccured = false;
 		try
 		{
-			IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+			RelationMember[] relationMembers = metaData.getRelationMembers();
 			if (relationMembers.length > 0)
 			{
 				IObjRefContainer vhc = (IObjRefContainer) obj;
 
 				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 				{
-					IRelationInfoItem relationMember = relationMembers[relationIndex];
+					RelationMember relationMember = relationMembers[relationIndex];
 					if (!metaData.isMergeRelevant(relationMember))
 					{
 						continue;
@@ -617,7 +618,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 			do
 			{
 				additionalRound = !oneChangeOccured;
-				for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
+				for (Member primitiveMember : metaData.getPrimitiveMembers())
 				{
 					if (!metaData.isMergeRelevant(primitiveMember))
 					{
@@ -641,7 +642,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 		}
 		finally
 		{
-			ITypeInfoItem versionMember = metaData.getVersionMember();
+			Member versionMember = metaData.getVersionMember();
 			if (oneChangeOccured && versionMember != null)
 			{
 				// Check for early optimistic locking (Another, later level is directly on persistence layer)
@@ -659,7 +660,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 
 	protected void mergePrimitivesFieldBased(IEntityMetaData metaData, Object obj, Object clone, MergeHandle handle)
 	{
-		for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
+		for (Member primitiveMember : metaData.getPrimitiveMembers())
 		{
 			if (!metaData.isMergeRelevant(primitiveMember))
 			{
@@ -675,7 +676,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 		}
 	}
 
-	protected boolean arePrimitivesEqual(IEntityMetaData metaData, ITypeInfoItem primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
+	protected boolean arePrimitivesEqual(IEntityMetaData metaData, Member primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
 	{
 		if (objValue != null && cloneValue != null)
 		{
@@ -967,7 +968,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 		{
 			return false;
 		}
-		ITypeInfoItem keyMember = metaData.getIdMember();
-		return keyMember.getValue(clone, true).equals(keyMember.getValue(original, true));
+		Member keyMember = metaData.getIdMember();
+		return EqualsUtil.equals(keyMember.getValue(clone, false), keyMember.getValue(original, false));
 	}
 }

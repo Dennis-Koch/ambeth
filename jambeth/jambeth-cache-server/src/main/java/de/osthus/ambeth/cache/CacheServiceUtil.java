@@ -10,12 +10,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.ILinkCursor;
 import de.osthus.ambeth.persistence.ILinkCursorItem;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.ServiceUtil;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class CacheServiceUtil extends ServiceUtil
@@ -45,7 +45,7 @@ public class CacheServiceUtil extends ServiceUtil
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 				Class<?> idType = metaData.getIdMember().getRealType();
 				Class<?> versionType = null;
-				ITypeInfoItem versionMember = metaData.getVersionMember();
+				Member versionMember = metaData.getVersionMember();
 				if (versionMember != null)
 				{
 					versionType = versionMember.getRealType();

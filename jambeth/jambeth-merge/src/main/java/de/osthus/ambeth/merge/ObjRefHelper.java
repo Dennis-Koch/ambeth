@@ -15,8 +15,8 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class ObjRefHelper implements IObjRefHelper
@@ -202,7 +202,7 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		else
 		{
-			ITypeInfoItem versionMember = metaData.getVersionMember();
+			Member versionMember = metaData.getVersionMember();
 			ori = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.getValue(obj, true) : null);
 		}
 		if (objToOriDict != null)
@@ -264,7 +264,7 @@ public class ObjRefHelper implements IObjRefHelper
 	{
 		Object id;
 		Object version;
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (entity instanceof AbstractCacheValue)
 		{
 			AbstractCacheValue cacheValue = (AbstractCacheValue) entity;
@@ -313,7 +313,7 @@ public class ObjRefHelper implements IObjRefHelper
 
 		Class<?> entityType = metaData.getEntityType();
 		// Convert id and version to the correct metadata type
-		ITypeInfoItem versionMember = metaData.getVersionMember();
+		Member versionMember = metaData.getVersionMember();
 		if (versionMember != null && version != null)
 		{
 			version = conversionHelper.convertValueToType(versionMember.getRealType(), version);
@@ -325,15 +325,15 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		if (alternateIdCount > 0)
 		{
-			ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+			Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 
-			ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+			Member[] primitiveMembers = metaData.getPrimitiveMembers();
 			for (int a = primitiveMembers.length; a-- > 0;)
 			{
-				ITypeInfoItem primitiveMember = primitiveMembers[a];
+				Member primitiveMember = primitiveMembers[a];
 				for (int b = alternateIdMembers.length; b-- > 0;)
 				{
-					ITypeInfoItem alternateIdMember = alternateIdMembers[b];
+					Member alternateIdMember = alternateIdMembers[b];
 					if (alternateIdMember == primitiveMember)
 					{
 						Object alternateId = primitives[a];

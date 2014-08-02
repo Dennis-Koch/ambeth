@@ -96,10 +96,6 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 			ITypeInfoItem[] memberForParentPath = new ITypeInfoItem[members.length - 1];
 			System.arraycopy(members, 0, memberForParentPath, 0, memberForParentPath.length);
 			ITypeInfoItem lastMember = members[members.length - 1];
-			if (lastMember instanceof IRelationInfoItem)
-			{
-				return new EmbeddedRelationInfoItem(hierarchicMemberName, (IRelationInfoItem) lastMember, memberForParentPath);
-			}
 			return new EmbeddedTypeInfoItem(hierarchicMemberName, lastMember, memberForParentPath);
 		}
 		else
@@ -111,15 +107,13 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 	@Override
 	public ITypeInfoItem getMember(Class<?> entityType, IPropertyInfo propertyInfo)
 	{
-		PropertyInfoItem pii = new PropertyInfoItem(propertyInfo);
-		pii.configure(properties);
-		return pii;
+		return new PropertyInfoItem(propertyInfo);
 	}
 
 	@Override
 	public ITypeInfoItem getMember(Field field)
 	{
-		RelationInfoItem rii = null;
+		ITypeInfoItem rii = null;
 		if (!Modifier.isPrivate(field.getModifiers()))
 		{
 			ITypeInfo typeInfo = getTypeInfo(field.getDeclaringClass());
@@ -133,14 +127,13 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 		{
 			rii = new FieldInfoItem(field);
 		}
-		rii.configure(properties);
 		return rii;
 	}
 
 	@Override
 	public ITypeInfoItem getMember(String propertyName, Field field)
 	{
-		RelationInfoItem rii = null;
+		ITypeInfoItem rii = null;
 		if (!Modifier.isPrivate(field.getModifiers()))
 		{
 			ITypeInfo typeInfo = getTypeInfo(field.getDeclaringClass());
@@ -154,7 +147,6 @@ public class TypeInfoProvider extends SmartCopyMap<Class<?>, TypeInfo> implement
 		{
 			rii = new FieldInfoItem(field, propertyName);
 		}
-		rii.configure(properties);
 		return rii;
 	}
 
