@@ -22,13 +22,8 @@ public class Oracle10gThinDialect extends Oracle10gDialect
 	@LogInstance
 	private ILogger log;
 
-	protected boolean autoCleanupRecycleBin;
-
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseAutoCleanupRecycleBin, defaultValue = "false")
-	public void setAutoCleanupRecycleBin(boolean autoCleanupRecycleBin)
-	{
-		this.autoCleanupRecycleBin = autoCleanupRecycleBin;
-	}
+	protected boolean autoCleanupRecycleBin;
 
 	@Override
 	public void preProcessConnection(Connection connection, String[] schemaNames, boolean forcePreProcessing)

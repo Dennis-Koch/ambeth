@@ -55,11 +55,14 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 				continue;
 			}
 			Property propertyAttribute = prop.getAnnotation(Property.class);
-			if (propertyAttribute == null || Property.DEFAULT_VALUE.equals(propertyAttribute.name()))
+			if (propertyAttribute == null)
 			{
 				continue;
 			}
-
+			if (Property.DEFAULT_VALUE.equals(propertyAttribute.name()) && Property.DEFAULT_VALUE.equals(propertyAttribute.defaultValue()))
+			{
+				continue;
+			}
 			Object value = props.get(propertyAttribute.name());
 
 			if (value == null)

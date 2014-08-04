@@ -10,10 +10,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileStore;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemAlreadyExistsException;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -21,10 +17,10 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.spi.FileSystemProvider;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import de.osthus.filesystem.common.AbstractFileSystemProvider;
 
 /**
  * FileSystemProvider for a sub-directory-based FileSystem implementation. It works like the 'subst' command in DOS, but not only on the local file system.
@@ -32,11 +28,9 @@ import java.util.Set;
  * @author jochen.hormes
  * @start 2014-07-15
  */
-public class DirectoryFileSystemProvider extends FileSystemProvider
+public class DirectoryFileSystemProvider extends AbstractFileSystemProvider<DirectoryFileSystemProvider, DirectoryFileSystem, DirectoryUri, DirectoryPath>
 {
 	protected static final String SCHEME = "dir";
-
-	private final HashMap<String, DirectoryFileSystem> openFileSystems = new HashMap<>();
 
 	/**
 	 * {@inheritDoc}
@@ -51,101 +45,12 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 	 * {@inheritDoc}
 	 */
 	@Override
-	public DirectoryFileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException
-	{
-		DirectoryUri directoryUri = DirectoryUri.create(uri);
-		DirectoryFileSystem directoryFileSystem = newFileSystem(directoryUri, env);
-		return directoryFileSystem;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public DirectoryFileSystem getFileSystem(URI uri)
-	{
-		DirectoryUri directoryUri = DirectoryUri.create(uri);
-		DirectoryFileSystem directoryFileSystem = getFileSystem(directoryUri);
-		return directoryFileSystem;
-	}
-
-	protected DirectoryFileSystem newFileSystem(DirectoryUri directoryUri, Map<String, ?> env) throws IOException
-	{
-		String dirFsIdentifier = directoryUri.getIdentifier();
-
-		if (openFileSystems.containsKey(dirFsIdentifier))
-		{
-			throw new FileSystemAlreadyExistsException();
-		}
-
-		URI underlyingFileSystemUri = URI.create(directoryUri.getUnderlyingFileSystem());
-		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
-		Path underlyingFileSystemPath = createUnderlyingFileSystemPath(underlyingFileSystem, directoryUri);
-
-		DirectoryFileSystem directoryFileSystem = createFileSystem(underlyingFileSystem, underlyingFileSystemPath, dirFsIdentifier, env);
-		openFileSystems.put(dirFsIdentifier, directoryFileSystem);
-
-		return directoryFileSystem;
-	}
-
-	protected DirectoryFileSystem getFileSystem(DirectoryUri directoryUri)
-	{
-		String dirFsIdentifier = directoryUri.getIdentifier();
-
-		DirectoryFileSystem directoryFileSystem = openFileSystems.get(dirFsIdentifier);
-		if (directoryFileSystem == null)
-		{
-			throw new FileSystemNotFoundException();
-		}
-
-		return directoryFileSystem;
-	}
-
-	protected DirectoryFileSystem useFileSystem(DirectoryUri directoryUri)
-	{
-		DirectoryFileSystem fileSystem;
-		try
-		{
-			fileSystem = newFileSystem(directoryUri, Collections.<String, Object> emptyMap());
-		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			fileSystem = getFileSystem(directoryUri);
-		}
-		catch (IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		return fileSystem;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public FileChannel newFileChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException
 	{
 		Path realPath = getRealPath(path);
 		FileSystemProvider underlyingFileSystemProvider = realPath.getFileSystem().provider();
 		FileChannel fileChannel = underlyingFileSystemProvider.newFileChannel(realPath, options, attrs);
 		return fileChannel;
-	}
-
-	/**
-	 * {@inheritDoc} <br>
-	 * e.g. dir:file:///C:/temp/target/!/insideDirFs/folder <br>
-	 * e.g. hdf5:file:///C:/temp/target/test.h5!/data/myExperiment
-	 */
-	@Override
-	public DirectoryPath getPath(URI uri)
-	{
-		DirectoryUri directoryUri = DirectoryUri.create(uri);
-		DirectoryFileSystem directoryFileSystem = useFileSystem(directoryUri);
-
-		String pathString = directoryUri.getPath();
-		DirectoryPath path = directoryFileSystem.getPath(pathString);
-
-		return path;
 	}
 
 	/**
@@ -252,7 +157,7 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		DirectoryPath dirPath = (DirectoryPath) path;
 		DirectoryFileSystem dirFileSystem = dirPath.getFileSystem();
 
-		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystem();
+		FileSystem underlyingFileSystem = dirFileSystem.getUnderlyingFileSystemPath().getFileSystem();
 		FileSystemProvider underlyingFileSystemProvider = underlyingFileSystem.provider();
 		Path underlyingFileSystemPath = dirFileSystem.getUnderlyingFileSystemPath();
 
@@ -317,55 +222,6 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 
 	}
 
-	@Override
-	public String toString()
-	{
-		return SCHEME + ":///";
-	}
-
-	protected void fileSystemClosed(DirectoryFileSystem directoryFileSystem)
-	{
-		String fsIdentifier = directoryFileSystem.getFsIdentifyer();
-		openFileSystems.remove(fsIdentifier);
-	}
-
-	protected FileSystem findUnderlyingFileSystem(URI underlyingFileSystemUri, Map<String, ?> env) throws IOException
-	{
-		FileSystem underlyingFileSystem;
-		try
-		{
-			underlyingFileSystem = FileSystems.newFileSystem(underlyingFileSystemUri, env);
-		}
-		catch (FileSystemAlreadyExistsException e)
-		{
-			underlyingFileSystem = FileSystems.getFileSystem(underlyingFileSystemUri);
-		}
-		return underlyingFileSystem;
-	}
-
-	protected Path createUnderlyingFileSystemPath(FileSystem underlyingFileSystem, DirectoryUri directoryUri)
-	{
-		String underlyingFileSystemPathName = directoryUri.getUnderlyingPath();
-		Path underlyingFileSystemPath;
-		try
-		{
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		catch (InvalidPathException e)
-		{
-			underlyingFileSystemPathName = directoryUri.getUnderlyingPath2();
-			underlyingFileSystemPath = underlyingFileSystem.getPath(underlyingFileSystemPathName);
-		}
-		return underlyingFileSystemPath;
-	}
-
-	protected DirectoryFileSystem createFileSystem(FileSystem underlyingFileSystem, Path underlyingFileSystemPath, String fsIdentifyer, Map<String, ?> env)
-			throws IOException
-	{
-		DirectoryFileSystem directoryFileSystem = new DirectoryFileSystem(this, underlyingFileSystem, underlyingFileSystemPath, fsIdentifyer);
-		return directoryFileSystem;
-	}
-
 	protected Path getRealPath(Path path)
 	{
 		FileSystem fileSystem = path.getFileSystem();
@@ -380,5 +236,22 @@ public class DirectoryFileSystemProvider extends FileSystemProvider
 		Path underlyingFileSystemPath = directoryFileSystem.getUnderlyingFileSystemPath();
 		Path realPath = underlyingFileSystemPath.resolve(relativePath.toString());
 		return realPath;
+	}
+
+	@Override
+	protected DirectoryUri buildInternalUri(URI uri)
+	{
+		return DirectoryUri.create(uri);
+	}
+
+	@Override
+	protected DirectoryFileSystem buildFileSystem(DirectoryUri internalUri, Map<String, ?> env) throws IOException
+	{
+		URI underlyingFileSystemUri = URI.create(internalUri.getUnderlyingFileSystem());
+		FileSystem underlyingFileSystem = findUnderlyingFileSystem(underlyingFileSystemUri, env);
+		Path underlyingFileSystemPath = buildUnderlyingFileSystemPath(underlyingFileSystem, internalUri);
+		String identifier = internalUri.getIdentifier();
+		DirectoryFileSystem fileSystem = new DirectoryFileSystem(this, underlyingFileSystemPath, identifier);
+		return fileSystem;
 	}
 }

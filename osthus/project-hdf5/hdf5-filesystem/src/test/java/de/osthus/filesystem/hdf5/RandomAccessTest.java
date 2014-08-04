@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -31,25 +30,20 @@ public class RandomAccessTest
 
 	private static final Set<OpenOption> optionRead = Collections.<OpenOption> singleton(StandardOpenOption.READ);
 
-	private static Hdf5FileSystemProvider hdf5FileSystemProvider;
+	private static long startIndex = 246 + 4 * System.getProperty("line.separator").length();
 
-	private static Hdf5Path hdf5Path;
+	private static int length = 9;
+
+	private static Path hdf5Path;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
-		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
 		Path fsPath = Paths.get(randomAccessFsDir);
-		String str = hdf5FileSystemProvider.getScheme() + ":" + fsPath.toUri().toString() + "!" + randomAccessPath;
+		String str = "hdf5:" + fsPath.toUri().toString() + "!" + randomAccessPath;
 
 		URI uri = URI.create(str);
-
-		hdf5Path = hdf5FileSystemProvider.getPath(uri);
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
+		hdf5Path = Paths.get(uri);
 	}
 
 	private FileChannel fileChannel;
@@ -69,9 +63,9 @@ public class RandomAccessTest
 	@Test
 	public void test() throws IOException
 	{
-		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, 254, 9);
+		MappedByteBuffer byteBuffer = fileChannel.map(MapMode.READ_ONLY, startIndex, length);
 
-		byte[] bytes = new byte[9];
+		byte[] bytes = new byte[length];
 		byteBuffer.get(bytes);
 
 		String content = new String(bytes);

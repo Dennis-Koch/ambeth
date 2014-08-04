@@ -5,13 +5,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
-import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
-public class ActionPermissionRule implements IEntityPermissionRule<IActionPermission>, IEntityTypePermissionRule<IActionPermission>
+public class ActionPermissionRule implements IEntityPermissionRule<IActionPermission>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -36,12 +35,5 @@ public class ActionPermissionRule implements IEntityPermissionRule<IActionPermis
 		// the association implies execution permission (no CUD operations) - these have to be handled by another extension
 		pe.allowRead().skipCUD().allowExecute();
 		return;
-	}
-
-	@Override
-	public void evaluatePermissionOnType(Class<? extends IActionPermission> entityType, IAuthorization currentUser, ISecurityScope[] securityScopes,
-			IEntityPermissionEvaluation pe)
-	{
-		pe.allowRead();
 	}
 }

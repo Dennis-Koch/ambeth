@@ -1,23 +1,30 @@
 package de.osthus.ambeth.cache.rootcachevalue;
 
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 
 public class DefaultRootCacheValue extends RootCacheValue
 {
-	protected final Class<?> entityType;
-
 	protected Object[] primitives;
 
 	protected IObjRef[][] relations;
 
-	private Object id;
+	protected Object id;
 
-	private Object version;
+	protected Object version;
 
-	public DefaultRootCacheValue(Class<?> entityType)
+	protected IEntityMetaData metaData;
+
+	public DefaultRootCacheValue(IEntityMetaData metaData)
 	{
-		super(entityType);
-		this.entityType = entityType;
+		super(metaData);
+		this.metaData = metaData;
+	}
+
+	@Override
+	public IEntityMetaData get__EntityMetaData()
+	{
+		return metaData;
 	}
 
 	@Override
@@ -89,6 +96,6 @@ public class DefaultRootCacheValue extends RootCacheValue
 	@Override
 	public Class<?> getEntityType()
 	{
-		return entityType;
+		return metaData.getEntityType();
 	}
 }

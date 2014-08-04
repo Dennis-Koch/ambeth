@@ -111,5 +111,31 @@ namespace De.Osthus.Ambeth.Util.Test
             Assert.AreEqual(DateTimeKind.Utc, actual.Kind);
             Assert.AreEqual(inWinter, actual);
         }
+
+        [TestMethod]
+        public void TestSpecificDateTime1()
+        {
+            DateTime dateTime = new DateTime(1981, 5, 3, 17, 18, 19, DateTimeKind.Utc);
+            long javaMillis = DateTimeUtil.ConvertDateTimeToJavaMillis(dateTime);
+            long expectedMillis = 357758299000;
+            Assert.AreEqual(javaMillis, expectedMillis, "differes by " + Math.Abs(javaMillis - expectedMillis) + "ms");
+
+            DateTime actual = DateTimeUtil.ConvertJavaMillisToDateTime(javaMillis);
+            Assert.AreEqual(DateTimeKind.Utc, actual.Kind);
+            Assert.AreEqual(dateTime, actual);
+        }
+
+        [TestMethod]
+        public void TestSpecificDateTime2()
+        {
+            DateTime dateTime = new DateTime(2014, 7, 25, 10, 31, 12, DateTimeKind.Utc);
+            long javaMillis = DateTimeUtil.ConvertDateTimeToJavaMillis(dateTime);
+            long expectedMillis = 1406284272000;
+            Assert.AreEqual(javaMillis, expectedMillis, "differes by " + Math.Abs(javaMillis - expectedMillis) + "ms");
+
+            DateTime actual = DateTimeUtil.ConvertJavaMillisToDateTime(javaMillis);
+            Assert.AreEqual(DateTimeKind.Utc, actual.Kind);
+            Assert.AreEqual(dateTime, actual);
+        }
     }
 }

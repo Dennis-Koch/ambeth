@@ -1,30 +1,31 @@
 package de.osthus.ambeth.util;
 
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 
 public class DirectValueHolderRef
 {
-	protected final Object vhc;
+	protected final IObjRefContainer vhc;
 
 	protected final IRelationInfoItem member;
 
 	protected final boolean objRefsOnly;
 
-	public DirectValueHolderRef(Object vhc, IRelationInfoItem member)
+	public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member)
 	{
 		this.vhc = vhc;
 		this.member = member;
 		this.objRefsOnly = false;
 	}
 
-	public DirectValueHolderRef(Object vhc, IRelationInfoItem member, boolean objRefsOnly)
+	public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member, boolean objRefsOnly)
 	{
 		this.vhc = vhc;
 		this.member = member;
 		this.objRefsOnly = objRefsOnly;
 	}
 
-	public Object getVhc()
+	public IObjRefContainer getVhc()
 	{
 		return vhc;
 	}

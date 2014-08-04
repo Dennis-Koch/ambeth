@@ -2,6 +2,7 @@ package de.osthus.ambeth.xml.pending;
 
 import java.util.Collection;
 
+import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedSet;
 import de.osthus.ambeth.collections.IList;
@@ -10,7 +11,6 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -20,6 +20,8 @@ import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
@@ -38,9 +40,6 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -73,10 +72,13 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		}
 
 		Object entity = objectFuture.getValue();
-		Class<?> realType = entity.getClass();
-		IEntityMetaData metadata = entityMetaDataProvider.getMetaData(realType);
+		IEntityMetaData metadata = ((IEntityMetaDataHolder) entity).get__EntityMetaData();
 		applyPrimitiveUpdateItems(entity, puis, metadata);
-		applyRelationUpdateItems(entity, ruis, parent instanceof UpdateContainer, metadata, reader);
+
+		if (ruis != null && ruis.length > 0)
+		{
+			applyRelationUpdateItems((IObjRefContainer) entity, ruis, parent instanceof UpdateContainer, metadata, reader);
+		}
 	}
 
 	protected void applyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis, IEntityMetaData metadata)
@@ -95,25 +97,20 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 		}
 	}
 
-	protected void applyRelationUpdateItems(Object entity, IRelationUpdateItem[] ruis, boolean isUpdate, IEntityMetaData metadata, IReader reader)
+	protected void applyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, boolean isUpdate, IEntityMetaData metadata, IReader reader)
 	{
-		if (ruis == null)
-		{
-			return;
-		}
-
 		IList<Object> toPrefetch = new ArrayList<Object>();
-		IProxyHelper proxyHelper = this.proxyHelper;
+		IRelationInfoItem[] relationMembers = metadata.getRelationMembers();
 		for (IRelationUpdateItem rui : ruis)
 		{
 			String memberName = rui.getMemberName();
-			IRelationInfoItem member = (IRelationInfoItem) metadata.getMemberByName(memberName);
-			if (proxyHelper.isInitialized(entity, member))
+			int relationIndex = metadata.getIndexByRelationName(memberName);
+			if (ValueHolderState.INIT == entity.get__State(relationIndex))
 			{
 				throw new IllegalStateException("ValueHolder already initialized for property '" + memberName + "'");
 			}
 
-			IObjRef[] existingORIs = proxyHelper.getObjRefs(entity, memberName);
+			IObjRef[] existingORIs = entity.get__ObjRefs(relationIndex);
 			IObjRef[] addedORIs = rui.getAddedORIs();
 			IObjRef[] removedORIs = rui.getRemovedORIs();
 
@@ -160,11 +157,15 @@ public class MergeCommand extends AbstractObjectCommand implements IObjectComman
 				}
 			}
 
+			IRelationInfoItem member = relationMembers[relationIndex];
 			if (isUpdate)
 			{
-				proxyHelper.setObjRefs(entity, member, newORIs);
-				DirectValueHolderRef dvhr = new DirectValueHolderRef(entity, member);
-				toPrefetch.add(dvhr);
+				entity.set__ObjRefs(relationIndex, newORIs);
+				if (!entity.is__Initialized(relationIndex))
+				{
+					DirectValueHolderRef dvhr = new DirectValueHolderRef(entity, member);
+					toPrefetch.add(dvhr);
+				}
 			}
 			else
 			{

@@ -7,12 +7,12 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
-import de.osthus.ambeth.testutil.NewAmbethPersistenceRunner;
+import de.osthus.ambeth.testutil.AmbethPersistenceRunner;
 
 /**
  * AmbethPersistenceRunner which counts the number of some method calls. Only for testing reasons!
  */
-public class CountingPersistenceRunner extends NewAmbethPersistenceRunner
+public class CountingPersistenceRunner extends AmbethPersistenceRunner
 {
 
 	private int rebuildDataCount = 0;

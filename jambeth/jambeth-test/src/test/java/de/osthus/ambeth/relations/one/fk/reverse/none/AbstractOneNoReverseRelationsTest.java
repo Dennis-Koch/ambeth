@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.relations.AbstractRelationsTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -130,12 +131,14 @@ public abstract class AbstractOneNoReverseRelationsTest extends AbstractRelation
 
 	protected void assertBeforePrefetch(EntityB entityB, String propertyName)
 	{
-		assertTrue(Boolean.FALSE.equals(proxyHelper.isInitialized(entityB, propertyName)));
+		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+		assertTrue(!((IObjRefContainer) entityB).is__Initialized(relationIndex));
 	}
 
 	protected void assertAfterPrefetch(EntityB entityB, String propertyName)
 	{
-		assertTrue(Boolean.TRUE.equals(proxyHelper.isInitialized(entityB, propertyName)));
-		assertNull(proxyHelper.getObjRefs(entityB, propertyName));
+		int relationIndex = ((IObjRefContainer) entityB).get__EntityMetaData().getIndexByRelationName(propertyName);
+		assertTrue(((IObjRefContainer) entityB).is__Initialized(relationIndex));
+		assertNull(((IObjRefContainer) entityB).get__ObjRefs(relationIndex));
 	}
 }

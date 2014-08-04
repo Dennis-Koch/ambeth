@@ -40,9 +40,9 @@ public class TableFake extends Table
 
 		setName(name);
 		setEntityType(entityType);
-		setTypeInfoProvider(typeInfoProvider);
-		setAlreadyLinkedCache(alreadyLinkedCache);
-		setObjectCollector(objectCollector);
+		this.typeInfoProvider = typeInfoProvider;
+		this.alreadyLinkedCache = alreadyLinkedCache;
+		this.objectCollector = objectCollector;
 	}
 
 	@Override

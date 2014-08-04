@@ -86,6 +86,10 @@ public abstract class AbstractUri
 				underlyingFileSystem += "/";
 			}
 		}
+		else
+		{
+			throw new URISyntaxException(uriString, "URI not recognized");
+		}
 	}
 
 	/**

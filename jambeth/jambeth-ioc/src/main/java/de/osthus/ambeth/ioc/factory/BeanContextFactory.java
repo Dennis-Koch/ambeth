@@ -54,7 +54,9 @@ import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.typeinfo.PropertyInfoProvider;
 import de.osthus.ambeth.util.ConversionHelper;
 import de.osthus.ambeth.util.DelegateFactory;
+import de.osthus.ambeth.util.DelegatingConversionHelper;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.IDedicatedConverterExtendable;
 import de.osthus.ambeth.util.IDelegateFactory;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.ParamChecker;
@@ -144,6 +146,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			}
 
 			ConversionHelper conversionHelper = new ConversionHelper();
+			DelegatingConversionHelper delegatingConversionHelper = new DelegatingConversionHelper();
 			LinkController linkController = new LinkController();
 			LoggerHistory loggerHistory = new LoggerHistory();
 			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
@@ -155,12 +158,13 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			DelegateFactory delegateFactory = new DelegateFactory();
 
 			callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
+			delegatingConversionHelper.setDefaultConversionHelper(conversionHelper);
 			extendableRegistry.setObjectCollector(tlObjectCollector);
 			linkController.setExtendableRegistry(extendableRegistry);
 			linkController.setProps(newProps);
 			linkController.setProxyFactory(proxyFactory);
 			beanContextInitializer.setCallingProxyPostProcessor(callingProxyPostProcessor);
-			beanContextInitializer.setConversionHelper(conversionHelper);
+			beanContextInitializer.setConversionHelper(delegatingConversionHelper);
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
 			propertyInfoProvider.setAccessorTypeProvider(accessorTypeProvider);
@@ -177,6 +181,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, accessorTypeProvider);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, callingProxyPostProcessor);
+			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, delegatingConversionHelper);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, extendableRegistry);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, linkController);
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, loggerHistory);
@@ -187,6 +192,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			accessorTypeProvider.afterPropertiesSet();
 			callingProxyPostProcessor.afterPropertiesSet();
+			delegatingConversionHelper.afterPropertiesSet();
 			extendableRegistry.afterPropertiesSet();
 			linkController.afterPropertiesSet();
 			loggerHistory.afterPropertiesSet();
@@ -194,15 +200,20 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			threadLocalCleanupController.afterPropertiesSet();
 
 			PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
-			propertiesPreProcessor.setConversionHelper(conversionHelper);
+			propertiesPreProcessor.setConversionHelper(delegatingConversionHelper);
 			propertiesPreProcessor.setPropertyInfoProvider(propertyInfoProvider);
 			propertiesPreProcessor.afterPropertiesSet();
+
+			// The DelegatingConversionHelper is functional, but has yet no properties set
+			propertiesPreProcessor.preProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
+					DelegatingConversionHelper.class, null, null);
+			delegatingConversionHelper.afterPropertiesSet();
 
 			BeanContextFactory parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null,
 					newProps, null);
 
-			parentContextFactory.registerWithLifecycle("loggerHistory", loggerHistory).autowireable(ILoggerHistory.class);
-			parentContextFactory.registerWithLifecycle("proxyFactory", proxyFactory).autowireable(IProxyFactory.class);
+			parentContextFactory.registerWithLifecycle(loggerHistory).autowireable(ILoggerHistory.class);
+			parentContextFactory.registerWithLifecycle(proxyFactory).autowireable(IProxyFactory.class);
 			parentContextFactory.registerWithLifecycle(threadLocalCleanupController).autowireable(IThreadLocalCleanupController.class,
 					IThreadLocalCleanupBeanExtendable.class);
 
@@ -218,19 +229,19 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				parentContextFactory.registerWithLifecycle(tlObjectCollector).autowireable(IThreadLocalObjectCollector.class);
 			}
 
-			parentContextFactory.registerWithLifecycle("accessorTypeProvider", accessorTypeProvider).autowireable(IAccessorTypeProvider.class);
+			parentContextFactory.registerExternalBean(delegatingConversionHelper).autowireable(IConversionHelper.class, IDedicatedConverterExtendable.class);
+
+			parentContextFactory.registerWithLifecycle(accessorTypeProvider).autowireable(IAccessorTypeProvider.class);
 
 			parentContextFactory.registerWithLifecycle(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
 
-			parentContextFactory.registerWithLifecycle("extendableRegistry", extendableRegistry).autowireable(IExtendableRegistry.class);
+			parentContextFactory.registerWithLifecycle(extendableRegistry).autowireable(IExtendableRegistry.class);
 
-			parentContextFactory.registerWithLifecycle("callingProxyPostProcessor", callingProxyPostProcessor).autowireable(CallingProxyPostProcessor.class);
+			parentContextFactory.registerWithLifecycle(callingProxyPostProcessor).autowireable(CallingProxyPostProcessor.class);
 
-			parentContextFactory.registerWithLifecycle("propertyInfoProvider", propertyInfoProvider).autowireable(IPropertyInfoProvider.class);
+			parentContextFactory.registerWithLifecycle(propertyInfoProvider).autowireable(IPropertyInfoProvider.class);
 
-			parentContextFactory.registerWithLifecycle("conversionHelper", conversionHelper).autowireable(IConversionHelper.class);
-
-			parentContextFactory.registerWithLifecycle("delegateFactory", delegateFactory).autowireable(IDelegateFactory.class);
+			parentContextFactory.registerWithLifecycle(delegateFactory).autowireable(IDelegateFactory.class);
 
 			if (bootstrapModules != null)
 			{
@@ -311,7 +322,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		this.beanContextInitializer = beanContextInitializer;
 		this.proxyFactory = proxyFactory;
 		this.typeInfoProvider = typeInfoProvider;
-		this.props = properties;
+		props = properties;
 		this.parent = parent;
 	}
 

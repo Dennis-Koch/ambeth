@@ -13,6 +13,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 
 public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 {
@@ -23,7 +24,7 @@ public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 		try
 		{
 			FastClass fastClass = FastClass.create(Thread.currentThread().getContextClassLoader(), DefaultRootCacheValue.class);
-			ci = fastClass.getConstructor(DefaultRootCacheValue.class.getConstructor(Class.class));
+			ci = fastClass.getConstructor(DefaultRootCacheValue.class.getConstructor(IEntityMetaData.class));
 		}
 		catch (Throwable e)
 		{
@@ -78,7 +79,7 @@ public class RootCacheValueTypeProvider implements IRootCacheValueTypeProvider
 				}
 				else
 				{
-					Constructor<?> ci = enhancedType.getConstructor(Class.class);
+					Constructor<?> ci = enhancedType.getConstructor(IEntityMetaData.class);
 					FastClass fastClass = FastClass.create(enhancedType.getClassLoader(), enhancedType);
 					constructor = fastClass.getConstructor(ci);
 				}

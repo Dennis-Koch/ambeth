@@ -4,21 +4,19 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import de.osthus.filesystem.common.AbstractPackAndUnpackTest;
 
 /**
  * 
@@ -27,7 +25,7 @@ import org.junit.Test;
  */
 // TODO Change for HDF5
 @Ignore
-public class PackAndUnpackTest
+public class PackAndUnpackTest extends AbstractPackAndUnpackTest
 {
 	private static final String FOLDER_1_NAME = "src/test/resources/folder1";
 
@@ -182,95 +180,5 @@ public class PackAndUnpackTest
 		String zipFsUriString = "jar:" + zipPath.toUri().toString();
 		URI zipFsUri = URI.create(zipFsUriString);
 		return zipFsUri;
-	}
-
-	private void recursiveCopy(final Path source, final Path target) throws IOException
-	{
-		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
-		{
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-			{
-				copyItem(source, target, file);
-
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
-			{
-				if (dir.equals(source))
-				{
-					return FileVisitResult.CONTINUE;
-				}
-
-				copyItem(source, target, dir);
-
-				return FileVisitResult.CONTINUE;
-			}
-
-			private void copyItem(final Path source, final Path target, Path file) throws IOException
-			{
-				Path relativPath = source.relativize(file);
-				String relativePathString = relativPath.toString();
-				Path newPath = target.resolve(relativePathString);
-				Files.copy(file, newPath);
-			}
-		});
-	}
-
-	private void recursiveCompare(final Path source, final Path target) throws IOException
-	{
-		Files.walkFileTree(source, new SimpleFileVisitor<Path>()
-		{
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
-			{
-				compareItem(source, target, file);
-
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException
-			{
-				if (dir.equals(source))
-				{
-					return FileVisitResult.CONTINUE;
-				}
-
-				compareItem(source, target, dir);
-
-				return FileVisitResult.CONTINUE;
-			}
-
-			private void compareItem(final Path source, final Path target, Path file) throws IOException
-			{
-				Path relativPath = source.relativize(file);
-				String relativePathString = relativPath.toString();
-				Path newPath = target.resolve(relativePathString);
-				Assert.assertTrue("Compare error: '" + file + "' vs. '" + newPath + "'", Files.exists(newPath));
-			}
-		});
-	}
-
-	private void recursiveDeleteOnExit(Path path) throws IOException
-	{
-		Files.walkFileTree(path, new SimpleFileVisitor<Path>()
-		{
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-			{
-				file.toFile().deleteOnExit();
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-			{
-				dir.toFile().deleteOnExit();
-				return FileVisitResult.CONTINUE;
-			}
-		});
 	}
 }

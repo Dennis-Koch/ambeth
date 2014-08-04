@@ -126,6 +126,7 @@
     <Compile Include="ambeth\merge\model\IUpdateItem.cs" />
     <Compile Include="ambeth\merge\model\PostLoadMethodLifecycleExtension.cs" />
     <Compile Include="ambeth\merge\model\PrePersistMethodLifecycleExtension.cs" />
+    <Compile Include="ambeth\merge\ObjRefHelper.cs" />
     <Compile Include="ambeth\merge\RevertChangesFinishedCallback.cs" />
     <Compile Include="ambeth\merge\MergeFinishedCallback.cs" />
     <Compile Include="ambeth\merge\MergeServiceRegistry.cs" />
@@ -136,7 +137,6 @@
     <Compile Include="ambeth\merge\EntityInitializedState.cs" />
     <Compile Include="ambeth\merge\EntityMetaDataClient.cs" />
     <Compile Include="ambeth\merge\ICUDResultHelper.cs" />
-    <Compile Include="ambeth\merge\IEntityChecker.cs" />
     <Compile Include="ambeth\merge\IEntityFactory.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataExtendable.cs" />
     <Compile Include="ambeth\merge\IMergeProcess.cs" />
@@ -153,7 +153,6 @@
     <Compile Include="ambeth\merge\MergeController.cs" />
     <Compile Include="ambeth\merge\MergeHandle.cs" />
     <Compile Include="ambeth\merge\MergeProcess.cs" />
-    <Compile Include="ambeth\merge\ORIHelper.cs" />
     <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
     <Compile Include="ambeth\merge\ValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMap.cs" />
@@ -182,7 +181,9 @@
     <Compile Include="ambeth\proxy\EntityFactory.cs" />
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\IEnhancedType.cs" />
+    <Compile Include="ambeth\proxy\IEntityMetaDataHolder.cs" />
     <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
+    <Compile Include="ambeth\proxy\IObjRefContainer.cs" />
     <Compile Include="ambeth\proxy\MergeContext.cs" />
     <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
     <Compile Include="ambeth\service\MergeServiceDelegate.cs" />

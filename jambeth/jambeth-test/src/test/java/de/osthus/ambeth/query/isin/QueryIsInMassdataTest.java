@@ -5,20 +5,22 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
+import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.category.PerformanceTests;
-import de.osthus.ambeth.util.ParamChecker;
 
 @Category(PerformanceTests.class)
 @TestModule(QueryIsInMassdataTestModule.class)
 @SQLDataRebuild(false)
-// @SQLData("QueryIsInMassdata_data.sql")
-// @SQLStructure("QueryIsInMassdata_structure.sql")
+@SQLData("QueryIsInMassdata_data.sql")
+@SQLStructure("QueryIsInMassdata_structure.sql")
 @TestPropertiesList({
 		@TestProperties(name = PersistenceConfigurationConstants.AutoIndexForeignKeys, value = "false"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "20"),
@@ -42,20 +44,8 @@ public class QueryIsInMassdataTest extends AbstractPersistenceTest
 
 	protected static long timeForIsIn = 0;
 
+	@Autowired
 	protected IChildService childService;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(childService, "childService");
-	}
-
-	public void setChildService(IChildService childService)
-	{
-		this.childService = childService;
-	}
 
 	@Test
 	public void testTimeForEquals() throws Exception

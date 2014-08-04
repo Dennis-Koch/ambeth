@@ -3,53 +3,69 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-server-helloworld</artifactId>
+	<packaging>war</packaging>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
 		<artifactId>jambeth-pom</artifactId>
 		<version>2.1.X-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
 	</parent>
+
+	<properties>
+		<application.context>/helloworld</application.context>
+	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
+			<artifactId>jambeth-server-with-persistence</artifactId>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-job</artifactId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+			<type>test-jar</type>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-log</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security-server</artifactId>
+			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<type>pom</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil-persistence</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
+			<artifactId>jambeth-testutil-persistence</artifactId>
+			<type>test-jar</type>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> -->
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat6-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<!-- <groupId>org.codehaus.mojo</groupId> <artifactId>tomcat-maven-plugin</artifactId> -->
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

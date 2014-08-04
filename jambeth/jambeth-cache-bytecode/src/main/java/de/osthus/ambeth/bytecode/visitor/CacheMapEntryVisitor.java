@@ -128,7 +128,7 @@ public class CacheMapEntryVisitor extends ClassGenerator
 		{
 			MethodGenerator mv = cv.visitMethod(m_get);
 			mv.getThisField(f_id);
-			mv.box(nativeTypeHandle);
+			mv.valueOf(nativeTypeHandle);
 			mv.returnValue();
 			mv.endMethod();
 		}

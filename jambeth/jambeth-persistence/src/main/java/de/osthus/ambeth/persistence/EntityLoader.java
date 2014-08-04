@@ -35,7 +35,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.parallel.IEntityLoaderParallelInvoker;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadCascadeItem;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadItem;
-import de.osthus.ambeth.proxy.IValueHolderContainer;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
@@ -94,7 +94,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		supportsValueHolderContainer = entityFactory.supportsEnhancement(IValueHolderContainer.class);
+		supportsValueHolderContainer = entityFactory.supportsEnhancement(IObjRefContainer.class);
 	}
 
 	@Override
@@ -829,7 +829,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 					{
 						ITypeInfoItem fieldMember = field.getMember();
 						Class<?> expectedType = fieldMember.getRealType();
-						if (java.util.Date.class.isAssignableFrom(expectedType))
+						if (java.util.Date.class.isAssignableFrom(expectedType) || java.util.Calendar.class.isAssignableFrom(expectedType))
 						{
 							// store Date-instances only with their long-value for decreased heap consumption
 							expectedType = long.class;
