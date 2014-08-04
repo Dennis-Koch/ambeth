@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import de.osthus.ambeth.annotation.Cascade;
 import de.osthus.ambeth.annotation.CascadeLoadMode;
+import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
@@ -236,11 +237,22 @@ public class MemberTypeProvider implements IMemberTypeProvider
 		if (memberNameSplit.length > 1)
 		{
 			Member[] memberPath = new Member[memberNameSplit.length - 1];
+			StringBuilder memberPathString = new StringBuilder();
 			Class<?> currType = type;
 			for (int a = 0, size = memberPath.length; a < size; a++)
 			{
 				memberPath[a] = getMember(currType, memberNameSplit[a]);
+				Class<?> parentObjectType = currType;
 				currType = memberPath[a].getRealType();
+				if (a > 0)
+				{
+					memberPathString.append('.');
+				}
+				memberPathString.append(memberPath[a].getName());
+				if (bytecodeEnhancer.isEnhancedType(type))
+				{
+					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(type, parentObjectType, memberPathString.toString()));
+				}
 			}
 			if (baseType == RelationMember.class)
 			{
@@ -251,6 +263,11 @@ public class MemberTypeProvider implements IMemberTypeProvider
 			{
 				PrimitiveMember lastMember = getPrimitiveMember(currType, memberNameSplit[memberNameSplit.length - 1]);
 				return new EmbeddedPrimitiveMember(propertyName, lastMember, memberPath);
+			}
+			else if (baseType == Member.class)
+			{
+				Member lastMember = getMember(currType, memberNameSplit[memberNameSplit.length - 1]);
+				return new EmbeddedMember(propertyName, lastMember, memberPath);
 			}
 			throw new IllegalStateException("Must never happen");
 		}

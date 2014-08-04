@@ -3,6 +3,7 @@ package de.osthus.ambeth.typeinfo;
 import java.util.Arrays;
 import java.util.Set;
 
+import javax.persistence.Embeddable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import de.osthus.ambeth.collections.HashSet;
@@ -25,6 +26,10 @@ public class RelationProvider implements IRelationProvider
 	public boolean isEntityType(Class<?> type)
 	{
 		if (type == null || type.isPrimitive() || type.isEnum() || primitiveTypes.contains(type))
+		{
+			return false;
+		}
+		if (type.isAnnotationPresent(Embeddable.class))
 		{
 			return false;
 		}

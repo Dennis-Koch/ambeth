@@ -151,6 +151,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 			memberName = member.getName();
 			String lastPropertyName = memberName;
 			Class<?> currType = targetType;
+			String prefix = "";
 
 			if (member instanceof IEmbeddedMember)
 			{
@@ -159,20 +160,12 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 				ParamHolder<Class<?>> currTypeOut = new ParamHolder<Class<?>>();
 				getMemberDelegate(targetType, embeddedMember, currTypeOut, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
 				currType = currTypeOut.getValue();
+
+				prefix = embeddedMember.getMemberPathString() + ".";
 			}
-			Field[] initIndex = ReflectUtil.getDeclaredFieldInHierarchy(currType, ValueHolderIEC.getInitializedFieldName(lastPropertyName));
-			if (initIndex.length == 0)
-			{
-				throw new IllegalStateException("No field '" + ValueHolderIEC.getInitializedFieldName(lastPropertyName) + "' found");
-			}
-			Field[] objRefsIndex = ReflectUtil.getDeclaredFieldInHierarchy(currType, ValueHolderIEC.getObjRefsFieldName(lastPropertyName));
-			if (objRefsIndex.length == 0)
-			{
-				throw new IllegalStateException("No field '" + ValueHolderIEC.getObjRefsFieldName(lastPropertyName) + "' found");
-			}
-			state = memberTypeProvider.getMember(targetType, initIndex[0].getName());
-			objRefs = memberTypeProvider.getMember(targetType, objRefsIndex[0].getName());
-			directValue = memberTypeProvider.getMember(currType, lastPropertyName + ValueHolderIEC.getNoInitSuffix());
+			state = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getInitializedFieldName(lastPropertyName));
+			objRefs = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getObjRefsFieldName(lastPropertyName));
+			directValue = memberTypeProvider.getMember(targetType, prefix + lastPropertyName + ValueHolderIEC.getNoInitSuffix());
 		}
 
 		protected Member[] getMemberDelegate(Class<?> targetType, IEmbeddedMember member, IParamHolder<Class<?>> currTypeOut,
