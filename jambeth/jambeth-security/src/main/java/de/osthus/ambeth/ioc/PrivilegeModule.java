@@ -8,7 +8,12 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.PrivilegeProvider;
+import de.osthus.ambeth.privilege.bytecode.collections.EntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.bytecode.collections.EntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.bytecode.collections.IEntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.bytecode.collections.IEntityTypePrivilegeFactoryProvider;
 
 @FrameworkModule
 public class PrivilegeModule implements IInitializingModule
@@ -22,9 +27,12 @@ public class PrivilegeModule implements IInitializingModule
 	{
 		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class)
 		// .propertyRefs("privilegeServiceWCF")
-				.autowireable(IPrivilegeProvider.class);
+				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
 		beanContextFactory.registerBean("privilegeProvider_EventListener", UnfilteredDataChangeListener.class).propertyRefs("privilegeProvider");
 		beanContextFactory.link("privilegeProvider_EventListener").to(IEventListenerExtendable.class).with(IDataChange.class);
+
+		beanContextFactory.registerAnonymousBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
+		beanContextFactory.registerAnonymousBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
 
 		// if (IsNetworkClientMode && IsPrivilegeServiceBeanActive)
 		// {

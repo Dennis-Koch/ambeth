@@ -3,7 +3,7 @@ package de.osthus.ambeth.security;
 import java.lang.reflect.Method;
 
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.model.IPrivilege;
+import de.osthus.ambeth.privilege.model.ITypePrivilege;
 
 public interface IAuthorization
 {
@@ -17,5 +17,5 @@ public interface IAuthorization
 
 	boolean hasActionPermission(String actionPermissionName, ISecurityScope[] securityScopes);
 
-	IPrivilege getEntityTypePrivilege(Class<?> entityType, ISecurityScope[] securityScopes);
+	ITypePrivilege getEntityTypePrivilege(Class<?> entityType, ISecurityScope[] securityScopes);
 }

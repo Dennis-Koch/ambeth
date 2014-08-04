@@ -8,15 +8,29 @@ public final class DenyAllPrivilege implements IPrivilege, IPrintable
 {
 	public static final IPrivilege INSTANCE = new DenyAllPrivilege();
 
+	private static final IPropertyPrivilege denyAllPropertyPrivilege = PropertyPrivilegeImpl.create(false, false, false, false);
+
 	private DenyAllPrivilege()
 	{
 		// intended blank
 	}
 
 	@Override
-	public IPropertyPrivilege getPropertyPrivilege(String propertyName)
+	public IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
 	{
-		return null;
+		return denyAllPropertyPrivilege;
+	}
+
+	@Override
+	public IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
+	{
+		return denyAllPropertyPrivilege;
+	}
+
+	@Override
+	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
+	{
+		return denyAllPropertyPrivilege;
 	}
 
 	@Override
@@ -44,15 +58,9 @@ public final class DenyAllPrivilege implements IPrivilege, IPrintable
 	}
 
 	@Override
-	public boolean isExecutionAllowed()
+	public boolean isExecuteAllowed()
 	{
 		return false;
-	}
-
-	@Override
-	public String[] getConfiguredPropertyNames()
-	{
-		return PrivilegeImpl.EMPTY_PROPERTY_NAMES;
 	}
 
 	@Override
@@ -70,6 +78,6 @@ public final class DenyAllPrivilege implements IPrivilege, IPrintable
 		sb.append(isCreateAllowed() ? "+C" : "-C");
 		sb.append(isUpdateAllowed() ? "+U" : "-U");
 		sb.append(isDeleteAllowed() ? "+D" : "-D");
-		sb.append(isExecutionAllowed() ? "+X" : "-X");
+		sb.append(isExecuteAllowed() ? "+X" : "-X");
 	}
 }

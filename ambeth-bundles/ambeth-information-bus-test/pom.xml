@@ -111,6 +111,13 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-bytecode</artifactId>
+			<version>${project.version}</version>
+			<classifier>tests</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-sensor</artifactId>
 			<version>${project.version}</version>
 			<classifier>tests</classifier>

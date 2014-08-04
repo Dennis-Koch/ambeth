@@ -1,12 +1,17 @@
 package de.osthus.ambeth.privilege.model.impl;
 
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
+import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
+import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintable
+public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintable, IImmutableType
 {
+	public static final IPropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new IPropertyPrivilege[0];
+
 	private static final HashSet<PropertyPrivilegeImpl> set = new HashSet<PropertyPrivilegeImpl>(0.5f);
 
 	static
@@ -29,12 +34,24 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 		set.add(new PropertyPrivilegeImpl(true, true, true, true));
 	}
 
-	public static PropertyPrivilegeImpl create(boolean create, boolean read, boolean update, boolean delete)
+	public static IPropertyPrivilege create(boolean create, boolean read, boolean update, boolean delete)
 	{
 		return set.get(new PropertyPrivilegeImpl(create, read, update, delete));
 	}
 
-	public static PropertyPrivilegeImpl createFrom(IPropertyPrivilegeOfService propertyPrivilegeResult)
+	public static IPropertyPrivilege createFrom(IPrivilege privilegeAsTemplate)
+	{
+		return create(privilegeAsTemplate.isCreateAllowed(), privilegeAsTemplate.isReadAllowed(), privilegeAsTemplate.isUpdateAllowed(),
+				privilegeAsTemplate.isDeleteAllowed());
+	}
+
+	public static IPropertyPrivilege createFrom(IPrivilegeOfService privilegeOfService)
+	{
+		return create(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
+				privilegeOfService.isDeleteAllowed());
+	}
+
+	public static IPropertyPrivilege createFrom(IPropertyPrivilegeOfService propertyPrivilegeResult)
 	{
 		return create(propertyPrivilegeResult.isCreateAllowed(), propertyPrivilegeResult.isReadAllowed(), propertyPrivilegeResult.isUpdateAllowed(),
 				propertyPrivilegeResult.isDeleteAllowed());
@@ -109,9 +126,9 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 	@Override
 	public void toString(StringBuilder sb)
 	{
-		sb.append(isReadAllowed() ? "+R" : "-R");
-		sb.append(isCreateAllowed() ? "+C" : "-C");
-		sb.append(isUpdateAllowed() ? "+U" : "-U");
-		sb.append(isDeleteAllowed() ? "+D" : "-D");
+		sb.append(AbstractPrivilege.upperOrLower(isCreateAllowed(), 'c'));
+		sb.append(AbstractPrivilege.upperOrLower(isReadAllowed(), 'r'));
+		sb.append(AbstractPrivilege.upperOrLower(isUpdateAllowed(), 'u'));
+		sb.append(AbstractPrivilege.upperOrLower(isDeleteAllowed(), 'd'));
 	}
 }
