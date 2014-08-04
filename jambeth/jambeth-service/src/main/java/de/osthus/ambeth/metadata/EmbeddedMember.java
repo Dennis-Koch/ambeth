@@ -4,15 +4,15 @@ import java.lang.annotation.Annotation;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
-public class EmbeddedPrimitiveMember extends PrimitiveMember implements IEmbeddedMember, IPrimitiveMemberWrite
+public class EmbeddedMember extends Member implements IEmbeddedMember
 {
-	private final PrimitiveMember childMember;
+	private final Member childMember;
 
 	private final Member[] memberPath;
 
 	private final String name;
 
-	public EmbeddedPrimitiveMember(String name, PrimitiveMember childMember, Member[] memberPath)
+	public EmbeddedMember(String name, Member childMember, Member[] memberPath)
 	{
 		super(null, null);
 		this.name = name;
@@ -40,18 +40,6 @@ public class EmbeddedPrimitiveMember extends PrimitiveMember implements IEmbedde
 			sb.append(member.getName());
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public boolean isTechnicalMember()
-	{
-		return childMember.isTechnicalMember();
-	}
-
-	@Override
-	public void setTechnicalMember(boolean technicalMember)
-	{
-		((IPrimitiveMemberWrite) childMember).setTechnicalMember(technicalMember);
 	}
 
 	@Override

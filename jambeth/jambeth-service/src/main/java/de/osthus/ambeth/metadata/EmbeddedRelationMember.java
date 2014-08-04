@@ -54,7 +54,17 @@ public class EmbeddedRelationMember extends RelationMember implements IEmbeddedM
 	@Override
 	public String getMemberPathString()
 	{
-		return name;
+		StringBuilder sb = new StringBuilder();
+		for (int a = 0, size = memberPath.length; a < size; a++)
+		{
+			Member member = memberPath[a];
+			if (a > 0)
+			{
+				sb.append('.');
+			}
+			sb.append(member.getName());
+		}
+		return sb.toString();
 	}
 
 	@Override

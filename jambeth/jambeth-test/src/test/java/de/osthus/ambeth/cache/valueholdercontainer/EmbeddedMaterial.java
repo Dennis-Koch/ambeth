@@ -2,6 +2,9 @@ package de.osthus.ambeth.cache.valueholdercontainer;
 
 import java.util.List;
 
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class EmbeddedMaterial
 {
 	private String name;

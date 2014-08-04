@@ -76,12 +76,15 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 
 	protected IEntityMetaData metaData;
 
+	protected String memberPath;
+
 	protected String[] memberPathSplit;
 
 	public InitializeEmbeddedMemberVisitor(ClassVisitor cv, IEntityMetaData metaData, String memberPath, IPropertyInfoProvider propertyInfoProvider)
 	{
 		super(cv);
 		this.metaData = metaData;
+		this.memberPath = memberPath;
 		this.memberPathSplit = memberPath != null ? memberPath.split(Pattern.quote(".")) : null;
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
@@ -133,7 +136,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		{
 			return;
 		}
-		implementGetter(p_embeddedMemberTemplate, firstMember);
+		implementGetter(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath : firstMember.getName());
 	}
 
 	// protected void implementGetter(IProperty)
@@ -181,9 +184,11 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 	// mv.endMethod();
 	// }
 
-	protected void implementGetter(final PropertyInstance p_embeddedMemberTemplate, final Member firstMember)
+	protected void implementGetter(final PropertyInstance p_embeddedMemberTemplate, final Member firstMember, final String memberPath)
 	{
 		PropertyInstance property = PropertyInstance.findByTemplate(firstMember.getName(), firstMember.getRealType(), false);
+
+		final PropertyInstance p_rootEntity = memberPathSplit == null ? null : EmbeddedTypeVisitor.getRootEntityProperty(this);
 
 		MethodGenerator mv = visitMethod(property.getGetter());
 		Label l_valueIsValid = mv.newLabel();
@@ -205,9 +210,20 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 				mg.callThisGetter(p_embeddedMemberTemplate);
 
 				mg.push(firstMember.getRealType()); // embeddedType
-				mg.push(metaData.getEntityType()); // entityType
+
+				if (p_rootEntity != null)
+				{
+					mg.callThisGetter(p_rootEntity);
+					mg.checkCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.getOwner());
+					mg.invokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+				}
+				else
+				{
+					mg.callThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+				}
+				mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, Class.class, "getEnhancedType"));
 				mg.loadThis(); // parentObject
-				mg.push(firstMember.getName());
+				mg.push(memberPath);
 
 				mg.invokeVirtual(template_m_createEmbeddedObject);
 				mg.checkCast(firstMember.getRealType());
