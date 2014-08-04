@@ -124,6 +124,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertEquals(0, size.get());
 		assertEquals(0, content.get().size());
 
+		IEntityMetaData metaData = fixture.entityMetaDataProvider.getMetaData(Material.class);
 		Material material = ObjectMother.getNewMaterial(entityFactory, 1, 1, "Manual material");
 		fixture.put(material);
 
@@ -133,7 +134,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertTrue("WriteLock was not held!", locked.get());
 		assertEquals(1, size.get());
 		assertEquals(1, content.get().size());
-		equalsMaterialRootCacheValue(material, (RootCacheValue) content.get().get(0));
+		equalsMaterialRootCacheValue(metaData, material, (RootCacheValue) content.get().get(0));
 	}
 
 	@Test
@@ -152,8 +153,8 @@ public class RootCacheTest extends AbstractInformationBusTest
 		RootCacheValue cachedMaterial2 = fixture.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, 2);
 		assertNull(fixture.getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, 3));
 
-		equalsMaterialRootCacheValue(material1, cachedMaterial1);
-		equalsMaterialRootCacheValue(material2, cachedMaterial2);
+		equalsMaterialRootCacheValue(metaData, material1, cachedMaterial1);
+		equalsMaterialRootCacheValue(metaData, material2, cachedMaterial2);
 	}
 
 	@Test
@@ -621,12 +622,12 @@ public class RootCacheTest extends AbstractInformationBusTest
 		}
 	}
 
-	private static void equalsMaterialRootCacheValue(Material material, RootCacheValue value)
+	private static void equalsMaterialRootCacheValue(IEntityMetaData metaData, Material material, RootCacheValue value)
 	{
 		assertEquals(Material.class, value.getEntityType());
 		assertEquals(material.getId(), value.getId());
 		assertEquals(material.getVersion(), value.getVersion());
-		assertEquals(material.getName(), value.getPrimitives()[0]);
+		assertEquals(material.getName(), value.getPrimitives()[metaData.getIndexByPrimitiveName("Name")]);
 
 		// TODO Relations with ValueHolderInterceptor
 	}

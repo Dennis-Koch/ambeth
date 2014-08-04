@@ -1,5 +1,6 @@
 package de.osthus.ambeth.merge.config;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
@@ -233,9 +234,15 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			primitiveMembers.add(member);
 		}
 		// Order of setter calls is important
-		metaData.setPrimitiveMembers(primitiveMembers.toArray(PrimitiveMember.class));
-		metaData.setAlternateIdMembers(alternateIdMembers.toArray(PrimitiveMember.class));
-		metaData.setRelationMembers(relationMembers.toArray(RelationMember.class));
+		PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
+		PrimitiveMember[] alternateIds = alternateIdMembers.toArray(PrimitiveMember.class);
+		RelationMember[] relations = relationMembers.toArray(RelationMember.class);
+		Arrays.sort(primitives);
+		Arrays.sort(alternateIds);
+		Arrays.sort(relations);
+		metaData.setPrimitiveMembers(primitives);
+		metaData.setAlternateIdMembers(alternateIds);
+		metaData.setRelationMembers(relations);
 
 		for (Member member : notMergeRelevant)
 		{

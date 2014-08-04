@@ -45,7 +45,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -682,9 +681,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected IList<IObjRelationResult> createResult(List<IObjRelation> objRels, ICacheIntern targetCache,
 			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs, boolean returnMisses)
 	{
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IObjRefHelper oriHelper = this.oriHelper;
-		IProxyHelper proxyHelper = this.proxyHelper;
 		ArrayList<IObjRelationResult> objRelResults = new ArrayList<IObjRelationResult>(objRels.size());
 
 		for (int a = 0, size = objRels.size(); a < size; a++)

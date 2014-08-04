@@ -341,6 +341,7 @@ namespace De.Osthus.Ambeth.Merge.Model
 
                 for (int compositePosition = compositeIndex.Length; compositePosition-- > 0; )
                 {
+                    compositeIndex[compositePosition] = -1;
                     ITypeInfoItem memberItem = memberItems[compositePosition];
                     for (int primitiveIndex = PrimitiveMembers.Length; primitiveIndex-- > 0; )
                     {

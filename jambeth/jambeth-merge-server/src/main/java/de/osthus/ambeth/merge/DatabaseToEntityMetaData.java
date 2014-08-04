@@ -1,5 +1,6 @@
 package de.osthus.ambeth.merge;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -40,6 +41,9 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 
 	@Autowired
 	protected IEntityMetaDataExtendable entityMetaDataExtendable;
+
+	@Autowired
+	protected IEntityMetaDataRefresher entityMetaDataRefresher;
 
 	@Autowired
 	protected IMergeServiceExtensionExtendable mergeServiceExtensionExtendable;
@@ -245,12 +249,19 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			{
 				metaData.setUpdatedOnMember(null);
 			}
-			metaData.setPrimitiveMembers(primitiveMembers.toArray(PrimitiveMember.class));
-			metaData.setFulltextMembers(fulltextMembers.toArray(PrimitiveMember.class));
+			PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
+			PrimitiveMember[] fulltexts = fulltextMembers.toArray(PrimitiveMember.class);
+			RelationMember[] relations = relationMembers.toArray(RelationMember.class);
+			Arrays.sort(primitives);
+			Arrays.sort(fulltexts);
+			Arrays.sort(relations);
+			metaData.setPrimitiveMembers(primitives);
+			metaData.setFulltextMembers(fulltexts);
 			metaData.setAlternateIdMembers(alternateIdMembers);
-			metaData.setRelationMembers(relationMembersList.toArray(RelationMember.class));
+			metaData.setRelationMembers(relations);
+			metaData.setEnhancedType(null);
 
-			metaData.initialize(entityFactory);
+			entityMetaDataRefresher.refreshMembers(metaData);
 			newMetaDatas.add(metaData);
 		}
 		for (int a = 0, size = newRegisteredMetaDatas.size(); a < size; a++)
