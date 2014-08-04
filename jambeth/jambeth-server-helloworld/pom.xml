@@ -12,7 +12,6 @@
 	</parent>
 
 	<properties>
-		<ambeth.version>2.1.X-SNAPSHOT</ambeth.version>
 		<application.context>/helloworld</application.context>
 	</properties>
 
