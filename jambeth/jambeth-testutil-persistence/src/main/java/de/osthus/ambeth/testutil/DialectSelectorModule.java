@@ -1,19 +1,14 @@
 package de.osthus.ambeth.testutil;
 
-import oracle.jdbc.OracleConnection;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.h2.H2ConnectionModule;
-import de.osthus.ambeth.h2.H2Module;
-import de.osthus.ambeth.h2.H2TestModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.oracle.Oracle10gConnectionModule;
-import de.osthus.ambeth.oracle.Oracle10gModule;
-import de.osthus.ambeth.oracle.Oracle10gTestModule;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.testutil.connectors.H2Connector;
+import de.osthus.ambeth.testutil.connectors.OracleConnector;
 
 public class DialectSelectorModule implements IInitializingModule
 {
@@ -25,16 +20,15 @@ public class DialectSelectorModule implements IInitializingModule
 		{
 			return;
 		}
-		if (H2Module.handlesDatabaseProtocol(databaseProtocol))
+		if (H2Connector.handleProperties(props, databaseProtocol))
 		{
-			// props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "org.h2.jdbc.JdbcConnection");
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, H2ConnectionModule.class.getName());
+			return;
 		}
-		else if (Oracle10gModule.handlesDatabaseProtocol(databaseProtocol))
+		else if (OracleConnector.handleProperties(props, databaseProtocol))
 		{
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, OracleConnection.class.getName());
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, Oracle10gConnectionModule.class.getName());
+			return;
 		}
+		throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'");
 	}
 
 	@SuppressWarnings("unused")
@@ -47,17 +41,14 @@ public class DialectSelectorModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		if (H2Module.handlesDatabaseProtocol(databaseProtocol))
+		if (H2Connector.handleTest(beanContextFactory, databaseProtocol))
 		{
-			beanContextFactory.registerAnonymousBean(H2TestModule.class);
+			return;
 		}
-		else if (Oracle10gModule.handlesDatabaseProtocol(databaseProtocol))
+		else if (OracleConnector.handleTest(beanContextFactory, databaseProtocol))
 		{
-			beanContextFactory.registerAnonymousBean(Oracle10gTestModule.class);
+			return;
 		}
-		else
-		{
-			throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'");
-		}
+		throw new IllegalStateException("Protocol not supported: '" + databaseProtocol + "'");
 	}
 }
