@@ -617,6 +617,7 @@
 				</property>
 			</activation>
 			<properties>
+				<server.id>tomcat</server.id>
 				<webserver.host>localhost</webserver.host>
 				<webserver.port>9090</webserver.port>
 				<deploy.env>test</deploy.env>
