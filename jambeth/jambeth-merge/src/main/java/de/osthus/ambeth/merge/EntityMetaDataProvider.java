@@ -149,17 +149,19 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				relatedByTypes = new HashSet<Class<?>>();
 			}
 			((EntityMetaData) metaData).setTypesRelatingToThis(relatedByTypes.toArray(Class.class));
-			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
-			Class<?> baseType = eie != null ? eie.getMappedEntityType(entityType) : entityType;
-			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.EntityEnhancementHint));
 			refreshMembers(metaData);
-			((EntityMetaData) metaData).initialize(entityFactory);
 		}
 	}
 
 	@Override
 	public void refreshMembers(IEntityMetaData metaData)
 	{
+		if (metaData.getEnhancedType() == null)
+		{
+			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
+			Class<?> baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.EntityEnhancementHint));
+		}
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int a = relationMembers.length; a-- > 0;)
 		{
@@ -169,6 +171,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		for (int a = primitiveMembers.length; a-- > 0;)
 		{
 			primitiveMembers[a] = (PrimitiveMember) refreshMember(metaData, primitiveMembers[a]);
+		}
+		PrimitiveMember[] alternateIdMembers = metaData.getAlternateIdMembers();
+		for (int a = alternateIdMembers.length; a-- > 0;)
+		{
+			alternateIdMembers[a] = (PrimitiveMember) refreshMember(metaData, alternateIdMembers[a]);
 		}
 		((EntityMetaData) metaData).setIdMember((PrimitiveMember) refreshMember(metaData, metaData.getIdMember()));
 		((EntityMetaData) metaData).setVersionMember((PrimitiveMember) refreshMember(metaData, metaData.getVersionMember()));

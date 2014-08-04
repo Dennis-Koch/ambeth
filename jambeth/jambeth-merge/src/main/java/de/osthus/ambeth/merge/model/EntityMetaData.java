@@ -577,6 +577,7 @@ public class EntityMetaData implements IEntityMetaData
 
 			for (int compositePosition = compositeIndex.length; compositePosition-- > 0;)
 			{
+				compositeIndex[compositePosition] = -1;
 				Member memberItem = memberItems[compositePosition];
 				for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 				{

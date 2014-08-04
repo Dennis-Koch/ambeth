@@ -143,6 +143,10 @@ public class EntityFactory extends AbstractEntityFactory
 	{
 		try
 		{
+			if (metaData.getEnhancedType() == null)
+			{
+				entityMetaDataRefresher.refreshMembers(metaData);
+			}
 			FastConstructor constructor = getConstructor(typeToConstructorMap, metaData.getEnhancedType());
 			Object[] args = getConstructorArguments(constructor);
 			Object entity = constructor.newInstance(args);

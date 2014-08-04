@@ -6,7 +6,7 @@ import de.osthus.ambeth.accessor.AbstractAccessor;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 
-public abstract class Member extends AbstractAccessor
+public abstract class Member extends AbstractAccessor implements Comparable<Member>
 {
 	protected Class<?> elementType;
 
@@ -15,6 +15,12 @@ public abstract class Member extends AbstractAccessor
 	protected Member(Class<?> type, IPropertyInfo property)
 	{
 		super(type, property);
+	}
+
+	@Override
+	public int compareTo(Member o)
+	{
+		return getName().compareTo(o.getName());
 	}
 
 	public Class<?> getElementType()
