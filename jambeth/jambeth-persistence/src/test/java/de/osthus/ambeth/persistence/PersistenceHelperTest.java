@@ -7,9 +7,7 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -25,42 +23,26 @@ public class PersistenceHelperTest
 
 	private PersistenceHelper fixture;
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
-	}
-
 	@Before
 	public void setUp() throws Exception
 	{
 		this.fixture = new PersistenceHelper();
-		this.fixture.setBatchSize(batchSize);
-		this.fixture.setPreparedBatchSize(preparedBatchSize);
+		this.fixture.batchSize = batchSize;
+		this.fixture.preparedBatchSize = preparedBatchSize;
 
 		NoOpObjectCollector oc = new NoOpObjectCollector();
-		this.fixture.setObjectCollector(oc);
+		this.fixture.objectCollector = oc;
 
 		SqlBuilder sqlBuilder = new SqlBuilder();
 		sqlBuilder.setObjectCollector(oc);
 		sqlBuilder.setPersistenceHelper(this.fixture);
 		sqlBuilder.afterPropertiesSet();
-		this.fixture.setSqlBuilder(sqlBuilder);
+		this.fixture.sqlBuilder = sqlBuilder;
 	}
 
 	@After
 	public void tearDown() throws Exception
 	{
-	}
-
-	@Test
-	public void testAfterPropertiesSet()
-	{
-		this.fixture.afterPropertiesSet();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -70,25 +52,11 @@ public class PersistenceHelperTest
 		this.fixture.afterPropertiesSet();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testAfterPropertiesSet_noObjectCollector()
-	{
-		this.fixture.objectCollector = null;
-		this.fixture.afterPropertiesSet();
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void testAfterPropertiesSet_noSqlBuilder()
-	{
-		this.fixture.sqlBuilder = null;
-		this.fixture.afterPropertiesSet();
-	}
-
 	@Test
 	public void testSetBatchSize()
 	{
 		int newBatchSize = 0;
-		this.fixture.setBatchSize(newBatchSize);
+		this.fixture.batchSize = newBatchSize;
 		assertEquals(newBatchSize, this.fixture.batchSize);
 	}
 
@@ -96,7 +64,7 @@ public class PersistenceHelperTest
 	public void testSetObjectCollector()
 	{
 		assertNotNull(this.fixture.objectCollector);
-		this.fixture.setObjectCollector(null);
+		this.fixture.objectCollector = null;
 		assertNull(this.fixture.objectCollector);
 	}
 
@@ -104,7 +72,7 @@ public class PersistenceHelperTest
 	public void testSetSqlBuilder()
 	{
 		assertNotNull(this.fixture.sqlBuilder);
-		this.fixture.setSqlBuilder(null);
+		this.fixture.sqlBuilder = null;
 		assertNull(this.fixture.sqlBuilder);
 	}
 

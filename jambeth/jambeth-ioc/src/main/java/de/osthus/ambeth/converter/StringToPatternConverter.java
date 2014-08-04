@@ -8,7 +8,7 @@ import de.osthus.ambeth.util.IDedicatedConverter;
 
 public class StringToPatternConverter implements IDedicatedConverter
 {
-	private static final Pattern splitPattern = Pattern.compile(";");
+	public static final Pattern splitPattern = Pattern.compile(";");
 
 	@SuppressWarnings("unused")
 	@LogInstance

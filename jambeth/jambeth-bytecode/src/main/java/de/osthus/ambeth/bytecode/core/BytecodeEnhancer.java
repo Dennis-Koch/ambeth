@@ -230,6 +230,10 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			WeakReference<Class<?>> enhancedTypeR = new WeakReference<Class<?>>(enhancedType);
 			valueType.put(hint, enhancedTypeR);
 			extendedTypeToType.put(enhancedType, entityTypeR);
+			if (log.isInfoEnabled())
+			{
+				log.info("Enhancement finished successfully with type: " + enhancedType);
+			}
 			return enhancedType;
 		}
 		finally
@@ -308,6 +312,8 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				}
 			}
 			int iterationCount = 0;
+
+			ArrayList<BytecodeBehaviorState> pendingStatesToPostProcess = new ArrayList<BytecodeBehaviorState>();
 			byte[] currentContent = bytecodeClassLoader.readTypeAsBinary(currentType);
 			while (pendingBehaviors.size() > 0)
 			{
@@ -343,9 +349,13 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				}
 				Class<?> newType = bytecodeClassLoader.loadClass(newTypeHandle.getInternalName(), newContent);
 				extendedTypeToType.put(newType, entityTypeR);
-				acquiredState.getValue().postProcessCreatedType(newType);
+				pendingStatesToPostProcess.add(acquiredState.getValue());
 				currentContent = newContent;
 				currentType = newType;
+			}
+			for (int a = 0, size = pendingStatesToPostProcess.size(); a < size; a++)
+			{
+				pendingStatesToPostProcess.get(a).postProcessCreatedType(currentType);
 			}
 			return currentType;
 		}

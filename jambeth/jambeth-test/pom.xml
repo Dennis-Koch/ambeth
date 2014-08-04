@@ -46,8 +46,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-server</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -56,8 +55,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -78,8 +76,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -88,17 +85,39 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-h2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-h2</artifactId>
+			<type>test-jar</type>
+		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-jdbc</artifactId>
+			<type>test-jar</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-persistence-oracle11</artifactId>
+			<type>test-jar</type>
+		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
@@ -120,8 +139,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -131,8 +149,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil-persistence</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -141,8 +158,7 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<type>test-jar</type>
 		</dependency>
 
 		<dependency>

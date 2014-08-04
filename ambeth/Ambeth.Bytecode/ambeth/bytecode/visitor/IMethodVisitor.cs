@@ -138,5 +138,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void ThrowException(Type exceptionType, String message);
 
         void TryFinally(Script tryScript, Script finallyScript);
+
+        void ValueOf(Type type);
     }
 }

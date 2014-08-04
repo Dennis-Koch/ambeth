@@ -4,7 +4,7 @@
 
 	<groupId>de.osthus.filesystem</groupId>
 	<artifactId>project-hdf5</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<parent>
@@ -17,6 +17,7 @@
 		<module>filesystem-common</module>
 		<module>directory-filesystem</module>
 		<module>hdf5-filesystem</module>
+		<module>hdf5-demo</module>
 	</modules>
 
 	<build>

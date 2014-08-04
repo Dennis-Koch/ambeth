@@ -178,6 +178,13 @@ public interface ITable
 	 */
 	String getName();
 
+	/**
+	 * Getter for the table name which is in quotes to allow to include the value directly in a query string
+	 * 
+	 * @return
+	 */
+	String getFullqualifiedEscapedName();
+
 	boolean isViewBased();
 
 	/**

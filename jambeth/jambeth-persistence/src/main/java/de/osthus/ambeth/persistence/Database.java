@@ -3,15 +3,15 @@ package de.osthus.ambeth.persistence;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Savepoint;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.IDatabasePool;
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.database.IDatabaseProvider;
@@ -26,6 +26,7 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
@@ -564,7 +565,20 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 
 	public String createForeignKeyLinkName(String fromTableName, String fromFieldName, String toTableName, String toFieldName)
 	{
-		return "LINK_" + fromTableName + "_" + fromFieldName + "_" + toTableName + "_" + toFieldName;
+		fromTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromTableName));
+		fromFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromFieldName));
+		toTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toTableName));
+		toFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toFieldName));
+		return "LINK_" + fromTableName + "_" + fromFieldName + "-" + toTableName + "_" + toFieldName;
+	}
+
+	protected String buildFqName(String[] fqNameSplit)
+	{
+		if (fqNameSplit[0] == null)
+		{
+			return fqNameSplit[1];
+		}
+		return fqNameSplit[0] + "_" + fqNameSplit[1];
 	}
 
 	@Override

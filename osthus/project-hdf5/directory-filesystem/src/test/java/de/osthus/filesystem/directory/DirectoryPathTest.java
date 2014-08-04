@@ -8,8 +8,14 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchEvent.Kind;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -79,10 +85,9 @@ public class DirectoryPathTest
 	public void testGetParent()
 	{
 		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
-		// TODO replace with resolve() when implemented
-		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", root.toString() + "tmp");
+		Path path = root.resolve("tmp");
 
-		DirectoryPath parent = path.getParent();
+		Path parent = path.getParent();
 		assertNotNull(parent);
 		assertEquals(root, parent);
 	}
@@ -100,7 +105,6 @@ public class DirectoryPathTest
 	public void testGetParent_relativeNames()
 	{
 		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
-		// TODO replace with resolve() when implemented
 		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp");
 
 		DirectoryPath parent = path.getParent();
@@ -112,7 +116,6 @@ public class DirectoryPathTest
 	public void testGetParent_relativeNamesDir()
 	{
 		DirectoryPath expected = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "data");
-		// TODO replace with resolve() when implemented
 		DirectoryPath path = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", expected.toString() + "/tmp/");
 
 		DirectoryPath parent = path.getParent();
@@ -136,11 +139,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetNameCount_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.getNameCount();
+	}
+
 	@Test
 	@Ignore
 	public void testGetName()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetName_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.getName(0);
 	}
 
 	@Test
@@ -150,11 +167,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSubpath_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.subpath(0, 1);
+	}
+
 	@Test
 	@Ignore
 	public void testStartsWithPath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testStartsWithPath_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.startsWith(root);
 	}
 
 	@Test
@@ -164,11 +195,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testStartsWithString_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.startsWith(root.toString());
+	}
+
 	@Test
 	@Ignore
 	public void testEndsWithPath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEndsWithPath_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.endsWith(root);
 	}
 
 	@Test
@@ -178,11 +223,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testEndsWithString_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.endsWith(root.toString());
+	}
+
 	@Test
 	@Ignore
 	public void testNormalize()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNormalize_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.normalize();
 	}
 
 	@Test
@@ -292,6 +351,13 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testResolveSiblingPath_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.resolveSibling(root);
+	}
+
 	@Test
 	@Ignore
 	public void testResolveSiblingString()
@@ -299,14 +365,48 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testResolveSiblingString_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.resolveSibling(root.toString());
+	}
+
 	@Test
 	public void testRelativize_simple()
 	{
 		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
-		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("", "/test"); // for better coverage
 
 		Path relativized = path1.relativize(path2);
 		assertEquals("test", relativized.toString());
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRelativize_simpleFail1()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testRelativize_simpleFail2()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("");
+		DirectoryPath path2 = DIRECTORY_FILE_SYSTEM.getPath("/test");
+
+		path2.relativize(path1);
+	}
+
+	@Test(expected = ProviderMismatchException.class)
+	public void testRelativize_simpleFail3()
+	{
+		DirectoryPath path1 = DIRECTORY_FILE_SYSTEM.getPath("/");
+		Path path2 = Paths.get("/test");
+
+		path2.relativize(path1);
 	}
 
 	@Test
@@ -324,11 +424,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToUri_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.toUri();
+	}
+
 	@Test
 	@Ignore
 	public void testToAbsolutePath()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToAbsolutePath_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.toAbsolutePath();
 	}
 
 	@Test
@@ -338,11 +452,18 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
-	@Test
-	@Ignore
+	@Test(expected = UnsupportedOperationException.class)
+	public void testToRealPath_unsupported() throws IOException
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.toRealPath((LinkOption) null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
 	public void testToFile()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath.toFile();
 	}
 
 	@Test
@@ -352,11 +473,25 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRegisterWatchServiceKindOfQArrayModifierArray_unsupported() throws IOException
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.register(null, null, (WatchEvent.Modifier) null);
+	}
+
 	@Test
 	@Ignore
 	public void testRegisterWatchServiceKindOfQArray()
 	{
 		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testRegisterWatchServiceKindOfQArray_unsupported() throws IOException
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.register(null, (Kind<?>) null);
 	}
 
 	@Test
@@ -366,6 +501,13 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testIterator_unsupported()
+	{
+		DirectoryPath root = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/");
+		root.iterator();
+	}
+
 	@Test
 	@Ignore
 	public void testCompareTo()
@@ -373,11 +515,19 @@ public class DirectoryPathTest
 		fail("Not yet implemented");
 	}
 
+	@Test(expected = UnsupportedOperationException.class)
+	public void testCompareTo_unsupported()
+	{
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		directoryPath.compareTo(directoryPath);
+	}
+
 	@Test
-	@Ignore
 	public void testGetFileSystem()
 	{
-		fail("Not yet implemented");
+		DirectoryPath directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		DirectoryFileSystem fileSystem = directoryPath.getFileSystem();
+		assertEquals(DIRECTORY_FILE_SYSTEM, fileSystem);
 	}
 
 	@Test
@@ -400,5 +550,16 @@ public class DirectoryPathTest
 		directoryPath = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "", "test/test2/test3");
 		root = directoryPath.getRoot();
 		assertNull(root);
+	}
+
+	@Test
+	public void testEquals()
+	{
+		DirectoryPath directoryPath1 = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test");
+		DirectoryPath directoryPath2 = new DirectoryPath(DIRECTORY_FILE_SYSTEM, "/", "/test2");
+
+		assertTrue(directoryPath1.equals(directoryPath1));
+		assertFalse(directoryPath1.equals(directoryPath2));
+		assertFalse(directoryPath1.equals(directoryPath1.toString()));
 	}
 }

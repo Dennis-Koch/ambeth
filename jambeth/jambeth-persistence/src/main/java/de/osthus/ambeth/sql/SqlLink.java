@@ -6,6 +6,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -29,27 +30,29 @@ public class SqlLink extends Link
 
 	protected IField toField;
 
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
+	@Autowired
 	protected ISqlConnection sqlConnection;
 
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	protected String fullqualifiedEscapedTableName;
 
 	@Override
 	public void afterPropertiesSet()
 	{
 		super.afterPropertiesSet();
 
-		ParamChecker.assertNotNull(persistenceHelper, "PersistenceHelper");
-		ParamChecker.assertNotNull(sqlConnection, "SqlConnection");
-		ParamChecker.assertNotNull(sqlBuilder, "SqlBuilder");
-		ParamChecker.assertNotNull(objectCollector, "PbjectCollector");
 		ParamChecker.assertTrue(fromField != null || toField != null, "FromField or ToField");
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
 	}
 
 	public void setConstraintName(String constraintName)
@@ -57,24 +60,15 @@ public class SqlLink extends Link
 		this.constraintName = constraintName;
 	}
 
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
+	@Override
+	public String getFullqualifiedEscapedTableName()
 	{
-		this.persistenceHelper = persistenceHelper;
+		return fullqualifiedEscapedTableName;
 	}
 
-	public void setSqlConnection(ISqlConnection sqlConnection)
+	public void setFullqualifiedEscapedTableName(String fullqualifiedEscapedTableName)
 	{
-		this.sqlConnection = sqlConnection;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
+		this.fullqualifiedEscapedTableName = fullqualifiedEscapedTableName;
 	}
 
 	public String getConstraintName()
@@ -102,11 +96,6 @@ public class SqlLink extends Link
 	public void setToField(IField toField)
 	{
 		this.toField = toField;
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
 	}
 
 	@Override
@@ -166,8 +155,8 @@ public class SqlLink extends Link
 			fieldNamesSB.append(" IS NOT NULL");
 			String whereSQL = fieldNamesSB.toString();
 
-			IResultSet resultSet = sqlConnection.createResultSet(getTableName(), whereField.getName(), whereField.getFieldType(), fieldNames, whereSQL,
-					fromOrToIds);
+			IResultSet resultSet = sqlConnection.createResultSet(getFullqualifiedEscapedTableName(), whereField.getName(), whereField.getFieldType(),
+					fieldNames, whereSQL, fromOrToIds);
 
 			ResultSetLinkCursor linkCursor = new ResultSetLinkCursor();
 			linkCursor.setFromIdIndex(fromField.getIdIndex());
@@ -186,60 +175,58 @@ public class SqlLink extends Link
 	@Override
 	public void linkIds(IDirectedLink fromLink, Object fromId, List<?> toIds)
 	{
-		if (getName().equals(getTableName()))
-		{
-			IThreadLocalObjectCollector current = objectCollector.getCurrent();
-			StringBuilder namesSB = current.create(StringBuilder.class);
-			ArrayList<Object> convertedToIds = new ArrayList<Object>();
-			try
-			{
-				IField fromField, toField;
-				if (getDirectedLink() == fromLink)
-				{
-					fromField = this.fromField;
-					toField = this.toField;
-				}
-				else if (getReverseDirectedLink() == fromLink)
-				{
-					fromField = this.toField;
-					toField = this.fromField;
-				}
-				else
-				{
-					throw new IllegalArgumentException("Invalid link " + fromLink);
-				}
-				Class<?> fromFieldType = fromField.getFieldType();
-				Class<?> toFieldType = toField.getFieldType();
-				sqlBuilder.appendName(fromField.getName(), namesSB);
-				namesSB.append(',');
-				sqlBuilder.appendName(toField.getName(), namesSB);
-
-				fromId = conversionHelper.convertValueToType(fromFieldType, fromId);
-
-				for (int a = toIds.size(); a-- > 0;)
-				{
-					Object toId = toIds.get(a);
-
-					if (!addLinkModToCache(fromLink, fromId, toId))
-					{
-						continue;
-					}
-					toId = conversionHelper.convertValueToType(toFieldType, toId);
-					convertedToIds.add(toId);
-				}
-				if (convertedToIds.size() > 0)
-				{
-					linkIdsIntern(namesSB.toString(), fromId, toFieldType, convertedToIds);
-				}
-			}
-			finally
-			{
-				current.dispose(namesSB);
-			}
-		}
-		else
+		if (!getName().equals(getTableName()))
 		{
 			updateLinks(fromLink, fromId, toIds);
+			return;
+		}
+		IThreadLocalObjectCollector current = objectCollector.getCurrent();
+		StringBuilder namesSB = current.create(StringBuilder.class);
+		ArrayList<Object> convertedToIds = new ArrayList<Object>();
+		try
+		{
+			IField fromField, toField;
+			if (getDirectedLink() == fromLink)
+			{
+				fromField = this.fromField;
+				toField = this.toField;
+			}
+			else if (getReverseDirectedLink() == fromLink)
+			{
+				fromField = this.toField;
+				toField = this.fromField;
+			}
+			else
+			{
+				throw new IllegalArgumentException("Invalid link " + fromLink);
+			}
+			Class<?> fromFieldType = fromField.getFieldType();
+			Class<?> toFieldType = toField.getFieldType();
+			sqlBuilder.appendName(fromField.getName(), namesSB);
+			namesSB.append(',');
+			sqlBuilder.appendName(toField.getName(), namesSB);
+
+			fromId = conversionHelper.convertValueToType(fromFieldType, fromId);
+
+			for (int a = toIds.size(); a-- > 0;)
+			{
+				Object toId = toIds.get(a);
+
+				if (!addLinkModToCache(fromLink, fromId, toId))
+				{
+					continue;
+				}
+				toId = conversionHelper.convertValueToType(toFieldType, toId);
+				convertedToIds.add(toId);
+			}
+			if (convertedToIds.size() > 0)
+			{
+				linkIdsIntern(namesSB.toString(), fromId, toFieldType, convertedToIds);
+			}
+		}
+		finally
+		{
+			current.dispose(namesSB);
 		}
 	}
 
@@ -300,7 +287,7 @@ public class SqlLink extends Link
 			fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
 			sqlBuilder.appendNameValue(fromField.getName(), fromId, whereSB);
 
-			sqlConnection.queueUpdate(getTableName(), namesAndvaluesSB.toString(), whereSB.toString());
+			sqlConnection.queueUpdate(getFullqualifiedEscapedTableName(), namesAndvaluesSB.toString(), whereSB.toString());
 		}
 		finally
 		{
@@ -376,30 +363,28 @@ public class SqlLink extends Link
 	@Override
 	public void unlinkAllIds(IDirectedLink fromLink, Object fromId)
 	{
-		if (getName().equals(getTableName()))
+		if (!getName().equals(getTableName()))
 		{
-			StringBuilder sb = new StringBuilder();
-			if (getDirectedLink() == fromLink)
-			{
-				fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
-				sqlBuilder.appendNameValue(fromField.getName(), fromId, sb);
-			}
-			else if (getReverseDirectedLink() == fromLink)
-			{
-				fromId = conversionHelper.convertValueToType(toField.getFieldType(), fromId);
-				sqlBuilder.appendNameValue(toField.getName(), fromId, sb);
-			}
-			else
-			{
-				throw new IllegalArgumentException("Invalid table " + fromLink);
-			}
-
-			sqlConnection.queueDelete(getName(), sb.toString(), null);
+			unlinkByUpdate(fromLink, fromId, null);
+			return;
+		}
+		StringBuilder sb = new StringBuilder();
+		if (getDirectedLink() == fromLink)
+		{
+			fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
+			sqlBuilder.appendNameValue(fromField.getName(), fromId, sb);
+		}
+		else if (getReverseDirectedLink() == fromLink)
+		{
+			fromId = conversionHelper.convertValueToType(toField.getFieldType(), fromId);
+			sqlBuilder.appendNameValue(toField.getName(), fromId, sb);
 		}
 		else
 		{
-			unlinkByUpdate(fromLink, fromId, null);
+			throw new IllegalArgumentException("Invalid table " + fromLink);
 		}
+
+		sqlConnection.queueDelete(getFullqualifiedEscapedTableName(), sb.toString(), null);
 	}
 
 	@Override
@@ -407,7 +392,7 @@ public class SqlLink extends Link
 	{
 		if (getName().equals(getTableName()))
 		{
-			sqlConnection.queueDeleteAll(getName());
+			sqlConnection.queueDeleteAll(getFullqualifiedEscapedTableName());
 		}
 		else
 		{
@@ -466,7 +451,7 @@ public class SqlLink extends Link
 				}
 			}
 
-			sqlConnection.queueUpdate(getTableName(), nameAndValueSB.toString(), whereSB.toString());
+			sqlConnection.queueUpdate(getFullqualifiedEscapedTableName(), nameAndValueSB.toString(), whereSB.toString());
 		}
 		finally
 		{

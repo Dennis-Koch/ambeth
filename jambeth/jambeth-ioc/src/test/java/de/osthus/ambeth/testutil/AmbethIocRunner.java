@@ -75,6 +75,34 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		}
 	}
 
+	protected List<Class<? extends IInitializingModule>> buildTestModuleList(FrameworkMethod frameworkMethod)
+	{
+		List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(),
+				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestModule.class);
+
+		ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<Class<? extends IInitializingModule>>();
+		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
+		{
+			TestModule testFrameworkModule = (TestModule) testModuleItem.getAnnotation();
+			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+		}
+		return frameworkModuleList;
+	}
+
+	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
+	{
+		List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(),
+				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestFrameworkModule.class);
+
+		ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<Class<? extends IInitializingModule>>();
+		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
+		{
+			TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
+			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+		}
+		return frameworkModuleList;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected void rebuildContext(FrameworkMethod frameworkMethod)
 	{
@@ -86,25 +114,12 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 		extendProperties(frameworkMethod, baseProps);
 
-		List<IAnnotationInfo<?>> testModulesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod() : null,
-				TestModule.class);
-
-		List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(),
-				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestFrameworkModule.class);
-
 		HashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new HashSet<Class<? extends IInitializingModule>>();
 		HashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new HashSet<Class<? extends IInitializingModule>>();
 
-		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
-		{
-			TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
-			testClassLevelTestFrameworkModulesList.addAll(Arrays.asList(testFrameworkModule.value()));
-		}
-		for (IAnnotationInfo<?> testModuleItem : testModulesList)
-		{
-			TestModule testModule = (TestModule) testModuleItem.getAnnotation();
-			testClassLevelTestModulesList.addAll(Arrays.asList(testModule.value()));
-		}
+		testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
+		testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
+
 		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toList().toArray(Class.class);
 		Class<? extends IInitializingModule>[] bootstrapModules = testClassLevelTestModulesList.toList().toArray(Class.class);
 

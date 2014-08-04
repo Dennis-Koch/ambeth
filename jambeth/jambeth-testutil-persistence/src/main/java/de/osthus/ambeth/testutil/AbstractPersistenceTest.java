@@ -32,9 +32,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.oracle.Oracle10gModule;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
-import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.ioc.SQLQueryModule;
@@ -44,10 +42,9 @@ import de.osthus.ambeth.util.IConversionHelper;
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
-		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, Oracle10gModule.class, SQLQueryModule.class,
-		FilterPersistenceModule.class })
+		PrivilegeServerModule.class, SecurityModule.class, SecurityServerModule.class, SQLQueryModule.class, FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
-@RunWith(NewAmbethPersistenceRunner.class)
+@RunWith(AmbethPersistenceRunner.class)
 public abstract class AbstractPersistenceTest extends AbstractIocTest
 {
 	public static class PersistencePropertiesProvider implements IPropertiesProvider
@@ -59,9 +56,6 @@ public abstract class AbstractPersistenceTest extends AbstractIocTest
 			props.put(ServiceConfigurationConstants.NetworkClientMode, "false");
 			props.put(ServiceConfigurationConstants.SlaveMode, "false");
 			props.put(ServiceConfigurationConstants.LogShortNames, "true");
-
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, "oracle.jdbc.OracleConnection");
-			props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, "de.osthus.ambeth.oracle.Oracle10gConnectionModule");
 
 			// IocModule
 			props.put(IocConfigurationConstants.UseObjectCollector, "false");

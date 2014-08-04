@@ -25,13 +25,13 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IDefaultCollection;
+import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.typeinfo.IRelationInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -566,8 +566,9 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		{
 			IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
 
-			((IValueHolderContainer) primitiveFilledObject).set__TargetCache(this);
-			handleValueHolderContainer(primitiveFilledObject, relationMembers, relations);
+			IValueHolderContainer vhc = (IValueHolderContainer) primitiveFilledObject;
+			vhc.set__TargetCache(this);
+			handleValueHolderContainer(vhc, relationMembers, relations);
 		}
 		if (primitiveFilledObject instanceof IDataObject)
 		{
@@ -576,22 +577,21 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void handleValueHolderContainer(Object primitiveFilledObject, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+	protected void handleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
 	{
 		ICacheHelper cacheHelper = this.cacheHelper;
 		ICacheIntern parent = this.parent;
-		IProxyHelper proxyHelper = this.proxyHelper;
-		for (int a = relationMembers.length; a-- > 0;)
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			IRelationInfoItem relationMember = relationMembers[a];
-			IObjRef[] relationsOfMember = relations[a];
+			IRelationInfoItem relationMember = relationMembers[relationIndex];
+			IObjRef[] relationsOfMember = relations[relationIndex];
 
 			if (!CascadeLoadMode.EAGER.equals(relationMember.getCascadeLoadMode()))
 			{
-				if (!proxyHelper.isInitialized(primitiveFilledObject, relationMember))
+				if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 				{
 					// Update ObjRef information within the entity and do nothing else
-					proxyHelper.setObjRefs(primitiveFilledObject, relationMember, relationsOfMember);
+					vhc.set__ObjRefs(relationIndex, relationsOfMember);
 					continue;
 				}
 			}
@@ -599,10 +599,10 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			if (relationsOfMember == null)
 			{
 				// Reset value holder state because we do not know the content currently
-				proxyHelper.setUninitialized(primitiveFilledObject, relationMember, null);
+				vhc.set__Uninitialized(relationIndex, null);
 				continue;
 			}
-			Object relationValue = relationMember.getValue(primitiveFilledObject);
+			Object relationValue = relationMember.getValue(vhc);
 			if (relationsOfMember.length == 0)
 			{
 				if (!relationMember.isToMany())
@@ -610,7 +610,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 					if (relationValue != null)
 					{
 						// Relation has to be flushed
-						relationMember.setValue(primitiveFilledObject, null);
+						relationMember.setValue(vhc, null);
 					}
 				}
 				else
@@ -624,7 +624,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 					{
 						// We have to create a new empty collection
 						relationValue = cacheHelper.createInstanceOfTargetExpectedType(relationMember.getRealType(), relationMember.getElementType());
-						relationMember.setValue(primitiveFilledObject, relationValue);
+						relationMember.setValue(vhc, relationValue);
 					}
 				}
 				continue;
@@ -640,7 +640,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 				Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(),
 						relationMember.getElementType());
 				// Set new to-many-relation, even if there has not changed anything in its item content
-				relationMember.setValue(primitiveFilledObject, newRelationValue);
+				relationMember.setValue(vhc, newRelationValue);
 				continue;
 			}
 			List<Object> relationItems = ListUtil.anyToList(relationValue);
@@ -677,7 +677,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 				// We have to create a new empty collection
 				Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(),
 						relationMember.getElementType());
-				relationMember.setValue(primitiveFilledObject, newRelationValue);
+				relationMember.setValue(vhc, newRelationValue);
 			}
 		}
 	}
@@ -784,12 +784,13 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Override
 	protected void putInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
 	{
-		IRelationInfoItem member = (IRelationInfoItem) metaData.getMemberByName(objRelation.getMemberName());
-		if (proxyHelper.isInitialized(cacheValue, member))
+		int relationIndex = metaData.getIndexByRelationName(objRelation.getMemberName());
+		IObjRefContainer vhc = (IObjRefContainer) cacheValue;
+		if (ValueHolderState.INIT == vhc.get__State(relationIndex))
 		{
 			// It is not allowed to set ObjRefs for an already initialized relation
 			return;
 		}
-		proxyHelper.setObjRefs(cacheValue, member, relationsOfMember);
+		vhc.set__ObjRefs(relationIndex, relationsOfMember);
 	}
 }

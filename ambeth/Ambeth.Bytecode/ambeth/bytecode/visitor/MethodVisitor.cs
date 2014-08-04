@@ -548,5 +548,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mv.Unbox(unboxedType);
             }
         }
+
+        public virtual void ValueOf(Type type)
+        {
+            if (mv != null)
+            {
+                mv.ValueOf(type);
+            }
+        }
     }
 }

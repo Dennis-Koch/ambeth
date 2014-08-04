@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.net.URI;
@@ -16,6 +17,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.junit.After;
@@ -28,24 +30,22 @@ import org.junit.Test;
 /**
  * 
  * @author jochen.hormes
- * @start 2014-07-21
+ * @start 2014-07-23
  */
-// TODO Change for HDF5
-@Ignore
 public class Hdf5FileSystemTest
 {
 	private static FileSystem defaultFileSystem;
 
 	private static URI testUri;
 
-	private static Hdf5FileSystemProvider directoryFileSystemProvider;
+	private static Hdf5FileSystemProvider hdf5FileSystemProvider;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception
 	{
 		defaultFileSystem = FileSystems.getDefault();
-		testUri = new URI(TestConstant.NAME_HDF5_FS_TEST_FILE);
-		directoryFileSystemProvider = new Hdf5FileSystemProvider();
+		testUri = new URI(TestConstant.EMPTY_FILE_HDF5_URI);
+		hdf5FileSystemProvider = new Hdf5FileSystemProvider();
 	}
 
 	@AfterClass
@@ -53,88 +53,113 @@ public class Hdf5FileSystemTest
 	{
 	}
 
-	private Hdf5FileSystem directoryFileSystem;
+	private Hdf5FileSystem hdf5FileSystem;
 
 	@Before
 	public void setUp() throws Exception
 	{
-		directoryFileSystem = directoryFileSystemProvider.newFileSystem(testUri, Collections.<String, Object> emptyMap());
+		hdf5FileSystem = hdf5FileSystemProvider.newFileSystem(testUri, Collections.<String, Object> emptyMap());
 	}
 
 	@After
 	public void tearDown() throws Exception
 	{
-		if (directoryFileSystem != null)
+		if (hdf5FileSystem != null)
 		{
-			directoryFileSystem.close();
+			hdf5FileSystem.close();
 		}
 	}
 
 	@Test
 	public void testClose() throws IOException
 	{
-		assertTrue(directoryFileSystem.isOpen());
+		assertTrue(hdf5FileSystem.isOpen());
 
-		directoryFileSystem.close();
-		assertFalse(directoryFileSystem.isOpen());
+		hdf5FileSystem.close();
+		assertFalse(hdf5FileSystem.isOpen());
+
+		hdf5FileSystem.close();
 	}
 
 	@Test
 	public void testIsOpen() throws IOException
 	{
-		assertTrue(directoryFileSystem.isOpen());
-		String separator = directoryFileSystem.getSeparator();
+		assertTrue(hdf5FileSystem.isOpen());
+		String separator = hdf5FileSystem.getSeparator();
 		assertNotNull(separator);
 
-		directoryFileSystem.close();
-		assertFalse(directoryFileSystem.isOpen());
+		hdf5FileSystem.close();
+		assertFalse(hdf5FileSystem.isOpen());
 	}
 
 	@Test(expected = ClosedFileSystemException.class)
 	public void testIsOpenCheck() throws IOException
 	{
-		directoryFileSystem.close();
-		directoryFileSystem.getSeparator();
+		hdf5FileSystem.close();
+		hdf5FileSystem.getSeparator();
 	}
 
 	@Test
 	public void testIsReadOnly()
 	{
-		assertEquals(defaultFileSystem.isReadOnly(), directoryFileSystem.isReadOnly());
+		assertEquals(defaultFileSystem.isReadOnly(), hdf5FileSystem.isReadOnly());
 	}
 
 	@Test
 	public void testProvider()
 	{
-		FileSystemProvider provider = directoryFileSystem.provider();
-		assertSame(directoryFileSystemProvider, provider);
+		FileSystemProvider provider = hdf5FileSystem.provider();
+		assertSame(hdf5FileSystemProvider, provider);
 	}
 
 	@Test
 	public void testGetSeparator()
 	{
-		String separator = directoryFileSystem.getSeparator();
+		String separator = hdf5FileSystem.getSeparator();
 		assertEquals("/", separator);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void testGetRootDirectories()
 	{
-		Iterable<Path> rootDirectories = directoryFileSystem.getRootDirectories();
+		Iterable<Path> rootDirectories = hdf5FileSystem.getRootDirectories();
 		assertNotNull(rootDirectories);
+
+		Iterator<Path> iter = rootDirectories.iterator();
+		assertTrue(iter.hasNext());
+
+		Path expected = hdf5FileSystem.getPath("/");
+		Path actual = iter.next();
+		assertEquals(expected, actual);
+
+		assertFalse(iter.hasNext());
+	}
+
+	@Test
+	@Ignore
+	public void testGetFileStores()
+	{
+		fail("Not yet implemented");
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testGetFileStores()
+	public void testGetFileStores_unsupported()
 	{
-		Iterable<FileStore> fileStores = directoryFileSystem.getFileStores();
+		Iterable<FileStore> fileStores = hdf5FileSystem.getFileStores();
 		assertNotNull(fileStores);
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testSupportedFileAttributeViews()
 	{
-		Set<String> supportedFileAttributeViews = directoryFileSystem.supportedFileAttributeViews();
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testSupportedFileAttributeViews_unsupported()
+	{
+		Set<String> supportedFileAttributeViews = hdf5FileSystem.supportedFileAttributeViews();
 		assertNotNull(supportedFileAttributeViews);
 	}
 
@@ -142,9 +167,9 @@ public class Hdf5FileSystemTest
 	public void testGetPath_empty()
 	{
 		String first = "";
-		Hdf5Path path = directoryFileSystem.getPath(first);
+		Hdf5Path path = hdf5FileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem().toString());
+		assertSame(hdf5FileSystem, path.getFileSystem());
 		assertNull(path.getRoot());
 		assertEquals("", path.toString());
 	}
@@ -153,9 +178,9 @@ public class Hdf5FileSystemTest
 	public void testGetPath_root()
 	{
 		String first = "/";
-		Hdf5Path path = directoryFileSystem.getPath(first);
+		Hdf5Path path = hdf5FileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem());
+		assertSame(hdf5FileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
 		assertEquals("/", path.toString());
 	}
@@ -164,9 +189,9 @@ public class Hdf5FileSystemTest
 	public void testGetPath_simple()
 	{
 		String first = "/data";
-		Hdf5Path path = directoryFileSystem.getPath(first);
+		Hdf5Path path = hdf5FileSystem.getPath(first);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem());
+		assertSame(hdf5FileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
 		assertEquals("/data", path.toString());
 	}
@@ -177,9 +202,9 @@ public class Hdf5FileSystemTest
 		String first = "/data";
 		String second = "/test/";
 		String third = "/dir";
-		Hdf5Path path = directoryFileSystem.getPath(first, second, third);
+		Hdf5Path path = hdf5FileSystem.getPath(first, second, third);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem());
+		assertSame(hdf5FileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
 		assertEquals("/data/test/dir", path.toString());
 	}
@@ -190,29 +215,50 @@ public class Hdf5FileSystemTest
 		String first = "/data";
 		String second = "\\test\\";
 		String third = "/dir";
-		Hdf5Path path = directoryFileSystem.getPath(first, second, third);
+		Hdf5Path path = hdf5FileSystem.getPath(first, second, third);
 		assertNotNull(path);
-		assertSame(directoryFileSystem, path.getFileSystem());
+		assertSame(hdf5FileSystem, path.getFileSystem());
 		assertEquals("/", path.getRoot().toString());
 		assertEquals("/data/test/dir", path.toString());
 	}
 
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
+	@Ignore
 	public void testGetPathMatcherString()
 	{
-		String syntaxAndPattern = "";
-		directoryFileSystem.getPathMatcher(syntaxAndPattern);
+		fail("Not yet implemented");
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
+	public void testGetPathMatcherString_unsupported()
+	{
+		String syntaxAndPattern = "";
+		hdf5FileSystem.getPathMatcher(syntaxAndPattern);
+	}
+
+	@Test
+	@Ignore
 	public void testGetUserPrincipalLookupService()
 	{
-		directoryFileSystem.getUserPrincipalLookupService();
+		fail("Not yet implemented");
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testNewWatchService() throws IOException
+	public void testGetUserPrincipalLookupService_unsupported()
 	{
-		directoryFileSystem.newWatchService();
+		hdf5FileSystem.getUserPrincipalLookupService();
+	}
+
+	@Test
+	@Ignore
+	public void testNewWatchService()
+	{
+		fail("Not yet implemented");
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testNewWatchService_unsupported() throws IOException
+	{
+		hdf5FileSystem.newWatchService();
 	}
 }

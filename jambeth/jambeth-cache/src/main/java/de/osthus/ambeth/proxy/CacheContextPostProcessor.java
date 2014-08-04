@@ -1,5 +1,7 @@
 package de.osthus.ambeth.proxy;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -10,6 +12,7 @@ import de.osthus.ambeth.cache.interceptor.CacheContextInterceptor;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -31,6 +34,9 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 		}
 	};
 
+	@Autowired
+	protected CachePostProcessor cachePostProcessor;
+
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
@@ -40,14 +46,16 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 		{
 			return null;
 		}
+		IMethodLevelBehavior<Annotation> cacheBehavior = cachePostProcessor.createInterceptorModeBehavior(type);
+
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext.isRunning())
 		{
-			interceptor = beanContext.registerWithLifecycle(interceptor).ignoreProperties("ProcessService").finish();
+			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("Behavior", cacheBehavior).ignoreProperties("ProcessService").finish();
 		}
 		else
 		{
-			beanContextFactory.registerWithLifecycle(interceptor).ignoreProperties("ProcessService");
+			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("Behavior", cacheBehavior).ignoreProperties("ProcessService");
 		}
 		CacheType cacheType = cacheContext.value();
 		String cacheProviderName;
@@ -88,5 +96,16 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 			interceptorBC.propertyRef("CacheProvider", cacheProviderName).propertyValue("Target", interceptor);
 		}
 		return ccInterceptor;
+	}
+
+	@Override
+	protected Annotation lookForAnnotation(AnnotatedElement member)
+	{
+		Annotation annotation = super.lookForAnnotation(member);
+		if (annotation != null)
+		{
+			return annotation;
+		}
+		return member.getAnnotation(CacheContext.class);
 	}
 }

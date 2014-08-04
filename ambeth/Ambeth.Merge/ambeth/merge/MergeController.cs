@@ -16,63 +16,58 @@ using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class MergeController : IMergeController, IMergeExtendable, IInitializingBean
+    public class MergeController : IMergeController, IMergeExtendable
     {
         protected static readonly CacheDirective failEarlyAndReturnMissesSet = CacheDirective.FailEarly | CacheDirective.ReturnMisses;
 
         protected readonly IMapExtendableContainer<Type, IMergeExtension> mergeExtensions = new ClassExtendableContainer<IMergeExtension>("mergeExtension", "type");
 
+        [Autowired]
         public ICacheFactory CacheFactory { protected get; set; }
 
+        [Autowired]
         public ICacheModification CacheModification { protected get; set; }
 
+        [Autowired]
         public ICacheProvider CacheProvider { protected get; set; }
 
+        [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
 
-        public IProxyHelper ProxyHelper { protected get; set; }
-
+        [Autowired]
         public ICUDResultHelper CUDResultHelper { protected get; set; }
 
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
+        [Autowired]
         public ITypeInfoProvider TypeInfoProvider { protected get; set; }
 
         [Property(MergeConfigurationConstants.ExactVersionForOptimisticLockingRequired, DefaultValue = "false")]
         public bool ExactVersionForOptimisticLockingRequired { protected get; set; }
-
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(CacheFactory, "CacheFactory");
-            ParamChecker.AssertNotNull(CacheModification, "CacheModification");
-            ParamChecker.AssertNotNull(CacheProvider, "CacheProvider");
-            ParamChecker.AssertNotNull(ConversionHelper, "ConversionHelper");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(PrefetchHelper, "PrefetchHelper");
-            ParamChecker.AssertNotNull(ProxyHelper, "ProxyHelper");
-            ParamChecker.AssertNotNull(CUDResultHelper, "CUDResultHelper");
-            ParamChecker.AssertNotNull(OriHelper, "OriHelper");
-            ParamChecker.AssertNotNull(TypeInfoProvider, "TypeInfoProvider");
-        }
-
-        public virtual void RegisterMergeExtension(IMergeExtension mergeExtension, Type entityType)
+        
+        public void RegisterMergeExtension(IMergeExtension mergeExtension, Type entityType)
         {
             mergeExtensions.Register(mergeExtension, entityType);
         }
 
-        public virtual void UnregisterMergeExtension(IMergeExtension mergeExtension, Type entityType)
+        public void UnregisterMergeExtension(IMergeExtension mergeExtension, Type entityType)
         {
             mergeExtensions.Unregister(mergeExtension, entityType);
         }
 
-        public virtual void ApplyChangesToOriginals(IList<Object> originalRefs, IList<IObjRef> oriList, DateTime? changedOn, String changedBy)
+        public void ApplyChangesToOriginals(IList<Object> originalRefs, IList<IObjRef> oriList, DateTime? changedOn, String changedBy)
         {
             bool newInstanceOnCall = CacheProvider.IsNewInstanceOnCall;
             IList<Object> validObjects = new List<Object>(originalRefs.Count);
@@ -94,7 +89,7 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         continue;
                     }
-                    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(originalRef.GetType());
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder) originalRef).Get__EntityMetaData();
                     ITypeInfoItem versionMember = metaData.VersionMember;
 
                     ITypeInfoItem keyMember = metaData.IdMember;
@@ -213,18 +208,17 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
                     }
-                    IProxyHelper proxyHelper = this.ProxyHelper;
                     IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
-                    for (int a = valueHolderKeys.Count; a-- > 0; )
+                    for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
                     {
-                        Object objectOfVhk = objectsOfVhks[a];
+                        IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
                         if (objectOfVhk == null)
                         {
                             continue;
                         }
-                        ValueHolderRef valueHolderRef = valueHolderKeys[a];
+                        ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
                         IRelationInfoItem member = valueHolderRef.Member;
-                        if (!proxyHelper.IsInitialized(objectOfVhk, member))
+                        if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
                         {
                             DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
                             handle.PendingValueHolders.Add(vhcKey);
@@ -330,15 +324,19 @@ namespace De.Osthus.Ambeth.Merge
 			    return;
 		    }
             IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-            IProxyHelper proxyHelper = this.ProxyHelper;
-            for (int a = relationMembers.Length; a-- > 0; )
+            if (relationMembers.Length == 0)
             {
-                IRelationInfoItem relationMember = relationMembers[a];
-                if (!proxyHelper.IsInitialized(obj, relationMember))
+                return;
+            }
+            IObjRefContainer vhc = (IObjRefContainer)obj;
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+            {
+                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
                 }
-                Object item = relationMembers[a].GetValue(obj);
+                Object item = relationMembers[relationIndex].GetValue(obj);
                 if (objRef != null && item != null)
                 {
                     ValueHolderRef vhk = new ValueHolderRef(objRef, relationMember);
@@ -437,7 +435,7 @@ namespace De.Osthus.Ambeth.Merge
                     return;
                 }
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             metaData.PrePersist(obj);
             Object key = metaData.IdMember.GetValue(obj, false);
             if (key == null)
@@ -459,23 +457,29 @@ namespace De.Osthus.Ambeth.Merge
 
         protected virtual void Persist(Object obj, MergeHandle handle)
         {
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
-            IProxyHelper proxyHelper = this.ProxyHelper;
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
             AddModification(obj, handle); // Ensure entity will be persisted even if no single property is specified
-            foreach (IRelationInfoItem relationMember in metaData.RelationMembers)
-            {
-                if (!proxyHelper.IsInitialized(obj, relationMember))
-                {
-                    continue;
-                }
-                Object objMember = relationMember.GetValue(obj, false);
 
-                if (objMember == null)
+            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            if (relationMembers.Length > 0)
+            {
+                IObjRefContainer vhc = (IObjRefContainer)obj;
+                for (int relationIndex = relationMembers.Length; relationIndex-- > 0;)
                 {
-                    continue;
+                    IRelationInfoItem relationMember = relationMembers[relationIndex];
+                    if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
+                    {
+                        continue;
+                    }
+                    Object objMember = relationMember.GetValue(obj, false);
+
+                    if (objMember == null)
+                    {
+                        continue;
+                    }
+                    AddOriModification(obj, relationMember.Name, objMember, null, handle);
                 }
-                AddOriModification(obj, relationMember.Name, objMember, null, handle);
             }
             foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
             {
@@ -495,41 +499,46 @@ namespace De.Osthus.Ambeth.Merge
         protected virtual void Merge(Object obj, Object clone, MergeHandle handle)
         {
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-            IProxyHelper proxyHelper = this.ProxyHelper;
-            IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
             bool fieldBasedMergeActive = handle.FieldBasedMergeActive;
             bool oneChangeOccured = false;
             try
             {
-                foreach (IRelationInfoItem relationMember in metaData.RelationMembers)
+                IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+                if (relationMembers.Length > 0)
                 {
-                    if (!metaData.IsMergeRelevant(relationMember))
+                    IObjRefContainer vhc = (IObjRefContainer)obj;
+                    for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
                     {
-                        continue;
-                    }
-                    if (!proxyHelper.IsInitialized(obj, relationMember))
-                    {
-                        // v2 valueholder is not initialized. so a change is impossible
-                        continue;
-                    }
-                    Object objMember = relationMember.GetValue(obj, false);
-                    Object cloneMember = relationMember.GetValue(clone, false);
-                    if (objMember is IDataObject && !((IDataObject) objMember).HasPendingChanges)
-				    {
-					    IEntityMetaData relationMetaData = entityMetaDataProvider.GetMetaData(relationMember.RealType);
-					    if (EqualsReferenceOrId(objMember, cloneMember, handle, relationMetaData))
-					    {
-						    continue;
-					    }
-				    }
+                        IRelationInfoItem relationMember = relationMembers[relationIndex];
+                        if (!metaData.IsMergeRelevant(relationMember))
+                        {
+                            continue;
+                        }
+                        if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
+                        {
+                            // v2 valueholder is not initialized. so a change is impossible
+                            continue;
+                        }
+                        Object objMember = relationMember.GetValue(obj, false);
+                        Object cloneMember = relationMember.GetValue(clone, false);
+                        if (objMember is IDataObject && !((IDataObject)objMember).HasPendingChanges)
+                        {
+                            IEntityMetaData relationMetaData = entityMetaDataProvider.GetMetaData(relationMember.RealType);
+                            if (EqualsReferenceOrId(objMember, cloneMember, handle, relationMetaData))
+                            {
+                                continue;
+                            }
+                        }
 
-                    IEntityMetaData childMetaData = entityMetaDataProvider.GetMetaData(relationMember.ElementType);
+                        IEntityMetaData childMetaData = entityMetaDataProvider.GetMetaData(relationMember.ElementType);
 
-                    if (IsMemberModified(objMember, cloneMember, handle, childMetaData))
-                    {
-                        oneChangeOccured = true;
-                        AddOriModification(obj, relationMember.Name, objMember, cloneMember, handle);
+                        if (IsMemberModified(objMember, cloneMember, handle, childMetaData))
+                        {
+                            oneChangeOccured = true;
+                            AddOriModification(obj, relationMember.Name, objMember, cloneMember, handle);
+                        }
                     }
                 }
                 if (fieldBasedMergeActive)

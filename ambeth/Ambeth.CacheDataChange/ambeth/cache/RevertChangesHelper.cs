@@ -20,6 +20,7 @@ using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -187,7 +188,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 return;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).Get__EntityMetaData();
             Object id = metaData.IdMember.GetValue(obj);
             objList.Add(obj);
             objRefs.Add(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null));
@@ -279,7 +280,7 @@ namespace De.Osthus.Ambeth.Cache
             revertList.Add(obj);
             if (recursive)
             {
-                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+                IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
                 IRelationInfoItem[] relations = metaData.RelationMembers;
                 foreach (IRelationInfoItem relation in relations)
                 {
@@ -317,7 +318,7 @@ namespace De.Osthus.Ambeth.Cache
                         for (int a = objectsToRevert.Count; a-- > 0; )
                         {
                             Object objectToRevert = objectsToRevert[a];
-                            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objectToRevert.GetType());
+                            IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToRevert).Get__EntityMetaData();
                             Object id = metaData.IdMember.GetValue(objectToRevert, false);
 
                             if (id == null)
@@ -470,7 +471,7 @@ namespace De.Osthus.Ambeth.Cache
                         for (int a = initializedObjects.Count; a-- > 0; )
                         {
                             Object objectToRevert = initializedObjects[a];
-                            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objectToRevert.GetType());
+                            IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToRevert).Get__EntityMetaData();
                             Object id = metaData.IdMember.GetValue(objectToRevert, false);
 
                             if (id == null)

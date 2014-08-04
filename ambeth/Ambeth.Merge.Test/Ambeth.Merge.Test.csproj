@@ -51,7 +51,6 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\merge\DefaultProxyHelper.cs" />
     <Compile Include="ambeth\util\XmlConfigUtilTest.cs" />
     <Compile Include="ioc\MergeTestModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -35,7 +35,7 @@ public class DirectoryPath extends AbstractPath<DirectoryPath, DirectoryFileSyst
 			throw new IllegalArgumentException("Both paths have to be absolute");
 		}
 		boolean isSameFileSystem = fileSystem.equals(other.getFileSystem());
-		boolean isUnderlyingFileSystem = fileSystem.getUnderlyingFileSystem().equals(other.getFileSystem());
+		boolean isUnderlyingFileSystem = fileSystem.getUnderlyingFileSystemPath().getFileSystem().equals(other.getFileSystem());
 		if (!isSameFileSystem && !isUnderlyingFileSystem)
 		{
 			throw new ProviderMismatchException();

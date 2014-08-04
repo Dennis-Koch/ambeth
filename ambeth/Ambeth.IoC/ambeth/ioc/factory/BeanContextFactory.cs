@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using De.Osthus.Ambeth.Accessor;
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Extendable;
@@ -13,7 +14,6 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
-using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -47,6 +47,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             ThreadLocalCleanupController threadLocalCleanupController = new ThreadLocalCleanupController();
 
             ConversionHelper conversionHelper = new ConversionHelper();
+            DelegatingConversionHelper delegatingConversionHelper = new DelegatingConversionHelper();
             LinkController linkController = new LinkController();
             LoggerHistory loggerHistory = new LoggerHistory();
             AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
@@ -58,11 +59,12 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             DelegateFactory delegateFactory = new DelegateFactory();
 
             callingProxyPostProcessor.PropertyInfoProvider = propertyInfoProvider;
+            delegatingConversionHelper.DefaultConversionHelper = conversionHelper;
             linkController.ExtendableRegistry = extendableRegistry;
             linkController.Props = newProps;
             linkController.ProxyFactory = proxyFactory;
             beanContextInitializer.CallingProxyPostProcessor = callingProxyPostProcessor;
-            beanContextInitializer.ConversionHelper = conversionHelper;
+            beanContextInitializer.ConversionHelper = delegatingConversionHelper;
             beanContextInitializer.PropertyInfoProvider = propertyInfoProvider;
             propertyInfoProvider.AccessorTypeProvider = accessorTypeProvider;
 
@@ -77,6 +79,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
             ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, accessorTypeProvider);
             ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, callingProxyPostProcessor);
+            ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, delegatingConversionHelper);
             ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, extendableRegistry);
             ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, linkController);
             ScanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, loggerHistory);
@@ -87,6 +90,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
             accessorTypeProvider.AfterPropertiesSet();
             callingProxyPostProcessor.AfterPropertiesSet();
+            delegatingConversionHelper.AfterPropertiesSet();
             extendableRegistry.AfterPropertiesSet();
             linkController.AfterPropertiesSet();
             loggerHistory.AfterPropertiesSet();
@@ -94,30 +98,34 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             threadLocalCleanupController.AfterPropertiesSet();
 
             PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
-            propertiesPreProcessor.ConversionHelper = conversionHelper;
+            propertiesPreProcessor.ConversionHelper = delegatingConversionHelper;
             propertiesPreProcessor.PropertyInfoProvider = propertyInfoProvider;
             propertiesPreProcessor.AfterPropertiesSet();
 
+            // The DelegatingConversionHelper is functional, but has yet no properties set
+            propertiesPreProcessor.PreProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, null);
+            delegatingConversionHelper.AfterPropertiesSet();
+
             BeanContextFactory parentContextFactory = new BeanContextFactory(linkController, beanContextInitializer, proxyFactory, null, newProps, null);
 
-            parentContextFactory.RegisterWithLifecycle("loggerHistory", loggerHistory).Autowireable<ILoggerHistory>();
-            parentContextFactory.RegisterWithLifecycle("proxyFactory", proxyFactory).Autowireable<IProxyFactory>();
+            parentContextFactory.RegisterWithLifecycle(loggerHistory).Autowireable<ILoggerHistory>();
+            parentContextFactory.RegisterWithLifecycle(proxyFactory).Autowireable<IProxyFactory>();
             parentContextFactory.RegisterWithLifecycle(threadLocalCleanupController).Autowireable(typeof(IThreadLocalCleanupController),
                     typeof(IThreadLocalCleanupBeanExtendable));
+
+			parentContextFactory.RegisterExternalBean(delegatingConversionHelper).Autowireable(typeof(IConversionHelper), typeof(IDedicatedConverterExtendable));
 
             parentContextFactory.RegisterWithLifecycle(accessorTypeProvider).Autowireable<IAccessorTypeProvider>();
 
             parentContextFactory.RegisterWithLifecycle(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
 
-            parentContextFactory.RegisterWithLifecycle("extendableRegistry", extendableRegistry).Autowireable<IExtendableRegistry>();
+            parentContextFactory.RegisterWithLifecycle(extendableRegistry).Autowireable<IExtendableRegistry>();
 
-            parentContextFactory.RegisterWithLifecycle("callingProxyPostProcessor", callingProxyPostProcessor).Autowireable<CallingProxyPostProcessor>();
+            parentContextFactory.RegisterWithLifecycle(callingProxyPostProcessor).Autowireable<CallingProxyPostProcessor>();
 
-            parentContextFactory.RegisterWithLifecycle("propertyInfoProvider", propertyInfoProvider).Autowireable<IPropertyInfoProvider>();
-
-            parentContextFactory.RegisterWithLifecycle("conversionHelper", conversionHelper).Autowireable<IConversionHelper>();
-
-            parentContextFactory.RegisterWithLifecycle("delegateFactory", delegateFactory).Autowireable<IDelegateFactory>();
+            parentContextFactory.RegisterWithLifecycle(propertyInfoProvider).Autowireable<IPropertyInfoProvider>();
+            
+            parentContextFactory.RegisterWithLifecycle(delegateFactory).Autowireable<IDelegateFactory>();
 
             if (bootstrapModules != null)
             {

@@ -10,6 +10,8 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Cache;
 
 namespace De.Osthus.Ambeth.Xml.Pending
 {
@@ -23,10 +25,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
 
         [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
-
-        [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
-
+        
         public override void AfterPropertiesSet()
         {
             base.AfterPropertiesSet();
@@ -34,7 +33,6 @@ namespace De.Osthus.Ambeth.Xml.Pending
             ParamChecker.AssertParamOfType(Parent, "Parent", typeof(IChangeContainer));
 
             ParamChecker.AssertNotNull(EntityMetaDataProvider, "MetadataProvider");
-            ParamChecker.AssertNotNull(ProxyHelper, "ProxyHelper");
         }
 
         public override void Execute(IReader reader)
@@ -59,10 +57,13 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
 
             Object entity = ObjectFuture.Value;
-            Type realType = entity.GetType();
-            IEntityMetaData metadata = EntityMetaDataProvider.GetMetaData(realType);
+            IEntityMetaData metadata = ((IEntityMetaDataHolder)entity).Get__EntityMetaData();
             ApplyPrimitiveUpdateItems(entity, puis, metadata);
-            ApplyRelationUpdateItems(entity, ruis, Parent is UpdateContainer, metadata, reader);
+
+            if (ruis != null && ruis.Length > 0)
+            {
+                ApplyRelationUpdateItems((IObjRefContainer) entity, ruis, Parent is UpdateContainer, metadata, reader);
+            }
         }
 
         protected void ApplyPrimitiveUpdateItems(Object entity, IPrimitiveUpdateItem[] puis, IEntityMetaData metadata)
@@ -81,26 +82,20 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
         }
 
-        protected void ApplyRelationUpdateItems(Object entity, IRelationUpdateItem[] ruis, bool isUpdate, IEntityMetaData metadata, IReader reader)
+        protected void ApplyRelationUpdateItems(IObjRefContainer entity, IRelationUpdateItem[] ruis, bool isUpdate, IEntityMetaData metadata, IReader reader)
         {
-            if (ruis == null)
-            {
-                return;
-            }
-
             List<Object> toPrefetch = new List<Object>();
-            IProxyHelper proxyHelper = ProxyHelper;
+            IRelationInfoItem[] relationMembers = metadata.RelationMembers;
             foreach (IRelationUpdateItem rui in ruis)
             {
                 String memberName = rui.MemberName;
-                IRelationInfoItem member = metadata.GetMemberByName(memberName) as IRelationInfoItem;
-                bool? isInitialized = proxyHelper.IsInitialized(entity, member);
-                if (isInitialized != null && isInitialized.Value)
+                int relationIndex = metadata.GetIndexByRelationName(memberName);
+			    if (ValueHolderState.INIT == entity.Get__State(relationIndex))
                 {
                     throw new Exception("ValueHolder already initialized for property '" + memberName + "'");
                 }
 
-                IObjRef[] existingORIs = proxyHelper.GetObjRefs(entity, member);
+                IObjRef[] existingORIs = entity.Get__ObjRefs(relationIndex);
                 IObjRef[] addedORIs = rui.AddedORIs;
                 IObjRef[] removedORIs = rui.RemovedORIs;
 
@@ -147,10 +142,11 @@ namespace De.Osthus.Ambeth.Xml.Pending
                     }
                 }
 
+                IRelationInfoItem member = relationMembers[relationIndex];
                 if (isUpdate)
                 {
-                    proxyHelper.SetObjRefs(entity, member, newORIs);
-                    if (!proxyHelper.IsInitialized(entity, member))
+                    entity.Set__ObjRefs(relationIndex, newORIs);
+                    if (!entity.Is__Initialized(relationIndex))
                     {
                         DirectValueHolderRef dvhr = new DirectValueHolderRef(entity, member);
                         toPrefetch.Add(dvhr);

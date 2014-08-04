@@ -43,10 +43,7 @@ namespace De.Osthus.Ambeth.Util
 
         [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
-
-        [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
-
+        
         [Autowired]
         public ITypeInfoProvider TypeInfoProvider { protected get; set; }
 
@@ -192,7 +189,6 @@ namespace De.Osthus.Ambeth.Util
                     setCreated = true;
                 }
                 IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-                IProxyHelper proxyHelper = this.ProxyHelper;
                 ValueHolderContainerTemplate valueHolderContainerTemplate = this.ValueHolderContainerTemplate;
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRef>>();
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>>();
@@ -242,7 +238,7 @@ namespace De.Osthus.Ambeth.Util
                             IList<CachePath> cachePaths = null;
                             if (typeToMembersToInitialize != null)
                             {
-                                IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(objects.GetType());
+                                IEntityMetaData metaData = ((IEntityMetaDataHolder) objects).Get__EntityMetaData();
                                 cachePaths = DictionaryExtension.ValueOrDefault(typeToMembersToInitialize, metaData.EntityType);
 
                                 if (cachePaths == null)
@@ -291,6 +287,7 @@ namespace De.Osthus.Ambeth.Util
                 while (loadItems.Count > 0)
                 {
                     CascadeLoadItem[] cascadeLoadItems = loadItems.ToArray();
+                    // Clear the items to be ready for cascaded items in new batch recursion step
                     loadItems.Clear();
                     GuiThreadHelper.InvokeInGuiAndWait(delegate()
                     {
@@ -310,30 +307,34 @@ namespace De.Osthus.Ambeth.Util
                                 // Merge the root prefetch path with the relative prefetch path
                                 cachePaths = MergeCachePaths(cascadeLoadItem.realType, cachePaths, typeToMembersToInitialize);
 
-                                Object obj;
-                                if (valueHolder is IndirectValueHolderRef)
-                                {
-                                    IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef)valueHolder;
-                                    RootCacheValue rcv = (RootCacheValue)valueHolderKey.Vhc;
-                                    IRelationInfoItem member = valueHolderKey.Member;
-                                    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(rcv.EntityType);
-                                    int relationIndex = metaData.GetIndexByRelation(member);
-                                    IObjRef[] objRefs = rcv.GetRelation(relationIndex);
-                                    obj = valueHolderContainerTemplate.GetValue(rcv, member, valueHolderKey.RootCache, objRefs,
-                                            CacheDirective.FailEarly);
-                                }
-                                else
-                                {
-                                    DirectValueHolderRef valueHolderKey = (DirectValueHolderRef)valueHolder;
-                                    IValueHolderContainer vhc = (IValueHolderContainer)valueHolderKey.Vhc;
-                                    IRelationInfoItem member = valueHolderKey.Member;
-                                    IObjRef[] objRefs = proxyHelper.GetObjRefs(vhc, member);
-                                    obj = valueHolderContainerTemplate.GetValue(vhc, member, CacheDirective.FailEarly);
-                                    if (obj != null)
-                                    {
-                                        member.SetValue(vhc, obj);
-                                    }
-                                }
+                                IObjRefContainer vhc;
+						        ICacheIntern targetCache;
+						        IRelationInfoItem member;
+						        bool doSetValue = false;
+						        Object obj;
+						        if (valueHolder is IndirectValueHolderRef)
+						        {
+							        IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef) valueHolder;
+							        vhc = valueHolderKey.Vhc;
+							        targetCache = valueHolderKey.RootCache;
+							        member = valueHolderKey.Member;
+						        }
+						        else
+						        {
+							        DirectValueHolderRef valueHolderKey = (DirectValueHolderRef) valueHolder;
+							        IValueHolderContainer vhcTemp = (IValueHolderContainer) valueHolderKey.Vhc;
+							        vhc = vhcTemp;
+                                    targetCache = vhcTemp.__TargetCache;
+							        member = valueHolderKey.Member;
+							        doSetValue = true;
+						        }
+						        int relationIndex = vhc.Get__EntityMetaData().GetIndexByRelation(member);
+						        IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex);
+						        obj = valueHolderContainerTemplate.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
+						        if (doSetValue && obj != null)
+						        {
+							        member.SetValue(vhc, obj);
+						        }
                                 EnsureInitializedRelationsIntern(obj, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                                         cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
                             }
@@ -519,18 +520,23 @@ namespace De.Osthus.Ambeth.Util
             {
                 return;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-            IProxyHelper proxyHelper = this.ProxyHelper;
+            if (relationMembers.Length == 0)
+            {
+                return;
+            }
+            IValueHolderContainer vhc = (IValueHolderContainer)obj;
             for (int a = cachePaths.Count; a-- > 0; )
             {
                 CachePath path = cachePaths[a];
 
-                IRelationInfoItem member = relationMembers[path.memberIndex];
+                int relationIndex = path.memberIndex;
+                IRelationInfoItem member = relationMembers[relationIndex];
 
-                if (!proxyHelper.IsInitialized(obj, member))
+                if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
-                    DirectValueHolderRef vhk = new DirectValueHolderRef(obj, member);
+                    DirectValueHolderRef vhk = new DirectValueHolderRef(vhc, member);
                     EnsureInitializedRelationsIntern(vhk, path.children, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                             cacheToOrelsLoadedHistory, alreadyHandledSet, cascadeLoadItems);
                     continue;
@@ -611,15 +617,17 @@ namespace De.Osthus.Ambeth.Util
                 return false;
             }
             IValueHolderContainer vhc = (IValueHolderContainer)vhr.Vhc;
-            if (ProxyHelper.IsInitialized(vhc, member))
+            int relationIndex2 = vhc.Get__EntityMetaData().GetIndexByRelationName(member.Name);
+
+            if (ValueHolderState.INIT == vhc.Get__State(relationIndex2))
             {
                 return true;
             }
             ICacheIntern cache = vhc.__TargetCache;
-            IObjRef[] objRefs = ProxyHelper.GetObjRefs(vhc, member);
+            IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex2);
             if (objRefs == null)
             {
-                IObjRelation self = vhc.GetSelf(member);
+                IObjRelation self = vhc.Get__Self(relationIndex2);
                 List<IObjRelation> orels = new List<IObjRelation>();
                 orels.Add(self);
                 IList<IObjRelationResult> orelResults = cache.GetObjRelations(orels, cache, failEarlyReturnMisses);
@@ -645,7 +653,7 @@ namespace De.Osthus.Ambeth.Util
                 objRefs = orelResult.Relations;
                 if (objRefs != null)
                 {
-                    ProxyHelper.SetObjRefs(vhc, member, objRefs);
+                    vhc.Set__ObjRefs(relationIndex2, objRefs);
                 }
             }
             if (objRefs != null && objRefs.Length > 0)
@@ -775,27 +783,27 @@ namespace De.Osthus.Ambeth.Util
             {
                 return ObjRef.EMPTY_ARRAY_ARRAY;
             }
+            IValueHolderContainer vhc = (IValueHolderContainer)obj;
             IObjRef[][] relations = new IObjRef[relationMembers.Length][];
 
             IObjRefHelper oriHelper = this.OriHelper;
-            IProxyHelper proxyHelper = this.ProxyHelper;
-            for (int a = relationMembers.Length; a-- > 0; )
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[a];
+                IRelationInfoItem relationMember = relationMembers[relationIndex];
 
-                if (false == proxyHelper.IsInitialized(obj, relationMember))
+                if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
-                    relations[a] = proxyHelper.GetObjRefs(obj, relationMember);
+                    relations[relationIndex] = vhc.Get__ObjRefs(relationIndex);
                     continue;
                 }
                 Object relationValue = relationMember.GetValue(obj, false);
                 if (relationValue == null)
                 {
-                    relations[a] = ObjRef.EMPTY_ARRAY;
+                    relations[relationIndex] = ObjRef.EMPTY_ARRAY;
                     continue;
                 }
                 IList<IObjRef> oris = oriHelper.ExtractObjRefList(relationValue, null);
-                relations[a] = oris != null ? ListUtil.ToArray<IObjRef>(oris) : null;
+                relations[relationIndex] = oris != null ? ListUtil.ToArray<IObjRef>(oris) : null;
 
                 if (relationValues != null)
                 {

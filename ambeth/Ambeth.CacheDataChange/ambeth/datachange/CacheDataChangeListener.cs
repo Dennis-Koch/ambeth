@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
@@ -39,10 +40,7 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
-
-        [Autowired]
-        public IProxyHelper ProxyHelper { protected get; set; }
-
+        
         [Autowired]
         public ISecondLevelCacheManager SecondLevelCacheManager { protected get; set; }
 
@@ -344,7 +342,7 @@ namespace De.Osthus.Ambeth.Cache
                         }
                         if (versionInDCE != null)
                         {
-                            IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(tempORI.RealType);
+                            IEntityMetaData metaData = ((IEntityMetaDataHolder)result).Get__EntityMetaData();
                             Object versionInCache = metaData.VersionMember != null ? metaData.VersionMember.GetValue(result, false) : null;
                             if (versionInCache != null && ((IComparable)versionInDCE).CompareTo(versionInCache) <= 0)
                             {
@@ -399,7 +397,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 return;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(obj.GetType());
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
             Object id = metaData.IdMember.GetValue(obj, false);
             if (id == null)
             {
@@ -409,12 +407,16 @@ namespace De.Osthus.Ambeth.Cache
             }
             ObjRef objRef = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
             objRefs.Add(objRef);
-            IProxyHelper proxyHelper = this.ProxyHelper;
             IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-            for (int a = relationMembers.Length; a-- > 0; )
+            if (relationMembers.Length == 0)
             {
-                IRelationInfoItem relationMember = relationMembers[a];
-                if (!proxyHelper.IsInitialized(obj, relationMember))
+                return;
+            }
+            IObjRefContainer vhc = (IObjRefContainer)obj;
+            for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+            {
+                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
                 }
@@ -488,22 +490,26 @@ namespace De.Osthus.Ambeth.Cache
                         return;
                     }
                     IObjRef[][] relations = loadContainer.Relations;
-                    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(oriToUpdate.RealType);
+                    IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToUpdate).Get__EntityMetaData();
                     Type entityType = metaData.EntityType;
                     IRelationInfoItem[] relationMembers = metaData.RelationMembers;
-
-                    for (int b = relationMembers.Length; b-- > 0; )
+                    if (relationMembers.Length == 0)
                     {
-                        IRelationInfoItem member = relationMembers[b];
-                        if (ProxyHelper.IsInitialized(objectToUpdate, member))
+                        continue;
+                    }
+                    IObjRefContainer vhc = (IObjRefContainer)objectToUpdate;
+                    for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
+                    {
+                        if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                         {
+                            continue;
+                        }
                             // the object which has to be updated has initialized relations. So we have to ensure
                             // that these relations are in the RootCache at the time the target object will be updated.
                             // This is because initialized relations have to remain initialized after update but the relations
                             // may have updated, too
-                            BatchPendingRelations(objectToUpdate, member, relations[b],
+                        BatchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex],
                                 cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
-                        }
                     }
 
                     if (typeToCachePathsDict == null || typeToCachePathsDict.Count == 0)
@@ -519,14 +525,14 @@ namespace De.Osthus.Ambeth.Cache
                     foreach (CachePath cachePath in cachePaths)
                     {
                         int memberIndex = metaData.GetIndexByRelationName(cachePath.memberName);
-                        BatchPendingRelations(objectToUpdate, relationMembers[memberIndex], relations[memberIndex],
+                        BatchPendingRelations(vhc, relationMembers[memberIndex], relations[memberIndex],
                             cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
                     }
                 }
             }
         }
 
-        protected void BatchPendingRelations(Object entity, IRelationInfoItem member, IObjRef[] relationsOfMember, IISet<IObjRef> cascadeRefreshObjRefsSet,
+        protected void BatchPendingRelations(IObjRefContainer entity, IRelationInfoItem member, IObjRef[] relationsOfMember, IISet<IObjRef> cascadeRefreshObjRefsSet,
             ISet<IObjRelation> cascadeRefreshObjRelationsSet)
         {
             if (relationsOfMember == null)
@@ -582,7 +588,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 // Check if the objects still have their id. They may have lost them concurrently because this
                                 // method here may be called from another thread (e.g. UI thread)
-                                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objectInCache.GetType());
+                                IEntityMetaData metaData = ((IEntityMetaDataHolder)objectInCache).Get__EntityMetaData();
                                 Object id = metaData.IdMember.GetValue(objectInCache, false);
                                 if (id == null)
                                 {

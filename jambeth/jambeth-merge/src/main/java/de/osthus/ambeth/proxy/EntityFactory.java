@@ -17,8 +17,8 @@ import de.osthus.ambeth.bytecode.IBytecodePrinter;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
-import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.compositeid.CompositeIdTypeInfoItem;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -81,9 +81,9 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 
 	protected final HashMap<Class<?>, HashMap<Method, Integer>> typeToMethodMap = new HashMap<Class<?>, HashMap<Method, Integer>>();
 
-	protected final WeakSmartCopyMap<FastConstructor, Object[]> constructorToBeanArgsMap = new WeakSmartCopyMap<FastConstructor, Object[]>(0.5f);
+	protected final IdentityWeakSmartCopyMap<FastConstructor, Object[]> constructorToBeanArgsMap = new IdentityWeakSmartCopyMap<FastConstructor, Object[]>(0.5f);
 
-	protected final WeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>> typeToEmbeddedInfoItemsMap = new WeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>>(
+	protected final IdentityWeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>> typeToEmbeddedInfoItemsMap = new IdentityWeakSmartCopyMap<Class<?>, Reference<IEmbeddedTypeInfoItem[][]>>(
 			0.5f);
 
 	protected final Lock readLock, writeLock;
@@ -181,6 +181,12 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 		return constructor;
 	}
 
+	protected void fillEnhancedType(IEntityMetaData metaData, Class<?> enhancementBaseType)
+	{
+		((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(enhancementBaseType, EntityEnhancementHint.EntityEnhancementHint));
+		entityMetaDataRefresher.refreshMembers(metaData);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T createEntity(Class<T> entityType)
@@ -194,8 +200,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(mappedEntityType);
 		if (metaData.getEnhancedType() == null)
 		{
-			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
-			entityMetaDataRefresher.refreshMembers(metaData);
+			fillEnhancedType(metaData, mappedEntityType);
 		}
 		Object entity = createEntityIntern(metaData, true);
 		if (extension != null && extension != this)
@@ -228,8 +233,7 @@ public class EntityFactory extends AbstractEntityFactory implements IEntityFacto
 			{
 				mappedEntityType = extension.getMappedEntityType(mappedEntityType);
 			}
-			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(mappedEntityType, EntityEnhancementHint.EntityEnhancementHint));
-			entityMetaDataRefresher.refreshMembers(metaData);
+			fillEnhancedType(metaData, mappedEntityType);
 		}
 		Object entity = createEntityIntern2(metaData, doEmptyInit);
 		if (extension != null && extension != this)

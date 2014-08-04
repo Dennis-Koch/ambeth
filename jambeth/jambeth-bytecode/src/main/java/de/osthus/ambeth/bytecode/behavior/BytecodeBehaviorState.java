@@ -235,19 +235,22 @@ public class BytecodeBehaviorState implements IBytecodeBehaviorState
 	{
 		for (Entry<String, IValueResolveDelegate> entry : initializeStaticFields)
 		{
-			Field field = ReflectUtil.getDeclaredField(newType, entry.getKey());
-			if (field == null)
+			Field[] fields = ReflectUtil.getDeclaredFieldInHierarchy(newType, entry.getKey());
+			if (fields.length == 0)
 			{
 				throw new IllegalStateException("Field not found: '" + newType.getName() + "." + entry.getKey());
 			}
 			Object value = entry.getValue().invoke(entry.getKey(), newType);
-			try
+			for (Field field : fields)
 			{
-				field.set(null, value);
-			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e, "Error occured while setting field: " + field);
+				try
+				{
+					field.set(null, value);
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e, "Error occured while setting field: " + field);
+				}
 			}
 		}
 		initializeStaticFields.clear();
