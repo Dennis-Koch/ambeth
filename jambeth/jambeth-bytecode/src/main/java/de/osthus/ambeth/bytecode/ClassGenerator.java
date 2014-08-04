@@ -286,4 +286,42 @@ public class ClassGenerator extends ClassVisitor
 
 		return mg;
 	}
+
+	public MethodInstance implementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script)
+	{
+		MethodGenerator mv = visitMethod(method);
+
+		if (indexSize == 0)
+		{
+			mv.throwException(Type.getType(IllegalArgumentException.class), exceptionMessageOnIllegalIndex);
+			mv.pushNull();
+			mv.returnValue();
+			mv.endMethod();
+			return mv.getMethod();
+		}
+
+		Label l_default = mv.newLabel();
+		Label[] l_fields = new Label[indexSize];
+		for (int index = 0, size = indexSize; index < size; index++)
+		{
+			l_fields[index] = mv.newLabel();
+		}
+
+		mv.loadArg(0);
+		mv.visitTableSwitchInsn(0, l_fields.length - 1, l_default, l_fields);
+
+		for (int index = 0, size = l_fields.length; index < size; index++)
+		{
+			mv.mark(l_fields[index]);
+
+			script.execute(mv, index);
+		}
+		mv.mark(l_default);
+
+		mv.throwException(Type.getType(IllegalArgumentException.class), "Given relationIndex not known");
+		mv.pushNull();
+		mv.returnValue();
+		mv.endMethod();
+		return mv.getMethod();
+	}
 }

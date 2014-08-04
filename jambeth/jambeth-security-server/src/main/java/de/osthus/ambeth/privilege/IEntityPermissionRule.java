@@ -6,7 +6,7 @@ import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.util.IPrefetchConfig;
 
-public interface IPrivilegeProviderExtension<T>
+public interface IEntityPermissionRule<T> extends IPermissionRule
 {
 	/**
 	 * This greatly increases security processing with lists of entities, because all necessary valueholders can be initialized with the least possible database
@@ -28,14 +28,4 @@ public interface IPrivilegeProviderExtension<T>
 	 * @param pe
 	 */
 	void evaluatePermissionOnInstance(IObjRef objRef, T entity, IAuthorization currentUser, ISecurityScope[] securityScopes, IEntityPermissionEvaluation pe);
-
-	/**
-	 * Use this to implement per-entity-type security (in SQL-terminology: table-level-security) and/or per-property security (in SQL: column-level security)
-	 * 
-	 * @param entityType
-	 * @param currentUser
-	 * @param securityScopes
-	 * @param pe
-	 */
-	void evaluatePermissionOnType(Class<? extends T> entityType, IAuthorization currentUser, ISecurityScope[] securityScopes, IEntityPermissionEvaluation pe);
 }
