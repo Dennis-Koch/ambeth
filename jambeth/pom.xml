@@ -66,6 +66,7 @@
 		<module>jambeth-xml</module>
 		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
 
+		<module>jambeth-test-pom</module>
 		<module>../ambeth-bundles</module>
 	</modules>
 
