@@ -18,8 +18,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-cache-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

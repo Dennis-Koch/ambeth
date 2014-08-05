@@ -57,4 +57,15 @@
 		<!-- REMOVED till migrated from other repo <module>../jAmbeth.Xml.File</module> -->
 	</modules>
 
+	<build>
+		<testResources>
+			<testResource>
+				<directory>src/test/java</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+	</build>
+
 </project>

@@ -2,20 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-bundles</artifactId>
 	<packaging>pom</packaging>
-	<version>2.1.X-SNAPSHOT</version>
 
 	<parent>
-		<groupId>de.osthus</groupId>
-		<artifactId>osthus-pom</artifactId>
-		<version>0.0.21</version>
+		<groupId>de.osthus.ambeth</groupId>
+		<artifactId>jambeth-pom</artifactId>
+		<version>2.1.X-SNAPSHOT</version>
+		<relativePath>../jambeth/pom.xml</relativePath>
 	</parent>
-
-	<properties>
-		<build.number>X-SNAPSHOT</build.number>
-	</properties>
 
 	<modules>
 		<module>ambeth-core</module>
@@ -45,19 +40,5 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<repositories>
-		<!-- Location of the osthus-pom -->
-		<repository>
-			<id>osthus-releases</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
-		</repository>
-
-		<!-- Locally hosted third-party libs -->
-		<repository>
-			<id>thirdparty</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/thirdparty</url>
-		</repository>
-	</repositories>
 
 </project>
