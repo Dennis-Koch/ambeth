@@ -6,9 +6,9 @@
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
+		<artifactId>jambeth-test-pom</artifactId>
 		<version>2.1.X-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
 	<!-- Since this is a test-util project, other test-jars are included for 
@@ -55,8 +55,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-ioc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -72,8 +71,7 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -83,8 +81,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-jdbc</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-jdbc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -94,8 +91,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-h2</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-h2-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -105,8 +101,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-oracle11</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-oracle11-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -116,8 +111,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-query-jdbc</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-query-jdbc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -127,8 +121,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-security-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -152,12 +145,6 @@
 			<artifactId>jambeth-testutil</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<type>test-jar</type>
-			<scope>compile</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -165,8 +152,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-xml</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-xml-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -176,8 +162,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-mapping</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-mapping-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -193,7 +178,7 @@
 			<artifactId>resource</artifactId>
 			<version>1.0.0</version>
 			<scope>system</scope>
-			<systemPath>${project.build.directory}/../src/test/resources/resource-1.0.0.jar</systemPath>
+			<systemPath>${project.build.directory}/../src/test/java/resource-1.0.0.jar</systemPath>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>

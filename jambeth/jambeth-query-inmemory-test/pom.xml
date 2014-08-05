@@ -6,11 +6,16 @@
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
+		<artifactId>jambeth-test-pom</artifactId>
 		<version>2.1.X-SNAPSHOT</version>
 		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
-<dependencies><dependency><groupId>de.osthus.ambeth</groupId><artifactId>jambeth-query-inmemory</artifactId></dependency></dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-query-inmemory</artifactId>
+		</dependency>
+	</dependencies>
 
 </project>

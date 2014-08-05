@@ -23,8 +23,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-test</artifactId>
 		</dependency>
 
 		<dependency>

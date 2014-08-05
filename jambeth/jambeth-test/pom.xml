@@ -45,8 +45,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-server</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-cache-server-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -54,8 +53,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-datachange-persistence</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-datachange-persistence-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -75,8 +73,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-merge-bytecode-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -84,53 +81,49 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-test</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-h2</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-h2</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-h2-test</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-jdbc</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-jdbc-test</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-oracle11</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-persistence-oracle11-test</artifactId>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-query-jdbc</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-query-jdbc-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil</artifactId>
@@ -138,40 +131,44 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-testutil-persistence</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil-persistence</artifactId>
-			<type>test-jar</type>
-		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-xml</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-xml</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-xml-test</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-util-test</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-			<type>test-jar</type>
+			<artifactId>jambeth-service-test</artifactId>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<testExcludes>
+						<!-- References tests from other projects. Works in Eclipse, not needed 
+							in Maven. -->
+						<exclude>de/osthus/ambeth/AllAmbethTests.java</exclude>
+					</testExcludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
