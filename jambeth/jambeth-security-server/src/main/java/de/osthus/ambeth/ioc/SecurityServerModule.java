@@ -37,13 +37,13 @@ public class SecurityServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+
 		if (isSecurityActive)
 		{
 			beanContextFactory.registerAnonymousBean(SecurityPostProcessor.class);
 
 			beanContextFactory.registerAnonymousBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
-
-			beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
 
 			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
 					IMergeSecurityManager.class, IServiceFilterExtendable.class);
