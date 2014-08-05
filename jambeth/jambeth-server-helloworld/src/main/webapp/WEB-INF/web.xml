@@ -16,18 +16,19 @@
 	</listener>
 
 	<servlet>
-		<servlet-name>jersey-servlet</servlet-name>
-		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+		<servlet-name>jersey-servlet</servlet-name>		
+		<!-- <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class> -->
+		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
-		     <param-name>com.sun.jersey.config.property.packages</param-name>
+		     <param-name>jersey.config.server.provider.packages</param-name>
 		     <param-value>de.osthus.ambeth.webservice;de.osthus.ambeth.helloworld</param-value>
 		</init-param>
 		<init-param>
-			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+			<param-name>jersey.spi.container.ContainerRequestFilters</param-name>
 			<param-value>com.sun.jersey.api.container.filter.GZIPContentEncodingFilter</param-value>
 		</init-param>
 		<init-param>
-			<param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
+			<param-name>jersey.spi.container.ContainerResponseFilters</param-name>
 			<param-value>de.osthus.ambeth.filter.SilverlightWorkaroundGZipEncodingFilter</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
