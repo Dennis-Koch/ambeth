@@ -1,5 +1,6 @@
 ﻿using De.Osthus.Ambeth.Collections.Specialized;
 using De.Osthus.Ambeth.Helloworld.Transfer;
+using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
@@ -20,6 +21,14 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
     {
         [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
+         [TestInitialize]
+        public override void InitAutomatically()
+        {
+            AssemblyHelper.RegisterAssemblyFromType(typeof(RESTBootstrapModule));
+
+            base.InitAutomatically();
+        }
 
         [TestMethod]
         public void Test_Prefetch()
