@@ -28,7 +28,7 @@ namespace De.Osthus.Ambeth.Test
                 + "${" + ServiceConfigurationConstants.ServicePrefix + "}")]
     [TestProperties(Name = ServiceConfigurationConstants.ServiceProtocol, Value = "http")]
     [TestProperties(Name = ServiceConfigurationConstants.ServiceHostName, Value = "localhost.")]
-    [TestProperties(Name = ServiceConfigurationConstants.ServiceHostPort, Value = "9080")]
+    [TestProperties(Name = ServiceConfigurationConstants.ServiceHostPort, Value = "9090")]
     [TestProperties(Name = ServiceWCFConfigurationConstants.TransferObjectsScope, Value = ".+")]
     [TestFrameworkModule(typeof(MinervaCoreModule), typeof(RESTBootstrapModule), typeof(XmlModule))]
     [TestModule(typeof(RemoteTestModule))]
