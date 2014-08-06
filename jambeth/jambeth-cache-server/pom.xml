@@ -18,11 +18,6 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-cache-datachange</artifactId>
 		</dependency>
 		<dependency>

@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<packaging>jar</packaging>
+
 	<artifactId>jambeth-information-bus-test</artifactId>
 
 	<parent>
@@ -23,118 +23,109 @@
 			<artifactId>jambeth-core-test</artifactId>
 			<version>${project.version}</version>
 			<type>pom</type>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-bytecode</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-bytecode-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-cache-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-bytecode</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-cache-bytecode-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-datachange</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-cache-datachange-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-stream</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-cache-stream-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-datachange</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-datachange-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-event-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event-datachange</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-event-datachange-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-mapping</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-ioc-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-mapping-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge-bytecode</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-merge-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-merge-bytecode-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security-bytecode</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-security-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-sensor</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-security-bytecode-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-service</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-sensor-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-stream</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-service-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-stream-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 
