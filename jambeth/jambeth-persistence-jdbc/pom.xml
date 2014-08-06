@@ -21,10 +21,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-test</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
