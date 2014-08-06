@@ -26,25 +26,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-oracle11-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-server-with-persistence-test</artifactId>
-			<type>pom</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil-persistence</artifactId>
-		</dependency>
 	</dependencies>
 
 	<build>
