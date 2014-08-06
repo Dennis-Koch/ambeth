@@ -1210,6 +1210,11 @@ namespace De.Osthus.Ambeth.Cache
                     allKnownRelations.Add(relationOfMember);
                 }
             }
+            if (allKnownRelations.Count == 0)
+            {
+                // nothing to filter
+                return relations;
+            }
             IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
             IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(allKnownRelations, SecurityScopeProvider.SecurityScopes);
             for (int a = privileges.Count; a-- > 0; )
