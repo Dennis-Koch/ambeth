@@ -11,18 +11,6 @@ namespace De.Osthus.Ambeth.Privilege
 {
     public interface IPrivilegeProvider
     {
-        bool IsCreateAllowed(Object entity, params ISecurityScope[] securityScopes);
-
-        bool IsUpdateAllowed(Object entity, params ISecurityScope[] securityScopes);
-
-        bool IsDeleteAllowed(Object entity, params ISecurityScope[] securityScopes);
-
-        bool IsReadAllowed(Object entity, params ISecurityScope[] securityScopes);
-
-        bool IsExecutionAllowed(Object entity, params ISecurityScope[] securityScopes);
-
-        IPrivilege GetPrivilege(Object entity, params ISecurityScope[] securityScopes);
-
         IPrivilege GetPrivilegeByObjRef(IObjRef objRef, params ISecurityScope[] securityScopes);
 
         /// <summary>
@@ -43,8 +31,8 @@ namespace De.Osthus.Ambeth.Privilege
         /// <returns></returns>
         IList<IPrivilege> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef;
 
-        IPrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes);
+        ITypePrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes);
 
-        IList<IPrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes);
+        IList<ITypePrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes);
     }
 }

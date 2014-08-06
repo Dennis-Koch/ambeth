@@ -74,7 +74,7 @@ namespace De.Osthus.Ambeth.Util
 
 	    public static bool IsImmutableType(Type type)
 	    {
-		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || "RuntimeType".Equals(type.Name);
+		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || typeof(IImmutableType).IsAssignableFrom(type) || "RuntimeType".Equals(type.Name);
 	    }
 
 	    private ImmutableTypeSet()

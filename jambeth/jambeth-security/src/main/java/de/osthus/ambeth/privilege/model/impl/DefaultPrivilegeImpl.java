@@ -4,7 +4,7 @@ import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 
 public class DefaultPrivilegeImpl extends AbstractPrivilege
 {
-	protected boolean read, create, update, delete, execute;
+	protected final boolean read, create, update, delete, execute;
 
 	protected final IPropertyPrivilege[] primitivePropertyPrivileges;
 
@@ -30,21 +30,9 @@ public class DefaultPrivilegeImpl extends AbstractPrivilege
 	}
 
 	@Override
-	public void setPrimitivePropertyPrivilege(int primitiveIndex, IPropertyPrivilege propertyPrivilege)
-	{
-		primitivePropertyPrivileges[primitiveIndex] = propertyPrivilege;
-	}
-
-	@Override
 	public IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
 	{
 		return relationPropertyPrivileges[relationIndex];
-	}
-
-	@Override
-	public void setRelationPropertyPrivilege(int relationIndex, IPropertyPrivilege propertyPrivilege)
-	{
-		relationPropertyPrivileges[relationIndex] = propertyPrivilege;
 	}
 
 	@Override

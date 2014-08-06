@@ -242,13 +242,23 @@ public class SimpleXmlReader implements ICyclicXmlReader
 				@Override
 				public int read(byte[] b) throws IOException
 				{
-					return is.read(b);
+					int count = is.read(b);
+					for (int a = 0; a < count; a++)
+					{
+						sb.append((char) b[a]);
+					}
+					return count;
 				}
 
 				@Override
 				public int read(byte[] b, int off, int len) throws IOException
 				{
-					return is.read(b, off, len);
+					int count = is.read(b, off, len);
+					for (int a = off; a < count; a++)
+					{
+						sb.append((char) b[a]);
+					}
+					return count;
 				}
 
 				@Override

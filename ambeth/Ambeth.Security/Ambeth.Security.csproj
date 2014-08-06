@@ -49,8 +49,24 @@
     <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AbstractPrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AbstractTypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\AllowAllPrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultPrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultTypePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\DefaultTypePrivilegeSimpleImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SimplePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SimpleTypePrivilegeImpl.cs" />
+    <Compile Include="ambeth\privilege\model\impl\SkipAllTypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\impl\TypePropertyPrivilegeImpl.cs" />
     <Compile Include="ambeth\privilege\model\IPrivilege.cs" />
     <Compile Include="ambeth\privilege\IPrivilegeProvider.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePrivilege.cs" />
+    <Compile Include="ambeth\privilege\model\ITypePropertyPrivilege.cs" />
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
@@ -124,10 +140,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\privilege\model\impl\DenyAllPrivilege.cs" />
-    <Compile Include="ambeth\privilege\model\impl\PrivilegeImpl.cs" />
     <Compile Include="ambeth\privilege\model\impl\PropertyPrivilegeImpl.cs" />
     <Compile Include="ambeth\privilege\transfer\IPrivilegeOfService.cs" />
     <Compile Include="ambeth\privilege\transfer\IPropertyPrivilegeOfService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\transfer\ITypePrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\ITypePropertyPrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\PrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\PropertyPrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\TypePrivilegeOfService.cs" />
+    <Compile Include="ambeth\privilege\transfer\TypePropertyPrivilegeOfService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

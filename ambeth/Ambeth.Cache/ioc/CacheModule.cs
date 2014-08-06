@@ -21,6 +21,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge.Config;
 using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
+using De.Osthus.Ambeth.Ioc.Config;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -187,12 +188,15 @@ namespace De.Osthus.Ambeth.Ioc
 
             if (IsNetworkClientMode && IsCacheServiceBeanActive)
             {
-                beanContextFactory.RegisterBean<ClientServiceBean>(CacheModule.EXTERNAL_CACHE_SERVICE)
+                IBeanConfiguration remoteCacheService = beanContextFactory.RegisterBean<ClientServiceBean>(CacheModule.EXTERNAL_CACHE_SERVICE)
                     .PropertyValue("Interface", typeof(ICacheService))
                     .PropertyValue("SyncRemoteInterface", typeof(ICacheServiceWCF))
                     .PropertyValue("AsyncRemoteInterface", typeof(ICacheClient)).Autowireable<ICacheService>();
 
                 beanContextFactory.RegisterAlias(CacheModule.DEFAULT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
+
+                // register to all entities in a "most-weak" manner
+                beanContextFactory.Link(remoteCacheService).To<ICacheRetrieverExtendable>().With(typeof(Object));
                 //beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
                 //beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
             }

@@ -131,7 +131,6 @@ namespace De.Osthus.Ambeth.Rest
                     TryToSetHeader(HttpRequestHeader.AcceptEncoding, webRequest, "gzip");
                     webRequest.Headers["Accept-Encoding-Workaround"] = "gzip";
                 }
-
                 SetAuthorization(webRequest);
 
                 if (invocation.Arguments.Length == 0)
@@ -194,9 +193,10 @@ namespace De.Osthus.Ambeth.Rest
                 {
                     webRequest.Method = "POST";
                     webRequest.ContentType = "text/plain";
-                    if (HttpAcceptEncodingZipped)
+                    if (HttpContentEncodingZipped)
                     {
-                        webRequest.Headers[HttpRequestHeader.ContentEncoding] = "gzip";
+                        TryToSetHeader(HttpRequestHeader.ContentEncoding, webRequest, "gzip");
+                        webRequest.Headers["Content-Encoding-Workaround"] = "gzip";
                     }
                     webRequest.BeginGetRequestStream(delegate(IAsyncResult asyncResult)
                     {

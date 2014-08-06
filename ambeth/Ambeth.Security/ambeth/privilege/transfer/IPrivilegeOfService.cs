@@ -20,7 +20,7 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
 
         bool DeleteAllowed { get; }
 
-        bool ExecutionAllowed { get; }
+        bool ExecuteAllowed { get; }
 
         String[] PropertyPrivilegeNames { get; }
 

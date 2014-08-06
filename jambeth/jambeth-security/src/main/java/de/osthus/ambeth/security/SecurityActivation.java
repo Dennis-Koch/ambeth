@@ -26,7 +26,7 @@ public class SecurityActivation implements ISecurityActivation
 		Boolean value = securityActiveTL.get();
 		if (value == null)
 		{
-			return Boolean.valueOf(securityActive);
+			return securityActive;
 		}
 		return value.booleanValue();
 	}
@@ -41,7 +41,7 @@ public class SecurityActivation implements ISecurityActivation
 		Boolean value = filterActiveTL.get();
 		if (value == null)
 		{
-			return Boolean.TRUE;
+			return true;
 		}
 		return value.booleanValue();
 	}
@@ -74,16 +74,5 @@ public class SecurityActivation implements ISecurityActivation
 		{
 			filterActiveTL.set(oldFilterActive);
 		}
-	}
-
-	@Override
-	public boolean setPrivilegedMode(boolean privilegedModeActive)
-	{
-		return false;
-	}
-
-	@Override
-	public void restorePrivilegedMode(boolean previousPrivilegedMode)
-	{
 	}
 }

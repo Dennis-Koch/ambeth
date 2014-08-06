@@ -1,4 +1,4 @@
-package de.osthus.ambeth.privilege.bytecode.collections;
+package de.osthus.ambeth.privilege.factory;
 
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;

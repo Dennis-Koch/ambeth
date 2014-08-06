@@ -51,6 +51,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
+import de.osthus.ambeth.privilege.transfer.TypePropertyPrivilegeOfService;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
@@ -72,10 +73,10 @@ import de.osthus.ambeth.util.ParamHolder;
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
 		@TestProperties(name = IocConfigurationConstants.MonitorBeansActive, value = "false"),
 		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "100"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
-		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
+		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "2"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
-		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "50000"),
+		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "5000"),
 		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassdataTest.ROW_COUNT + "}"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
@@ -207,6 +208,7 @@ public class QueryMassdataTest extends AbstractPersistenceTest
 
 	protected void massDataReadIntern() throws Exception
 	{
+		TypePropertyPrivilegeOfService.create(true, null, false, null);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override

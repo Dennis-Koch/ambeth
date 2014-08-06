@@ -2,9 +2,10 @@ package de.osthus.ambeth.privilege.model.impl;
 
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
+import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public abstract class AbstractPrivilege implements IPrivilege, IPrintable
+public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType
 {
 	public static char upperOrLower(boolean flag, char oneChar)
 	{
@@ -37,12 +38,8 @@ public abstract class AbstractPrivilege implements IPrivilege, IPrintable
 	@Override
 	public abstract IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex);
 
-	public abstract void setPrimitivePropertyPrivilege(int primitiveIndex, IPropertyPrivilege propertyPrivilege);
-
 	@Override
 	public abstract IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
-
-	public abstract void setRelationPropertyPrivilege(int relationIndex, IPropertyPrivilege propertyPrivilege);
 
 	@Override
 	public final String toString()
