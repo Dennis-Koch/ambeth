@@ -71,8 +71,7 @@ namespace De.Osthus.Ambeth.Ioc
                 .Autowireable<IValueObjectConfigExtendable>()
                 .Autowireable<IEntityLifecycleExtendable>()
                 .Autowireable<ITechnicalEntityTypeExtendable>()
-                .Autowireable<IEntityMetaDataExtendable>()
-                .Autowireable<IEntityMetaDataRefresher>();
+                .Autowireable<IEntityMetaDataExtendable>();
 
             if (!IndependentMetaData)
             {

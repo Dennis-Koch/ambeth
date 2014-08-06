@@ -674,7 +674,7 @@ namespace De.Osthus.Ambeth.Cache
 			    }
 			    permittedObjRefs.Add(primaryObjRef);
 		    }
-            IList<IPrivilege> privileges = GetPrivilegeByObjRefWithoutReadLock(permittedObjRefs);
+            IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
 		    HashMap<IObjRef, List<int>> relatedObjRefs = new HashMap<IObjRef, List<int>>();
 		    for (int index = permittedObjRefs.Count; index-- > 0;)
 		    {
