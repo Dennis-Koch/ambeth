@@ -990,6 +990,32 @@ namespace De.Osthus.Ambeth.Cache
             bool targetCacheAccess = !loadContainerResult && !cacheValueResult;
             bool filteringNecessary = IsFilteringNecessary(targetCache);
 
+            List<IPrivilege> privilegesOfObjRefsToGet = null;
+            if (filteringNecessary)
+            {
+                IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefsToGet);
+                List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
+                privilegesOfObjRefsToGet = new List<IPrivilege>(objRefsToGet.Count);
+                for (int a = 0, size = objRefsToGet.Count; a < size; a++)
+                {
+                    IPrivilege privilege = privileges[a];
+                    if (privilege != null && privilege.ReadAllowed)
+                    {
+                        filteredObjRefsToGet.Add(objRefsToGet[a]);
+                        privilegesOfObjRefsToGet.Add(privilege);
+                    }
+                    else if (returnMisses)
+                    {
+                        filteredObjRefsToGet.Add(null);
+                        privilegesOfObjRefsToGet.Add(null);
+                    }
+                }
+                objRefsToGet = filteredObjRefsToGet;
+            }
+            if (objRefsToGet.Count == 0)
+            {
+                return new List<Object>(0);
+            }
             IEventQueue eventQueue = this.EventQueue;
             if (targetCacheAccess && eventQueue != null)
             {
@@ -997,26 +1023,6 @@ namespace De.Osthus.Ambeth.Cache
             }
             try
             {
-                if (filteringNecessary)
-                {
-                    IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefsToGet, SecurityScopeProvider.SecurityScopes);
-                    List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
-                    for (int a = 0, size = objRefsToGet.Count; a < size; a++)
-                    {
-                        IPrivilege privilege = privileges[a];
-                        if (!privilege.ReadAllowed)
-                        {
-                            filteredObjRefsToGet.Add(null);
-                            continue;
-                        }
-                        filteredObjRefsToGet.Add(objRefsToGet[a]);
-                    }
-                    objRefsToGet = filteredObjRefsToGet;
-                }
-                if (objRefsToGet.Count == 0)
-                {
-                    return new List<Object>(0);
-                }
                 List<Object> result = new List<Object>(objRefsToGet.Count);
                 List<IObjRef> tempObjRefList = null;
                 IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = null;
