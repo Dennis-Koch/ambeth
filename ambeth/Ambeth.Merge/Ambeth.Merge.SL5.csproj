@@ -115,6 +115,7 @@
     <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\merge\IObjRefHelper.cs" />
     <Compile Include="ambeth\merge\IObjRefProvider.cs" />
+    <Compile Include="ambeth\merge\ITechnicalEntityTypeExtendable.cs" />
     <Compile Include="ambeth\merge\ITransactionState.cs" />
     <Compile Include="ambeth\merge\model\EntityMetaData.cs" />
     <Compile Include="ambeth\merge\model\IChangeContainer.cs" />

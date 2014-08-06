@@ -78,6 +78,11 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 		super(message, keyMessage, multiValue);
 	}
 
+	public V getExtensionHardKey(Class<?> key)
+	{
+		return super.getExtension(key);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public V getExtension(Class<?> key)

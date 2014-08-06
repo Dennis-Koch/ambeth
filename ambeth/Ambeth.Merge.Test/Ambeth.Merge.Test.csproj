@@ -91,7 +91,7 @@
     <Compile Include="ambeth\merge\IEntityMetaDataFiller.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\..\jambeth\jambeth-merge\src\test\resources\de\osthus\ambeth\util\orm_simple.xml">
+    <EmbeddedResource Include="..\..\jambeth\jambeth-merge-test\src\test\java\de\osthus\ambeth\util\orm_simple.xml">
       <Link>ambeth\util\orm_simple.xml</Link>
     </EmbeddedResource>
   </ItemGroup>
