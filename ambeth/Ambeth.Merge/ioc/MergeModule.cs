@@ -67,9 +67,12 @@ namespace De.Osthus.Ambeth.Ioc
             IBeanConfiguration entityMetaDataProvider = beanContextFactory.RegisterAnonymousBean<EntityMetaDataProvider>()
                 .PropertyRef("ValueObjectMap", valueObjectMap)
                 .Autowireable<IEntityMetaDataProvider>()
-                .Autowireable<IEntityMetaDataExtendable>()
                 .Autowireable<IEntityMetaDataRefresher>()
-                .Autowireable<IValueObjectConfigExtendable>();
+                .Autowireable<IValueObjectConfigExtendable>()
+                .Autowireable<IEntityLifecycleExtendable>()
+                .Autowireable<ITechnicalEntityTypeExtendable>()
+                .Autowireable<IEntityMetaDataExtendable>()
+                .Autowireable<IEntityMetaDataRefresher>();
 
             if (!IndependentMetaData)
             {

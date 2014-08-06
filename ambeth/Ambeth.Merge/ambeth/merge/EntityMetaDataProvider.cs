@@ -20,7 +20,7 @@ using System.Threading;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
+    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IValueObjectConfigExtendable, IInitializingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -67,6 +67,9 @@ namespace De.Osthus.Ambeth.Merge
 
         protected readonly ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<IEntityLifecycleExtension>(
             "entityLifecycleExtension", "entityType");
+
+        protected readonly MapExtendableContainer<Type, Type> technicalEntityTypes = new MapExtendableContainer<Type, Type>("technicalEntityType",
+            "entityType");
 
         public EntityMetaDataProvider()
             : base("entity meta data", "entity class")
@@ -115,41 +118,41 @@ namespace De.Osthus.Ambeth.Merge
         }
 
         public void RefreshMembers(IEntityMetaData metaData)
-	    {
+        {
             if (metaData.EnhancedType == null)
             {
                 return;
             }
-		    foreach (ITypeInfoItem member in metaData.RelationMembers)
-		    {
-			    RefreshMember(metaData, member);
-		    }
-		    foreach (ITypeInfoItem member in metaData.PrimitiveMembers)
-		    {
-			    RefreshMember(metaData, member);
-		    }
-		    RefreshMember(metaData, metaData.IdMember);
-		    RefreshMember(metaData, metaData.VersionMember);
+            foreach (ITypeInfoItem member in metaData.RelationMembers)
+            {
+                RefreshMember(metaData, member);
+            }
+            foreach (ITypeInfoItem member in metaData.PrimitiveMembers)
+            {
+                RefreshMember(metaData, member);
+            }
+            RefreshMember(metaData, metaData.IdMember);
+            RefreshMember(metaData, metaData.VersionMember);
 
             UpdateEntityMetaDataWithLifecycleExtensions(metaData);
-	    }
+        }
 
         protected void RefreshMember(IEntityMetaData metaData, ITypeInfoItem member)
-	    {
-		    if (!(member is PropertyInfoItem))
-		    {
-			    return;
-		    }
-		    PropertyInfoItem pMember = (PropertyInfoItem) member;
-		    AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo) pMember.Property;
+        {
+            if (!(member is PropertyInfoItem))
+            {
+                return;
+            }
+            PropertyInfoItem pMember = (PropertyInfoItem)member;
+            AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo)pMember.Property;
             propertyInfo.RefreshAccessors(metaData.EnhancedType);
-		    if (propertyInfo is MethodPropertyInfo && !(propertyInfo is MethodPropertyInfoASM))
-		    {
-			    MethodPropertyInfo mpi = (MethodPropertyInfo) propertyInfo;
-			    mpi = new MethodPropertyInfoASM(metaData.EnhancedType, propertyInfo.Name, mpi.Getter, mpi.Setter);
-			    pMember.SetProperty(mpi);
-		    }
-	    }
+            if (propertyInfo is MethodPropertyInfo && !(propertyInfo is MethodPropertyInfoASM))
+            {
+                MethodPropertyInfo mpi = (MethodPropertyInfo)propertyInfo;
+                mpi = new MethodPropertyInfoASM(metaData.EnhancedType, propertyInfo.Name, mpi.Getter, mpi.Setter);
+                pMember.SetProperty(mpi);
+            }
+        }
 
         protected IList<Type> AddLoadedMetaData(IList<Type> entityTypes, IList<IEntityMetaData> loadedMetaData)
         {
@@ -359,23 +362,61 @@ namespace De.Osthus.Ambeth.Merge
             EventDispatcher.DispatchEvent(new EntityMetaDataRemovedEvent(entityType));
         }
 
-        public override void Register(IEntityMetaData extension, Type key)
+        public override void Register(IEntityMetaData extension, Type entityType)
         {
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                base.Register(extension, key);
+                base.Register(extension, entityType);
                 UpdateEntityMetaDataWithLifecycleExtensions(extension);
+                Type technicalEntityType = technicalEntityTypes.GetExtension(entityType);
+                if (technicalEntityType != null)
+                {
+                    base.Register(extension, technicalEntityType);
+                }
             }
         }
 
-        public override void Unregister(IEntityMetaData extension, Type key)
+        public override void Unregister(IEntityMetaData extension, Type entityType)
         {
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                base.Unregister(extension, key);
+                Type technicalEntityType = technicalEntityTypes.GetExtension(entityType);
+                if (technicalEntityType != null)
+                {
+                    base.Unregister(extension, technicalEntityType);
+                }
+                base.Unregister(extension, entityType);
                 CleanEntityMetaDataFromLifecycleExtensions(extension);
+            }
+        }
+
+        public void RegisterTechnicalEntityType(Type technicalEntityType, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                technicalEntityTypes.Register(technicalEntityType, entityType);
+                IEntityMetaData metaData = GetExtensionHardKey(entityType);
+                if (metaData != null)
+                {
+                    base.Register(metaData, technicalEntityType);
+                }
+            }
+        }
+
+        public void UnregisterTechnicalEntityType(Type technicalEntityType, Type entityType)
+        {
+            Object writeLock = GetWriteLock();
+            lock (writeLock)
+            {
+                technicalEntityTypes.Unregister(technicalEntityType, entityType);
+                IEntityMetaData metaData = GetExtensionHardKey(entityType);
+                if (metaData != null)
+                {
+                    base.Unregister(metaData, technicalEntityType);
+                }
             }
         }
 

@@ -674,7 +674,7 @@ namespace De.Osthus.Ambeth.Cache
 			    }
 			    permittedObjRefs.Add(primaryObjRef);
 		    }
-		    IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(permittedObjRefs, SecurityScopeProvider.SecurityScopes);
+            IList<IPrivilege> privileges = GetPrivilegeByObjRefWithoutReadLock(permittedObjRefs);
 		    HashMap<IObjRef, List<int>> relatedObjRefs = new HashMap<IObjRef, List<int>>();
 		    for (int index = permittedObjRefs.Count; index-- > 0;)
 		    {
@@ -698,7 +698,7 @@ namespace De.Osthus.Ambeth.Cache
 			    }
 		    }
 		    IList<IObjRef> relatedObjRefKeys = relatedObjRefs.KeySet().ToList();
-		    privileges = PrivilegeProvider.GetPrivilegesByObjRef(relatedObjRefKeys, SecurityScopeProvider.SecurityScopes);
+            privileges = GetPrivilegesByObjRefWithoutReadLock(relatedObjRefKeys);
 		    for (int a = 0, size = relatedObjRefKeys.Count; a < size; a++)
 		    {
 			    IPrivilege privilege = privileges[a];
@@ -993,7 +993,7 @@ namespace De.Osthus.Ambeth.Cache
             List<IPrivilege> privilegesOfObjRefsToGet = null;
             if (filteringNecessary)
             {
-                IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefsToGet);
+                IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(objRefsToGet);
                 List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
                 privilegesOfObjRefsToGet = new List<IPrivilege>(objRefsToGet.Count);
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
@@ -1187,6 +1187,50 @@ namespace De.Osthus.Ambeth.Cache
             targetCache.AddDirect(metaData, id, version, obj, primitiveTemplates, cacheValue.GetRelations());
         }
 
+        protected IPrivilege GetPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
+	    {
+            Lock readLock = ReadLock;
+            LockState lockState = default(LockState);
+            if (Privileged && !readLock.IsWriteLockHeld && readLock.IsReadLockHeld)
+            {
+                // release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+                lockState = readLock.ReleaseAllLocks();
+            }
+            try
+            {
+                return PrivilegeProvider.GetPrivilegeByObjRef(objRef);
+            }
+            finally
+            {
+                if (lockState.readLockCount > 0 || lockState.writeLockCount > 0)
+                {
+                    readLock.ReacquireLocks(lockState);
+                }
+            }
+        }
+
+	    protected IList<IPrivilege> GetPrivilegesByObjRefWithoutReadLock<V>(IEnumerable<V> objRefs) where V : IObjRef
+	    {
+		    Lock readLock = ReadLock;
+            LockState lockState = default(LockState);
+		    if (Privileged && !readLock.IsWriteLockHeld && readLock.IsReadLockHeld)
+		    {
+			    // release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+			    lockState = readLock.ReleaseAllLocks();
+		    }
+		    try
+		    {
+			    return PrivilegeProvider.GetPrivilegesByObjRef(objRefs);
+		    }
+		    finally
+		    {
+			    if (lockState.readLockCount > 0 || lockState.writeLockCount > 0)
+			    {
+				    readLock.ReacquireLocks(lockState);
+			    }
+		    }
+	    }
+
         protected IObjRef[][] FilterRelations(IObjRef[][] relations, ICacheIntern targetCache, bool filteringNecessary)
         {
             if (relations.Length == 0 || !filteringNecessary)
@@ -1216,7 +1260,7 @@ namespace De.Osthus.Ambeth.Cache
                 return relations;
             }
             IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
-            IList<IPrivilege> privileges = PrivilegeProvider.GetPrivilegesByObjRef(allKnownRelations, SecurityScopeProvider.SecurityScopes);
+            IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(allKnownRelations);
             for (int a = privileges.Count; a-- > 0; )
             {
                 IPrivilege privilege = privileges[a];

@@ -755,7 +755,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			permittedObjRefs.add(primaryObjRef);
 		}
-		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(permittedObjRefs);
+		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
 		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<IObjRef, IntArrayList>();
 		for (int index = permittedObjRefs.size(); index-- > 0;)
 		{
@@ -779,7 +779,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 		}
 		IList<IObjRef> relatedObjRefKeys = relatedObjRefs.keySet().toList();
-		privileges = privilegeProvider.getPrivilegesByObjRef(relatedObjRefKeys);
+		privileges = getPrivilegesByObjRefWithoutReadLock(relatedObjRefKeys);
 		for (int a = 0, size = relatedObjRefKeys.size(); a < size; a++)
 		{
 			IPrivilege privilege = privileges.get(a);
@@ -1087,7 +1087,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		ArrayList<IPrivilege> privilegesOfObjRefsToGet = null;
 		if (filteringNecessary)
 		{
-			IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefsToGet);
+			IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
 			privilegesOfObjRefsToGet = new ArrayList<IPrivilege>(objRefsToGet.size());
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
@@ -1265,7 +1265,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				if (privilegeOfObjRef == null)
 				{
-					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
+					privilegeOfObjRef = getPrivilegeByObjRefWithoutReadLock(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
 				}
 				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(a).isReadAllowed())
 				{
@@ -1335,6 +1335,50 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		targetCache.addDirect(metaData, id, version, obj, primitiveTemplates, relations);
 	}
 
+	protected IPrivilege getPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
+	{
+		Lock readLock = getReadLock();
+		LockState lockState = null;
+		if (privileged && !readLock.isWriteLockHeld() && readLock.isReadLockHeld())
+		{
+			// release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+			lockState = readLock.releaseAllLocks();
+		}
+		try
+		{
+			return privilegeProvider.getPrivilegeByObjRef(objRef);
+		}
+		finally
+		{
+			if (lockState != null)
+			{
+				readLock.reacquireLocks(lockState);
+			}
+		}
+	}
+
+	protected IList<IPrivilege> getPrivilegesByObjRefWithoutReadLock(Collection<? extends IObjRef> objRefs)
+	{
+		Lock readLock = getReadLock();
+		LockState lockState = null;
+		if (privileged && !readLock.isWriteLockHeld() && readLock.isReadLockHeld())
+		{
+			// release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+			lockState = readLock.releaseAllLocks();
+		}
+		try
+		{
+			return privilegeProvider.getPrivilegesByObjRef(objRefs);
+		}
+		finally
+		{
+			if (lockState != null)
+			{
+				readLock.reacquireLocks(lockState);
+			}
+		}
+	}
+
 	protected IObjRef[][] filterRelations(IObjRef[][] relations, boolean filteringNecessary)
 	{
 		if (relations.length == 0 || !filteringNecessary)
@@ -1364,7 +1408,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			return relations;
 		}
 		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
-		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations);
+		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(allKnownRelations);
 		for (int a = privileges.size(); a-- > 0;)
 		{
 			IPrivilege privilege = privileges.get(a);

@@ -28,6 +28,7 @@ import de.osthus.ambeth.ioc.MergeModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
+import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.EntityMetaData;
@@ -53,7 +54,7 @@ import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.xml.IXmlTypeHelper;
 
 public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMetaData> implements IEntityMetaDataProvider, IEntityMetaDataRefresher,
-		IEntityMetaDataExtendable, IEntityLifecycleExtendable, IValueObjectConfigExtendable, IInitializingBean
+		IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IValueObjectConfigExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -99,6 +100,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	protected final ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<IEntityLifecycleExtension>(
 			"entityLifecycleExtension", "entityType");
+
+	protected final MapExtendableContainer<Class<?>, Class<?>> technicalEntityTypes = new MapExtendableContainer<Class<?>, Class<?>>("technicalEntityType",
+			"entityType");
 
 	public EntityMetaDataProvider()
 	{
@@ -424,14 +428,19 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
-	public void register(IEntityMetaData extension, Class<?> key)
+	public void register(IEntityMetaData extension, Class<?> entityType)
 	{
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try
 		{
-			super.register(extension, key);
+			super.register(extension, entityType);
 			updateEntityMetaDataWithLifecycleExtensions(extension);
+			Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
+			if (technicalEntityType != null)
+			{
+				super.register(extension, technicalEntityType);
+			}
 		}
 		finally
 		{
@@ -440,14 +449,59 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
-	public void unregister(IEntityMetaData extension, Class<?> key)
+	public void unregister(IEntityMetaData extension, Class<?> entityType)
 	{
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try
 		{
-			super.unregister(extension, key);
+			Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
+			if (technicalEntityType != null)
+			{
+				super.unregister(extension, technicalEntityType);
+			}
+			super.unregister(extension, entityType);
 			cleanEntityMetaDataFromLifecycleExtensions(extension);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public void registerTechnicalEntityType(Class<?> technicalEntityType, Class<?> entityType)
+	{
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			technicalEntityTypes.register(technicalEntityType, entityType);
+			IEntityMetaData metaData = getExtensionHardKey(entityType);
+			if (metaData != null)
+			{
+				super.register(metaData, technicalEntityType);
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public void unregisterTechnicalEntityType(Class<?> technicalEntityType, Class<?> entityType)
+	{
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			technicalEntityTypes.unregister(technicalEntityType, entityType);
+			IEntityMetaData metaData = getExtensionHardKey(entityType);
+			if (metaData != null)
+			{
+				super.unregister(metaData, technicalEntityType);
+			}
 		}
 		finally
 		{

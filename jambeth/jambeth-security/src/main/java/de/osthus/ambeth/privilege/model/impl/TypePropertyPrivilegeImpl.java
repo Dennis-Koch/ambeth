@@ -11,7 +11,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 {
 	public static final ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
 
-	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 7];
+	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 8];
 
 	static
 	{

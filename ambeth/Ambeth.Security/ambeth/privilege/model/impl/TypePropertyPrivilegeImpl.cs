@@ -9,7 +9,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
     {
         public static ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
 
-        private static TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 7];
+        private static TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 8];
 
         static TypePropertyPrivilegeImpl()
         {
