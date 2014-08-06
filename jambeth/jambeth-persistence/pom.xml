@@ -23,11 +23,6 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-service</artifactId>
 		</dependency>
 		<dependency>
@@ -36,17 +31,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-util</artifactId>
-			<type>test-jar</type>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<type>test-jar</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

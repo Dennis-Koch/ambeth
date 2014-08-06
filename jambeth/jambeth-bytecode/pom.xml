@@ -27,11 +27,6 @@
 		</dependency>		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<type>test-jar</type>
-		</dependency>		
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-service</artifactId>
 		</dependency>
 	</dependencies>
