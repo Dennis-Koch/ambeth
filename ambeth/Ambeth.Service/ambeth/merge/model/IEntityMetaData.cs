@@ -51,6 +51,10 @@ namespace De.Osthus.Ambeth.Merge.Model
         int GetIndexByPrimitiveName(String primitiveMemberName);
 
         int GetIndexByPrimitive(ITypeInfoItem primitiveMember);
+        
+        bool IsPrimitiveMember(String primitiveMemberName);
+
+        bool IsRelationMember(String relationMemberName);
 
         Type[] TypesRelatingToThis { get; }
 

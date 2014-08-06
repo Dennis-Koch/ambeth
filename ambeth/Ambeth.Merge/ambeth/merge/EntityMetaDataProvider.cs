@@ -16,6 +16,7 @@ using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Accessor;
 using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Proxy;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -60,7 +61,9 @@ namespace De.Osthus.Ambeth.Merge
 
         protected Type[] businessObjectSaveOrder;
 
-        protected readonly IMap<Type, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Type, IMap<String, ITypeInfoItem>>();
+        protected readonly ThreadLocal<List<Type>> pendingToRefreshMetaDataTL = new ThreadLocal<List<Type>>();
+
+        protected readonly HashMap<Type, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Type, IMap<String, ITypeInfoItem>>();
 
         protected readonly ClassExtendableListContainer<IEntityLifecycleExtension> entityLifecycleExtensions = new ClassExtendableListContainer<IEntityLifecycleExtension>(
             "entityLifecycleExtension", "entityType");
@@ -113,6 +116,10 @@ namespace De.Osthus.Ambeth.Merge
 
         public void RefreshMembers(IEntityMetaData metaData)
 	    {
+            if (metaData.EnhancedType == null)
+            {
+                return;
+            }
 		    foreach (ITypeInfoItem member in metaData.RelationMembers)
 		    {
 			    RefreshMember(metaData, member);
@@ -159,6 +166,7 @@ namespace De.Osthus.Ambeth.Merge
                         continue;
                     }
                     Register(missingMetaDataItem, entityType);
+                    pendingToRefreshMetaDataTL.Value.Add(entityType);
 
                     foreach (IRelationInfoItem relationMember in missingMetaDataItem.RelationMembers)
                     {
@@ -247,19 +255,42 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return result;
             }
-            while (missingEntityTypes != null && missingEntityTypes.Count > 0)
+            bool handlePendingMetaData = false;
+            try
             {
-                IList<IEntityMetaData> loadedMetaData = RemoteEntityMetaDataProvider.GetMetaData(missingEntityTypes);
-
-                IList<Type> cascadeMissingEntityTypes = AddLoadedMetaData(missingEntityTypes, loadedMetaData);
-
-                if (cascadeMissingEntityTypes != null && cascadeMissingEntityTypes.Count > 0)
+                while (missingEntityTypes != null && missingEntityTypes.Count > 0)
                 {
-                    missingEntityTypes = cascadeMissingEntityTypes;
+                    List<Type> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.Value;
+                    if (pendingToRefreshMetaData == null)
+                    {
+                        pendingToRefreshMetaData = new List<Type>();
+                        pendingToRefreshMetaDataTL.Value = pendingToRefreshMetaData;
+                        handlePendingMetaData = true;
+                    }
+                    IList<IEntityMetaData> loadedMetaData = RemoteEntityMetaDataProvider.GetMetaData(missingEntityTypes);
+
+                    IList<Type> cascadeMissingEntityTypes = AddLoadedMetaData(missingEntityTypes, loadedMetaData);
+
+                    if (cascadeMissingEntityTypes != null && cascadeMissingEntityTypes.Count > 0)
+                    {
+                        missingEntityTypes = cascadeMissingEntityTypes;
+                    }
+                    else
+                    {
+                        missingEntityTypes.Clear();
+                    }
                 }
-                else
+            }
+            finally
+            {
+                if (handlePendingMetaData)
                 {
-                    missingEntityTypes.Clear();
+                    List<Type> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.Value;
+                    pendingToRefreshMetaDataTL.Value = null;
+                    foreach (Type pendingToRefreshType in pendingToRefreshMetaData)
+                    {
+                        RefreshMembers(GetMetaData(pendingToRefreshType));
+                    }
                 }
             }
             return GetMetaData(entityTypes);
@@ -375,6 +406,14 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void UpdateEntityMetaDataWithLifecycleExtensions(IEntityMetaData entityMetaData)
         {
+            if (Object.ReferenceEquals(entityMetaData, alreadyHandled))
+            {
+                return;
+            }
+            if (entityMetaData.EnhancedType == null)
+            {
+                return;
+            }
             IList<IEntityLifecycleExtension> extensionList = entityLifecycleExtensions.GetExtensions(entityMetaData.EntityType);
             List<IEntityLifecycleExtension> allExtensions = new List<IEntityLifecycleExtension>();
             if (extensionList != null)

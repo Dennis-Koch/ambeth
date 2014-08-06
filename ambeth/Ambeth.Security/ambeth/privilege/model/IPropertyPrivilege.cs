@@ -2,9 +2,9 @@ namespace De.Osthus.Ambeth.Privilege.Model
 {
     public interface IPropertyPrivilege
     {
-        bool ReadAllowed { get; }
-
         bool CreateAllowed { get; }
+
+        bool ReadAllowed { get; }
 
         bool UpdateAllowed { get; }
 

@@ -6,10 +6,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.util.IPrintable;
 
-@XmlRootElement(name = "PrivilegeResult2", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement(name = "TypePrivilegeOfService", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class TypePrivilegeOfService implements ITypePrivilegeOfService
+public class TypePrivilegeOfService implements ITypePrivilegeOfService, IPrintable
 {
 	@XmlElement(required = true)
 	protected Class<?> entityType;
@@ -135,5 +136,23 @@ public class TypePrivilegeOfService implements ITypePrivilegeOfService
 	public void setPropertyPrivileges(ITypePropertyPrivilegeOfService[] propertyPrivileges)
 	{
 		this.propertyPrivileges = propertyPrivileges;
+	}
+
+	@Override
+	public final String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append(isReadAllowed() != null ? isReadAllowed() ? "+R" : "-R" : "nR");
+		sb.append(isCreateAllowed() != null ? isCreateAllowed() ? "+C" : "-C" : "nC");
+		sb.append(isUpdateAllowed() != null ? isUpdateAllowed() ? "+U" : "-U" : "nU");
+		sb.append(isDeleteAllowed() != null ? isDeleteAllowed() ? "+D" : "-D" : "nD");
+		sb.append(isExecuteAllowed() != null ? isExecuteAllowed() ? "+E" : "-E" : "nE");
 	}
 }

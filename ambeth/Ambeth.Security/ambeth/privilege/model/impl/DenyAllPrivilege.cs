@@ -4,82 +4,56 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Privilege.Model.Impl
 {
-    public class DenyAllPrivilege : IPrivilege, IPrintable
+    public class DenyAllPrivilege : AbstractPrivilege
     {
-        public static readonly IPrivilege INSTANCE = new DenyAllPrivilege();
+        public static IPrivilege INSTANCE = new DenyAllPrivilege();
+
+        private static IPropertyPrivilege denyAllPropertyPrivilege = PropertyPrivilegeImpl.Create(false, false, false, false);
 
         private DenyAllPrivilege()
+            : base(false, false, false, false, false, null, null)
         {
             // intended blank
         }
 
-        public IPropertyPrivilege GetPropertyPrivilege(String propertyName)
+        public override IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
         {
-            return null;
+            return denyAllPropertyPrivilege;
         }
 
-        public bool ReadAllowed
+        public override IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
         {
-            get
-            {
-                return false;
-            }
+            return denyAllPropertyPrivilege;
         }
 
-        public bool CreateAllowed
+        public override IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
         {
-            get
-            {
-                return false;
-            }
+            return denyAllPropertyPrivilege;
         }
 
-        public bool UpdateAllowed
+        public override bool CreateAllowed
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
-        public bool DeleteAllowed
+        public override bool ReadAllowed
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
-        public bool ExecutionAllowed
+        public override bool UpdateAllowed
         {
-            get
-            {
-                return false;
-            }
+            get { return false; }
         }
 
-        public String[] ConfiguredPropertyNames
+        public override bool DeleteAllowed
         {
-            get
-            {
-                return PrivilegeImpl.EMPTY_PROPERTY_NAMES;
-            }
+            get { return false; }
         }
 
-        public override String ToString()
+        public override bool ExecuteAllowed
         {
-            StringBuilder sb = new StringBuilder();
-            ToString(sb);
-            return sb.ToString();
-        }
-
-        public void ToString(StringBuilder sb)
-        {
-            sb.Append(ReadAllowed ? "+R" : "-R");
-            sb.Append(CreateAllowed ? "+C" : "-C");
-            sb.Append(UpdateAllowed ? "+U" : "-U");
-            sb.Append(DeleteAllowed ? "+D" : "-D");
-            sb.Append(ExecutionAllowed ? "+X" : "-X");
+            get { return false; }
         }
     }
 }

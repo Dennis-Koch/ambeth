@@ -109,6 +109,9 @@ namespace De.Osthus.Ambeth.Ioc
             IBeanConfiguration enumElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(EnumNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(enumElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("e");
 
+            IBeanConfiguration timeSpanElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(TimeSpanElementHandler)).Parent("abstractElementHandler");
+            beanContextFactory.Link(timeSpanElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("t");
+
             beanContextFactory.RegisterBean("xmlTransferScanner", typeof(XmlTransferScanner));
 
             beanContextFactory.RegisterBean("xmlDictionary", typeof(CyclicXmlDictionary)).Autowireable(typeof(ICyclicXmlDictionary));

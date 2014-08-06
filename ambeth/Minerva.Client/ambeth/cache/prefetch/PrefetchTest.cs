@@ -22,14 +22,6 @@ namespace De.Osthus.Ambeth.Cache.Prefetch
         [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
-         [TestInitialize]
-        public override void InitAutomatically()
-        {
-            AssemblyHelper.RegisterAssemblyFromType(typeof(RESTBootstrapModule));
-
-            base.InitAutomatically();
-        }
-
         [TestMethod]
         public void Test_Prefetch()
         {

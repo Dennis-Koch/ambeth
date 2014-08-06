@@ -30,7 +30,7 @@ namespace De.Osthus.Ambeth.Test
     [TestProperties(Name = ServiceConfigurationConstants.ServiceHostName, Value = "localhost.")]
     [TestProperties(Name = ServiceConfigurationConstants.ServiceHostPort, Value = "9090")]
     [TestProperties(Name = ServiceWCFConfigurationConstants.TransferObjectsScope, Value = ".+")]
-    [TestFrameworkModule(typeof(MinervaCoreModule), typeof(RESTBootstrapModule), typeof(XmlModule))]
+    [TestFrameworkModule(typeof(MinervaCoreModule), typeof(RESTBootstrapModule), typeof(XmlModule), typeof(BootstrapScannerModule))]
     [TestModule(typeof(RemoteTestModule))]
     [TestRebuildContext]
     [TestClass]
@@ -62,7 +62,15 @@ namespace De.Osthus.Ambeth.Test
 
         [Autowired]
         public IRevertChangesHelper RevertChangesHelper { protected get; set; }
-        
+
+        [TestInitialize]
+        public override void InitAutomatically()
+        {
+            AssemblyHelper.RegisterAssemblyFromType(typeof(RESTBootstrapModule));
+
+            base.InitAutomatically();
+        }
+
         protected void WaitForUI()
         {
             GuiThreadHelper.InvokeInGuiAndWait(delegate()

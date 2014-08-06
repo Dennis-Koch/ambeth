@@ -28,6 +28,7 @@ import de.osthus.ambeth.xml.namehandler.EnumNameHandler;
 import de.osthus.ambeth.xml.namehandler.ObjRefElementHandler;
 import de.osthus.ambeth.xml.namehandler.OriWrapperElementHandler;
 import de.osthus.ambeth.xml.namehandler.StringNameHandler;
+import de.osthus.ambeth.xml.namehandler.TimeSpanElementHandler;
 import de.osthus.ambeth.xml.pending.CommandBuilder;
 import de.osthus.ambeth.xml.pending.ICommandBuilder;
 import de.osthus.ambeth.xml.pending.IObjectFutureHandlerExtendable;
@@ -130,6 +131,9 @@ public class XmlModule implements IInitializingModule
 
 		IBeanConfiguration enumElementHandlerBC = beanContextFactory.registerAnonymousBean(EnumNameHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(enumElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("e");
+
+		IBeanConfiguration timeSpanElementHandlerBC = beanContextFactory.registerAnonymousBean(TimeSpanElementHandler.class).parent("abstractElementHandler");
+		beanContextFactory.link(timeSpanElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("t");
 
 		beanContextFactory.registerBean("xmlTransferScanner", XmlTransferScanner.class);
 

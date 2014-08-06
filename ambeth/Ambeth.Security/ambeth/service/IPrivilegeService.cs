@@ -13,6 +13,6 @@ namespace De.Osthus.Ambeth.Service
     {
         IList<IPrivilegeOfService> GetPrivileges(IObjRef[] oris, ISecurityScope[] securityScopes);
 
-        IList<IPrivilegeOfService> GetPrivilegesOfTypes(Type[] entityTypes, ISecurityScope[] securityScopes);
+        IList<ITypePrivilegeOfService> GetPrivilegesOfTypes(Type[] entityTypes, ISecurityScope[] securityScopes);
     }
 }

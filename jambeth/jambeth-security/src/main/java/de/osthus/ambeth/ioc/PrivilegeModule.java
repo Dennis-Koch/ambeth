@@ -10,10 +10,10 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.PrivilegeProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.EntityPrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.EntityTypePrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityPrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.EntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.EntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityTypePrivilegeFactoryProvider;
 
 @FrameworkModule
 public class PrivilegeModule implements IInitializingModule

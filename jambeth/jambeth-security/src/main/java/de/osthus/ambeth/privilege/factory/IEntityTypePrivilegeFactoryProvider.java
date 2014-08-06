@@ -1,4 +1,4 @@
-package de.osthus.ambeth.privilege.bytecode.collections;
+package de.osthus.ambeth.privilege.factory;
 
 public interface IEntityTypePrivilegeFactoryProvider
 {

@@ -64,6 +64,10 @@
     <Compile Include="ambeth\annotation\XmlTypeAttribute.cs" />
     <Compile Include="ambeth\collections\AbstractHashSet.cs" />
     <Compile Include="ambeth\collections\AbstractLinkedSet.cs" />
+    <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyEntry.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyIterator.cs" />
     <Compile Include="ambeth\collections\EmptyMap.cs" />
     <Compile Include="ambeth\collections\EmptyIterator.cs" />
     <Compile Include="ambeth\collections\EmptySet.cs" />
@@ -252,6 +256,9 @@
     <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\main\resources\de\osthus\ambeth\schema\*.*">
       <Link>ambeth\schema\%(FileName)%(Extension)</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\IImmutableType.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

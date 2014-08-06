@@ -1,17 +1,17 @@
-package de.osthus.ambeth.privilege.bytecode.collections;
+package de.osthus.ambeth.privilege.factory;
 
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
-public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
+public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
 {
 	protected final Class<?> entityType;
 
-	protected final Boolean create, read, update, delete, execute;
+	protected final boolean create, read, update, delete, execute;
 
-	public EntityTypePrivilegeEnhancementHint(Class<?> entityType, Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
+	public EntityPrivilegeEnhancementHint(Class<?> entityType, boolean create, boolean read, boolean update, boolean delete, boolean execute)
 	{
 		this.entityType = entityType;
 		this.create = create;
@@ -26,27 +26,27 @@ public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITa
 		return entityType;
 	}
 
-	public Boolean isCreate()
+	public boolean isCreate()
 	{
 		return create;
 	}
 
-	public Boolean isRead()
+	public boolean isRead()
 	{
 		return read;
 	}
 
-	public Boolean isUpdate()
+	public boolean isUpdate()
 	{
 		return update;
 	}
 
-	public Boolean isDelete()
+	public boolean isDelete()
 	{
 		return delete;
 	}
 
-	public Boolean isExecute()
+	public boolean isExecute()
 	{
 		return execute;
 	}
@@ -58,11 +58,11 @@ public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITa
 		{
 			return true;
 		}
-		if (!(obj instanceof EntityTypePrivilegeEnhancementHint))
+		if (!(obj instanceof EntityPrivilegeEnhancementHint))
 		{
 			return false;
 		}
-		EntityTypePrivilegeEnhancementHint other = (EntityTypePrivilegeEnhancementHint) obj;
+		EntityPrivilegeEnhancementHint other = (EntityPrivilegeEnhancementHint) obj;
 		return getEntityType().equals(other.getEntityType()) && isCreate() == other.isCreate() && isRead() == other.isRead() && isUpdate() == other.isUpdate()
 				&& isDelete() == other.isDelete() && isExecute() == other.isExecute();
 	}
@@ -70,20 +70,15 @@ public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITa
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getEntityType().hashCode() ^ getHash(isCreate()) * 5 ^ getHash(isRead()) ^ getHash(isUpdate()) * 9 ^ getHash(isDelete())
-				* 27 ^ getHash(isExecute()) * 31;
-	}
-
-	protected int getHash(Boolean flag)
-	{
-		return flag == null ? 1 : flag.hashCode();
+		return getClass().hashCode() ^ getEntityType().hashCode() ^ (isCreate() ? 3 : 5) ^ (isRead() ? 7 : 11) ^ (isUpdate() ? 13 : 17)
+				^ (isDelete() ? 19 : 23) ^ (isExecute() ? 27 : 31);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends IEnhancementHint> T unwrap(Class<T> includedHintType)
 	{
-		if (EntityTypePrivilegeEnhancementHint.class.isAssignableFrom(includedHintType))
+		if (EntityPrivilegeEnhancementHint.class.isAssignableFrom(includedHintType))
 		{
 			return (T) this;
 		}
