@@ -59,9 +59,6 @@
 		<module>jambeth-service</module>
 		<module>jambeth-soap</module>
 		<module>jambeth-stream</module>
-		<module>jambeth-test</module>
-		<module>jambeth-testutil</module>
-		<module>jambeth-testutil-persistence</module>
 		<module>jambeth-util</module>
 		<module>jambeth-xml</module>
 		<!-- REMOVED till migrated from other repo <module>jAmbeth.Xml.File</module> -->
