@@ -29,6 +29,23 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>2.11</version>
+					<configuration>
+						<configLocation>../${jambeth.path.test}/checkstyle_checks.xml</configLocation>
+						<propertiesLocation>../${jambeth.path.test}/checkstyle.properties</propertiesLocation>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>findbugs-maven-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
+					</configuration>
+				</plugin>
+				<plugin>
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>2.4</version>
 					<configuration>
