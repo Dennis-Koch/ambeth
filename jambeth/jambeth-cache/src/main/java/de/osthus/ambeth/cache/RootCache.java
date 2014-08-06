@@ -1358,6 +1358,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				allKnownRelations.add(relationOfMember);
 			}
 		}
+		if (allKnownRelations.size() == 0)
+		{
+			// nothing to filter
+			return relations;
+		}
 		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
 		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations);
 		for (int a = privileges.size(); a-- > 0;)
