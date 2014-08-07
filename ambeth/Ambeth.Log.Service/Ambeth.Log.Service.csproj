@@ -41,15 +41,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\log\ClientLogger.cs" />
     <Compile Include="ambeth\service\ILogService.cs" />
     <Compile Include="ambeth\service\LogServiceModelProvider.cs" />
-    <Compile Include="ioc\LogServiceBootstrapModule.cs" />
+    <Compile Include="ioc\LogServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
       <Project>{FB7182DA-BBB9-4434-A936-10A29635E6D3}</Project>
       <Name>Ambeth.IOC</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.csproj">
+      <Project>{e5a70d5c-ee4f-40fa-be23-5352d40c7b33}</Project>
+      <Name>Ambeth.Log</Name>
     </ProjectReference>
     <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.csproj">
       <Project>{271E6992-6B52-41EE-9D4C-5A56FD173C2E}</Project>
