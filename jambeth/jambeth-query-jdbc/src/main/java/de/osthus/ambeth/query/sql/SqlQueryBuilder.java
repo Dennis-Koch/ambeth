@@ -1035,7 +1035,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
-		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
+		String tableName = database.getTableByType(entityType).getName();
 		return join(tableName, columnBase, columnJoined, joinType);
 	}
 
@@ -1053,6 +1053,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		if (table != null)
 		{
 			entityType = table.getEntityType();
+			tableName = table.getFullqualifiedEscapedName();
 		}
 		if (entityType != null)
 		{
