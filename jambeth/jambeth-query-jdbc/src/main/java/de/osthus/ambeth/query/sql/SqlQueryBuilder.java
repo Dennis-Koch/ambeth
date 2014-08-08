@@ -1053,7 +1053,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		if (table != null)
 		{
 			entityType = table.getEntityType();
-			tableName = table.getName();
+			tableName = table.getFullqualifiedEscapedName();
 		}
 		if (entityType != null)
 		{

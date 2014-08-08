@@ -175,11 +175,10 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName
 						+ " as data table waiting for entity mapping");
 			}
-			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(fqTableName);
 			JdbcTable table = new JdbcTable();
 			table.setInitialVersion(Integer.valueOf(1));
-			table.setName(schemaAndName[0] + "." + schemaAndName[1]);
-			table.setFullqualifiedEscapedName(fqTableName);
+			table.setName(fqTableName);
+			table.setFullqualifiedEscapedName(XmlDatabaseMapper.escapeName(fqTableName));
 			table.setViewBased(viewNames.contains(fqTableName));
 
 			List<String> pkFieldNames = tableNameToPkFieldsMap.get(fqTableName);
