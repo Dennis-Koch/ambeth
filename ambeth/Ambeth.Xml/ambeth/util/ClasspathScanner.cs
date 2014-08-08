@@ -87,7 +87,7 @@ namespace De.Osthus.Ambeth.Util
 #if !SILVERLIGHT
             String path = System.AppDomain.CurrentDomain.BaseDirectory;
 
-            foreach (string dll in Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories))
+            foreach (String dll in Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories))
             {
                 try
                 {

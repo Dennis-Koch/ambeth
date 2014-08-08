@@ -1011,10 +1011,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(clause, "clause");
-		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
+		ITable table = database.getTableByType(entityType);
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", tableName).propertyValue("Clause", clause)
+			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", table.getName())
+					.propertyValue("FullqualifiedEscapedTableName", table.getFullqualifiedEscapedName()).propertyValue("Clause", clause)
 					.propertyValue("JoinType", joinType).finish();
 		}
 		catch (Throwable e)
@@ -1050,10 +1051,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 
 		Class<?> entityType = null;
 		ITable table = database.getTableByName(tableName);
+		String fullqualifiedEscapedTableName = tableName;
 		if (table != null)
 		{
 			entityType = table.getEntityType();
-			tableName = table.getFullqualifiedEscapedName();
+			fullqualifiedEscapedTableName = table.getFullqualifiedEscapedName();
 		}
 		if (entityType != null)
 		{
@@ -1062,8 +1064,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		try
 		{
 			SqlJoinOperator joinClause = getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
-					.propertyValue("TableName", tableName).propertyValue("Clause", isEqualTo(columnBase, columnJoined))
-					.propertyValue("JoinedColumn", columnJoined).finish();
+					.propertyValue("TableName", tableName).propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
+					.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).finish();
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
 			return joinClause;
 		}
