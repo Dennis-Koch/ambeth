@@ -141,7 +141,7 @@ public class SqlTable extends Table
 				whereSqls[i] = sb.toString();
 				sb.setLength(0);
 			}
-			sqlConnection.queueDelete(getName(), whereSqls);
+			sqlConnection.queueDelete(getFullqualifiedEscapedName(), whereSqls);
 		}
 		finally
 		{
@@ -152,7 +152,7 @@ public class SqlTable extends Table
 	@Override
 	public void deleteAll()
 	{
-		sqlConnection.queueDeleteAll(getName());
+		sqlConnection.queueDeleteAll(getFullqualifiedEscapedName());
 	}
 
 	@Override
@@ -198,7 +198,8 @@ public class SqlTable extends Table
 			}
 			ResultSetCursor cursor = new ResultSetCursor();
 			cursor.setContainsVersion(versionField != null);
-			cursor.setResultSet(sqlConnection.createResultSet(getName(), idFieldName, idField.getFieldType(), selectSB.toString(), null, ids));
+			cursor.setResultSet(sqlConnection.createResultSet(getFullqualifiedEscapedName(), idFieldName, idField.getFieldType(), selectSB.toString(), null,
+					ids));
 			cursor.setFields(cursorFields.toArray(IField.class));
 			cursor.afterPropertiesSet();
 			return cursor;
@@ -259,7 +260,8 @@ public class SqlTable extends Table
 			{
 				throw new IllegalArgumentException("No field mapped to member " + getEntityType().getName() + "." + alternateIdMemberName);
 			}
-			IResultSet resultSet = sqlConnection.createResultSet(getName(), idFieldName, idFieldType, selectSB.toString(), null, alternateIds);
+			IResultSet resultSet = sqlConnection.createResultSet(getFullqualifiedEscapedName(), idFieldName, idFieldType, selectSB.toString(), null,
+					alternateIds);
 			ResultSetCursor cursor = new ResultSetCursor();
 			cursor.setContainsVersion(versionField != null);
 			cursor.setResultSet(resultSet);
@@ -294,7 +296,8 @@ public class SqlTable extends Table
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.createResultSet(getName(), idFieldName, idField.getFieldType(), selectSB.toString(), null, ids));
+			versionCursor.setResultSet(sqlConnection.createResultSet(getFullqualifiedEscapedName(), idFieldName, idField.getFieldType(), selectSB.toString(),
+					null, ids));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -351,7 +354,8 @@ public class SqlTable extends Table
 			}
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.createResultSet(getName(), idFieldName, idField.getFieldType(), selectSB.toString(), null, alternateIds));
+			versionCursor.setResultSet(sqlConnection.createResultSet(getFullqualifiedEscapedName(), idFieldName, idField.getFieldType(), selectSB.toString(),
+					null, alternateIds));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -448,7 +452,8 @@ public class SqlTable extends Table
 			}
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getName(), selectSB.toString(), joinSql, whereWithOrderBySql, params, tableAlias));
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, params,
+					tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -514,8 +519,8 @@ public class SqlTable extends Table
 			}
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getName(), selectSB, joinSql, whereSql, additionalSelectColumnList, orderBySql, offset,
-					length, params, tableAlias));
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB, joinSql, whereSql, additionalSelectColumnList,
+					orderBySql, offset, length, params, tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -555,7 +560,8 @@ public class SqlTable extends Table
 			}
 			ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 			dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
-			dataCursor.setResultSet(sqlConnection.selectFields(getName(), selectSB.toString(), joinSql, whereWithOrderBySql, params, tableAlias));
+			dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, params,
+					tableAlias));
 			dataCursor.afterPropertiesSet();
 			return dataCursor;
 		}
@@ -576,7 +582,8 @@ public class SqlTable extends Table
 		}
 		ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 		dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
-		dataCursor.setResultSet(sqlConnection.selectFields(getName(), "", joinSql, whereSql, selectColumnList, orderBySql, offset, length, params));
+		dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), "", joinSql, whereSql, selectColumnList, orderBySql, offset, length,
+				params));
 		dataCursor.afterPropertiesSet();
 		return dataCursor;
 	}
@@ -599,7 +606,7 @@ public class SqlTable extends Table
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getName(), selectSB.toString(), null, null));
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), null, null));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
