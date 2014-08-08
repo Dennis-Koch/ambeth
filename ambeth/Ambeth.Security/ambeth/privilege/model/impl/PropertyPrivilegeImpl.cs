@@ -40,20 +40,25 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             Put(create, read, update, false);
         }
 
-        protected static int ToBitValue(bool value, int startingBit)
+        public static int ToBitValue(bool value, int startingBit)
         {
             return value ? 1 << startingBit : 0;
         }
 
+        public static int ToBitValue(bool create, bool read, bool update, bool delete, bool execute)
+        {
+            return ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3) + ToBitValue(execute, 4);
+        }
+
         private static void Put(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            int index = ToBitValue(create, read, update, delete, false);
             array[index] = new PropertyPrivilegeImpl(create, read, update, delete);
         }
 
         public static IPropertyPrivilege Create(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            int index = ToBitValue(create, read, update, delete, false);
             return array[index];
         }
 
@@ -124,7 +129,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 
         public override int GetHashCode()
         {
-            return ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            return ToBitValue(create, read, update, delete, false);
         }
 
         public override String ToString()

@@ -3,6 +3,8 @@ package de.osthus.ambeth.privilege.factory;
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
+import de.osthus.ambeth.privilege.model.impl.AbstractTypePrivilege;
+import de.osthus.ambeth.privilege.model.impl.TypePropertyPrivilegeImpl;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
@@ -70,13 +72,8 @@ public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITa
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getEntityType().hashCode() ^ getHash(isCreate()) * 5 ^ getHash(isRead()) ^ getHash(isUpdate()) * 9 ^ getHash(isDelete())
-				* 27 ^ getHash(isExecute()) * 31;
-	}
-
-	protected int getHash(Boolean flag)
-	{
-		return flag == null ? 1 : flag.hashCode();
+		return getClass().hashCode() ^ getEntityType().hashCode()
+				^ TypePropertyPrivilegeImpl.toBitValue(isCreate(), isRead(), isUpdate(), isDelete(), isExecute());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -93,7 +90,7 @@ public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITa
 	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
-		return Type.getInternalName(entityType) + "$" + AbstractPrivilege.class.getSimpleName() + "_" + AbstractPrivilege.upperOrLower(create, 'c')
+		return Type.getInternalName(entityType) + "$" + AbstractTypePrivilege.class.getSimpleName() + "_" + AbstractPrivilege.upperOrLower(create, 'c')
 				+ AbstractPrivilege.upperOrLower(read, 'r') + AbstractPrivilege.upperOrLower(update, 'u') + AbstractPrivilege.upperOrLower(delete, 'd')
 				+ AbstractPrivilege.upperOrLower(execute, 'e');
 	}

@@ -309,7 +309,7 @@ namespace De.Osthus.Ambeth.Privilege
 	    {
 		    ITypePropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
 
-		    ITypePropertyPrivilege defaultPropertyPrivilege = TypePropertyPrivilegeImpl.createFrom(privilegeOfService);
+		    ITypePropertyPrivilege defaultPropertyPrivilege = TypePropertyPrivilegeImpl.CreateFrom(privilegeOfService);
 		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
 		    {
 			    return new SimpleTypePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,

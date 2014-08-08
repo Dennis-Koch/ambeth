@@ -3,6 +3,7 @@ package de.osthus.ambeth.privilege.factory;
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
+import de.osthus.ambeth.privilege.model.impl.PropertyPrivilegeImpl;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
@@ -70,8 +71,7 @@ public class EntityPrivilegeEnhancementHint implements IEnhancementHint, ITarget
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getEntityType().hashCode() ^ (isCreate() ? 3 : 5) ^ (isRead() ? 7 : 11) ^ (isUpdate() ? 13 : 17)
-				^ (isDelete() ? 19 : 23) ^ (isExecute() ? 27 : 31);
+		return getClass().hashCode() ^ getEntityType().hashCode() ^ PropertyPrivilegeImpl.toBitValue(isCreate(), isRead(), isUpdate(), isDelete(), isExecute());
 	}
 
 	@SuppressWarnings("unchecked")
