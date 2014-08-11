@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
@@ -21,6 +20,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.jdbc.IConnectionHolder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;

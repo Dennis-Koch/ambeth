@@ -23,6 +23,8 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 
 	protected IOperand clause;
 
+	protected String fullqualifiedEscapedTableName;
+
 	protected String tableName;
 
 	protected String tableAlias;
@@ -35,6 +37,8 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 		ParamChecker.assertNotNull(clause, "clause");
 		ParamChecker.assertNotNull(tableName, "tableName");
 		ParamChecker.assertFalse(tableName.isEmpty(), "tableName.isNotEmpty");
+		ParamChecker.assertNotNull(fullqualifiedEscapedTableName, "fullqualifiedEscapedTableName");
+		ParamChecker.assertFalse(fullqualifiedEscapedTableName.isEmpty(), "fullqualifiedEscapedTableName.isNotEmpty");
 	}
 
 	public void setClause(IOperand clause)
@@ -45,6 +49,17 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 	public void setJoinType(JoinType joinType)
 	{
 		this.joinType = joinType;
+	}
+
+	@Override
+	public String getFullqualifiedEscapedTableName()
+	{
+		return fullqualifiedEscapedTableName;
+	}
+
+	public void setFullqualifiedEscapedTableName(String fullqualifiedEscapedTableName)
+	{
+		this.fullqualifiedEscapedTableName = fullqualifiedEscapedTableName;
 	}
 
 	@Override
@@ -107,7 +122,7 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 			default:
 				throw RuntimeExceptionUtil.createEnumNotSupportedException(joinType);
 		}
-		querySB.append(" JOIN ").append(tableName).append(' ').append(getTableAlias()).append(" ON ");
+		querySB.append(" JOIN ").append(fullqualifiedEscapedTableName).append(' ').append(getTableAlias()).append(" ON ");
 		clause.expandQuery(querySB, nameToValueMap, joinQuery, params);
 	}
 }

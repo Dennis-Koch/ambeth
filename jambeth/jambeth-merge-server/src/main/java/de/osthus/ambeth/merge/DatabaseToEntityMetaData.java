@@ -205,7 +205,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 				Class<?> otherType = link.getToEntityType();
 				relationMembers.add(link.getMember());
-				if (link.getReverse().isCascadeDelete())
+				if (link.getReverseLink().isCascadeDelete())
 				{
 					metaData.addCascadeDeleteType(otherType);
 				}

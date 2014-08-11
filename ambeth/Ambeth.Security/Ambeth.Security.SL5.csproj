@@ -75,6 +75,12 @@
     <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\privilege\factory\DefaultEntityPrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\DefaultEntityTypePrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeFactoryProvider.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactory.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityPrivilegeFactoryProvider.cs" />
     <Compile Include="ambeth\privilege\factory\IEntityTypePrivilegeFactory.cs" />

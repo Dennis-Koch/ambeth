@@ -1,6 +1,5 @@
 package de.osthus.ambeth.util;
 
-import de.osthus.ambeth.collections.ILinkedSet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 
 public final class ModuleUtil
@@ -19,7 +18,7 @@ public final class ModuleUtil
 		{
 			return leftModules;
 		}
-		ILinkedSet<Class<?>> modules = new LinkedHashSet<Class<?>>(leftModules.length + rightModules.length);
+		LinkedHashSet<Class<?>> modules = new LinkedHashSet<Class<?>>(leftModules.length + rightModules.length);
 		for (int a = 0, size = leftModules.length; a < size; a++)
 		{
 			modules.add(leftModules[a]);

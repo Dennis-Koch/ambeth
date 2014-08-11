@@ -282,7 +282,7 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 						}
 						continue;
 					}
-					else
+					else if (realPathFile.isDirectory())
 					{
 						scanDirectory(realPathFile, "", targetClassNames, false);
 					}

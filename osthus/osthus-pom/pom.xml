@@ -8,7 +8,7 @@
 	<name>Osthus super POM</name>
 	<packaging>pom</packaging>
 
-	<version>0.0.22</version>
+	<version>0.0.23</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -213,13 +213,6 @@
 								<id>attach-javadocs</id>
 								<goals>
 									<goal>jar</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>aggregate</id>
-								<phase>package</phase>
-								<goals>
-									<goal>aggregate</goal>
 								</goals>
 							</execution>							
 						</executions>
