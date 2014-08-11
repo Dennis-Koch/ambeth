@@ -164,9 +164,14 @@ namespace De.Osthus.Ambeth.Merge
                 {
                     IEntityMetaData missingMetaDataItem = loadedMetaData[a];
                     Type entityType = missingMetaDataItem.EntityType;
-                    if (GetExtension(entityType) != null)
+                    IEntityMetaData existingMetaData = GetExtensionHardKey(entityType);
+                    if (existingMetaData != null && !Object.ReferenceEquals(existingMetaData, alreadyHandled))
                     {
                         continue;
+                    }
+                    if (Object.ReferenceEquals(existingMetaData, alreadyHandled))
+                    {
+                        Unregister(alreadyHandled, entityType);
                     }
                     Register(missingMetaDataItem, entityType);
                     pendingToRefreshMetaDataTL.Value.Add(entityType);
@@ -205,7 +210,7 @@ namespace De.Osthus.Ambeth.Merge
 
         public IEntityMetaData GetMetaData(Type entityType, bool tryOnly)
         {
-            IEntityMetaData metaDataItem = GetExtension(entityType);
+            IEntityMetaData metaDataItem = GetExtensionHardKey(entityType);
             if (metaDataItem != null)
             {
                 if (Object.ReferenceEquals(metaDataItem, alreadyHandled))
@@ -220,10 +225,14 @@ namespace De.Osthus.Ambeth.Merge
             }
             List<Type> missingEntityTypes = new List<Type>(1);
             missingEntityTypes.Add(entityType);
-            IList<IEntityMetaData> missingMetaData = GetMetaData(missingEntityTypes);
-            if (missingMetaData.Count > 0)
+            IList<IEntityMetaData> missingMetaDatas = GetMetaData(missingEntityTypes);
+            if (missingMetaDatas.Count > 0)
             {
-                return missingMetaData[0];
+                IEntityMetaData metaData = missingMetaDatas[0];
+                if (metaData != null)
+                {
+                    return metaData;
+                }
             }
             if (tryOnly)
             {
@@ -240,19 +249,33 @@ namespace De.Osthus.Ambeth.Merge
             {
                 Type entityType = entityTypes[a];
                 IEntityMetaData metaDataItem = GetExtension(entityType);
-                if (metaDataItem != null)
+                if (Object.ReferenceEquals(metaDataItem, alreadyHandled))
                 {
-                    if (!Object.ReferenceEquals(metaDataItem, alreadyHandled))
+                    metaDataItem = GetExtensionHardKey(entityType);
+                    if (metaDataItem == null)
                     {
-                        result.Add(metaDataItem);
+                        if (missingEntityTypes == null)
+                        {
+                            missingEntityTypes = new List<Type>();
+                        }
+                        missingEntityTypes.Add(entityType);
+                    }
+                    else
+                    {
+                        result.Add(null);
                     }
                     continue;
                 }
-                if (missingEntityTypes == null)
+                if (metaDataItem == null)
                 {
-                    missingEntityTypes = new List<Type>();
+                    if (missingEntityTypes == null)
+                    {
+                        missingEntityTypes = new List<Type>();
+                    }
+                    missingEntityTypes.Add(entityType);
+                    continue;
                 }
-                missingEntityTypes.Add(entityType);
+                result.Add(metaDataItem);
             }
             if (missingEntityTypes == null || RemoteEntityMetaDataProvider == null)
             {

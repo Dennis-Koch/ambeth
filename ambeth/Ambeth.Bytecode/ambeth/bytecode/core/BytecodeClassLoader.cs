@@ -12,6 +12,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Reflection.Emit;
 
 namespace De.Osthus.Ambeth.Bytecode.Core
 {
@@ -49,47 +50,47 @@ namespace De.Osthus.Ambeth.Bytecode.Core
         }
 
         public byte[] ReadTypeAsBinary(Type type)
-	{
+        {
             throw new NotImplementedException("TODO");
-        //WeakReference contentR = typeToContentMap.Get(type);
-        //byte[] content = null;
-        //if (contentR != null)
-        //{
-        //    content = (byte[])contentR.Target;
-        //}
-        //if (content != null)
-        //{
-        //    return content;
-        //}
-        //content = ambethClassLoader.GetContent(type);
-        //if (content != null)
-        //{
-        //    typeToContentMap.put(type, new WeakReference(content));
-        //    return content;
-        //}
-        //String bytecodeTypeName = GetBytecodeTypeName(type);
-        //InputStream is = ambethClassLoader.getResourceAsStream(bytecodeTypeName + ".class");
-        //if (is == null)
-        //{
-        //    throw new IllegalArgumentException("No class found with name '" + type.getName() + "'");
-        //}
-        //try
-        //{
-        //    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        //    int oneByte;
-        //    while ((oneByte = is.read()) != -1)
-        //    {
-        //        bos.write(oneByte);
-        //    }
-        //    content = bos.toByteArray();
-        //    typeToContentMap.put(type, new WeakReference<byte[]>(content));
-        //    return content;
-        //}
-        //finally
-        //{
-        //    is.close();
-        //}
-	}
+            //WeakReference contentR = typeToContentMap.Get(type);
+            //byte[] content = null;
+            //if (contentR != null)
+            //{
+            //    content = (byte[])contentR.Target;
+            //}
+            //if (content != null)
+            //{
+            //    return content;
+            //}
+            //content = ambethClassLoader.GetContent(type);
+            //if (content != null)
+            //{
+            //    typeToContentMap.put(type, new WeakReference(content));
+            //    return content;
+            //}
+            //String bytecodeTypeName = GetBytecodeTypeName(type);
+            //InputStream is = ambethClassLoader.getResourceAsStream(bytecodeTypeName + ".class");
+            //if (is == null)
+            //{
+            //    throw new IllegalArgumentException("No class found with name '" + type.getName() + "'");
+            //}
+            //try
+            //{
+            //    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            //    int oneByte;
+            //    while ((oneByte = is.read()) != -1)
+            //    {
+            //        bos.write(oneByte);
+            //    }
+            //    content = bos.toByteArray();
+            //    typeToContentMap.put(type, new WeakReference<byte[]>(content));
+            //    return content;
+            //}
+            //finally
+            //{
+            //    is.close();
+            //}
+        }
 
         public void Verify(byte[] content)
         {
@@ -108,13 +109,13 @@ namespace De.Osthus.Ambeth.Bytecode.Core
         {
             newTypeName = GetBytecodeTypeName(newTypeName);
 
-            ClassWriter cw = BeanContext.RegisterWithLifecycle(new ClassWriter(ambethClassLoader)).Finish();
-            
-            //PrintWriter pw = new PrintWriter(writer);
+            StringBuilder sb = new StringBuilder();
+
+            ClassWriter cw = BeanContext.RegisterWithLifecycle(new ClassWriter(ambethClassLoader, sb)).Finish();
 
             IClassVisitor visitor = cw;// new SuppressLinesClassVisitor(cw);
             visitor = new LogImplementationsClassVisitor(visitor);
-            //visitor = new TraceClassVisitor(visitor, pw);
+            //visitor = new TraceClassVisitor(visitor, sb);
             IClassVisitor wrappedVisitor = visitor;
             Type originalModifiers = BytecodeBehaviorState.State.OriginalType;
             if (originalModifiers.IsInterface || originalModifiers.IsAbstract)
@@ -136,12 +137,17 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
             visitor.Visit(sourceContent.Attributes, newTypeName, sourceContent, new Type[0]);
 
-            visitor.VisitEnd();
-
-            // visitor = new ClassDeriver(visitor, newTypeName);
-            // cr.accept(visitor, ClassReader.EXPAND_FRAMES);
-            Type content = cw.GetCreatedType();
-
+            Type content = null;
+            try
+            {
+                visitor.VisitEnd();
+                content = cw.GetCreatedType();
+            }
+            catch (Exception)
+            {
+                Log.Error(sb.ToString());
+                throw;
+            }
             if (content == null)
             {
                 throw new Exception("A visitor did not correctly call its cascaded visitor with VisitEnd()");
@@ -173,50 +179,75 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             }
             sb.Append(type.ToString());
 
-            ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            MethodInfo[] methods = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            FieldInfo[] fields = type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
             StringWriter sw = new StringWriter(sb);
             ILInstructionVisitor visitor = new ReadableILStringVisitor(new ReadableILStringToTextWriter(sw));
 
-            foreach (FieldInfo field in fields)
+            if (type is TypeBuilder)
             {
-                sb.Append('\n');
-                PrintAnnotations(field, sb);
-                sb.Append(field.ToString()).Append('\n');
+                MethodInstance[] methods = BytecodeBehaviorState.State.GetAlreadyImplementedMethodsOnNewType();
+
+                foreach (MethodInstance method in methods)
+                {
+                    sb.Append('\n');
+                    PrintAnnotations(method.Method, sb);
+                    sb.Append(method.ToString()).Append('\n');
+
+                    ILReader reader = new ILReader(method.Method);
+
+                    reader.Accept(visitor);
+                }
+                return;
             }
-
-            foreach (ConstructorInfo constructor in constructors)
             {
-                sb.Append('\n');
-                PrintAnnotations(constructor, sb);
-                sb.Append(constructor.ToString()).Append('\n');
+                ConstructorInfo[] constructors = type.GetConstructors(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                MethodInfo[] methods = type.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                FieldInfo[] fields = type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-                ILReader reader = new ILReader(constructor);
+                foreach (FieldInfo field in fields)
+                {
+                    sb.Append('\n');
+                    PrintAnnotations(field, sb);
+                    sb.Append(field.ToString()).Append('\n');
+                }
 
-                reader.Accept(visitor);
-            }
+                foreach (ConstructorInfo constructor in constructors)
+                {
+                    sb.Append('\n');
+                    PrintAnnotations(constructor, sb);
+                    sb.Append(constructor.ToString()).Append('\n');
 
-            foreach (MethodInfo method in methods)
-            {
-                sb.Append('\n');
-                PrintAnnotations(method, sb);
-                sb.Append(method.ToString()).Append('\n');
+                    ILReader reader = new ILReader(constructor);
 
-                ILReader reader = new ILReader(method);
+                    reader.Accept(visitor);
+                }
 
-                reader.Accept(visitor);
+                foreach (MethodInfo method in methods)
+                {
+                    sb.Append('\n');
+                    PrintAnnotations(method, sb);
+                    sb.Append(method.ToString()).Append('\n');
+
+                    ILReader reader = new ILReader(method);
+
+                    reader.Accept(visitor);
+                }
             }
         }
 
         protected void PrintAnnotations(MemberInfo member, StringBuilder sb)
         {
-            Object[] attributes = member.GetCustomAttributes(false);
-            foreach (Object att in attributes)
+            try
             {
-                Attribute attribute = (Attribute)att;
-                sb.Append('[').Append(attribute.ToString()).Append("]\n");
+                Object[] attributes = member.GetCustomAttributes(false);
+                foreach (Object att in attributes)
+                {
+                    Attribute attribute = (Attribute)att;
+                    sb.Append('[').Append(attribute.ToString()).Append("]\n");
+                }
+            }
+            catch (NotSupportedException)
+            {
+                sb.Append("<Annotations could not be accessed due to NotSupportedException>\n");
             }
         }
 

@@ -22,10 +22,13 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 	private ILogger log;
 
 	@Autowired
+	protected ICache cache;
+
+	@Autowired
 	protected IMergeService mergeService;
 
 	@Autowired
-	protected ICache cache;
+	protected IProxyHelper proxyHelper;
 
 	@Override
 	public IEntityMetaData getMetaData(Class<?> entityType)
@@ -53,17 +56,16 @@ public class EntityMetaDataClient implements IEntityMetaDataProvider
 	@Override
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
-		ArrayList<Class<?>> entityTypeNames = new ArrayList<Class<?>>(entityTypes.size());
-		for (int a = 0, size = entityTypes.size(); a < size; a++)
-		{
-			Class<?> entityType = entityTypes.get(a);
-			entityTypeNames.add(entityType);
-		}
+		ArrayList<Class<?>> realEntityTypes = new ArrayList<Class<?>>(entityTypes.size());
+        for (Class<?> entityType : entityTypes)
+        {
+            realEntityTypes.add(proxyHelper.getRealType(entityType));
+        }
 		Lock readLock = cache.getReadLock();
 		LockState lockState = readLock.releaseAllLocks();
 		try
 		{
-			List<IEntityMetaData> serviceResult = mergeService.getMetaData(entityTypeNames);
+			List<IEntityMetaData> serviceResult = mergeService.getMetaData(realEntityTypes);
 			ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>();
 			result.addAll(serviceResult);
 			return result;

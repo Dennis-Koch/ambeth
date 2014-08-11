@@ -17,6 +17,9 @@ namespace De.Osthus.Ambeth.Merge
         [Autowired]
         public IMergeService MergeService { protected get; set; }
 
+        [Autowired]
+        public IProxyHelper ProxyHelper { protected get; set; }
+
         public virtual IEntityMetaData GetMetaData(Type entityType)
         {
             return GetMetaData(entityType, false);
@@ -38,16 +41,16 @@ namespace De.Osthus.Ambeth.Merge
 
         public virtual IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
-            IList<Type> entityTypeNames = new List<Type>(entityTypes.Count);
+            IList<Type> realEntityTypes = new List<Type>(entityTypes.Count);
             foreach (Type entityType in entityTypes)
             {
-                entityTypeNames.Add(entityType);
+                realEntityTypes.Add(ProxyHelper.GetRealType(entityType));
             }
             Lock readLock = Cache.ReadLock;
             LockState lockState = readLock.ReleaseAllLocks();
             try
             {
-                return MergeService.GetMetaData(entityTypes);
+                return MergeService.GetMetaData(realEntityTypes);
             }
             finally
             {

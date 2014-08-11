@@ -200,10 +200,15 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			{
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
 				Class<?> entityType = missingMetaDataItem.getEntityType();
-				if (getExtension(entityType) != null)
-				{
-					continue;
-				}
+				IEntityMetaData existingMetaData = getExtensionHardKey(entityType);
+                if (existingMetaData != null && existingMetaData != alreadyHandled)
+                {
+                    continue;
+                }
+                if (existingMetaData == alreadyHandled)
+                {
+                    unregister(alreadyHandled, entityType);
+                }
 				register(missingMetaDataItem, entityType);
 				pendingToRefreshMetaDataTL.get().add(entityType);
 
@@ -247,7 +252,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public IEntityMetaData getMetaData(Class<?> entityType, boolean tryOnly)
 	{
-		IEntityMetaData metaDataItem = getExtension(entityType);
+		IEntityMetaData metaDataItem = getExtensionHardKey(entityType);
 		if (metaDataItem != null)
 		{
 			if (metaDataItem == alreadyHandled)
@@ -262,10 +267,14 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		ArrayList<Class<?>> missingEntityTypes = new ArrayList<Class<?>>(1);
 		missingEntityTypes.add(entityType);
-		IList<IEntityMetaData> missingMetaData = getMetaData(missingEntityTypes);
-		if (missingMetaData.size() > 0)
+		IList<IEntityMetaData> missingMetaDatas = getMetaData(missingEntityTypes);
+		if (missingMetaDatas.size() > 0)
 		{
-			return missingMetaData.get(0);
+			IEntityMetaData metaData = missingMetaDatas.get(0);
+			if (metaData != null)
+			{
+				return metaData;
+			}
 		}
 		if (tryOnly)
 		{
@@ -283,22 +292,33 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			Class<?> entityType = entityTypes.get(a);
 			IEntityMetaData metaDataItem = getExtension(entityType);
-			if (metaDataItem != null)
-			{
-				if (metaDataItem != null)
-				{
-					if (metaDataItem != alreadyHandled)
-					{
-						result.add(metaDataItem);
-					}
-					continue;
-				}
-			}
-			if (missingEntityTypes == null)
-			{
-				missingEntityTypes = new ArrayList<Class<?>>();
-			}
-			missingEntityTypes.add(entityType);
+			if (metaDataItem == alreadyHandled)
+            {
+                metaDataItem = getExtensionHardKey(entityType);
+                if (metaDataItem == null)
+                {
+                    if (missingEntityTypes == null)
+                    {
+                        missingEntityTypes = new ArrayList<Class<?>>();
+                    }
+                    missingEntityTypes.add(entityType);
+                }
+                else
+                {
+                    result.add(null);
+                }
+                continue;
+            }
+            if (metaDataItem == null)
+            {
+                if (missingEntityTypes == null)
+                {
+                    missingEntityTypes = new ArrayList<Class<?>>();
+                }
+                missingEntityTypes.add(entityType);
+                continue;
+            }
+            result.add(metaDataItem);
 		}
 		if (missingEntityTypes == null || remoteEntityMetaDataProvider == null)
 		{
