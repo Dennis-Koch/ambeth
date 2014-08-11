@@ -29,7 +29,11 @@ namespace De.Osthus.Ambeth.Visitor
         {
             get
             {
+#if SILVERLIGHT
+                return 0;
+#else
                 return gen.ILOffset;
+#endif
             }
         }
 
@@ -91,13 +95,49 @@ namespace De.Osthus.Ambeth.Visitor
         }
 
         public void Emit(OpCode opcode, sbyte arg) { sb.Append("\r\n\t\t" + opcode + " " + arg); gen.Emit(opcode, arg); }
+
         public void Emit(OpCode opcode, short arg) { sb.Append("\r\n\t\t" + opcode + " " + arg); gen.Emit(opcode, arg); }
-        public void Emit(OpCode opcode, SignatureHelper signature) { sb.Append("\r\n\t\t" + opcode + " " + signature); gen.Emit(opcode, signature); }
-        public void Emit(OpCode opcode, string str) { sb.Append("\r\n\t\t" + opcode + " " + str); gen.Emit(opcode, str); }
+
+        public void Emit(OpCode opcode, SignatureHelper signature)
+        {
+#if SILVERLIGHT
+            throw new NotSupportedException();
+#else
+            sb.Append("\r\n\t\t" + opcode + " " + signature);
+            gen.Emit(opcode, signature);
+#endif
+        }
+
+        public void Emit(OpCode opcode, string str)
+        {
+            sb.Append("\r\n\t\t" + opcode + " " + str);
+            gen.Emit(opcode, str);
+        }
+
         public void Emit(OpCode opcode, Type cls) { sb.Append("\r\n\t\t" + opcode + " " + cls); gen.Emit(opcode, cls); }
+
         public void EmitCall(OpCode opcode, MethodInfo methodInfo, Type[] optionalParameterTypes) { sb.Append("\r\n\t\tEmitCall"); gen.EmitCall(opcode, methodInfo, optionalParameterTypes); }
-        public void EmitCalli(OpCode opcode, CallingConvention unmanagedCallConv, Type returnType, Type[] parameterTypes) { sb.Append("\r\n\t\tEmitCalli"); gen.EmitCalli(opcode, unmanagedCallConv, returnType, parameterTypes); }
-        public void EmitCalli(OpCode opcode, CallingConventions callingConvention, Type returnType, Type[] parameterTypes, Type[] optionalParameterTypes) { sb.Append("\r\n\t\tEmitCalli"); gen.EmitCalli(opcode, callingConvention, returnType, parameterTypes, optionalParameterTypes); }
+
+        public void EmitCalli(OpCode opcode, CallingConvention unmanagedCallConv, Type returnType, Type[] parameterTypes)
+        {
+#if SILVERLIGHT
+            throw new NotSupportedException();
+#else
+            sb.Append("\r\n\t\tEmitCalli");
+            gen.EmitCalli(opcode, unmanagedCallConv, returnType, parameterTypes);
+#endif
+        }
+
+        public void EmitCalli(OpCode opcode, CallingConventions callingConvention, Type returnType, Type[] parameterTypes, Type[] optionalParameterTypes)
+        {
+#if SILVERLIGHT
+            throw new NotSupportedException();
+#else
+            sb.Append("\r\n\t\tEmitCalli"); 
+            gen.EmitCalli(opcode, callingConvention, returnType, parameterTypes, optionalParameterTypes);
+#endif
+        }
+
         public void EmitWriteLine(FieldInfo fld) { sb.Append("\r\n\t\tEmitWriteLine"); gen.EmitWriteLine(fld); }
         public void EmitWriteLine(LocalBuilder localBuilder) { sb.Append("\r\n\t\tEmitWriteLine"); gen.EmitWriteLine(localBuilder); }
         public void EmitWriteLine(string value) { sb.Append("\r\n\t\tEmitWriteLine"); gen.EmitWriteLine(value); }
