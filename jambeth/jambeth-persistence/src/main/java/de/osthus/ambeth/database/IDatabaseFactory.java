@@ -1,7 +1,7 @@
 package de.osthus.ambeth.database;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 
 public interface IDatabaseFactory
 {

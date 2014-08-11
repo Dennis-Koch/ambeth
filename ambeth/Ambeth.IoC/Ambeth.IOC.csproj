@@ -224,6 +224,9 @@
     <Compile Include="ambeth\converter\StringToPatternConverter.cs" />
     <Compile Include="ambeth\converter\StringToStringArrayConverter.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\ModuleUtil.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

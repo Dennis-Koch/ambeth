@@ -44,7 +44,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             put(create, read, update, true);
         }
 
-        protected static int ToBitValue(bool? value, int startingBit)
+        public static int ToBitValue(bool? value, int startingBit)
         {
             if (!value.HasValue)
             {
@@ -53,40 +53,48 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             return value.Value ? 1 << startingBit : 1 << (startingBit + 1);
         }
 
+        public static int ToBitValue(bool? create, bool? read, bool? update, bool? delete, bool? execute)
+        {
+            return ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6) + ToBitValue(execute, 8);
+        }
+
         private static void put(bool? create, bool? read, bool? update, bool? delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6);
+            int index = ToBitValue(create, read, update, delete, null);
             array[index] = new TypePropertyPrivilegeImpl(create, read, update, delete);
         }
 
         public static ITypePropertyPrivilege Create(bool? create, bool? read, bool? update, bool? delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6);
+            int index = ToBitValue(create, read, update, delete, null);
             return array[index];
         }
 
-        public static ITypePropertyPrivilege createFrom(ITypePrivilege privilegeAsTemplate)
+        public static ITypePropertyPrivilege CreateFrom(ITypePrivilege privilegeAsTemplate)
         {
             return Create(privilegeAsTemplate.CreateAllowed, privilegeAsTemplate.ReadAllowed, privilegeAsTemplate.UpdateAllowed,
                     privilegeAsTemplate.DeleteAllowed);
         }
 
-        public static ITypePropertyPrivilege createFrom(ITypePrivilegeOfService privilegeOfService)
+        public static ITypePropertyPrivilege CreateFrom(ITypePrivilegeOfService privilegeOfService)
         {
             return Create(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
                     privilegeOfService.DeleteAllowed);
         }
 
-        public static ITypePropertyPrivilege createFrom(ITypePropertyPrivilegeOfService propertyPrivilegeResult)
+        public static ITypePropertyPrivilege CreateFrom(ITypePropertyPrivilegeOfService propertyPrivilegeResult)
         {
             return Create(propertyPrivilegeResult.CreateAllowed, propertyPrivilegeResult.ReadAllowed, propertyPrivilegeResult.UpdateAllowed,
                     propertyPrivilegeResult.DeleteAllowed);
         }
 
-        private bool? create;
-        private bool? read;
-        private bool? update;
-        private bool? delete;
+        private readonly bool? create;
+
+        private readonly bool? read;
+
+        private readonly bool? update;
+
+        private readonly bool? delete;
 
         private TypePropertyPrivilegeImpl(bool? create, bool? read, bool? update, bool? delete)
         {
@@ -133,7 +141,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 
         public override int GetHashCode()
         {
-            return ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6);
+            return ToBitValue(create, read, update, delete, null);
         }
 
         public override String ToString()

@@ -174,7 +174,7 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	}
 
 	@Override
-	public IDirectedLink getReverse()
+	public IDirectedLink getReverseLink()
 	{
 		if (link.getDirectedLink().equals(this))
 		{
@@ -247,7 +247,7 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	@Override
 	public boolean isPersistingLink()
 	{
-		IDirectedLink reverseLink = getReverse();
+		IDirectedLink reverseLink = getReverseLink();
 		if (getFromTable().equals(reverseLink.getFromTable()))
 		{
 			// In this special case we do only want to save "one side" of the changes
@@ -270,7 +270,7 @@ public class DirectedLink implements IDirectedLink, IInitializingBean
 	@Override
 	public ILinkCursor findLinkedTo(Object toId)
 	{
-		return link.findLinkedTo(getReverse(), toId);
+		return link.findLinkedTo(getReverseLink(), toId);
 	}
 
 	@Override

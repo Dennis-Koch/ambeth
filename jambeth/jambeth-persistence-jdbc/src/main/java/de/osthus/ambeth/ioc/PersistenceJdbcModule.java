@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import net.sf.cglib.proxy.MethodInterceptor;
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
@@ -23,6 +22,7 @@ import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.ITransactionState;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.JDBCSqlConnection;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.ConnectionHolderInterceptor;

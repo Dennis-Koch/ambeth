@@ -250,6 +250,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		{
 			writeLock.unlock();
 		}
+		if (privilegeService == null)
+		{
+			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
+					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
+		}
 		String userSID = authorization.getSID();
 		List<IPrivilegeOfService> privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
 		writeLock.lock();
@@ -425,6 +430,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		finally
 		{
 			writeLock.unlock();
+		}
+		if (privilegeService == null)
+		{
+			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
+					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
 		String userSID = authorization.getSID();
 		List<ITypePrivilegeOfService> privilegeResults = privilegeService.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);

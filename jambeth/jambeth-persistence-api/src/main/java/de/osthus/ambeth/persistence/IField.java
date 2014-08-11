@@ -79,7 +79,7 @@ public interface IField extends ILinqFinder, INamed
 	 *            Identifying values.
 	 * @return Cursor to ID and version of all selected entities.
 	 */
-	IVersionCursor findMany(List<Object> values);
+	IVersionCursor findMany(List<?> values);
 
 	/**
 	 * Selects ID and version of the first entity with a given value in this field.

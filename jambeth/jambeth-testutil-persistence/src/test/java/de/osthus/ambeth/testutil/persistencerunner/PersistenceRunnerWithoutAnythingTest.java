@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.osthus.ambeth.IDatabasePool;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;

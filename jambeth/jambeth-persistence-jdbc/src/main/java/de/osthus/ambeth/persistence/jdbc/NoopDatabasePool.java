@@ -5,7 +5,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.IDatabaseLifecycleCallback;
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseFactory;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -13,6 +12,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.callback.IDatabaseLifecycleCallbackRegistry;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;

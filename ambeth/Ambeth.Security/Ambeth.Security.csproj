@@ -152,6 +152,14 @@
     <Compile Include="ambeth\privilege\transfer\TypePrivilegeOfService.cs" />
     <Compile Include="ambeth\privilege\transfer\TypePropertyPrivilegeOfService.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\privilege\factory\DefaultEntityPrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\DefaultEntityTypePrivilegeFactory.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityPrivilegeFactoryProvider.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeEnhancementHint.cs" />
+    <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeFactoryProvider.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

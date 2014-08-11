@@ -42,20 +42,25 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 		put(create, read, update, false);
 	}
 
-	protected static int toBitValue(boolean value, int startingBit)
+	public static int toBitValue(boolean value, int startingBit)
 	{
 		return value ? 1 << startingBit : 0;
 	}
 
+	public static int toBitValue(boolean create, boolean read, boolean update, boolean delete, boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+	}
+
 	private static void put(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		int index = toBitValue(create, read, update, delete, false);
 		array[index] = new PropertyPrivilegeImpl(create, read, update, delete);
 	}
 
 	public static IPropertyPrivilege create(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		int index = toBitValue(create, read, update, delete, false);
 		return array[index];
 	}
 
@@ -132,7 +137,7 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 	@Override
 	public int hashCode()
 	{
-		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		return toBitValue(create, read, update, delete, false);
 	}
 
 	@Override

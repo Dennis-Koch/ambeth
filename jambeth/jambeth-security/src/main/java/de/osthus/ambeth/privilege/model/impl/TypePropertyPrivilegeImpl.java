@@ -46,13 +46,18 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 		put(create, read, update, Boolean.TRUE);
 	}
 
-	protected static int toBitValue(Boolean value, int startingBit)
+	public static int toBitValue(Boolean value, int startingBit)
 	{
 		if (value == null)
 		{
 			return 0;
 		}
 		return value.booleanValue() ? 1 << startingBit : 1 << (startingBit + 1);
+	}
+
+	public static int toBitValue(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6) + toBitValue(execute, 8);
 	}
 
 	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
@@ -140,7 +145,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 	@Override
 	public int hashCode()
 	{
-		return toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		return toBitValue(create, read, update, delete, null);
 	}
 
 	@Override
