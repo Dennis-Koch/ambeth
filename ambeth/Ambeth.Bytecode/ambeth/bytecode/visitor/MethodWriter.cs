@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
+using De.Osthus.Ambeth.Visitor;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -18,29 +19,29 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     {
         public static readonly MethodInstance m_getClass = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Object), typeof(Type), "GetType"));
 
-	    public static readonly MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Type), typeof(bool), "IsAssignableFrom",
-			typeof(Type)));
-        
+        public static readonly MethodInstance m_isAssignableFrom = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(Type), typeof(bool), "IsAssignableFrom",
+            typeof(Type)));
+
         public static readonly MethodInfo getTypeFromHandleMI = typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) });
 
         public static readonly MethodInfo getMethodFromHandleMI = typeof(MethodBase).GetMethod(
                     "GetMethodFromHandle", new Type[] { typeof(RuntimeMethodHandle) });
 
-        private readonly ILGenerator gen;
+        private readonly IILGenerator gen;
 
         private readonly MethodInstance method;
 
         private readonly List<Type> indexToTypeList = new List<Type>();
 
-        public MethodWriter(MethodBuilder mb, MethodInstance method)
+        public MethodWriter(MethodBuilder mb, MethodInstance method, StringBuilder sb)
         {
-            this.gen = mb.GetILGenerator();
+            this.gen = new TraceILGenerator(mb.GetILGenerator(), sb);
             this.method = method;
         }
 
-        public MethodWriter(ConstructorBuilder cb, MethodInstance method)
+        public MethodWriter(ConstructorBuilder cb, MethodInstance method, StringBuilder sb)
         {
-            this.gen = cb.GetILGenerator();
+            this.gen = new TraceILGenerator(cb.GetILGenerator(), sb);
             this.method = method;
         }
 
@@ -52,7 +53,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public ILGenerator Gen
+        public IILGenerator Gen
         {
             get
             {
@@ -82,7 +83,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             gen.Emit(OpCodes.Box, unboxedType);
         }
-        
+
         public virtual void CallThisGetter(MethodInstance method)
         {
             ParamChecker.AssertParamNotNull(method, "method");
@@ -96,7 +97,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 InvokeStatic(method);
             }
         }
-        
+
         public virtual void CallThisGetter(PropertyInstance property)
         {
             CallThisGetter(property.Getter);
@@ -118,7 +119,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 InvokeStatic(method);
             }
         }
-        
+
         public virtual void CallThisSetter(PropertyInstance property, Script script)
         {
             CallThisSetter(property.Setter, script);
@@ -141,7 +142,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void GoTo(Label label)
         {
-            gen.Emit(OpCodes.Br_S, label);
+            gen.Emit(OpCodes.Br, label);
         }
 
         public virtual void InvokeConstructor(ConstructorInfo constructor)
@@ -248,7 +249,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
             else
             {
-               InvokeVirtual(method);
+                InvokeVirtual(method);
             }
         }
 
@@ -278,16 +279,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual void InvokeGetValue(ITypeInfoItem member, Script thisScript)
-	    {
-		    if (member is PropertyInfoItem)
-		    {
-			    MethodInfo getter = ((MethodPropertyInfo) ((PropertyInfoItem) member).Property).Getter;
-			    MethodInstance m_getter = new MethodInstance(getter);
+        {
+            if (member is PropertyInfoItem)
+            {
+                MethodInfo getter = ((MethodPropertyInfo)((PropertyInfoItem)member).Property).Getter;
+                MethodInstance m_getter = new MethodInstance(getter);
 
-			    if (thisScript != null)
-			    {
-				    thisScript.Invoke(this);
-			    }
+                if (thisScript != null)
+                {
+                    thisScript.Invoke(this);
+                }
                 if (getter.DeclaringType.IsInterface)
                 {
                     InvokeInterface(m_getter);
@@ -296,21 +297,21 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 {
                     InvokeVirtual(m_getter);
                 }
-		    }
+            }
             else if (member is CompositeIdTypeInfoItem)
-		    {
-			    CompositeIdTypeInfoItem cidMember = (CompositeIdTypeInfoItem) member;
+            {
+                CompositeIdTypeInfoItem cidMember = (CompositeIdTypeInfoItem)member;
 
-			    ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.GetRealTypeConstructorAccess());
-			    NewInstance(c_compositeId, delegate(IMethodVisitor mg)
+                ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.GetRealTypeConstructorAccess());
+                NewInstance(c_compositeId, delegate(IMethodVisitor mg)
                 {
-					ITypeInfoItem[] members = cidMember.Members;
-					for (int a = 0, size = members.Length; a < size; a++)
-					{
-						InvokeGetValue(members[a], thisScript);
-					}
-			    });
-		    }
+                    ITypeInfoItem[] members = cidMember.Members;
+                    for (int a = 0, size = members.Length; a < size; a++)
+                    {
+                        InvokeGetValue(members[a], thisScript);
+                    }
+                });
+            }
             else if (member is IEmbeddedTypeInfoItem)
             {
                 IEmbeddedTypeInfoItem embedded = (IEmbeddedTypeInfoItem)member;
@@ -323,16 +324,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 InvokeGetValue(embedded.ChildMember, null);
             }
             else
-		    {
-			    FieldInstance field = new FieldInstance(((FieldInfoItem) member).Field);
+            {
+                FieldInstance field = new FieldInstance(((FieldInfoItem)member).Field);
 
-			    if (thisScript != null)
-			    {
-				    thisScript.Invoke(this);
-			    }
-			    GetField(field);
-		    }
-	    }
+                if (thisScript != null)
+                {
+                    thisScript.Invoke(this);
+                }
+                GetField(field);
+            }
+        }
 
         public virtual void GetField(FieldInstance field)
         {
@@ -363,10 +364,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             switch (compareOperator)
             {
                 case CompareOperator.EQ:
-                    gen.Emit(OpCodes.Beq_S, label);
+                    gen.Emit(OpCodes.Beq, label);
                     break;
                 case CompareOperator.NE:
-                    gen.Emit(OpCodes.Bne_Un_S, label);
+                    gen.Emit(OpCodes.Bne_Un, label);
                     break;
                 default:
                     throw RuntimeExceptionUtil.CreateEnumNotSupportedException(compareOperator);
@@ -375,12 +376,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void IfNonNull(Label label)
         {
-            gen.Emit(OpCodes.Brtrue_S, label);
+            gen.Emit(OpCodes.Brtrue, label);
         }
 
         public virtual void IfNull(Label label)
         {
-            gen.Emit(OpCodes.Brfalse_S, label);
+            gen.Emit(OpCodes.Brfalse, label);
         }
 
         public virtual void IfThisInstanceOf(Type instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse)
@@ -428,10 +429,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             switch (compareOperator)
             {
                 case CompareOperator.EQ:
-                    gen.Emit(OpCodes.Brfalse_S, label);
+                    gen.Emit(OpCodes.Brfalse, label);
                     break;
                 case CompareOperator.NE:
-                    gen.Emit(OpCodes.Brtrue_S, label);
+                    gen.Emit(OpCodes.Brtrue, label);
                     break;
                 default:
                     throw RuntimeExceptionUtil.CreateEnumNotSupportedException(compareOperator);
@@ -456,7 +457,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             if (!localIndex.LocalType.IsPrimitive && localIndex.LocalType.IsValueType)
             {
-                gen.Emit(OpCodes.Ldloca_S, localIndex.LocalIndex);
+                gen.Emit(OpCodes.Ldloca, localIndex.LocalIndex);
                 return;
             }
             switch (localIndex.LocalIndex)
@@ -474,16 +475,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     gen.Emit(OpCodes.Ldloc_3);
                     break;
                 default:
-                    gen.Emit(OpCodes.Ldloc_S, (LocalBuilder) localIndex);
+                    gen.Emit(OpCodes.Ldloc, (LocalBuilder)localIndex);
                     break;
-            }            
+            }
         }
 
         public virtual void LoadThis()
         {
             gen.Emit(OpCodes.Ldarg_0);
         }
-        
+
         public virtual void Mark(Label label)
         {
             gen.MarkLabel(label);
@@ -618,7 +619,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 default:
                     gen.Emit(OpCodes.Ldc_I4, value);
                     break;
-            }            
+            }
         }
 
         public virtual void Push(long value)
@@ -777,14 +778,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     gen.Emit(OpCodes.Stloc_3);
                     break;
                 default:
-                    gen.Emit(OpCodes.Stloc, (LocalBuilder) localIndex);
+                    gen.Emit(OpCodes.Stloc, (LocalBuilder)localIndex);
                     break;
             }
         }
 
         public virtual void ThrowException(Type exceptionType, String message)
         {
-            //TODO
+            gen.ThrowException(exceptionType);
         }
 
         public virtual void TryFinally(Script tryScript, Script finallyScript)
@@ -798,7 +799,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             tryScript.Invoke(this);
 
             finallyScript.Invoke(this);
-            
+
             //VisitTryCatchBlock(tryLabel, catchLabel, catchLabel, null);
 
             //Mark(tryLabel);

@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -30,11 +31,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected NewType newType;
 
-        public ClassWriter(AmbethClassLoader ambethClassLoader)
+        protected StringBuilder sb;
+
+        public ClassWriter(AmbethClassLoader ambethClassLoader, StringBuilder sb)
         {
             this.ambethClassLoader = ambethClassLoader;
+            this.sb = sb;
         }
-        
+
         protected bool HideFromDebugActive
         {
             get
@@ -44,12 +48,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         protected IBytecodeBehaviorState State
-	    {
+        {
             get
             {
-		        return BytecodeBehaviorState.State;
+                return BytecodeBehaviorState.State;
             }
-	    }
+        }
 
         //public PropertyBuilder DefineFireThisOnPropertyChange(PropertyBuilder pb, params String[] propertyNames)
         //{
@@ -134,10 +138,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual IMethodVisitor VisitMethod(MethodAttributes access, String name, Type returnType, params Type[] parameters)
-	    {
-		    IBytecodeBehaviorState state = State;
+        {
+            IBytecodeBehaviorState state = State;
             return VisitMethod(new MethodInstance(state.NewType.Type, access, returnType, name, parameters));
-	    }
+        }
 
         public virtual IMethodVisitor VisitMethod(MethodAttributes access, String name, NewType returnType, params NewType[] parameters)
         {
@@ -146,12 +150,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual IMethodVisitor VisitMethod(MethodInstance method)
-	    {
+        {
             if (Log.DebugEnabled)
             {
                 Log.Debug("Implement method: " + method.ToString());
             }
-		    NewType owner = State.NewType;
+            NewType owner = State.NewType;
             method = method.DeriveOwner();
             Type[] parameters = new Type[method.Parameters.Length];
             for (int a = parameters.Length; a-- > 0; )
@@ -163,7 +167,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 ConstructorBuilder mb = tb.DefineConstructor(access, access.HasFlag(MethodAttributes.Static) ? CallingConventions.Standard : CallingConventions.HasThis, parameters);
                 ((BytecodeBehaviorState)State).MethodImplemented(new ConstructorInstance(newType, mb, method.Parameters));
-                return new MethodWriter(mb, new ConstructorInstance(owner, mb, method.Parameters));
+                sb.Append("\r\n" + method.ToString());
+                return new MethodWriter(mb, new ConstructorInstance(owner, mb, method.Parameters), sb);
             }
             else
             {
@@ -207,7 +212,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                         PropertyInfo pi = tb.DefineProperty(propertyName, PropertyAttributes.None, propertyType, null);
 #else
                         CallingConventions cc = access.HasFlag(MethodAttributes.Static) ? CallingConventions.Standard : CallingConventions.HasThis;
-                        
+
                         PropertyInfo pi = tb.DefineProperty(propertyName, PropertyAttributes.None, cc, propertyType, null);
 #endif
                         propertyInfo = new PropertyInstance(pi);
@@ -233,7 +238,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 //}
                 method = new MethodInstance(newType, mb, method.Parameters);
                 ((BytecodeBehaviorState)State).MethodImplemented(method);
-                
+
                 if (propertyInfo != null && propertyInfo.Configurable)
                 {
                     if (method.Name.StartsWith("get_"))
@@ -265,41 +270,42 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                         throw new ArgumentException();
                     }
                 }
-                return new MethodWriter(mb, method);
+                sb.Append("\r\n" + method.ToString());
+                return new MethodWriter(mb, method, sb);
             }
-	    }
+        }
 
         public virtual FieldInstance ImplementStaticAssignedField(String staticFieldName, Object fieldValue)
-	    {
-		    ParamChecker.AssertParamNotNull(fieldValue, "fieldValue");
+        {
+            ParamChecker.AssertParamNotNull(fieldValue, "fieldValue");
             Type fieldType = fieldValue.GetType();
-		    if (fieldValue is IValueResolveDelegate)
-		    {
-			    fieldType = ((IValueResolveDelegate) fieldValue).ValueType;
-		    }
-		    return ImplementStaticAssignedField(staticFieldName, fieldType, fieldValue);
-	    }
+            if (fieldValue is IValueResolveDelegate)
+            {
+                fieldType = ((IValueResolveDelegate)fieldValue).ValueType;
+            }
+            return ImplementStaticAssignedField(staticFieldName, fieldType, fieldValue);
+        }
 
         public virtual FieldInstance ImplementStaticAssignedField(String staticFieldName, Type fieldType, Object fieldValue)
-	    {
-		    FieldInstance field = new FieldInstance(FieldAttributes.Public | FieldAttributes.Static, staticFieldName, NewType.GetType(fieldType));
-		    field = ImplementField(field, null);
+        {
+            FieldInstance field = new FieldInstance(FieldAttributes.Public | FieldAttributes.Static, staticFieldName, NewType.GetType(fieldType));
+            field = ImplementField(field, null);
             field = HideFromDebug(field);
-		    if (fieldValue != null)
-		    {
+            if (fieldValue != null)
+            {
                 IValueResolveDelegate vrd = null;
-			    if (fieldValue is IValueResolveDelegate)
-			    {
-				    vrd = (IValueResolveDelegate) fieldValue;
-			    }
-			    else
-			    {
-				    vrd = new NoOpValueResolveDelegate(fieldValue);
-			    }
+                if (fieldValue is IValueResolveDelegate)
+                {
+                    vrd = (IValueResolveDelegate)fieldValue;
+                }
+                else
+                {
+                    vrd = new NoOpValueResolveDelegate(fieldValue);
+                }
                 ((BytecodeBehaviorState)State).QueueFieldInitialization(field.Name, vrd);
-		    }
+            }
             return field;
-	    }
+        }
 
         public PropertyInstance ImplementAssignedReadonlyProperty(String propertyName, Object fieldValue)
         {
@@ -335,18 +341,18 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual MethodInstance ImplementSetter(MethodInstance method, FieldInstance field)
-	    {
+        {
             ParamChecker.AssertParamNotNull(method, "method");
             ParamChecker.AssertParamNotNull(field, "field");
-		    IMethodVisitor mg = VisitMethod(method);
-		    mg.PutThisField(field, delegate(IMethodVisitor mg2)
-		    {
+            IMethodVisitor mg = VisitMethod(method);
+            mg.PutThisField(field, delegate(IMethodVisitor mg2)
+            {
                 mg2.LoadArg(0);
-		    });
-		    mg.ReturnVoidOrThis();
-		    mg.EndMethod();
+            });
+            mg.ReturnVoidOrThis();
+            mg.EndMethod();
             return MethodInstance.FindByTemplate(method, false);
-	    }
+        }
 
         public virtual PropertyInstance ImplementSetter(PropertyInstance property, FieldInstance field)
         {
@@ -363,13 +369,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         }
 
         public virtual MethodInstance ImplementGetter(MethodInstance method, FieldInstance field)
-	    {
+        {
             IMethodVisitor mg = VisitMethod(method);
-		    mg.GetThisField(field);
-		    mg.ReturnValue();
-		    mg.EndMethod();
+            mg.GetThisField(field);
+            mg.ReturnValue();
+            mg.EndMethod();
             return MethodInstance.FindByTemplate(method, false);
-	    }
+        }
 
         public virtual PropertyInstance ImplementGetter(PropertyInstance property, FieldInstance field)
         {
@@ -439,23 +445,23 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-	    public virtual IMethodVisitor StartOverrideWithSuperCall(MethodInstance superMethod)
-	    {
-		    IBytecodeBehaviorState state = State;
+        public virtual IMethodVisitor StartOverrideWithSuperCall(MethodInstance superMethod)
+        {
+            IBytecodeBehaviorState state = State;
 
             NewType superType = NewType.GetType(state.CurrentType);
-		    if (!superType.Equals(superMethod.Owner))
-		    {
+            if (!superType.Equals(superMethod.Owner))
+            {
                 throw new ArgumentException("Not a method of " + state.CurrentType + ": " + superMethod);
-		    }
+            }
             IMethodVisitor mg = VisitMethod(superMethod);
 
-		    mg.LoadThis();
-		    mg.LoadArgs();
-		    mg.InvokeSuper(superMethod);
+            mg.LoadThis();
+            mg.LoadArgs();
+            mg.InvokeSuper(superMethod);
 
-		    return mg;
-	    }
+            return mg;
+        }
 
         public void Visit(TypeAttributes access, String name, Type superName, Type[] interfaces)
         {
@@ -466,14 +472,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public void VisitEnd()
         {
-            try
-            {
-                createdType = tb.CreateType();
-            }
-            finally
-            {
-                tb = null;
-            }
+            createdType = tb.CreateType();
+            tb = null;
+        }
+
+        public TypeBuilder GetTypeBuilder()
+        {
+            return tb;
         }
 
         public Type GetCreatedType()

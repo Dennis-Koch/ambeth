@@ -73,6 +73,11 @@
     <Compile Include="ambeth\bytecode\visitor\ClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\CompareOperator.cs" />
     <Compile Include="ambeth\bytecode\IOverrideConstructorDelegate.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IILGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceFieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceILGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceMethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\IFieldVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\IClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\IMethodVisitor.cs" />
