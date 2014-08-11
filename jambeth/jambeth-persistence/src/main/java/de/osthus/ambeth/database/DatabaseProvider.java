@@ -1,8 +1,8 @@
 package de.osthus.ambeth.database;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.proxy.ITargetProvider;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.ParamChecker;

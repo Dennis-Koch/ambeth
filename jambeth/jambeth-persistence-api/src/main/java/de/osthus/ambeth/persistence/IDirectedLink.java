@@ -52,7 +52,7 @@ public interface IDirectedLink
 
 	ILink getLink();
 
-	IDirectedLink getReverse();
+	IDirectedLink getReverseLink();
 
 	CascadeLoadMode getCascadeLoadMode();
 

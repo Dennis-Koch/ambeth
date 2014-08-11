@@ -1,10 +1,8 @@
 package de.osthus.ambeth.persistence;
 
-import java.sql.Savepoint;
 import java.util.Collection;
 import java.util.List;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.util.IDisposable;
 
@@ -232,14 +230,14 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 * @param savepoint
 	 *            savepoint that defines the changes to revert.
 	 */
-	void revert(Savepoint savepoint);
+	void revert(ISavepoint savepoint);
 
 	/**
 	 * Acquires a savepoint that may be used later for reverting changes.
 	 * 
 	 * @return savepoint created
 	 */
-	Savepoint setSavepoint();
+	ISavepoint setSavepoint();
 
 	/**
 	 * Releases the savepoint
@@ -247,12 +245,12 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 * @param savepoint
 	 *            savepoint to release.
 	 */
-	void releaseSavepoint(Savepoint savepoint);
+	void releaseSavepoint(ISavepoint savepoint);
 
 	/**
 	 * Transaction rollback.
 	 */
-	void rollback(Savepoint savepoint);
+	void rollback(ISavepoint savepoint);
 
 	/**
 	 * Delay foreign key constraint validation for running multiple commands "as one".

@@ -1,17 +1,17 @@
 package de.osthus.ambeth.orm20;
 
-import java.sql.Savepoint;
 import java.util.Collection;
 import java.util.List;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseDisposeHook;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.ILink;
+import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
 
 public class DatabaseDummy implements IDatabase
@@ -170,23 +170,23 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public void revert(Savepoint savepoint)
+	public void revert(ISavepoint savepoint)
 	{
 	}
 
 	@Override
-	public Savepoint setSavepoint()
+	public ISavepoint setSavepoint()
 	{
 		return null;
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint)
+	public void releaseSavepoint(ISavepoint savepoint)
 	{
 	}
 
 	@Override
-	public void rollback(Savepoint savepoint)
+	public void rollback(ISavepoint savepoint)
 	{
 	}
 
@@ -213,19 +213,22 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
-	public void registerDisposeHook(IDatabaseDisposeHook disposeHook) {
+	public void registerDisposeHook(IDatabaseDisposeHook disposeHook)
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook) {
+	public void unregisterDisposeHook(IDatabaseDisposeHook disposeHook)
+	{
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public boolean isDisposed() {
+	public boolean isDisposed()
+	{
 		// TODO Auto-generated method stub
 		return false;
 	}

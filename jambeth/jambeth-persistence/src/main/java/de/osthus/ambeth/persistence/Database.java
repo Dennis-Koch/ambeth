@@ -2,14 +2,12 @@ package de.osthus.ambeth.persistence;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -552,7 +550,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
-	public void revert(Savepoint savepoint)
+	public void revert(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -582,19 +580,19 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
-	public Savepoint setSavepoint()
+	public ISavepoint setSavepoint()
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint)
+	public void releaseSavepoint(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void rollback(Savepoint savepoint)
+	public void rollback(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

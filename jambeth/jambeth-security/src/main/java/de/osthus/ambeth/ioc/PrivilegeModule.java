@@ -25,9 +25,7 @@ public class PrivilegeModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class)
-		// .propertyRefs("privilegeServiceWCF")
-				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
+		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class).autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
 		beanContextFactory.registerBean("privilegeProvider_EventListener", UnfilteredDataChangeListener.class).propertyRefs("privilegeProvider");
 		beanContextFactory.link("privilegeProvider_EventListener").to(IEventListenerExtendable.class).with(IDataChange.class);
 

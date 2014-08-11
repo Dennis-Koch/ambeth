@@ -157,7 +157,7 @@ namespace De.Osthus.Ambeth.Privilege
         [Autowired]
         public IObjRefHelper ObjRefHelper { protected get; set; }
 
-        [Autowired]
+        [Autowired(Optional = true)]
         public IPrivilegeService PrivilegeService { protected get; set; }
 
         [Autowired]
@@ -224,6 +224,11 @@ namespace De.Osthus.Ambeth.Privilege
                     return result;
                 }
             }
+            if (PrivilegeService == null)
+		    {
+			    throw new SecurityException("No bean of type " + typeof(IPrivilegeService).FullName
+					    + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
+		    }
             String userSID = authorization.SID;
             IList<IPrivilegeOfService> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
             lock (writeLock)
@@ -387,6 +392,11 @@ namespace De.Osthus.Ambeth.Privilege
                 {
                     return result;
                 }
+            }
+            if (PrivilegeService == null)
+            {
+                throw new SecurityException("No bean of type " + typeof(IPrivilegeService).FullName
+                        + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
             }
             String userSID = authorization.SID;
             IList<ITypePrivilegeOfService> privilegeResults = PrivilegeService.GetPrivilegesOfTypes(missingEntityTypes.ToArray(), securityScopes);
