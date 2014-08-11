@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Ioc
 
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            beanContextFactory.RegisterBean<PrivilegeProvider>("privilegeProvider").PropertyRefs("privilegeServiceWCF").Autowireable<IPrivilegeProvider>();
+            beanContextFactory.RegisterBean<PrivilegeProvider>("privilegeProvider").Autowireable<IPrivilegeProvider>();
             beanContextFactory.RegisterBean<UnfilteredDataChangeListener>("privilegeProvider_EventListener").PropertyRefs("privilegeProvider");
             beanContextFactory.Link("privilegeProvider_EventListener").To<IEventListenerExtendable>().With(typeof(IDataChange));
 

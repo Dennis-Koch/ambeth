@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseFactory;
 import de.osthus.ambeth.database.IDatabaseMappedListenerExtendable;
@@ -24,6 +23,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.ContextProvider;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.persistence.parallel.ModifyingDatabase;

@@ -147,7 +147,7 @@ public class Field implements IField, IInitializingBean
 	}
 
 	@Override
-	public IVersionCursor findMany(List<Object> values)
+	public IVersionCursor findMany(List<?> values)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

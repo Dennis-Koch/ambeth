@@ -1,6 +1,5 @@
-package de.osthus.ambeth;
+package de.osthus.ambeth.persistence;
 
-import de.osthus.ambeth.persistence.IDatabase;
 
 public interface IDatabasePool
 {

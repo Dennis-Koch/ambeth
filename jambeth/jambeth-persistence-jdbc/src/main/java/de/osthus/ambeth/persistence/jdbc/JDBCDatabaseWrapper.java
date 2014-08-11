@@ -3,7 +3,6 @@ package de.osthus.ambeth.persistence.jdbc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +45,7 @@ import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
@@ -1284,7 +1284,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void revert(Savepoint savepoint)
+	public void revert(ISavepoint savepoint)
 	{
 		alreadyLinkedCache.clear();
 		try
@@ -1346,11 +1346,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public Savepoint setSavepoint()
+	public ISavepoint setSavepoint()
 	{
 		try
 		{
-			return connection.setSavepoint();
+			return new JdbcSavepoint(connection.setSavepoint());
 		}
 		catch (SQLException e)
 		{
@@ -1359,11 +1359,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint)
+	public void releaseSavepoint(ISavepoint savepoint)
 	{
 		try
 		{
-			connectionDialect.releaseSavepoint(savepoint, connection);
+			connectionDialect.releaseSavepoint(((JdbcSavepoint) savepoint).getSavepoint(), connection);
 		}
 		catch (SQLException e)
 		{
@@ -1372,11 +1372,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void rollback(Savepoint savepoint)
+	public void rollback(ISavepoint savepoint)
 	{
 		try
 		{
-			connection.rollback(savepoint);
+			connection.rollback(((JdbcSavepoint) savepoint).getSavepoint());
 		}
 		catch (SQLException e)
 		{

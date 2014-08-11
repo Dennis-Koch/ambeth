@@ -28,19 +28,19 @@ public class PlatformContextConfiguration implements IPlatformContextConfigurati
 		}
 	}
 
-	protected Properties properties = new Properties(Properties.getApplication());
+	protected final Properties properties = new Properties(Properties.getApplication());
 
-	protected Set<Class<?>> providerModuleTypes = new HashSet<Class<?>>();
+	protected final Set<Class<?>> providerModuleTypes = new HashSet<Class<?>>();
 
-	protected Set<IInitializingModule> providerModules = new IdentityHashSet<IInitializingModule>();
+	protected final Set<IInitializingModule> providerModules = new IdentityHashSet<IInitializingModule>();
 
-	protected Set<Class<?>> frameworkModuleTypes = new HashSet<Class<?>>();
+	protected final Set<Class<?>> frameworkModuleTypes = new HashSet<Class<?>>();
 
-	protected Set<IInitializingModule> frameworkModules = new IdentityHashSet<IInitializingModule>();
+	protected final Set<IInitializingModule> frameworkModules = new IdentityHashSet<IInitializingModule>();
 
-	protected Set<Class<?>> bootstrapModuleTypes = new HashSet<Class<?>>();
+	protected final Set<Class<?>> bootstrapModuleTypes = new HashSet<Class<?>>();
 
-	protected Set<IInitializingModule> bootstrapModules = new IdentityHashSet<IInitializingModule>();
+	protected final Set<IInitializingModule> bootstrapModules = new IdentityHashSet<IInitializingModule>();
 
 	public IPlatformContextConfiguration addProperties(IProperties properties)
 	{

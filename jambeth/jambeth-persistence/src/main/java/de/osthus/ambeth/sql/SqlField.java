@@ -92,7 +92,7 @@ public class SqlField extends Field
 	}
 
 	@Override
-	public IVersionCursor findMany(List<Object> values)
+	public IVersionCursor findMany(List<?> values)
 	{
 		ITable table = getTable();
 		String idFieldName = table.getIdField().getName();

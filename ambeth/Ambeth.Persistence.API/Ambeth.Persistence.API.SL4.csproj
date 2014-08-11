@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7BA3EBA6-B63D-4A5C-89AC-0D769F9DF8A9}</ProjectGuid>
+    <ProjectTypeGuids>{A1591282-1198-4647-A2B1-27E5FF5F6F3B};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>De.Osthus.Ambeth.Persistence</RootNamespace>
+    <AssemblyName>Ambeth.Persistence.API.SL4</AssemblyName>
+    <TargetFrameworkIdentifier>Silverlight</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <SilverlightVersion>$(TargetFrameworkVersion)</SilverlightVersion>
+    <SilverlightApplication>false</SilverlightApplication>
+    <ValidateXaml>true</ValidateXaml>
+    <ThrowErrorsInValidation>true</ThrowErrorsInValidation>
+  </PropertyGroup>
+  <!-- This property group is only here to support building this project using the 
+       MSBuild 3.5 toolset. In order to work correctly with this older toolset, it needs 
+       to set the TargetFrameworkVersion to v3.5 -->
+  <PropertyGroup Condition="'$(MSBuildToolsVersion)' == '3.5'">
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>Bin\Debug_SL4\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>Bin\Release_SL4\</OutputPath>
+    <DefineConstants>TRACE;SILVERLIGHT</DefineConstants>
+    <NoStdLib>true</NoStdLib>
+    <NoConfig>true</NoConfig>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Castle.Core">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\Ambeth.Util\libs\sl-3.0\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Windows" />
+    <Reference Include="system" />
+    <Reference Include="System.Core">
+      <HintPath>$(TargetFrameworkDirectory)System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Windows.Browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\database\DatabaseCallback.cs" />
+    <Compile Include="ambeth\database\IDatabaseProvider.cs" />
+    <Compile Include="ambeth\database\ITransaction.cs" />
+    <Compile Include="ambeth\database\ResultingDatabaseCallback.cs" />
+    <Compile Include="ambeth\persistence\IContextProvider.cs" />
+    <Compile Include="ambeth\persistence\ICursor.cs" />
+    <Compile Include="ambeth\persistence\ICursorItem.cs" />
+    <Compile Include="ambeth\persistence\IDatabase.cs" />
+    <Compile Include="ambeth\persistence\IDatabaseDisposeHook.cs" />
+    <Compile Include="ambeth\persistence\IDatabaseDisposeHookExtendable.cs" />
+    <Compile Include="ambeth\persistence\IDatabasePool.cs" />
+    <Compile Include="ambeth\persistence\IDirectedLink.cs" />
+    <Compile Include="ambeth\persistence\IField.cs" />
+    <Compile Include="ambeth\persistence\ILink.cs" />
+    <Compile Include="ambeth\persistence\ILinkCursor.cs" />
+    <Compile Include="ambeth\persistence\ILinkCursorItem.cs" />
+    <Compile Include="ambeth\persistence\ILinqFinder.cs" />
+    <Compile Include="ambeth\persistence\IllegalResultException.cs" />
+    <Compile Include="ambeth\persistence\ISavepoint.cs" />
+    <Compile Include="ambeth\persistence\ITable.cs" />
+    <Compile Include="ambeth\util\IAlreadyLoadedCache.cs" />
+    <Compile Include="ambeth\util\IdTypeTuple.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.SL4.csproj">
+      <Project>{BDA824AF-09F2-4338-86AE-B05552CD542E}</Project>
+      <Name>Ambeth.IOC.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Log\Ambeth.Log.SL4.csproj">
+      <Project>{470B5E14-25AD-448A-9C8B-50A594E84EF6}</Project>
+      <Name>Ambeth.Log.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL4.csproj">
+      <Project>{ba00bde1-75cb-438f-85b6-3ba2a6f0f6d3}</Project>
+      <Name>Ambeth.Merge.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Query\Ambeth.Query.SL4.csproj">
+      <Project>{745060e7-6204-4f18-871b-24d87931420e}</Project>
+      <Name>Ambeth.Query.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Service\Ambeth.Service.SL4.csproj">
+      <Project>{AAA73AA7-506D-43B3-B74E-CFD2382ADFDE}</Project>
+      <Name>Ambeth.Service.SL4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Util\Ambeth.Util.SL4.csproj">
+      <Project>{9E849E17-44AA-419E-8831-B048AE0589A7}</Project>
+      <Name>Ambeth.Util.SL4</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{A1591282-1198-4647-A2B1-27E5FF5F6F3B}">
+        <SilverlightProjectProperties />
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

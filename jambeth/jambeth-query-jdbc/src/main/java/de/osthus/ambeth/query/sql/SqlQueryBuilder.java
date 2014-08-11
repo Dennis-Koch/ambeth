@@ -460,7 +460,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 				Boolean reverse = stepReverse.get(i);
 				if (reverse)
 				{
-					dLink = dLink.getReverse();
+					dLink = dLink.getReverseLink();
 				}
 				entityType = dLink.getToTable().getEntityType();
 

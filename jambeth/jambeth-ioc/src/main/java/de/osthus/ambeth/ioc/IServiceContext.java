@@ -117,7 +117,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	<V> IBeanContextHolder<V> createHolder(String beanName, Class<V> expectedClass);
 
 	/**
-	 * Service bean lookup by name.
+	 * Service bean lookup by name. Identical to getService(serviceName, true).
 	 * 
 	 * @param serviceName
 	 *            Name of the service bean to lookup.
@@ -161,7 +161,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	<V> V getService(String serviceName, Class<V> targetType, boolean checkExistence);
 
 	/**
-	 * Service bean lookup by type.
+	 * Service bean lookup by type. Identical to getService(autowiredType, true)
 	 * 
 	 * @param type
 	 *            Type the service bean is autowired to.
