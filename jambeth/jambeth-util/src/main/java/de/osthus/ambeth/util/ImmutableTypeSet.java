@@ -1,7 +1,10 @@
 package de.osthus.ambeth.util;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -46,7 +49,11 @@ public final class ImmutableTypeSet
 		immutableTypeSet.add(void.class);
 		immutableTypeSet.add(BigInteger.class);
 		immutableTypeSet.add(BigDecimal.class);
+
 		immutableTypeSet.add(Pattern.class);
+		immutableTypeSet.add(URI.class);
+		immutableTypeSet.add(URL.class);
+		immutableTypeSet.add(File.class);
 	}
 
 	public static void addImmutableTypesTo(Collection<Class<?>> collection)
