@@ -201,17 +201,20 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
 				Class<?> entityType = missingMetaDataItem.getEntityType();
 				IEntityMetaData existingMetaData = getExtensionHardKey(entityType);
-                if (existingMetaData != null && existingMetaData != alreadyHandled)
-                {
-                    continue;
-                }
-                if (existingMetaData == alreadyHandled)
-                {
-                    unregister(alreadyHandled, entityType);
-                }
+				if (existingMetaData != null && existingMetaData != alreadyHandled)
+				{
+					continue;
+				}
+				if (existingMetaData == alreadyHandled)
+				{
+					unregister(alreadyHandled, entityType);
+				}
 				register(missingMetaDataItem, entityType);
 				pendingToRefreshMetaDataTL.get().add(entityType);
-
+			}
+			for (int a = loadedMetaData.size(); a-- > 0;)
+			{
+				IEntityMetaData missingMetaDataItem = loadedMetaData.get(a);
 				for (ITypeInfoItem relationMember : missingMetaDataItem.getRelationMembers())
 				{
 					Class<?> relationMemberType = relationMember.getElementType();
@@ -293,32 +296,32 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			Class<?> entityType = entityTypes.get(a);
 			IEntityMetaData metaDataItem = getExtension(entityType);
 			if (metaDataItem == alreadyHandled)
-            {
-                metaDataItem = getExtensionHardKey(entityType);
-                if (metaDataItem == null)
-                {
-                    if (missingEntityTypes == null)
-                    {
-                        missingEntityTypes = new ArrayList<Class<?>>();
-                    }
-                    missingEntityTypes.add(entityType);
-                }
-                else
-                {
-                    result.add(null);
-                }
-                continue;
-            }
-            if (metaDataItem == null)
-            {
-                if (missingEntityTypes == null)
-                {
-                    missingEntityTypes = new ArrayList<Class<?>>();
-                }
-                missingEntityTypes.add(entityType);
-                continue;
-            }
-            result.add(metaDataItem);
+			{
+				metaDataItem = getExtensionHardKey(entityType);
+				if (metaDataItem == null)
+				{
+					if (missingEntityTypes == null)
+					{
+						missingEntityTypes = new ArrayList<Class<?>>();
+					}
+					missingEntityTypes.add(entityType);
+				}
+				else
+				{
+					result.add(null);
+				}
+				continue;
+			}
+			if (metaDataItem == null)
+			{
+				if (missingEntityTypes == null)
+				{
+					missingEntityTypes = new ArrayList<Class<?>>();
+				}
+				missingEntityTypes.add(entityType);
+				continue;
+			}
+			result.add(metaDataItem);
 		}
 		if (missingEntityTypes == null || remoteEntityMetaDataProvider == null)
 		{
