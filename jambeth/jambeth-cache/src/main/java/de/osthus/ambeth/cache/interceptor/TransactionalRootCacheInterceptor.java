@@ -74,7 +74,7 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		if (privilegedRootCache == null)
 		{
 			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
-			privilegedRootCache = acquireRootCache(privileged, privilegedRootCacheTL);
+			privilegedRootCache = acquireRootCache(true, privilegedRootCacheTL);
 		}
 		if (privileged)
 		{
