@@ -175,7 +175,10 @@ namespace De.Osthus.Ambeth.Merge
                     }
                     Register(missingMetaDataItem, entityType);
                     pendingToRefreshMetaDataTL.Value.Add(entityType);
-
+                }
+                for (int a = loadedMetaData.Count; a-- > 0; )
+                {
+                    IEntityMetaData missingMetaDataItem = loadedMetaData[a];
                     foreach (IRelationInfoItem relationMember in missingMetaDataItem.RelationMembers)
                     {
                         Type relationMemberType = relationMember.ElementType;
