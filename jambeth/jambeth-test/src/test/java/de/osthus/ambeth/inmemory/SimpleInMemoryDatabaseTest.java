@@ -1,4 +1,4 @@
-package de.osthus.ambeth.persistence.jdbc.alternateid;
+package de.osthus.ambeth.inmemory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,43 +8,56 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.cache.ICacheContext;
-import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.database.ITransactionListenerExtendable;
+import de.osthus.ambeth.event.DatabaseAcquireEvent;
+import de.osthus.ambeth.event.DatabaseFailEvent;
+import de.osthus.ambeth.event.IEventListenerExtendable;
+import de.osthus.ambeth.inmemory.SimpleInMemoryDatabaseTest.SimpleInMemoryDatabaseTestModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
-import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdEntity;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
-import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.query.IQuery;
-import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity;
+import de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity2;
+import de.osthus.ambeth.persistence.jdbc.alternateid.IAlternateIdEntityService;
+import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
-import de.osthus.ambeth.testutil.SQLData;
-import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 
-@SQLData("alternateid_data.sql")
-@SQLStructure("alternateid_structure.sql")
-@TestModule(AlternateIdModule.class)
-@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
-public class AlternateIdTest extends AbstractPersistenceTest
+@TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
+@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/inmemory/simpleinmemory_orm.xml")
+public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 {
-	public static class AlternateIdModule implements IInitializingModule
+	public static class SimpleInMemoryDatabaseTestModule implements IInitializingModule
 	{
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAutowireableBean(IAlternateIdEntityService.class, AlternateIdEntityService.class);
+			IBeanConfiguration inMemoryDatabase = beanContextFactory.registerAnonymousBean(SimpleInMemoryDatabase.class);
+
+			beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
+			beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
+			// beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseCommitEvent.class);
+			beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
+
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(AlternateIdEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(AlternateIdEntity.class);
+
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(BaseEntity.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(BaseEntity.class);
+
+			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(BaseEntity2.class);
+			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(BaseEntity2.class);
 		}
 	}
 
@@ -193,49 +206,5 @@ public class AlternateIdTest extends AbstractPersistenceTest
 		IEntityMetaData metaData = beanContext.getService(IEntityMetaDataProvider.class).getMetaData(BaseEntity2.class);
 
 		Assert.assertEquals(1, metaData.getAlternateIdMembers().length);
-	}
-
-	@Test
-	public void testLazyValueHolderReferringToAlternateId() throws Throwable
-	{
-		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
-		ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
-
-		final AlternateIdEntity aeEntity = entityFactory.createEntity(AlternateIdEntity.class);
-		BaseEntity2 be2 = entityFactory.createEntity(BaseEntity2.class);
-		aeEntity.getBaseEntities2().add(be2);
-
-		aeEntity.setName("AE_1");
-		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
-		{
-			@Override
-			public Object run() throws Throwable
-			{
-				IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
-
-				mergeProcess.process(aeEntity, null, null, null);
-				return null;
-			}
-		});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
-		{
-			@Override
-			public Object run() throws Throwable
-			{
-				IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
-				IQuery<AlternateIdEntity> query = qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));
-				IList<AlternateIdEntity> result = query.retrieve();
-				Assert.assertEquals(1, result.size());
-				AlternateIdEntity item = result.get(0);
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(AlternateIdEntity.class);
-				int relationIndex = metaData.getIndexByRelationName("BaseEntities2");
-				Assert.assertTrue(!((IObjRefContainer) item).is__Initialized(relationIndex));
-				List<BaseEntity2> baseEntities2 = item.getBaseEntities2();
-				BaseEntity2 baseEntity2 = baseEntities2.get(0);
-				Assert.assertNotNull(baseEntity2);
-				return null;
-			}
-		});
 	}
 }

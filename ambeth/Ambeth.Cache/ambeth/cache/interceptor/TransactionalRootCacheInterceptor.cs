@@ -66,7 +66,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             if (privilegedRootCache == null)
             {
                 // here we know that the non-privileged one could not have existed before, so we simply create the privileged one
-                privilegedRootCache = AcquireRootCache(privileged, privilegedRootCacheTL);
+                privilegedRootCache = AcquireRootCache(true, privilegedRootCacheTL);
             }
             if (privileged)
             {

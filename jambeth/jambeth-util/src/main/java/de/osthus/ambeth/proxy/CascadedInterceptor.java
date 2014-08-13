@@ -10,10 +10,13 @@ public abstract class CascadedInterceptor implements ICascadedInterceptor
 {
 	public static final Method finalizeMethod;
 
+	public static final Method equalsMethod;
+
 	static
 	{
 		try
 		{
+			equalsMethod = Object.class.getDeclaredMethod("equals", Object.class);
 			finalizeMethod = Object.class.getDeclaredMethod("finalize");
 		}
 		catch (Throwable e)
@@ -42,6 +45,13 @@ public abstract class CascadedInterceptor implements ICascadedInterceptor
 		{
 			// Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
 			return null;
+		}
+		if (equalsMethod.equals(method))
+		{
+			if (obj == args[0])
+			{
+				return Boolean.TRUE;
+			}
 		}
 		if (target instanceof MethodInterceptor)
 		{
