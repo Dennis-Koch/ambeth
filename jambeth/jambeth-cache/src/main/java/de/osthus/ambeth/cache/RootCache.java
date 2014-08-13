@@ -1012,33 +1012,45 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected void loadObjects(List<ILoadContainer> loadedEntities, LinkedHashSet<IObjRef> neededORIs, ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try
 		{
 			for (int a = 0, size = loadedEntities.size(); a < size; a++)
 			{
-				ILoadContainer loadContainer = loadedEntities.get(a);
-				IObjRef reference = loadContainer.getReference();
-
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
-				Object[] primitives = loadContainer.getPrimitives();
-				CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
-
-				RootCacheValue cacheValue = putIntern(metaData, null, reference.getId(), reference.getVersion(), alternateCacheKeys, primitives,
-						loadContainer.getRelations());
-				if (weakEntries)
-				{
-					addHardRefTL(cacheValue);
-				}
-				ensureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+				loadObject(loadedEntities.get(a), neededORIs, pendingValueHolders);
 			}
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+	}
+
+	protected void loadObject(ILoadContainer loadContainer, LinkedHashSet<IObjRef> neededORIs, ArrayList<DirectValueHolderRef> pendingValueHolders)
+	{
+		IObjRef reference = loadContainer.getReference();
+
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
+		Object[] primitives = loadContainer.getPrimitives();
+		CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
+
+		RootCacheValue cacheValue = putIntern(metaData, null, reference.getId(), reference.getVersion(), alternateCacheKeys, primitives,
+				loadContainer.getRelations());
+		if (weakEntries)
+		{
+			addHardRefTL(cacheValue);
+		}
+		if (pendingValueHolders != null)
+		{
+			ensureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+		}
+	}
+
+	@Override
+	protected void putIntern(ILoadContainer loadContainer)
+	{
+		loadObject(loadContainer, null, null);
 	}
 
 	protected void clearPendingKeysOfCurrentThread(ArrayList<IObjRef> cacheKeysToRemove)
