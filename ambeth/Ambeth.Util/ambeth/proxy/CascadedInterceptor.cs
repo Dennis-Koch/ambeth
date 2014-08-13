@@ -1,14 +1,14 @@
 ﻿using System;
+using System.Reflection;
 using System.Text;
 #if !SILVERLIGHT
 using Castle.DynamicProxy;
 using System.Threading;
-using System.Reflection;
-using De.Osthus.Ambeth.Util;
 #else
 using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
+using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Proxy
 {
