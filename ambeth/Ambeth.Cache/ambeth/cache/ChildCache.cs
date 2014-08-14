@@ -107,6 +107,11 @@ namespace De.Osthus.Ambeth.Cache
             base.Dispose();
         }
 
+        protected override void PutIntern(ILoadContainer loadContainer)
+	    {
+		    throw new NotSupportedException();
+	    }
+
         protected override void CacheValueHasBeenAdded(sbyte idIndex, Object id, IEntityMetaData metaData, Object[] primitives, IObjRef[][] relations, Object cacheValueR)
         {
             base.CacheValueHasBeenAdded(idIndex, id, metaData, primitives, relations, cacheValueR);

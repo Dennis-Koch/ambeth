@@ -926,19 +926,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 for (int a = 0, size = loadedEntities.Count; a < size; a++)
                 {
-                    ILoadContainer loadContainer = loadedEntities[a];
-                    IObjRef reference = loadContainer.Reference;
-
-                    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(reference.RealType);
-                    Object[] primitives = loadContainer.Primitives;
-                    CacheKey[] alternateCacheKeys = ExtractAlternateCacheKeys(metaData, primitives);
-
-                    RootCacheValue cacheValue = PutIntern(metaData, null, reference.Id, reference.Version, alternateCacheKeys, primitives, loadContainer.Relations);
-                    if (WeakEntries)
-                    {
-                        AddHardRefTL(cacheValue);
-                    }
-                    EnsureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+                    LoadObject(loadedEntities[a], neededORIs, pendingValueHolders);
                 }
             }
             finally
@@ -946,6 +934,30 @@ namespace De.Osthus.Ambeth.Cache
                 writeLock.Unlock();
             }
         }
+
+        protected void LoadObject(ILoadContainer loadContainer, ISet<IObjRef> neededORIs, IList<DirectValueHolderRef> pendingValueHolders)
+        {
+            IObjRef reference = loadContainer.Reference;
+
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(reference.RealType);
+            Object[] primitives = loadContainer.Primitives;
+            CacheKey[] alternateCacheKeys = ExtractAlternateCacheKeys(metaData, primitives);
+
+            RootCacheValue cacheValue = PutIntern(metaData, null, reference.Id, reference.Version, alternateCacheKeys, primitives, loadContainer.Relations);
+            if (WeakEntries)
+            {
+                AddHardRefTL(cacheValue);
+            }
+            if (pendingValueHolders != null)
+            {
+                EnsureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+            }
+        }
+
+	    protected override void PutIntern(ILoadContainer loadContainer)
+	    {
+		    LoadObject(loadContainer, null, null);
+	    }
 
         protected void ClearPendingKeysOfCurrentThread(List<IObjRef> cacheKeysToRemove)
         {
