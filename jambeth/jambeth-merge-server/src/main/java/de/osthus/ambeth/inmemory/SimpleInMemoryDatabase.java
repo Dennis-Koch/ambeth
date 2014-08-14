@@ -1,5 +1,6 @@
 package de.osthus.ambeth.inmemory;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
@@ -64,7 +65,8 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.Lock;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExtension, IInitializingBean, IEventListener, ITransactionListener
+public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExtension, IInitializingBean, IEventListener, ITransactionListener,
+		IInMemoryDatabase
 {
 	protected static final Set<CacheDirective> failEntryLoadContainerResult = EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult);
 
@@ -106,6 +108,33 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	{
 		committedData = beanContext.registerAnonymousBean(RootCache.class).propertyValue("WeakEntries", Boolean.FALSE)
 				.propertyValue("Privileged", Boolean.FALSE).ignoreProperties("CacheRetriever", "EventQueue").finish();
+	}
+
+	//
+	// protected LoadContainer createLoadContainer(IObjRef ori, Object entity)
+	// {
+	// LoadContainer loadContainer = new LoadContainer();
+	// IEntityMetaData metaData = this.entityMetaDataProvider.getMetaData(construction.getClass());
+	//
+	// // if (((Long) construction.getId()).equals(ori.getId()))
+	// // {
+	// loadContainer.setPrimitives(this.cacheHelper.extractPrimitives(metaData, construction));
+	// loadContainer.setRelations(this.cacheHelper.extractRelations(metaData, construction));
+	// // }
+	// IObjRef oriForResult = this.objRefHelper.entityToObjRef(construction);
+	// loadContainer.setReference(oriForResult);
+	//
+	// return loadContainer;
+	// }
+
+	@Override
+	public void initialSetup(Collection<?> entities)
+	{
+		if (transactionState.isTransactionActive())
+		{
+			throw new UnsupportedOperationException();
+		}
+		committedData.put(entities);
 	}
 
 	@Override
