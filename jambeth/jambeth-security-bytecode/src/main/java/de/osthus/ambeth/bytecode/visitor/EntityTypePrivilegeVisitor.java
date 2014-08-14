@@ -15,7 +15,6 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
-import de.osthus.ambeth.privilege.model.impl.AbstractTypePrivilege;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
@@ -47,13 +46,13 @@ public class EntityTypePrivilegeVisitor extends ClassGenerator
 		// AbstractPrivilege.class;
 		MethodInstance template_m_getPrimitivePropertyPrivilege = new MethodInstance(null, ITypePrivilege.class, ITypePropertyPrivilege.class,
 				"getPrimitivePropertyPrivilege", int.class);
-		MethodInstance template_m_setPrimitivePropertyPrivilege = new MethodInstance(null, AbstractTypePrivilege.class, void.class,
-				"setPrimitivePropertyPrivilege", int.class, ITypePropertyPrivilege.class);
+		MethodInstance template_m_setPrimitivePropertyPrivilege = new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "setPrimitivePropertyPrivilege",
+				null, int.class, ITypePropertyPrivilege.class);
 
 		MethodInstance template_m_getRelationPropertyPrivilege = new MethodInstance(null, ITypePrivilege.class, ITypePropertyPrivilege.class,
 				"getRelationPropertyPrivilege", int.class);
-		MethodInstance template_m_setRelationPropertyPrivilege = new MethodInstance(null, AbstractTypePrivilege.class, void.class,
-				"setRelationPropertyPrivilege", int.class, ITypePropertyPrivilege.class);
+		MethodInstance template_m_setRelationPropertyPrivilege = new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "setRelationPropertyPrivilege",
+				null, int.class, ITypePropertyPrivilege.class);
 
 		implementGetSetPropertyPrivilege(metaData.getPrimitiveMembers(), template_m_getPrimitivePropertyPrivilege, template_m_setPrimitivePropertyPrivilege);
 		implementGetSetPropertyPrivilege(metaData.getRelationMembers(), template_m_getRelationPropertyPrivilege, template_m_setRelationPropertyPrivilege);
