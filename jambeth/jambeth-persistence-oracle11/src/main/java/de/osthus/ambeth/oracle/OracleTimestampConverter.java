@@ -5,23 +5,23 @@ import java.util.Date;
 
 import oracle.sql.TIMESTAMP;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.IDedicatedConverter;
 
-public class OracleTimestampConverter implements IInitializingBean, IDedicatedConverter
+public class OracleTimestampConverter implements IDedicatedConverter, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected final Calendar vmCalendar = Calendar.getInstance();
+	protected final ThreadLocal<Calendar> vmCalendarTL = new ThreadLocal<Calendar>();
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
+	public void cleanupThreadLocal()
 	{
-		// Intended blank
+		vmCalendarTL.remove();
 	}
 
 	@Override
@@ -32,7 +32,13 @@ public class OracleTimestampConverter implements IInitializingBean, IDedicatedCo
 			long longValue;
 			try
 			{
-				longValue = ((TIMESTAMP) value).timestampValue(vmCalendar).getTime();
+				Calendar calendar = vmCalendarTL.get();
+				if (calendar == null)
+				{
+					calendar = Calendar.getInstance();
+					vmCalendarTL.set(calendar);
+				}
+				longValue = ((TIMESTAMP) value).timestampValue(calendar).getTime();
 			}
 			catch (Throwable e)
 			{
