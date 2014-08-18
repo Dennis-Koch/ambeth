@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    Exception to throw when the index of a sequence is not in range.
-*/
+ * Exception to throw when the index of a sequence is not in range.
+ */
 public class SeqIndexBoundsException extends JenaException
-    {
-    public SeqIndexBoundsException( int limit, int index )
-        { super( "" + index + " must be in the range 1.." + limit ); }
-    }
+{
+	public SeqIndexBoundsException(int limit, int index)
+	{
+		super("" + index + " must be in the range 1.." + limit);
+	}
+}

@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-public class LockNone implements Lock 
+public class LockNone implements Lock
 {
-    @Override
-    public void enterCriticalSection(boolean readLockRequested)
-    {
-    }
+	@Override
+	public void enterCriticalSection(boolean readLockRequested)
+	{
+	}
 
-    @Override
-    public void leaveCriticalSection()
-    {
-    }
+	@Override
+	public void leaveCriticalSection()
+	{
+	}
 }

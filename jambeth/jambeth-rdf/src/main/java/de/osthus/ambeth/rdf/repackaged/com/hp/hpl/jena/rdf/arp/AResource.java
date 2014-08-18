@@ -16,50 +16,60 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
 /**
- * A URI or blank node reported to a {@link StatementHandler}.
- * Note: equality (<code>.equals</code>) rather than identity
- * (<code>==</code>) must be used to compare <code>AResource</code>s.
-*/
-public interface AResource {
-	  
-	/** A string distinguishing this anonymous resource, from other anonymous resources.
-	 * Undefined if {@link #isAnonymous} returns false.
+ * A URI or blank node reported to a {@link StatementHandler}. Note: equality ( <code>.equals</code>) rather than identity (<code>==</code>) must be used to
+ * compare <code>AResource</code>s.
+ */
+public interface AResource
+{
+
+	/**
+	 * A string distinguishing this anonymous resource, from other anonymous resources. Undefined if {@link #isAnonymous} returns false.
+	 * 
 	 * @return An identifier with file scope for this anonymous resource..
-	 */    
-	    public String getAnonymousID();
-	    
-	/** The URI reference for this resource, if any.
-	 * Not defined if {@link #isAnonymous} returns true.
+	 */
+	public String getAnonymousID();
+
+	/**
+	 * The URI reference for this resource, if any. Not defined if {@link #isAnonymous} returns true.
+	 * 
 	 * @return The URI reference of this resource.
-	 */    
-	    public String getURI();
-	/** The user data allows the RDF application to store one Object with each blank node during parsing.
-	 * This may help with garbage collect strategies when parsing huge files.
-	 * No references to the user data are maintained after a blank node goes out of
-	 * scope.
+	 */
+	public String getURI();
+
+	/**
+	 * The user data allows the RDF application to store one Object with each blank node during parsing. This may help with garbage collect strategies when
+	 * parsing huge files. No references to the user data are maintained after a blank node goes out of scope.
+	 * 
 	 * @return A user data object previously stored with {@link #setUserData}; or null if none.
-	 */    
-	    public Object getUserData();
-	 /**
-	  * True, if this is an anonymous resource with an explicit rdf:nodeID.
-	  * @return true if this resource has a nodeID
-	  */
-	 public boolean hasNodeID();
-	/** True if this resource does not have an associated URI.
+	 */
+	public Object getUserData();
+
+	/**
+	 * True, if this is an anonymous resource with an explicit rdf:nodeID.
+	 * 
+	 * @return true if this resource has a nodeID
+	 */
+	public boolean hasNodeID();
+
+	/**
+	 * True if this resource does not have an associated URI.
+	 * 
 	 * @return True if this resource is anonymous.
-	 */    
-	    public boolean isAnonymous();
-	/** The user data allows the RDF application to store one Object with each blank node during parsing.
-	 * This may help with garbage collect strategies when parsing huge files.
-	 * No references to the user data are maintained after a blank node goes out of
-	 * scope.
+	 */
+	public boolean isAnonymous();
+
+	/**
+	 * The user data allows the RDF application to store one Object with each blank node during parsing. This may help with garbage collect strategies when
+	 * parsing huge files. No references to the user data are maintained after a blank node goes out of scope.
 	 * <p>
 	 * See note about large files in class documentation for {@link ARP}.
-	 * @param d A user data object which may be retrieved later with {@link #getUserData}.
-	 */    
-	     public void setUserData(Object d);
+	 * 
+	 * @param d
+	 *            A user data object which may be retrieved later with {@link #getUserData}.
+	 */
+	public void setUserData(Object d);
 
 }

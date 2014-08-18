@@ -16,19 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
-import com.hp.hpl.jena.rdf.arp.impl.ANode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ANode;
 
-public interface HasSubjectFrameI extends FrameI {
-  void aPredAndObj(ANode p, ANode o);
-  
-  /**
-   * Create a triple r rdf:subj * .
-   * The structure of the parser means that three triples
-   * in the quad are produced by the property element code,
-   * but the final triple is produced by its parent.
-   * @param r The node that is the reification.
-   */
-  void makeSubjectReificationWith(ANode r);
+public interface HasSubjectFrameI extends FrameI
+{
+	void aPredAndObj(ANode p, ANode o);
+
+	/**
+	 * Create a triple r rdf:subj * . The structure of the parser means that three triples in the quad are produced by the property element code, but the final
+	 * triple is produced by its parent.
+	 * 
+	 * @param r
+	 *            The node that is the reification.
+	 */
+	void makeSubjectReificationWith(ANode r);
 }

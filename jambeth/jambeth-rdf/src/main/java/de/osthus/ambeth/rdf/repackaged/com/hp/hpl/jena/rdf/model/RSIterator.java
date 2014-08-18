@@ -16,17 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
-    An RSIterator is a ClosableIterator (qv) which delivers only ReifedStatement's
-    and which has a next-method with that return type.
-*/
+ * An RSIterator is a ClosableIterator (qv) which delivers only ReifedStatement's and which has a next-method with that return type.
+ */
 
 public interface RSIterator extends ExtendedIterator<ReifiedStatement>
-    {
-    /** return the next object, cast to a ReifedStatement */
-    public ReifiedStatement nextRS();
-    }
+{
+	/** return the next object, cast to a ReifedStatement */
+	public ReifiedStatement nextRS();
+}

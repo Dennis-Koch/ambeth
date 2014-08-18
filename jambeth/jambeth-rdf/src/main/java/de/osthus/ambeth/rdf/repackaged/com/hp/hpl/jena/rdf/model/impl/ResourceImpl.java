@@ -16,379 +16,446 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.datatypes.RDFDatatype;
-import com.hp.hpl.jena.enhanced.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.RDFDatatype;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced.*;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
-/** An implementation of Resource.
+/**
+ * An implementation of Resource.
  */
 
-public class ResourceImpl extends EnhNode implements Resource {
-    
-    final static public Implementation factory = new Implementation() {
-        @Override
-        public boolean canWrap( Node n, EnhGraph eg )
-            { return !n.isLiteral(); }
-        @Override
-        public EnhNode wrap(Node n,EnhGraph eg) {
-            if (n.isLiteral()) throw new ResourceRequiredException( n );
-            return new ResourceImpl(n,eg);
-        }
-    };
-    final static public Implementation rdfNodeFactory = new Implementation() {
-        @Override
-        public boolean canWrap( Node n, EnhGraph eg )
-            { return true; }
-        @Override
-        public EnhNode wrap(Node n,EnhGraph eg) {
-		if ( n.isURI() || n.isBlank() )
-		  return new ResourceImpl(n,eg);
-		if ( n.isLiteral() )
-		  return new LiteralImpl(n,eg);
-		return null;
-	}
-};
-        
-    /**
-        the master constructor: make a new Resource in the given model,
-        rooted in the given node.
-    
-        NOT FOR PUBLIC USE - used in ModelCom [and ContainerImpl]
-    */
-     public ResourceImpl( Node n, ModelCom m ) {
-        super( n, m );
-    }
+public class ResourceImpl extends EnhNode implements Resource
+{
 
-    /** Creates new ResourceImpl */
-
-    public ResourceImpl() {
-        this( (ModelCom) null );
-    }
-
-    public ResourceImpl( ModelCom m ) {
-        this( fresh( null ), m );
-    }
-
-     
-    public ResourceImpl( Node n, EnhGraph m ) {
-        super( n, m );
-    }
-
-    public ResourceImpl( String uri ) {
-        super( fresh( uri ), null );
-    }
-
-    public ResourceImpl(String nameSpace, String localName) {
-        super( NodeFactory.createURI( nameSpace + localName ), null );
-    }
-
-    public ResourceImpl(AnonId id) {
-        this( id, null );
-    }
-
-    public ResourceImpl(AnonId id, ModelCom m) {
-        this( NodeFactory.createAnon( id ), m );
-    }
-
-    public ResourceImpl(String uri, ModelCom m) {
-        this( fresh( uri ), m );
-    }
-    
-    public ResourceImpl( Resource r, ModelCom m ) {
-        this( r.asNode(), m );
-    }
-    
-    public ResourceImpl(String nameSpace, String localName, ModelCom m) {
-        this( NodeFactory.createURI( nameSpace + localName ), m );
-    }
-
-    @Override
-    public Object visitWith( RDFVisitor rv )
-        { return isAnon() ? rv.visitBlank( this, getId() ) : rv.visitURI( this, getURI() ); }
-        
-    @Override
-    public Resource asResource()
-        { return this; }
-    
-    @Override
-    public Literal asLiteral()
-        { throw new LiteralRequiredException( asNode() ); }
-    
-    @Override
-    public Resource inModel( Model m )
-        { 
-        return 
-            getModel() == m ? this 
-            : isAnon() ? m.createResource( getId() ) 
-            : asNode().isConcrete() == false ? (Resource) m.getRDFNode( asNode() )
-            : m.createResource( getURI() ); 
-        }
-    
-    private static Node fresh( String uri )
-        { return uri == null ? NodeFactory.createAnon() : NodeFactory.createURI( uri ); }
-
-    @Override
-    public AnonId getId() 
-        { return asNode().getBlankNodeId(); }
-
-    @Override
-    public String  getURI() {
-        return isAnon() ? null : node.getURI();
-    }
-
-    @Override
-    public String getNameSpace() {
-        return isAnon() ? null : node.getNameSpace();
-    }
-    
-	@Override
-    public String getLocalName() {
-        return isAnon() ? null : node.getLocalName(); 
-    }
-
-    @Override
-    public boolean hasURI( String uri ) 
-        { return node.hasURI( uri ); }
-    
-    @Override
-    public String toString() 
-        { return asNode().toString(); }
-    
-	protected ModelCom mustHaveModel()
+	final static public Implementation factory = new Implementation()
+	{
+		@Override
+		public boolean canWrap(Node n, EnhGraph eg)
 		{
-        ModelCom model = getModelCom();
-		if (model == null) throw new HasNoModelException( this );
-		return model;
+			return !n.isLiteral();
 		}
-		    
-    @Override
-    public Statement getRequiredProperty(Property p) 
-    	{ return mustHaveModel().getRequiredProperty( this, p ); }
-        
-    @Override
-    public Statement getProperty( Property p )
-        { return mustHaveModel().getProperty( this, p ); }
 
-    @Override
-    public StmtIterator listProperties(Property p) 
-		{ return mustHaveModel().listStatements( this, p, (RDFNode) null ); }
+		@Override
+		public EnhNode wrap(Node n, EnhGraph eg)
+		{
+			if (n.isLiteral())
+				throw new ResourceRequiredException(n);
+			return new ResourceImpl(n, eg);
+		}
+	};
+	final static public Implementation rdfNodeFactory = new Implementation()
+	{
+		@Override
+		public boolean canWrap(Node n, EnhGraph eg)
+		{
+			return true;
+		}
 
-    @Override
-    public StmtIterator listProperties() 
-    	{ return mustHaveModel().listStatements( this, null, (RDFNode) null ); }	
-    
-    @Override
-    public Resource addLiteral( Property p, boolean o ) 
-        {
-        ModelCom m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
+		@Override
+		public EnhNode wrap(Node n, EnhGraph eg)
+		{
+			if (n.isURI() || n.isBlank())
+				return new ResourceImpl(n, eg);
+			if (n.isLiteral())
+				return new LiteralImpl(n, eg);
+			return null;
+		}
+	};
 
-    public Resource addProperty(Property p, long o)  {
-        mustHaveModel().addLiteral( this, p, o );
-        return this;
-    }
-    
-    @Override
-    public Resource addLiteral( Property p, long o ) 
-        {
-        Model m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
-    
-    @Override
-    public Resource addLiteral( Property p, char o )  
-        {
-        ModelCom m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
+	/**
+	 * the master constructor: make a new Resource in the given model, rooted in the given node.
+	 * 
+	 * NOT FOR PUBLIC USE - used in ModelCom [and ContainerImpl]
+	 */
+	public ResourceImpl(Node n, ModelCom m)
+	{
+		super(n, m);
+	}
 
-    public Resource addProperty(Property p, float o) {
-        mustHaveModel().addLiteral( this, p, o );
-        return this;
-    }
+	/** Creates new ResourceImpl */
 
-    public Resource addProperty(Property p, double o) {
-        mustHaveModel().addLiteral( this, p, o );
-        return this;
-    }
-    
-    @Override
-    public Resource addLiteral( Property p, double o ) 
-        {
-        Model m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
-    
-    @Override
-    public Resource addLiteral( Property p, float o ) 
-        {
-        Model m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
+	public ResourceImpl()
+	{
+		this((ModelCom) null);
+	}
 
-    @Override
-    public Resource addProperty(Property p, String o) {
-        mustHaveModel().add( this, p, o );
-        return this;
-    }
+	public ResourceImpl(ModelCom m)
+	{
+		this(fresh(null), m);
+	}
 
-    @Override
-    public Resource addProperty(Property p, String o, String l)
-    {
-        mustHaveModel().add( this, p, o, l );
-        return this;
-    }
+	public ResourceImpl(Node n, EnhGraph m)
+	{
+		super(n, m);
+	}
 
-    @Override
-    public Resource addProperty(Property p, String lexicalForm, RDFDatatype datatype)
-    {
-        mustHaveModel().add(this, p, lexicalForm, datatype) ;
-        return this ;
-    }
+	public ResourceImpl(String uri)
+	{
+		super(fresh(uri), null);
+	}
 
-    @Override
-    public Resource addLiteral( Property p, Object o ) 
-        {
-        ModelCom m = mustHaveModel();
-        m.add( this, p, m.createTypedLiteral( o ) );
-        return this;
-        }
-    
-    @Override
-    public Resource addLiteral( Property p, Literal o )
-        {
-        mustHaveModel().add( this, p, o );
-        return this;
-        }
+	public ResourceImpl(String nameSpace, String localName)
+	{
+		super(NodeFactory.createURI(nameSpace + localName), null);
+	}
 
-    @Override
-    public Resource addProperty( Property p, RDFNode o ) 
-        {
-        mustHaveModel().add( this, p, o );
-        return this;
-        }
+	public ResourceImpl(AnonId id)
+	{
+		this(id, null);
+	}
 
-    @Override
-    public boolean hasProperty(Property p)  {
-        return mustHaveModel().contains( this, p );
-    }
-    
-    @Override
-    public boolean hasLiteral( Property p, boolean o )  
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
-    
-    @Override
-    public boolean hasLiteral( Property p, long o ) 
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
-    
-    @Override
-    public boolean hasLiteral( Property p, char o )  
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
-    
-    @Override
-    public boolean hasLiteral( Property p, double o ) 
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
-    
-    @Override
-    public boolean hasLiteral( Property p, float o ) 
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
-    
-    @Override
-    public boolean hasProperty(Property p, String o) {
-        return mustHaveModel().contains( this, p, o );
-    }
+	public ResourceImpl(AnonId id, ModelCom m)
+	{
+		this(NodeFactory.createAnon(id), m);
+	}
 
-    @Override
-    public boolean hasProperty(Property p, String o, String l) {
-        return mustHaveModel().contains( this, p, o, l );
-    }
+	public ResourceImpl(String uri, ModelCom m)
+	{
+		this(fresh(uri), m);
+	}
 
-    @Override
-    public boolean hasLiteral( Property p, Object o ) 
-        {
-        ModelCom m = mustHaveModel();
-        return m.contains( this, p, m.createTypedLiteral( o ) );
-        }
+	public ResourceImpl(Resource r, ModelCom m)
+	{
+		this(r.asNode(), m);
+	}
 
-    @Override
-    public boolean hasProperty(Property p, RDFNode o)  {
-        return mustHaveModel().contains( this, p, o );
-    }
+	public ResourceImpl(String nameSpace, String localName, ModelCom m)
+	{
+		this(NodeFactory.createURI(nameSpace + localName), m);
+	}
 
-    @Override
-    public Resource removeProperties()  {
-        removeAll(null);
-        return this;
-    }
-    
-    @Override
-    public Resource removeAll( Property p ) {
-        mustHaveModel().removeAll( this, p, (RDFNode) null );
-        return this;
-    }
-    
-    @Override
-    public Resource begin()  {
-        mustHaveModel().begin();
-        return this;
-    }
+	@Override
+	public Object visitWith(RDFVisitor rv)
+	{
+		return isAnon() ? rv.visitBlank(this, getId()) : rv.visitURI(this, getURI());
+	}
 
-    @Override
-    public Resource abort()  {
-        mustHaveModel().abort();
-        return this;
-    }
+	@Override
+	public Resource asResource()
+	{
+		return this;
+	}
 
-    @Override
-    public Resource commit()  {
-        mustHaveModel().commit();
-        return this;
-    }
+	@Override
+	public Literal asLiteral()
+	{
+		throw new LiteralRequiredException(asNode());
+	}
 
-    @Override
-    public Model getModel() {
-        return (Model) getGraph();
-    }
-    
-    protected ModelCom getModelCom()
-        { return (ModelCom) getGraph(); }
+	@Override
+	public Resource inModel(Model m)
+	{
+		return getModel() == m ? this : isAnon() ? m.createResource(getId()) : asNode().isConcrete() == false ? (Resource) m.getRDFNode(asNode()) : m
+				.createResource(getURI());
+	}
 
-    @Override
-    public Resource getPropertyResourceValue(Property p)
-    {
-        StmtIterator it = listProperties(p) ;
-        try {
-            while (it.hasNext())
-            {
-                RDFNode n = it.next().getObject() ;
-                if (n.isResource()) return (Resource)n ;
-            }
-            return null ;
-        } finally { it.close() ; }
-    }
+	private static Node fresh(String uri)
+	{
+		return uri == null ? NodeFactory.createAnon() : NodeFactory.createURI(uri);
+	}
+
+	@Override
+	public AnonId getId()
+	{
+		return asNode().getBlankNodeId();
+	}
+
+	@Override
+	public String getURI()
+	{
+		return isAnon() ? null : node.getURI();
+	}
+
+	@Override
+	public String getNameSpace()
+	{
+		return isAnon() ? null : node.getNameSpace();
+	}
+
+	@Override
+	public String getLocalName()
+	{
+		return isAnon() ? null : node.getLocalName();
+	}
+
+	@Override
+	public boolean hasURI(String uri)
+	{
+		return node.hasURI(uri);
+	}
+
+	@Override
+	public String toString()
+	{
+		return asNode().toString();
+	}
+
+	protected ModelCom mustHaveModel()
+	{
+		ModelCom model = getModelCom();
+		if (model == null)
+			throw new HasNoModelException(this);
+		return model;
+	}
+
+	@Override
+	public Statement getRequiredProperty(Property p)
+	{
+		return mustHaveModel().getRequiredProperty(this, p);
+	}
+
+	@Override
+	public Statement getProperty(Property p)
+	{
+		return mustHaveModel().getProperty(this, p);
+	}
+
+	@Override
+	public StmtIterator listProperties(Property p)
+	{
+		return mustHaveModel().listStatements(this, p, (RDFNode) null);
+	}
+
+	@Override
+	public StmtIterator listProperties()
+	{
+		return mustHaveModel().listStatements(this, null, (RDFNode) null);
+	}
+
+	@Override
+	public Resource addLiteral(Property p, boolean o)
+	{
+		ModelCom m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	public Resource addProperty(Property p, long o)
+	{
+		mustHaveModel().addLiteral(this, p, o);
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, long o)
+	{
+		Model m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, char o)
+	{
+		ModelCom m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	public Resource addProperty(Property p, float o)
+	{
+		mustHaveModel().addLiteral(this, p, o);
+		return this;
+	}
+
+	public Resource addProperty(Property p, double o)
+	{
+		mustHaveModel().addLiteral(this, p, o);
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, double o)
+	{
+		Model m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, float o)
+	{
+		Model m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	@Override
+	public Resource addProperty(Property p, String o)
+	{
+		mustHaveModel().add(this, p, o);
+		return this;
+	}
+
+	@Override
+	public Resource addProperty(Property p, String o, String l)
+	{
+		mustHaveModel().add(this, p, o, l);
+		return this;
+	}
+
+	@Override
+	public Resource addProperty(Property p, String lexicalForm, RDFDatatype datatype)
+	{
+		mustHaveModel().add(this, p, lexicalForm, datatype);
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, Object o)
+	{
+		ModelCom m = mustHaveModel();
+		m.add(this, p, m.createTypedLiteral(o));
+		return this;
+	}
+
+	@Override
+	public Resource addLiteral(Property p, Literal o)
+	{
+		mustHaveModel().add(this, p, o);
+		return this;
+	}
+
+	@Override
+	public Resource addProperty(Property p, RDFNode o)
+	{
+		mustHaveModel().add(this, p, o);
+		return this;
+	}
+
+	@Override
+	public boolean hasProperty(Property p)
+	{
+		return mustHaveModel().contains(this, p);
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, boolean o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, long o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, char o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, double o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, float o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasProperty(Property p, String o)
+	{
+		return mustHaveModel().contains(this, p, o);
+	}
+
+	@Override
+	public boolean hasProperty(Property p, String o, String l)
+	{
+		return mustHaveModel().contains(this, p, o, l);
+	}
+
+	@Override
+	public boolean hasLiteral(Property p, Object o)
+	{
+		ModelCom m = mustHaveModel();
+		return m.contains(this, p, m.createTypedLiteral(o));
+	}
+
+	@Override
+	public boolean hasProperty(Property p, RDFNode o)
+	{
+		return mustHaveModel().contains(this, p, o);
+	}
+
+	@Override
+	public Resource removeProperties()
+	{
+		removeAll(null);
+		return this;
+	}
+
+	@Override
+	public Resource removeAll(Property p)
+	{
+		mustHaveModel().removeAll(this, p, (RDFNode) null);
+		return this;
+	}
+
+	@Override
+	public Resource begin()
+	{
+		mustHaveModel().begin();
+		return this;
+	}
+
+	@Override
+	public Resource abort()
+	{
+		mustHaveModel().abort();
+		return this;
+	}
+
+	@Override
+	public Resource commit()
+	{
+		mustHaveModel().commit();
+		return this;
+	}
+
+	@Override
+	public Model getModel()
+	{
+		return (Model) getGraph();
+	}
+
+	protected ModelCom getModelCom()
+	{
+		return (ModelCom) getGraph();
+	}
+
+	@Override
+	public Resource getPropertyResourceValue(Property p)
+	{
+		StmtIterator it = listProperties(p);
+		try
+		{
+			while (it.hasNext())
+			{
+				RDFNode n = it.next().getObject();
+				if (n.isResource())
+					return (Resource) n;
+			}
+			return null;
+		}
+		finally
+		{
+			it.close();
+		}
+	}
 }

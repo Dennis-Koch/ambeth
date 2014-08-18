@@ -16,58 +16,61 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.impl;
 
-import com.hp.hpl.jena.datatypes.xsd.AbstractDateTime;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.AbstractDateTime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 /**
- * Type processor for gMonth, most of the machinery is in the
- * base XSDAbstractDateTimeType class.
+ * Type processor for gMonth, most of the machinery is in the base XSDAbstractDateTimeType class.
  */
-public class XSDMonthType extends XSDAbstractDateTimeType {
+public class XSDMonthType extends XSDAbstractDateTimeType
+{
 
-    /**
-     * Constructor
-     */
-    public XSDMonthType(String typename) {
-        super(typename);
-    }
+	/**
+	 * Constructor
+	 */
+	public XSDMonthType(String typename)
+	{
+		super(typename);
+	}
 
-    /**
-     * Parse a validated date. This is invoked from
-     * XSDDatatype.convertValidatedDataValue rather then from a local
-     * parse method to make the implementation of XSDGenericType easier.
-     */
-    @Override
-    public Object parseValidated(String str) {
-        int len = str.length();
-        int[] date = new int[TOTAL_SIZE];
-        int[] timeZone = new int[2];
+	/**
+	 * Parse a validated date. This is invoked from XSDDatatype.convertValidatedDataValue rather then from a local parse method to make the implementation of
+	 * XSDGenericType easier.
+	 */
+	@Override
+	public Object parseValidated(String str)
+	{
+		int len = str.length();
+		int[] date = new int[TOTAL_SIZE];
+		int[] timeZone = new int[2];
 
-        //set constants
-        date[CY]=YEAR;
-        date[D]=DAY;
-        int stop = 4;
-        date[M]=parseInt(str,2,stop);
+		// set constants
+		date[CY] = YEAR;
+		date[D] = DAY;
+		int stop = 4;
+		date[M] = parseInt(str, 2, stop);
 
-        // REVISIT: allow both --MM and --MM-- now.
-        // need to remove the following 4 lines to disallow --MM--
-        // when the errata is offically in the rec.
-        if (str.length() >= stop+2 &&
-            str.charAt(stop) == '-' && str.charAt(stop+1) == '-') {
-            stop += 2;
-        }
-        if (stop < len) {
-            int sign = findUTCSign(str, stop, len);
-            getTimeZone(str, date, sign, len, timeZone);
-        }
+		// REVISIT: allow both --MM and --MM-- now.
+		// need to remove the following 4 lines to disallow --MM--
+		// when the errata is offically in the rec.
+		if (str.length() >= stop + 2 && str.charAt(stop) == '-' && str.charAt(stop + 1) == '-')
+		{
+			stop += 2;
+		}
+		if (stop < len)
+		{
+			int sign = findUTCSign(str, stop, len);
+			getTimeZone(str, date, sign, len, timeZone);
+		}
 
-        if ( date[utc]!=0 && date[utc]!='Z' ) {
-            AbstractDateTime.normalize(date, timeZone);
-        }
+		if (date[utc] != 0 && date[utc] != 'Z')
+		{
+			AbstractDateTime.normalize(date, timeZone);
+		}
 
-        return new XSDDateTime(date, MONTH_MASK);
-    }
-    
+		return new XSDDateTime(date, MONTH_MASK);
+	}
+
 }

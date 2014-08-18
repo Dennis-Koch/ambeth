@@ -16,22 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
-    The Add part of Graph's interface. It proved convenient to factor this
-    out so that it could be used in the reification code.
-    
+ * The Add part of Graph's interface. It proved convenient to factor this out so that it could be used in the reification code.
  */
 public interface GraphAdd
-    {
-    /** 
-        Add the triple t (if possible) to the set belonging to this graph 
-     
-        @param t the triple to add to the graph
-        @throws AddDeniedException if the triple cannot be added 
-    */
-    void add( Triple t ) throws AddDeniedException;
-    }
+{
+	/**
+	 * Add the triple t (if possible) to the set belonging to this graph
+	 * 
+	 * @param t
+	 *            the triple to add to the graph
+	 * @throws AddDeniedException
+	 *             if the triple cannot be added
+	 */
+	void add(Triple t) throws AddDeniedException;
+}

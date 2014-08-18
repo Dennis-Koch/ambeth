@@ -16,20 +16,24 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 import java.util.Map;
 
 /**
  * Interface for all nodes in the network.
  */
-public interface RETENode {
-    
-    /**
-     * Clone this node in the network across to a different context.
-     * @param netCopy a map from RETENodes to cloned instance so far.
-     * @param context the new context to which the network is being ported
-     */
-    public RETENode clone(Map<RETENode, RETENode> netCopy, RETERuleContext context) ;
+public interface RETENode
+{
+
+	/**
+	 * Clone this node in the network across to a different context.
+	 * 
+	 * @param netCopy
+	 *            a map from RETENodes to cloned instance so far.
+	 * @param context
+	 *            the new context to which the network is being ported
+	 */
+	public RETENode clone(Map<RETENode, RETENode> netCopy, RETERuleContext context);
 
 }

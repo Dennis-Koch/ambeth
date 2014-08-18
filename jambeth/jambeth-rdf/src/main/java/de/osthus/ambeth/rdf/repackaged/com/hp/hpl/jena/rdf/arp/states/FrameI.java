@@ -16,31 +16,40 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
 
-public interface FrameI {
-    FrameI getParent();
-    XMLHandler getXMLHandler();
-    AbsXMLContext getXMLContext();
-    void characters(char ch[], int start, int length)  throws  SAXParseException;
-    void comment(char[] ch, int start, int length) throws SAXParseException;
-    /**
-     * endElement is called on the state of the frame created by the matching
-     * startElement.
-     * @throws SAXParseException 
-     * 
-     */
-    void endElement() throws SAXParseException;
-    void processingInstruction(String target, String data)  throws SAXParseException;
-    FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException;
-    void abort();
-    void afterChild();
+public interface FrameI
+{
+	FrameI getParent();
+
+	XMLHandler getXMLHandler();
+
+	AbsXMLContext getXMLContext();
+
+	void characters(char ch[], int start, int length) throws SAXParseException;
+
+	void comment(char[] ch, int start, int length) throws SAXParseException;
+
+	/**
+	 * endElement is called on the state of the frame created by the matching startElement.
+	 * 
+	 * @throws SAXParseException
+	 * 
+	 */
+	void endElement() throws SAXParseException;
+
+	void processingInstruction(String target, String data) throws SAXParseException;
+
+	FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException;
+
+	void abort();
+
+	void afterChild();
 
 }

@@ -16,29 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.JenaRuntime;
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.JenaRuntime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
-    Helper functions for ModelFactory - in here to keep from obtruding on the
-    end-users.
-*/
+ * Helper functions for ModelFactory - in here to keep from obtruding on the end-users.
+ */
 public class ModelFactoryBase
-    {
+{
 
-    protected static String gp( String name )
-        {
-        String answer = gp( name, null );
-        if (answer == null) throw new JenaException( "no binding for " + name );
-        return answer;
-        }
-    
-    protected static String gp( String name, String ifAbsent )
-        { 
-        String answer = JenaRuntime.getSystemProperty( "jena." + name ); 
-        return answer == null ? ifAbsent : answer;
-        }
+	protected static String gp(String name)
+	{
+		String answer = gp(name, null);
+		if (answer == null)
+			throw new JenaException("no binding for " + name);
+		return answer;
+	}
 
-    }
+	protected static String gp(String name, String ifAbsent)
+	{
+		String answer = JenaRuntime.getSystemProperty("jena." + name);
+		return answer == null ? ifAbsent : answer;
+	}
+
+}

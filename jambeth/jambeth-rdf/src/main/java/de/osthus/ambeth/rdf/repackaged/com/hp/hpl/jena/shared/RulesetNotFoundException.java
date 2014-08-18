@@ -16,21 +16,24 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    RulesetNotFoundException - exception to throw when a Ruleset is not found
-    (eg when handing reasoner specifications)
+ * RulesetNotFoundException - exception to throw when a Ruleset is not found (eg when handing reasoner specifications)
  */
 
 public class RulesetNotFoundException extends DoesNotExistException
-    {
-    protected String uri;
-    
-    public RulesetNotFoundException( String uri )
-        { super( uri );
-        this.uri = uri; }
-    
-    public String getURI()
-        { return uri; }
-    }
+{
+	protected String uri;
+
+	public RulesetNotFoundException(String uri)
+	{
+		super(uri);
+		this.uri = uri;
+	}
+
+	public String getURI()
+	{
+		return uri;
+	}
+}

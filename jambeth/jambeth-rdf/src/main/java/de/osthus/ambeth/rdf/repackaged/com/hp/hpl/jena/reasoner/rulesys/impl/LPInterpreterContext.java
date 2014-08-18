@@ -16,28 +16,31 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
- * The context in which an LPInterpreter instance is running.
- * The context the entity that should be notified when a branch has been
- * suspended awaiting further results for a given generator.
+ * The context in which an LPInterpreter instance is running. The context the entity that should be notified when a branch has been suspended awaiting further
+ * results for a given generator.
  */
-public interface LPInterpreterContext extends LPInterpreterState {
+public interface LPInterpreterContext extends LPInterpreterState
+{
 
-    /** Notify this context that a branch was suspended awaiting futher
-     *  results for the given choice point. */
-    public void notifyBlockedOn(ConsumerChoicePointFrame ccp);
-    
-    /** Test if one of our top level choice points is ready to be reactivated */
-    public boolean isReady();
-    
-    /** Notify this context that the given choice point has terminated
-     *  and can be remove from the wait list. */
-    public void notifyFinished(ConsumerChoicePointFrame ccp);
-    
-    /** Called by a generating choice point to indicate we can be run
-     * because the indicated choice point is ready. */
-    public void setReady(ConsumerChoicePointFrame ccp);
+	/**
+	 * Notify this context that a branch was suspended awaiting futher results for the given choice point.
+	 */
+	public void notifyBlockedOn(ConsumerChoicePointFrame ccp);
+
+	/** Test if one of our top level choice points is ready to be reactivated */
+	public boolean isReady();
+
+	/**
+	 * Notify this context that the given choice point has terminated and can be remove from the wait list.
+	 */
+	public void notifyFinished(ConsumerChoicePointFrame ccp);
+
+	/**
+	 * Called by a generating choice point to indicate we can be run because the indicated choice point is ready.
+	 */
+	public void setReady(ConsumerChoicePointFrame ccp);
 
 }

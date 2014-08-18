@@ -16,31 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
-import com.hp.hpl.jena.reasoner.TriplePattern;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.TriplePattern;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
- * Variant of the normal TriplePattern object which can be updated in place
- * to avoid store turn over. This is specific to the LP system.
+ * Variant of the normal TriplePattern object which can be updated in place to avoid store turn over. This is specific to the LP system.
  */
-public class MutableTriplePattern extends TriplePattern {
+public class MutableTriplePattern extends TriplePattern
+{
 
-    /**
-     * Constructor.
-     */
-    public MutableTriplePattern() {
-        super(null, null, null);
-    }
-    
-    /**
-     * Set the subject,predicate, object components of the pattern.
-     */
-    public void setPattern(Node subject, Node predicate, Node object) {
-        this.subject = subject;
-        this.predicate = predicate;
-        this.object = object;
-    }
-    
+	/**
+	 * Constructor.
+	 */
+	public MutableTriplePattern()
+	{
+		super(null, null, null);
+	}
+
+	/**
+	 * Set the subject,predicate, object components of the pattern.
+	 */
+	public void setPattern(Node subject, Node predicate, Node object)
+	{
+		this.subject = subject;
+		this.predicate = predicate;
+		this.object = object;
+	}
+
 }

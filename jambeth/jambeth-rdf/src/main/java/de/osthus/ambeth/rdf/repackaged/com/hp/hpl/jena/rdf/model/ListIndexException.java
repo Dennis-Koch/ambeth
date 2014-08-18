@@ -18,67 +18,58 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.rdf.model;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.shared.JenaException;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
  * <p>
- * A exception that is thrown when an operation attempts to access an indexed
- * list element beyond the length of the list.
+ * A exception that is thrown when an operation attempts to access an indexed list element beyond the length of the list.
  * </p>
  */
-public class ListIndexException
-    extends JenaException
+public class ListIndexException extends JenaException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
+	// Static variables
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
+	// Constructors
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	/**
+	 * Construct a list index exception with a default message.
+	 */
+	public ListIndexException()
+	{
+		super("Tried to index beyond the length of a list");
+	}
 
+	/**
+	 * Construct a list index exception with a given message.
+	 * 
+	 * @param msg
+	 *            The exception message.
+	 */
+	public ListIndexException(String msg)
+	{
+		super(msg);
+	}
 
-    // Constructors
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    /**
-     * Construct a list index exception with a default message.
-     */
-    public ListIndexException() {
-        super( "Tried to index beyond the length of a list" );
-    }
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    /**
-     * Construct a list index exception with a given message.
-     * 
-     * @param msg The exception message.
-     */
-    public ListIndexException( String msg ) {
-        super( msg );
-    }
-
-
-    // External signature methods
-    //////////////////////////////////
-
-
-    // Internal implementation methods
-    //////////////////////////////////
-
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
-
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

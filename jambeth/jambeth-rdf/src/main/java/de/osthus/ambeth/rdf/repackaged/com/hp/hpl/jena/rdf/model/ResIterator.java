@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
-/** An iterator which returns RDF Resources.
- *
- * <p>RDF iterators are standard Java iterators, except that they
- *    have an extra method that returns a specifically typed object,
- *    in this case RDF Resource, and have a <CODE>close()</CODE> method
- *    that should be called to free resources if the caller does not
- *    complete the iteration.</p>
+/**
+ * An iterator which returns RDF Resources.
+ * 
+ * <p>
+ * RDF iterators are standard Java iterators, except that they have an extra method that returns a specifically typed object, in this case RDF Resource, and
+ * have a <CODE>close()</CODE> method that should be called to free resources if the caller does not complete the iteration.
+ * </p>
  */
-public interface ResIterator extends ExtendedIterator<Resource> 
-    {
-    public Resource nextResource();
-    }
+public interface ResIterator extends ExtendedIterator<Resource>
+{
+	public Resource nextResource();
+}

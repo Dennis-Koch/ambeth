@@ -16,107 +16,129 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.graph.impl.WrappedGraph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.WrappedGraph;
 
 /**
  * Wraps a graph and randomizes the order of find results.
  */
-public class RandomOrderGraph extends WrappedGraph {
-	
-	public static Graph createDefaultGraph() {
+public class RandomOrderGraph extends WrappedGraph
+{
+
+	public static Graph createDefaultGraph()
+	{
 		return new RandomOrderGraph(Factory.createDefaultGraph());
 	}
-	public static Model createDefaultModel() {
+
+	public static Model createDefaultModel()
+	{
 		return ModelFactory.createModelForGraph(createDefaultGraph());
 	}
-    final private int bufsz;
+
+	final private int bufsz;
+
 	/**
 	 * @param base
 	 */
-	public RandomOrderGraph(int bufsz, Graph base) {
+	public RandomOrderGraph(int bufsz, Graph base)
+	{
 		super(base);
 		this.bufsz = bufsz;
 	}
+
 	/**
 	 * @param base
 	 */
-	public RandomOrderGraph(Graph base) {
-		this(10,base);
-	}
-	
-	@Override
-    public ExtendedIterator<Triple> find( TripleMatch m )
-	{ return new RandomOrderIterator<>(bufsz,super.find( m ));
+	public RandomOrderGraph(Graph base)
+	{
+		this(10, base);
 	}
 
 	@Override
-    public ExtendedIterator<Triple> find( Node s, Node p, Node o )
-	{ return new RandomOrderIterator<>(bufsz,super.find( s, p, o ));
+	public ExtendedIterator<Triple> find(TripleMatch m)
+	{
+		return new RandomOrderIterator<>(bufsz, super.find(m));
 	}
+
 	@Override
-	public Capabilities getCapabilities() {
-		return new MyCapabilities( super.getCapabilities() );
+	public ExtendedIterator<Triple> find(Node s, Node p, Node o)
+	{
+		return new RandomOrderIterator<>(bufsz, super.find(s, p, o));
 	}
-	
-	private class MyCapabilities implements Capabilities {
+
+	@Override
+	public Capabilities getCapabilities()
+	{
+		return new MyCapabilities(super.getCapabilities());
+	}
+
+	private class MyCapabilities implements Capabilities
+	{
 		private Capabilities parentCapabilities;
-		
-		public MyCapabilities( Capabilities parentCapabilities )
+
+		public MyCapabilities(Capabilities parentCapabilities)
 		{
 			this.parentCapabilities = parentCapabilities;
 		}
 
 		@Override
-        public boolean sizeAccurate() {
+		public boolean sizeAccurate()
+		{
 			return parentCapabilities.sizeAccurate();
 		}
 
 		@Override
-        public boolean addAllowed() {
+		public boolean addAllowed()
+		{
 			return parentCapabilities.addAllowed();
 		}
 
 		@Override
-        public boolean addAllowed(boolean everyTriple) {
+		public boolean addAllowed(boolean everyTriple)
+		{
 			return parentCapabilities.addAllowed(everyTriple);
 		}
 
 		@Override
-        public boolean deleteAllowed() {
+		public boolean deleteAllowed()
+		{
 			return parentCapabilities.deleteAllowed();
 		}
 
 		@Override
-        public boolean deleteAllowed(boolean everyTriple) {
+		public boolean deleteAllowed(boolean everyTriple)
+		{
 			return parentCapabilities.deleteAllowed(everyTriple);
 		}
 
 		@Override
-        public boolean canBeEmpty() {
+		public boolean canBeEmpty()
+		{
 			return parentCapabilities.canBeEmpty();
 		}
 
 		@Override
-        public boolean findContractSafe() {
+		public boolean findContractSafe()
+		{
 			return parentCapabilities.findContractSafe();
 		}
 
 		@Override
-        public boolean handlesLiteralTyping() {
+		public boolean handlesLiteralTyping()
+		{
 			return parentCapabilities.handlesLiteralTyping();
 		}
 
 		@Override
-		public boolean iteratorRemoveAllowed() {
+		public boolean iteratorRemoveAllowed()
+		{
 			return false;
 		}
-		
-		
+
 	}
 
 }

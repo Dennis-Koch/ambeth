@@ -16,62 +16,70 @@
  * limitations under the License.
  */
 
-package jena.cmdline;
+package de.osthus.ambeth.rdf.repackaged.jena.cmdline;
 
-import java.lang.reflect.InvocationTargetException ;
-import java.lang.reflect.Method ;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class CmdLineUtils
 {
-    static public void setLog4jConfiguration() 
-    {
-		setLog4jConfiguration("jena-log4j.properties") ;
-    }
-    
-    static public void setLog4jConfiguration(String resourceName) 
-    {
-    	if ( System.getProperty("log4j.configuration") == null ) 
-        	System.setProperty("log4j.configuration", resourceName) ;    		
-    }
-    
-    public static void invokeCmd(String className, String[] args)
-    {
-        Class<?> cmd = null ;
-        try { cmd = Class.forName(className) ; }
-        catch (ClassNotFoundException ex)
-        {
-            System.err.println("Class '"+className+"' not found") ;
-            System.exit(1) ;
-        }
-        
-        Method method = null ;
-        try { method = cmd.getMethod("main", new Class[]{String[].class}) ; }
-        catch (NoSuchMethodException ex)
-        {
-            System.err.println("'main' not found but the class '"+className+"' was") ;
-            System.exit(1) ;
-        }
-        
-        try 
-        {
-            method.invoke(null, new Object[]{args}) ;
-            return ;
-        } catch (IllegalArgumentException ex)
-        {
-            System.err.println("IllegalArgumentException exception: "+ex.getMessage());
-            System.exit(7) ;
-        } catch (IllegalAccessException ex)
-        {
-            System.err.println("IllegalAccessException exception: "+ex.getMessage());
-            System.exit(8) ;
-        } catch (InvocationTargetException ex)
-        {
-            System.err.println("InvocationTargetException exception: "+ex.getMessage());
-            System.exit(9) ;
-        }
+	static public void setLog4jConfiguration()
+	{
+		setLog4jConfiguration("jena-log4j.properties");
+	}
 
-        
-        //arq.query.main(args) ;
-    }
+	static public void setLog4jConfiguration(String resourceName)
+	{
+		if (System.getProperty("log4j.configuration") == null)
+			System.setProperty("log4j.configuration", resourceName);
+	}
+
+	public static void invokeCmd(String className, String[] args)
+	{
+		Class<?> cmd = null;
+		try
+		{
+			cmd = Class.forName(className);
+		}
+		catch (ClassNotFoundException ex)
+		{
+			System.err.println("Class '" + className + "' not found");
+			System.exit(1);
+		}
+
+		Method method = null;
+		try
+		{
+			method = cmd.getMethod("main", new Class[] { String[].class });
+		}
+		catch (NoSuchMethodException ex)
+		{
+			System.err.println("'main' not found but the class '" + className + "' was");
+			System.exit(1);
+		}
+
+		try
+		{
+			method.invoke(null, new Object[] { args });
+			return;
+		}
+		catch (IllegalArgumentException ex)
+		{
+			System.err.println("IllegalArgumentException exception: " + ex.getMessage());
+			System.exit(7);
+		}
+		catch (IllegalAccessException ex)
+		{
+			System.err.println("IllegalAccessException exception: " + ex.getMessage());
+			System.exit(8);
+		}
+		catch (InvocationTargetException ex)
+		{
+			System.err.println("InvocationTargetException exception: " + ex.getMessage());
+			System.exit(9);
+		}
+
+		// arq.query.main(args) ;
+	}
 
 }

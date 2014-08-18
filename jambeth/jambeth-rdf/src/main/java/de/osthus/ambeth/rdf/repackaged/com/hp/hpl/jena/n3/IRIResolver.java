@@ -16,33 +16,39 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
+import de.osthus.ambeth.rdf.repackaged.org.apache.jena.iri.IRI;
+import de.osthus.ambeth.rdf.repackaged.org.apache.jena.iri.IRIException;
+import de.osthus.ambeth.rdf.repackaged.org.apache.jena.iri.IRIFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.FileUtils;
 
-import org.apache.jena.iri.IRI;
-import org.apache.jena.iri.IRIException;
-import org.apache.jena.iri.IRIFactory;
-import com.hp.hpl.jena.util.FileUtils;
-
-/** A simple class to access IRI resolution.
- * Replaced by {@code org.apache.jena.riot.system.IRIResolver}
+/**
+ * A simple class to access IRI resolution. Replaced by {@code de.osthus.ambeth.rdf.repackaged.org.apache.jena.riot.system.IRIResolver}
  */
 
 @Deprecated
-public class IRIResolver {
+public class IRIResolver
+{
 	/**
 	 * The current working directory, as a string.
 	 */
-	static private String globalBase = "http://localhost/LocalHostBase/" ;
-	
-	// Try to set the global base from the current directory.  
+	static private String globalBase = "http://localhost/LocalHostBase/";
+
+	// Try to set the global base from the current directory.
 	// Security (e.g. Tomcat) may prevent this in which case we
 	// use a common default set above.
-	static {
-	    try { globalBase = FileUtils.toURL("."); }
-	    catch (Throwable th) {  }
+	static
+	{
+		try
+		{
+			globalBase = FileUtils.toURL(".");
+		}
+		catch (Throwable th)
+		{
+		}
 	}
-	    
+
 	/**
 	 * The current working directory, as an IRI.
 	 */
@@ -51,45 +57,46 @@ public class IRIResolver {
 	/**
 	 * An IRIFactory appropriately configuired.
 	 */
-	static final IRIFactory factory = new IRIFactory(IRIFactory
-			.jenaImplementation());
-	static {
+	static final IRIFactory factory = new IRIFactory(IRIFactory.jenaImplementation());
+	static
+	{
 		factory.setSameSchemeRelativeReferences("file");
 	}
 
-	static {
-		
+	static
+	{
+
 		IRI cwdx;
-		try {
+		try
+		{
 			cwdx = factory.construct(globalBase);
-		} catch (IRIException e) {
-			System.err.println("Unexpected IRIException in initializer: "
-					+ e.getMessage());
+		}
+		catch (IRIException e)
+		{
+			System.err.println("Unexpected IRIException in initializer: " + e.getMessage());
 			cwdx = factory.create("file:///");
 		}
 		cwd = cwdx;
 	}
 
-
-	
 	/**
-	 * Turn a filename into a well-formed file: URL relative to the working
-	 * directory.
+	 * Turn a filename into a well-formed file: URL relative to the working directory.
 	 * 
 	 * @param filename
 	 * @return String The filename as an absolute URL
 	 */
-	static public String resolveFileURL(String filename) throws IRIException {
+	static public String resolveFileURL(String filename) throws IRIException
+	{
 		IRI r = cwd.resolve(filename);
-		if (!r.getScheme().equalsIgnoreCase("file")) {
+		if (!r.getScheme().equalsIgnoreCase("file"))
+		{
 			return resolveFileURL("./" + filename);
 		}
 		return r.toString();
 	}
 
 	/**
-	 * Create resolve a URI against a base. If baseStr is a relative file IRI
-	 * then it is first resolved against the current working directory.
+	 * Create resolve a URI against a base. If baseStr is a relative file IRI then it is first resolved against the current working directory.
 	 * 
 	 * @param relStr
 	 * @param baseStr
@@ -98,15 +105,16 @@ public class IRIResolver {
 	 * @throws JenaURIException
 	 *             If result would not be legal, absolute IRI
 	 */
-	static public String resolve(String relStr, String baseStr)
-			throws JenaURIException {
+	static public String resolve(String relStr, String baseStr) throws JenaURIException
+	{
 		return exceptions(resolveIRI(relStr, baseStr)).toString();
 	}
 
 	/*
 	 * No exception thrown by this method.
 	 */
-	static private IRI resolveIRI(String relStr, String baseStr) {
+	static private IRI resolveIRI(String relStr, String baseStr)
+	{
 		IRI i = factory.create(relStr);
 		if (i.isAbsolute())
 			// removes excess . segments
@@ -122,24 +130,24 @@ public class IRIResolver {
 	final private IRI base;
 
 	/**
-	 * Construct an IRIResolver with base as the 
-	 * current working directory.
-	 *
+	 * Construct an IRIResolver with base as the current working directory.
+	 * 
 	 */
-	public IRIResolver() {
+	public IRIResolver()
+	{
 		this(null);
 	}
 
 	/**
-	 * Construct an IRIResolver with base determined
-	 * by the argument URI. If this is relative,
-	 * it is relative against the current working directory.
+	 * Construct an IRIResolver with base determined by the argument URI. If this is relative, it is relative against the current working directory.
+	 * 
 	 * @param baseS
 	 * 
 	 * @throws JenaURIException
 	 *             If resulting base would not be legal, absolute IRI
 	 */
-	public IRIResolver(String baseS) {
+	public IRIResolver(String baseS)
+	{
 		if (baseS == null)
 			baseS = chooseBaseURI();
 		// IRI aaa = RelURI.factory.construct(baseS);
@@ -148,61 +156,73 @@ public class IRIResolver {
 
 	/**
 	 * The base of this IRIResolver.
+	 * 
 	 * @return String
 	 */
-	public String getBaseIRI() {
+	public String getBaseIRI()
+	{
 		return base.toString();
 	}
 
 	/**
-	 * Resolve the relative URI against the base of
-	 * this IRIResolver.
+	 * Resolve the relative URI against the base of this IRIResolver.
+	 * 
 	 * @param relURI
 	 * @return the resolved IRI
 	 * @throws JenaURIException
 	 *             If resulting URI would not be legal, absolute IRI
-	
 	 */
-	public String resolve(String relURI) {
+	public String resolve(String relURI)
+	{
 		return exceptions(base.resolve(relURI)).toString();
 	}
 
-	
 	/**
 	 * Throw any exceptions resulting from IRI.
+	 * 
 	 * @param iri
 	 * @return iri
 	 */
-	static private IRI exceptions(IRI iri) {
-		if (showExceptions && iri.hasViolation(false)) {
-			try {
+	static private IRI exceptions(IRI iri)
+	{
+		if (showExceptions && iri.hasViolation(false))
+		{
+			try
+			{
 				cwd.construct(iri);
-			} catch (IRIException e) {
+			}
+			catch (IRIException e)
+			{
 				throw new JenaURIException(e);
 			}
 		}
 		return iri;
 	}
-	
+
 	private static boolean showExceptions = true;
 
 	/**
-	    To allow Eyeball to bypass IRI checking (because it's doing its own)
-	*/
+	 * To allow Eyeball to bypass IRI checking (because it's doing its own)
+	 */
 	public static void suppressExceptions()
-	{ setShowExceptions(false) ; }
+	{
+		setShowExceptions(false);
+	}
 
 	/** To allow Eyeball to bypass IRI checking (because it's doing its own) */
 	public static void setShowExceptions(boolean state)
-	{ showExceptions = state ; }
+	{
+		showExceptions = state;
+	}
 
-/**
-	 * Resolve the relative URI str against the current
-	 * working directory.
+	/**
+	 * Resolve the relative URI str against the current working directory.
+	 * 
 	 * @param str
 	 * @return String
 	 */
-	public static String resolveGlobal(String str) {
+	public static String resolveGlobal(String str)
+	{
 		return exceptions(cwd.resolve(str)).toString();
 	}
 
@@ -212,7 +232,8 @@ public class IRIResolver {
 	 * @return String Absolute URI
 	 */
 
-	static public String chooseBaseURI() {
+	static public String chooseBaseURI()
+	{
 		return chooseBaseURI(null);
 	}
 
@@ -222,7 +243,8 @@ public class IRIResolver {
 	 * @return String URI (if relative, relative to current working directory).
 	 */
 
-	static public String chooseBaseURI(String baseURI) {
+	static public String chooseBaseURI(String baseURI)
+	{
 		if (baseURI == null)
 			baseURI = "file:.";
 		return resolveGlobal(baseURI);

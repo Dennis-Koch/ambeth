@@ -16,52 +16,56 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
 import java.util.Calendar;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory ;
-import com.hp.hpl.jena.graph.impl.LiteralLabelFactory;
-import com.hp.hpl.jena.reasoner.rulesys.BindingEnvironment;
-import com.hp.hpl.jena.reasoner.rulesys.RuleContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.NodeFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.LiteralLabelFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.BindingEnvironment;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.RuleContext;
 
 /**
  * Bind the first arg to the current date time in the current locale and timezone.
  */
-public class Now extends BaseBuiltin {
+public class Now extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "now";
-    }
-    
-    /**
-     * Return the expected number of arguments for this functor or 0 if the number is flexible.
-     */
-    @Override
-    public int getArgLength() {
-        return 1;
-    }
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "now";
+	}
 
-    /**
-     * This method is invoked when the builtin is called in a rule body.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes, some of which may be Node_RuleVariables.
-     * @param context an execution context giving access to other relevant data
-     * @return return true if the buildin predicate is deemed to have succeeded in
-     * the current environment
-     */
-    @Override
-    public boolean bodyCall(Node[] args, int length, RuleContext context) {
-        checkArgs(length, context);
-        BindingEnvironment env = context.getEnv();
-        Node now = NodeFactory.createLiteral( LiteralLabelFactory.create(new XSDDateTime(Calendar.getInstance())) );
-        return env.bind(args[0], now);
-    }
+	/**
+	 * Return the expected number of arguments for this functor or 0 if the number is flexible.
+	 */
+	@Override
+	public int getArgLength()
+	{
+		return 1;
+	}
+
+	/**
+	 * This method is invoked when the builtin is called in a rule body.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes, some of which may be Node_RuleVariables.
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 * @return return true if the buildin predicate is deemed to have succeeded in the current environment
+	 */
+	@Override
+	public boolean bodyCall(Node[] args, int length, RuleContext context)
+	{
+		checkArgs(length, context);
+		BindingEnvironment env = context.getEnv();
+		Node now = NodeFactory.createLiteral(LiteralLabelFactory.create(new XSDDateTime(Calendar.getInstance())));
+		return env.bind(args[0], now);
+	}
 }

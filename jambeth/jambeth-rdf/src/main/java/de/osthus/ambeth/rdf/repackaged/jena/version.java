@@ -16,33 +16,38 @@
  * limitations under the License.
  */
 
-package jena;
+package de.osthus.ambeth.rdf.repackaged.jena;
 
-import static jena.cmdline.CmdLineUtils.setLog4jConfiguration;
+import static de.osthus.ambeth.rdf.repackaged.jena.cmdline.CmdLineUtils.setLog4jConfiguration;
 
-import com.hp.hpl.jena.Jena;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.Jena;
 import java.lang.reflect.*;
 
 /**
- * jena.version
- * Print out jena version information and exit.
+ * jena.version Print out jena version information and exit.
  */
-public class version implements Jena {
+public class version implements Jena
+{
 
-    static { setLog4jConfiguration() ; }
+	static
+	{
+		setLog4jConfiguration();
+	}
 
-    /**
+	/**
 	 * Print out jena version information and exit.
+	 * 
 	 * @param args
-	 * @throws IllegalAccessException 
-	 * @throws IllegalArgumentException 
+	 * @throws IllegalAccessException
+	 * @throws IllegalArgumentException
 	 */
-	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException {
+	public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException
+	{
 		Field f[] = Jena.class.getDeclaredFields();
-        for ( Field aF : f )
-        {
-            System.out.println( aF.getName() + ": " + aF.get( null ) );
-        }
+		for (Field aF : f)
+		{
+			System.out.println(aF.getName() + ": " + aF.get(null));
+		}
 	}
 
 }

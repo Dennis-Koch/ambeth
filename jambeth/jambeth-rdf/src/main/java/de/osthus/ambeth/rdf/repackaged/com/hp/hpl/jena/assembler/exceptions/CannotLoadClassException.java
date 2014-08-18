@@ -16,35 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception used to report a faulire to load a class.
-*/
+ * Exception used to report a faulire to load a class.
+ */
 public class CannotLoadClassException extends AssemblerException
-    {
-    protected final String className;
-    
-    public CannotLoadClassException( Resource root, String className, ClassNotFoundException e )
-        {
-        super( root, makeMessage( root, className ), e );
-        this.className = className;
-        }
+{
+	protected final String className;
 
-    private static String makeMessage( Resource root, String className )
-        {
-        return 
-            "the class '" + className
-            + "' required by the object " + nice( root )
-            + " could not be loaded"
-            ; 
-        }
+	public CannotLoadClassException(Resource root, String className, ClassNotFoundException e)
+	{
+		super(root, makeMessage(root, className), e);
+		this.className = className;
+	}
 
-    /**
-         Answer the name of the class that was not loaded.
-    */
-    public String getClassName()
-        { return className; }
-    }
+	private static String makeMessage(Resource root, String className)
+	{
+		return "the class '" + className + "' required by the object " + nice(root) + " could not be loaded";
+	}
+
+	/**
+	 * Answer the name of the class that was not loaded.
+	 */
+	public String getClassName()
+	{
+		return className;
+	}
+}

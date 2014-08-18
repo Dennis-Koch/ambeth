@@ -16,9 +16,12 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
 public class RelativeURIException extends JenaURIException
 {
-    public RelativeURIException(String msg) { super(msg) ; }
+	public RelativeURIException(String msg)
+	{
+		super(msg);
+	}
 }

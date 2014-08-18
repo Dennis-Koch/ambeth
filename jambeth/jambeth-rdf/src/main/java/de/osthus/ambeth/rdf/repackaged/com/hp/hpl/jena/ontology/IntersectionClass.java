@@ -18,31 +18,22 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Encapsulates a class description that is the intersection of a list of
- * class expressions.
+ * Encapsulates a class description that is the intersection of a list of class expressions.
  * </p>
  */
-public interface IntersectionClass 
-    extends BooleanClassDescription
+public interface IntersectionClass extends BooleanClassDescription
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-
-    // External signature methods
-    //////////////////////////////////
-
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

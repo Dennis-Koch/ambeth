@@ -16,39 +16,53 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler;
 
 import java.util.*;
 
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.Rule;
 
 /**
-    A RuleSet wraps a list of rules.
+ * A RuleSet wraps a list of rules.
  */
 public class RuleSet
-    {
-    private static final List<Rule> emptyRules = Collections.emptyList();
-    
-    public static final RuleSet empty = create( emptyRules );
-    
-    public static RuleSet create( List<Rule> rules )
-        { return new RuleSet( rules ); }
+{
+	private static final List<Rule> emptyRules = Collections.emptyList();
 
-    public static RuleSet create( String ruleString )
-        { return create( Rule.parseRules( ruleString ) ); }
-    
-    private final List<Rule> rules;
-    
-    protected RuleSet( List<Rule> rules )
-        { this.rules = new ArrayList<>( rules ); }
+	public static final RuleSet empty = create(emptyRules);
 
-    public List<Rule> getRules()
-        { return rules; }
-    
-    @Override public int hashCode()
-        { return rules.hashCode(); }
-    
-    @Override public boolean equals( Object other )
-        { return other instanceof RuleSet && rules.equals( ((RuleSet) other).rules ); }
+	public static RuleSet create(List<Rule> rules)
+	{
+		return new RuleSet(rules);
+	}
 
-    }
+	public static RuleSet create(String ruleString)
+	{
+		return create(Rule.parseRules(ruleString));
+	}
+
+	private final List<Rule> rules;
+
+	protected RuleSet(List<Rule> rules)
+	{
+		this.rules = new ArrayList<>(rules);
+	}
+
+	public List<Rule> getRules()
+	{
+		return rules;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return rules.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object other)
+	{
+		return other instanceof RuleSet && rules.equals(((RuleSet) other).rules);
+	}
+
+}

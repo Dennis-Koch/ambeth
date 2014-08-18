@@ -16,28 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A Filter that filters out duplicate values.  
+ * A Filter that filters out duplicate values.
  */
-public class UniqueFilter<T> extends Filter<T> {
+public class UniqueFilter<T> extends Filter<T>
+{
 
-    /** The set of objects already seen */
-    protected Set<T> seen = new HashSet<>();
+	/** The set of objects already seen */
+	protected Set<T> seen = new HashSet<>();
 
 	@Override
-	public boolean accept(T o) {
+	public boolean accept(T o)
+	{
 		boolean retval = !seen.contains(o);
 		if (retval)
 		{
-			seen.add( o );
+			seen.add(o);
 		}
 		return retval;
 	}
-    
-   
+
 }

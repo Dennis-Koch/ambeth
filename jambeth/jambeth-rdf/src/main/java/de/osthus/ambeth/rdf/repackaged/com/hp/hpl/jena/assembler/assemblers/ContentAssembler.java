@@ -16,177 +16,179 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
 import java.io.StringReader;
 import java.util.*;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.assembler.exceptions.UnknownEncodingException;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.*;
-import com.hp.hpl.jena.vocabulary.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions.UnknownEncodingException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary.*;
 
 public class ContentAssembler extends AssemblerBase implements Assembler
-    {
-    protected final FileManager defaultFileManager;
-    
-    public ContentAssembler()
-        { this( null ); }
-    
-    public ContentAssembler( FileManager fm )
-        { this.defaultFileManager = fm; }
+{
+	protected final FileManager defaultFileManager;
 
-    @Override public Object open( Assembler a, Resource root, Mode irrelevant )
-        {
-        checkType( root, JA.Content );
-        return new Content( loadContent( new ArrayList<Content>(), a, root ) );
-        }
-    
-    public final static Set<Property> contentProperties = new HashSetWith<Property>()
-        .with( JA.content )
-        .with( JA.literalContent )
-        .with( JA.externalContent )
-        .with( JA.quotedContent )
-        ;
-    
-    static class HashSetWith<T> extends HashSet<T>
-        {
-        public HashSetWith<T> with( T x )
-            {
-            this.add( x );
-            return this;
-            }
-        }
+	public ContentAssembler()
+	{
+		this(null);
+	}
 
-    public List<Content> loadContent( List<Content> contents, Assembler a, Resource root )
-        {
-        FileManager fm = getFileManager( a, root );
-        addLiteralContent( contents, root );
-        addQuotedContent( contents, root );
-        addExternalContents( contents, fm, root );
-        addIndirectContent( contents, a, root );
-        return contents;
-        }
-    
-    private static void addIndirectContent( List<Content> contents, Assembler a, Resource root )
-        {
-        StmtIterator it = root.listProperties( JA.content );
-        while (it.hasNext()) contents.add( (Content) a.open( getResource( it.nextStatement() ) ) );
-        }
+	public ContentAssembler(FileManager fm)
+	{
+		this.defaultFileManager = fm;
+	}
 
-    protected void addExternalContents( List<Content> contents, FileManager fm, Resource root )
-        {
-        StmtIterator it = root.listProperties( JA.externalContent );
-        while (it.hasNext()) contents.add( objectAsContent( fm, it.nextStatement() ) );
-        }
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.Content);
+		return new Content(loadContent(new ArrayList<Content>(), a, root));
+	}
 
-    private static void addQuotedContent( List<Content> contents, Resource root )
-        {
-        StmtIterator it = root.listProperties( JA.quotedContent );
-        while (it.hasNext())
-            {
-            Resource q = getResource( it.nextStatement() );
-            Model m = ResourceUtils.reachableClosure( q );
-            contents.add( newModelContent( m ) );
-            }
-        }
+	public final static Set<Property> contentProperties = new HashSetWith<Property>().with(JA.content).with(JA.literalContent).with(JA.externalContent)
+			.with(JA.quotedContent);
 
-    protected static void addLiteralContent( List<Content> contents, Resource root )
-        {
-        String encoding = getEncoding( root );
-        StmtIterator it = root.listProperties( JA.literalContent );
-        while (it.hasNext())
-            {
-            String s = getString( it.nextStatement() );
-            Model model = parseAs( root, encoding, s );
-            contents.add( newModelContent( model ) );
-            }
-        }
+	static class HashSetWith<T> extends HashSet<T>
+	{
+		public HashSetWith<T> with(T x)
+		{
+			this.add(x);
+			return this;
+		}
+	}
 
-    private static Model parseAs( Resource root, String encoding, String lexicalForm )
-        {
-        String enc = encoding == null ? guessFrom( lexicalForm ) : encoding;
-        if (enc.equals( "N3" )) return parseAsN3( lexicalForm );
-        if (enc.equals( "RDF/XML" )) return parseAsXML( lexicalForm );
-        throw new UnknownEncodingException( root, encoding );
-        }
+	public List<Content> loadContent(List<Content> contents, Assembler a, Resource root)
+	{
+		FileManager fm = getFileManager(a, root);
+		addLiteralContent(contents, root);
+		addQuotedContent(contents, root);
+		addExternalContents(contents, fm, root);
+		addIndirectContent(contents, a, root);
+		return contents;
+	}
 
-    private static Model parseAsXML( String lexicalForm )
-        {
-        String pre = 
-            "<?xml version='1.0'?>"
-            + "<rdf:RDF"
-            + " xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'"
-            + " xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'"
-            + " xmlns:xsd='http://www.w3.org/2001/XMLSchema#'"
-            + " xmlns:owl='http://www.w3.org/2002/07/owl#'"
-            + " xmlns:dc='http://purl.org/dc/elements/1.1/'"
-            + ">"
-            ;
-        String post = "</rdf:RDF>";
-        StringReader r = new StringReader( pre + lexicalForm + post );
-        return ModelFactory.createDefaultModel().read( r, "", "RDF/XML" );
-        }
+	private static void addIndirectContent(List<Content> contents, Assembler a, Resource root)
+	{
+		StmtIterator it = root.listProperties(JA.content);
+		while (it.hasNext())
+			contents.add((Content) a.open(getResource(it.nextStatement())));
+	}
 
-    private static String guessFrom( String lexicalForm )
-        { return "N3"; }
+	protected void addExternalContents(List<Content> contents, FileManager fm, Resource root)
+	{
+		StmtIterator it = root.listProperties(JA.externalContent);
+		while (it.hasNext())
+			contents.add(objectAsContent(fm, it.nextStatement()));
+	}
 
-    private static String getEncoding( Resource root )
-        {
-        Literal L = getUniqueLiteral( root, JA.contentEncoding );
-        return L == null ? null : L.getLexicalForm();
-        }
+	private static void addQuotedContent(List<Content> contents, Resource root)
+	{
+		StmtIterator it = root.listProperties(JA.quotedContent);
+		while (it.hasNext())
+		{
+			Resource q = getResource(it.nextStatement());
+			Model m = ResourceUtils.reachableClosure(q);
+			contents.add(newModelContent(m));
+		}
+	}
 
-    protected static Content newModelContent( final Model m )
-        {
-        return new Content() 
-            { 
-            @Override public Model fill( Model x ) { x.setNsPrefixes( m ); return x.add( m ); } 
-            
-            @Override public boolean isEmpty() { return m.isEmpty(); }
-            };
-        }
+	protected static void addLiteralContent(List<Content> contents, Resource root)
+	{
+		String encoding = getEncoding(root);
+		StmtIterator it = root.listProperties(JA.literalContent);
+		while (it.hasNext())
+		{
+			String s = getString(it.nextStatement());
+			Model model = parseAs(root, encoding, s);
+			contents.add(newModelContent(model));
+		}
+	}
 
-    protected Content objectAsContent( FileManager fm, Statement s )
-        {
-        final Model m = fm.loadModel( getModelName( s ) );
-        return newModelContent( m );
-        }
-    
-    private String getModelName( Statement s )
-        {
-        Node o = s.getObject().asNode();
-        return o.isLiteral() ? o.getLiteralLexicalForm(): o.getURI();
-        }
+	private static Model parseAs(Resource root, String encoding, String lexicalForm)
+	{
+		String enc = encoding == null ? guessFrom(lexicalForm) : encoding;
+		if (enc.equals("N3"))
+			return parseAsN3(lexicalForm);
+		if (enc.equals("RDF/XML"))
+			return parseAsXML(lexicalForm);
+		throw new UnknownEncodingException(root, encoding);
+	}
 
-    private FileManager getFileManager( Assembler a, Resource root )
-        {
-        Resource fm = getUniqueResource( root, JA.fileManager );
-        return 
-            fm != null ? (FileManager) a.open( fm )
-            : defaultFileManager == null ? FileManager.get() 
-            : defaultFileManager
-            ;
-        }
+	private static Model parseAsXML(String lexicalForm)
+	{
+		String pre = "<?xml version='1.0'?>" + "<rdf:RDF" + " xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'"
+				+ " xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'" + " xmlns:xsd='http://www.w3.org/2001/XMLSchema#'"
+				+ " xmlns:owl='http://www.w3.org/2002/07/owl#'" + " xmlns:dc='http://purl.org/dc/elements/1.1/'" + ">";
+		String post = "</rdf:RDF>";
+		StringReader r = new StringReader(pre + lexicalForm + post);
+		return ModelFactory.createDefaultModel().read(r, "", "RDF/XML");
+	}
 
-    static final String preamble =
-        "@prefix rdf: <" + RDF.getURI() + "> ."
-        + "\n@prefix rdfs: <" + RDFS.getURI() + "> ."
-        + "\n@prefix owl: <" + OWL.getURI() + "> ."
-        + "\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> ."
-        + "\n@prefix dc: <" + DC_11.getURI() + "> ."
-        ;
-    
-    protected static Model parseAsN3( String value )
-        {
-        Model result = ModelFactory.createDefaultModel();
-        StringReader r = new StringReader( preamble +"\n" +  value );
-        result.read( r, "", "N3" );
-        return result;
-        }
+	private static String guessFrom(String lexicalForm)
+	{
+		return "N3";
+	}
 
-    public Object getFileManager()
-        { return defaultFileManager; }
-    }
+	private static String getEncoding(Resource root)
+	{
+		Literal L = getUniqueLiteral(root, JA.contentEncoding);
+		return L == null ? null : L.getLexicalForm();
+	}
+
+	protected static Content newModelContent(final Model m)
+	{
+		return new Content()
+		{
+			@Override
+			public Model fill(Model x)
+			{
+				x.setNsPrefixes(m);
+				return x.add(m);
+			}
+
+			@Override
+			public boolean isEmpty()
+			{
+				return m.isEmpty();
+			}
+		};
+	}
+
+	protected Content objectAsContent(FileManager fm, Statement s)
+	{
+		final Model m = fm.loadModel(getModelName(s));
+		return newModelContent(m);
+	}
+
+	private String getModelName(Statement s)
+	{
+		Node o = s.getObject().asNode();
+		return o.isLiteral() ? o.getLiteralLexicalForm() : o.getURI();
+	}
+
+	private FileManager getFileManager(Assembler a, Resource root)
+	{
+		Resource fm = getUniqueResource(root, JA.fileManager);
+		return fm != null ? (FileManager) a.open(fm) : defaultFileManager == null ? FileManager.get() : defaultFileManager;
+	}
+
+	static final String preamble = "@prefix rdf: <" + RDF.getURI() + "> ." + "\n@prefix rdfs: <" + RDFS.getURI() + "> ." + "\n@prefix owl: <" + OWL.getURI()
+			+ "> ." + "\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> ." + "\n@prefix dc: <" + DC_11.getURI() + "> .";
+
+	protected static Model parseAsN3(String value)
+	{
+		Model result = ModelFactory.createDefaultModel();
+		StringReader r = new StringReader(preamble + "\n" + value);
+		result.read(r, "", "N3");
+		return result;
+	}
+
+	public Object getFileManager()
+	{
+		return defaultFileManager;
+	}
+}

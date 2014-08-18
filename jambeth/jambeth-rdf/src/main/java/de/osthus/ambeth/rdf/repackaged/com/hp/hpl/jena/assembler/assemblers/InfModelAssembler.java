@@ -16,41 +16,39 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.reasoner.*;
-import com.hp.hpl.jena.reasoner.rulesys.GenericRuleReasonerFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.GenericRuleReasonerFactory;
 
 public class InfModelAssembler extends ModelAssembler
-    {
-    @Override
-    protected Model openEmptyModel( Assembler a, Resource root, Mode mode )
-        {
-        checkType( root, JA.InfModel );
-        Model base = getBase( a, root, mode );
-        Reasoner reasoner = getReasoner( a, root );
-        InfModel result = ModelFactory.createInfModel( reasoner, base );
-        return result;
-        }
+{
+	@Override
+	protected Model openEmptyModel(Assembler a, Resource root, Mode mode)
+	{
+		checkType(root, JA.InfModel);
+		Model base = getBase(a, root, mode);
+		Reasoner reasoner = getReasoner(a, root);
+		InfModel result = ModelFactory.createInfModel(reasoner, base);
+		return result;
+	}
 
-    protected Model getBase( Assembler a, Resource root, Mode mode )
-        {
-        Resource base = getUniqueResource( root, JA.baseModel );
-        return base == null ? ModelFactory.createDefaultModel() : a.openModel( base, mode );
-        }
+	protected Model getBase(Assembler a, Resource root, Mode mode)
+	{
+		Resource base = getUniqueResource(root, JA.baseModel);
+		return base == null ? ModelFactory.createDefaultModel() : a.openModel(base, mode);
+	}
 
-    protected Reasoner getReasoner( Assembler a, Resource root )
-        { return getReasonerFactory( a, root ).create( root ); }
-    
-    protected ReasonerFactory getReasonerFactory( Assembler a, Resource root )
-        { 
-        Resource factory = getUniqueResource( root, JA.reasoner );
-        return factory == null
-            ? GenericRuleReasonerFactory.theInstance()
-            : (ReasonerFactory) a.open( factory )
-            ;        
-        }
-    }
+	protected Reasoner getReasoner(Assembler a, Resource root)
+	{
+		return getReasonerFactory(a, root).create(root);
+	}
+
+	protected ReasonerFactory getReasonerFactory(Assembler a, Resource root)
+	{
+		Resource factory = getUniqueResource(root, JA.reasoner);
+		return factory == null ? GenericRuleReasonerFactory.theInstance() : (ReasonerFactory) a.open(factory);
+	}
+}

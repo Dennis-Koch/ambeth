@@ -16,21 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 import java.util.*;
 
 /**
- * Represents one input left of a join node. The queue points to a sibling queue
- * representing the other leg which should be joined against.
+ * Represents one input left of a join node. The queue points to a sibling queue representing the other leg which should be joined against.
  */
-public class RETEQueue implements RETESinkNode, RETESourceNode {
+public class RETEQueue implements RETESinkNode, RETESourceNode
+{
 
 	/**
-	 * A multi-set of partially bound envionments indices for matching are
-	 * specified by matchIndices
+	 * A multi-set of partially bound envionments indices for matching are specified by matchIndices
 	 */
 	protected BindingVectorMultiSet queue;
 
@@ -44,31 +43,30 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 	protected RETESinkNode continuation;
 
 	/**
-	 * Constructor. The queue is not usable until it has been bound to a sibling
-	 * and a continuation node.
+	 * Constructor. The queue is not usable until it has been bound to a sibling and a continuation node.
 	 * 
 	 * @param matchIndices
-	 *            set of variable indices which should match between the two
-	 *            inputs
+	 *            set of variable indices which should match between the two inputs
 	 */
-	public RETEQueue(byte[] matchIndices) {
+	public RETEQueue(byte[] matchIndices)
+	{
 		this.matchIndices = matchIndices;
 		this.queue = new BindingVectorMultiSet(matchIndices);
 	}
 
 	/**
-	 * Constructor. The queue is not usable until it has been bound to a sibling
-	 * and a continuation node.
+	 * Constructor. The queue is not usable until it has been bound to a sibling and a continuation node.
 	 * 
 	 * @param matchIndexList
-	 *            List of variable indices which should match between the two
-	 *            inputs
+	 *            List of variable indices which should match between the two inputs
 	 */
-	public RETEQueue(List<? extends Byte> matchIndexList) {
+	public RETEQueue(List<? extends Byte> matchIndexList)
+	{
 		int len = matchIndexList.size();
 		matchIndices = new byte[len];
-		for (int i = 0; i < len; i++) {
-			matchIndices[i] = matchIndexList.get( i );
+		for (int i = 0; i < len; i++)
+		{
+			matchIndices[i] = matchIndexList.get(i);
 		}
 		this.queue = new BindingVectorMultiSet(matchIndices);
 	}
@@ -76,7 +74,8 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 	/**
 	 * Set the sibling for this node.
 	 */
-	public void setSibling(RETEQueue sibling) {
+	public void setSibling(RETEQueue sibling)
+	{
 		this.sibling = sibling;
 	}
 
@@ -84,7 +83,8 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 	 * Set the continuation node for this node (and any sibling)
 	 */
 	@Override
-	public void setContinuation(RETESinkNode continuation) {
+	public void setContinuation(RETESinkNode continuation)
+	{
 		this.continuation = continuation;
 		if (sibling != null)
 			sibling.continuation = continuation;
@@ -99,11 +99,15 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 	 *            distinguishes between add and remove operations.
 	 */
 	@Override
-	public void fire(BindingVector env, boolean isAdd) {
+	public void fire(BindingVector env, boolean isAdd)
+	{
 		// Store the new token in this store
-		if (isAdd) {
+		if (isAdd)
+		{
 			queue.add(env);
-		} else {
+		}
+		else
+		{
 			queue.remove(env);
 		}
 
@@ -111,15 +115,16 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 
 		Node[] envNodes = env.getEnvironment();
 
-		for (Iterator<BindingVector> i = sibling.queue.getSubSet(env); i
-				.hasNext();) {
+		for (Iterator<BindingVector> i = sibling.queue.getSubSet(env); i.hasNext();)
+		{
 			Node[] candidate = i.next().getEnvironment();
 			// matching is no longer required since queue.getSubSet(env) returns
 			// a HashMap with matching BindingVector's
 
 			// Instantiate a new extended environment
 			Node[] newNodes = new Node[candidate.length];
-			for (int j = 0; j < candidate.length; j++) {
+			for (int j = 0; j < candidate.length; j++)
+			{
 				Node n = candidate[j];
 				newNodes[j] = (n == null) ? envNodes[j] : n;
 			}
@@ -136,15 +141,15 @@ public class RETEQueue implements RETESinkNode, RETESourceNode {
 	 *            the new context to which the network is being ported
 	 */
 	@Override
-	public RETENode clone(Map<RETENode, RETENode> netCopy,
-			RETERuleContext context) {
+	public RETENode clone(Map<RETENode, RETENode> netCopy, RETERuleContext context)
+	{
 		RETEQueue clone = (RETEQueue) netCopy.get(this);
-		if (clone == null) {
+		if (clone == null)
+		{
 			clone = new RETEQueue(matchIndices);
 			netCopy.put(this, clone);
 			clone.setSibling((RETEQueue) sibling.clone(netCopy, context));
-			clone.setContinuation((RETESinkNode) continuation.clone(netCopy,
-					context));
+			clone.setContinuation((RETESinkNode) continuation.clone(netCopy, context));
 			clone.queue.putAll(queue);
 		}
 		return clone;

@@ -16,18 +16,24 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
-/** An internal interface, not normally of interest to application developers.
+/**
+ * An internal interface, not normally of interest to application developers.
  */
-interface ContainerI {
+interface ContainerI
+{
 
-    /** Remove the given value at the given index.
-     * @param index The index at which the value should be removed.
-     * @param object The object at that index to be removed
-     * @return this object
-     */
-    public Container remove(int index, RDFNode object) ;
+	/**
+	 * Remove the given value at the given index.
+	 * 
+	 * @param index
+	 *            The index at which the value should be removed.
+	 * @param object
+	 *            The object at that index to be removed
+	 * @return this object
+	 */
+	public Container remove(int index, RDFNode object);
 }

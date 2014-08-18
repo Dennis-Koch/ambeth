@@ -16,27 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
-    Exception that may be thrown if an operation is attempted on a closed graph.
-*/
+ * Exception that may be thrown if an operation is attempted on a closed graph.
+ */
 public class ClosedException extends JenaException
-    {
-    private Graph graph;
-    
-    public ClosedException( String message, Graph graph )
-        { 
-        super( message ); 
-        this.graph = graph;
-        }
-    
-    /**
-        Answer the graph that this exception was constructed with.
-    */
-    public Graph getGraph()
-        { return graph; }
-    
-    }
+{
+	private Graph graph;
+
+	public ClosedException(String message, Graph graph)
+	{
+		super(message);
+		this.graph = graph;
+	}
+
+	/**
+	 * Answer the graph that this exception was constructed with.
+	 */
+	public Graph getGraph()
+	{
+		return graph;
+	}
+
+}

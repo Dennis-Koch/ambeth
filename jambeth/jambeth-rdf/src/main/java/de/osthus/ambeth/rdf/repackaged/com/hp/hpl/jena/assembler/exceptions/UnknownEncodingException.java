@@ -16,34 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception used to report an unknown language encoding.
-*/
+ * Exception used to report an unknown language encoding.
+ */
 public class UnknownEncodingException extends AssemblerException
-    {
-    protected final String encoding;
-    
-    public UnknownEncodingException( Resource root, String encoding )
-        {
-        super( root, makeMessage( root, encoding ) );
-        this.encoding = encoding;
-        }
-    
-    private static String makeMessage( Resource root, String encoding )
-        {
-        return 
-            "the object " + nice( root )
-            + " has an unknown language encoding '" + encoding + "'"
-            ;
-        }
+{
+	protected final String encoding;
 
-    /**
-        Answer the unknown encoding.
-    */
-    public String getEncoding()
-        { return encoding; }
-    }
+	public UnknownEncodingException(Resource root, String encoding)
+	{
+		super(root, makeMessage(root, encoding));
+		this.encoding = encoding;
+	}
+
+	private static String makeMessage(Resource root, String encoding)
+	{
+		return "the object " + nice(root) + " has an unknown language encoding '" + encoding + "'";
+	}
+
+	/**
+	 * Answer the unknown encoding.
+	 */
+	public String getEncoding()
+	{
+		return encoding;
+	}
+}

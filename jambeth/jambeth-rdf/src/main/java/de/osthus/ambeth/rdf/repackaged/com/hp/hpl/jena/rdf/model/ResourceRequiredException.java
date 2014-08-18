@@ -16,20 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
-    Exception to throw when an RDFNode required to be a Resource isn't, or when a Node
-    supposed to be a resource isn't.
-*/
+ * Exception to throw when an RDFNode required to be a Resource isn't, or when a Node supposed to be a resource isn't.
+ */
 public class ResourceRequiredException extends JenaException
-    {
-    public ResourceRequiredException( RDFNode n )
-        { this( n.asNode() ); }
-        
-    public ResourceRequiredException( Node n )
-        { super( n.toString( PrefixMapping.Extended, true) ); }
-    }
+{
+	public ResourceRequiredException(RDFNode n)
+	{
+		this(n.asNode());
+	}
+
+	public ResourceRequiredException(Node n)
+	{
+		super(n.toString(PrefixMapping.Extended, true));
+	}
+}

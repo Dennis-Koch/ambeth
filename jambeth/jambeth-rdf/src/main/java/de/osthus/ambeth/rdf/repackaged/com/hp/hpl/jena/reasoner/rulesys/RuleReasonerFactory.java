@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-import com.hp.hpl.jena.reasoner.ReasonerFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.ReasonerFactory;
 
 /**
-    RuleReasonerFactory - a ReasonerFactory interface which allows rules
-    to be set up to be installed into each reasoner this factory produces.
-    
-    OBSOLETE - not used anywhere.
-*/
+ * RuleReasonerFactory - a ReasonerFactory interface which allows rules to be set up to be installed into each reasoner this factory produces.
+ * 
+ * OBSOLETE - not used anywhere.
+ */
 public interface RuleReasonerFactory extends ReasonerFactory
-    {
-    }
+{
+}

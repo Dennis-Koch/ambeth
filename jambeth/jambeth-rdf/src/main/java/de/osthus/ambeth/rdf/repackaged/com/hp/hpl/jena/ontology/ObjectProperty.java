@@ -18,30 +18,23 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface encapsulating properties whose range values are restricted to
- * individuals (as distinct from datatype valued {@link DatatypeProperty
- * properties}). Some ontology languages, such as OWL Full, do not distinguish
- * between object and datatype properties.
+ * Interface encapsulating properties whose range values are restricted to individuals (as distinct from datatype valued {@link DatatypeProperty properties}).
+ * Some ontology languages, such as OWL Full, do not distinguish between object and datatype properties.
  * </p>
  */
-public interface ObjectProperty
-    extends OntProperty
+public interface ObjectProperty extends OntProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

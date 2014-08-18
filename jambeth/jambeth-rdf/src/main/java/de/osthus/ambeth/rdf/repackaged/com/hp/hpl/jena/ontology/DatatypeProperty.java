@@ -18,30 +18,23 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface that encapsulates the class of properties whose range values are
- * datatype values (as distinct from {@link ObjectProperty} whose values are
- * individuals).  Not all ontology languages differentiate between object and
- * datatype properties.
+ * Interface that encapsulates the class of properties whose range values are datatype values (as distinct from {@link ObjectProperty} whose values are
+ * individuals). Not all ontology languages differentiate between object and datatype properties.
  * </p>
  */
-public interface DatatypeProperty
-    extends OntProperty
+public interface DatatypeProperty extends OntProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-    Exception to throw if something does not have the specified property.
-*/
+ * Exception to throw if something does not have the specified property.
+ */
 public class PropertyNotFoundException extends JenaException
-    {
-    public PropertyNotFoundException( Property p )
-        { super( p.toString() ); }
-    }
+{
+	public PropertyNotFoundException(Property p)
+	{
+		super(p.toString());
+	}
+}

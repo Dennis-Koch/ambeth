@@ -16,68 +16,80 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.rdf.model.impl.Util;
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl.Util;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
-    RDF nodes with a global identity given by a URI.
-*/
+ * RDF nodes with a global identity given by a URI.
+ */
 public class Node_URI extends Node_Concrete
-    {    
-    protected Node_URI( Object uri )
-        { super( uri ); }
+{
+	protected Node_URI(Object uri)
+	{
+		super(uri);
+	}
 
-    @Override
-    public String getURI()
-        { return (String) label; }
-        
-    @Override
-    public Object visitWith( NodeVisitor v )
-        { return v.visitURI( this, (String) label ); }
-        
-    @Override
-    public boolean isURI()
-        { return true; }
-        
-    /**
-        Answer a String representing the node, taking into account the PrefixMapping.
-        The horrible test against null is a stopgap to avoid a circularity issue.
-        TODO fix the circularity issue
-    */
-    @Override
-    public String toString( PrefixMapping pm, boolean quoting )
-        { return pm == null ? (String) label : pm.shortForm( (String) label ); }
-        
-    @Override
-    public boolean equals( Object other )
-        {
-        if ( this == other ) return true ;
-        return 
-            other instanceof Node_URI 
-            && same( (Node_URI) other ); }
+	@Override
+	public String getURI()
+	{
+		return (String) label;
+	}
 
-    final boolean same( Node_URI other )
-        { return label.equals( other.label ); }
-    
-    @Override
-    public String getNameSpace()
-        { 
-        String s = (String) label;
-        return s.substring( 0, Util.splitNamespace( s ) );
-        }
-    
-    @Override
-    public String getLocalName()
-        {  
-        String s = (String) label;
-        return s.substring( Util.splitNamespace( s ) );
-        }
-    
-    @Override
-    public boolean hasURI( String uri )
-        { return label.equals( uri ); }
-    
-    
-    }
+	@Override
+	public Object visitWith(NodeVisitor v)
+	{
+		return v.visitURI(this, (String) label);
+	}
+
+	@Override
+	public boolean isURI()
+	{
+		return true;
+	}
+
+	/**
+	 * Answer a String representing the node, taking into account the PrefixMapping. The horrible test against null is a stopgap to avoid a circularity issue.
+	 * TODO fix the circularity issue
+	 */
+	@Override
+	public String toString(PrefixMapping pm, boolean quoting)
+	{
+		return pm == null ? (String) label : pm.shortForm((String) label);
+	}
+
+	@Override
+	public boolean equals(Object other)
+	{
+		if (this == other)
+			return true;
+		return other instanceof Node_URI && same((Node_URI) other);
+	}
+
+	final boolean same(Node_URI other)
+	{
+		return label.equals(other.label);
+	}
+
+	@Override
+	public String getNameSpace()
+	{
+		String s = (String) label;
+		return s.substring(0, Util.splitNamespace(s));
+	}
+
+	@Override
+	public String getLocalName()
+	{
+		String s = (String) label;
+		return s.substring(Util.splitNamespace(s));
+	}
+
+	@Override
+	public boolean hasURI(String uri)
+	{
+		return label.equals(uri);
+	}
+
+}

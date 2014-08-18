@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
  * Interface for all non-terminal nodes in the network.
  */
-public interface RETESourceNode extends RETENode {
-    
-    /**
-     * Set the continuation node for this node.
-     */
-    public void setContinuation(RETESinkNode continuation);
+public interface RETESourceNode extends RETENode
+{
+
+	/**
+	 * Set the continuation node for this node.
+	 */
+	public void setContinuation(RETESinkNode continuation);
 
 }

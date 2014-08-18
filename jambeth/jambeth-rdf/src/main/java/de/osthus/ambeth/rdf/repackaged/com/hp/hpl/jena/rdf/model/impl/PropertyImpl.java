@@ -16,140 +16,157 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.vocabulary.RDF;
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.enhanced.*;
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary.RDF;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** An implementation of Property.
+/**
+ * An implementation of Property.
  */
 
 public class PropertyImpl extends ResourceImpl implements Property
-    {
+{
 
-    @SuppressWarnings("hiding")
-    final static public Implementation factory = new Implementation() 
-        {
-        @Override
-        public boolean canWrap( Node n, EnhGraph eg )
-            { return n.isURI(); }
+	@SuppressWarnings("hiding")
+	final static public Implementation factory = new Implementation()
+	{
+		@Override
+		public boolean canWrap(Node n, EnhGraph eg)
+		{
+			return n.isURI();
+		}
 
-        @Override
-        public EnhNode wrap( Node n, EnhGraph eg )
-            { return new PropertyImpl( n, eg ); }
-    };
+		@Override
+		public EnhNode wrap(Node n, EnhGraph eg)
+		{
+			return new PropertyImpl(n, eg);
+		}
+	};
 
-    protected static Logger logger = LoggerFactory.getLogger( PropertyImpl.class );
+	protected static Logger logger = LoggerFactory.getLogger(PropertyImpl.class);
 
-    protected int ordinal = -1;
+	protected int ordinal = -1;
 
-    /** Creates new PropertyImpl */
-    public PropertyImpl( String uri )
-        {
-        super( uri );
-        checkLocalName();
-        checkOrdinal();
-        }
+	/** Creates new PropertyImpl */
+	public PropertyImpl(String uri)
+	{
+		super(uri);
+		checkLocalName();
+		checkOrdinal();
+	}
 
-    @Override public Property inModel( Model m )
-        { return getModel() == m ? this : m.createProperty( getURI() ); }
+	@Override
+	public Property inModel(Model m)
+	{
+		return getModel() == m ? this : m.createProperty(getURI());
+	}
 
-    private void checkLocalName()
-        {
-        String localName = getLocalName();
-        if (localName == null || localName.equals( "" )) 
-            throw new InvalidPropertyURIException( getURI() );
-        }
+	private void checkLocalName()
+	{
+		String localName = getLocalName();
+		if (localName == null || localName.equals(""))
+			throw new InvalidPropertyURIException(getURI());
+	}
 
-    public PropertyImpl( String nameSpace, String localName )
-        {
-        super( nameSpace, localName );
-        checkLocalName();
-        checkOrdinal();
-        }
+	public PropertyImpl(String nameSpace, String localName)
+	{
+		super(nameSpace, localName);
+		checkLocalName();
+		checkOrdinal();
+	}
 
-    public PropertyImpl( String uri, ModelCom m )
-        {
-        super( uri, m );
-        checkOrdinal();
-        }
+	public PropertyImpl(String uri, ModelCom m)
+	{
+		super(uri, m);
+		checkOrdinal();
+	}
 
-    public PropertyImpl( String nameSpace, String localName, ModelCom m )
-        {
-        super( nameSpace, localName, m );
-        checkOrdinal();
-        }
+	public PropertyImpl(String nameSpace, String localName, ModelCom m)
+	{
+		super(nameSpace, localName, m);
+		checkOrdinal();
+	}
 
-    public PropertyImpl( Node n, EnhGraph m )
-        {
-        super( n, m );
-        checkOrdinal();
-        }
+	public PropertyImpl(Node n, EnhGraph m)
+	{
+		super(n, m);
+		checkOrdinal();
+	}
 
-    public PropertyImpl( String nameSpace, String localName, int ordinal, ModelCom m )
-        {
-        super( nameSpace, localName, m );
-        checkLocalName();
-        this.ordinal = ordinal;
-        }
+	public PropertyImpl(String nameSpace, String localName, int ordinal, ModelCom m)
+	{
+		super(nameSpace, localName, m);
+		checkLocalName();
+		this.ordinal = ordinal;
+	}
 
-    @Override
-    public boolean isProperty()
-        { return true; }
+	@Override
+	public boolean isProperty()
+	{
+		return true;
+	}
 
-    @Override
-    public int getOrdinal()
-        {
-        if (ordinal < 0) ordinal = computeOrdinal();
-        return ordinal;
-        }
+	@Override
+	public int getOrdinal()
+	{
+		if (ordinal < 0)
+			ordinal = computeOrdinal();
+		return ordinal;
+	}
 
-    private int computeOrdinal()
-        {
-        String localName = getLocalName();
-        if (getNameSpace().equals( RDF.getURI() ) && localName.matches( "_[0-9]+" )) 
-            return parseInt( localName.substring( 1 ) );
-        return 0;
-        }
+	private int computeOrdinal()
+	{
+		String localName = getLocalName();
+		if (getNameSpace().equals(RDF.getURI()) && localName.matches("_[0-9]+"))
+			return parseInt(localName.substring(1));
+		return 0;
+	}
 
-    private int parseInt( String digits )
-        {
-        try { return Integer.parseInt( digits );}
-        catch (NumberFormatException e) { throw new JenaException( "checkOrdinal fails on " + digits, e ); }
-        }
+	private int parseInt(String digits)
+	{
+		try
+		{
+			return Integer.parseInt(digits);
+		}
+		catch (NumberFormatException e)
+		{
+			throw new JenaException("checkOrdinal fails on " + digits, e);
+		}
+	}
 
-    // Remove shortly.
+	// Remove shortly.
 
-    protected void checkOrdinal()
-        {
-        // char c;
-        // String nameSpace = getNameSpace();
-        // String localName = getLocalName();
-        // // check for an rdf:_xxx property
-        // if (localName.length() > 0)
-        // {
-        // if (localName.charAt(0) == '_' && nameSpace.equals(RDF.getURI())
-        // && nameSpace.equals(RDF.getURI())
-        // && localName.length() > 1
-        // )
-        // {
-        // for (int i=1; i<localName.length(); i++) {
-        // c = localName.charAt(i);
-        // if (c < '0' || c > '9') return;
-        // }
-        //                try {
-        //                  ordinal = Integer.parseInt(localName.substring(1));
-        //                } catch (NumberFormatException e) {
-        //                    logger.error( "checkOrdinal fails on " + localName, e );
-        //                }
-        //            }
-        //        }
-        }
+	protected void checkOrdinal()
+	{
+		// char c;
+		// String nameSpace = getNameSpace();
+		// String localName = getLocalName();
+		// // check for an rdf:_xxx property
+		// if (localName.length() > 0)
+		// {
+		// if (localName.charAt(0) == '_' && nameSpace.equals(RDF.getURI())
+		// && nameSpace.equals(RDF.getURI())
+		// && localName.length() > 1
+		// )
+		// {
+		// for (int i=1; i<localName.length(); i++) {
+		// c = localName.charAt(i);
+		// if (c < '0' || c > '9') return;
+		// }
+		// try {
+		// ordinal = Integer.parseInt(localName.substring(1));
+		// } catch (NumberFormatException e) {
+		// logger.error( "checkOrdinal fails on " + localName, e );
+		// }
+		// }
+		// }
+	}
 
-    }
+}

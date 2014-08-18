@@ -16,25 +16,28 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import java.util.NoSuchElementException ;
+import java.util.NoSuchElementException;
 
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
-/** An iterator which returns namespace URI's.
- *
- * <p>RDF iterators are standard Java iterators, except that they
- *    have an extra method that returns a specifically typed object,
- *    in this case a String representing a namespace URI, and have
- *    a <CODE>close()</CODE> method that should be called to free
- *    resources if the application does not complete the iteration.</p>
+/**
+ * An iterator which returns namespace URI's.
+ * 
+ * <p>
+ * RDF iterators are standard Java iterators, except that they have an extra method that returns a specifically typed object, in this case a String representing
+ * a namespace URI, and have a <CODE>close()</CODE> method that should be called to free resources if the application does not complete the iteration.
+ * </p>
  */
-public interface NsIterator extends ExtendedIterator<String> 
-    {
-    /** Return the next namespace name of the iteration.
-     * @throws NoSuchElementException if there are no more to be returned.
-     * @return The next name space URI from the iteration.
-     */
-    public String nextNs();
-    }
+public interface NsIterator extends ExtendedIterator<String>
+{
+	/**
+	 * Return the next namespace name of the iteration.
+	 * 
+	 * @throws NoSuchElementException
+	 *             if there are no more to be returned.
+	 * @return The next name space URI from the iteration.
+	 */
+	public String nextNs();
+}

@@ -16,41 +16,53 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
 import java.util.Map;
 
-import com.hp.hpl.jena.util.CollectionFactory;
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.CollectionFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
-    An implementation of BunchMap that delegates to a [Hashed]Map.
-*/
+ * An implementation of BunchMap that delegates to a [Hashed]Map.
+ */
 public class WrappedHashMap implements BunchMap
-    {
-    protected final Map<Object, TripleBunch> map = CollectionFactory.createHashedMap();
-    
-    @Override
-    public void clear()
-        { map.clear(); }
-    
-    @Override
-    public long size()
-        { return map.size(); }
+{
+	protected final Map<Object, TripleBunch> map = CollectionFactory.createHashedMap();
 
-    @Override
-    public TripleBunch get( Object key )
-        { return map.get( key ); }
+	@Override
+	public void clear()
+	{
+		map.clear();
+	}
 
-    @Override
-    public void put( Object key, TripleBunch value )
-        { map.put( key, value ); }
+	@Override
+	public long size()
+	{
+		return map.size();
+	}
 
-    @Override
-    public void remove( Object key )
-        { map.remove( key ); }
+	@Override
+	public TripleBunch get(Object key)
+	{
+		return map.get(key);
+	}
 
-    @Override
-    public ExtendedIterator<Object> keyIterator()
-        { return WrappedIterator.create( map.keySet().iterator() ); }
-    }
+	@Override
+	public void put(Object key, TripleBunch value)
+	{
+		map.put(key, value);
+	}
+
+	@Override
+	public void remove(Object key)
+	{
+		map.remove(key);
+	}
+
+	@Override
+	public ExtendedIterator<Object> keyIterator()
+	{
+		return WrappedIterator.create(map.keySet().iterator());
+	}
+}

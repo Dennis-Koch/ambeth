@@ -16,20 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.graph.impl.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-    The NodeVisitor interface is used by Node::visitWith so that an application
-    can have type-dispatch on the class of a Node. 	
-*/
+ * The NodeVisitor interface is used by Node::visitWith so that an application can have type-dispatch on the class of a Node.
+ */
 public interface NodeVisitor
-    {
-    Object visitAny( Node_ANY it );
-    Object visitBlank( Node_Blank it, AnonId id );
-    Object visitLiteral( Node_Literal it, LiteralLabel lit );
-    Object visitURI( Node_URI it, String uri );
-    Object visitVariable( Node_Variable it, String name );
-    }
+{
+	Object visitAny(Node_ANY it);
+
+	Object visitBlank(Node_Blank it, AnonId id);
+
+	Object visitLiteral(Node_Literal it, LiteralLabel lit);
+
+	Object visitURI(Node_URI it, String uri);
+
+	Object visitVariable(Node_Variable it, String name);
+}

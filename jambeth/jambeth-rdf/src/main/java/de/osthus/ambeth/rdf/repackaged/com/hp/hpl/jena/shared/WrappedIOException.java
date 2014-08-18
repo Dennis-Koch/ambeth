@@ -16,18 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 import java.io.IOException;
 
 /**
-    A wrapped IO exception.
-*/
+ * A wrapped IO exception.
+ */
 public class WrappedIOException extends JenaException
-    {
-    public WrappedIOException( IOException cause ) 
-        { super( cause ); }
+{
+	public WrappedIOException(IOException cause)
+	{
+		super(cause);
+	}
 
-    public WrappedIOException( String message, IOException cause ) 
-        { super( message, cause ); }
-    }
+	public WrappedIOException(String message, IOException cause)
+	{
+		super(message, cause);
+	}
+}

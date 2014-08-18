@@ -18,67 +18,58 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.rdf.model;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.shared.JenaException;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
  * <p>
- * A exception that is thrown when an operation is attempted on a list that is
- * not well-formed, and is being processed in strict mode.
+ * A exception that is thrown when an operation is attempted on a list that is not well-formed, and is being processed in strict mode.
  * </p>
  */
-public class InvalidListException
-    extends JenaException
+public class InvalidListException extends JenaException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
+	// Static variables
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
+	// Constructors
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	/**
+	 * Construct an invalid list exception with a default message.
+	 */
+	public InvalidListException()
+	{
+		super("Tried to operate on a list that is not well-formed");
+	}
 
+	/**
+	 * Construct an invalid list exception with a given message.
+	 * 
+	 * @param msg
+	 *            The exception message.
+	 */
+	public InvalidListException(String msg)
+	{
+		super(msg);
+	}
 
-    // Constructors
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    /**
-     * Construct an invalid list exception with a default message.
-     */
-    public InvalidListException() {
-        super( "Tried to operate on a list that is not well-formed" );
-    }
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    /**
-     * Construct an invalid list exception with a given message.
-     * 
-     * @param msg The exception message.
-     */
-    public InvalidListException( String msg ) {
-        super( msg );
-    }
-
-
-    // External signature methods
-    //////////////////////////////////
-
-
-    // Internal implementation methods
-    //////////////////////////////////
-
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
-
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

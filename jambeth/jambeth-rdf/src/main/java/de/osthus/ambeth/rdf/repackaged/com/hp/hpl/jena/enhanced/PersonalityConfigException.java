@@ -16,27 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.enhanced;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced;
 
 /**
  * Exception denoting that a personality is misconfigured in some way.
  */
-public class PersonalityConfigException 
-    extends RuntimeException 
+public class PersonalityConfigException extends RuntimeException
 {
-    
-    /**
-     * Creates a new instance of <code>PersonalityConfigException</code> without detail message.
-     */
-    public PersonalityConfigException() {
-    }
-    
-    
-    /**
-     * Constructs an instance of <code>PersonalityConfigException</code> with the specified detail message.
-     * @param msg the detail message.
-     */
-    public PersonalityConfigException(String msg) {
-        super(msg);
-    }
+
+	/**
+	 * Creates a new instance of <code>PersonalityConfigException</code> without detail message.
+	 */
+	public PersonalityConfigException()
+	{
+	}
+
+	/**
+	 * Constructs an instance of <code>PersonalityConfigException</code> with the specified detail message.
+	 * 
+	 * @param msg
+	 *            the detail message.
+	 */
+	public PersonalityConfigException(String msg)
+	{
+		super(msg);
+	}
 }

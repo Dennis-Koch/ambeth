@@ -16,20 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
 import java.io.Reader;
 
-import com.hp.hpl.jena.n3.JenaReaderBase;
-import com.hp.hpl.jena.rdf.model.Model;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.JenaReaderBase;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Model;
 
 public class TurtleReader extends JenaReaderBase
 {
-    @Override
-    protected void readWorker(Model model, Reader reader, String base)
-    {
-        ParserTurtle p =  new ParserTurtle() ;
-        p.parse( model.getGraph(), base, reader ) ;
-    }
+	@Override
+	protected void readWorker(Model model, Reader reader, String base)
+	{
+		ParserTurtle p = new ParserTurtle();
+		p.parse(model.getGraph(), base, reader);
+	}
 }

@@ -16,73 +16,85 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
-import java.util.HashSet ;
-import java.util.Iterator ;
-import java.util.Set ;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import com.hp.hpl.jena.graph.Node ;
-import com.hp.hpl.jena.graph.Triple ;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator ;
-import com.hp.hpl.jena.util.iterator.WrappedIterator ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.WrappedIterator;
 
 public class SetBunch implements TripleBunch
-    {
-    protected Set<Triple> elements = new HashSet<>(20);
-    
-    public SetBunch( TripleBunch b )
-        { 
-        for (Iterator<Triple> it = b.iterator(); it.hasNext();) 
-            elements.add( it.next() );
-        }
+{
+	protected Set<Triple> elements = new HashSet<>(20);
 
-    protected static boolean equalsObjectOK( Triple t )
-        { 
-        Node o = t.getObject();
-        return o.isLiteral() ? o.getLiteralDatatype() == null : true;
-        }
+	public SetBunch(TripleBunch b)
+	{
+		for (Iterator<Triple> it = b.iterator(); it.hasNext();)
+			elements.add(it.next());
+	}
 
-    @Override
-    public boolean contains( Triple t )
-        { return elements.contains( t ); }
-    
-    @Override
-    public boolean containsBySameValueAs( Triple t )
-        { return equalsObjectOK( t ) ? elements.contains( t ) : slowContains( t ); }
-    
-    protected boolean slowContains( Triple t )
-        {
-            for ( Triple element : elements )
-            {
-                if ( t.matches( element ) )
-                {
-                    return true;
-                }
-            }
-        return false;
-        }
+	protected static boolean equalsObjectOK(Triple t)
+	{
+		Node o = t.getObject();
+		return o.isLiteral() ? o.getLiteralDatatype() == null : true;
+	}
 
-    @Override
-    public int size()
-        { return elements.size(); }
-    
-    @Override
-    public void add( Triple t )
-        { elements.add( t ); }
-    
-    @Override
-    public void remove( Triple t )
-        { elements.remove( t ); }
-    
-    @Override
-    public ExtendedIterator<Triple> iterator( HashCommon.NotifyEmpty container )
-        {
-        return iterator();
-        }
-    
-    @Override
-    public ExtendedIterator<Triple> iterator()
-        { return WrappedIterator.create( elements.iterator() ); }        
-    
-    }
+	@Override
+	public boolean contains(Triple t)
+	{
+		return elements.contains(t);
+	}
+
+	@Override
+	public boolean containsBySameValueAs(Triple t)
+	{
+		return equalsObjectOK(t) ? elements.contains(t) : slowContains(t);
+	}
+
+	protected boolean slowContains(Triple t)
+	{
+		for (Triple element : elements)
+		{
+			if (t.matches(element))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int size()
+	{
+		return elements.size();
+	}
+
+	@Override
+	public void add(Triple t)
+	{
+		elements.add(t);
+	}
+
+	@Override
+	public void remove(Triple t)
+	{
+		elements.remove(t);
+	}
+
+	@Override
+	public ExtendedIterator<Triple> iterator(HashCommon.NotifyEmpty container)
+	{
+		return iterator();
+	}
+
+	@Override
+	public ExtendedIterator<Triple> iterator()
+	{
+		return WrappedIterator.create(elements.iterator());
+	}
+
+}

@@ -16,43 +16,42 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
 import java.util.*;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception to throw when an AssemblerGroup has a choice of types
-    from which to try and find an implementation.
-*/
+ * Exception to throw when an AssemblerGroup has a choice of types from which to try and find an implementation.
+ */
 public class AmbiguousSpecificTypeException extends AssemblerException
-    {
-    protected final List<Resource> types;
-    
-    public AmbiguousSpecificTypeException( Resource root, ArrayList<Resource> types )
-        {
-        super( root, makeMessage( root, types ) );
-        this.types = types;
-        }
+{
+	protected final List<Resource> types;
 
-    private static String makeMessage( Resource root, List<Resource> types )
-        { return 
-            "cannot find a most specific type for " + nice( root )
-            + ", which has as possibilities:" + nice( types )
-            + "."; 
-        }
+	public AmbiguousSpecificTypeException(Resource root, ArrayList<Resource> types)
+	{
+		super(root, makeMessage(root, types));
+		this.types = types;
+	}
 
-    private static String nice( List<Resource> types )
-        {
-        StringBuilder result = new StringBuilder();
-            for ( Resource type : types )
-            {
-                result.append( " " ).append( nice( type ) );
-            }
-        return result.toString();
-        }
+	private static String makeMessage(Resource root, List<Resource> types)
+	{
+		return "cannot find a most specific type for " + nice(root) + ", which has as possibilities:" + nice(types) + ".";
+	}
 
-    public List<Resource> getTypes()
-        { return types; }
-    }
+	private static String nice(List<Resource> types)
+	{
+		StringBuilder result = new StringBuilder();
+		for (Resource type : types)
+		{
+			result.append(" ").append(nice(type));
+		}
+		return result.toString();
+	}
+
+	public List<Resource> getTypes()
+	{
+		return types;
+	}
+}

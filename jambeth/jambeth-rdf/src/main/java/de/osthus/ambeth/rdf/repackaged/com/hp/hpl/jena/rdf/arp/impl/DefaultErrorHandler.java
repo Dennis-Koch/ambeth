@@ -22,35 +22,40 @@
  * Created on July 10, 2001, 11:23 AM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-import com.hp.hpl.jena.rdf.arp.ParseException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ParseException;
 
 /**
  */
-public class DefaultErrorHandler implements org.xml.sax.ErrorHandler {
+public class DefaultErrorHandler implements org.xml.sax.ErrorHandler
+{
 
-    /** Creates new DefaultErrorHandler */
-    public DefaultErrorHandler() {
-        // no initialization
-    }
+	/** Creates new DefaultErrorHandler */
+	public DefaultErrorHandler()
+	{
+		// no initialization
+	}
 
-    @Override
-    public void error(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException {
-        System.err.println("Error: " + ParseException.formatMessage(e)); 
-    }
-    
-    @Override
-    public void fatalError(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException {
-        System.err.println("Fatal Error: " + ParseException.formatMessage(e));
-        throw e;
-    }
-    
-    @Override
-    public void warning(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException {
-        System.err.println("Warning: " + ParseException.formatMessage(e)); 
-//        e.printStackTrace();
-        
-    }
-    
+	@Override
+	public void error(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException
+	{
+		System.err.println("Error: " + ParseException.formatMessage(e));
+	}
+
+	@Override
+	public void fatalError(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException
+	{
+		System.err.println("Fatal Error: " + ParseException.formatMessage(e));
+		throw e;
+	}
+
+	@Override
+	public void warning(org.xml.sax.SAXParseException e) throws org.xml.sax.SAXException
+	{
+		System.err.println("Warning: " + ParseException.formatMessage(e));
+		// e.printStackTrace();
+
+	}
+
 }

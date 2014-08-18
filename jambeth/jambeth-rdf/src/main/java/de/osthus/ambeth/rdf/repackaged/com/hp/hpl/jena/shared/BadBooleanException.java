@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when a string cannot be converted to a Boolean
-    value.
-*/
+ * Exception to throw when a string cannot be converted to a Boolean value.
+ */
 public class BadBooleanException extends JenaException
-    {
-    public BadBooleanException( String spelling )
-        { super( spelling ); }
-    }
+{
+	public BadBooleanException(String spelling)
+	{
+		super(spelling);
+	}
+}

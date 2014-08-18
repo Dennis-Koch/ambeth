@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-package jena;
+package de.osthus.ambeth.rdf.repackaged.jena;
 
-import jena.cmdline.CmdLineUtils ;
-
+import de.osthus.ambeth.rdf.repackaged.jena.cmdline.CmdLineUtils;
 
 public class query
 {
-    // Call-through to arq command line application
-    public static void main(String... args)
-    {
-        // Do this by reflection so it is not assumed that ARQ is available
-        // at compile time.
-        
-        CmdLineUtils.invokeCmd("arq.query", args) ;
-    }
+	// Call-through to arq command line application
+	public static void main(String... args)
+	{
+		// Do this by reflection so it is not assumed that ARQ is available
+		// at compile time.
+
+		CmdLineUtils.invokeCmd("arq.query", args);
+	}
 }

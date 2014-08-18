@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when a syntax error is detected in some input.
-*/
+ * Exception to throw when a syntax error is detected in some input.
+ */
 public class SyntaxError extends JenaException
-    {
-    public SyntaxError( String message)
-        { super( message ); }
-    }
+{
+	public SyntaxError(String message)
+	{
+		super(message);
+	}
+}

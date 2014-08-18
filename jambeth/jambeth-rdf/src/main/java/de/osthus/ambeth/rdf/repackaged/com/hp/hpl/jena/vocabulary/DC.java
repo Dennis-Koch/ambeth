@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.vocabulary;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary;
 
 /* Current Dublin Core version
  * Currently, version 1.1
  */
 
-public class DC  extends DC_11
-{}
+public class DC extends DC_11
+{
+}

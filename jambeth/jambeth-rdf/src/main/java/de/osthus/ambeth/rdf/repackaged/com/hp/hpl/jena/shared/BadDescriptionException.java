@@ -16,17 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+
 /**
-    Exception to throw if a model (or graph) is a bad description
-*/
+ * Exception to throw if a model (or graph) is a bad description
+ */
 public class BadDescriptionException extends JenaException
-    {
-    public final Model badModel;
-        
-    public BadDescriptionException( String message, Model badModel )
-        { super( message );
-        this.badModel = badModel; }
-    }
+{
+	public final Model badModel;
+
+	public BadDescriptionException(String message, Model badModel)
+	{
+		super(message);
+		this.badModel = badModel;
+	}
+}

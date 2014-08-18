@@ -16,17 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 /**
-    A ReifiedStatement represents a Statement as a Resource.
-*/
+ * A ReifiedStatement represents a Statement as a Resource.
+ */
 
 public interface ReifiedStatement extends Resource
-    {
-    /**
-        answer the Statement that this ReifiedStatement reifies. Any
-        Statement equal to the statement it was created with will do.
-    */
-    Statement getStatement();
-    }
+{
+	/**
+	 * answer the Statement that this ReifiedStatement reifies. Any Statement equal to the statement it was created with will do.
+	 */
+	Statement getStatement();
+}

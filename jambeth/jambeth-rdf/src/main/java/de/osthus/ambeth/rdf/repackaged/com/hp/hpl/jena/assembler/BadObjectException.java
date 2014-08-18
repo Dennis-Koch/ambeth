@@ -16,38 +16,38 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler;
 
-import com.hp.hpl.jena.assembler.exceptions.AssemblerException;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions.AssemblerException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-    Exception used to report that the object of a statement is not a Resource.
-    The subject of the exception is treated as the root object. The nature of the
-    unsuitability is (currently) not described.
-*/
+ * Exception used to report that the object of a statement is not a Resource. The subject of the exception is treated as the root object. The nature of the
+ * unsuitability is (currently) not described.
+ */
 public class BadObjectException extends AssemblerException
-    {
-    protected final RDFNode object;
-    
-    public BadObjectException( Statement s )
-        { 
-        super( s.getSubject(), makeMessage( s ) ); 
-        this.object = s.getObject();
-        }
+{
+	protected final RDFNode object;
 
-    private static String makeMessage( Statement s )
-        { 
-        RDFNode subject = s.getObject();
-        return 
-            "the " + typeOf( subject ) + " " + nice( subject ) 
-            + " is unsuitable as the object of a " + nice( s.getPredicate() ) 
-            + " statement";
-        }
+	public BadObjectException(Statement s)
+	{
+		super(s.getSubject(), makeMessage(s));
+		this.object = s.getObject();
+	}
 
-    private static String typeOf( RDFNode x )
-        { return x.isAnon() ? "bnode" : x.isLiteral() ? "literal" : "resource"; }
+	private static String makeMessage(Statement s)
+	{
+		RDFNode subject = s.getObject();
+		return "the " + typeOf(subject) + " " + nice(subject) + " is unsuitable as the object of a " + nice(s.getPredicate()) + " statement";
+	}
 
-    public RDFNode getObject()
-        { return object; }
-    }
+	private static String typeOf(RDFNode x)
+	{
+		return x.isAnon() ? "bnode" : x.isLiteral() ? "literal" : "resource";
+	}
+
+	public RDFNode getObject()
+	{
+		return object;
+	}
+}

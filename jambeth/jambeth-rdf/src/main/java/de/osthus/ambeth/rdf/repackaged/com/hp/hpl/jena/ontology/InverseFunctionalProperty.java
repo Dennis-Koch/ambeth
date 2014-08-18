@@ -18,36 +18,26 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface encapsulating the class of properties that are inverse functional:
- * that is, properties in which a given given range value has a unique value in
- * the domain (effectively, a key). In OWL DL and OWL Lite, an inverse functional
- * property cannot be a datatype property, whereas OWL Full does permit this
- * (see the relevant section of
- * <a href="http://www.w3.org/TR/2004/REC-owl-ref-20040210/#InverseFunctionalProperty-def">the
- * OWL reference</a> for details). We conservatively model this in Jena by
- * having this interface extend {@link ObjectProperty}. Users who wish to represent
- * inverse functional datatype properties in OWL Full may have to switch
- * off strict checking in <code>OntModel</code> (see {@link OntModel#setStrictMode(boolean)}.
+ * Interface encapsulating the class of properties that are inverse functional: that is, properties in which a given given range value has a unique value in the
+ * domain (effectively, a key). In OWL DL and OWL Lite, an inverse functional property cannot be a datatype property, whereas OWL Full does permit this (see the
+ * relevant section of <a href= "http://www.w3.org/TR/2004/REC-owl-ref-20040210/#InverseFunctionalProperty-def" >the OWL reference</a> for details). We
+ * conservatively model this in Jena by having this interface extend {@link ObjectProperty}. Users who wish to represent inverse functional datatype properties
+ * in OWL Full may have to switch off strict checking in <code>OntModel</code> (see {@link OntModel#setStrictMode(boolean)}.
  * </p>
  */
-public interface InverseFunctionalProperty
-    extends ObjectProperty
+public interface InverseFunctionalProperty extends ObjectProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

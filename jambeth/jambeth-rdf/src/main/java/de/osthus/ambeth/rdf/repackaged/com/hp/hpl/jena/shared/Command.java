@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    An interface expressing the execution of a command.
-*/
+ * An interface expressing the execution of a command.
+ */
 
 public interface Command
-    {
-    /**
-        Perform some action and return some result.
-    */
-    Object execute();
-    }
+{
+	/**
+	 * Perform some action and return some result.
+	 */
+	Object execute();
+}

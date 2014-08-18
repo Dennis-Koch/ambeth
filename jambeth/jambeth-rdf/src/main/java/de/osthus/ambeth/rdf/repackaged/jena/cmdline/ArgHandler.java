@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package jena.cmdline;
+package de.osthus.ambeth.rdf.repackaged.jena.cmdline;
 
-/** Interface for processing flag arguments.
+/**
+ * Interface for processing flag arguments.
  */
 public interface ArgHandler
 {
-    /** Process a flag argument.
-     *  Called with the value found or null if no value for this flag.
-     */ 
-    void action(String arg, String val) throws java.lang.IllegalArgumentException ;
+	/**
+	 * Process a flag argument. Called with the value found or null if no value for this flag.
+	 */
+	void action(String arg, String val) throws java.lang.IllegalArgumentException;
 }

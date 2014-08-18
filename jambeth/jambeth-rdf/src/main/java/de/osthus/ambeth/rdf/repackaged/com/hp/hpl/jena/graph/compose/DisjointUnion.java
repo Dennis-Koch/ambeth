@@ -16,34 +16,47 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.compose;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.compose;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleMatch;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TripleMatch;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
-     DisjointUnion - a version of Union that assumes the graphs are disjoint, and
-     hence that <code>find</code> need not do duplicate-removal. Adding things
-     to the graph adds them to the left component, and does <i>not</i> add
-     triples that are already in the right component.
-     
-*/
+ * DisjointUnion - a version of Union that assumes the graphs are disjoint, and hence that <code>find</code> need not do duplicate-removal. Adding things to the
+ * graph adds them to the left component, and does <i>not</i> add triples that are already in the right component.
+ */
 public class DisjointUnion extends Dyadic
-    {
-    public DisjointUnion( Graph L, Graph R )
-        { super( L, R ); }
+{
+	public DisjointUnion(Graph L, Graph R)
+	{
+		super(L, R);
+	}
 
-    @Override protected ExtendedIterator<Triple> _graphBaseFind( TripleMatch m )
-        { return L.find( m ) .andThen( R.find( m ) ); }
-    
-    @Override public boolean graphBaseContains( Triple t )
-        { return L.contains( t ) || R.contains( t ); }
-    
-    @Override public void performDelete( Triple t )
-        { L.delete( t ); R.delete( t ); }
-    
-    @Override public void performAdd( Triple t )
-        { if (!R.contains( t )) L.add( t ); }
-    }
+	@Override
+	protected ExtendedIterator<Triple> _graphBaseFind(TripleMatch m)
+	{
+		return L.find(m).andThen(R.find(m));
+	}
+
+	@Override
+	public boolean graphBaseContains(Triple t)
+	{
+		return L.contains(t) || R.contains(t);
+	}
+
+	@Override
+	public void performDelete(Triple t)
+	{
+		L.delete(t);
+		R.delete(t);
+	}
+
+	@Override
+	public void performAdd(Triple t)
+	{
+		if (!R.contains(t))
+			L.add(t);
+	}
+}

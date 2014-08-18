@@ -16,31 +16,30 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared.wg;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.wg;
 
 import java.io.*;
 
 /**
- *
- * In test cases we cannot open all the input files
- * while creating the test suite, but must defer the
- * opening until the test is actually run.
+ * 
+ * In test cases we cannot open all the input files while creating the test suite, but must defer the opening until the test is actually run.
  */
-class LazyFileInputStream extends LazyInputStream {
+class LazyFileInputStream extends LazyInputStream
+{
 
-    private String name;
-    /** Creates new LazyZipEntryInputStream */
-    LazyFileInputStream(String name) {
-      //  System.err.println(name);
-        this.name = name;
-    }
-    
-    @Override
-    InputStream open() throws IOException {
-    	return new FileInputStream(name);
-    }
-    
-    
+	private String name;
+
+	/** Creates new LazyZipEntryInputStream */
+	LazyFileInputStream(String name)
+	{
+		// System.err.println(name);
+		this.name = name;
+	}
+
+	@Override
+	InputStream open() throws IOException
+	{
+		return new FileInputStream(name);
+	}
 
 }

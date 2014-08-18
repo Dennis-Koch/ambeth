@@ -16,22 +16,35 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-/** A generic error handler.
+/**
+ * A generic error handler.
  */
-public interface RDFErrorHandler {
-    
-/** report a warning
- * @param e an exception representing the error
- */    
-    public void warning(Exception e);
-/** report an error
- * @param e an exception representing the error
- */    
-    public void error(Exception e);
-/** report a catastrophic error.  Must not return.
- * @param e an exception representing the error
- */    
-    public void fatalError(Exception e);
+public interface RDFErrorHandler
+{
+
+	/**
+	 * report a warning
+	 * 
+	 * @param e
+	 *            an exception representing the error
+	 */
+	public void warning(Exception e);
+
+	/**
+	 * report an error
+	 * 
+	 * @param e
+	 *            an exception representing the error
+	 */
+	public void error(Exception e);
+
+	/**
+	 * report a catastrophic error. Must not return.
+	 * 
+	 * @param e
+	 *            an exception representing the error
+	 */
+	public void fatalError(Exception e);
 }

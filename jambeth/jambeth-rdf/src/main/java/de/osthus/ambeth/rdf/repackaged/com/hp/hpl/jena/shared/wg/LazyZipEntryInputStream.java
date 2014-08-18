@@ -16,37 +16,35 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared.wg;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.wg;
 
 import java.io.*;
 import java.util.zip.*;
 
 /**
- *In test cases we cannot open all the input files
- * while creating the test suite, but must defer the
- * opening until the test is actually run.
+ * In test cases we cannot open all the input files while creating the test suite, but must defer the opening until the test is actually run.
  */
-class LazyZipEntryInputStream extends LazyInputStream {
+class LazyZipEntryInputStream extends LazyInputStream
+{
 
-    private ZipEntry entry;
-    private ZipFile  zip;
-    /** Creates new LazyZipEntryInputStream */
-    LazyZipEntryInputStream(ZipFile zip,String name) {
-      //  System.err.println(name);
-        entry = new ZipEntry(name);
-        this.zip = zip;
-    }
-    
-    
-    @Override
-    InputStream open() throws IOException {
-    	InputStream rslt = zip.getInputStream(entry);
-    	if ( rslt == null )
-    	  throw new IllegalArgumentException(entry.getName()+ " cannot be opened.");
-    	return rslt;
-    }
-    
-    
+	private ZipEntry entry;
+	private ZipFile zip;
+
+	/** Creates new LazyZipEntryInputStream */
+	LazyZipEntryInputStream(ZipFile zip, String name)
+	{
+		// System.err.println(name);
+		entry = new ZipEntry(name);
+		this.zip = zip;
+	}
+
+	@Override
+	InputStream open() throws IOException
+	{
+		InputStream rslt = zip.getInputStream(entry);
+		if (rslt == null)
+			throw new IllegalArgumentException(entry.getName() + " cannot be opened.");
+		return rslt;
+	}
 
 }

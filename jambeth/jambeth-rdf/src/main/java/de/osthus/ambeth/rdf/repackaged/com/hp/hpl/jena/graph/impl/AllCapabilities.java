@@ -16,33 +16,67 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
-import com.hp.hpl.jena.graph.Capabilities;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Capabilities;
 
 /**
-    A default implementation of capabilities, in which everything is allowed,
-    size is accurate, and graphs may be completely empty.
+ * A default implementation of capabilities, in which everything is allowed, size is accurate, and graphs may be completely empty.
  */
 
 public class AllCapabilities implements Capabilities
-    {
-    @Override
-    public boolean sizeAccurate() { return true; }
-    @Override
-    public boolean addAllowed() { return addAllowed( false ); }
-    @Override
-    public boolean addAllowed( boolean every ) { return true; } 
-    @Override
-    public boolean deleteAllowed() { return deleteAllowed( false ); }
-    @Override
-    public boolean deleteAllowed( boolean every ) { return true; } 
-    @Override
-    public boolean canBeEmpty() { return true; }
-    @Override
-    public boolean iteratorRemoveAllowed() { return true; }
-    @Override
-    public boolean findContractSafe() { return true; }
-    @Override
-    public boolean handlesLiteralTyping() { return true; }
-    }
+{
+	@Override
+	public boolean sizeAccurate()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean addAllowed()
+	{
+		return addAllowed(false);
+	}
+
+	@Override
+	public boolean addAllowed(boolean every)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean deleteAllowed()
+	{
+		return deleteAllowed(false);
+	}
+
+	@Override
+	public boolean deleteAllowed(boolean every)
+	{
+		return true;
+	}
+
+	@Override
+	public boolean canBeEmpty()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean iteratorRemoveAllowed()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean findContractSafe()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean handlesLiteralTyping()
+	{
+		return true;
+	}
+}

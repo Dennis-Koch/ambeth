@@ -22,55 +22,62 @@
  * Created on July 10, 2001, 11:44 AM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
 import java.io.IOException;
 
 import org.xml.sax.SAXException;
+
 /**
- * Wrap some other exception - being wise to SAXExceptions which
- * wrap something else.
+ * Wrap some other exception - being wise to SAXExceptions which wrap something else.
  */
-class WrappedException extends java.lang.RuntimeException {
-    /**
+class WrappedException extends java.lang.RuntimeException
+{
+	/**
      * 
      */
-    private static final long serialVersionUID = -4058658905253070902L;
-    /** Creates new WrappedException */
-    WrappedException(SAXException e) {
-        Exception in0 = e.getException();
-        if ( in0 == null ) {
-            initCause(e);
-            return;
-        }
-        if ( (in0 instanceof RuntimeException) 
-             || (in0 instanceof SAXException )
-             || (in0 instanceof IOException ) )
-            {
-            initCause(in0);
-            return;
-        }
-        initCause(e);
-    }
-//    WrappedException(IOException e) {
-//        initCause(e);
-//    }
-    /** Throw the exception,  falling back to be a wrapped SAXParseException.
-     */
-    void throwMe() throws IOException, SAXException {
-        Throwable inner = this.getCause();
-        if ( inner instanceof SAXException ) {
-            throw (SAXException)inner;
-        }  
-        if ( inner instanceof IOException ) {
-            throw (IOException)inner;
-        }
-        if ( inner instanceof RuntimeException ) {
-            throw (RuntimeException)inner;
-        }
-        // I don't think this line is reachable:
-        throw new RuntimeException("Supposedly unreacahble code.");
-    }
-    
+	private static final long serialVersionUID = -4058658905253070902L;
+
+	/** Creates new WrappedException */
+	WrappedException(SAXException e)
+	{
+		Exception in0 = e.getException();
+		if (in0 == null)
+		{
+			initCause(e);
+			return;
+		}
+		if ((in0 instanceof RuntimeException) || (in0 instanceof SAXException) || (in0 instanceof IOException))
+		{
+			initCause(in0);
+			return;
+		}
+		initCause(e);
+	}
+
+	// WrappedException(IOException e) {
+	// initCause(e);
+	// }
+	/**
+	 * Throw the exception, falling back to be a wrapped SAXParseException.
+	 */
+	void throwMe() throws IOException, SAXException
+	{
+		Throwable inner = this.getCause();
+		if (inner instanceof SAXException)
+		{
+			throw (SAXException) inner;
+		}
+		if (inner instanceof IOException)
+		{
+			throw (IOException) inner;
+		}
+		if (inner instanceof RuntimeException)
+		{
+			throw (RuntimeException) inner;
+		}
+		// I don't think this line is reachable:
+		throw new RuntimeException("Supposedly unreacahble code.");
+	}
 
 }

@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when an assertion fails. Probably obsolete in 
-    Java's with the assert statement ...
-*/
+ * Exception to throw when an assertion fails. Probably obsolete in Java's with the assert statement ...
+ */
 public class AssertionFailureException extends JenaException
-    {
-    public AssertionFailureException( String message )
-        { super( message ); }
-    }
+{
+	public AssertionFailureException(String message)
+	{
+		super(message);
+	}
+}

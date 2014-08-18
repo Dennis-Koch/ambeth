@@ -16,30 +16,42 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
 /* */
 public class SimpleTransactionHandler extends TransactionHandlerBase
-    {
-    public SimpleTransactionHandler()
-        { super(); }
+{
+	public SimpleTransactionHandler()
+	{
+		super();
+	}
 
-    @Override
-    public boolean transactionsSupported()
-        { return false; }
-        
-    @Override
-    public void begin()
-        { notSupported(); }
-        
-    @Override
-    public void abort()
-        { notSupported(); }
-        
-    @Override
-    public void commit()
-        { notSupported(); }
-        
-    private void notSupported()
-        { throw new UnsupportedOperationException( "this model does not support transactions" ); }
-    }
+	@Override
+	public boolean transactionsSupported()
+	{
+		return false;
+	}
+
+	@Override
+	public void begin()
+	{
+		notSupported();
+	}
+
+	@Override
+	public void abort()
+	{
+		notSupported();
+	}
+
+	@Override
+	public void commit()
+	{
+		notSupported();
+	}
+
+	private void notSupported()
+	{
+		throw new UnsupportedOperationException("this model does not support transactions");
+	}
+}

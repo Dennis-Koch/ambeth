@@ -16,32 +16,34 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner;
 
 import java.io.PrintWriter;
 
 /**
- * Derivation records are used to determine how an inferred triple
- * was derived from a set of source triples and a reasoner. SubClasses
- * provide more specific information.
+ * Derivation records are used to determine how an inferred triple was derived from a set of source triples and a reasoner. SubClasses provide more specific
+ * information.
  * 
- * <p>A future option might be to generate an RDF description of
- * the derivation trace. </p>
+ * <p>
+ * A future option might be to generate an RDF description of the derivation trace.
+ * </p>
  */
-public interface Derivation {
+public interface Derivation
+{
 
-    /**
-     * Return a short-form description of this derivation.
-     */
-    @Override
-    public String toString();
-    
-    /**
-     * Print a deep traceback of this derivation back to axioms and 
-     * source assertions.
-     * @param out the stream to print the trace out to
-     * @param bindings set to true to print intermediate variable bindings for
-     * each stage in the derivation
-     */
-    public void printTrace(PrintWriter out, boolean bindings);
+	/**
+	 * Return a short-form description of this derivation.
+	 */
+	@Override
+	public String toString();
+
+	/**
+	 * Print a deep traceback of this derivation back to axioms and source assertions.
+	 * 
+	 * @param out
+	 *            the stream to print the trace out to
+	 * @param bindings
+	 *            set to true to print intermediate variable bindings for each stage in the derivation
+	 */
+	public void printTrace(PrintWriter out, boolean bindings);
 }

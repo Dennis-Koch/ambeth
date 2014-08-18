@@ -16,53 +16,64 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-import com.hp.hpl.jena.reasoner.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 import java.util.*;
 
 /**
- * Customization of the generic rule inference graph for RDFS inference.
- * In fact all the rule processing is unchanged, the only extenstion is
- * the validation support.
+ * Customization of the generic rule inference graph for RDFS inference. In fact all the rule processing is unchanged, the only extenstion is the validation
+ * support.
  */
-public class RDFSRuleInfGraph extends FBRuleInfGraph {
+public class RDFSRuleInfGraph extends FBRuleInfGraph
+{
 
-    /**
-     * Constructor.
-     * @param reasoner the reasoner which created this inf graph instance
-     * @param rules the rules to process
-     * @param schema the (optional) schema graph to be included
-     */
-    public RDFSRuleInfGraph(Reasoner reasoner, List<Rule> rules, Graph schema) {
-        super(reasoner, rules, schema);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param reasoner
+	 *            the reasoner which created this inf graph instance
+	 * @param rules
+	 *            the rules to process
+	 * @param schema
+	 *            the (optional) schema graph to be included
+	 */
+	public RDFSRuleInfGraph(Reasoner reasoner, List<Rule> rules, Graph schema)
+	{
+		super(reasoner, rules, schema);
+	}
 
-    /**
-     * Constructor.
-     * @param reasoner the reasoner which created this inf graph instance
-     * @param rules the rules to process
-     * @param schema the (optional) schema graph to be included
-     * @param data the data graph to be processed
-     */
-    public RDFSRuleInfGraph(Reasoner reasoner, List<Rule> rules, Graph schema, Graph data) {
-        super(reasoner, rules, schema, data);
-    }
-    
-    /**
-     * Test the consistency of the bound data. For RDFS this checks that all
-     * instances of datatype-ranged properties have correct data values.
-     * 
-     * @return a ValidityReport structure
-     */
-    @Override
-    public ValidityReport validate() {
-        // The full configuration uses validation rules so check for these
-        StandardValidityReport report = (StandardValidityReport)super.validate();
-        // Also do a hardwired check to handle the simpler configurations
-        performDatatypeRangeValidation(report);
-        return report;
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param reasoner
+	 *            the reasoner which created this inf graph instance
+	 * @param rules
+	 *            the rules to process
+	 * @param schema
+	 *            the (optional) schema graph to be included
+	 * @param data
+	 *            the data graph to be processed
+	 */
+	public RDFSRuleInfGraph(Reasoner reasoner, List<Rule> rules, Graph schema, Graph data)
+	{
+		super(reasoner, rules, schema, data);
+	}
+
+	/**
+	 * Test the consistency of the bound data. For RDFS this checks that all instances of datatype-ranged properties have correct data values.
+	 * 
+	 * @return a ValidityReport structure
+	 */
+	@Override
+	public ValidityReport validate()
+	{
+		// The full configuration uses validation rules so check for these
+		StandardValidityReport report = (StandardValidityReport) super.validate();
+		// Also do a hardwired check to handle the simpler configurations
+		performDatatypeRangeValidation(report);
+		return report;
+	}
 
 }

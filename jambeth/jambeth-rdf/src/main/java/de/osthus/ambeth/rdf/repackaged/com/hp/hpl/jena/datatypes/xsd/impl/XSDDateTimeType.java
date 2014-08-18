@@ -16,45 +16,47 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.impl;
 
-import com.hp.hpl.jena.datatypes.xsd.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.*;
 
 /**
- * Type processor for dateTime, most of the machinery is in the
- * base XSDAbstractDateTimeType class.
+ * Type processor for dateTime, most of the machinery is in the base XSDAbstractDateTimeType class.
  */
-public class XSDDateTimeType extends XSDAbstractDateTimeType {
+public class XSDDateTimeType extends XSDAbstractDateTimeType
+{
 
-    /**
-     * Constructor
-     */
-    public XSDDateTimeType(String typename) {
-        super(typename);
-        javaClass = XSDDateTime.class;
-    }
+	/**
+	 * Constructor
+	 */
+	public XSDDateTimeType(String typename)
+	{
+		super(typename);
+		javaClass = XSDDateTime.class;
+	}
 
-    /**
-     * Parse a validated date. This is invoked from
-     * XSDDatatype.convertValidatedDataValue rather then from a local
-     * parse method to make the implementation of XSDGenericType easier.
-     */
-    @Override
-    public Object parseValidated(String str) {
-         int len = str.length();
-         int[] date = new int[TOTAL_SIZE];
-         int[] timeZone = new int[2];
+	/**
+	 * Parse a validated date. This is invoked from XSDDatatype.convertValidatedDataValue rather then from a local parse method to make the implementation of
+	 * XSDGenericType easier.
+	 */
+	@Override
+	public Object parseValidated(String str)
+	{
+		int len = str.length();
+		int[] date = new int[TOTAL_SIZE];
+		int[] timeZone = new int[2];
 
-         int end = indexOf (str, 0, len, 'T');
+		int end = indexOf(str, 0, len, 'T');
 
-         // both time and date
-         getDate(str, 0, end, date);
-         getTime(str, end+1, len, date, timeZone);
+		// both time and date
+		getDate(str, 0, end, date);
+		getTime(str, end + 1, len, date, timeZone);
 
-         if ( date[utc]!=0 && date[utc]!='Z') {
-             AbstractDateTime.normalize(date, timeZone);
-         }
-         return new XSDDateTime(date, XSDDateTime.FULL_MASK);
-    }
-    
+		if (date[utc] != 0 && date[utc] != 'Z')
+		{
+			AbstractDateTime.normalize(date, timeZone);
+		}
+		return new XSDDateTime(date, XSDDateTime.FULL_MASK);
+	}
+
 }

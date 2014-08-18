@@ -16,34 +16,38 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
-import com.hp.hpl.jena.reasoner.ReasonerException;
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.ReasonerException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.Rule;
 
 /**
- * Exception used to indicate syntactic errors the LP version of the
- * backward chaining rule engine.
+ * Exception used to indicate syntactic errors the LP version of the backward chaining rule engine.
  */
-public class LPRuleSyntaxException extends ReasonerException {
+public class LPRuleSyntaxException extends ReasonerException
+{
 
-    
-    /**
-     * Constructor.
-     * @param msg a free-text message describing the problem
-     */
-    public LPRuleSyntaxException(String msg, Rule rule) {
-        super("Syntax error in backward rule: " + rule.toShortString() 
-                +"\n" + msg);
-    }
-    
-    /**
-     * Constructor.
-     * @param msg a free-text message describing the problem
-     * @param cause a nested exception which prompted this error
-     */
-    public LPRuleSyntaxException(String msg, Rule rule, Throwable cause) {
-        super("Syntax error in backward rule: " + rule.toShortString() 
-                +"\n" + msg, cause);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param msg
+	 *            a free-text message describing the problem
+	 */
+	public LPRuleSyntaxException(String msg, Rule rule)
+	{
+		super("Syntax error in backward rule: " + rule.toShortString() + "\n" + msg);
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param msg
+	 *            a free-text message describing the problem
+	 * @param cause
+	 *            a nested exception which prompted this error
+	 */
+	public LPRuleSyntaxException(String msg, Rule rule, Throwable cause)
+	{
+		super("Syntax error in backward rule: " + rule.toShortString() + "\n" + msg, cause);
+	}
 }

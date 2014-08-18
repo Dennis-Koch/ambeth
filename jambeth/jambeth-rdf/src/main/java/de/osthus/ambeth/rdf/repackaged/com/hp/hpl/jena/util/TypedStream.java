@@ -16,34 +16,51 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util;
 
 import java.io.InputStream;
 
 public class TypedStream
-{ 
-    private InputStream input ;
-    private String mimeType = null ;
-    private String charset = null ;
-    
-    public TypedStream(InputStream in)
-    { this(in, null, null) ; }
-    
-    public TypedStream(InputStream in, String header)
-    { 
-        input = in ;
-        // Parse header.
-//        mimeType = t ; 
-//        charset = c ;
-    }
-    
-    public TypedStream(InputStream in, String t, String c)
-    { input = in ; mimeType = t ; charset = c ; }
-    
-    public InputStream getInput()               { return input ; }
-    public String getMimeType()                 { return mimeType ; }
-    public String getCharset()                  { return charset ; }
-    
-    // Parser for content-type header
-     
+{
+	private InputStream input;
+	private String mimeType = null;
+	private String charset = null;
+
+	public TypedStream(InputStream in)
+	{
+		this(in, null, null);
+	}
+
+	public TypedStream(InputStream in, String header)
+	{
+		input = in;
+		// Parse header.
+		// mimeType = t ;
+		// charset = c ;
+	}
+
+	public TypedStream(InputStream in, String t, String c)
+	{
+		input = in;
+		mimeType = t;
+		charset = c;
+	}
+
+	public InputStream getInput()
+	{
+		return input;
+	}
+
+	public String getMimeType()
+	{
+		return mimeType;
+	}
+
+	public String getCharset()
+	{
+		return charset;
+	}
+
+	// Parser for content-type header
+
 }

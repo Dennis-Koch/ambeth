@@ -16,20 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 import java.util.Iterator;
 
-/** 
- 	An iterator that selects triples from an underlying iterators of triples
- 	It used to take TripleMatch's, but those are obsolete.
-*/
-public class TripleMatchIterator
-    extends FilterKeepIterator<Triple>
-    implements ExtendedIterator<Triple>
-    {
-    public TripleMatchIterator( Triple m, Iterator<Triple> iter ) 
-        { super( new TripleMatchFilter( m ), iter ); }
-    }
+/**
+ * An iterator that selects triples from an underlying iterators of triples It used to take TripleMatch's, but those are obsolete.
+ */
+public class TripleMatchIterator extends FilterKeepIterator<Triple> implements ExtendedIterator<Triple>
+{
+	public TripleMatchIterator(Triple m, Iterator<Triple> iter)
+	{
+		super(new TripleMatchFilter(m), iter);
+	}
+}

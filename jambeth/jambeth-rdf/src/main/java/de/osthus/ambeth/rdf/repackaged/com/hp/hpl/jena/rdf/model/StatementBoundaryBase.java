@@ -16,48 +16,56 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleBoundary;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TripleBoundary;
 
 /**
-    StatementBoundaryBase - a base class for StatementBoundarys, with
-    built-in converstion to triples and a continueWith as well as a stopAt.
-*/
+ * StatementBoundaryBase - a base class for StatementBoundarys, with built-in converstion to triples and a continueWith as well as a stopAt.
+ */
 public abstract class StatementBoundaryBase implements StatementBoundary
-    {
-    /**
-         Method to over-ride to define what stops the boundary search; default
-         definition is !continueWith(s). <i>exactly one</code> of these two methods
-         must be defined.
-    */
-    @Override
-    public boolean stopAt( Statement s ) 
-        { return !continueWith( s ); }
+{
+	/**
+	 * Method to over-ride to define what stops the boundary search; default definition is !continueWith(s). <i>exactly one</code> of these two methods must be
+	 * defined.
+	 */
+	@Override
+	public boolean stopAt(Statement s)
+	{
+		return !continueWith(s);
+	}
 
-    /**
-         Method to over-ride to define what continues the boundary search; default
-         definition is !stopAt(s). <i>exactly one</code> of these two methods
-         must be defined.
-    */
-    public boolean continueWith( Statement s ) 
-        { return !stopAt( s ); }
-    
-    /**
-         Expresses this StatementBoundary as a TripleBoundary.
-    */
-    @Override
-    public final TripleBoundary asTripleBoundary( Model m ) 
-        { return convert( m, this ); }
+	/**
+	 * Method to over-ride to define what continues the boundary search; default definition is !stopAt(s). <i>exactly one</code> of these two methods must be
+	 * defined.
+	 */
+	public boolean continueWith(Statement s)
+	{
+		return !stopAt(s);
+	}
 
-    /**
-         Answer a TripleBoundary that is implemented in terms of a StatementBoundary. 
-    */
-    public static TripleBoundary convert( final Model s, final StatementBoundary b )
-        {
-        return new TripleBoundary()
-            { @Override
-            public boolean stopAt( Triple t ) { return b.stopAt( s.asStatement( t ) ); } };
-        }
-    }
+	/**
+	 * Expresses this StatementBoundary as a TripleBoundary.
+	 */
+	@Override
+	public final TripleBoundary asTripleBoundary(Model m)
+	{
+		return convert(m, this);
+	}
+
+	/**
+	 * Answer a TripleBoundary that is implemented in terms of a StatementBoundary.
+	 */
+	public static TripleBoundary convert(final Model s, final StatementBoundary b)
+	{
+		return new TripleBoundary()
+		{
+			@Override
+			public boolean stopAt(Triple t)
+			{
+				return b.stopAt(s.asStatement(t));
+			}
+		};
+	}
+}

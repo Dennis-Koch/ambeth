@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.ext.LexicalHandler;
@@ -25,56 +25,77 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * A lexical handler that does nothing.
  */
-class LexicalHandlerImpl extends DefaultHandler implements LexicalHandler {
+class LexicalHandlerImpl extends DefaultHandler implements LexicalHandler
+{
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#endCDATA()
 	 */
 	@Override
-    public void endCDATA() throws SAXException {
+	public void endCDATA() throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#endDTD()
 	 */
 	@Override
-    public void endDTD() throws SAXException {
+	public void endDTD() throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#startCDATA()
 	 */
 	@Override
-    public void startCDATA() throws SAXException {
+	public void startCDATA() throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#comment(char[], int, int)
 	 */
 	@Override
-    public void comment(char[] ch, int start, int length) throws SAXException {
+	public void comment(char[] ch, int start, int length) throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#endEntity(java.lang.String)
 	 */
 	@Override
-    public void endEntity(String name) throws SAXException {
+	public void endEntity(String name) throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#startEntity(java.lang.String)
 	 */
 	@Override
-    public void startEntity(String name) throws SAXException {
+	public void startEntity(String name) throws SAXException
+	{
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.xml.sax.ext.LexicalHandler#startDTD(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-    public void startDTD(String name, String publicId, String systemId)
-			throws SAXException {
+	public void startDTD(String name, String publicId, String systemId) throws SAXException
+	{
 	}
 
 }

@@ -16,52 +16,62 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 import java.util.*;
+
 /**
  * RandomOrderIterator - Reorders the elements returned by an Iterator.
  */
-public class RandomOrderIterator<T> extends WrappedIterator<T> {
+public class RandomOrderIterator<T> extends WrappedIterator<T>
+{
 	private Random rnd = new Random();
-    private Object buffer[];
-    // one more than the index of the last non-null element.
-    int top;
+	private Object buffer[];
+	// one more than the index of the last non-null element.
+	int top;
+
 	/**
 	 * Wrap the base iterator, randomizing with a buffer of length sz.
 	 */
-	public RandomOrderIterator(int sz, Iterator<T> base) {
+	public RandomOrderIterator(int sz, Iterator<T> base)
+	{
 		super(base);
 		buffer = new Object[sz];
 		top = 0;
 		fill();
 	}
-	
+
 	@Override
-    public boolean hasNext() {
+	public boolean hasNext()
+	{
 		return top > 0;
 	}
-    @Override
-    public T next() {
+
+	@Override
+	public T next()
+	{
 		int ix = rnd.nextInt(top);
 		Object rslt = buffer[ix];
 		top--;
 		buffer[ix] = buffer[top];
 		fill();
-	    @SuppressWarnings("unchecked")
-	    T obj = (T)rslt;
-	    return obj ;
+		@SuppressWarnings("unchecked")
+		T obj = (T) rslt;
+		return obj;
 	}
-	
+
 	@Override
-    public void remove() {
+	public void remove()
+	{
 		throw new UnsupportedOperationException("randomizing does not allow modification");
 	}
-	
-	private void fill() {
-	   while ( top < buffer.length && super.hasNext() ) {
-	   	 buffer[top++] = super.next();
-	   }
+
+	private void fill()
+	{
+		while (top < buffer.length && super.hasNext())
+		{
+			buffer[top++] = super.next();
+		}
 	}
 
 }

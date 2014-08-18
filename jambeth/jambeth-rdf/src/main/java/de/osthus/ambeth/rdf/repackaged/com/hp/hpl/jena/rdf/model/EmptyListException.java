@@ -18,68 +18,58 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.rdf.model;
-
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.shared.JenaException;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
  * <p>
- * A exception that is thrown when an operation is attempted on an empty (nil)
- * list that actually requires a list of length one or more.
+ * A exception that is thrown when an operation is attempted on an empty (nil) list that actually requires a list of length one or more.
  * </p>
  */
-public class EmptyListException
-    extends JenaException
+public class EmptyListException extends JenaException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
+	// Static variables
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
+	// Constructors
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	/**
+	 * Construct an empty list exception with a default message.
+	 */
+	public EmptyListException()
+	{
+		super("Tried to perform an operation that requires a non-empty list");
+	}
 
+	/**
+	 * Construct an empty list exception with a given message.
+	 * 
+	 * @param msg
+	 *            The exception message.
+	 */
+	public EmptyListException(String msg)
+	{
+		super(msg);
+	}
 
-    // Constructors
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    /**
-     * Construct an empty list exception with a default message.
-     */
-    public EmptyListException() {
-        super( "Tried to perform an operation that requires a non-empty list" );
-    }
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    /**
-     * Construct an empty list exception with a given message.
-     * 
-     * @param msg The exception message.
-     */
-    public EmptyListException( String msg ) {
-        super( msg );
-    }
-
-
-    // External signature methods
-    //////////////////////////////////
-
-
-    // Internal implementation methods
-    //////////////////////////////////
-
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
-
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

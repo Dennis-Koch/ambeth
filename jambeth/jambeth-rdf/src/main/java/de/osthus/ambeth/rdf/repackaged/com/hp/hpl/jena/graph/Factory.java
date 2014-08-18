@@ -16,37 +16,44 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.mem.GraphMem ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem.GraphMem;
 
 /**
-    A factory class for creating Graphs.
-
-*/
+ * A factory class for creating Graphs.
+ */
 
 public class Factory
-    {
-    private Factory()
-        { super(); }
-    
-    /**
-        Answer a memory-based Graph.
-    */
-    public static Graph createDefaultGraph()
-        { return Factory.createGraphMem( ); }
-              
-    public static Graph createGraphMem()
-        { return new GraphMem(); }
+{
+	private Factory()
+	{
+		super();
+	}
 
-    public static Graph createGraphMemWithTransactionHandler( final TransactionHandler th )
-        {
-        Graph g = new GraphMem() 
-            {
-            @Override
-            public TransactionHandler getTransactionHandler() 
-                {  return th; }
-            };
-        return g;
-        }
-    }
+	/**
+	 * Answer a memory-based Graph.
+	 */
+	public static Graph createDefaultGraph()
+	{
+		return Factory.createGraphMem();
+	}
+
+	public static Graph createGraphMem()
+	{
+		return new GraphMem();
+	}
+
+	public static Graph createGraphMemWithTransactionHandler(final TransactionHandler th)
+	{
+		Graph g = new GraphMem()
+		{
+			@Override
+			public TransactionHandler getTransactionHandler()
+			{
+				return th;
+			}
+		};
+		return g;
+	}
+}

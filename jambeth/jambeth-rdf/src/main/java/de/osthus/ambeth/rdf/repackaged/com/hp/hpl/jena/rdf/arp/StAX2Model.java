@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
-import com.hp.hpl.jena.rdf.model.Model;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Model;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -27,32 +27,32 @@ import org.xml.sax.SAXParseException;
 
 /**
  * 
- * A collection of convenient functions to parse an XML stream using ARP.
- * They simply connect {@link StAX2SAX} to {@link SAX2Model} internally.
+ * A collection of convenient functions to parse an XML stream using ARP. They simply connect {@link StAX2SAX} to {@link SAX2Model} internally.
  * 
  * @see StAX2SAX
  */
-public class StAX2Model {
-    
-    public static void read(XMLStreamReader streamReader, Model model)
-            throws SAXParseException, XMLStreamException, SAXException {
-        read(streamReader, model, "");
-    }
-    
-    public static void read(XMLStreamReader streamReader, Model model, String base) 
-            throws SAXParseException, XMLStreamException, SAXException {
-        StAX2SAX s2s = new StAX2SAX(SAX2Model.create(base, model));
-        s2s.parse(streamReader);
-    }
-    
-    public static void read(XMLEventReader eventReader, Model model)
-            throws SAXParseException, XMLStreamException, SAXException {
-        read(eventReader, model, "");
-    }
-    
-    public static void read(XMLEventReader eventReader, Model model, String base) 
-            throws SAXParseException, XMLStreamException, SAXException {
-        StAX2SAX s2s = new StAX2SAX(SAX2Model.create(base, model));
-        s2s.parse(eventReader);
-    }
+public class StAX2Model
+{
+
+	public static void read(XMLStreamReader streamReader, Model model) throws SAXParseException, XMLStreamException, SAXException
+	{
+		read(streamReader, model, "");
+	}
+
+	public static void read(XMLStreamReader streamReader, Model model, String base) throws SAXParseException, XMLStreamException, SAXException
+	{
+		StAX2SAX s2s = new StAX2SAX(SAX2Model.create(base, model));
+		s2s.parse(streamReader);
+	}
+
+	public static void read(XMLEventReader eventReader, Model model) throws SAXParseException, XMLStreamException, SAXException
+	{
+		read(eventReader, model, "");
+	}
+
+	public static void read(XMLEventReader eventReader, Model model, String base) throws SAXParseException, XMLStreamException, SAXException
+	{
+		StAX2SAX s2s = new StAX2SAX(SAX2Model.create(base, model));
+		s2s.parse(eventReader);
+	}
 }

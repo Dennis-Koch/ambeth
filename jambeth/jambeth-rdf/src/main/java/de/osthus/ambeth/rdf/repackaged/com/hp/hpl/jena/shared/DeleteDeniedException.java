@@ -16,18 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 /**
-    Exception to throw if a delete is denied.
-*/
+ * Exception to throw if a delete is denied.
+ */
 public class DeleteDeniedException extends UpdateDeniedException
-    {
-    public DeleteDeniedException( String message )
-        { super( message ); }
+{
+	public DeleteDeniedException(String message)
+	{
+		super(message);
+	}
 
-    public DeleteDeniedException( String message, Triple triple )
-        { super( message, triple ); }
-    }
+	public DeleteDeniedException(String message, Triple triple)
+	{
+		super(message, triple);
+	}
+}

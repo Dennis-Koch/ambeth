@@ -16,27 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    NoSuchReasonerException - the exception to throw when looking up a
-    reasoner fails (in ModelSpec construction).
-*/
+ * NoSuchReasonerException - the exception to throw when looking up a reasoner fails (in ModelSpec construction).
+ */
 public class NoSuchReasonerException extends JenaException
-    {
-    protected String uri;
-    
-    /**
-         Initialise the exception with the URI of the reasoner that isn't there.
-    */
-    public NoSuchReasonerException( String uri )
-        {
-        super( uri );
-        this.uri = uri;
-        }
-    
-    /**
-         Answer the URI of the reasoner that was not found.
-    */
-    public String getURI() { return uri; }
-    }
+{
+	protected String uri;
+
+	/**
+	 * Initialise the exception with the URI of the reasoner that isn't there.
+	 */
+	public NoSuchReasonerException(String uri)
+	{
+		super(uri);
+		this.uri = uri;
+	}
+
+	/**
+	 * Answer the URI of the reasoner that was not found.
+	 */
+	public String getURI()
+	{
+		return uri;
+	}
+}

@@ -17,15 +17,19 @@
  */
 
 /**
-    Exception to throw when a named entity cannot be created.
-*/
-package com.hp.hpl.jena.shared;
+ Exception to throw when a named entity cannot be created.
+ */
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 public class CannotCreateException extends JenaException
-    {
-    public CannotCreateException( String message )
-            { super( message ); }
+{
+	public CannotCreateException(String message)
+	{
+		super(message);
+	}
 
-    public CannotCreateException( String message, Throwable cause )
-        { super( message, cause ); }
-    }
+	public CannotCreateException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
+}

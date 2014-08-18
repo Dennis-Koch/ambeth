@@ -16,32 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd;
 
-import org.apache.xerces.impl.dv.util.Base64 ;
+import org.apache.xerces.impl.dv.util.Base64;
 
-import com.hp.hpl.jena.datatypes.DatatypeFormatException ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.DatatypeFormatException;
 
 /**
- * Implement base64binary type. Most of the work is done in the superclass.
- * This only needs to implement the unparsing.
+ * Implement base64binary type. Most of the work is done in the superclass. This only needs to implement the unparsing.
  */
-public class XSDbase64Binary extends XSDbinary {
-    
-    public XSDbase64Binary(String typeName) {
-        super(typeName, true);
-    }
+public class XSDbase64Binary extends XSDbinary
+{
 
-    /**
-     * Convert a value of this datatype out
-     * to lexical form.
-     */
-    @Override
-    public String unparse(Object value) {
-        if (value instanceof byte[]) {
-            return Base64.encode((byte[])value);
-        } else {
-            throw new DatatypeFormatException("base64 asked to encode an unwrapped byte array");
-        }
-    }
+	public XSDbase64Binary(String typeName)
+	{
+		super(typeName, true);
+	}
+
+	/**
+	 * Convert a value of this datatype out to lexical form.
+	 */
+	@Override
+	public String unparse(Object value)
+	{
+		if (value instanceof byte[])
+		{
+			return Base64.encode((byte[]) value);
+		}
+		else
+		{
+			throw new DatatypeFormatException("base64 asked to encode an unwrapped byte array");
+		}
+	}
 }

@@ -16,47 +16,40 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
 import java.util.Iterator;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
-     An iterator wrapper for NodeToTriplesMap iterators which ensures that
-     a .remove on the base iterator is copied to the other two maps of this
-     GraphMem. The current triple (the most recent result of .next) is
-     tracked by the parent <code>TrackingTripleIterator</code> so that it
-     can be removed from the other two maps, which are passed in when this 
-     StoreTripleIterator is created.
- 
-*/
+ * An iterator wrapper for NodeToTriplesMap iterators which ensures that a .remove on the base iterator is copied to the other two maps of this GraphMem. The
+ * current triple (the most recent result of .next) is tracked by the parent <code>TrackingTripleIterator</code> so that it can be removed from the other two
+ * maps, which are passed in when this StoreTripleIterator is created.
+ */
 public class StoreTripleIterator extends TrackingTripleIterator
-	{
-    protected NodeToTriplesMapBase X;
-    protected NodeToTriplesMapBase A;
-    protected NodeToTriplesMapBase B;
-    protected Graph toNotify;
-    
-    public StoreTripleIterator
-        ( Graph toNotify, Iterator<Triple> it, 
-          NodeToTriplesMapBase X, 
-          NodeToTriplesMapBase A, 
-          NodeToTriplesMapBase B )
-    	{ 
-        super( it ); 
-        this.X = X;
-        this.A = A; 
-        this.B = B; 
-        this.toNotify = toNotify;
-        }
+{
+	protected NodeToTriplesMapBase X;
+	protected NodeToTriplesMapBase A;
+	protected NodeToTriplesMapBase B;
+	protected Graph toNotify;
 
-    @Override public void remove()
-        {
-        super.remove();
-        X.removedOneViaIterator();
-        A.remove( current );
-        B.remove( current );
-        toNotify.getEventManager().notifyDeleteTriple( toNotify, current );
-        }
+	public StoreTripleIterator(Graph toNotify, Iterator<Triple> it, NodeToTriplesMapBase X, NodeToTriplesMapBase A, NodeToTriplesMapBase B)
+	{
+		super(it);
+		this.X = X;
+		this.A = A;
+		this.B = B;
+		this.toNotify = toNotify;
 	}
+
+	@Override
+	public void remove()
+	{
+		super.remove();
+		X.removedOneViaIterator();
+		A.remove(current);
+		B.remove(current);
+		toNotify.getEventManager().notifyDeleteTriple(toNotify, current);
+	}
+}

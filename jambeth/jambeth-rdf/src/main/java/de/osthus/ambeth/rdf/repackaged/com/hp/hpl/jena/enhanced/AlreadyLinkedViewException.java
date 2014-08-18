@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.enhanced;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    Exception to throw when adding a view to a Polymorphic discovers that
-    the view to add is already on a ring.
-*/
+ * Exception to throw when adding a view to a Polymorphic discovers that the view to add is already on a ring.
+ */
 public class AlreadyLinkedViewException extends JenaException
-    {
-    /**
-        The polymorphic <code>other</code> has already been linked into
-        a sibling ring and hence cannot be linked into a different one.
-    */
-    public AlreadyLinkedViewException( Polymorphic<?> other )
-        { super( other.toString() ); }
-    }
+{
+	/**
+	 * The polymorphic <code>other</code> has already been linked into a sibling ring and hence cannot be linked into a different one.
+	 */
+	public AlreadyLinkedViewException(Polymorphic<?> other)
+	{
+		super(other.toString());
+	}
+}

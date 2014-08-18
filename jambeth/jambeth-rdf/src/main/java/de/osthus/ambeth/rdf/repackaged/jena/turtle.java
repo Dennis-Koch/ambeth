@@ -16,15 +16,14 @@
  * limitations under the License.
  */
 
-package jena;
+package de.osthus.ambeth.rdf.repackaged.jena;
 
-import jena.cmdline.CmdLineUtils ;
-
+import de.osthus.ambeth.rdf.repackaged.jena.cmdline.CmdLineUtils;
 
 public class turtle
 {
-    public static void main(String... args)
-    {
-        CmdLineUtils.invokeCmd("riotcmd.turtle",args) ;
-    }
+	public static void main(String... args)
+	{
+		CmdLineUtils.invokeCmd("riotcmd.turtle", args);
+	}
 }

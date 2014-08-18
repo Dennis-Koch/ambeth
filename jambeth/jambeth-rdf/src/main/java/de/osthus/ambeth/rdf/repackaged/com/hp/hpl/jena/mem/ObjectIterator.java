@@ -16,64 +16,70 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
 import java.util.*;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.util.CollectionFactory;
-import com.hp.hpl.jena.util.iterator.NiceIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.CollectionFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.NiceIterator;
 
 /**
-    Helper class for listObjects. Because literal indexing means that the
-    domain of the object map is not a node, but an indexing value (shared by
-    a bunch of different literal nodes), getting the list of objects requires
-    mapping that indexing value to all the triples that use it, and then
-    filtering those triples for their objects, removing duplicates.
-
-*/
+ * Helper class for listObjects. Because literal indexing means that the domain of the object map is not a node, but an indexing value (shared by a bunch of
+ * different literal nodes), getting the list of objects requires mapping that indexing value to all the triples that use it, and then filtering those triples
+ * for their objects, removing duplicates.
+ */
 public abstract class ObjectIterator extends NiceIterator<Node>
-    {
-    public ObjectIterator( Iterator<?> domain )
-        { this.domain = domain; }
+{
+	public ObjectIterator(Iterator<?> domain)
+	{
+		this.domain = domain;
+	}
 
-    protected abstract Iterator<Triple> iteratorFor( Object y );
+	protected abstract Iterator<Triple> iteratorFor(Object y);
 
-    final Iterator<?> domain;
-    
-    final Set<Node> seen = CollectionFactory.createHashedSet();
-    
-    final List<Node> pending = new ArrayList<>();
-    
-    @Override public boolean hasNext()
-        {
-        while (pending.isEmpty() && domain.hasNext()) refillPending();
-        return !pending.isEmpty();                
-        }
-    
-    @Override public Node next()
-        {
-        if (!hasNext()) throw new NoSuchElementException
-            ( "ObjectIterator.next()" );
-        return pending.remove( pending.size() - 1 );
-        }
-    
-    protected void refillPending()
-        {
-        Object y = domain.next();
-        if (y instanceof Node)
-            pending.add( (Node) y );
-        else
-            {
-            Iterator<Triple> z = iteratorFor( y );
-            while (z.hasNext())
-                {
-                Node object = z.next().getObject();
-                if (seen.add( object )) pending.add( object );
-                }
-            }
-        }
-    
-    @Override public void remove()
-        { throw new UnsupportedOperationException( "listObjects remove()" ); }
-    }
+	final Iterator<?> domain;
+
+	final Set<Node> seen = CollectionFactory.createHashedSet();
+
+	final List<Node> pending = new ArrayList<>();
+
+	@Override
+	public boolean hasNext()
+	{
+		while (pending.isEmpty() && domain.hasNext())
+			refillPending();
+		return !pending.isEmpty();
+	}
+
+	@Override
+	public Node next()
+	{
+		if (!hasNext())
+			throw new NoSuchElementException("ObjectIterator.next()");
+		return pending.remove(pending.size() - 1);
+	}
+
+	protected void refillPending()
+	{
+		Object y = domain.next();
+		if (y instanceof Node)
+			pending.add((Node) y);
+		else
+		{
+			Iterator<Triple> z = iteratorFor(y);
+			while (z.hasNext())
+			{
+				Node object = z.next().getObject();
+				if (seen.add(object))
+					pending.add(object);
+			}
+		}
+	}
+
+	@Override
+	public void remove()
+	{
+		throw new UnsupportedOperationException("listObjects remove()");
+	}
+}

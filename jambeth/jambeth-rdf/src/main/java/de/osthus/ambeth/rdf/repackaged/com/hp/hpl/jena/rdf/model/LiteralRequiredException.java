@@ -16,20 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    Exception to throw when an RDFNode required to be a Literal isn't, or when a
-    literal Node is required but a non-literal Node supplied.
-*/
+ * Exception to throw when an RDFNode required to be a Literal isn't, or when a literal Node is required but a non-literal Node supplied.
+ */
 public class LiteralRequiredException extends JenaException
-    {
-    public LiteralRequiredException( RDFNode n )
-        { super( n.toString() ); }
-        
-    public LiteralRequiredException( Node n )
-        { super( n.toString() ); }      
-    }
+{
+	public LiteralRequiredException(RDFNode n)
+	{
+		super(n.toString());
+	}
+
+	public LiteralRequiredException(Node n)
+	{
+		super(n.toString());
+	}
+}

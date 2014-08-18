@@ -16,89 +16,96 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
-import com.hp.hpl.jena.graph.Graph ;
-import com.hp.hpl.jena.graph.Triple ;
-import com.hp.hpl.jena.rdf.arp.impl.ARPSaxErrorHandler ;
-import com.hp.hpl.jena.rdf.model.Model ;
-import com.hp.hpl.jena.rdf.model.RDFErrorHandler ;
-import com.hp.hpl.jena.shared.JenaException ;
-import com.hp.hpl.jena.shared.PrefixMapping ;
-import com.hp.hpl.jena.shared.impl.PrefixMappingImpl ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ARPSaxErrorHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Model;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFErrorHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.PrefixMapping;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.impl.PrefixMappingImpl;
 
 final class JenaHandler extends ARPSaxErrorHandler implements StatementHandler, NamespaceHandler
-    {
-    private final PrefixMapping prefixMapping;
+{
+	private final PrefixMapping prefixMapping;
 
-    protected int here = 0;
+	protected int here = 0;
 
-    private final Graph graph ;
+	private final Graph graph;
 
-    public JenaHandler( Model m, RDFErrorHandler e )
-        { this( m.getGraph(), e ); }
+	public JenaHandler(Model m, RDFErrorHandler e)
+	{
+		this(m.getGraph(), e);
+	}
 
-    public JenaHandler( Graph g, Model m, RDFErrorHandler e )
-        { this( g, modelToPrefixMapping( m ), e ); }
-    
-    private JenaHandler( Graph graph, RDFErrorHandler e )
-        { this( graph, graph.getPrefixMapping(), e ); }
+	public JenaHandler(Graph g, Model m, RDFErrorHandler e)
+	{
+		this(g, modelToPrefixMapping(m), e);
+	}
 
-    private JenaHandler( Graph graph, PrefixMapping prefixMapping, RDFErrorHandler errorHandler )
-        {
-        super( errorHandler );
-        this.graph = graph ;
-        this.prefixMapping = prefixMapping; 
-        }
-    
-    private static PrefixMapping modelToPrefixMapping( Model model )
-        {
-        return model == null 
-            ? PrefixMapping.Factory.create() 
-            : model.getGraph().getPrefixMapping()
-            ;
-        }
+	private JenaHandler(Graph graph, RDFErrorHandler e)
+	{
+		this(graph, graph.getPrefixMapping(), e);
+	}
 
-    public void useWith( ARPHandlers h )
-        {
-        h.setStatementHandler( this );
-        h.setErrorHandler( this );
-        h.setNamespaceHandler( this );
-        }
+	private JenaHandler(Graph graph, PrefixMapping prefixMapping, RDFErrorHandler errorHandler)
+	{
+		super(errorHandler);
+		this.graph = graph;
+		this.prefixMapping = prefixMapping;
+	}
 
-    @Override
-    public void statement(AResource subj, AResource pred, AResource obj)
-    {
-        try
-        {
-            Triple t = JenaReader.convert(subj, pred, obj) ;
-            graph.add(t) ;
-        } catch (JenaException e)
-        {
-            errorHandler.error(e) ;
-        }
-    }
+	private static PrefixMapping modelToPrefixMapping(Model model)
+	{
+		return model == null ? PrefixMapping.Factory.create() : model.getGraph().getPrefixMapping();
+	}
 
-    @Override
-    public void statement(AResource subj, AResource pred, ALiteral lit)
-    {
-        try
-        {
-            Triple t = JenaReader.convert(subj, pred, lit) ;
-            graph.add(t) ;
-        } catch (JenaException e)
-        {
-            errorHandler.error(e) ;
-        }
-    }
+	public void useWith(ARPHandlers h)
+	{
+		h.setStatementHandler(this);
+		h.setErrorHandler(this);
+		h.setNamespaceHandler(this);
+	}
 
-    @Override
-    public void startPrefixMapping( String prefix, String uri )
-        {
-        if (PrefixMappingImpl.isNiceURI( uri )) prefixMapping.setNsPrefix( prefix, uri );
-        }
+	@Override
+	public void statement(AResource subj, AResource pred, AResource obj)
+	{
+		try
+		{
+			Triple t = JenaReader.convert(subj, pred, obj);
+			graph.add(t);
+		}
+		catch (JenaException e)
+		{
+			errorHandler.error(e);
+		}
+	}
 
-    @Override
-    public void endPrefixMapping( String prefix )
-        {}
-    }
+	@Override
+	public void statement(AResource subj, AResource pred, ALiteral lit)
+	{
+		try
+		{
+			Triple t = JenaReader.convert(subj, pred, lit);
+			graph.add(t);
+		}
+		catch (JenaException e)
+		{
+			errorHandler.error(e);
+		}
+	}
+
+	@Override
+	public void startPrefixMapping(String prefix, String uri)
+	{
+		if (PrefixMappingImpl.isNiceURI(uri))
+			prefixMapping.setNsPrefix(prefix, uri);
+	}
+
+	@Override
+	public void endPrefixMapping(String prefix)
+	{
+	}
+}

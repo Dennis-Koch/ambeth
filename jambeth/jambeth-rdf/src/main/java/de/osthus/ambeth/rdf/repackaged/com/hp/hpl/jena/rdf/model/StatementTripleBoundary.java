@@ -16,36 +16,42 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.TripleBoundary;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TripleBoundary;
 
 /**
-    StatementTripleBoundary - a StatementBoundary that just wraps a
-    TripleBoundary.
-*/
+ * StatementTripleBoundary - a StatementBoundary that just wraps a TripleBoundary.
+ */
 public class StatementTripleBoundary implements StatementBoundary
-    {
-    protected TripleBoundary tb;
-    
-    /**
-         Initialise this StatementTripleBoundary with the TripleBoundary <code>tb</code>.
-     * @param tb
-     */
-    public StatementTripleBoundary( TripleBoundary tb )
-        { this.tb = tb; }
+{
+	protected TripleBoundary tb;
 
-    /**
-         Answer whatever the triple-boundary answers for the triple of <code>s</code>.
-    */
-    @Override
-    public boolean stopAt( Statement s )
-        { return tb.stopAt( s.asTriple() ); }
-    
-    /**
-         Answer the supplied-to-constructor TripleBoundary.
-    */
-    @Override
-    public TripleBoundary asTripleBoundary( Model ignored )
-        { return tb; }
-    }
+	/**
+	 * Initialise this StatementTripleBoundary with the TripleBoundary <code>tb</code>.
+	 * 
+	 * @param tb
+	 */
+	public StatementTripleBoundary(TripleBoundary tb)
+	{
+		this.tb = tb;
+	}
+
+	/**
+	 * Answer whatever the triple-boundary answers for the triple of <code>s</code>.
+	 */
+	@Override
+	public boolean stopAt(Statement s)
+	{
+		return tb.stopAt(s.asTriple());
+	}
+
+	/**
+	 * Answer the supplied-to-constructor TripleBoundary.
+	 */
+	@Override
+	public TripleBoundary asTripleBoundary(Model ignored)
+	{
+		return tb;
+	}
+}

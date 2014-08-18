@@ -16,18 +16,21 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    This is the subclass of "fluid" nodes, ie nodes that are "holes" in pattern
-    matching.
+ * This is the subclass of "fluid" nodes, ie nodes that are "holes" in pattern matching.
  */
 public abstract class Node_Fluid extends Node
-    {
-    protected Node_Fluid(Object label)
-        { super(label); }
+{
+	protected Node_Fluid(Object label)
+	{
+		super(label);
+	}
 
-    @Override
-    public boolean isConcrete()
-        { return false; }
-    }
+	@Override
+	public boolean isConcrete()
+	{
+		return false;
+	}
+}

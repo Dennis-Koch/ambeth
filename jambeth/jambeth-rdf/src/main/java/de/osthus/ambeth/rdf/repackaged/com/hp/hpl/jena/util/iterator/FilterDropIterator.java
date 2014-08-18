@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 import java.util.Iterator;
 
 /**
-    A subclass of FiterIterator which discards the elements that pass the
-    filter.
+ * A subclass of FiterIterator which discards the elements that pass the filter.
  */
 public class FilterDropIterator<T> extends FilterIterator<T> implements Iterator<T>
-    {
-    public FilterDropIterator( Filter<T> f, Iterator<T> it )
-        { super( f, it ); }
-    
-    @Override protected boolean accept( T x )
-        { return !f.accept( x ); }
-    }
+{
+	public FilterDropIterator(Filter<T> f, Iterator<T> it)
+	{
+		super(f, it);
+	}
+
+	@Override
+	protected boolean accept(T x)
+	{
+		return !f.accept(x);
+	}
+}

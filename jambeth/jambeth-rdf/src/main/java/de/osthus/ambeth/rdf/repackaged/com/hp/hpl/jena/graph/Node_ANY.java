@@ -16,40 +16,51 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.shared.PrefixMapping;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.PrefixMapping;
 
 /**
-    A Node_ANY (there should be only one) is a meta-node that is used to stand
-    for any other node in a query.
-*/
+ * A Node_ANY (there should be only one) is a meta-node that is used to stand for any other node in a query.
+ */
 
 public class Node_ANY extends Node_Fluid
-    {
-    /* package */ Node_ANY() { super( "" ); }
-    
-    /** Node_ANY's are only equal to other Node_ANY's */
-    @Override
-    public boolean equals( Object other )
-        {
-        if ( this == other ) return true ;
-        return other instanceof Node_ANY;
-        }
-        
-    @Override
-    public Object visitWith( NodeVisitor v )
-        { return v.visitAny( this ); }
-        
-    @Override
-    public boolean matches( Node other )
-        { return other != null; }
-        
-    @Override
-    public String toString()
-        { return "ANY"; }
-    
-    @Override
-    public String toString( PrefixMapping pm, boolean quoting )
-        { return "ANY"; }
-    }
+{
+	/* package */Node_ANY()
+	{
+		super("");
+	}
+
+	/** Node_ANY's are only equal to other Node_ANY's */
+	@Override
+	public boolean equals(Object other)
+	{
+		if (this == other)
+			return true;
+		return other instanceof Node_ANY;
+	}
+
+	@Override
+	public Object visitWith(NodeVisitor v)
+	{
+		return v.visitAny(this);
+	}
+
+	@Override
+	public boolean matches(Node other)
+	{
+		return other != null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "ANY";
+	}
+
+	@Override
+	public String toString(PrefixMapping pm, boolean quoting)
+	{
+		return "ANY";
+	}
+}

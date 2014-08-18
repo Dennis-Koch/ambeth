@@ -19,22 +19,19 @@
 // To do:
 //   Better detection of illegal characters in qnames (? and = for example) 
 
-package com.hp.hpl.jena.n3;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
 /** Turtle writer */
 
-
-
 public class N3TurtleJenaWriter extends N3JenaWriter
 {
-    public N3TurtleJenaWriter()
-    {
-        super() ;
-//        if ( writer.getPropValue("usePropertySymbols") == null )
-//            writer.useWellKnownPropertySymbols = false ;
-        // Only allow "a" for rdf:type.
-        writer.wellKnownPropsMap = N3JenaWriterPP.wellKnownPropsMapTurtle ;
-        writer.allowTripleQuotedStrings = true ;
-    }
+	public N3TurtleJenaWriter()
+	{
+		super();
+		// if ( writer.getPropValue("usePropertySymbols") == null )
+		// writer.useWellKnownPropertySymbols = false ;
+		// Only allow "a" for rdf:type.
+		writer.wellKnownPropsMap = N3JenaWriterPP.wellKnownPropsMapTurtle;
+		writer.allowTripleQuotedStrings = true;
+	}
 }

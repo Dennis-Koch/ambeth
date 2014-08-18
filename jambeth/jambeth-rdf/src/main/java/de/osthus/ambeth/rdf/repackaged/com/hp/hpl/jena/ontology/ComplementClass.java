@@ -18,42 +18,38 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.rdf.model.Resource;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
  * <p>
  * Class description that is formed from the complement of another class description
  * </p>
  */
-public interface ComplementClass 
-    extends BooleanClassDescription
+public interface ComplementClass extends BooleanClassDescription
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
 	/**
-	 * <p>Answer the class that the class described by this class description
-	 * is a complement of.</p>
+	 * <p>
+	 * Answer the class that the class described by this class description is a complement of.
+	 * </p>
+	 * 
 	 * @return The class that this class is a complement of.
 	 */
 	public OntClass getOperand();
-	
-	
+
 	/**
-	 * <p>Set the class that the class represented by this class expression is
-	 * a complement of. Any existing value for <code>complementOf</code> will
-	 * be replaced.</p>
+	 * <p>
+	 * Set the class that the class represented by this class expression is a complement of. Any existing value for <code>complementOf</code> will be replaced.
+	 * </p>
 	 */
-	public void setOperand( Resource cls );
+	public void setOperand(Resource cls);
 }

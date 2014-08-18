@@ -16,20 +16,25 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
 import java.util.Iterator;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.iterator.WrappedIterator;
-//import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.WrappedIterator;
+
+//import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 public class RSIteratorImpl extends WrappedIterator<ReifiedStatement> implements RSIterator
-    {
-    public RSIteratorImpl( Iterator<ReifiedStatement> iterator )
-        { super( iterator ); }
+{
+	public RSIteratorImpl(Iterator<ReifiedStatement> iterator)
+	{
+		super(iterator);
+	}
 
-    @Override
-    public ReifiedStatement nextRS()
-        { return next(); }
-    }
+	@Override
+	public ReifiedStatement nextRS()
+	{
+		return next();
+	}
+}

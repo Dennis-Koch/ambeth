@@ -17,47 +17,66 @@
  */
 
 //ArrayIterator.java
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
+
 import java.util.Iterator;
 import java.lang.reflect.Array;
-import java.util.NoSuchElementException ;
+import java.util.NoSuchElementException;
 
-/** An Iterator for arrays  
+/**
+ * An Iterator for arrays
+ * 
  * @deprecated Use <code> Arrays.asList( array ).iterator();</code>
  */
 @Deprecated
-public class ArrayIterator<T> implements Iterator<T> {
+public class ArrayIterator<T> implements Iterator<T>
+{
 	private int i;
 	private T[] a;
-	/** Constructs an iterator over the members of an array.
-         * All arrays are supported including primitive types.
-         * @param array Must be an array.
- */
-	public ArrayIterator(T[] array) {
+
+	/**
+	 * Constructs an iterator over the members of an array. All arrays are supported including primitive types.
+	 * 
+	 * @param array
+	 *            Must be an array.
+	 */
+	public ArrayIterator(T[] array)
+	{
 		i = 0;
 		a = array;
 		if (!a.getClass().isArray())
 			throw new ArrayStoreException();
 	}
+
 	@Override
-    public boolean hasNext() {
-		return i<Array.getLength(a);
+	public boolean hasNext()
+	{
+		return i < Array.getLength(a);
 	}
+
 	@Override
-    public T next() throws NoSuchElementException {
-		try {
+	public T next() throws NoSuchElementException
+	{
+		try
+		{
 			return a[i++]; // Array.get(a,i++);
 		}
-		catch (IndexOutOfBoundsException e) {
+		catch (IndexOutOfBoundsException e)
+		{
 			throw new NoSuchElementException();
 		}
 	}
-/** Not supported.
- * @throws java.lang.UnsupportedOperationException Always.
- */        
-        @Override
-        public void remove() {
 
-            throw new UnsupportedOperationException();
-        }
+	/**
+	 * Not supported.
+	 * 
+	 * @throws java.lang.UnsupportedOperationException
+	 *             Always.
+	 */
+	@Override
+	public void remove()
+	{
+
+		throw new UnsupportedOperationException();
+	}
 }

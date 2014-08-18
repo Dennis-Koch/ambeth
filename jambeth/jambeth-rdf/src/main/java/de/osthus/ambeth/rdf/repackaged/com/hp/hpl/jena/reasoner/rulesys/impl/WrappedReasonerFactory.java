@@ -16,69 +16,75 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.reasoner.*;
-import com.hp.hpl.jena.util.FileManager;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.FileManager;
 
 /**
-    WrappedReasonerFactory - a wrapper round ReasonerFactories that
-    accepts a Resource configuring initial rules, schemas, etc.
-*/
+ * WrappedReasonerFactory - a wrapper round ReasonerFactories that accepts a Resource configuring initial rules, schemas, etc.
+ */
 public final class WrappedReasonerFactory implements ReasonerFactory
-    {
-    protected final ReasonerFactory factory;
-    protected final Resource config;
-    
-    protected final Model schemaUnion = ModelFactory.createDefaultModel();
-    
-    public WrappedReasonerFactory( ReasonerFactory rrf, Resource config )
-        { super();
-        this.factory = rrf; 
-        this.config = config;
-        loadSchemas( schemaUnion, config ); }
-    
-    /**
-         Answer a Reasoner created according to the underlying factory, and then 
-         loaded with this Wrapper's rules (if the Reasoner is a RuleReasoner) and
-         bound to this Wrapper's schemas (in an unspecified order).
-     */
-    @Override
-    public Reasoner create( Resource ignored )
-        { Reasoner result = factory.create( config );
-        return schemaUnion.isEmpty() ? result : result.bindSchema( schemaUnion ); }
+{
+	protected final ReasonerFactory factory;
+	protected final Resource config;
 
-    public static final Property schemaURL = ResourceFactory.createProperty( "http://jena.hpl.hp.com/2003/08/jms#schemaURL" );
-    
-    private static Model loadSchemas( Model schema, Resource R )
-        {
-        StmtIterator schemas = R.listProperties( schemaURL );
-        if (schemas.hasNext())
-            {
-            System.err.println( "WARNING: detected obsolete use of jms:schemaURL when wrapping a reasoner factory" );
-            System.err.println( "  This will fail to work in the next release of Jena" );
-            }
-        while (schemas.hasNext())
-            {
-            Statement s = schemas.nextStatement();
-            Resource sc = s.getResource();
-            FileManager.get().readModel( schema, sc.getURI() );
-            }
-        return schema;
-        }
-    
-    /**
-         Answer the capabilities of the underlying ReasonerFactory.
-    */
-    @Override
-    public Model getCapabilities()
-        { return factory.getCapabilities(); }
-    
-    /**
-         Answer the URI of the underlying ReasonerFactory. 
-    */
-    @Override
-    public String getURI()
-        { return factory.getURI(); }
-    }
+	protected final Model schemaUnion = ModelFactory.createDefaultModel();
+
+	public WrappedReasonerFactory(ReasonerFactory rrf, Resource config)
+	{
+		super();
+		this.factory = rrf;
+		this.config = config;
+		loadSchemas(schemaUnion, config);
+	}
+
+	/**
+	 * Answer a Reasoner created according to the underlying factory, and then loaded with this Wrapper's rules (if the Reasoner is a RuleReasoner) and bound to
+	 * this Wrapper's schemas (in an unspecified order).
+	 */
+	@Override
+	public Reasoner create(Resource ignored)
+	{
+		Reasoner result = factory.create(config);
+		return schemaUnion.isEmpty() ? result : result.bindSchema(schemaUnion);
+	}
+
+	public static final Property schemaURL = ResourceFactory.createProperty("http://jena.hpl.hp.com/2003/08/jms#schemaURL");
+
+	private static Model loadSchemas(Model schema, Resource R)
+	{
+		StmtIterator schemas = R.listProperties(schemaURL);
+		if (schemas.hasNext())
+		{
+			System.err.println("WARNING: detected obsolete use of jms:schemaURL when wrapping a reasoner factory");
+			System.err.println("  This will fail to work in the next release of Jena");
+		}
+		while (schemas.hasNext())
+		{
+			Statement s = schemas.nextStatement();
+			Resource sc = s.getResource();
+			FileManager.get().readModel(schema, sc.getURI());
+		}
+		return schema;
+	}
+
+	/**
+	 * Answer the capabilities of the underlying ReasonerFactory.
+	 */
+	@Override
+	public Model getCapabilities()
+	{
+		return factory.getCapabilities();
+	}
+
+	/**
+	 * Answer the URI of the underlying ReasonerFactory.
+	 */
+	@Override
+	public String getURI()
+	{
+		return factory.getURI();
+	}
+}

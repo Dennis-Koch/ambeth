@@ -16,69 +16,68 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
-     TripleStore - interface for bulk storage of triples used in composed graphs.
-*/
+ * TripleStore - interface for bulk storage of triples used in composed graphs.
+ */
 public interface TripleStore
-    {
-    /**
-         Destroy this triple store - discard the indexes.
-    */
-    public abstract void close();
+{
+	/**
+	 * Destroy this triple store - discard the indexes.
+	 */
+	public abstract void close();
 
-    /**
-         Add a triple to this triple store.
-    */
-    public abstract void add( Triple t );
+	/**
+	 * Add a triple to this triple store.
+	 */
+	public abstract void add(Triple t);
 
-    /**
-         Remove a triple from this triple store.
-    */
-    public abstract void delete( Triple t );
+	/**
+	 * Remove a triple from this triple store.
+	 */
+	public abstract void delete(Triple t);
 
-    /**
-         Answer the size (number of triples) of this triple store.
-    */
-    public abstract int size();
+	/**
+	 * Answer the size (number of triples) of this triple store.
+	 */
+	public abstract int size();
 
-    /**
-         Answer true iff this triple store is empty.
-    */
-    public abstract boolean isEmpty();
+	/**
+	 * Answer true iff this triple store is empty.
+	 */
+	public abstract boolean isEmpty();
 
-    /**
-         Answer true iff this triple store contains the (concrete) triple <code>t</code>.
-    */
-    public abstract boolean contains( Triple t );
+	/**
+	 * Answer true iff this triple store contains the (concrete) triple <code>t</code>.
+	 */
+	public abstract boolean contains(Triple t);
 
-    /**
-         Answer an setwise iterator over all the subjects of triples in this store.
-    */
-    public ExtendedIterator<Node> listSubjects();
-    
-    /**
-         Answer an iterator over all the predicates of triples in this store.
-    */
-    public ExtendedIterator<Node> listPredicates();
-    
-    /**
-         Answer an setwise iterator over all the objects of triples in this store.
-    */    
-    public ExtendedIterator<Node> listObjects();
-    
-    /** 
-         Answer an ExtendedIterator returning all the triples from this store that
-         match the pattern <code>m = (S, P, O)</code>.
-    */
-    public abstract ExtendedIterator<Triple> find( TripleMatch tm );
+	/**
+	 * Answer an setwise iterator over all the subjects of triples in this store.
+	 */
+	public ExtendedIterator<Node> listSubjects();
 
-    /**
-        Clear this store, ie remove all triples from it.
-    */
-    public abstract void clear();
-    }
+	/**
+	 * Answer an iterator over all the predicates of triples in this store.
+	 */
+	public ExtendedIterator<Node> listPredicates();
+
+	/**
+	 * Answer an setwise iterator over all the objects of triples in this store.
+	 */
+	public ExtendedIterator<Node> listObjects();
+
+	/**
+	 * Answer an ExtendedIterator returning all the triples from this store that match the pattern <code>m = (S, P, O)</code>.
+	 */
+	public abstract ExtendedIterator<Triple> find(TripleMatch tm);
+
+	/**
+	 * Clear this store, ie remove all triples from it.
+	 */
+	public abstract void clear();
+}

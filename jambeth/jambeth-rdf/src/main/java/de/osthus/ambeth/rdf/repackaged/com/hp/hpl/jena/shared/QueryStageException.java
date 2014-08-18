@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-     Exception thrown when an earlier query stage has throw an exception.
-*/
+ * Exception thrown when an earlier query stage has throw an exception.
+ */
 public class QueryStageException extends JenaException
-    {
-    public QueryStageException( Throwable cause ) 
-        { super( cause ); }
-    }
+{
+	public QueryStageException(Throwable cause)
+	{
+		super(cause);
+	}
+}

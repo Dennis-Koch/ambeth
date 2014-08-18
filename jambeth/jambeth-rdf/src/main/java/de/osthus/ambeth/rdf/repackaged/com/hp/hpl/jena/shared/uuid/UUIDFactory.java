@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared.uuid;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.uuid;
 
 public interface UUIDFactory
 {
-    public JenaUUID generate() ;
-    public JenaUUID parse(String s) throws JenaUUID.UUIDFormatException ;
-    public void reset() ;
+	public JenaUUID generate();
+
+	public JenaUUID parse(String s) throws JenaUUID.UUIDFormatException;
+
+	public void reset();
 }

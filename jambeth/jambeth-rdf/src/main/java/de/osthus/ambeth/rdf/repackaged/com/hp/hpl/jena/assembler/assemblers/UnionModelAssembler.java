@@ -16,47 +16,49 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.graph.compose.*;
-import com.hp.hpl.jena.graph.impl.GraphBase;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.compose.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.GraphBase;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 public class UnionModelAssembler extends ModelAssembler implements Assembler
-    {
-    private static final Graph immutable = new GraphBase() 
-        {
-        @Override
-        protected ExtendedIterator<Triple> graphBaseFind( TripleMatch m )
-            { return NullIterator.instance(); }
-        };
-    
-    @Override
-    protected Model openEmptyModel( Assembler a, Resource root, Mode mode )
-        {
-        checkType( root, JA.UnionModel );
-        MultiUnion union = new MultiUnion();
-        union.addGraph( getRootModel( a, root, mode ) );
-        addSubModels( a, root, union, mode );
-        return ModelFactory.createModelForGraph( union );
-        }
+{
+	private static final Graph immutable = new GraphBase()
+	{
+		@Override
+		protected ExtendedIterator<Triple> graphBaseFind(TripleMatch m)
+		{
+			return NullIterator.instance();
+		}
+	};
 
-    private Graph getRootModel( Assembler a, Resource root, Mode mode )
-        {
-        Resource r = getUniqueResource( root, JA.rootModel );
-        return r == null ? immutable : a.openModel( r, mode ).getGraph();
-        }
+	@Override
+	protected Model openEmptyModel(Assembler a, Resource root, Mode mode)
+	{
+		checkType(root, JA.UnionModel);
+		MultiUnion union = new MultiUnion();
+		union.addGraph(getRootModel(a, root, mode));
+		addSubModels(a, root, union, mode);
+		return ModelFactory.createModelForGraph(union);
+	}
 
-    private void addSubModels( Assembler a, Resource root, MultiUnion union, Mode mode )
-        {
-        for (StmtIterator it = root.listProperties( JA.subModel ); it.hasNext();)
-            {
-            Resource resource = getResource( it.nextStatement() );
-            union.addGraph( a.openModel( resource, mode ).getGraph() );        
-            }
-        }
+	private Graph getRootModel(Assembler a, Resource root, Mode mode)
+	{
+		Resource r = getUniqueResource(root, JA.rootModel);
+		return r == null ? immutable : a.openModel(r, mode).getGraph();
+	}
 
-    }
+	private void addSubModels(Assembler a, Resource root, MultiUnion union, Mode mode)
+	{
+		for (StmtIterator it = root.listProperties(JA.subModel); it.hasNext();)
+		{
+			Resource resource = getResource(it.nextStatement());
+			union.addGraph(a.openModel(resource, mode).getGraph());
+		}
+	}
+
+}

@@ -16,45 +16,47 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.ARPDatatypeLiteral;
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.URIReference;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ARPDatatypeLiteral;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.URIReference;
 
-public class WantTypedLiteral extends AbsWantLiteralValueOrDescription implements FrameI {
+public class WantTypedLiteral extends AbsWantLiteralValueOrDescription implements FrameI
+{
 
-    final URIReference dtURI;
-    public WantTypedLiteral(WantsObjectFrameI p, String datatypeURI, AbsXMLContext ap)
-      throws SAXParseException {
-        super(p, ap);
-        dtURI = URIReference.resolve(this,xml,datatypeURI);
-    }
-    @Override
-    public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException {
-        warning(ERR_SYNTAX_ERROR,"Cannot have XML element content <"+rawName+">as part of typed literal");
-        
-        return super.startElement(uri,localName,rawName,atts);
-    }
+	final URIReference dtURI;
 
-    @Override
-    public void endElement() throws SAXParseException {
-       ARPDatatypeLiteral datatypeLiteral = new ARPDatatypeLiteral(this,getBuf().toString(),
-                      dtURI);
-       if (taint.isTainted())
-           datatypeLiteral.taint();
-    ((WantsObjectFrameI) getParent()).theObject(
-              datatypeLiteral); 
-       super.endElement();
-    }
-    @Override
-    public void afterChild() {
-    }
-    
-    
+	public WantTypedLiteral(WantsObjectFrameI p, String datatypeURI, AbsXMLContext ap) throws SAXParseException
+	{
+		super(p, ap);
+		dtURI = URIReference.resolve(this, xml, datatypeURI);
+	}
+
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		warning(ERR_SYNTAX_ERROR, "Cannot have XML element content <" + rawName + ">as part of typed literal");
+
+		return super.startElement(uri, localName, rawName, atts);
+	}
+
+	@Override
+	public void endElement() throws SAXParseException
+	{
+		ARPDatatypeLiteral datatypeLiteral = new ARPDatatypeLiteral(this, getBuf().toString(), dtURI);
+		if (taint.isTainted())
+			datatypeLiteral.taint();
+		((WantsObjectFrameI) getParent()).theObject(datatypeLiteral);
+		super.endElement();
+	}
+
+	@Override
+	public void afterChild()
+	{
+	}
 
 }

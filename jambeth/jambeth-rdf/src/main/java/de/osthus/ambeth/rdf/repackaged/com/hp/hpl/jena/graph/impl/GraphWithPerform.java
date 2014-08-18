@@ -16,25 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
-     GraphWithPerform is an implementation interface that extends Graph
-     with the performAdd and performDelete methods used by GraphBase
-     to invoke non-notifying versions of add and delete.
-     
-*/
+ * GraphWithPerform is an implementation interface that extends Graph with the performAdd and performDelete methods used by GraphBase to invoke non-notifying
+ * versions of add and delete.
+ */
 public interface GraphWithPerform extends Graph
-    {
-    /** 
-        add <code>t</code> to this graph, but do not generate any event 
-    */
-    public void performAdd( Triple t );
-   
-    /** 
-    	remove <code>t</code> from this graph, but do not generate any event 
-    */
-    public void performDelete( Triple t );
-    }
+{
+	/**
+	 * add <code>t</code> to this graph, but do not generate any event
+	 */
+	public void performAdd(Triple t);
+
+	/**
+	 * remove <code>t</code> from this graph, but do not generate any event
+	 */
+	public void performDelete(Triple t);
+}

@@ -16,55 +16,69 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.cache;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.cache;
 
-/** An interface for controlling the behaviour of a cache.
- *
- * <p>This is separated from the main {@link Cache } interface
- * so that methods return an object that can set control
- * parameters on a cache, without granting read/write access
- * to the cache itself.</p>
- *
- * <p>Cache's may be enabled or disabled.  A disabled cache
- * is a silent cache; it will silently not return objects
- * from its store and not update its store.  It will operate
- * as if the cache always missed.</p>
- *
- * <p>Cache's keep statistics on their accesses.  On a long
- * running cache the numbers may exceeed the size of the
- * variables counting the statistics, in which case, the
- * fields counting gets hits and puts are reduced
- * proportionately.</p>
+/**
+ * An interface for controlling the behaviour of a cache.
+ * 
+ * <p>
+ * This is separated from the main {@link Cache } interface so that methods return an object that can set control parameters on a cache, without granting
+ * read/write access to the cache itself.
+ * </p>
+ * 
+ * <p>
+ * Cache's may be enabled or disabled. A disabled cache is a silent cache; it will silently not return objects from its store and not update its store. It will
+ * operate as if the cache always missed.
+ * </p>
+ * 
+ * <p>
+ * Cache's keep statistics on their accesses. On a long running cache the numbers may exceeed the size of the variables counting the statistics, in which case,
+ * the fields counting gets hits and puts are reduced proportionately.
+ * </p>
  */
-public interface CacheControl {
-    
-    /** Get the enabled state of the cache
-     * @return The enabled state of the cache
-     */    
-    public boolean getEnabled();
-    
-    /** Set the enabled state of a cache
-     * @param enabled the new enabled state of the cache
-     * @return the previous enabled state of the cache
-     */    
-    public boolean setEnabled(boolean enabled);
-    
-    /** Clear the cache's store
-     */    
-    public void clear();
-    
-    /** Return number of gets on this cache.
-     *
-     *
-     * @return The number of gets on this cache.
-     */    
-    public long getGets();
-    /** Get the number of puts on this cache
-     * @return the number of puts
-     */    
-    public long getPuts();
-    /** Get the number of hits on this cache
-     * @return the number of hits
-     */    
-    public long getHits();
+public interface CacheControl
+{
+
+	/**
+	 * Get the enabled state of the cache
+	 * 
+	 * @return The enabled state of the cache
+	 */
+	public boolean getEnabled();
+
+	/**
+	 * Set the enabled state of a cache
+	 * 
+	 * @param enabled
+	 *            the new enabled state of the cache
+	 * @return the previous enabled state of the cache
+	 */
+	public boolean setEnabled(boolean enabled);
+
+	/**
+	 * Clear the cache's store
+	 */
+	public void clear();
+
+	/**
+	 * Return number of gets on this cache.
+	 * 
+	 * 
+	 * @return The number of gets on this cache.
+	 */
+	public long getGets();
+
+	/**
+	 * Get the number of puts on this cache
+	 * 
+	 * @return the number of puts
+	 */
+	public long getPuts();
+
+	/**
+	 * Get the number of hits on this cache
+	 * 
+	 * @return the number of hits
+	 */
+	public long getHits();
 }

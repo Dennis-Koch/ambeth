@@ -16,233 +16,294 @@
  * limitations under the License.
  */
 
-package jena.cmdline;
+package de.osthus.ambeth.rdf.repackaged.jena.cmdline;
 
-import java.util.* ;
+import java.util.*;
 
-/** A command line argument specification.
+/**
+ * A command line argument specification.
  */
 public class ArgDecl
 {
-    boolean takesValue ;
-    Set<String> names = new HashSet<>() ;
-    boolean takesArg = false ;
-    List<ArgHandler> argHooks = new ArrayList<>() ;
-    public static final boolean HasValue = true ;
-    public static final boolean NoValue = false ;
+	boolean takesValue;
+	Set<String> names = new HashSet<>();
+	boolean takesArg = false;
+	List<ArgHandler> argHooks = new ArrayList<>();
+	public static final boolean HasValue = true;
+	public static final boolean NoValue = false;
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 */
 
-    public ArgDecl(boolean hasValue)
-    {
-        takesValue = hasValue ;
-    }
+	public ArgDecl(boolean hasValue)
+	{
+		takesValue = hasValue;
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name      Name of argument
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name
+	 *            Name of argument
+	 */
 
-    public ArgDecl(boolean hasValue, String name)
-    {
-        this(hasValue) ;
-        addName(name) ;
-    }
+	public ArgDecl(boolean hasValue, String name)
+	{
+		this(hasValue);
+		addName(name);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name      Name of argument
-     * @param handler   ArgHandler
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name
+	 *            Name of argument
+	 * @param handler
+	 *            ArgHandler
+	 */
 
-    public ArgDecl(boolean hasValue, String name, ArgHandler handler)
-    {
-        this(hasValue) ;
-        addName(name) ;
-        addHook( handler );
-    }
+	public ArgDecl(boolean hasValue, String name, ArgHandler handler)
+	{
+		this(hasValue);
+		addName(name);
+		addHook(handler);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param handler   ArgHandler
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param handler
+	 *            ArgHandler
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, ArgHandler handler)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addHook( handler );
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, ArgHandler handler)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addHook(handler);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param name3      Name of argument
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param name3
+	 *            Name of argument
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, String name3)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addName(name3) ;
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, String name3)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addName(name3);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param name3      Name of argument
-     * @param handler   ArgHandler
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param name3
+	 *            Name of argument
+	 * @param handler
+	 *            ArgHandler
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, String name3, ArgHandler handler)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addName(name3) ;
-        addHook( handler );
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, String name3, ArgHandler handler)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addName(name3);
+		addHook(handler);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param name3      Name of argument
-     * @param name4      Name of argument
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param name3
+	 *            Name of argument
+	 * @param name4
+	 *            Name of argument
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addName(name3) ;
-        addName(name4) ;
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addName(name3);
+		addName(name4);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param name3      Name of argument
-     * @param name4      Name of argument
-     * @param handler    ArgHandler
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param name3
+	 *            Name of argument
+	 * @param name4
+	 *            Name of argument
+	 * @param handler
+	 *            ArgHandler
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4, ArgHandler handler)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addName(name3) ;
-        addName(name4) ;
-        addHook( handler );
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4, ArgHandler handler)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addName(name3);
+		addName(name4);
+		addHook(handler);
+	}
 
-    /** Create a declaration for a command argument.
-     *
-     * @param hasValue  Does it take a value or not?
-     * @param name1      Name of argument
-     * @param name2      Name of argument
-     * @param name3      Name of argument
-     * @param name4      Name of argument
-     * @param name5      Name of argument
-     * @param handler    ArgHandler
-     */
+	/**
+	 * Create a declaration for a command argument.
+	 * 
+	 * @param hasValue
+	 *            Does it take a value or not?
+	 * @param name1
+	 *            Name of argument
+	 * @param name2
+	 *            Name of argument
+	 * @param name3
+	 *            Name of argument
+	 * @param name4
+	 *            Name of argument
+	 * @param name5
+	 *            Name of argument
+	 * @param handler
+	 *            ArgHandler
+	 */
 
-    public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4, String name5, ArgHandler handler)
-    {
-        this(hasValue) ;
-        addName(name1) ;
-        addName(name2) ;
-        addName(name3) ;
-        addName(name4) ;
-        addName(name5) ;
-        addHook( handler );
-    }
+	public ArgDecl(boolean hasValue, String name1, String name2, String name3, String name4, String name5, ArgHandler handler)
+	{
+		this(hasValue);
+		addName(name1);
+		addName(name2);
+		addName(name3);
+		addName(name4);
+		addName(name5);
+		addHook(handler);
+	}
 
-    public void addName(String name)
-    {
-        name = canonicalForm(name) ;
-        names.add(name) ;
-    }
+	public void addName(String name)
+	{
+		name = canonicalForm(name);
+		names.add(name);
+	}
 
-    public Set<String> getNames() { return names ; }
-    public Iterator<String> names() { return names.iterator() ; }
+	public Set<String> getNames()
+	{
+		return names;
+	}
 
-    // Callback model
+	public Iterator<String> names()
+	{
+		return names.iterator();
+	}
 
-    public void addHook(ArgHandler argHandler)
-    {
-        argHooks.add(argHandler) ;
-    }
+	// Callback model
 
-    protected void trigger(Arg arg)
-    {
-        for ( ArgHandler handler : argHooks )
-        {
-            handler.action( arg.getName(), arg.getValue() );
-        }
-    }
+	public void addHook(ArgHandler argHandler)
+	{
+		argHooks.add(argHandler);
+	}
 
-    public boolean takesValue() { return takesValue ; }
+	protected void trigger(Arg arg)
+	{
+		for (ArgHandler handler : argHooks)
+		{
+			handler.action(arg.getName(), arg.getValue());
+		}
+	}
 
-    public boolean matches(Arg a)
-    {
-        for ( String n : names )
-        {
-            if ( a.getName().equals( n ) )
-            {
-                return true;
-            }
-        }
-        return false ;
-    }
+	public boolean takesValue()
+	{
+		return takesValue;
+	}
 
-    public boolean matches(String arg)
-    {
-        arg = canonicalForm(arg) ;
-        return names.contains(arg) ;
-    }
+	public boolean matches(Arg a)
+	{
+		for (String n : names)
+		{
+			if (a.getName().equals(n))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 
-    static String canonicalForm(String str)
-    {
-        if ( str.startsWith("--") )
-            return str.substring(2) ;
+	public boolean matches(String arg)
+	{
+		arg = canonicalForm(arg);
+		return names.contains(arg);
+	}
 
-        if ( str.startsWith("-") )
-            return str.substring(1) ;
+	static String canonicalForm(String str)
+	{
+		if (str.startsWith("--"))
+			return str.substring(2);
 
-        return str ;
-    }
+		if (str.startsWith("-"))
+			return str.substring(1);
+
+		return str;
+	}
 }

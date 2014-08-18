@@ -16,15 +16,13 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
- * Marker interface for classes than can be used to initialize the
- * state of an LP interpreter - either an initial context (which
- * in turn is either a top level iterator or an generator being
- * run for the first time), or a previaous saved context (i.e. a
- * ConsumerChoicePointFrame).
+ * Marker interface for classes than can be used to initialize the state of an LP interpreter - either an initial context (which in turn is either a top level
+ * iterator or an generator being run for the first time), or a previaous saved context (i.e. a ConsumerChoicePointFrame).
  */
-public interface LPInterpreterState {
+public interface LPInterpreterState
+{
 
 }

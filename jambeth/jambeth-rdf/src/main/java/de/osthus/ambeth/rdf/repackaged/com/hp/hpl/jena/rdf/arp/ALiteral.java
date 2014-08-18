@@ -22,43 +22,52 @@
  * Created on June 26, 2001, 9:27 AM
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
-import com.hp.hpl.jena.rdf.arp.impl.ANode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ANode;
 
 /**
- * A string literal property value from an RDF/XML file. 
+ * A string literal property value from an RDF/XML file.
  */
-public interface ALiteral extends ANode {
+public interface ALiteral extends ANode
+{
 
-/** True if this literal was formed from a rdf:parseType="Literal" construction.
- * @return true for rdf:parseType="Literal" or any other unrecognised parseType.
- */    
-    public boolean isWellFormedXML();
-    
-    // Usually null, maybe "Literal" or something else.
-/** When <CODE>isWellFormedXML()</CODE> is true, this returns the value of the <I>rdf:parseType</I> attribute, usually "Literal".
- * Otherwise <B>null</B> is returned.
- * @return The <I>parseType</I> for well formed XML, or <B>null</B> for normal literals.
- */    
-    public String getParseType();
-    
-    /**
-     * The datatype URI of a typed literal, or null 
-     * for an untyped literal.
-     * @return the URI as a String, or null
-     */
-    public String getDatatypeURI();
-    
-/** The string value of the literal.
- * @return The string.
- */    
-    @Override
-    public String toString();
-    
-    // never null - maybe ""
-/** The value of xml:lang for this literal, often the empty string.
- * @return xml:lang.
- */    
-    public String getLang();
+	/**
+	 * True if this literal was formed from a rdf:parseType="Literal" construction.
+	 * 
+	 * @return true for rdf:parseType="Literal" or any other unrecognised parseType.
+	 */
+	public boolean isWellFormedXML();
+
+	// Usually null, maybe "Literal" or something else.
+	/**
+	 * When <CODE>isWellFormedXML()</CODE> is true, this returns the value of the <I>rdf:parseType</I> attribute, usually "Literal". Otherwise <B>null</B> is
+	 * returned.
+	 * 
+	 * @return The <I>parseType</I> for well formed XML, or <B>null</B> for normal literals.
+	 */
+	public String getParseType();
+
+	/**
+	 * The datatype URI of a typed literal, or null for an untyped literal.
+	 * 
+	 * @return the URI as a String, or null
+	 */
+	public String getDatatypeURI();
+
+	/**
+	 * The string value of the literal.
+	 * 
+	 * @return The string.
+	 */
+	@Override
+	public String toString();
+
+	// never null - maybe ""
+	/**
+	 * The value of xml:lang for this literal, often the empty string.
+	 * 
+	 * @return xml:lang.
+	 */
+	public String getLang();
 }

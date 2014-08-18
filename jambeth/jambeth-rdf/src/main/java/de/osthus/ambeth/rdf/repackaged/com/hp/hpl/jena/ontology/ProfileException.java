@@ -18,52 +18,46 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
 /**
  * <p>
- * Exception that is raised when an ontology operation is attempted that is 
- * not present in the language profile for the current ontology model. For example,
- * if the language profile is 
- * {@linkplain com.hp.hpl.jena.ontology.ProfileRegistry#OWL_LITE_LANG owl lite},
- * class complements are not permitted and so that element of the profile is null.
- * An attempt to create a class complement in an OWL Lite model will raise a 
- * ProfileException. 
+ * Exception that is raised when an ontology operation is attempted that is not present in the language profile for the current ontology model. For example, if
+ * the language profile is {@linkplain de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology.ProfileRegistry#OWL_LITE_LANG owl lite}, class complements are
+ * not permitted and so that element of the profile is null. An attempt to create a class complement in an OWL Lite model will raise a ProfileException.
  * </p>
  */
-public class ProfileException
-    extends OntologyException 
+public class ProfileException extends OntologyException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Static variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    public ProfileException( String element, Profile profile ) {
-        super( "Attempted to use language construct " + element + " that is not supported in the current language profile: " + 
-               ((profile == null) ? "not specified" : profile.getLabel()) );
-    }
-    
-    
-    // External signature methods
-    //////////////////////////////////
+	public ProfileException(String element, Profile profile)
+	{
+		super("Attempted to use language construct " + element + " that is not supported in the current language profile: "
+				+ ((profile == null) ? "not specified" : profile.getLabel()));
+	}
 
-    // Internal implementation methods
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// Internal implementation methods
+	// ////////////////////////////////
+
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

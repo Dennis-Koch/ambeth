@@ -16,41 +16,41 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner;
 
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
- * Minimal interface for preforming simple pattern find operations.
- * Should be implemented by reasoners, caches and related datastructures.
+ * Minimal interface for preforming simple pattern find operations. Should be implemented by reasoners, caches and related datastructures.
  */
-public interface Finder {
+public interface Finder
+{
 
-    /**
-     * Basic pattern lookup interface.
-     * @param pattern a TriplePattern to be matched against the data
-     * @return a ClosableIterator over all Triples in the data set
-     *  that match the pattern
-     */
-    public ExtendedIterator<Triple> find(TriplePattern pattern);
-    
-    /**
-     * Extended find interface used in situations where the implementator
-     * may or may not be able to answer the complete query. It will
-     * attempt to answer the pattern but if its answers are not known
-     * to be complete then it will also pass the request on to the nested
-     * Finder to append more results.
-     * @param pattern a TriplePattern to be matched against the data
-     * @param continuation either a Finder or a normal Graph which
-     * will be asked for additional match results if the implementor
-     * may not have completely satisfied the query.
-     */
-    public ExtendedIterator<Triple> findWithContinuation(TriplePattern pattern, Finder continuation);
+	/**
+	 * Basic pattern lookup interface.
+	 * 
+	 * @param pattern
+	 *            a TriplePattern to be matched against the data
+	 * @return a ClosableIterator over all Triples in the data set that match the pattern
+	 */
+	public ExtendedIterator<Triple> find(TriplePattern pattern);
 
-    /**
-     * Return true if the given pattern occurs somewhere in the find sequence.
-     */
-    public boolean contains(TriplePattern pattern);
-    
+	/**
+	 * Extended find interface used in situations where the implementator may or may not be able to answer the complete query. It will attempt to answer the
+	 * pattern but if its answers are not known to be complete then it will also pass the request on to the nested Finder to append more results.
+	 * 
+	 * @param pattern
+	 *            a TriplePattern to be matched against the data
+	 * @param continuation
+	 *            either a Finder or a normal Graph which will be asked for additional match results if the implementor may not have completely satisfied the
+	 *            query.
+	 */
+	public ExtendedIterator<Triple> findWithContinuation(TriplePattern pattern, Finder continuation);
+
+	/**
+	 * Return true if the given pattern occurs somewhere in the find sequence.
+	 */
+	public boolean contains(TriplePattern pattern);
+
 }

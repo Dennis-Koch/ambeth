@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
-import com.hp.hpl.jena.rdf.arp.impl.ANode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ANode;
 
-interface WantsObjectI {
-    void theObject(ANode a);
+interface WantsObjectI
+{
+	void theObject(ANode a);
 }

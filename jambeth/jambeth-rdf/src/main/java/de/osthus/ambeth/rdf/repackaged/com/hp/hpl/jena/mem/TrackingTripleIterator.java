@@ -16,33 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
 import java.util.Iterator;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.util.iterator.WrappedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.WrappedIterator;
 
 /**
-    A WrappedIterator which remembers the last object next'ed in a
-    protected instance variable, so that subclasses have access to it 
-    during .remove.
-*/
+ * A WrappedIterator which remembers the last object next'ed in a protected instance variable, so that subclasses have access to it during .remove.
+ */
 public class TrackingTripleIterator extends WrappedIterator<Triple>
-    {
-    public TrackingTripleIterator( Iterator<Triple> it ) 
-        { super( it ); }    
-    
-    /**
-        The remembered current triple. Subclass should *not* assign to this variable. 
-    */
-    protected Triple current;
-        
-    /**
-        Answer the next object, remembering it in <code>current</code>. 
-     	@see java.util.Iterator#next()
-    */
-    @Override
-    public Triple next()
-        { return current = super.next(); }       
-    }
+{
+	public TrackingTripleIterator(Iterator<Triple> it)
+	{
+		super(it);
+	}
+
+	/**
+	 * The remembered current triple. Subclass should *not* assign to this variable.
+	 */
+	protected Triple current;
+
+	/**
+	 * Answer the next object, remembering it in <code>current</code>.
+	 * 
+	 * @see java.util.Iterator#next()
+	 */
+	@Override
+	public Triple next()
+	{
+		return current = super.next();
+	}
+}

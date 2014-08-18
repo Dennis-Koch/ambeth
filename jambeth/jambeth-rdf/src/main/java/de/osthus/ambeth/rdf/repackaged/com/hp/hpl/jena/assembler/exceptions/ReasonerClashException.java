@@ -16,16 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception to throw when a reasoner [or factory] has multiple clashing
-    descriptions.
-*/
+ * Exception to throw when a reasoner [or factory] has multiple clashing descriptions.
+ */
 public class ReasonerClashException extends AssemblerException
-    {
-    public ReasonerClashException( Resource root )
-        { super( root, "root has both reasonerFactory and reasonerURL properties" ); }
-    }
+{
+	public ReasonerClashException(Resource root)
+	{
+		super(root, "root has both reasonerFactory and reasonerURL properties");
+	}
+}

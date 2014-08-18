@@ -16,64 +16,57 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    Interface for expressing capabilities.
+ * Interface for expressing capabilities.
  */
 public interface Capabilities
-    {
-    /**
-        Answer true iff Graph::size() is accurate.
-     */
-    boolean sizeAccurate();
-    
-    /**
-        Answer true if Graph::add() can be used to add at least some triples to
-        the graph.
-    */
-    boolean addAllowed();
-    
-    /**
-        Answer true if Graph::add() can be used to add at least some triples to the
-        graph. If everyTriple is true, answer true iff *any* triple can be added (ie the
-        graph places no special restrictions on triples).
-    */
-    boolean addAllowed( boolean everyTriple );
-    
-    /**
-        Answer true iff Graph::delete() can be used to remove at least some triples
-        from the graph.
-    */
-    boolean deleteAllowed();
-    
-    /**
-        Answer true if Graph::delete() can be used to remove at least some triples 
-        from the graph. If everyTriple is true, any such triple may be removed.
-    */
-    boolean deleteAllowed( boolean everyTriple );
-    
-    /**
-    	Answer true iff the iterators returned from <b>find</b> support the .remove()
-        operation. 
-    */
-    boolean iteratorRemoveAllowed();
-    
-    /**
-        Answer true iff the graph can be completely empty.
-     */
-    boolean canBeEmpty();
+{
+	/**
+	 * Answer true iff Graph::size() is accurate.
+	 */
+	boolean sizeAccurate();
 
-    /**
-         Answer true if the find() contract on the associated graph is "safe", ie,
-         can be used safely by the pretty-printer (we'll tighten up that definition).
-     */
-    boolean findContractSafe();
+	/**
+	 * Answer true if Graph::add() can be used to add at least some triples to the graph.
+	 */
+	boolean addAllowed();
 
-    /**
-        Answer true iff this graph compares literals for equality by value
-        rather than by lexical form (the memory-based graphs do; 
-        TDB model do mostly (because of canonicalization), SDB models don't).
-    */
-    boolean handlesLiteralTyping();
-    }
+	/**
+	 * Answer true if Graph::add() can be used to add at least some triples to the graph. If everyTriple is true, answer true iff *any* triple can be added (ie
+	 * the graph places no special restrictions on triples).
+	 */
+	boolean addAllowed(boolean everyTriple);
+
+	/**
+	 * Answer true iff Graph::delete() can be used to remove at least some triples from the graph.
+	 */
+	boolean deleteAllowed();
+
+	/**
+	 * Answer true if Graph::delete() can be used to remove at least some triples from the graph. If everyTriple is true, any such triple may be removed.
+	 */
+	boolean deleteAllowed(boolean everyTriple);
+
+	/**
+	 * Answer true iff the iterators returned from <b>find</b> support the .remove() operation.
+	 */
+	boolean iteratorRemoveAllowed();
+
+	/**
+	 * Answer true iff the graph can be completely empty.
+	 */
+	boolean canBeEmpty();
+
+	/**
+	 * Answer true if the find() contract on the associated graph is "safe", ie, can be used safely by the pretty-printer (we'll tighten up that definition).
+	 */
+	boolean findContractSafe();
+
+	/**
+	 * Answer true iff this graph compares literals for equality by value rather than by lexical form (the memory-based graphs do; TDB model do mostly (because
+	 * of canonicalization), SDB models don't).
+	 */
+	boolean handlesLiteralTyping();
+}

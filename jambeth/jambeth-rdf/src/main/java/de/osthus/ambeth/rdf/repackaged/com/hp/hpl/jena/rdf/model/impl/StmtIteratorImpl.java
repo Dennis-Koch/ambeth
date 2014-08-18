@@ -16,38 +16,45 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.Iterator;
 
-/** An implementation of StmtIterator.
+/**
+ * An implementation of StmtIterator.
  */
 
-
 public class StmtIteratorImpl extends WrappedIterator<Statement> implements StmtIterator
-    {
-    private Statement current;
-    
-    public StmtIteratorImpl( Iterator<Statement>iterator )
-        { super( iterator ); }
+{
+	private Statement current;
 
-    /**
-        return *and remember* the next element. It must be remembered
-        so that remove works whichever next-method is called.
-    */
-    @Override public Statement next()
-        { return current = super.next(); }
-        
-    @Override public void remove()
-        {
-        super.remove();
-        current.remove();
-        }
-        
-    @Override
-    public Statement nextStatement()
-        { return next(); }
-    }
+	public StmtIteratorImpl(Iterator<Statement> iterator)
+	{
+		super(iterator);
+	}
+
+	/**
+	 * return *and remember* the next element. It must be remembered so that remove works whichever next-method is called.
+	 */
+	@Override
+	public Statement next()
+	{
+		return current = super.next();
+	}
+
+	@Override
+	public void remove()
+	{
+		super.remove();
+		current.remove();
+	}
+
+	@Override
+	public Statement nextStatement()
+	{
+		return next();
+	}
+}

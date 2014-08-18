@@ -16,41 +16,43 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.NodeFactory ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.NodeFactory;
 
-/** Map from _:* form to bNodes
+/**
+ * Map from _:* form to bNodes
  */
 
 public class LabelToNodeMap
 {
-    Map<String, Node> bNodeLabels = new HashMap<>() ;
-    
-    public LabelToNodeMap()
-    {}
+	Map<String, Node> bNodeLabels = new HashMap<>();
 
-    public Node asNode(String label)
-    {
-        Node n = bNodeLabels.get(label) ;
-        if ( n != null )
-            return n ;
-        n = allocNode() ;
-        bNodeLabels.put(label, n) ;
-        return n ;
-    }
-    
-    public Node allocNode()
-    {
-        return NodeFactory.createAnon() ;
-    }
-    
-    public void clear()
-    {
-        bNodeLabels.clear() ;
-    }
+	public LabelToNodeMap()
+	{
+	}
+
+	public Node asNode(String label)
+	{
+		Node n = bNodeLabels.get(label);
+		if (n != null)
+			return n;
+		n = allocNode();
+		bNodeLabels.put(label, n);
+		return n;
+	}
+
+	public Node allocNode()
+	{
+		return NodeFactory.createAnon();
+	}
+
+	public void clear()
+	{
+		bNodeLabels.clear();
+	}
 }

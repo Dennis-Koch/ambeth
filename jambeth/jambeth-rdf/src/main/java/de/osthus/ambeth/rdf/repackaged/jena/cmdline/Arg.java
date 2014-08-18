@@ -16,39 +16,76 @@
  * limitations under the License.
  */
 
-package jena.cmdline;
+package de.osthus.ambeth.rdf.repackaged.jena.cmdline;
 
-import java.util.* ;
+import java.util.*;
 
-/** A command line argument that has been foundspecification.
+/**
+ * A command line argument that has been foundspecification.
  */
 public class Arg
 {
-    String name ;
-    String value ;
-    List<String> values = new ArrayList<>() ;
-    
-    Arg() { name = null ; value = null ; }
-    
-    Arg(String _name) { this() ; setName(_name) ; }
-    
-    Arg(String _name, String _value) { this() ; setName(_name) ; setValue(_value) ; }
-    
-    void setName(String n) { name = n ; }
-    
-    void setValue(String v) { value = v ; }
-    void addValue(String v) { values.add(v) ; }
-    
-    public String getName() { return name ; }
-    public String getValue() { return value; }
-    public List<String> getValues() { return values; }
-    
-    public boolean hasValue() { return value != null ; }
-    
-    public boolean matches(ArgDecl decl)
-    {
-        return decl.getNames().contains(name) ;
-    }
-    
-        
+	String name;
+	String value;
+	List<String> values = new ArrayList<>();
+
+	Arg()
+	{
+		name = null;
+		value = null;
+	}
+
+	Arg(String _name)
+	{
+		this();
+		setName(_name);
+	}
+
+	Arg(String _name, String _value)
+	{
+		this();
+		setName(_name);
+		setValue(_value);
+	}
+
+	void setName(String n)
+	{
+		name = n;
+	}
+
+	void setValue(String v)
+	{
+		value = v;
+	}
+
+	void addValue(String v)
+	{
+		values.add(v);
+	}
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getValue()
+	{
+		return value;
+	}
+
+	public List<String> getValues()
+	{
+		return values;
+	}
+
+	public boolean hasValue()
+	{
+		return value != null;
+	}
+
+	public boolean matches(ArgDecl decl)
+	{
+		return decl.getNames().contains(name);
+	}
+
 }

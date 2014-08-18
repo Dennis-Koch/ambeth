@@ -16,21 +16,25 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-/** Create an application specific resource instance.
- *
- * <p>Applications may need to have classes which add behaviour to Resources,
- * e.g. to support the behaviour of container classes.  Factory objects
- * supporting this interface may be used to construct instances of these
- * so called enhanced resources.</p>
-
+/**
+ * Create an application specific resource instance.
+ * 
+ * <p>
+ * Applications may need to have classes which add behaviour to Resources, e.g. to support the behaviour of container classes. Factory objects supporting this
+ * interface may be used to construct instances of these so called enhanced resources.
+ * </p>
  */
-@Deprecated public interface ResourceF {
-    /** Create new resource instance which extends the behaviour of a supplied
-     * resource.
-     * @param r The core resource whose behaviour is to be extended.
-     * @return the newly created resource.
-     */
-  Resource createResource(Resource r);
+@Deprecated
+public interface ResourceF
+{
+	/**
+	 * Create new resource instance which extends the behaviour of a supplied resource.
+	 * 
+	 * @param r
+	 *            The core resource whose behaviour is to be extended.
+	 * @return the newly created resource.
+	 */
+	Resource createResource(Resource r);
 }

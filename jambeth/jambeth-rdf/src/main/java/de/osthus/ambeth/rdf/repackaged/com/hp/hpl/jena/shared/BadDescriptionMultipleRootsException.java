@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-     Exception to throw if a Description contains multiple roots of
-     a specified type.
-*/
-public class BadDescriptionMultipleRootsException 
-    extends BadDescriptionException
-    {
-    public final Resource type;
-    
-    public BadDescriptionMultipleRootsException( Model badModel, Resource type )
-        { super( "multiple roots with type " + type, badModel );
-        this.type = type; }
-    }
+ * Exception to throw if a Description contains multiple roots of a specified type.
+ */
+public class BadDescriptionMultipleRootsException extends BadDescriptionException
+{
+	public final Resource type;
+
+	public BadDescriptionMultipleRootsException(Model badModel, Resource type)
+	{
+		super("multiple roots with type " + type, badModel);
+		this.type = type;
+	}
+}

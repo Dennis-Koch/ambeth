@@ -16,45 +16,50 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes;
 
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
- * Exception thrown when a lexical form does not match the stated
- * datatype.
+ * Exception thrown when a lexical form does not match the stated datatype.
  */
-public class DatatypeFormatException extends JenaException 
+public class DatatypeFormatException extends JenaException
 {
-    
-    // TODO Could consider storing the lexical form and datatype in locals
-    // with accessors.
-    
-    /**
-     * Preferred constructor.
-     * @param lexicalForm the illegal string discovered
-     * @param dtype the datatype that found the problem
-     * @param msg additional context for the error
-     */
-    public DatatypeFormatException(String lexicalForm, RDFDatatype dtype, String msg) {
-        super("Lexical form '" + lexicalForm +
-               "' is not a legal instance of " + dtype + " " + msg);
-    }
-                  
-    /**
-     * Creates a new instance of <code>DatatypeFormatException</code> 
-     * without detail message.
-     */
-    public DatatypeFormatException() {
-    }
-    
-    /**
-     * Constructs an instance of <code>DatatypeFormatException</code> 
-     * with the specified detail message.
-     * @param msg the detail message.
-     */
-    public DatatypeFormatException(String msg) {
-        super(msg);
-    }
+
+	// TODO Could consider storing the lexical form and datatype in locals
+	// with accessors.
+
+	/**
+	 * Preferred constructor.
+	 * 
+	 * @param lexicalForm
+	 *            the illegal string discovered
+	 * @param dtype
+	 *            the datatype that found the problem
+	 * @param msg
+	 *            additional context for the error
+	 */
+	public DatatypeFormatException(String lexicalForm, RDFDatatype dtype, String msg)
+	{
+		super("Lexical form '" + lexicalForm + "' is not a legal instance of " + dtype + " " + msg);
+	}
+
+	/**
+	 * Creates a new instance of <code>DatatypeFormatException</code> without detail message.
+	 */
+	public DatatypeFormatException()
+	{
+	}
+
+	/**
+	 * Constructs an instance of <code>DatatypeFormatException</code> with the specified detail message.
+	 * 
+	 * @param msg
+	 *            the detail message.
+	 */
+	public DatatypeFormatException(String msg)
+	{
+		super(msg);
+	}
 
 }

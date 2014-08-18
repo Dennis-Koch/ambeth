@@ -16,33 +16,41 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 /**
-    The interface for visiting (ie type-dispatching) an RDF Node.
-*/
+ * The interface for visiting (ie type-dispatching) an RDF Node.
+ */
 public interface RDFVisitor
-    {
-    /**
-        Method to call when visiting a blank node r with identifier id.
-        @param r the blank RDF node being visited
-        @param id the identifier of that node
-        @return value to be returned from the visit
-    */
-    Object visitBlank( Resource r, AnonId id );
-    
-    /**
-        Method to call when visiting a URI node r with the given uri.
-        @param r the URI node being visited
-        @param uri the URI string of that node
-        @return value to be returned from the visit
-    */
-    Object visitURI( Resource r, String uri );
-    
-    /**
-        Method to call when visiting a literal RDF node l.
-        @param l the RDF Literal node
-        @return a value to be returned from the visit
-    */
-    Object visitLiteral( Literal l );
-    }
+{
+	/**
+	 * Method to call when visiting a blank node r with identifier id.
+	 * 
+	 * @param r
+	 *            the blank RDF node being visited
+	 * @param id
+	 *            the identifier of that node
+	 * @return value to be returned from the visit
+	 */
+	Object visitBlank(Resource r, AnonId id);
+
+	/**
+	 * Method to call when visiting a URI node r with the given uri.
+	 * 
+	 * @param r
+	 *            the URI node being visited
+	 * @param uri
+	 *            the URI string of that node
+	 * @return value to be returned from the visit
+	 */
+	Object visitURI(Resource r, String uri);
+
+	/**
+	 * Method to call when visiting a literal RDF node l.
+	 * 
+	 * @param l
+	 *            the RDF Literal node
+	 * @return a value to be returned from the visit
+	 */
+	Object visitLiteral(Literal l);
+}

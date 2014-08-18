@@ -16,50 +16,55 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
 
 /**
- * A multi set of BindingVector's divided in buckets matching an unique
- * combination of values at given indices managed by RETEQueue
+ * A multi set of BindingVector's divided in buckets matching an unique combination of values at given indices managed by RETEQueue
  */
-public class BindingVectorMultiSet {
+public class BindingVectorMultiSet
+{
 
 	/**
-	 * Inner class used to represent an updatable count.
-	 * Formerly enclosed in RETEQueue
+	 * Inner class used to represent an updatable count. Formerly enclosed in RETEQueue
 	 */
-	protected static class Count {
+	protected static class Count
+	{
 		/** the count */
 		int count;
 
 		/** Constructor */
-		public Count(int count) {
+		public Count(int count)
+		{
 			this.count = count;
 		}
 
 		/** Decrement the count value */
-		public void dec() {
+		public void dec()
+		{
 			count--;
 		}
 
 		/** Access count value */
-		public int getCount() {
+		public int getCount()
+		{
 			return count;
 		}
 
 		/** Increment the count value */
-		public void inc() {
+		public void inc()
+		{
 			count++;
 		}
 
 		/** Set the count value */
-		public void setCount(int count) {
+		public void setCount(int count)
+		{
 			this.count = count;
 		}
 	}
@@ -76,7 +81,8 @@ public class BindingVectorMultiSet {
 	 * @param matchIndices
 	 *            a set of indices for matching
 	 */
-	public BindingVectorMultiSet(byte[] matchIndices) {
+	public BindingVectorMultiSet(byte[] matchIndices)
+	{
 		this.matchIndices = matchIndices;
 	}
 
@@ -85,11 +91,15 @@ public class BindingVectorMultiSet {
 	 * 
 	 * @param env
 	 */
-	public void add(BindingVector env) {
+	public void add(BindingVector env)
+	{
 		Count c = get(env);
-		if (c == null) {
+		if (c == null)
+		{
 			put(env, new Count(1));
-		} else {
+		}
+		else
+		{
 			c.inc();
 		}
 	}
@@ -100,24 +110,26 @@ public class BindingVectorMultiSet {
 	 * @param env
 	 * @return
 	 */
-	protected Count get(BindingVector env) {
+	protected Count get(BindingVector env)
+	{
 		Map<BindingVector, Count> set = getRawSubSet(env);
 		return (set == null ? null : set.get(env));
 	}
 
 	/**
-	 * Create a BindingVector containing only values at matchIndices so it can
-	 * be used as key
+	 * Create a BindingVector containing only values at matchIndices so it can be used as key
 	 * 
 	 * @param env
 	 *            BindingVector to find the key for
 	 * @return the key BindingVector
 	 */
-	protected BindingVector getPartialEnv(BindingVector env) {
+	protected BindingVector getPartialEnv(BindingVector env)
+	{
 		Node[] envNodes = env.getEnvironment();
 
 		Node[] partialEnv = new Node[envNodes.length];
-		for (byte i : matchIndices) {
+		for (byte i : matchIndices)
+		{
 			partialEnv[i] = envNodes[i];
 		}
 		return new BindingVector(partialEnv);
@@ -129,20 +141,20 @@ public class BindingVectorMultiSet {
 	 * @param env
 	 * @return
 	 */
-	protected Map<BindingVector, Count> getRawSubSet(BindingVector env) {
+	protected Map<BindingVector, Count> getRawSubSet(BindingVector env)
+	{
 		return data.get(getPartialEnv(env));
 	}
 
 	/**
-	 * Get an iterator over all BindingVectors currently present which match
-	 * with env
+	 * Get an iterator over all BindingVectors currently present which match with env
 	 * 
 	 * @param env
 	 */
-	public Iterator<BindingVector> getSubSet(BindingVector env) {
+	public Iterator<BindingVector> getSubSet(BindingVector env)
+	{
 		Map<BindingVector, Count> rawSubSet = getRawSubSet(env);
-		return (rawSubSet == null ? new HashMap<BindingVector, Count>(0)
-				: rawSubSet).keySet().iterator();
+		return (rawSubSet == null ? new HashMap<BindingVector, Count>(0) : rawSubSet).keySet().iterator();
 
 	}
 
@@ -152,9 +164,11 @@ public class BindingVectorMultiSet {
 	 * @param env
 	 * @param c
 	 */
-	protected void put(BindingVector env, Count c) {
+	protected void put(BindingVector env, Count c)
+	{
 		Map<BindingVector, Count> set = getRawSubSet(env);
-		if (set == null) {
+		if (set == null)
+		{
 			set = new HashMap<>();
 			data.put(getPartialEnv(env), set);
 		}
@@ -163,22 +177,22 @@ public class BindingVectorMultiSet {
 	}
 
 	/**
-	 * Copy all item from queue.data into data.
-	 * Assumes this and queue share the same matchIndices.
+	 * Copy all item from queue.data into data. Assumes this and queue share the same matchIndices.
 	 * 
 	 * @param queue
 	 */
-	public void putAll(BindingVectorMultiSet queue) {
-        for ( BindingVector env : queue.data.keySet() )
-        {
-            Map<BindingVector, Count> set = getRawSubSet( env );
-            if ( set == null )
-            {
-                set = new HashMap<>();
-                data.put( env, set );
-            }
-            set.putAll( queue.data.get( env ) );
-        }
+	public void putAll(BindingVectorMultiSet queue)
+	{
+		for (BindingVector env : queue.data.keySet())
+		{
+			Map<BindingVector, Count> set = getRawSubSet(env);
+			if (set == null)
+			{
+				set = new HashMap<>();
+				data.put(env, set);
+			}
+			set.putAll(queue.data.get(env));
+		}
 	}
 
 	/**
@@ -186,19 +200,26 @@ public class BindingVectorMultiSet {
 	 * 
 	 * @param env
 	 */
-	public void remove(BindingVector env) {
+	public void remove(BindingVector env)
+	{
 		BindingVector key = getPartialEnv(env);
 		Map<BindingVector, Count> set = data.get(key);
-		if (set != null) {
+		if (set != null)
+		{
 			Count c = set.get(env);
-			if (c != null) {
-				if (c.getCount() > 1) {
+			if (c != null)
+			{
+				if (c.getCount() > 1)
+				{
 					c.dec();
-				} else { // clean up
+				}
+				else
+				{ // clean up
 					set.remove(env);
 				}
 			}
-			if (set.isEmpty()) {
+			if (set.isEmpty())
+			{
 				data.remove(key);
 			}
 		}

@@ -16,14 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.Node;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
 
 /**
-    The exception thrown by reifyAs if a node is bound to bits and
-    pieces of (an)other triple(s).
-*/
+ * The exception thrown by reifyAs if a node is bound to bits and pieces of (an)other triple(s).
+ */
 public class CannotReifyException extends JenaException
-    { public CannotReifyException( Node n ) { super( n.toString() ); } }
+{
+	public CannotReifyException(Node n)
+	{
+		super(n.toString());
+	}
+}

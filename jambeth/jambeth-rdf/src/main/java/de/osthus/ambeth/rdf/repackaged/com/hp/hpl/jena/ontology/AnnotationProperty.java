@@ -18,33 +18,25 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.rdf.model.*;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
  * <p>
- * Interface that represents the category of annotation properties in an ontology
- * language.  Annotation properties are distinguished in some languages (such as
- * OWL) - in order to maintain theoretical properties of the language, which depend
- * on clean separation of syntactic categories.  Annotation properties may not be
- * used in property expressions. There is no guarantee that a given language will
- * have any annotation properties.
+ * Interface that represents the category of annotation properties in an ontology language. Annotation properties are distinguished in some languages (such as
+ * OWL) - in order to maintain theoretical properties of the language, which depend on clean separation of syntactic categories. Annotation properties may not
+ * be used in property expressions. There is no guarantee that a given language will have any annotation properties.
  * </p>
  */
-public interface AnnotationProperty
-    extends OntProperty, Property
+public interface AnnotationProperty extends OntProperty, Property
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

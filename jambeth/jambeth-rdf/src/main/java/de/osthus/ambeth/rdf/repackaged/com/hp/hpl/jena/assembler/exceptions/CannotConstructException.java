@@ -16,61 +16,64 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.assembler.Assembler;
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.Assembler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception used to report a failure of a group assembler to construct an
-    object because there is no component assembler associated with the
-    object's most specific type.
-*/
+ * Exception used to report a failure of a group assembler to construct an object because there is no component assembler associated with the object's most
+ * specific type.
+ */
 public class CannotConstructException extends AssemblerException
-    {
-    protected final Resource type;
-    protected final Class<?> assemblerClass;
-    
-    public CannotConstructException( Class<?> assemblerClass, Resource root, Resource type )
-        {
-        super( root, constructMessage( assemblerClass, root, type ) );
-        this.type = type; 
-        this.assemblerClass = assemblerClass;
-        }
+{
+	protected final Resource type;
+	protected final Class<?> assemblerClass;
 
-    private static String constructMessage( Class<?>assemblerClass, Resource root, Resource type )
-        {
-        return 
-            "the assembler " + getClassName( assemblerClass )
-            + " cannot construct the object named " + nice( root )
-            + " because it is not of rdf:type " + nice( type ) 
-            ;
-        }
-    
-    private static final String rootPrefix = getPackagePrefix( Assembler.class.getName() );
-    
-    private static String getClassName( Class<?> c )
-        {
-        String name = c.getName();
-        return getPackagePrefix( name ).equals( rootPrefix ) ? getLeafName( name ) : name;
-        }
+	public CannotConstructException(Class<?> assemblerClass, Resource root, Resource type)
+	{
+		super(root, constructMessage(assemblerClass, root, type));
+		this.type = type;
+		this.assemblerClass = assemblerClass;
+	}
 
-    private static String getLeafName( String name )
-        { return name.substring( name.lastIndexOf( '.' ) + 1 ); }
+	private static String constructMessage(Class<?> assemblerClass, Resource root, Resource type)
+	{
+		return "the assembler " + getClassName(assemblerClass) + " cannot construct the object named " + nice(root) + " because it is not of rdf:type "
+				+ nice(type);
+	}
 
-    private static String getPackagePrefix( String name )
-        { return name.substring( 0, name.lastIndexOf( '.' ) ); }
+	private static final String rootPrefix = getPackagePrefix(Assembler.class.getName());
 
-    /**
-        Answer the Assembler that cannot do the construction.
-    */
-    public Class<?> getAssemblerClass()
-        { return assemblerClass; }
+	private static String getClassName(Class<?> c)
+	{
+		String name = c.getName();
+		return getPackagePrefix(name).equals(rootPrefix) ? getLeafName(name) : name;
+	}
 
-    /**
-        Answer the (alleged most-specific) type of the object that could not be
-        constructed.
-    */
-    public Resource getType()
-        { return type; }
-    }
+	private static String getLeafName(String name)
+	{
+		return name.substring(name.lastIndexOf('.') + 1);
+	}
+
+	private static String getPackagePrefix(String name)
+	{
+		return name.substring(0, name.lastIndexOf('.'));
+	}
+
+	/**
+	 * Answer the Assembler that cannot do the construction.
+	 */
+	public Class<?> getAssemblerClass()
+	{
+		return assemblerClass;
+	}
+
+	/**
+	 * Answer the (alleged most-specific) type of the object that could not be constructed.
+	 */
+	public Resource getType()
+	{
+		return type;
+	}
+}

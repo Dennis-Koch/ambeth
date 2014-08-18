@@ -16,35 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.assembler.Assembler;
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.Assembler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 public class NoImplementationException extends AssemblerException
-    {
-    final Resource type;
-    final Assembler assembler;
-    
-    public NoImplementationException( Assembler assembler, Resource root, Resource type )
-        {
-        super( root, messageFor( assembler, root, type ) );
-        this.type = type;
-        this.assembler = assembler;
-        }
+{
+	final Resource type;
+	final Assembler assembler;
 
-    private static String messageFor( Assembler a, Resource root, Resource type )
-        {
-        return
-            "the (group) Assembler " + a 
-            + " cannot construct the object " + nice( root )
-            + " because it does not have an implementation for the objects's most specific type " + nice( type )
-            ;
-        }
-    
-    public Resource getType()
-        { return type; }
+	public NoImplementationException(Assembler assembler, Resource root, Resource type)
+	{
+		super(root, messageFor(assembler, root, type));
+		this.type = type;
+		this.assembler = assembler;
+	}
 
-    public Assembler getAssembler()
-        { return assembler; }
-    }
+	private static String messageFor(Assembler a, Resource root, Resource type)
+	{
+		return "the (group) Assembler " + a + " cannot construct the object " + nice(root)
+				+ " because it does not have an implementation for the objects's most specific type " + nice(type);
+	}
+
+	public Resource getType()
+	{
+		return type;
+	}
+
+	public Assembler getAssembler()
+	{
+		return assembler;
+	}
+}

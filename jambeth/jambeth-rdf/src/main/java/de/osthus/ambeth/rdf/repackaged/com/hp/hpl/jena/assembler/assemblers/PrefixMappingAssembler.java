@@ -16,46 +16,46 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.shared.PrefixMapping;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.PrefixMapping;
 
 public class PrefixMappingAssembler extends AssemblerBase implements Assembler
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode irrelevant )
-        {
-        checkType( root, JA.PrefixMapping );
-        return getPrefixes( a, root, PrefixMapping.Factory.create() ); 
-        }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.PrefixMapping);
+		return getPrefixes(a, root, PrefixMapping.Factory.create());
+	}
 
-    public static PrefixMapping getPrefixes( Assembler a, Resource root, PrefixMapping result )
-        {
-        setSimplePrefixes( root, result );
-        includePrefixesFor( a, root, result, JA.includes );
-        includePrefixesFor( a, root, result, JA.prefixMapping );
-        return result;
-        }
+	public static PrefixMapping getPrefixes(Assembler a, Resource root, PrefixMapping result)
+	{
+		setSimplePrefixes(root, result);
+		includePrefixesFor(a, root, result, JA.includes);
+		includePrefixesFor(a, root, result, JA.prefixMapping);
+		return result;
+	}
 
-    private static void includePrefixesFor( Assembler a, Resource root, PrefixMapping result, Property includeUsing )
-        {
-        for (StmtIterator it = root.listProperties( includeUsing ); it.hasNext();)
-            {
-            Statement s = it.nextStatement();
-            PrefixMapping sub = (PrefixMapping) a.open( getResource( s ) );
-            result.setNsPrefixes( sub );
-            }
-        }
+	private static void includePrefixesFor(Assembler a, Resource root, PrefixMapping result, Property includeUsing)
+	{
+		for (StmtIterator it = root.listProperties(includeUsing); it.hasNext();)
+		{
+			Statement s = it.nextStatement();
+			PrefixMapping sub = (PrefixMapping) a.open(getResource(s));
+			result.setNsPrefixes(sub);
+		}
+	}
 
-    private static void setSimplePrefixes( Resource root, PrefixMapping result )
-        {
-        if (root.hasProperty( JA.prefix ))
-            {
-            Literal prefix = getUniqueLiteral( root, JA.prefix );
-            Literal namespace = getUniqueLiteral( root, JA.namespace );
-            result.setNsPrefix( prefix.getLexicalForm(), namespace.getLexicalForm() );
-            }
-        }
-    }
+	private static void setSimplePrefixes(Resource root, PrefixMapping result)
+	{
+		if (root.hasProperty(JA.prefix))
+		{
+			Literal prefix = getUniqueLiteral(root, JA.prefix);
+			Literal namespace = getUniqueLiteral(root, JA.namespace);
+			result.setNsPrefix(prefix.getLexicalForm(), namespace.getLexicalForm());
+		}
+	}
+}

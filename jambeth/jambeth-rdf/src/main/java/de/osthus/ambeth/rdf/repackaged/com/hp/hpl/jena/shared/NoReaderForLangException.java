@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when there is no reader with the specified language
-*/
+ * Exception to throw when there is no reader with the specified language
+ */
 public class NoReaderForLangException extends JenaException
-    {
-    public NoReaderForLangException( String lang )
-        { super( lang ); }
-    }
+{
+	public NoReaderForLangException(String lang)
+	{
+		super(lang);
+	}
+}

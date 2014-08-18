@@ -16,24 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.TripleBoundary;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TripleBoundary;
 
 /**
-     An interface for expressing search boundaries in terms of bounding statements.
-*/
+ * An interface for expressing search boundaries in terms of bounding statements.
+ */
 
 public interface StatementBoundary
-    {
-    /**
-         Answer true if this statement is a boundary of the search.
-    */
-    boolean stopAt( Statement s );
-    
-    /**
-         Answer a TripleBoundary corresponding to this StatementBoundary,
-         where Triples may be converted to Statements using <code>m</code>.
-    */
-    TripleBoundary asTripleBoundary( Model m );
-    }
+{
+	/**
+	 * Answer true if this statement is a boundary of the search.
+	 */
+	boolean stopAt(Statement s);
+
+	/**
+	 * Answer a TripleBoundary corresponding to this StatementBoundary, where Triples may be converted to Statements using <code>m</code>.
+	 */
+	TripleBoundary asTripleBoundary(Model m);
+}

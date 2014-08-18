@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when a literal required to be a single character isn't.
-*/
+ * Exception to throw when a literal required to be a single character isn't.
+ */
 public class BadCharLiteralException extends JenaException
-    {
-    public BadCharLiteralException( String spelling )
-        { super( spelling ); }
-    }
+{
+	public BadCharLiteralException(String spelling)
+	{
+		super(spelling);
+	}
+}

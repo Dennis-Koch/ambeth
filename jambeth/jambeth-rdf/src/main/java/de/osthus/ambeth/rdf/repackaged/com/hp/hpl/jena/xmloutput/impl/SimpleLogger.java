@@ -16,10 +16,11 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.xmloutput.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.xmloutput.impl;
 
-public interface SimpleLogger 
-    {
-    public void warn( String s );
-    public void warn( String s, Exception e );
-    }
+public interface SimpleLogger
+{
+	public void warn(String s);
+
+	public void warn(String s, Exception e);
+}

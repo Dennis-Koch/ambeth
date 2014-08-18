@@ -18,124 +18,117 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.ontology.impl.*;
-import com.hp.hpl.jena.vocabulary.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology.impl.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary.*;
 
 import java.util.*;
 
-
 /**
  * <p>
- * Provides a means to map between the URI's that represent ontology languages
- * and their language profiles.
+ * Provides a means to map between the URI's that represent ontology languages and their language profiles.
  * </p>
  */
-public class ProfileRegistry {
-    // Constants
-    //////////////////////////////////
+public class ProfileRegistry
+{
+	// Constants
+	// ////////////////////////////////
 
-    /** The URI that maps to the language profile for OWL-Full */
-    public static final String OWL_LANG = OWL.FULL_LANG.getURI();
+	/** The URI that maps to the language profile for OWL-Full */
+	public static final String OWL_LANG = OWL.FULL_LANG.getURI();
 
-    /** The URI that maps to the language profile for OWL-DL */
-    public static final String OWL_DL_LANG = OWL.DL_LANG.getURI();
+	/** The URI that maps to the language profile for OWL-DL */
+	public static final String OWL_DL_LANG = OWL.DL_LANG.getURI();
 
-    /** The URI that maps to the language profile for OWL-Lite */
-    public static final String OWL_LITE_LANG = OWL.LITE_LANG.getURI();
+	/** The URI that maps to the language profile for OWL-Lite */
+	public static final String OWL_LITE_LANG = OWL.LITE_LANG.getURI();
 
-    /** The URI that maps to the language profile for RDFS */
-    public static final String RDFS_LANG = RDFS.getURI();
+	/** The URI that maps to the language profile for RDFS */
+	public static final String RDFS_LANG = RDFS.getURI();
 
+	// Static variables
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	private static Object[][] s_initData = new Object[][] { { OWL_LANG, new OWLProfile() }, { OWL_DL_LANG, new OWLDLProfile() },
+			{ OWL_LITE_LANG, new OWLLiteProfile() }, { RDFS_LANG, new RDFSProfile() } };
 
-    private static Object[][] s_initData = new Object[][] {
-        {OWL_LANG,      new OWLProfile()},
-        {OWL_DL_LANG,   new OWLDLProfile()},
-        {OWL_LITE_LANG, new OWLLiteProfile()},
-        {RDFS_LANG,     new RDFSProfile()}
-    };
+	/** Singleton instance */
+	private static ProfileRegistry s_instance = new ProfileRegistry();
 
+	// Instance variables
+	// ////////////////////////////////
 
-    /** Singleton instance */
-    private static ProfileRegistry s_instance = new ProfileRegistry();
+	/** Maps from public URI's to language profiles */
+	private Map<String, Profile> m_registry = new HashMap<>();
 
+	// Constructors
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	/**
+	 * <p>
+	 * Singleton constructor
+	 * </p>
+	 */
+	private ProfileRegistry()
+	{
+		for (Object[] aS_initData : s_initData)
+		{
+			registerProfile((String) aS_initData[0], (Profile) aS_initData[1]);
+		}
+	}
 
-    /** Maps from public URI's to language profiles */
-    private Map<String,Profile> m_registry = new HashMap<>();
+	// External signature methods
+	// ////////////////////////////////
 
+	/**
+	 * <p>
+	 * Answer the singleton instance
+	 * </p>
+	 * 
+	 * @return The singleton registry
+	 */
+	public static ProfileRegistry getInstance()
+	{
+		return s_instance;
+	}
 
-    // Constructors
-    //////////////////////////////////
+	/**
+	 * <p>
+	 * Add a language profile with the given URI key
+	 * </p>
+	 * 
+	 * @param uri
+	 *            The URI denoting the language
+	 * @param profile
+	 *            The language profile for the language
+	 */
+	public void registerProfile(String uri, Profile profile)
+	{
+		m_registry.put(uri, profile);
+	}
 
-    /**
-     * <p>
-     * Singleton constructor
-     * </p>
-     */
-    private ProfileRegistry() {
-        for ( Object[] aS_initData : s_initData )
-        {
-            registerProfile( (String) aS_initData[0], (Profile) aS_initData[1] );
-        }
-    }
+	/**
+	 * <p>
+	 * Answer the language profile for the given language URI, or null if not known.
+	 * </p>
+	 * 
+	 * @param uri
+	 *            A URI denoting an ontology language
+	 * @return An ontology language profile for that language
+	 */
+	public Profile getProfile(String uri)
+	{
+		return m_registry.get(uri);
+	}
 
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
-
-    /**
-     * <p>
-     * Answer the singleton instance
-     * </p>
-     *
-     * @return The singleton registry
-     */
-    public static ProfileRegistry getInstance() {
-        return s_instance;
-    }
-
-
-    /**
-     * <p>
-     * Add a language profile with the given URI key
-     * </p>
-     *
-     * @param uri The URI denoting the language
-     * @param profile The language profile for the language
-     */
-    public void registerProfile( String uri, Profile profile ) {
-        m_registry.put( uri, profile );
-    }
-
-
-    /**
-     * <p>
-     * Answer the language profile for the given language URI, or null if not known.
-     * </p>
-     *
-     * @param uri A URI denoting an ontology language
-     * @return An ontology language profile for that language
-     */
-    public Profile getProfile( String uri ) {
-        return m_registry.get( uri );
-    }
-
-
-    // Internal implementation methods
-    //////////////////////////////////
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

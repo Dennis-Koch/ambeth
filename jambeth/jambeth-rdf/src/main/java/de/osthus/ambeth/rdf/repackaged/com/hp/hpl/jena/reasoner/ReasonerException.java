@@ -16,33 +16,40 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
- * Exception signalling some generic problem with the reasoning subsystem.
- * Subclasses of this exception may be used to report more specific problems.
- * <p>In the future there may be a top level JenaException which this exception
- * should extend.
+ * Exception signalling some generic problem with the reasoning subsystem. Subclasses of this exception may be used to report more specific problems.
+ * <p>
+ * In the future there may be a top level JenaException which this exception should extend.
  */
-public class ReasonerException extends JenaException {
-    
-    /**
-     * Constructor.
-     * @param msg a free-text message describing the problem
-     */
-    public ReasonerException(String msg) {
-        super(msg);
-    }
-    
-    /**
-     * Constructor.
-     * @param msg a free-text message describing the problem
-     * @param cause a nested exception which prompted this error
-     */
-    public ReasonerException(String msg, Throwable cause) {
-        super(msg, cause);
-    }
+public class ReasonerException extends JenaException
+{
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param msg
+	 *            a free-text message describing the problem
+	 */
+	public ReasonerException(String msg)
+	{
+		super(msg);
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param msg
+	 *            a free-text message describing the problem
+	 * @param cause
+	 *            a nested exception which prompted this error
+	 */
+	public ReasonerException(String msg, Throwable cause)
+	{
+		super(msg, cause);
+	}
 
 }

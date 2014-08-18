@@ -16,31 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.util.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.*;
 
 /**
-    A FileManagerAssembler creates a FileManager object which may be
-    initialised with a LocationMapper specified by the object of a ja:locationMapper
-    property.
-*/
+ * A FileManagerAssembler creates a FileManager object which may be initialised with a LocationMapper specified by the object of a ja:locationMapper property.
+ */
 public class FileManagerAssembler extends AssemblerBase
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode irrelevant )
-        { 
-        checkType( root, JA.FileManager );
-        FileManager fm = new FileManager( getLocationMapper( a, root ) );
-        FileManager.setStdLocators( fm );
-        return fm; 
-        }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.FileManager);
+		FileManager fm = new FileManager(getLocationMapper(a, root));
+		FileManager.setStdLocators(fm);
+		return fm;
+	}
 
-    private LocationMapper getLocationMapper( Assembler a, Resource root )
-        {
-        Resource lm = getUniqueResource( root, JA.locationMapper );
-        return lm == null ? new LocationMapper() : (LocationMapper) a.open( lm );
-        }
-    }
+	private LocationMapper getLocationMapper(Assembler a, Resource root)
+	{
+		Resource lm = getUniqueResource(root, JA.locationMapper);
+		return lm == null ? new LocationMapper() : (LocationMapper) a.open(lm);
+	}
+}

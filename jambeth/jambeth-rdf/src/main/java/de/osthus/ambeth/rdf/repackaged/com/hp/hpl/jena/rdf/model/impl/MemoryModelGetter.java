@@ -16,28 +16,31 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
 import java.util.HashMap;
 
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.ModelGetter;
-import com.hp.hpl.jena.rdf.model.ModelReader;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Model;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.ModelFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.ModelGetter;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.ModelReader;
 
 public class MemoryModelGetter implements ModelGetter
-	{
+{
 	protected HashMap<String, Model> models = new HashMap<>();
-	
+
 	@Override
-    public Model getModel(String URL) 
-		{ return models.get( URL ); }
-	
-	@Override
-    public Model getModel(String URL, ModelReader loadIfAbsent) 
-		{
-		Model m = models.get( URL );
-		if (m == null) models.put( URL, m = ModelFactory.createDefaultModel() );
-		return m;
-		}
+	public Model getModel(String URL)
+	{
+		return models.get(URL);
 	}
+
+	@Override
+	public Model getModel(String URL, ModelReader loadIfAbsent)
+	{
+		Model m = models.get(URL);
+		if (m == null)
+			models.put(URL, m = ModelFactory.createDefaultModel());
+		return m;
+	}
+}

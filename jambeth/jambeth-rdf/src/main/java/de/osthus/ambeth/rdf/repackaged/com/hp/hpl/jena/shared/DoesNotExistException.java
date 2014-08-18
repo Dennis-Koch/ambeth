@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception thrown when an attempt is made find an entity by name, but it
-    cannot be located.
-*/
+ * Exception thrown when an attempt is made find an entity by name, but it cannot be located.
+ */
 
 public class DoesNotExistException extends JenaException
-    {
-    /**
-         The entity <code>name</code> does not exist.
-    */
-    public DoesNotExistException( String name )
-        { super( name); }
-    }
+{
+	/**
+	 * The entity <code>name</code> does not exist.
+	 */
+	public DoesNotExistException(String name)
+	{
+		super(name);
+	}
+}

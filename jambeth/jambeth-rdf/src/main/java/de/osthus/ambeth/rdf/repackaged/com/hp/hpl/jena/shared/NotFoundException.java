@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception thrown when an attempt is made find something and it is not found.
-*/
+ * Exception thrown when an attempt is made find something and it is not found.
+ */
 
 public class NotFoundException extends JenaException
-    {
-    /**
-         The entity <code>name</code> does not exist.
-    */
-    public NotFoundException( String name )
-        { super( name ); }
-    }
+{
+	/**
+	 * The entity <code>name</code> does not exist.
+	 */
+	public NotFoundException(String name)
+	{
+		super(name);
+	}
+}

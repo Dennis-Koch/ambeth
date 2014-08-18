@@ -18,31 +18,22 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
-
-
 
 /**
  * <p>
  * Class description that is formed from the union of a list of a class descriptions.
  * </p>
  */
-public interface UnionClass
-    extends BooleanClassDescription 
+public interface UnionClass extends BooleanClassDescription
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
-
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

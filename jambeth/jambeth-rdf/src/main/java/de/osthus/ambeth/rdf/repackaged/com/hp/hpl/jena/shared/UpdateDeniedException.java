@@ -16,28 +16,31 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
-    Superclass of exceptions thrown when attempting to add/delete on a
-    readonly graph/model.
-*/
+ * Superclass of exceptions thrown when attempting to add/delete on a readonly graph/model.
+ */
 
 public class UpdateDeniedException extends JenaException
-    {
-    private Triple triple;
-    
-    public UpdateDeniedException( String message )
-        { super(message); }
+{
+	private Triple triple;
 
-    public UpdateDeniedException( String message, Triple triple )
-        { 
-        super( message + triple.toString() ); 
-        this.triple = triple;
-        }
-        
-    public Triple getTriple()
-        { return triple; }
-    }
+	public UpdateDeniedException(String message)
+	{
+		super(message);
+	}
+
+	public UpdateDeniedException(String message, Triple triple)
+	{
+		super(message + triple.toString());
+		this.triple = triple;
+	}
+
+	public Triple getTriple()
+	{
+		return triple;
+	}
+}

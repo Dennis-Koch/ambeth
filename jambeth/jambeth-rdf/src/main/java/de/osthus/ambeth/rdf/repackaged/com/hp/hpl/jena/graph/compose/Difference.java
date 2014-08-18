@@ -16,41 +16,48 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.compose;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.compose;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
-    Class representing the dynamic set difference L - R of two graphs. This is updatable;
-    the updates are written through to one or other of the base graphs.
-*/
+ * Class representing the dynamic set difference L - R of two graphs. This is updatable; the updates are written through to one or other of the base graphs.
+ */
 @Deprecated
-public class Difference extends Dyadic implements Graph 
+public class Difference extends Dyadic implements Graph
+{
+	/**
+	 * Initialise a graph representing the difference L - R.
+	 */
+	public Difference(Graph L, Graph R)
 	{
-    /**
-        Initialise a graph representing the difference L - R.
-    */
-	public Difference( Graph L, Graph R )
-		{ super( L, R ); }
-		
-    /**
-        Add a triple to the difference: add it to the left operand, and remove it from the 
-        right operand.
-    */
-	@Override public void performAdd( Triple t )
-		{
-		L.add( t );
-		R.delete( t );
-		}
-
-    /**
-        Remove a triple from the difference: remove it from the left operand. [It could
-        be added to the right operand instead, but somehow that feels less satisfactory.]
-    */
-	@Override public void performDelete( Triple t )
-		{ L.delete( t ); }
-
-	@Override public ExtendedIterator<Triple> _graphBaseFind( TripleMatch t ) 
-		{ return L.find( t ). filterDrop ( ifIn( R ) ); }
+		super(L, R);
 	}
+
+	/**
+	 * Add a triple to the difference: add it to the left operand, and remove it from the right operand.
+	 */
+	@Override
+	public void performAdd(Triple t)
+	{
+		L.add(t);
+		R.delete(t);
+	}
+
+	/**
+	 * Remove a triple from the difference: remove it from the left operand. [It could be added to the right operand instead, but somehow that feels less
+	 * satisfactory.]
+	 */
+	@Override
+	public void performDelete(Triple t)
+	{
+		L.delete(t);
+	}
+
+	@Override
+	public ExtendedIterator<Triple> _graphBaseFind(TripleMatch t)
+	{
+		return L.find(t).filterDrop(ifIn(R));
+	}
+}

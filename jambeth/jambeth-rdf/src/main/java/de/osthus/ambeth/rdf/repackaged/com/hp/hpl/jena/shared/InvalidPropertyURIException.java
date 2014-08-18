@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when it is discovered that a property has been given
-    an illegal URI.
-*/
+ * Exception to throw when it is discovered that a property has been given an illegal URI.
+ */
 public class InvalidPropertyURIException extends JenaException
-    {
-    public InvalidPropertyURIException( String uri )
-        { super( uri ); }
-    }
+{
+	public InvalidPropertyURIException(String uri)
+	{
+		super(uri);
+	}
+}

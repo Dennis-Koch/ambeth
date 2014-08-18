@@ -16,47 +16,57 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
-import com.hp.hpl.jena.reasoner.*;
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
- * Arrange that all backchaining goals should be tabled (aka memoized)
- * by the LP engine.
+ * Arrange that all backchaining goals should be tabled (aka memoized) by the LP engine.
  */
-public class TableAll extends BaseBuiltin {
+public class TableAll extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "tableAll";
-    }
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "tableAll";
+	}
 
-    /**
-     * This method is invoked when the builtin is called in a rule body.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes, some of which may be Node_RuleVariables.
-     * @param length the length of the argument list, may be less than the length of the args array
-     * for some rule engines
-     * @param context an execution context giving access to other relevant data
-     */
-    @Override
-    public void headAction(Node[] args, int length, RuleContext context) {
-        InfGraph infgraph = context.getGraph();
-        if (infgraph instanceof FBRuleInfGraph) {
-            ((FBRuleInfGraph)infgraph).setTabled(Node.ANY);
-        } else if (infgraph instanceof LPBackwardRuleInfGraph) {
-            ((LPBackwardRuleInfGraph)infgraph).setTabled(Node.ANY);
-        } else {
-            // Quietly ignore as an irrelevant directive
-            // Could log or throw exception but currently I want to be able to use
-            // the same rule base from different contexts which do and do not need
-            // to know about this.
-        }
-    }
+	/**
+	 * This method is invoked when the builtin is called in a rule body.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes, some of which may be Node_RuleVariables.
+	 * @param length
+	 *            the length of the argument list, may be less than the length of the args array for some rule engines
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 */
+	@Override
+	public void headAction(Node[] args, int length, RuleContext context)
+	{
+		InfGraph infgraph = context.getGraph();
+		if (infgraph instanceof FBRuleInfGraph)
+		{
+			((FBRuleInfGraph) infgraph).setTabled(Node.ANY);
+		}
+		else if (infgraph instanceof LPBackwardRuleInfGraph)
+		{
+			((LPBackwardRuleInfGraph) infgraph).setTabled(Node.ANY);
+		}
+		else
+		{
+			// Quietly ignore as an irrelevant directive
+			// Could log or throw exception but currently I want to be able to
+			// use
+			// the same rule base from different contexts which do and do not
+			// need
+			// to know about this.
+		}
+	}
 }

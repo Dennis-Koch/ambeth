@@ -16,29 +16,32 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    Interface for triple matching; may become obsolete. <i>do not assume this is
-    stable</i>. Triple matches are defined by subject, predicate, and object, and
-    may be converted to triples [which in fact subsume the work of TripleMatch].
-*/
-public interface TripleMatch {
-    
-    /** If it is known that all triples selected by this filter will
-     *  have a common subject, return that node, otherwise return null */    
-    Node getMatchSubject();
-    
-    /** If it is known that all triples selected by this match will
-     *  have a common predicate, return that node, otherwise return null */
-    Node getMatchPredicate();
-    
-    /** If it is known that all triples selected by this match will
-     *  have a common object, return that node, otherwise return null */
-    Node getMatchObject();
+ * Interface for triple matching; may become obsolete. <i>do not assume this is stable</i>. Triple matches are defined by subject, predicate, and object, and
+ * may be converted to triples [which in fact subsume the work of TripleMatch].
+ */
+public interface TripleMatch
+{
 
-    /**
-        Answer a Triple capturing this match.
-    */
-    Triple asTriple();
+	/**
+	 * If it is known that all triples selected by this filter will have a common subject, return that node, otherwise return null
+	 */
+	Node getMatchSubject();
+
+	/**
+	 * If it is known that all triples selected by this match will have a common predicate, return that node, otherwise return null
+	 */
+	Node getMatchPredicate();
+
+	/**
+	 * If it is known that all triples selected by this match will have a common object, return that node, otherwise return null
+	 */
+	Node getMatchObject();
+
+	/**
+	 * Answer a Triple capturing this match.
+	 */
+	Triple asTriple();
 }

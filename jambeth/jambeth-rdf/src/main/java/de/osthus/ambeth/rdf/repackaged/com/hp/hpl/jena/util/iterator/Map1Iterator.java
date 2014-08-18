@@ -16,40 +16,54 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 import java.util.Iterator;
 
 /**
-    An iterator that consumes an underlying iterator and maps its results before
-    delivering them; supports remove if the underlying iterator does.
-*/
+ * An iterator that consumes an underlying iterator and maps its results before delivering them; supports remove if the underlying iterator does.
+ */
 
 public class Map1Iterator<From, To> extends NiceIterator<To> implements ClosableIterator<To>
-    {
+{
 	private Map1<From, To> map;
 	private Iterator<From> base;
-	
-        /**
-         * Construct a list of the converted.
-         * @param map The conversion to apply.
-         * @param base the iterator of elements to convert
-         */
-	public Map1Iterator( Map1<From, To> map, Iterator<From> base ) 
-        {
-        this.map = map;
-        this.base = base;
-        }
-    
-	public @Override To next() 
-        { return map.map1( base.next() ); }
-	
-	public @Override boolean hasNext()
-	    { return base.hasNext(); }
-	
-	public @Override void remove()
-	    { base.remove(); }
-	
-	@Override public void close()
-	    { NiceIterator.close( base ); }
-    }
+
+	/**
+	 * Construct a list of the converted.
+	 * 
+	 * @param map
+	 *            The conversion to apply.
+	 * @param base
+	 *            the iterator of elements to convert
+	 */
+	public Map1Iterator(Map1<From, To> map, Iterator<From> base)
+	{
+		this.map = map;
+		this.base = base;
+	}
+
+	public @Override
+	To next()
+	{
+		return map.map1(base.next());
+	}
+
+	public @Override
+	boolean hasNext()
+	{
+		return base.hasNext();
+	}
+
+	public @Override
+	void remove()
+	{
+		base.remove();
+	}
+
+	@Override
+	public void close()
+	{
+		NiceIterator.close(base);
+	}
+}

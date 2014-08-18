@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-public interface Taint {
-  void taint();
-  /**
-   * 
-   * @return True iff {@link #taint} has been called on this object.
-   */
-  boolean isTainted();
+public interface Taint
+{
+	void taint();
+
+	/**
+	 * 
+	 * @return True iff {@link #taint} has been called on this object.
+	 */
+	boolean isTainted();
 }

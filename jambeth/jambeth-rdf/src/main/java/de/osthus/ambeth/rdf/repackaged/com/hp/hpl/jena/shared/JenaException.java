@@ -16,15 +16,30 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
- 
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
+
 /**
  * This should be a superclass of exceptions arising from Jena code.
  */
-public class JenaException extends RuntimeException 
+public class JenaException extends RuntimeException
 {
-    public JenaException()                                  { super(); }
-	public JenaException(String message)                    { super(message); }
-	public JenaException(Throwable cause)                   { super(cause) ; }
-    public JenaException(String message, Throwable cause)   { super(message, cause) ; }
+	public JenaException()
+	{
+		super();
+	}
+
+	public JenaException(String message)
+	{
+		super(message);
+	}
+
+	public JenaException(Throwable cause)
+	{
+		super(cause);
+	}
+
+	public JenaException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
 }

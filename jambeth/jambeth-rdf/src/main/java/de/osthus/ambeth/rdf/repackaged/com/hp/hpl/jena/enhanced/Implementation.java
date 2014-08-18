@@ -16,33 +16,39 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.enhanced;
-import com.hp.hpl.jena.graph.*;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced;
+
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
  * <p>
- * Interface defining a generic factory interface for generating enhanced nodes
- * from normal graph nodes. Implementation classes should have a public final 
+ * Interface defining a generic factory interface for generating enhanced nodes from normal graph nodes. Implementation classes should have a public final
  * member variable called factory of this type.
  * </p>
  */
-public abstract class Implementation {
+public abstract class Implementation
+{
 
-     /** 
-      * Create a new EnhNode wrapping a Node in the context of an EnhGraph
-      * @param node The node to be wrapped
-      * @param eg The graph containing the node
-      * @return A new enhanced node which wraps node but presents the interface(s)
-      *         that this factory encapsulates.
-      */
-     public abstract EnhNode wrap( Node node,EnhGraph eg );
-     
-     /**
-        true iff wrapping (node, eg) would succeed.
-        @param node the node to test for suitability
-        @param eg the enhanced graph the node appears in
-        @return true iff the node can represent our type in that graph
-     */
-     public abstract boolean canWrap( Node node, EnhGraph eg );
-     
+	/**
+	 * Create a new EnhNode wrapping a Node in the context of an EnhGraph
+	 * 
+	 * @param node
+	 *            The node to be wrapped
+	 * @param eg
+	 *            The graph containing the node
+	 * @return A new enhanced node which wraps node but presents the interface(s) that this factory encapsulates.
+	 */
+	public abstract EnhNode wrap(Node node, EnhGraph eg);
+
+	/**
+	 * true iff wrapping (node, eg) would succeed.
+	 * 
+	 * @param node
+	 *            the node to test for suitability
+	 * @param eg
+	 *            the enhanced graph the node appears in
+	 * @return true iff the node can represent our type in that graph
+	 */
+	public abstract boolean canWrap(Node node, EnhGraph eg);
+
 }

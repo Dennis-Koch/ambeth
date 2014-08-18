@@ -16,24 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
 import org.xml.sax.ErrorHandler;
 
-
 /**
- * Used to set event handlers and options
- * on {@link ARP}, {@link SAX2Model}, and
- * {@link SAX2RDF} instances.
+ * Used to set event handlers and options on {@link ARP}, {@link SAX2Model}, and {@link SAX2RDF} instances.
  */
-public interface ARPConfig {
+public interface ARPConfig
+{
 	/**
-	 * The handlers used during parsing.
-	 * The handlers can be changed by calling this method
-	 * and then using the <code>set..Handler</code> methods
-	 * in {@link ARPHandlers}.
-	 * The handlers can be copied onto another ARP instance
-	 * using the {@link #setHandlersWith} method.
+	 * The handlers used during parsing. The handlers can be changed by calling this method and then using the <code>set..Handler</code> methods in
+	 * {@link ARPHandlers}. The handlers can be copied onto another ARP instance using the {@link #setHandlersWith} method.
+	 * 
 	 * @see ARPHandlers#setStatementHandler(StatementHandler)
 	 * @see ARPHandlers#setErrorHandler(ErrorHandler)
 	 * @see ARPHandlers#setExtendedHandler(ExtendedHandler)
@@ -44,22 +39,18 @@ public interface ARPConfig {
 	public ARPHandlers getHandlers();
 
 	/**
-	 * Copies the handlers from the argument
-	 * to be used by this instance.
-	 * To make further modifications it is necessary
-	 * to call {@link #getHandlers} to retrieve this
-	 * instance's copy of the handler information.
-	 * @param handlers The new values to use.
+	 * Copies the handlers from the argument to be used by this instance. To make further modifications it is necessary to call {@link #getHandlers} to retrieve
+	 * this instance's copy of the handler information.
+	 * 
+	 * @param handlers
+	 *            The new values to use.
 	 */
 	public void setHandlersWith(ARPHandlers handlers);
 
 	/**
-	 * The options used during parsing.
-	 * The options can be changed by calling this method
-	 * and then using the <code>set..</code> methods
-	 * in {@link ARPOptions}.
-	 * The options can be copied onto another ARP instance
-	 * using the {@link #setOptionsWith} method.
+	 * The options used during parsing. The options can be changed by calling this method and then using the <code>set..</code> methods in {@link ARPOptions}.
+	 * The options can be copied onto another ARP instance using the {@link #setOptionsWith} method.
+	 * 
 	 * @see ARPOptions#setDefaultErrorMode()
 	 * @see ARPOptions#setLaxErrorMode()
 	 * @see ARPOptions#setStrictErrorMode()
@@ -73,12 +64,11 @@ public interface ARPConfig {
 	public ARPOptions getOptions();
 
 	/**
-	 * Copies the options from the argument
-	 * to be used by this instance.
-	 * To make further modifications it is necessary
-	 * to call {@link #getOptions} to retrieve this
-	 * instance's copy of the options.
-	 * @param opts The new values to use.
+	 * Copies the options from the argument to be used by this instance. To make further modifications it is necessary to call {@link #getOptions} to retrieve
+	 * this instance's copy of the options.
+	 * 
+	 * @param opts
+	 *            The new values to use.
 	 */
 	public void setOptionsWith(ARPOptions opts);
 }

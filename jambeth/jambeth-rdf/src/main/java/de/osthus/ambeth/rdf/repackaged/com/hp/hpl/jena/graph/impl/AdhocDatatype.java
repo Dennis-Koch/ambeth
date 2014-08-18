@@ -16,31 +16,46 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
-import com.hp.hpl.jena.datatypes.BaseDatatype;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.BaseDatatype;
 
-public class AdhocDatatype extends BaseDatatype 
-	{	
-	public AdhocDatatype(Class<?> jc) {
-		super( adhocURIfor( jc ) );
+public class AdhocDatatype extends BaseDatatype
+{
+	public AdhocDatatype(Class<?> jc)
+	{
+		super(adhocURIfor(jc));
 		this.javaClass = jc;
 	}
-	
+
 	private final Class<?> javaClass;
-	
-	@Override public boolean isValidValue( Object value )
-		{ return javaClass.isInstance( value ); }
-	
-	@Override public Class<?> getJavaClass() 
-		{ return javaClass; }
-	
-	@Override public Object parse( String lexicalForm ) 
-		{ throw new IllegalArgumentException( "don't know how to parse a " + javaClass.getName() ); }
-	
-	@Override public String toString() 
-		{ return "Datatype[adhoc: " + javaClass.getName() + "]"; }
-	
-	private static String adhocURIfor( Class <?> c ) 
-		{ return "java:" + c.getName(); }
+
+	@Override
+	public boolean isValidValue(Object value)
+	{
+		return javaClass.isInstance(value);
 	}
+
+	@Override
+	public Class<?> getJavaClass()
+	{
+		return javaClass;
+	}
+
+	@Override
+	public Object parse(String lexicalForm)
+	{
+		throw new IllegalArgumentException("don't know how to parse a " + javaClass.getName());
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Datatype[adhoc: " + javaClass.getName() + "]";
+	}
+
+	private static String adhocURIfor(Class<?> c)
+	{
+		return "java:" + c.getName();
+	}
+}

@@ -16,14 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when Jena is presented with an unknown property
-    of some kind.
-*/
+ * Exception to throw when Jena is presented with an unknown property of some kind.
+ */
 public class UnknownPropertyException extends JenaException
-    {
-    public UnknownPropertyException( String property )
-        { super( property ); }
-    }
+{
+	public UnknownPropertyException(String property)
+	{
+		super(property);
+	}
+}

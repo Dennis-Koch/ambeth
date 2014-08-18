@@ -16,18 +16,21 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    This is the class of "concrete" nodes, ie those which correspond
-    to actual RDF data - URIs, blank nodes, and literals.
+ * This is the class of "concrete" nodes, ie those which correspond to actual RDF data - URIs, blank nodes, and literals.
  */
 public abstract class Node_Concrete extends Node
-    {
-    protected Node_Concrete( Object label )
-        {  super( label ); }
-        
-    @Override
-    public boolean isConcrete()
-        { return true; }
-    }
+{
+	protected Node_Concrete(Object label)
+	{
+		super(label);
+	}
+
+	@Override
+	public boolean isConcrete()
+	{
+		return true;
+	}
+}
