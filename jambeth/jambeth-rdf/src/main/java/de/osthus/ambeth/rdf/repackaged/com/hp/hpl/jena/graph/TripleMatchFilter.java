@@ -16,28 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.util.iterator.Filter;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.Filter;
 
 /**
-    A class to turn a triple (treated as a pattern) into a Filter.
-    It used to take a TripleMatch but those are obsolete.
-*/
-public class TripleMatchFilter extends Filter<Triple> 
-    {
-    final protected Triple tMatch;
+ * A class to turn a triple (treated as a pattern) into a Filter. It used to take a TripleMatch but those are obsolete.
+ */
+public class TripleMatchFilter extends Filter<Triple>
+{
+	final protected Triple tMatch;
 
-    /** Creates new TripleMatchFilter */
-    public TripleMatchFilter(Triple tMatch) 
-        { this.tMatch = tMatch; }
+	/** Creates new TripleMatchFilter */
+	public TripleMatchFilter(Triple tMatch)
+	{
+		this.tMatch = tMatch;
+	}
 
-    /** 
-         The object is wanted.
-         @param t The object to accept or reject.  Must be a Triple
-         @return true if the object is wanted.
-    */
-    @Override
-    public boolean accept( Triple t ) 
-        { return tMatch.matches( t ); }
-    }
+	/**
+	 * The object is wanted.
+	 * 
+	 * @param t
+	 *            The object to accept or reject. Must be a Triple
+	 * @return true if the object is wanted.
+	 */
+	@Override
+	public boolean accept(Triple t)
+	{
+		return tMatch.matches(t);
+	}
+}

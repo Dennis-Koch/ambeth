@@ -16,48 +16,52 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
  * Test if the two argument lists differ.
  */
-public class ListNotEqual extends BaseBuiltin {
+public class ListNotEqual extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "listNotEqual";
-    }
-    
-    /**
-     * Return the expected number of arguments for this functor or 0 if the number is flexible.
-     */
-    @Override
-    public int getArgLength() {
-        return 2;
-    }
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "listNotEqual";
+	}
 
-    /**
-     * This method is invoked when the builtin is called in a rule body.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes, some of which may be Node_RuleVariables.
-     * @param length the length of the argument list, may be less than the length of the args array
-     * for some rule engines
-     * @param context an execution context giving access to other relevant data
-     * @return return true if the buildin predicate is deemed to have succeeded in
-     * the current environment
-     */
-    @Override
-    public boolean bodyCall(Node[] args, int length, RuleContext context) {
-        checkArgs(length, context);
-        Node n0 = getArg(0, args, context);
-        Node n1 = getArg(1, args, context);
-        return ! ListEqual.listEqual(n0, n1, context);
-    }
+	/**
+	 * Return the expected number of arguments for this functor or 0 if the number is flexible.
+	 */
+	@Override
+	public int getArgLength()
+	{
+		return 2;
+	}
+
+	/**
+	 * This method is invoked when the builtin is called in a rule body.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes, some of which may be Node_RuleVariables.
+	 * @param length
+	 *            the length of the argument list, may be less than the length of the args array for some rule engines
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 * @return return true if the buildin predicate is deemed to have succeeded in the current environment
+	 */
+	@Override
+	public boolean bodyCall(Node[] args, int length, RuleContext context)
+	{
+		checkArgs(length, context);
+		Node n0 = getArg(0, args, context);
+		Node n1 = getArg(1, args, context);
+		return !ListEqual.listEqual(n0, n1, context);
+	}
 }

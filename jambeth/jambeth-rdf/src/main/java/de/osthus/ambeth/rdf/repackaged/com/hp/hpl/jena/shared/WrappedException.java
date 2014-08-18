@@ -16,16 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Jena exceptions that explicitly wrap other (usually checked) exceptions.
-*/
+ * Jena exceptions that explicitly wrap other (usually checked) exceptions.
+ */
 public class WrappedException extends JenaException
-    {
-    public WrappedException( Throwable cause ) 
-        { super( cause ); }
+{
+	public WrappedException(Throwable cause)
+	{
+		super(cause);
+	}
 
-    public WrappedException( String message, Throwable cause ) 
-        { super( message, cause ); }
-    }
+	public WrappedException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
+}

@@ -16,20 +16,21 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner;
 
 /**
- * Exception used to to signal that a configuration parameter was used
- * (typically in a setParameter call) that was not understood - either
- * because it was not a recognized parameter URI or its value range was incorrect.
+ * Exception used to to signal that a configuration parameter was used (typically in a setParameter call) that was not understood - either because it was not a
+ * recognized parameter URI or its value range was incorrect.
  */
-public class IllegalParameterException extends ReasonerException {
+public class IllegalParameterException extends ReasonerException
+{
 
-    /**
-     * Constructor.
-     */
-    public IllegalParameterException(String message) {
-        super(message);
-    }
-    
+	/**
+	 * Constructor.
+	 */
+	public IllegalParameterException(String message)
+	{
+		super(message);
+	}
+
 }

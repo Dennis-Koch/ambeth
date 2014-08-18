@@ -16,36 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.Graph ;
-import com.hp.hpl.jena.graph.Node ;
-import com.hp.hpl.jena.graph.Triple ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 /**
-    ModelGraphInterface - this interface mediates between the API Model level
-    and the SPI Graph level. It may change if the SPI changes, is more fluid than
-    Model and ModelCon, so don't use if it you don't *need* to.
-*/
+ * ModelGraphInterface - this interface mediates between the API Model level and the SPI Graph level. It may change if the SPI changes, is more fluid than Model
+ * and ModelCon, so don't use if it you don't *need* to.
+ */
 public interface ModelGraphInterface
-    {
-    /**
-       Answer a Statement in this Model who's SPO is that of the triple <code>t</code>.
-    */
-    Statement asStatement( Triple t );
-    
-    /** 
-        Answer the Graph which this Model is presenting.
-    */
-    Graph getGraph();
+{
+	/**
+	 * Answer a Statement in this Model who's SPO is that of the triple <code>t</code>.
+	 */
+	Statement asStatement(Triple t);
 
-    /**
-       Answer an RDF node wrapping <code>n</code> suitably; URI nodes
-       become Resources with the same URI, blank nodes become Resources
-       with URI null but the same AnonId, and literal nodes become Literals
-       with <code>n</code> as their value carrier.
-    */
-    RDFNode asRDFNode( Node n );
-    
-    Resource wrapAsResource( Node n );
-    }
+	/**
+	 * Answer the Graph which this Model is presenting.
+	 */
+	Graph getGraph();
+
+	/**
+	 * Answer an RDF node wrapping <code>n</code> suitably; URI nodes become Resources with the same URI, blank nodes become Resources with URI null but the
+	 * same AnonId, and literal nodes become Literals with <code>n</code> as their value carrier.
+	 */
+	RDFNode asRDFNode(Node n);
+
+	Resource wrapAsResource(Node n);
+}

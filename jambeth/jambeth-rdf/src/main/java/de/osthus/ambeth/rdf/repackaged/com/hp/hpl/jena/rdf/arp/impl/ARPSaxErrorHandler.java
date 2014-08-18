@@ -16,42 +16,49 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.model.RDFErrorHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFErrorHandler;
+
 /**
- * This class is not part of the API.
- * It is public merely for test purposes.
+ * This class is not part of the API. It is public merely for test purposes.
  */
-public class ARPSaxErrorHandler extends Object implements org.xml.sax.ErrorHandler {
-    protected RDFErrorHandler errorHandler;
-    
-    public ARPSaxErrorHandler(RDFErrorHandler errorHandler) {
-        this.errorHandler = errorHandler;
-    }
-    
-    @Override
-    public void error(SAXParseException e) throws SAXException {
-        errorHandler.error(e);
-    }
-    
-    @Override
-    public void warning(SAXParseException e) throws SAXException {
-        errorHandler.warning(e);
-    }
-    
-    @Override
-    public void fatalError(SAXParseException e) throws SAXException {
-        errorHandler.fatalError(e);
-    }
+public class ARPSaxErrorHandler extends Object implements org.xml.sax.ErrorHandler
+{
+	protected RDFErrorHandler errorHandler;
+
+	public ARPSaxErrorHandler(RDFErrorHandler errorHandler)
+	{
+		this.errorHandler = errorHandler;
+	}
+
+	@Override
+	public void error(SAXParseException e) throws SAXException
+	{
+		errorHandler.error(e);
+	}
+
+	@Override
+	public void warning(SAXParseException e) throws SAXException
+	{
+		errorHandler.warning(e);
+	}
+
+	@Override
+	public void fatalError(SAXParseException e) throws SAXException
+	{
+		errorHandler.fatalError(e);
+	}
 
 	/**
-	 * @param errorHandler The errorHandler to set.
+	 * @param errorHandler
+	 *            The errorHandler to set.
 	 */
-	public void setErrorHandler(RDFErrorHandler errorHandler) {
+	public void setErrorHandler(RDFErrorHandler errorHandler)
+	{
 		this.errorHandler = errorHandler;
 	}
 

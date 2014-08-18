@@ -16,19 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 /**
-    Combines the actions of <code>Map</code> and <code>Filter</code>, mapping
-    unacceptable objects to <code>null</code> and acceptable ones to their mapped
-    value.
-*/
-public interface MapFilter<R,S>
-    {
-    /**
-        a compiled filter and test - returns null if x is unacceptable, and
-        the mapped value if x is acceptable; clearly useless if the mapping
-        might deliver null. Tough.
-    */
-    public S accept( R x );
-    }
+ * Combines the actions of <code>Map</code> and <code>Filter</code>, mapping unacceptable objects to <code>null</code> and acceptable ones to their mapped
+ * value.
+ */
+public interface MapFilter<R, S>
+{
+	/**
+	 * a compiled filter and test - returns null if x is unacceptable, and the mapped value if x is acceptable; clearly useless if the mapping might deliver
+	 * null. Tough.
+	 */
+	public S accept(R x);
+}

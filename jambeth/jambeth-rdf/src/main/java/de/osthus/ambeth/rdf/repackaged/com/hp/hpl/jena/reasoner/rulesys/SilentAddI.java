@@ -16,20 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-import com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 /**
- * Interface supported by each of the rule system interpreters that
- * allow triples to added directly to the deductions cache, by-passing
- * any processing machinery.
+ * Interface supported by each of the rule system interpreters that allow triples to added directly to the deductions cache, by-passing any processing
+ * machinery.
  */
-public interface SilentAddI {
-    
-    /**
-     * Assert a new triple in the deduction graph, bypassing any processing machinery.
-     */
-    public void silentAdd(Triple t);
+public interface SilentAddI
+{
+
+	/**
+	 * Assert a new triple in the deduction graph, bypassing any processing machinery.
+	 */
+	public void silentAdd(Triple t);
 
 }

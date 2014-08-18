@@ -16,14 +16,13 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
-/** An simple N3 writer - writes N3 out as records, one per subject in the graph.
+/**
+ * An simple N3 writer - writes N3 out as records, one per subject in the graph.
  */
-
-
 
 public class N3JenaWriterPlain extends N3JenaWriterCommon
 {
- 
+
 }

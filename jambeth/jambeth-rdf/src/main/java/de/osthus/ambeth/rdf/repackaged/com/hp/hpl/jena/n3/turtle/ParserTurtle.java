@@ -16,48 +16,54 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
-import java.io.InputStream ;
-import java.io.Reader ;
+import java.io.InputStream;
+import java.io.Reader;
 
-import com.hp.hpl.jena.graph.Graph ;
-import com.hp.hpl.jena.n3.turtle.parser.ParseException ;
-import com.hp.hpl.jena.n3.turtle.parser.TokenMgrError ;
-import com.hp.hpl.jena.n3.turtle.parser.TurtleParser ;
-import com.hp.hpl.jena.util.FileUtils ;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle.parser.ParseException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle.parser.TokenMgrError;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle.parser.TurtleParser;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.FileUtils;
 
 public class ParserTurtle
 {
-    public ParserTurtle() {}
-    
-    public void parse(Graph graph, String baseURI, InputStream in)
-    {
-        Reader reader = FileUtils.asUTF8(in) ;
-        parse(graph, baseURI, reader) ;
-    }
-    
-    public void parse(Graph graph, String baseURI, Reader reader)
-    {
-        // Nasty things happen if the reader is not UTF-8.
-        try {
-            TurtleParser parser = new TurtleParser(reader) ;
-            parser.setEventHandler(new TurtleRDFGraphInserter(graph)) ;
-            parser.setBaseURI(baseURI) ;
-            parser.parse() ;
-        }
+	public ParserTurtle()
+	{
+	}
 
-        catch (ParseException | TokenMgrError ex)
-        { throw new TurtleParseException(ex.getMessage()) ; }
+	public void parse(Graph graph, String baseURI, InputStream in)
+	{
+		Reader reader = FileUtils.asUTF8(in);
+		parse(graph, baseURI, reader);
+	}
 
-        catch (TurtleParseException ex) { throw ex ; }
+	public void parse(Graph graph, String baseURI, Reader reader)
+	{
+		// Nasty things happen if the reader is not UTF-8.
+		try
+		{
+			TurtleParser parser = new TurtleParser(reader);
+			parser.setEventHandler(new TurtleRDFGraphInserter(graph));
+			parser.setBaseURI(baseURI);
+			parser.parse();
+		}
 
-        catch (Throwable th)
-        {
-            throw new TurtleParseException(th.getMessage(), th) ;
-        }
-    }
-    
-    
+		catch (ParseException | TokenMgrError ex)
+		{
+			throw new TurtleParseException(ex.getMessage());
+		}
+
+		catch (TurtleParseException ex)
+		{
+			throw ex;
+		}
+
+		catch (Throwable th)
+		{
+			throw new TurtleParseException(th.getMessage(), th);
+		}
+	}
+
 }

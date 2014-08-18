@@ -16,43 +16,46 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
- * An Exception indicating that Jena is not working
- * because it is not correctly configured. For example,
- * the classpath is not set up correctly for the desired
+ * An Exception indicating that Jena is not working because it is not correctly configured. For example, the classpath is not set up correctly for the desired
  * functionality.
  */
-public class ConfigException extends JenaException {
+public class ConfigException extends JenaException
+{
 
-    /**
-     * @param message
-     */
-    public ConfigException(String message) {
-        super(message);
-    }
+	/**
+	 * @param message
+	 */
+	public ConfigException(String message)
+	{
+		super(message);
+	}
 
-    /**
+	/**
      * 
      */
-    public ConfigException() {
-        super();
-    }
+	public ConfigException()
+	{
+		super();
+	}
 
-    /**
-     * @param cause
-     */
-    public ConfigException(Throwable cause) {
-        super("Jena not correctly configured: ",cause);
-    }
+	/**
+	 * @param cause
+	 */
+	public ConfigException(Throwable cause)
+	{
+		super("Jena not correctly configured: ", cause);
+	}
 
-    /**
-     * @param message
-     * @param cause
-     */
-    public ConfigException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	/**
+	 * @param message
+	 * @param cause
+	 */
+	public ConfigException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
 
 }

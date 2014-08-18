@@ -16,21 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 public class CannotHaveRulesException extends AssemblerException
-    {    
-    public CannotHaveRulesException( Resource root )
-        { super( root, makeMessage( root ) ); }
+{
+	public CannotHaveRulesException(Resource root)
+	{
+		super(root, makeMessage(root));
+	}
 
-    private static String makeMessage( Resource root )
-        {
-        return 
-            "the object " + nice( root ) 
-            + " cannot be given rules, since it is not a GenericRulesReasoner"
-            ;
-        }
+	private static String makeMessage(Resource root)
+	{
+		return "the object " + nice(root) + " cannot be given rules, since it is not a GenericRulesReasoner";
+	}
 
-    }
+}

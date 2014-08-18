@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 /**
-    A component interface used by ModelGetter for reading models.
-*/
+ * A component interface used by ModelGetter for reading models.
+ */
 public interface ModelReader
-    {
-    /**
-        Read the contents of <code>URL</code> into <code>toRead</code> and
-        answer <code>toRead</code>,
-    */
-    public Model readModel( Model toRead, String URL );
-    }
+{
+	/**
+	 * Read the contents of <code>URL</code> into <code>toRead</code> and answer <code>toRead</code>,
+	 */
+	public Model readModel(Model toRead, String URL);
+}

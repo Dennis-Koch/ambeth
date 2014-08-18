@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena;
 
 /**
  * <p>
@@ -25,23 +25,23 @@ package com.hp.hpl.jena;
  */
 public interface Jena
 {
-	/** The root package name for Jena */    
-    public static final String PATH = "com.hp.hpl.jena";
-    
-    /** The root name for metadata */
-    
-    public static final String MPATH = "org.apache.jena";
-    static final String UNSET = "unset" ;
-    
-    /** The product name */    
-    public static final String NAME = JenaRuntime.getMetadata( MPATH + ".name", UNSET ) ;
-    
-    /** The Jena web site */    
-    public static final String WEBSITE = JenaRuntime.getMetadata( MPATH + ".website", UNSET ) ;
-    
-    /** The full name of the current Jena version */    
-    public static final String VERSION = JenaRuntime.getMetadata( MPATH + ".version", UNSET ) ;
-    
-    /** The date and time at which this release was built */    
-    public static final String BUILD_DATE = JenaRuntime.getMetadata( MPATH + ".build.datetime", UNSET ) ;
+	/** The root package name for Jena */
+	public static final String PATH = "de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena";
+
+	/** The root name for metadata */
+
+	public static final String MPATH = "de.osthus.ambeth.rdf.repackaged.org.apache.jena";
+	static final String UNSET = "unset";
+
+	/** The product name */
+	public static final String NAME = JenaRuntime.getMetadata(MPATH + ".name", UNSET);
+
+	/** The Jena web site */
+	public static final String WEBSITE = JenaRuntime.getMetadata(MPATH + ".website", UNSET);
+
+	/** The full name of the current Jena version */
+	public static final String VERSION = JenaRuntime.getMetadata(MPATH + ".version", UNSET);
+
+	/** The date and time at which this release was built */
+	public static final String BUILD_DATE = JenaRuntime.getMetadata(MPATH + ".build.datetime", UNSET);
 }

@@ -16,38 +16,52 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.xmloutput.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.xmloutput.impl;
 
-class PairEntry<K,V>  implements java.util.Map.Entry<K,V>  {
-    K a;
-    V b;
-    @Override
-    public boolean equals(Object o) {
-        if (o != null && (o instanceof PairEntry<?,?>)) {
-            PairEntry<?,?> e = (PairEntry<?,?>) o;
-            return e.a.equals(a) && e.b.equals(b);
-        } 
-        return false;
-        
-    }
-    @Override
-    public K getKey() {
-        return a;
-    }
-    @Override
-    public V getValue() {
-        return b;
-    }
-    @Override
-    public int hashCode() {
-        return a.hashCode() ^ b.hashCode();
-    }
-    @Override
-    public V setValue(Object value) {
-        throw new UnsupportedOperationException();
-    }
-    PairEntry(K a, V b) {
-        this.a = a;
-        this.b = b;
-    }
+class PairEntry<K, V> implements java.util.Map.Entry<K, V>
+{
+	K a;
+	V b;
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o != null && (o instanceof PairEntry<?, ?>))
+		{
+			PairEntry<?, ?> e = (PairEntry<?, ?>) o;
+			return e.a.equals(a) && e.b.equals(b);
+		}
+		return false;
+
+	}
+
+	@Override
+	public K getKey()
+	{
+		return a;
+	}
+
+	@Override
+	public V getValue()
+	{
+		return b;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return a.hashCode() ^ b.hashCode();
+	}
+
+	@Override
+	public V setValue(Object value)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	PairEntry(K a, V b)
+	{
+		this.a = a;
+		this.b = b;
+	}
 }

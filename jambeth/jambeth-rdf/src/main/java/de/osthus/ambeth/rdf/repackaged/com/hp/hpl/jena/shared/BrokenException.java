@@ -16,19 +16,25 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    An exception to throw if an internal error is detected.
-*/
+ * An exception to throw if an internal error is detected.
+ */
 public class BrokenException extends JenaException
-    {
-    public BrokenException( String message )
-            { super( message ); }
+{
+	public BrokenException(String message)
+	{
+		super(message);
+	}
 
-    public BrokenException( Throwable cause )
-        { super( cause ); }
+	public BrokenException(Throwable cause)
+	{
+		super(cause);
+	}
 
-    public BrokenException( String message, Throwable cause )
-        { super( message, cause ); }
-    }
+	public BrokenException(String message, Throwable cause)
+	{
+		super(message, cause);
+	}
+}

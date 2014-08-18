@@ -16,27 +16,34 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
-import com.hp.hpl.jena.rdf.arp.impl.ANode;
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ANode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
 
-public class RDFCollection extends Collection {
+public class RDFCollection extends Collection
+{
 
-    public RDFCollection(WantsObjectFrameI s, AbsXMLContext x) {
-        super(s, x);
-    }
+	public RDFCollection(WantsObjectFrameI s, AbsXMLContext x)
+	{
+		super(s, x);
+	}
 
-    @Override
-    ANode nil() {
-        return RDF_NIL;
-    }
-    @Override
-    void restTriple(ANode subj,ANode obj) {
-        triple(subj,RDF_REST,obj);
-    }
-    @Override
-    void firstTriple(ANode subj, ANode obj) {
-        triple(subj,RDF_FIRST,obj);
-    }
+	@Override
+	ANode nil()
+	{
+		return RDF_NIL;
+	}
+
+	@Override
+	void restTriple(ANode subj, ANode obj)
+	{
+		triple(subj, RDF_REST, obj);
+	}
+
+	@Override
+	void firstTriple(ANode subj, ANode obj)
+	{
+		triple(subj, RDF_FIRST, obj);
+	}
 }

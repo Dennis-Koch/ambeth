@@ -16,30 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
-import com.hp.hpl.jena.graph.Graph ;
-import com.hp.hpl.jena.graph.Triple.Field ;
-import com.hp.hpl.jena.graph.impl.TripleStore ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple.Field;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.TripleStore;
 
 public class GraphTripleStoreMem extends GraphTripleStoreBase implements TripleStore
-    {    
-    public GraphTripleStoreMem( Graph parent )
-        { 
-        super( parent,
-            new NodeToTriplesMapMem( Field.fieldSubject, Field.fieldPredicate, Field.fieldObject ),
-            new NodeToTriplesMapMem( Field.fieldPredicate, Field.fieldObject, Field.fieldSubject ),
-            new NodeToTriplesMapMem( Field.fieldObject, Field.fieldSubject, Field.fieldPredicate )
-                ); 
-        }
-    
-    public NodeToTriplesMapMem getSubjects()
-        { return (NodeToTriplesMapMem) subjects; }
+{
+	public GraphTripleStoreMem(Graph parent)
+	{
+		super(parent, new NodeToTriplesMapMem(Field.fieldSubject, Field.fieldPredicate, Field.fieldObject), new NodeToTriplesMapMem(Field.fieldPredicate,
+				Field.fieldObject, Field.fieldSubject), new NodeToTriplesMapMem(Field.fieldObject, Field.fieldSubject, Field.fieldPredicate));
+	}
 
-    public NodeToTriplesMapMem getPredicates()
-        { return (NodeToTriplesMapMem) predicates; }
-    
-    public NodeToTriplesMapMem getObjects()
-        { return (NodeToTriplesMapMem) objects; }
-    
-    }
+	public NodeToTriplesMapMem getSubjects()
+	{
+		return (NodeToTriplesMapMem) subjects;
+	}
+
+	public NodeToTriplesMapMem getPredicates()
+	{
+		return (NodeToTriplesMapMem) predicates;
+	}
+
+	public NodeToTriplesMapMem getObjects()
+	{
+		return (NodeToTriplesMapMem) objects;
+	}
+
+}

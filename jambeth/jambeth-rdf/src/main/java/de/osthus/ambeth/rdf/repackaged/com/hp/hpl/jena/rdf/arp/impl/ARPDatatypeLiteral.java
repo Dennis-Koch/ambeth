@@ -16,61 +16,71 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.ALiteral;
-import com.hp.hpl.jena.rdf.arp.states.Frame;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ALiteral;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states.Frame;
 
-public class ARPDatatypeLiteral extends TaintImpl implements ALiteral {
+public class ARPDatatypeLiteral extends TaintImpl implements ALiteral
+{
 
-    final private String datatype;
-    final private String lexForm;
-    
-    public ARPDatatypeLiteral(Frame f, String lexf,URIReference dt) throws SAXParseException{
-       
-        f.checkString(this,lexf);
-       datatype = dt.getURI();
-       lexForm = lexf;
-       if (dt.isTainted())
-           taint();
-    }
-    /**
-     * @see com.hp.hpl.jena.rdf.arp.ALiteral#isWellFormedXML()
-     */
-    @Override
-    public boolean isWellFormedXML() {
-        return false; //datatype.equals(ARPString.RDFXMLLiteral);
-    }
-    /**
-     * @see com.hp.hpl.jena.rdf.arp.ALiteral#getParseType()
-     * @deprecated
-     */
-    @Override
-    @Deprecated
-    public String getParseType() {
-        return null;
-    }
-    @Override
-    public String toString() {
-        return lexForm;
-    }
+	final private String datatype;
+	final private String lexForm;
 
-    /**
-     * @see com.hp.hpl.jena.rdf.arp.ALiteral#getDatatypeURI()
-     */
-    @Override
-    public String getDatatypeURI() {
-        return datatype;
-    }
+	public ARPDatatypeLiteral(Frame f, String lexf, URIReference dt) throws SAXParseException
+	{
 
-    /**
-     * @see com.hp.hpl.jena.rdf.arp.ALiteral#getLang()
-     */
-    @Override
-    public String getLang() {
-        return ""; //lang;
-    }
+		f.checkString(this, lexf);
+		datatype = dt.getURI();
+		lexForm = lexf;
+		if (dt.isTainted())
+			taint();
+	}
+
+	/**
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ALiteral#isWellFormedXML()
+	 */
+	@Override
+	public boolean isWellFormedXML()
+	{
+		return false; // datatype.equals(ARPString.RDFXMLLiteral);
+	}
+
+	/**
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ALiteral#getParseType()
+	 * @deprecated
+	 */
+	@Override
+	@Deprecated
+	public String getParseType()
+	{
+		return null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return lexForm;
+	}
+
+	/**
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ALiteral#getDatatypeURI()
+	 */
+	@Override
+	public String getDatatypeURI()
+	{
+		return datatype;
+	}
+
+	/**
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ALiteral#getLang()
+	 */
+	@Override
+	public String getLang()
+	{
+		return ""; // lang;
+	}
 
 }

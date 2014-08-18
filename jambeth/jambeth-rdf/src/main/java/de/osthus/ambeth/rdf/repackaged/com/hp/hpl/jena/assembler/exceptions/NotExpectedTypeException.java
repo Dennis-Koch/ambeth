@@ -16,29 +16,32 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception to throw when some (dynamically loaded) class isn't of the
-    required type.
-*/
+ * Exception to throw when some (dynamically loaded) class isn't of the required type.
+ */
 public class NotExpectedTypeException extends AssemblerException
-    {
-    protected final Class<?> expectedType;
-    protected final Class<?> actualType;
-    
-    public NotExpectedTypeException( Resource root, Class<?> expectedType, Class<?> actualType )
-        {
-        super( root, "expected class " + expectedType.getName() + ", but had class " + actualType.getName() );
-        this.expectedType = expectedType;
-        this.actualType = actualType;
-        }
+{
+	protected final Class<?> expectedType;
+	protected final Class<?> actualType;
 
-    public Class<?> getExpectedType()
-        { return expectedType; }
+	public NotExpectedTypeException(Resource root, Class<?> expectedType, Class<?> actualType)
+	{
+		super(root, "expected class " + expectedType.getName() + ", but had class " + actualType.getName());
+		this.expectedType = expectedType;
+		this.actualType = actualType;
+	}
 
-    public Class<?> getActualType()
-        { return actualType; }
-    }
+	public Class<?> getExpectedType()
+	{
+		return expectedType;
+	}
+
+	public Class<?> getActualType()
+	{
+		return actualType;
+	}
+}

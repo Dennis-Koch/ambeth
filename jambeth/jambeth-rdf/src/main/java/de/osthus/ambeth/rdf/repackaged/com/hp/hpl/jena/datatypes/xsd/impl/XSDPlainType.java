@@ -16,41 +16,40 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.impl;
 
-import com.hp.hpl.jena.datatypes.xsd.XSDDatatype ;
-import com.hp.hpl.jena.graph.impl.LiteralLabel ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.LiteralLabel;
 
-/** A datatype that does not use the Xerces machinary for isEqual, yet is still an XSDDatatype.
- * Assumes no derived XSD datatypes.
+/**
+ * A datatype that does not use the Xerces machinary for isEqual, yet is still an XSDDatatype. Assumes no derived XSD datatypes.
  */
 
 public class XSDPlainType extends XSDDatatype
 {
 	/**
-    * New instance creation delegating to {@link XSDDatatype#XSDDatatype(String)}.
-    */
-   public XSDPlainType(String typeName)
-    {
-        super(typeName) ;
-    }
+	 * New instance creation delegating to {@link XSDDatatype#XSDDatatype(String)}.
+	 */
+	public XSDPlainType(String typeName)
+	{
+		super(typeName);
+	}
 
-    /**
-     * New instance creation delegating to {@link XSDDatatype#XSDDatatype(String, Class)}.
-     */
-    public XSDPlainType(String typeName, Class<?> clazz)
-    {
-        super(typeName, clazz) ;
-    }
+	/**
+	 * New instance creation delegating to {@link XSDDatatype#XSDDatatype(String, Class)}.
+	 */
+	public XSDPlainType(String typeName, Class<?> clazz)
+	{
+		super(typeName, clazz);
+	}
 
-    /**
-     * Compares two instances of values of the given datatype.
-     * This default requires value and datatype equality.
-     * This is the same as BaseDatatype
-     */
-    @Override
-    public boolean isEqual(LiteralLabel litLabel1, LiteralLabel litLabel2) {
-        // This is the function from BaseDatatype!
-        return isEqualPlain(litLabel1, litLabel2) ;
-    }
+	/**
+	 * Compares two instances of values of the given datatype. This default requires value and datatype equality. This is the same as BaseDatatype
+	 */
+	@Override
+	public boolean isEqual(LiteralLabel litLabel1, LiteralLabel litLabel2)
+	{
+		// This is the function from BaseDatatype!
+		return isEqualPlain(litLabel1, litLabel2);
+	}
 }

@@ -22,125 +22,140 @@
  * Created on June 25, 2001, 9:57 PM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-public class ARPResource extends TaintImpl implements  AResourceInternal {
-    // Constants cribbed from com.megginson.sax.rdf.RDFFilter
-    static public final boolean DEBUG = false;
-    final private XMLHandler arp;
-    
-    final String nodeID;
-    
-    static private int genIdCounter = 0;
-    final private int genId = genIdCounter++;
-    static String dummy = "http://jena.hpl.hp.com/arp/not/a/real/uri/";
+public class ARPResource extends TaintImpl implements AResourceInternal
+{
+	// Constants cribbed from com.megginson.sax.rdf.RDFFilter
+	static public final boolean DEBUG = false;
+	final private XMLHandler arp;
+
+	final String nodeID;
+
+	static private int genIdCounter = 0;
+	final private int genId = genIdCounter++;
+	static String dummy = "http://jena.hpl.hp.com/arp/not/a/real/uri/";
 	static String nullDummy = "nullpointerexception://jena.hpl.hp.com/arp/";
-    
-    public ARPResource(XMLHandler parent) {
-        this(parent,null);
-    } 
-    public ARPResource(XMLHandler parent, String nid) {
-        arp = parent;
-        nodeID = nid;
-        if (DEBUG) {
-            RuntimeException rte = new RuntimeException("bnode allocated here");
-            rte.fillInStackTrace();
-            userData = rte;
-        }
-            
-    }
-          
-    
-  
-    
-    
 
-    // AResource interface.
-    @Override
-    public boolean isAnonymous() {
-        return true;
-    }
-    
-    @Override
-    public String getAnonymousID() {
-        return nodeID==null
-                ? ( "A" + Integer.toString(genId) )
-                : "U" + nodeID;
-    }
-    
-    
-    @Override
-    public String getURI() {
-        return null;
-    }
-    
-    @Override
-    public String toString() {
-        return "_:"+getAnonymousID();
-    }
-    
-    @Override
-    public int hashCode() {
-       return nodeID==null ?genId: nodeID.hashCode();
-    }
-    
-    @Override
-    public boolean equals(Object o) {
-        if ( o == null || !(o instanceof ARPResource))
-            return false;
-        if ( this == o)
-          return true;
-//        AResourceInternal a=(AResourceInternal)o;
-//        if ( uri != null )
-//		      return (!a.isAnonymous()) && uri.equals(a.getURI());
-		    ARPResource aa = (ARPResource)o;
-        return nodeID != null && nodeID.equals(aa.nodeID);
-    }
-    
-    private Object userData;
-    
-    @Override
-    public Object getUserData() {
-//    	if ( uri != null )
-//    	  throw new IllegalStateException("User data only supported on blank nodes");
-        return nodeID == null ?
-                userData : arp.getUserData(nodeID);
-    }
-    
-    @Override
-    public void setUserData(Object d) {
-//    	if ( uri != null )
-//    	  throw new IllegalStateException("User data only supported on blank nodes");
-     	if ( nodeID == null ) 
-            userData = d;
-        else
-            arp.setUserData(nodeID,d);
-    }
-
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.rdf.arp.AResource#hasNodeID()
-	 */
-	@Override
-    public boolean hasNodeID() {
-		return nodeID!=null;
+	public ARPResource(XMLHandler parent)
+	{
+		this(parent, null);
 	}
-  private boolean used = false;
 
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.rdf.arp.AResourceInternal#setHasBeenUsed()
+	public ARPResource(XMLHandler parent, String nid)
+	{
+		arp = parent;
+		nodeID = nid;
+		if (DEBUG)
+		{
+			RuntimeException rte = new RuntimeException("bnode allocated here");
+			rte.fillInStackTrace();
+			userData = rte;
+		}
+
+	}
+
+	// AResource interface.
+	@Override
+	public boolean isAnonymous()
+	{
+		return true;
+	}
+
+	@Override
+	public String getAnonymousID()
+	{
+		return nodeID == null ? ("A" + Integer.toString(genId)) : "U" + nodeID;
+	}
+
+	@Override
+	public String getURI()
+	{
+		return null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "_:" + getAnonymousID();
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return nodeID == null ? genId : nodeID.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o == null || !(o instanceof ARPResource))
+			return false;
+		if (this == o)
+			return true;
+		// AResourceInternal a=(AResourceInternal)o;
+		// if ( uri != null )
+		// return (!a.isAnonymous()) && uri.equals(a.getURI());
+		ARPResource aa = (ARPResource) o;
+		return nodeID != null && nodeID.equals(aa.nodeID);
+	}
+
+	private Object userData;
+
+	@Override
+	public Object getUserData()
+	{
+		// if ( uri != null )
+		// throw new
+		// IllegalStateException("User data only supported on blank nodes");
+		return nodeID == null ? userData : arp.getUserData(nodeID);
+	}
+
+	@Override
+	public void setUserData(Object d)
+	{
+		// if ( uri != null )
+		// throw new
+		// IllegalStateException("User data only supported on blank nodes");
+		if (nodeID == null)
+			userData = d;
+		else
+			arp.setUserData(nodeID, d);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.AResource#hasNodeID ()
 	 */
 	@Override
-    public void setHasBeenUsed() {
+	public boolean hasNodeID()
+	{
+		return nodeID != null;
+	}
+
+	private boolean used = false;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.AResourceInternal #setHasBeenUsed()
+	 */
+	@Override
+	public void setHasBeenUsed()
+	{
 		used = true;
-	} 
+	}
 
-
-	/* (non-Javadoc)
-	 * @see com.hp.hpl.jena.rdf.arp.AResourceInternal#getHasBeenUsed()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.AResourceInternal #getHasBeenUsed()
 	 */
 	@Override
-    public boolean getHasBeenUsed() {
+	public boolean getHasBeenUsed()
+	{
 		return used;
 	}
-    
+
 }

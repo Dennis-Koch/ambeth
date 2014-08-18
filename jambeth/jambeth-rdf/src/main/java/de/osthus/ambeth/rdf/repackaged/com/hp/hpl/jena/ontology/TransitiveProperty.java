@@ -18,30 +18,23 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface that denotes a property that is transitive i&#046;e&#046; one
- * in which if <code><em>x</em>&nbsp;p&nbsp;<em>y</em></code> holds,
- * and <code><em>y</em>&nbsp;p&nbsp;<em>z</em></code>
- * holds, then <code><em>x</em>&nbsp;p&nbsp;<em>z</em></code> must also hold.
+ * Interface that denotes a property that is transitive i&#046;e&#046; one in which if <code><em>x</em>&nbsp;p&nbsp;<em>y</em></code> holds, and
+ * <code><em>y</em>&nbsp;p&nbsp;<em>z</em></code> holds, then <code><em>x</em>&nbsp;p&nbsp;<em>z</em></code> must also hold.
  * </p>
  */
-public interface TransitiveProperty
-    extends ObjectProperty
+public interface TransitiveProperty extends ObjectProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

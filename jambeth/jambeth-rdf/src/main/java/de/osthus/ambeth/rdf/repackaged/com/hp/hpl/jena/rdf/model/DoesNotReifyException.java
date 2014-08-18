@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    This exception may be raised when an attempt to convert an RDFNode
-    to a ReifiedStatement fails because the RDFNode does not correspond
-    to a reification.
-*/
+ * This exception may be raised when an attempt to convert an RDFNode to a ReifiedStatement fails because the RDFNode does not correspond to a reification.
+ */
 
 public class DoesNotReifyException extends JenaException
-    {
-    public DoesNotReifyException( Node n ) { super( n.toString() ); }
-    }
+{
+	public DoesNotReifyException(Node n)
+	{
+		super(n.toString());
+	}
+}

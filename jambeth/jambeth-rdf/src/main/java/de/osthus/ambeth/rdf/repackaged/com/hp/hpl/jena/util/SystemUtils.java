@@ -16,38 +16,38 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util;
 
-import com.hp.hpl.jena.shared.JenaException ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
-import org.slf4j.Logger ;
-import org.slf4j.LoggerFactory ;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** 
+/**
  * Note: this has been copied here from ARQ.
  */
 public class SystemUtils
 {
-    private static Logger log = LoggerFactory.getLogger ( SystemUtils.class.getName() ) ;
-    
-    static public ClassLoader chooseClassLoader()
-    {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader() ;
-    
-        if ( classLoader != null )
-            log.trace ( "Using thread classloader" ) ;
-        
-        if ( classLoader == null )
-        {
-            classLoader = ClassLoader.getSystemClassLoader() ;
-            if ( classLoader != null )
-                log.trace ( "Using system classloader" ) ;
-        }
-        
-        if ( classLoader == null )
-            throw new JenaException ( "Failed to find a classloader" ) ;
+	private static Logger log = LoggerFactory.getLogger(SystemUtils.class.getName());
 
-        return classLoader ;
-    }
-    
+	static public ClassLoader chooseClassLoader()
+	{
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+		if (classLoader != null)
+			log.trace("Using thread classloader");
+
+		if (classLoader == null)
+		{
+			classLoader = ClassLoader.getSystemClassLoader();
+			if (classLoader != null)
+				log.trace("Using system classloader");
+		}
+
+		if (classLoader == null)
+			throw new JenaException("Failed to find a classloader");
+
+		return classLoader;
+	}
+
 }

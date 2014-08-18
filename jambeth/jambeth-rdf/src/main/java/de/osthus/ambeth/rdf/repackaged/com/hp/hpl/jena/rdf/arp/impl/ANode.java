@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-public interface ANode extends Taint {
+public interface ANode extends Taint
+{
 
 }

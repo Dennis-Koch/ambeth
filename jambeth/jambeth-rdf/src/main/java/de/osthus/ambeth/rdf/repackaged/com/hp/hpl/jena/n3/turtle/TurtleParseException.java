@@ -16,19 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
-/** QueryParseException is root exception for all (intentional) exceptions
- *  from the various parsers where the error is to do with the syntax of a query.
+/**
+ * QueryParseException is root exception for all (intentional) exceptions from the various parsers where the error is to do with the syntax of a query.
  */
-
 
 public class TurtleParseException extends JenaException
 {
-    public TurtleParseException() { super() ; }
-    public TurtleParseException(Throwable cause) { super(cause) ; }
-    public TurtleParseException(String msg) { super(msg) ; }
-    public TurtleParseException(String msg, Throwable cause) { super(msg, cause) ; }
+	public TurtleParseException()
+	{
+		super();
+	}
+
+	public TurtleParseException(Throwable cause)
+	{
+		super(cause);
+	}
+
+	public TurtleParseException(String msg)
+	{
+		super(msg);
+	}
+
+	public TurtleParseException(String msg, Throwable cause)
+	{
+		super(msg, cause);
+	}
 }

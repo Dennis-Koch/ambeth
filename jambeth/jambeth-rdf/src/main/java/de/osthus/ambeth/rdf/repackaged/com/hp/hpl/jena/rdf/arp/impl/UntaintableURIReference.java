@@ -16,15 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-class UntaintableURIReference extends URIReference {
+class UntaintableURIReference extends URIReference
+{
 
-    public UntaintableURIReference(String str) {
-        super(str);
-    }
-    
-    @Override
-    public void taint() {}
+	public UntaintableURIReference(String str)
+	{
+		super(str);
+	}
+
+	@Override
+	public void taint()
+	{
+	}
 
 }

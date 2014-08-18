@@ -16,43 +16,47 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-/** An RDF Property.
+/**
+ * An RDF Property.
  */
-public interface Property extends Resource {
-	
-  public boolean isProperty();
+public interface Property extends Resource
+{
 
-  /** Returns the namespace associated with this property.
-     * @return The namespace for this property.
-     */
-  @Override
-public String getNameSpace();
+	public boolean isProperty();
 
-  /**
-      Override RDFNode.inModel() to produce a staticly-typed Property
-      in the given Model.
-  */
-  @Override
-public Property inModel( Model m );
-  
-    /** Returns the name of this property within its namespace.
-     * @return The name of this property within its namespace.
-     */
-  @Override
-public String getLocalName();
-  
-  /** Returns the ordinal value of a containment property.
-     *
-     * <p>RDF containers use properties of the form _1, _2, _3 etc to represent
-     * the containment relationship between the container and the objects it
-     * contains.  When invoked on such a containment property, this method
-     * returns the integer part of the property name.  When invoked on other
-     * properties, it returns 0.
-     * @return The ordinal value of a containment property,
-     * or 0 otherwise.
-     *
-     */
-  public int    getOrdinal();
+	/**
+	 * Returns the namespace associated with this property.
+	 * 
+	 * @return The namespace for this property.
+	 */
+	@Override
+	public String getNameSpace();
+
+	/**
+	 * Override RDFNode.inModel() to produce a staticly-typed Property in the given Model.
+	 */
+	@Override
+	public Property inModel(Model m);
+
+	/**
+	 * Returns the name of this property within its namespace.
+	 * 
+	 * @return The name of this property within its namespace.
+	 */
+	@Override
+	public String getLocalName();
+
+	/**
+	 * Returns the ordinal value of a containment property.
+	 * 
+	 * <p>
+	 * RDF containers use properties of the form _1, _2, _3 etc to represent the containment relationship between the container and the objects it contains.
+	 * When invoked on such a containment property, this method returns the integer part of the property name. When invoked on other properties, it returns 0.
+	 * 
+	 * @return The ordinal value of a containment property, or 0 otherwise.
+	 * 
+	 */
+	public int getOrdinal();
 }

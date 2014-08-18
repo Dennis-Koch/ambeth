@@ -16,29 +16,32 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
 
-public class WantEmpty extends Frame {
+public class WantEmpty extends Frame
+{
 
-    public WantEmpty(FrameI s, AbsXMLContext x) {
-        super(s, x);
-    }
+	public WantEmpty(FrameI s, AbsXMLContext x)
+	{
+		super(s, x);
+	}
 
-    @Override
-    public void characters(char[] ch, int start, int length) throws SAXParseException {
-        warning(ERR_SYNTAX_ERROR,"The attributes on this property element, are not permitted with any content; expecting end element tag.");
-    }
+	@Override
+	public void characters(char[] ch, int start, int length) throws SAXParseException
+	{
+		warning(ERR_SYNTAX_ERROR, "The attributes on this property element, are not permitted with any content; expecting end element tag.");
+	}
 
-    @Override
-    public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException {
-        warning(ERR_SYNTAX_ERROR,"XML element <"+rawName+"> inside an empty property element, whose attributes prohibit any content.");
-        return this;
-    }
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		warning(ERR_SYNTAX_ERROR, "XML element <" + rawName + "> inside an empty property element, whose attributes prohibit any content.");
+		return this;
+	}
 
 }

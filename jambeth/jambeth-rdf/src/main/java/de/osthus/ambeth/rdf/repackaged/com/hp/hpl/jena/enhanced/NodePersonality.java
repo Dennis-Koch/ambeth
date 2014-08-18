@@ -16,12 +16,13 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.enhanced;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced;
 
-import com.hp.hpl.jena.rdf.model.RDFNode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFNode;
 
 /**
-    Personalities for nodes.
-*/
-public class NodePersonality extends Personality<RDFNode> 
-    {}
+ * Personalities for nodes.
+ */
+public class NodePersonality extends Personality<RDFNode>
+{
+}

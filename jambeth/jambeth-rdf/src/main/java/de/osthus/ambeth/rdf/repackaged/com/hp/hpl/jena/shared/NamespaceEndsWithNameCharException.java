@@ -16,15 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-     This exception is thrown when a putative namespace (for a PrefixMapping)
-     ends with a name character, which we disallow because its an invitation
-     to errors. Typically a namespace URI will end with "/" or "#".
-*/
+ * This exception is thrown when a putative namespace (for a PrefixMapping) ends with a name character, which we disallow because its an invitation to errors.
+ * Typically a namespace URI will end with "/" or "#".
+ */
 public class NamespaceEndsWithNameCharException extends JenaException
-    {    
-    public NamespaceEndsWithNameCharException( String ns ) 
-        { super( ns ); }
-    }
+{
+	public NamespaceEndsWithNameCharException(String ns)
+	{
+		super(ns);
+	}
+}

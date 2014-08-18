@@ -16,47 +16,54 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
- * Core properties of choice frames used use to represent the OR state of
- * the backtracking search. Specific variants of this need to preserve additional
- * choice state.
+ * Core properties of choice frames used use to represent the OR state of the backtracking search. Specific variants of this need to preserve additional choice
+ * state.
  * <p>
- * This is used in the inner loop of the interpreter and so is a pure data structure
- * not an abstract data type and assumes privileged access to the interpreter state.
+ * This is used in the inner loop of the interpreter and so is a pure data structure not an abstract data type and assumes privileged access to the interpreter
+ * state.
  * </p>
  */
-public class GenericChoiceFrame extends FrameObject {
+public class GenericChoiceFrame extends FrameObject
+{
 
-    /** The environment frame describing the state of the AND tree at this choice point */
-    EnvironmentFrame envFrame;
+	/**
+	 * The environment frame describing the state of the AND tree at this choice point
+	 */
+	EnvironmentFrame envFrame;
 
-    /** The top of the trail stack at the time of the call */
-    int trailIndex;
-    
-    /** The continuation program counter offet in the parent clause's byte code */
-    int cpc;
-    
-    /** The continuation argument counter offset in the parent clause's arg stream */
-    int cac;
+	/** The top of the trail stack at the time of the call */
+	int trailIndex;
 
-    /**
-     * Initialize a choice point to preserve the current context of the given intepreter 
-     * and then call the given set of predicates.
-     * @param interpreter the LPInterpreter whose state is to be preserved
-     */
-    public void init(LPInterpreter interpreter) {
-        envFrame = interpreter.envFrame;
-        trailIndex = interpreter.trail.size();
-    }
+	/** The continuation program counter offet in the parent clause's byte code */
+	int cpc;
 
-    /**
-     * Set the continuation point for this frame.
-     */
-    public void setContinuation(int pc, int ac) {
-        cpc = pc;
-        cac = ac; 
-    }
+	/**
+	 * The continuation argument counter offset in the parent clause's arg stream
+	 */
+	int cac;
+
+	/**
+	 * Initialize a choice point to preserve the current context of the given intepreter and then call the given set of predicates.
+	 * 
+	 * @param interpreter
+	 *            the LPInterpreter whose state is to be preserved
+	 */
+	public void init(LPInterpreter interpreter)
+	{
+		envFrame = interpreter.envFrame;
+		trailIndex = interpreter.trail.size();
+	}
+
+	/**
+	 * Set the continuation point for this frame.
+	 */
+	public void setContinuation(int pc, int ac)
+	{
+		cpc = pc;
+		cac = ac;
+	}
 
 }

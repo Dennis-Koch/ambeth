@@ -16,24 +16,30 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
+
 /**
  * Minimal implemantation of {@link Taint}
  */
-public class TaintImpl implements Taint {
+public class TaintImpl implements Taint
+{
 
-    private boolean tainted=false;
-    public TaintImpl() { 
-    }
+	private boolean tainted = false;
 
-    @Override
-    public void taint() {
-  tainted = true;
-    }
+	public TaintImpl()
+	{
+	}
 
-    @Override
-    public boolean isTainted() {
-       return tainted;
-    }
+	@Override
+	public void taint()
+	{
+		tainted = true;
+	}
+
+	@Override
+	public boolean isTainted()
+	{
+		return tainted;
+	}
 
 }

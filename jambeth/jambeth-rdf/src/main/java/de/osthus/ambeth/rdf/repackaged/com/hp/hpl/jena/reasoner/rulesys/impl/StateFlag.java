@@ -16,38 +16,41 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
- * A set of constants used to record state information in the
- * backchaining rule interepreter. 
+ * A set of constants used to record state information in the backchaining rule interepreter.
  */
-public class StateFlag {
-    
-    /** Label for printing */
-    private String label;
+public class StateFlag
+{
 
-    /** Indicates a goal has failed and return no more answers at this time */
-    public static final StateFlag FAIL = new StateFlag("FAIL");
-    
-    /** Indicates that all currently available results have been returned and
-     *  the goal should be suspended into new subgoal results have been generated */
-    public static final StateFlag SUSPEND = new StateFlag("SUSPEND");
-    
-    /** Indicates that the goal remains active */
-    public static final StateFlag ACTIVE = new StateFlag("ACTIVE");
-    
-    /** Indicates a fully satisfied goal */
-    public static final StateFlag SATISFIED = new StateFlag("SATISFIED");
-    
-    /** Constructor */
-    private StateFlag(String label) {
-        this.label = label;
-    }
-    
-    /** Print string */
-    @Override
-    public String toString() {
-        return label;
-    }
+	/** Label for printing */
+	private String label;
+
+	/** Indicates a goal has failed and return no more answers at this time */
+	public static final StateFlag FAIL = new StateFlag("FAIL");
+
+	/**
+	 * Indicates that all currently available results have been returned and the goal should be suspended into new subgoal results have been generated
+	 */
+	public static final StateFlag SUSPEND = new StateFlag("SUSPEND");
+
+	/** Indicates that the goal remains active */
+	public static final StateFlag ACTIVE = new StateFlag("ACTIVE");
+
+	/** Indicates a fully satisfied goal */
+	public static final StateFlag SATISFIED = new StateFlag("SATISFIED");
+
+	/** Constructor */
+	private StateFlag(String label)
+	{
+		this.label = label;
+	}
+
+	/** Print string */
+	@Override
+	public String toString()
+	{
+		return label;
+	}
 }

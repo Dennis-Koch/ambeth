@@ -16,23 +16,28 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
+
 import java.util.*;
 
 /**
  * Fully execute the iterator immediately, but pretend we haven't.
  */
-public class EarlyBindingIterator<T> extends WrappedIterator<T> {
+public class EarlyBindingIterator<T> extends WrappedIterator<T>
+{
 
-static private <X> Iterator<X> early(Iterator<X> it) {
+	static private <X> Iterator<X> early(Iterator<X> it)
+	{
 		List<X> v = new ArrayList<>();
-		while (it.hasNext()) v.add(it.next());
+		while (it.hasNext())
+			v.add(it.next());
 		close(it);
 		return v.iterator();
 	}
 
-    public EarlyBindingIterator(Iterator<? extends T> it) {
-		super( early(it) );
+	public EarlyBindingIterator(Iterator<? extends T> it)
+	{
+		super(early(it));
 	}
 
 }

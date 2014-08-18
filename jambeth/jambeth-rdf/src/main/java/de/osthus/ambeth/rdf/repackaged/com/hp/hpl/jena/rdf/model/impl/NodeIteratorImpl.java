@@ -16,25 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.*;
 
-/** A NodeIterator implementation.
+/**
+ * A NodeIterator implementation.
  */
-public class NodeIteratorImpl extends WrappedIterator<RDFNode> implements NodeIterator {
-    
-    /** Creates new NodeIteratorImpl */
-    public NodeIteratorImpl( Iterator<? extends RDFNode> iter, Object object ) {
-        super( iter );
-    }
-    
-    @Override
-    public RDFNode nextNode() {
-        return super.next();
-    }
-    
+public class NodeIteratorImpl extends WrappedIterator<RDFNode> implements NodeIterator
+{
+
+	/** Creates new NodeIteratorImpl */
+	public NodeIteratorImpl(Iterator<? extends RDFNode> iter, Object object)
+	{
+		super(iter);
+	}
+
+	@Override
+	public RDFNode nextNode()
+	{
+		return super.next();
+	}
+
 }

@@ -16,52 +16,59 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Node;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.graph.TripleMatch;
-import com.hp.hpl.jena.graph.impl.SimpleEventManager;
-import com.hp.hpl.jena.graph.impl.WrappedGraph;
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
-import com.hp.hpl.jena.util.iterator.Filter;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TripleMatch;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.SimpleEventManager;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.WrappedGraph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.Filter;
 
 /**
- * A SafeGraph wraps a graph which might contain generalized RDF
- * triples and hides them from API queries so that consumers
- * of it are safe (but can use getRawGraph() to get back the unsafe graph.
+ * A SafeGraph wraps a graph which might contain generalized RDF triples and hides them from API queries so that consumers of it are safe (but can use
+ * getRawGraph() to get back the unsafe graph.
  */
-public class SafeGraph extends WrappedGraph implements Graph {
+public class SafeGraph extends WrappedGraph implements Graph
+{
 
-    /** Wrap a graph to hide generalized triples */
-    public SafeGraph(Graph base) {
-        super(base);
-    }
+	/** Wrap a graph to hide generalized triples */
+	public SafeGraph(Graph base)
+	{
+		super(base);
+	}
 
-    @Override
-    public ExtendedIterator<Triple> find( TripleMatch m ) {
-        return find(m.getMatchSubject(), m.getMatchPredicate(), m.getMatchObject());
-    }
-    
-    @Override
-    public ExtendedIterator<Triple> find( Node s, Node p, Node o ) {
-        return SimpleEventManager.notifyingRemove( this, 
-                base.find( s, p, o ).filterDrop( new Filter<Triple>() {
-                    @Override
-                    public boolean accept(Triple t) {
-                        if (t.getSubject().isLiteral()) return true;
-                        if (t.getPredicate().isBlank() || t.getPredicate().isLiteral()) return true;
-                        return false;
-                    }
-                } ) );
-    }
+	@Override
+	public ExtendedIterator<Triple> find(TripleMatch m)
+	{
+		return find(m.getMatchSubject(), m.getMatchPredicate(), m.getMatchObject());
+	}
 
-    /**
-     * Return the unfiltered version of the graph
-     */
-    public Graph getRawGraph() {
-        return base;
-    }
-    
+	@Override
+	public ExtendedIterator<Triple> find(Node s, Node p, Node o)
+	{
+		return SimpleEventManager.notifyingRemove(this, base.find(s, p, o).filterDrop(new Filter<Triple>()
+		{
+			@Override
+			public boolean accept(Triple t)
+			{
+				if (t.getSubject().isLiteral())
+					return true;
+				if (t.getPredicate().isBlank() || t.getPredicate().isLiteral())
+					return true;
+				return false;
+			}
+		}));
+	}
+
+	/**
+	 * Return the unfiltered version of the graph
+	 */
+	public Graph getRawGraph()
+	{
+		return base;
+	}
+
 }

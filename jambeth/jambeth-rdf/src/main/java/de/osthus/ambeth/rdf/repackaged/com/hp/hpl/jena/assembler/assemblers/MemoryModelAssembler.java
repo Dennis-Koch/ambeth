@@ -16,26 +16,27 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-
-import com.hp.hpl.jena.assembler.Assembler ;
-import com.hp.hpl.jena.assembler.JA ;
-import com.hp.hpl.jena.assembler.Mode ;
-import com.hp.hpl.jena.rdf.model.Model ;
-import com.hp.hpl.jena.rdf.model.ModelFactory ;
-import com.hp.hpl.jena.rdf.model.Resource ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.Assembler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.JA;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.Mode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Model;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.ModelFactory;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 public class MemoryModelAssembler extends ModelAssembler implements Assembler
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode mode )
-        {
-        checkType( root, JA.MemoryModel );
-        return super.open( a, root, mode );
-        }
-    
-    @Override
-    protected Model openEmptyModel( Assembler a, Resource root, Mode irrelevant )
-        { return ModelFactory.createDefaultModel( ); }
-    }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode mode)
+	{
+		checkType(root, JA.MemoryModel);
+		return super.open(a, root, mode);
+	}
+
+	@Override
+	protected Model openEmptyModel(Assembler a, Resource root, Mode irrelevant)
+	{
+		return ModelFactory.createDefaultModel();
+	}
+}

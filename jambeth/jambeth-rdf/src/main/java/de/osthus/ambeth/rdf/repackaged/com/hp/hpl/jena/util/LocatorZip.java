@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,64 +26,71 @@ import java.util.zip.ZipFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
-/** Location files in a zip file  */
- 
+/** Location files in a zip file */
 
 public class LocatorZip implements Locator
 {
-    static Logger log = LoggerFactory.getLogger(LocatorZip.class) ;
-    String zipFileName = null ; 
-    ZipFile zipFile = null ;
-    
-    public LocatorZip(String zfn)
-    {
-        try {
-            zipFileName = zfn ;
-            zipFile = new ZipFile(zipFileName) ;
-        } catch  (IOException ex)
-        { 
-            throw new JenaException("Problems accessing "+zipFileName, ex) ;
-        }
-    }
-    
-    @Override
-    public TypedStream open(String filenameOrURI)
-    {
-        ZipEntry entry = zipFile.getEntry(filenameOrURI) ;
-        if ( entry == null )
-        {
-            if ( FileManager.logAllLookups && log.isDebugEnabled() )
-                log.debug("Not found: "+zipFileName+" : "+filenameOrURI) ; 
-            return null ;
-            
-        }
-        try
-        {
-            InputStream in = zipFile.getInputStream(entry) ;
-            
-            if ( in == null )
-            {
-                if ( FileManager.logAllLookups && log.isTraceEnabled() )
-                    log.trace("Not found: "+filenameOrURI) ; 
-                return null ;
-            }
-            
-            if ( FileManager.logAllLookups  && log.isTraceEnabled() )
-                log.trace("Found: "+filenameOrURI) ;
-            return new TypedStream(in) ;
-        }
-        catch (IOException ex)
-        {
-            log.warn("IO Exception opening zip entry: " + filenameOrURI);
-            return null;
-        }
-    }
-    
-    public String getZipFileName() { return zipFileName ; }
-    
-    @Override
-    public String getName() { return "LocatorZip("+zipFileName+")" ; } 
+	static Logger log = LoggerFactory.getLogger(LocatorZip.class);
+	String zipFileName = null;
+	ZipFile zipFile = null;
+
+	public LocatorZip(String zfn)
+	{
+		try
+		{
+			zipFileName = zfn;
+			zipFile = new ZipFile(zipFileName);
+		}
+		catch (IOException ex)
+		{
+			throw new JenaException("Problems accessing " + zipFileName, ex);
+		}
+	}
+
+	@Override
+	public TypedStream open(String filenameOrURI)
+	{
+		ZipEntry entry = zipFile.getEntry(filenameOrURI);
+		if (entry == null)
+		{
+			if (FileManager.logAllLookups && log.isDebugEnabled())
+				log.debug("Not found: " + zipFileName + " : " + filenameOrURI);
+			return null;
+
+		}
+		try
+		{
+			InputStream in = zipFile.getInputStream(entry);
+
+			if (in == null)
+			{
+				if (FileManager.logAllLookups && log.isTraceEnabled())
+					log.trace("Not found: " + filenameOrURI);
+				return null;
+			}
+
+			if (FileManager.logAllLookups && log.isTraceEnabled())
+				log.trace("Found: " + filenameOrURI);
+			return new TypedStream(in);
+		}
+		catch (IOException ex)
+		{
+			log.warn("IO Exception opening zip entry: " + filenameOrURI);
+			return null;
+		}
+	}
+
+	public String getZipFileName()
+	{
+		return zipFileName;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "LocatorZip(" + zipFileName + ")";
+	}
 
 }

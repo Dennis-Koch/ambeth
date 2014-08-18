@@ -16,52 +16,109 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.listeners;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.listeners;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.*;
 
 /**
-    Class that merely notes that a change has occurred. The only method its user
-    should be interested in is <code>hasChanged()</code>.
-*/
+ * Class that merely notes that a change has occurred. The only method its user should be interested in is <code>hasChanged()</code>.
+ */
 public class ChangedListener implements ModelChangedListener
-    {
-    /**
-        True iff a change has occurred since the last check
-    */
-    private boolean changed = false;
-    /**
-        Record that a change has occurred by setting <code>changed</code> true.
-    */
-    protected void setChanged() { changed = true; }
-    /**
-        Answer true iff a change has occurred since the last hasChanged and set changed
-        false.
-        @return true iff a change has occurred since the last call to hasChanged
-    */
-    public boolean hasChanged() { try { return changed; } finally { changed = false; } }
-    @Override
-    public void addedStatement( Statement s ) { setChanged(); }
-    @Override
-    public void addedStatements( Statement [] statements ) { setChanged(); }
-    @Override
-    public void addedStatements( List<Statement> statements ) { setChanged(); }
-    @Override
-    public void addedStatements( StmtIterator statements ) { setChanged(); }
-    @Override
-    public void addedStatements( Model m ) { setChanged(); }
-    @Override
-    public void removedStatement( Statement s ) { setChanged(); }   
-    @Override
-    public void removedStatements( Statement [] statements ) { setChanged(); }
-    @Override
-    public void removedStatements( List<Statement> statements ) { setChanged(); }
-    @Override
-    public void removedStatements( StmtIterator statements ) { setChanged(); }
-    @Override
-    public void removedStatements( Model m ) { setChanged(); }          
-    @Override
-    public void notifyEvent( Model m, Object event ) {}
-    }
+{
+	/**
+	 * True iff a change has occurred since the last check
+	 */
+	private boolean changed = false;
+
+	/**
+	 * Record that a change has occurred by setting <code>changed</code> true.
+	 */
+	protected void setChanged()
+	{
+		changed = true;
+	}
+
+	/**
+	 * Answer true iff a change has occurred since the last hasChanged and set changed false.
+	 * 
+	 * @return true iff a change has occurred since the last call to hasChanged
+	 */
+	public boolean hasChanged()
+	{
+		try
+		{
+			return changed;
+		}
+		finally
+		{
+			changed = false;
+		}
+	}
+
+	@Override
+	public void addedStatement(Statement s)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void addedStatements(Statement[] statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void addedStatements(List<Statement> statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void addedStatements(StmtIterator statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void addedStatements(Model m)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void removedStatement(Statement s)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void removedStatements(Statement[] statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void removedStatements(List<Statement> statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void removedStatements(StmtIterator statements)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void removedStatements(Model m)
+	{
+		setChanged();
+	}
+
+	@Override
+	public void notifyEvent(Model m, Object event)
+	{
+	}
+}

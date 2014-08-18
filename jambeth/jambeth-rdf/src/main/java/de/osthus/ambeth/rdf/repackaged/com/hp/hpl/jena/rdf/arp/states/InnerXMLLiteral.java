@@ -16,25 +16,28 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import java.util.Map;
 
-public class InnerXMLLiteral extends AbsXMLLiteral {
+public class InnerXMLLiteral extends AbsXMLLiteral
+{
 
-    final String qname;
-    public InnerXMLLiteral(AbsXMLLiteral f, String rawName, Map<String, String> ns) {
-        super(f,ns);
-        qname = rawName;
-    }
+	final String qname;
 
-    @Override
-    public void endElement() {
-        append("</");
-        append(qname);
-        append('>');
-        checkComposingChar = true;
-    }
+	public InnerXMLLiteral(AbsXMLLiteral f, String rawName, Map<String, String> ns)
+	{
+		super(f, ns);
+		qname = rawName;
+	}
 
+	@Override
+	public void endElement()
+	{
+		append("</");
+		append(qname);
+		append('>');
+		checkComposingChar = true;
+	}
 
 }

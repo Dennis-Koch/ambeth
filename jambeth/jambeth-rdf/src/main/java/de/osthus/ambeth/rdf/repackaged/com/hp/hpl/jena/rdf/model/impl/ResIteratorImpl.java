@@ -16,29 +16,35 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.*;
 
-/** An implementation of ResIterator.
+/**
+ * An implementation of ResIterator.
  */
-public class ResIteratorImpl extends WrappedIterator<Resource> implements ResIterator {
-    
-    /** Creates new ResIterator; _object_ is ignored */
-    public ResIteratorImpl( Iterator<Resource> iter, Object object ) {
-        this( iter );
-    }
-    
-    /** create a new ResIterator */
-    public ResIteratorImpl( Iterator<Resource> iter )
-        { super( iter ); }
+public class ResIteratorImpl extends WrappedIterator<Resource> implements ResIterator
+{
 
-    @Override
-    public Resource nextResource() {
-        return next();
-    }
-    
+	/** Creates new ResIterator; _object_ is ignored */
+	public ResIteratorImpl(Iterator<Resource> iter, Object object)
+	{
+		this(iter);
+	}
+
+	/** create a new ResIterator */
+	public ResIteratorImpl(Iterator<Resource> iter)
+	{
+		super(iter);
+	}
+
+	@Override
+	public Resource nextResource()
+	{
+		return next();
+	}
+
 }

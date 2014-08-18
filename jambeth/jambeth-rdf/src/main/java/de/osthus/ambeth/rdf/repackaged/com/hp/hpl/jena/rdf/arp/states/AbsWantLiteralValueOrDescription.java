@@ -16,85 +16,85 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
 
-abstract class AbsWantLiteralValueOrDescription extends
-        WantDescription {
+abstract class AbsWantLiteralValueOrDescription extends WantDescription
+{
 
-    private StringBuffer buf;
-    
-    private boolean checkComposingChar = true;
+	private StringBuffer buf;
 
-    public AbsWantLiteralValueOrDescription(FrameI s, AbsXMLContext x) {
-        super(s, x);
-    }
+	private boolean checkComposingChar = true;
 
-    public AbsWantLiteralValueOrDescription(FrameI s, AttributeLexer x)
-            throws SAXParseException {
-        super(s, x);
-    }
+	public AbsWantLiteralValueOrDescription(FrameI s, AbsXMLContext x)
+	{
+		super(s, x);
+	}
 
-    /**
-     * It is unclear to jjc, whether we are obliged to copy the characters, or
-     * whether we know that they will not be overwritten after we return. For
-     * safety, I hence copy them. Normally, we have two interesting cases: a)
-     * characters is called once, then endElement, and we form a literal from
-     * the characters. This involves creating a string, if we used a char[] then
-     * we would have another char[] to char[] copy, which is one too many. Hence
-     * we use a StringBuffer. b) <eg:prop> <eg:typedNode /> </eg:prop> with two
-     * lots of characters both white. This case happens from within
-     * InsidePropertyElementFrame, and the second lot of characters do not get
-     * here.
-     */
-    @Override
-    public void characters(char[] ch, int start, int length)
-            throws SAXParseException {
-        if (checkComposingChar)
-            checkComposingChar(taint,ch, start, length);
-        checkComposingChar = false;
-        if (buf == null)
-            buf = new StringBuffer(length);
-        getBuf().append(ch, start, length);
-    }
+	public AbsWantLiteralValueOrDescription(FrameI s, AttributeLexer x) throws SAXParseException
+	{
+		super(s, x);
+	}
 
-    void setBuf(StringBuffer buf) {
-        this.buf = buf;
-    }
+	/**
+	 * It is unclear to jjc, whether we are obliged to copy the characters, or whether we know that they will not be overwritten after we return. For safety, I
+	 * hence copy them. Normally, we have two interesting cases: a) characters is called once, then endElement, and we form a literal from the characters. This
+	 * involves creating a string, if we used a char[] then we would have another char[] to char[] copy, which is one too many. Hence we use a StringBuffer. b)
+	 * <eg:prop> <eg:typedNode /> </eg:prop> with two lots of characters both white. This case happens from within InsidePropertyElementFrame, and the second
+	 * lot of characters do not get here.
+	 */
+	@Override
+	public void characters(char[] ch, int start, int length) throws SAXParseException
+	{
+		if (checkComposingChar)
+			checkComposingChar(taint, ch, start, length);
+		checkComposingChar = false;
+		if (buf == null)
+			buf = new StringBuffer(length);
+		getBuf().append(ch, start, length);
+	}
 
-    StringBuffer getBuf() {
-        if (buf == null)
-            buf = new StringBuffer(0);
-        return buf;
-    }
+	void setBuf(StringBuffer buf)
+	{
+		this.buf = buf;
+	}
 
-    boolean bufIsSet() {
-        return buf != null;
-    }
+	StringBuffer getBuf()
+	{
+		if (buf == null)
+			buf = new StringBuffer(0);
+		return buf;
+	}
 
-    @Override
-    public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException {
-        checkComposingChar = true;
-        return super.startElement(uri, localName, rawName, atts);
-    }
+	boolean bufIsSet()
+	{
+		return buf != null;
+	}
 
-    @Override
-    public void comment(char ch[], int st, int lng) {
-        checkComposingChar = true;
-    }
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		checkComposingChar = true;
+		return super.startElement(uri, localName, rawName, atts);
+	}
 
-    @Override
-    public void processingInstruction(String a, String b)
-            throws SAXParseException {
-        checkComposingChar = true;
-        super.processingInstruction(a,b);
+	@Override
+	public void comment(char ch[], int st, int lng)
+	{
+		checkComposingChar = true;
+	}
 
-    }
+	@Override
+	public void processingInstruction(String a, String b) throws SAXParseException
+	{
+		checkComposingChar = true;
+		super.processingInstruction(a, b);
+
+	}
 
 }

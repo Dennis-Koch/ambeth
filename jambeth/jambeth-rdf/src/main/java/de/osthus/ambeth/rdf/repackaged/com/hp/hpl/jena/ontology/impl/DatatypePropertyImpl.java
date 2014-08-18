@@ -18,86 +18,86 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology.impl;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology.impl;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.enhanced.*;
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.ontology.*;
-
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology.*;
 
 /**
  * <p>
  * Implementation of the datatype property abstraction
  * </p>
  */
-public class DatatypePropertyImpl
-    extends OntPropertyImpl
-    implements DatatypeProperty
+public class DatatypePropertyImpl extends OntPropertyImpl implements DatatypeProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Static variables
+	// ////////////////////////////////
 
-    /**
-     * A factory for generating DatatypeProperty facets from nodes in enhanced graphs.
-     * Note: should not be invoked directly by user code: use
-     * {@link com.hp.hpl.jena.rdf.model.RDFNode#as as()} instead.
-     */
-    @SuppressWarnings("hiding")
-    public static Implementation factory = new Implementation() {
-        @Override
-        public EnhNode wrap( Node n, EnhGraph eg ) {
-            if (canWrap( n, eg )) {
-                return new DatatypePropertyImpl( n, eg );
-            }
-            else {
-                throw new ConversionException( "Cannot convert node " + n + " to DatatypeProperty");
-            }
-        }
+	/**
+	 * A factory for generating DatatypeProperty facets from nodes in enhanced graphs. Note: should not be invoked directly by user code: use
+	 * {@link de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFNode#as as()} instead.
+	 */
+	@SuppressWarnings("hiding")
+	public static Implementation factory = new Implementation()
+	{
+		@Override
+		public EnhNode wrap(Node n, EnhGraph eg)
+		{
+			if (canWrap(n, eg))
+			{
+				return new DatatypePropertyImpl(n, eg);
+			}
+			else
+			{
+				throw new ConversionException("Cannot convert node " + n + " to DatatypeProperty");
+			}
+		}
 
-        @Override
-        public boolean canWrap( Node node, EnhGraph eg ) {
-            // node will support being an DatatypeProperty facet if it has rdf:type owl:DatatypeProperty or equivalent
-            Profile profile = (eg instanceof OntModel) ? ((OntModel) eg).getProfile() : null;
-            return (profile != null)  &&  profile.isSupported( node, eg, DatatypeProperty.class );
-        }
-    };
+		@Override
+		public boolean canWrap(Node node, EnhGraph eg)
+		{
+			// node will support being an DatatypeProperty facet if it has
+			// rdf:type owl:DatatypeProperty or equivalent
+			Profile profile = (eg instanceof OntModel) ? ((OntModel) eg).getProfile() : null;
+			return (profile != null) && profile.isSupported(node, eg, DatatypeProperty.class);
+		}
+	};
 
+	// Instance variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	/**
+	 * <p>
+	 * Construct a datatype property node represented by the given node in the given graph.
+	 * </p>
+	 * 
+	 * @param n
+	 *            The node that represents the resource
+	 * @param g
+	 *            The enh graph that contains n
+	 */
+	public DatatypePropertyImpl(Node n, EnhGraph g)
+	{
+		super(n, g);
+	}
 
-    /**
-     * <p>
-     * Construct a datatype property node represented by the given node in the given graph.
-     * </p>
-     *
-     * @param n The node that represents the resource
-     * @param g The enh graph that contains n
-     */
-    public DatatypePropertyImpl( Node n, EnhGraph g ) {
-        super( n, g );
-    }
+	// External signature methods
+	// ////////////////////////////////
 
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
-
-    // Internal implementation methods
-    //////////////////////////////////
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

@@ -16,27 +16,31 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception used to report an unknown reasoner factory name.
-*/
+ * Exception used to report an unknown reasoner factory name.
+ */
 public class UnknownReasonerException extends AssemblerException
-    {
-    protected final Resource url;
-    
-    public UnknownReasonerException( Resource root, Resource url )
-        {
-        super( root, makeMessage( root, url ) );
-        this.url = url;
-        }
-    
-    private static String makeMessage( Resource root, Resource url )
-        { return "no reasoner called " + url + " for " + nice( root ); }
-    
-    public Resource getURL()
-        { return url; }
+{
+	protected final Resource url;
 
-    }
+	public UnknownReasonerException(Resource root, Resource url)
+	{
+		super(root, makeMessage(root, url));
+		this.url = url;
+	}
+
+	private static String makeMessage(Resource root, Resource url)
+	{
+		return "no reasoner called " + url + " for " + nice(root);
+	}
+
+	public Resource getURL()
+	{
+		return url;
+	}
+
+}

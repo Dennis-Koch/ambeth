@@ -16,15 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
-/** Converts an Object to another Object.
+/**
+ * Converts an Object to another Object.
  */
 public interface Map1<From, To>
-{  /** Convert an object.
-    * @param o The thing to be converted.
-    * @return The converted thing.
-    * 
-    */
-    To map1( From o );
+{
+	/**
+	 * Convert an object.
+	 * 
+	 * @param o
+	 *            The thing to be converted.
+	 * @return The converted thing.
+	 * 
+	 */
+	To map1(From o);
 }

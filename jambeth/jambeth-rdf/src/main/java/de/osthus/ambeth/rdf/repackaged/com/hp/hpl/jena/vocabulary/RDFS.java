@@ -16,73 +16,79 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.vocabulary;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary;
 
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
-    RDFS vocabulary items
+ * RDFS vocabulary items
  */
-public class RDFS {
+public class RDFS
+{
 
-    protected static final String uri="http://www.w3.org/2000/01/rdf-schema#";
+	protected static final String uri = "http://www.w3.org/2000/01/rdf-schema#";
 
-    protected static final Resource resource( String local )
-        { return ResourceFactory.createResource( uri + local ); }
+	protected static final Resource resource(String local)
+	{
+		return ResourceFactory.createResource(uri + local);
+	}
 
-    protected static final Property property( String local )
-        { return ResourceFactory.createProperty( uri, local ); }
+	protected static final Property property(String local)
+	{
+		return ResourceFactory.createProperty(uri, local);
+	}
 
-    public static final Resource Class = resource( "Class");
-    public static final Resource Datatype = resource( "Datatype");
-    
-    public static final Resource Container  = resource( "Container");
-    
-    public static final Resource ContainerMembershipProperty
-                                                     = resource( "ContainerMembershipProperty");  
-    
-    public static final Resource Literal = resource( "Literal");
-    public static final Resource Resource = resource( "Resource");
+	public static final Resource Class = resource("Class");
+	public static final Resource Datatype = resource("Datatype");
 
-    public static final Property comment = property( "comment");
-    public static final Property domain = property( "domain");
-    public static final Property label = property( "label");
-    public static final Property isDefinedBy = property( "isDefinedBy");
-    public static final Property range = property( "range");
-    public static final Property seeAlso = property( "seeAlso");
-    public static final Property subClassOf  = property( "subClassOf");
-    public static final Property subPropertyOf  = property( "subPropertyOf");
-    public static final Property member  = property( "member");
+	public static final Resource Container = resource("Container");
 
-    /**
-        The RDFS vocabulary, expressed for the SPI layer in terms of .graph Nodes.
-    */
-    @SuppressWarnings("hiding") public static class Nodes
-        {
-        public static final Node Class = RDFS.Class.asNode();
-        public static final Node Datatype = RDFS.Datatype.asNode();
-        public static final Node Container  = RDFS.Container.asNode();
-        public static final Node ContainerMembershipProperty
-                                                         = RDFS.ContainerMembershipProperty.asNode();
-        public static final Node Literal = RDFS.Literal.asNode();
-        public static final Node Resource = RDFS.Resource.asNode();
-        public static final Node comment = RDFS.comment.asNode();
-        public static final Node domain = RDFS.domain.asNode();
-        public static final Node label = RDFS.label.asNode();
-        public static final Node isDefinedBy = RDFS.isDefinedBy.asNode();
-        public static final Node range = RDFS.range.asNode();
-        public static final Node seeAlso = RDFS.seeAlso.asNode();
-        public static final Node subClassOf  = RDFS.subClassOf.asNode();
-        public static final Node subPropertyOf  = RDFS.subPropertyOf.asNode();
-        public static final Node member  = RDFS.member.asNode();
-        }
+	public static final Resource ContainerMembershipProperty = resource("ContainerMembershipProperty");
 
-    /**
-        returns the URI for this schema
-        @return the URI for this schema
-    */
-    public static String getURI() {
-        return uri;
-    }
+	public static final Resource Literal = resource("Literal");
+	public static final Resource Resource = resource("Resource");
+
+	public static final Property comment = property("comment");
+	public static final Property domain = property("domain");
+	public static final Property label = property("label");
+	public static final Property isDefinedBy = property("isDefinedBy");
+	public static final Property range = property("range");
+	public static final Property seeAlso = property("seeAlso");
+	public static final Property subClassOf = property("subClassOf");
+	public static final Property subPropertyOf = property("subPropertyOf");
+	public static final Property member = property("member");
+
+	/**
+	 * The RDFS vocabulary, expressed for the SPI layer in terms of .graph Nodes.
+	 */
+	@SuppressWarnings("hiding")
+	public static class Nodes
+	{
+		public static final Node Class = RDFS.Class.asNode();
+		public static final Node Datatype = RDFS.Datatype.asNode();
+		public static final Node Container = RDFS.Container.asNode();
+		public static final Node ContainerMembershipProperty = RDFS.ContainerMembershipProperty.asNode();
+		public static final Node Literal = RDFS.Literal.asNode();
+		public static final Node Resource = RDFS.Resource.asNode();
+		public static final Node comment = RDFS.comment.asNode();
+		public static final Node domain = RDFS.domain.asNode();
+		public static final Node label = RDFS.label.asNode();
+		public static final Node isDefinedBy = RDFS.isDefinedBy.asNode();
+		public static final Node range = RDFS.range.asNode();
+		public static final Node seeAlso = RDFS.seeAlso.asNode();
+		public static final Node subClassOf = RDFS.subClassOf.asNode();
+		public static final Node subPropertyOf = RDFS.subPropertyOf.asNode();
+		public static final Node member = RDFS.member.asNode();
+	}
+
+	/**
+	 * returns the URI for this schema
+	 * 
+	 * @return the URI for this schema
+	 */
+	public static String getURI()
+	{
+		return uri;
+	}
 }

@@ -18,29 +18,23 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface that encapsulates a property that is symmetric, i&#046;e&#046; one
- * in which if <code>p(x,&nbsp;y)</code> holds, then<code>p(y,&nbsp;x)</code>
- * must also hold.
+ * Interface that encapsulates a property that is symmetric, i&#046;e&#046; one in which if <code>p(x,&nbsp;y)</code> holds, then<code>p(y,&nbsp;x)</code> must
+ * also hold.
  * </p>
  */
-public interface SymmetricProperty
-    extends ObjectProperty
+public interface SymmetricProperty extends ObjectProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
 /**
- * Convenience generalization of all ARP handler interfaces.
- * Sample usage:
+ * Convenience generalization of all ARP handler interfaces. Sample usage:
+ * 
  * <pre>
- *    ARPHandler h = new ARPHandler() {
- *     // definitions
- *    };
- *    ARP arp = new ARP();
- *    arp.setStatementHandler(h);
- *    arp.setExtendedHandler(h);
- *    arp.setNamespaceHandler(h);
+ * ARPHandler h = new ARPHandler()
+ * {
+ * 	// definitions
+ * };
+ * ARP arp = new ARP();
+ * arp.setStatementHandler(h);
+ * arp.setExtendedHandler(h);
+ * arp.setNamespaceHandler(h);
  * </pre>
-*/
-public interface ARPEventHandler extends StatementHandler, ExtendedHandler, NamespaceHandler {
-  // deliberately empty - add by adding additional super-interfaces.
+ */
+public interface ARPEventHandler extends StatementHandler, ExtendedHandler, NamespaceHandler
+{
+	// deliberately empty - add by adding additional super-interfaces.
 }

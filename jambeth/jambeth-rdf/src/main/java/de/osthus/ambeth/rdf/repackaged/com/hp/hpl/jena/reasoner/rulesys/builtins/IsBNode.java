@@ -16,47 +16,51 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
  * Tests the single argument to make sure it is blank node.
  */
-public class IsBNode extends BaseBuiltin {
+public class IsBNode extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "isBNode";
-    }
-    
-    /**
-     * Return the expected number of arguments for this functor or 0 if the number is flexible.
-     */
-    @Override
-    public int getArgLength() {
-        return 1;
-    }
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "isBNode";
+	}
 
-    /**
-     * This method is invoked when the builtin is called in a rule body.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes, some of which may be Node_RuleVariables.
-     * @param length the length of the argument list, may be less than the length of the args array
-     * for some rule engines
-     * @param context an execution context giving access to other relevant data
-     * @return return true if the buildin predicate is deemed to have succeeded in
-     * the current environment
-     */
-    @Override
-    public boolean bodyCall(Node[] args, int length, RuleContext context) {
-        checkArgs(length, context);
-        return getArg(0, args, context).isBlank();
-    }
-    
+	/**
+	 * Return the expected number of arguments for this functor or 0 if the number is flexible.
+	 */
+	@Override
+	public int getArgLength()
+	{
+		return 1;
+	}
+
+	/**
+	 * This method is invoked when the builtin is called in a rule body.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes, some of which may be Node_RuleVariables.
+	 * @param length
+	 *            the length of the argument list, may be less than the length of the args array for some rule engines
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 * @return return true if the buildin predicate is deemed to have succeeded in the current environment
+	 */
+	@Override
+	public boolean bodyCall(Node[] args, int length, RuleContext context)
+	{
+		checkArgs(length, context);
+		return getArg(0, args, context).isBlank();
+	}
+
 }

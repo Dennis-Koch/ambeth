@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    Exception thrown if an Alt has no default statement.
-*/
+ * Exception thrown if an Alt has no default statement.
+ */
 public class AltHasNoDefaultException extends JenaException
-    {
-    public AltHasNoDefaultException( Alt  a )
-        { super( a.toString() ); }
-    }
+{
+	public AltHasNoDefaultException(Alt a)
+	{
+		super(a.toString());
+	}
+}

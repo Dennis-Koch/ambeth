@@ -16,27 +16,25 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
 import java.util.List;
 
-import com.hp.hpl.jena.reasoner.Reasoner;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.Reasoner;
 
 /**
-     RuleReasoner - an interface to capture the idea of a Reasoner that relies on
-     Rules; motivated primarily by the testing for ModelSpecs which specify
-     Rules for Reasoners.
+ * RuleReasoner - an interface to capture the idea of a Reasoner that relies on Rules; motivated primarily by the testing for ModelSpecs which specify Rules for
+ * Reasoners.
  */
 public interface RuleReasoner extends Reasoner
-    {
-    /**
-         Set the rules used by this reasoner. <code>rules</code> must be a list
-         of Rule objects.
-    */
-    void setRules( List<Rule> rules );
-    
-    /**
-         Answer the rules used by this Reasoner.
-    */
-    List<Rule> getRules();
-    }
+{
+	/**
+	 * Set the rules used by this reasoner. <code>rules</code> must be a list of Rule objects.
+	 */
+	void setRules(List<Rule> rules);
+
+	/**
+	 * Answer the rules used by this Reasoner.
+	 */
+	List<Rule> getRules();
+}

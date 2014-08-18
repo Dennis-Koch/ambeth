@@ -16,60 +16,63 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
 import java.util.*;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.reasoner.rulesys.Rule;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.Rule;
 
 public class RuleSetAssembler extends AssemblerBase implements Assembler
-    {
-    @Override public Object open( Assembler a, Resource root, Mode irrelevant )
-        { 
-        checkType( root, JA.RuleSet );
-        return createRuleSet( a, root ); 
-        }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.RuleSet);
+		return createRuleSet(a, root);
+	}
 
-    public static RuleSet createRuleSet( Assembler a, Resource root )
-        { return RuleSet.create( addRules( new ArrayList<Rule>(), a, root ) ); }
+	public static RuleSet createRuleSet(Assembler a, Resource root)
+	{
+		return RuleSet.create(addRules(new ArrayList<Rule>(), a, root));
+	}
 
-    public static List<Rule> addRules( List<Rule> result, Assembler a, Resource root )
-        {
-        addLiteralRules( root, result );
-        addIndirectRules( a, root, result );
-        addExternalRules( root, result );
-        return result;
-        }
+	public static List<Rule> addRules(List<Rule> result, Assembler a, Resource root)
+	{
+		addLiteralRules(root, result);
+		addIndirectRules(a, root, result);
+		addExternalRules(root, result);
+		return result;
+	}
 
-    static private void addIndirectRules( Assembler a, Resource root, List<Rule> result )
-        {
-        StmtIterator it = root.listProperties( JA.rules );
-        while (it.hasNext()) 
-            {
-            Resource r = getResource( it.nextStatement() );
-            result.addAll( ((RuleSet) a.open( r )).getRules() );
-            }
-        }
+	static private void addIndirectRules(Assembler a, Resource root, List<Rule> result)
+	{
+		StmtIterator it = root.listProperties(JA.rules);
+		while (it.hasNext())
+		{
+			Resource r = getResource(it.nextStatement());
+			result.addAll(((RuleSet) a.open(r)).getRules());
+		}
+	}
 
-    static private void addExternalRules( Resource root, List<Rule> result )
-        {
-        StmtIterator it = root.listProperties( JA.rulesFrom );
-        while (it.hasNext())
-            {
-            Resource s = getResource( it.nextStatement() );
-            result.addAll( Rule.rulesFromURL( s.getURI() ) );
-            }
-        }
+	static private void addExternalRules(Resource root, List<Rule> result)
+	{
+		StmtIterator it = root.listProperties(JA.rulesFrom);
+		while (it.hasNext())
+		{
+			Resource s = getResource(it.nextStatement());
+			result.addAll(Rule.rulesFromURL(s.getURI()));
+		}
+	}
 
-    static private void addLiteralRules( Resource root, List<Rule> result )
-        {
-        StmtIterator it = root.listProperties( JA.rule );
-        while (it.hasNext())
-            {
-            String s = getString( it.nextStatement() );
-            result.addAll( Rule.parseRules( s ) );
-            }
-        }
-    }
+	static private void addLiteralRules(Resource root, List<Rule> result)
+	{
+		StmtIterator it = root.listProperties(JA.rule);
+		while (it.hasNext())
+		{
+			String s = getString(it.nextStatement());
+			result.addAll(Rule.parseRules(s));
+		}
+	}
+}

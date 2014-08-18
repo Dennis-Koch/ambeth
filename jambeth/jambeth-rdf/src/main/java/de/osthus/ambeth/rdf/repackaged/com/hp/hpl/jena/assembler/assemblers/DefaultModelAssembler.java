@@ -16,21 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 public class DefaultModelAssembler extends ModelAssembler implements Assembler
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode mode )
-        {
-        checkType( root, JA.DefaultModel );
-        return super.open( a, root, mode );
-        }
-    
-    @Override
-    protected Model openEmptyModel( Assembler a, Resource root, Mode irrelevant )
-        { return ModelFactory.createDefaultModel(); }
-    }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode mode)
+	{
+		checkType(root, JA.DefaultModel);
+		return super.open(a, root, mode);
+	}
+
+	@Override
+	protected Model openEmptyModel(Assembler a, Resource root, Mode irrelevant)
+	{
+		return ModelFactory.createDefaultModel();
+	}
+}

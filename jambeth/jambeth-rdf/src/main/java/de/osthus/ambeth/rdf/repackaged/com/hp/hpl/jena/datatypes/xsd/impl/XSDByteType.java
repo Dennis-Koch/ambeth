@@ -16,31 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.impl;
 
 /**
  * Datatype template used to define XSD int types
  */
-public class XSDByteType extends XSDBaseNumericType {
+public class XSDByteType extends XSDBaseNumericType
+{
 
-    /**
-     * Constructor. 
-     * @param typeName the name of the XSD type to be instantiated, this is 
-     * used to lookup a type definition from the Xerces schema factory.
-     */
-    public XSDByteType(String typeName) {
-        super(typeName);
-    }
-    
-    /**
-     * Constructor. 
-     * @param typeName the name of the XSD type to be instantiated, this is 
-     * used to lookup a type definition from the Xerces schema factory.
-     * @param javaClass the java class for which this xsd type is to be
-     * treated as the cannonical representation
-     */
-    public XSDByteType(String typeName, Class<?> javaClass) {
-        super(typeName, javaClass);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param typeName
+	 *            the name of the XSD type to be instantiated, this is used to lookup a type definition from the Xerces schema factory.
+	 */
+	public XSDByteType(String typeName)
+	{
+		super(typeName);
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param typeName
+	 *            the name of the XSD type to be instantiated, this is used to lookup a type definition from the Xerces schema factory.
+	 * @param javaClass
+	 *            the java class for which this xsd type is to be treated as the cannonical representation
+	 */
+	public XSDByteType(String typeName, Class<?> javaClass)
+	{
+		super(typeName, javaClass);
+	}
 
 }

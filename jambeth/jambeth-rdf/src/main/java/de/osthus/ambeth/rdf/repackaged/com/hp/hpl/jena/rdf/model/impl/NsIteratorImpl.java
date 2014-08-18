@@ -16,22 +16,27 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.util.iterator.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.Iterator;
 
-/** An NsIterator implementation
+/**
+ * An NsIterator implementation
  */
 public class NsIteratorImpl extends WrappedIterator<String> implements NsIterator
-    {
-    /** Creates new NsIteratorImpl, ignores _o_ */
-    public NsIteratorImpl( Iterator<String> iter, Object o ) 
-        { super( iter ); }
+{
+	/** Creates new NsIteratorImpl, ignores _o_ */
+	public NsIteratorImpl(Iterator<String> iter, Object o)
+	{
+		super(iter);
+	}
 
-    @Override
-    public String nextNs()
-        { return next(); }
-    }
+	@Override
+	public String nextNs()
+	{
+		return next();
+	}
+}

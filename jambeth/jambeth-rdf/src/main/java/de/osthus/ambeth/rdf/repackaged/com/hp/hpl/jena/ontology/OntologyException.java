@@ -18,10 +18,9 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
-import com.hp.hpl.jena.shared.*;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 // Imports
 ///////////////
@@ -31,39 +30,39 @@ import com.hp.hpl.jena.shared.*;
  * Exception for generic errors that arise while processing ontologies
  * </p>
  */
-public class OntologyException
-    extends JenaException 
+public class OntologyException extends JenaException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Static variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    /**
-     * Construct an ontology exception with a given message.
-     * 
-     * @param msg The exception message.
-     */
-    public OntologyException( String msg ) {
-        super( msg );
-    }
+	/**
+	 * Construct an ontology exception with a given message.
+	 * 
+	 * @param msg
+	 *            The exception message.
+	 */
+	public OntologyException(String msg)
+	{
+		super(msg);
+	}
 
+	// External signature methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    // Internal implementation methods
-    //////////////////////////////////
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

@@ -22,21 +22,24 @@
  * Created on June 26, 2001, 9:26 AM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
-import com.hp.hpl.jena.rdf.arp.AResource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.AResource;
 
-/** A resource from the input file.
+/**
+ * A resource from the input file.
  */
-public interface AResourceInternal extends AResource, ANode {
-    /**
-	 * Only for blank nodes - non blank need not support.
-	 *
-	 */
-	 void setHasBeenUsed();
+public interface AResourceInternal extends AResource, ANode
+{
 	/**
 	 * Only for blank nodes - non blank need not support.
-	 *
+	 * 
 	 */
-	 boolean getHasBeenUsed();
+	void setHasBeenUsed();
+
+	/**
+	 * Only for blank nodes - non blank need not support.
+	 * 
+	 */
+	boolean getHasBeenUsed();
 }

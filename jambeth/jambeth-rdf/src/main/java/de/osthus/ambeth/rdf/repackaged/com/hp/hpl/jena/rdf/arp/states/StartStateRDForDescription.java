@@ -16,41 +16,46 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
 
-public class StartStateRDForDescription extends WantTopLevelDescription {
+public class StartStateRDForDescription extends WantTopLevelDescription
+{
 
-    boolean sawRdfRDF;
-    
-    public StartStateRDForDescription(XMLHandler handler, AbsXMLContext x) {
-        super(handler, x);
-    }
-    
-    @Override
-    public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException {
-        if (localName.equals("RDF")) {
-          if (uri.equals(rdfns)) {
-              sawRdfRDF = true;
-            return rdfStartElement(uri, localName, rawName, atts);
-          }
-          warning(WARN_NOT_RDF_NAMESPACE,"Top-level "+rawName+" element is not in the RDF namespace. Probably a mistake.");
-        }
-        sawRdfRDF = false;
-        arp.startRDF();
-        return super.startElement(uri,localName,rawName,atts);
-    }
-    
-    @Override
-    public void abort() {
-        if (!sawRdfRDF)
-            super.abort();
-    }
+	boolean sawRdfRDF;
+
+	public StartStateRDForDescription(XMLHandler handler, AbsXMLContext x)
+	{
+		super(handler, x);
+	}
+
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		if (localName.equals("RDF"))
+		{
+			if (uri.equals(rdfns))
+			{
+				sawRdfRDF = true;
+				return rdfStartElement(uri, localName, rawName, atts);
+			}
+			warning(WARN_NOT_RDF_NAMESPACE, "Top-level " + rawName + " element is not in the RDF namespace. Probably a mistake.");
+		}
+		sawRdfRDF = false;
+		arp.startRDF();
+		return super.startElement(uri, localName, rawName, atts);
+	}
+
+	@Override
+	public void abort()
+	{
+		if (!sawRdfRDF)
+			super.abort();
+	}
 
 }

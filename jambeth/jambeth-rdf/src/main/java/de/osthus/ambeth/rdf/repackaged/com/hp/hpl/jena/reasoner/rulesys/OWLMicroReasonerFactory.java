@@ -16,111 +16,115 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-
-import com.hp.hpl.jena.reasoner.*;
-import com.hp.hpl.jena.reasoner.rulesys.Util;
-import com.hp.hpl.jena.reasoner.transitiveReasoner.TransitiveReasoner;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.vocabulary.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.Util;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.transitiveReasoner.TransitiveReasoner;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.vocabulary.*;
 
 /**
- * Reasoner factory for the OWL micro configuration. 
- * This only supports:
+ * Reasoner factory for the OWL micro configuration. This only supports:
  * <ul>
  * <li>RDFS entailments</li>
  * <li>basic OWL axioms like ObjectProperty subClassOf Property</li>
- * <li>intersectionOf, equivalentClass and forward implication of unionOf sufficient for traversal
- * of explicit class hierachies<.li>
+ * <li>intersectionOf, equivalentClass and forward implication of unionOf sufficient for traversal of explicit class hierachies<.li>
  * <li>Property axioms (inversOf, SymmetricProperty, TransitiveProperty, equivalentProperty)</li>
  * </ul>
- * There is some experimental support for the cheaper class restriction handlingly which
- * should not be relied on at this point.
+ * There is some experimental support for the cheaper class restriction handlingly which should not be relied on at this point.
  */
-public class OWLMicroReasonerFactory implements ReasonerFactory {
-    
-    /** Single global instance of this factory */
-    private static ReasonerFactory theInstance = new OWLMicroReasonerFactory();
-    
-    /** Static URI for this reasoner type */
-    public static final String URI = "http://jena.hpl.hp.com/2003/OWLMicroFBRuleReasoner";
-    
-    /** Cache of the capabilities description */
-    protected Model capabilities;
-    
-    /**
-     * Return the single global instance of this factory
-     */
-    public static ReasonerFactory theInstance() {
-        return theInstance;
-    }
-    
-    /**
-     * Constructor method that builds an instance of the associated Reasoner
-     * @param configuration a set of arbitrary configuration information to be 
-     * passed the reasoner encoded within an RDF graph
-     */
-    @Override
-    public Reasoner create(Resource configuration) {
-        OWLMicroReasoner reasoner = new OWLMicroReasoner(this);
-        if (configuration != null) {
-            Boolean doLog = Util.checkBinaryPredicate(ReasonerVocabulary.PROPderivationLogging, configuration);
-            if (doLog != null) {
-                reasoner.setDerivationLogging(doLog.booleanValue());
-            }
-            Boolean doTrace = Util.checkBinaryPredicate(ReasonerVocabulary.PROPtraceOn, configuration);
-            if (doTrace != null) {
-                reasoner.setTraceOn( doTrace );
-            }
-        }
-        return reasoner;
-    }
-   
-    /**
-     * Return a description of the capabilities of this reasoner encoded in
-     * RDF. This method is normally called by the ReasonerRegistry which caches
-     * the resulting information so dynamically creating here is not really an overhead.
-     */
-    @Override
-    public Model getCapabilities() {
-        if (capabilities == null) {
-            capabilities = ModelFactory.createDefaultModel();
-            Resource base = capabilities.createResource(getURI());
-            base.addProperty(ReasonerVocabulary.nameP, "OWL Mini Reasoner")
-                .addProperty(ReasonerVocabulary.descriptionP, "Experimental mini OWL reasoner.\n"
-                                            + "Can separate tbox and abox data if desired to reuse tbox caching or mix them.")
-                .addProperty(ReasonerVocabulary.supportsP, RDFS.subClassOf)
-                .addProperty(ReasonerVocabulary.supportsP, RDFS.subPropertyOf)
-                .addProperty(ReasonerVocabulary.supportsP, RDFS.member)
-                .addProperty(ReasonerVocabulary.supportsP, RDFS.range)
-                .addProperty(ReasonerVocabulary.supportsP, RDFS.domain)
-                .addProperty(ReasonerVocabulary.supportsP, TransitiveReasoner.directSubClassOf.toString() ) // TODO -- typing
-                .addProperty(ReasonerVocabulary.supportsP, TransitiveReasoner.directSubPropertyOf.toString() ) // TODO -- typing
-                // TODO - add OWL elements supported
-                .addProperty(ReasonerVocabulary.supportsP, ReasonerVocabulary.individualAsThingP )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.ObjectProperty )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.DatatypeProperty)
-                .addProperty(ReasonerVocabulary.supportsP, OWL.FunctionalProperty )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.SymmetricProperty )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.TransitiveProperty )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.InverseFunctionalProperty )
+public class OWLMicroReasonerFactory implements ReasonerFactory
+{
 
-                .addProperty(ReasonerVocabulary.supportsP, OWL.hasValue )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.intersectionOf )
-                .addProperty(ReasonerVocabulary.supportsP, OWL.unionOf )        // Only partial
-                
-                .addProperty(ReasonerVocabulary.versionP, "0.1");
-        }
-        return capabilities;
-    }
-    
-    /**
-     * Return the URI labelling this type of reasoner
-     */
-    @Override
-    public String getURI() {
-        return URI;
-    }
-    
+	/** Single global instance of this factory */
+	private static ReasonerFactory theInstance = new OWLMicroReasonerFactory();
+
+	/** Static URI for this reasoner type */
+	public static final String URI = "http://jena.hpl.hp.com/2003/OWLMicroFBRuleReasoner";
+
+	/** Cache of the capabilities description */
+	protected Model capabilities;
+
+	/**
+	 * Return the single global instance of this factory
+	 */
+	public static ReasonerFactory theInstance()
+	{
+		return theInstance;
+	}
+
+	/**
+	 * Constructor method that builds an instance of the associated Reasoner
+	 * 
+	 * @param configuration
+	 *            a set of arbitrary configuration information to be passed the reasoner encoded within an RDF graph
+	 */
+	@Override
+	public Reasoner create(Resource configuration)
+	{
+		OWLMicroReasoner reasoner = new OWLMicroReasoner(this);
+		if (configuration != null)
+		{
+			Boolean doLog = Util.checkBinaryPredicate(ReasonerVocabulary.PROPderivationLogging, configuration);
+			if (doLog != null)
+			{
+				reasoner.setDerivationLogging(doLog.booleanValue());
+			}
+			Boolean doTrace = Util.checkBinaryPredicate(ReasonerVocabulary.PROPtraceOn, configuration);
+			if (doTrace != null)
+			{
+				reasoner.setTraceOn(doTrace);
+			}
+		}
+		return reasoner;
+	}
+
+	/**
+	 * Return a description of the capabilities of this reasoner encoded in RDF. This method is normally called by the ReasonerRegistry which caches the
+	 * resulting information so dynamically creating here is not really an overhead.
+	 */
+	@Override
+	public Model getCapabilities()
+	{
+		if (capabilities == null)
+		{
+			capabilities = ModelFactory.createDefaultModel();
+			Resource base = capabilities.createResource(getURI());
+			base.addProperty(ReasonerVocabulary.nameP, "OWL Mini Reasoner")
+					.addProperty(ReasonerVocabulary.descriptionP,
+							"Experimental mini OWL reasoner.\n" + "Can separate tbox and abox data if desired to reuse tbox caching or mix them.")
+					.addProperty(ReasonerVocabulary.supportsP, RDFS.subClassOf)
+					.addProperty(ReasonerVocabulary.supportsP, RDFS.subPropertyOf)
+					.addProperty(ReasonerVocabulary.supportsP, RDFS.member)
+					.addProperty(ReasonerVocabulary.supportsP, RDFS.range)
+					.addProperty(ReasonerVocabulary.supportsP, RDFS.domain)
+					.addProperty(ReasonerVocabulary.supportsP, TransitiveReasoner.directSubClassOf.toString())
+					// TODO -- typing
+					.addProperty(ReasonerVocabulary.supportsP, TransitiveReasoner.directSubPropertyOf.toString())
+					// TODO -- typing
+					// TODO - add OWL elements supported
+					.addProperty(ReasonerVocabulary.supportsP, ReasonerVocabulary.individualAsThingP)
+					.addProperty(ReasonerVocabulary.supportsP, OWL.ObjectProperty).addProperty(ReasonerVocabulary.supportsP, OWL.DatatypeProperty)
+					.addProperty(ReasonerVocabulary.supportsP, OWL.FunctionalProperty).addProperty(ReasonerVocabulary.supportsP, OWL.SymmetricProperty)
+					.addProperty(ReasonerVocabulary.supportsP, OWL.TransitiveProperty).addProperty(ReasonerVocabulary.supportsP, OWL.InverseFunctionalProperty)
+
+					.addProperty(ReasonerVocabulary.supportsP, OWL.hasValue).addProperty(ReasonerVocabulary.supportsP, OWL.intersectionOf)
+					.addProperty(ReasonerVocabulary.supportsP, OWL.unionOf) // Only
+																			// partial
+
+					.addProperty(ReasonerVocabulary.versionP, "0.1");
+		}
+		return capabilities;
+	}
+
+	/**
+	 * Return the URI labelling this type of reasoner
+	 */
+	@Override
+	public String getURI()
+	{
+		return URI;
+	}
+
 }

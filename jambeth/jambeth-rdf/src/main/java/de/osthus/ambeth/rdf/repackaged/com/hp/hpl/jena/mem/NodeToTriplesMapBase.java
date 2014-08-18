@@ -16,129 +16,152 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
 import java.util.*;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.graph.Triple.Field;
-import com.hp.hpl.jena.util.iterator.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple.Field;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
-    A base class for in-memory graphs
-*/
+ * A base class for in-memory graphs
+ */
 public abstract class NodeToTriplesMapBase
-    {
-    /**
-         The map from nodes to Bunch(Triple).
-    */
-     public BunchMap bunchMap = new HashedBunchMap();
+{
+	/**
+	 * The map from nodes to Bunch(Triple).
+	 */
+	public BunchMap bunchMap = new HashedBunchMap();
 
-    /**
-         The number of triples held in this NTM, maintained incrementally 
-         (because it's a pain to compute from scratch).
-    */
-    protected int size = 0;
+	/**
+	 * The number of triples held in this NTM, maintained incrementally (because it's a pain to compute from scratch).
+	 */
+	protected int size = 0;
 
-    protected final Field indexField;
-    protected final Field f2;
-    protected final Field f3;
-    
-    public NodeToTriplesMapBase( Field indexField, Field f2, Field f3 )
-        { this.indexField = indexField; this.f2 = f2; this.f3 = f3; }
-    
-    /**
-         Add <code>t</code> to this NTM; the node <code>o</code> <i>must</i>
-         be the index node of the triple. Answer <code>true</code> iff the triple
-         was not previously in the set, ie, it really truly has been added. 
-    */
-    public abstract boolean add( Triple t );
+	protected final Field indexField;
+	protected final Field f2;
+	protected final Field f3;
 
-    /**
-         Remove <code>t</code> from this NTM. Answer <code>true</code> iff the 
-         triple was previously in the set, ie, it really truly has been removed. 
-    */
-    public abstract boolean remove( Triple t );
+	public NodeToTriplesMapBase(Field indexField, Field f2, Field f3)
+	{
+		this.indexField = indexField;
+		this.f2 = f2;
+		this.f3 = f3;
+	}
 
-    public abstract Iterator<Triple> iterator( Object o, HashCommon.NotifyEmpty container );
+	/**
+	 * Add <code>t</code> to this NTM; the node <code>o</code> <i>must</i> be the index node of the triple. Answer <code>true</code> iff the triple was not
+	 * previously in the set, ie, it really truly has been added.
+	 */
+	public abstract boolean add(Triple t);
 
-    /**
-         Answer true iff this NTM contains the concrete triple <code>t</code>.
-    */
-    public abstract boolean contains( Triple t );
-    
-    public abstract boolean containsBySameValueAs( Triple t );
+	/**
+	 * Remove <code>t</code> from this NTM. Answer <code>true</code> iff the triple was previously in the set, ie, it really truly has been removed.
+	 */
+	public abstract boolean remove(Triple t);
 
-    /**
-        The values (usually nodes) which appear in the index position of the stored triples; useful
-        for eg listSubjects().
-    */
-    public final Iterator<Object> domain()
-        { return bunchMap.keyIterator(); }
+	public abstract Iterator<Triple> iterator(Object o, HashCommon.NotifyEmpty container);
 
-    protected final Object getIndexField( Triple t )
-        { return indexField.getField( t ).getIndexingValue(); }
+	/**
+	 * Answer true iff this NTM contains the concrete triple <code>t</code>.
+	 */
+	public abstract boolean contains(Triple t);
 
-    /**
-        Clear this NTM; it will contain no triples.
-    */
-    public void clear()
-        { bunchMap.clear(); size = 0; }
+	public abstract boolean containsBySameValueAs(Triple t);
 
-    public int size()
-        { return size; }
+	/**
+	 * The values (usually nodes) which appear in the index position of the stored triples; useful for eg listSubjects().
+	 */
+	public final Iterator<Object> domain()
+	{
+		return bunchMap.keyIterator();
+	}
 
-    public void removedOneViaIterator()
-        { size -= 1; /* System.err.println( ">> rOVI: size := " + size ); */ }
+	protected final Object getIndexField(Triple t)
+	{
+		return indexField.getField(t).getIndexingValue();
+	}
 
-    public boolean isEmpty()
-        { return size == 0; }
+	/**
+	 * Clear this NTM; it will contain no triples.
+	 */
+	public void clear()
+	{
+		bunchMap.clear();
+		size = 0;
+	}
 
-    public abstract ExtendedIterator<Triple> iterator( Node index, Node n2, Node n3 );
-    
-    /**
-        Answer an iterator over all the triples that are indexed by the item <code>y</code>.
-        Note that <code>y</code> need not be a Node (because of indexing values).
-    */
-    public abstract Iterator<Triple> iteratorForIndexed( Object y );
-    
-    /**
-        Answer an iterator over all the triples in this NTM.
-    */
-    public ExtendedIterator<Triple> iterateAll()
-        {
-        final Iterator<Object> nodes = domain();
-        return new NiceIterator<Triple>() 
-            {
-            private Iterator<Triple> current = NullIterator.instance();
-            private NotifyMe emptier = new NotifyMe();
-            
-            @Override public Triple next()
-                {
-                if (hasNext() == false) noElements( "NodeToTriples iterator" );
-                return current.next();
-                }
+	public int size()
+	{
+		return size;
+	}
 
-            class NotifyMe implements HashCommon.NotifyEmpty
-                {
-                @Override
-                public void emptied()
-                    { nodes.remove(); }
-                }
-            
-            @Override public boolean hasNext()
-                {
-                while (true)
-                    {
-                    if (current.hasNext()) return true;
-                    if (nodes.hasNext() == false) return false;
-                    Object next = nodes.next();
-                    current = NodeToTriplesMapBase.this.iterator( next, emptier );
-                    }
-                }
+	public void removedOneViaIterator()
+	{
+		size -= 1; /* System.err.println( ">> rOVI: size := " + size ); */
+	}
 
-            @Override public void remove()
-                { current.remove(); }
-            };
-        }
-    }
+	public boolean isEmpty()
+	{
+		return size == 0;
+	}
+
+	public abstract ExtendedIterator<Triple> iterator(Node index, Node n2, Node n3);
+
+	/**
+	 * Answer an iterator over all the triples that are indexed by the item <code>y</code>. Note that <code>y</code> need not be a Node (because of indexing
+	 * values).
+	 */
+	public abstract Iterator<Triple> iteratorForIndexed(Object y);
+
+	/**
+	 * Answer an iterator over all the triples in this NTM.
+	 */
+	public ExtendedIterator<Triple> iterateAll()
+	{
+		final Iterator<Object> nodes = domain();
+		return new NiceIterator<Triple>()
+		{
+			private Iterator<Triple> current = NullIterator.instance();
+			private NotifyMe emptier = new NotifyMe();
+
+			@Override
+			public Triple next()
+			{
+				if (hasNext() == false)
+					noElements("NodeToTriples iterator");
+				return current.next();
+			}
+
+			class NotifyMe implements HashCommon.NotifyEmpty
+			{
+				@Override
+				public void emptied()
+				{
+					nodes.remove();
+				}
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				while (true)
+				{
+					if (current.hasNext())
+						return true;
+					if (nodes.hasNext() == false)
+						return false;
+					Object next = nodes.next();
+					current = NodeToTriplesMapBase.this.iterator(next, emptier);
+				}
+			}
+
+			@Override
+			public void remove()
+			{
+				current.remove();
+			}
+		};
+	}
+}

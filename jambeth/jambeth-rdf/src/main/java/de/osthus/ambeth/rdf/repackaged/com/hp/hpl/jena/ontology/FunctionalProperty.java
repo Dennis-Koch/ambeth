@@ -18,31 +18,24 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
-
 /**
  * <p>
- * Interface encapsulating the class of properties that are functional: that is,
- * properties in which a given given domain value has a unique value in the
- * range.  Both {@link DatatypeProperty datatype} and {@link ObjectProperty
- * object} properties may be functional, so this interface is defined to extend
- * the general super-interface {@link OntProperty}.
+ * Interface encapsulating the class of properties that are functional: that is, properties in which a given given domain value has a unique value in the range.
+ * Both {@link DatatypeProperty datatype} and {@link ObjectProperty object} properties may be functional, so this interface is defined to extend the general
+ * super-interface {@link OntProperty}.
  * </p>
  */
-public interface FunctionalProperty
-    extends OntProperty
+public interface FunctionalProperty extends OntProperty
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-
-    // External signature methods
-    //////////////////////////////////
-
+	// External signature methods
+	// ////////////////////////////////
 
 }

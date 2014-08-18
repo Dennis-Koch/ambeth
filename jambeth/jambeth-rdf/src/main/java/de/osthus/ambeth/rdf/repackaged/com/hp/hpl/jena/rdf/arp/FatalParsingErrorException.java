@@ -16,20 +16,18 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
 /**
- * This exception should only be seen in user code when using 
- * {@link SAX2RDF} or {@link SAX2Model}.
- * This is thrown after.error errors,
- * most importantly a {@link ARPErrorNumbers#ERR_SAX_FATAL_ERROR}.
- * User code in an error handler may throw a different exception.
+ * This exception should only be seen in user code when using {@link SAX2RDF} or {@link SAX2Model}. This is thrown after.error errors, most importantly a
+ * {@link ARPErrorNumbers#ERR_SAX_FATAL_ERROR}. User code in an error handler may throw a different exception.
  */
-public class FatalParsingErrorException extends RuntimeException {
+public class FatalParsingErrorException extends RuntimeException
+{
 
-    /**
+	/**
      * 
      */
-    private static final long serialVersionUID = -1098004693549165728L;
-    // no message
+	private static final long serialVersionUID = -1098004693549165728L;
+	// no message
 }

@@ -16,78 +16,91 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.ANode;
-import com.hp.hpl.jena.rdf.arp.impl.ARPResource;
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ANode;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.ARPResource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
 
-abstract class Collection extends WantDescription {
-    // TODO: not for 2.3. document this carefully.    
-   
-    WantsObjectI nextSlot;
-    public Collection(WantsObjectFrameI s, AbsXMLContext x) {
-        super(s, x);
-        nextSlot = s;
-    }
-    ANode bnode;
-   @Override
-public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts)  throws SAXParseException {
-      FrameI fi = super.startElement(uri,localName,rawName,atts);
-      ANode prevNode = bnode;
-      bnode = new ARPResource(arp);
-      try {
-       nextSlot.theObject(bnode);
-      }
-      finally {
-          if (prevNode != null)
-            arp.endLocalScope(prevNode);
-      }
-      firstTriple(bnode,subject);
-      final ANode thisNode = bnode;
-      nextSlot = new WantsObjectI() {
-          @Override
-        public void theObject(ANode a) {
-                 restTriple(thisNode,a);
-          }
-      };
-      return fi;
-      
-    }
-   /** Must use second bnode in the first triple.
-       Can use either bnode in further triples.
-   */
-   abstract void restTriple(ANode subj,ANode obj);
-   
-   /** Must use both bnodes in the first triple.
-       Can use either bnode in further triples.
-   */
-   abstract void firstTriple(ANode subj, ANode obj);
-   abstract ANode nil() ;
-    
+abstract class Collection extends WantDescription
+{
+	// TODO: not for 2.3. document this carefully.
 
-    @Override
-    final public void endElement() throws SAXParseException {
-        nextSlot.theObject(nil());
-        if (bnode != null) {
-            arp.endLocalScope(bnode);
-            bnode = null;
-        }
-        super.endElement();
-    }
-    @Override
-    public void abort() {
-        if (bnode != null) {
-            arp.endLocalScope(bnode);
-            bnode = null;
-        }
-        super.abort();
-    }
-    
-   
+	WantsObjectI nextSlot;
+
+	public Collection(WantsObjectFrameI s, AbsXMLContext x)
+	{
+		super(s, x);
+		nextSlot = s;
+	}
+
+	ANode bnode;
+
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		FrameI fi = super.startElement(uri, localName, rawName, atts);
+		ANode prevNode = bnode;
+		bnode = new ARPResource(arp);
+		try
+		{
+			nextSlot.theObject(bnode);
+		}
+		finally
+		{
+			if (prevNode != null)
+				arp.endLocalScope(prevNode);
+		}
+		firstTriple(bnode, subject);
+		final ANode thisNode = bnode;
+		nextSlot = new WantsObjectI()
+		{
+			@Override
+			public void theObject(ANode a)
+			{
+				restTriple(thisNode, a);
+			}
+		};
+		return fi;
+
+	}
+
+	/**
+	 * Must use second bnode in the first triple. Can use either bnode in further triples.
+	 */
+	abstract void restTriple(ANode subj, ANode obj);
+
+	/**
+	 * Must use both bnodes in the first triple. Can use either bnode in further triples.
+	 */
+	abstract void firstTriple(ANode subj, ANode obj);
+
+	abstract ANode nil();
+
+	@Override
+	final public void endElement() throws SAXParseException
+	{
+		nextSlot.theObject(nil());
+		if (bnode != null)
+		{
+			arp.endLocalScope(bnode);
+			bnode = null;
+		}
+		super.endElement();
+	}
+
+	@Override
+	public void abort()
+	{
+		if (bnode != null)
+		{
+			arp.endLocalScope(bnode);
+			bnode = null;
+		}
+		super.abort();
+	}
 
 }

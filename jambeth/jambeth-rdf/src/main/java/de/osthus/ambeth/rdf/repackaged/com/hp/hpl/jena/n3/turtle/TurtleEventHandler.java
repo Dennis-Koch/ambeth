@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
-import com.hp.hpl.jena.graph.Triple;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 public interface TurtleEventHandler
 {
-    public void triple(int line, int col, Triple triple) ;
-    public void prefix(int line, int col, String prefix, String iri) ;
-    public void startFormula(int line, int col) ;
-    public void endFormula(int line, int col) ;
+	public void triple(int line, int col, Triple triple);
+
+	public void prefix(int line, int col, String prefix, String iri);
+
+	public void startFormula(int line, int col);
+
+	public void endFormula(int line, int col);
 }

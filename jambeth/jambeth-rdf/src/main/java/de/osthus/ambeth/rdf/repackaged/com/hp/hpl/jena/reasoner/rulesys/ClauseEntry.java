@@ -16,18 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
 /**
- *  Common interface for all objects that can go into rules.
- * Strictly these should probably be called terms rather than clause entries.
+ * Common interface for all objects that can go into rules. Strictly these should probably be called terms rather than clause entries.
  */
-public interface ClauseEntry {
-    
-    /**
-     * Compare clause entries, taking into account variable indices.
-     * The equality function ignores differences between variables.
-     */
-    public boolean sameAs(Object o);
+public interface ClauseEntry
+{
+
+	/**
+	 * Compare clause entries, taking into account variable indices. The equality function ignores differences between variables.
+	 */
+	public boolean sameAs(Object o);
 
 }

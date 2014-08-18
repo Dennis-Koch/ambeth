@@ -16,70 +16,72 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util;
 
 import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-public class LocatorClassLoader  implements Locator
+public class LocatorClassLoader implements Locator
 {
-    static Logger log = LoggerFactory.getLogger(LocatorClassLoader.class) ;
+	static Logger log = LoggerFactory.getLogger(LocatorClassLoader.class);
 
-    private final ClassLoader classLoader ;
-    public LocatorClassLoader(ClassLoader _classLoader)
-    {
-        classLoader =_classLoader ;
-    }
-    
-    @Override
-    public boolean equals( Object other )
-    {
-        return 
-            other instanceof LocatorClassLoader 
-            && classLoader == ((LocatorClassLoader) other).classLoader;
-    }
-    
-    @Override
-    public int hashCode()
-        { return classLoader.hashCode(); }
-    
-    @Override
-    public TypedStream open(String filenameOrURI)
-    {
-        if ( classLoader == null )
-            return null ;
-            
-        String fn = filenameOrURI ;
-//        String fn = FileUtils.toFilename(filenameOrURI) ;
-//        if ( fn == null )
-//        {
-//            if ( FileManager.logAllLookups && log.isTraceEnabled() )
-//                log.trace("Not found: "+filenameOrURI) ; 
-//            return null ;
-//        }
-        InputStream in = classLoader.getResourceAsStream(fn) ;
-        if ( in == null )
-        {
-            if ( FileManager.logAllLookups && log.isTraceEnabled() )
-                log.trace("Failed to open: "+filenameOrURI) ;
-            return null ;
-        }
-        
-        if ( FileManager.logAllLookups  && log.isTraceEnabled() )
-            log.trace("Found: "+filenameOrURI) ;
-        
-        // base = classLoader.getResource(fn).toExternalForm ;       
-        return new TypedStream(in) ;
-    }
+	private final ClassLoader classLoader;
 
-    public ClassLoader getClassLoader()
-    {
-        return classLoader ;
-    }
+	public LocatorClassLoader(ClassLoader _classLoader)
+	{
+		classLoader = _classLoader;
+	}
 
-    @Override
-    public String getName() { return "ClassLoaderLocator" ; }
+	@Override
+	public boolean equals(Object other)
+	{
+		return other instanceof LocatorClassLoader && classLoader == ((LocatorClassLoader) other).classLoader;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return classLoader.hashCode();
+	}
+
+	@Override
+	public TypedStream open(String filenameOrURI)
+	{
+		if (classLoader == null)
+			return null;
+
+		String fn = filenameOrURI;
+		// String fn = FileUtils.toFilename(filenameOrURI) ;
+		// if ( fn == null )
+		// {
+		// if ( FileManager.logAllLookups && log.isTraceEnabled() )
+		// log.trace("Not found: "+filenameOrURI) ;
+		// return null ;
+		// }
+		InputStream in = classLoader.getResourceAsStream(fn);
+		if (in == null)
+		{
+			if (FileManager.logAllLookups && log.isTraceEnabled())
+				log.trace("Failed to open: " + filenameOrURI);
+			return null;
+		}
+
+		if (FileManager.logAllLookups && log.isTraceEnabled())
+			log.trace("Found: " + filenameOrURI);
+
+		// base = classLoader.getResource(fn).toExternalForm ;
+		return new TypedStream(in);
+	}
+
+	public ClassLoader getClassLoader()
+	{
+		return classLoader;
+	}
+
+	@Override
+	public String getName()
+	{
+		return "ClassLoaderLocator";
+	}
 }

@@ -16,13 +16,12 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
- 	FrontsTriple (see also FrontsNode) is an interface for things that can
- 	be seen as wrappers round triples.
-*/
+ * FrontsTriple (see also FrontsNode) is an interface for things that can be seen as wrappers round triples.
+ */
 public interface FrontsTriple
-	{
+{
 	Triple asTriple();
-	}
+}

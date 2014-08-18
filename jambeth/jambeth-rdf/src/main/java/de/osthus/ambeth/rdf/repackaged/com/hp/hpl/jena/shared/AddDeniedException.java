@@ -16,18 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 /**
-    Exception to throw for a denied add operation
-*/
+ * Exception to throw for a denied add operation
+ */
 public class AddDeniedException extends UpdateDeniedException
-    {
-    public AddDeniedException(String message)
-        { super( message ); }
+{
+	public AddDeniedException(String message)
+	{
+		super(message);
+	}
 
-    public AddDeniedException( String message, Triple triple )
-        { super( message, triple ); }
-    }
+	public AddDeniedException(String message, Triple triple)
+	{
+		super(message, triple);
+	}
+}

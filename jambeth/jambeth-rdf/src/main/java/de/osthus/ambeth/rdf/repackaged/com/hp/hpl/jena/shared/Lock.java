@@ -69,29 +69,32 @@
  * that does some checking.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 public interface Lock
 {
-    /** Descriptive name for lock requests - read lock */
-    public static final boolean READ = true ;
-    
-    /** Descriptive name for lock requests - write lock */
-    public static final boolean WRITE = false ;
-    
-    
-    /** Enter a critical section.
-     *  The application must call leaveCriticialSection.
-     *  @see #leaveCriticalSection
-     *
-     * @param readLockRequested true implies a read lock,false implies write lock.
-     */
-    
-    public void enterCriticalSection(boolean readLockRequested) ;
-    
-    /** Leave a critical section.  Releases the lock form the matching enterCriticalSection
-     *  @see #enterCriticalSection
-     */
-    
-    public void leaveCriticalSection() ;
+	/** Descriptive name for lock requests - read lock */
+	public static final boolean READ = true;
+
+	/** Descriptive name for lock requests - write lock */
+	public static final boolean WRITE = false;
+
+	/**
+	 * Enter a critical section. The application must call leaveCriticialSection.
+	 * 
+	 * @see #leaveCriticalSection
+	 * 
+	 * @param readLockRequested
+	 *            true implies a read lock,false implies write lock.
+	 */
+
+	public void enterCriticalSection(boolean readLockRequested);
+
+	/**
+	 * Leave a critical section. Releases the lock form the matching enterCriticalSection
+	 * 
+	 * @see #enterCriticalSection
+	 */
+
+	public void leaveCriticalSection();
 }

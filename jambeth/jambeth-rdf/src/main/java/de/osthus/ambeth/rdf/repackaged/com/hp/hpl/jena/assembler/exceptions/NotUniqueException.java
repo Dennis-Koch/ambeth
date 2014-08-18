@@ -16,28 +16,27 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 public class NotUniqueException extends AssemblerException
-    {
-    protected final Property property;
-    
-    public NotUniqueException( Resource root, Property property )
-        {
-        super( root, makeMessage( root, property ) );
-        this.property = property; 
-        }
-    
-    private static String makeMessage( Resource root, Property property )
-        {
-        return 
-            "the object " + nice( root )
-            + " has multiple values for the unique property " + nice( property )
-            ;
-        }
-    
-    public Property getProperty()
-        { return property; }
-    }
+{
+	protected final Property property;
+
+	public NotUniqueException(Resource root, Property property)
+	{
+		super(root, makeMessage(root, property));
+		this.property = property;
+	}
+
+	private static String makeMessage(Resource root, Property property)
+	{
+		return "the object " + nice(root) + " has multiple values for the unique property " + nice(property);
+	}
+
+	public Property getProperty()
+	{
+		return property;
+	}
+}

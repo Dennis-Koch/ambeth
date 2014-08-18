@@ -22,103 +22,103 @@
  * Created on July 10, 2001, 2:35 AM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
 
 import org.xml.sax.SAXParseException;
 
-import org.apache.jena.iri.IRI;
-import com.hp.hpl.jena.rdf.arp.ARPErrorNumbers;
-import com.hp.hpl.jena.rdf.arp.lang.LanguageTagCodes;
+import de.osthus.ambeth.rdf.repackaged.org.apache.jena.iri.IRI;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.ARPErrorNumbers;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.lang.LanguageTagCodes;
 
 /**
  * 
- * Both the baseURI and the lang may be tainted with errors. They should not be
- * accessed without providing a taint object to propogate such tainting.
+ * Both the baseURI and the lang may be tainted with errors. They should not be accessed without providing a taint object to propogate such tainting.
  */
-public class XMLContext extends AbsXMLContext implements ARPErrorNumbers,
-        LanguageTagCodes {
-    // final private String base;
+public class XMLContext extends AbsXMLContext implements ARPErrorNumbers, LanguageTagCodes
+{
+	// final private String base;
 
-    /**
-     * Creates new XMLContext
-     * 
-     * @throws SAXParseException
-     */
-    XMLContext(XMLHandler h, String base) throws SAXParseException {
+	/**
+	 * Creates new XMLContext
+	 * 
+	 * @throws SAXParseException
+	 */
+	XMLContext(XMLHandler h, String base) throws SAXParseException
+	{
 
-        this(h, h.iriFactory().create(base));
-    }
+		this(h, h.iriFactory().create(base));
+	}
 
-    protected XMLContext(XMLHandler h, IRI uri, Taint baseT) {
-        super(!h.ignoring(IGN_XMLBASE_SIGNIFICANT), null, uri, baseT, "",
-                new TaintImpl());
-    }
+	protected XMLContext(XMLHandler h, IRI uri, Taint baseT)
+	{
+		super(!h.ignoring(IGN_XMLBASE_SIGNIFICANT), null, uri, baseT, "", new TaintImpl());
+	}
 
-    private XMLContext(XMLHandler h, IRI baseMaybeWithFrag)
-            throws SAXParseException {
-        this(h, baseMaybeWithFrag.create(""), baseMaybeWithFrag);
-    }
+	private XMLContext(XMLHandler h, IRI baseMaybeWithFrag) throws SAXParseException
+	{
+		this(h, baseMaybeWithFrag.create(""), baseMaybeWithFrag);
+	}
 
-    private XMLContext(XMLHandler h, IRI base,
-            IRI baseMaybeWithFrag) throws SAXParseException {
-        this(h, base, initTaint(h, baseMaybeWithFrag));
-    }
+	private XMLContext(XMLHandler h, IRI base, IRI baseMaybeWithFrag) throws SAXParseException
+	{
+		this(h, base, initTaint(h, baseMaybeWithFrag));
+	}
 
-    XMLContext(boolean b, AbsXMLContext document, IRI uri,
-            Taint baseT, String lang, Taint langT) {
-        super(b, document, uri, baseT, lang, langT);
-    }
+	XMLContext(boolean b, AbsXMLContext document, IRI uri, Taint baseT, String lang, Taint langT)
+	{
+		super(b, document, uri, baseT, lang, langT);
+	}
 
-    @Override
-    boolean keepDocument(XMLHandler forErrors) {
-        return true;
-    }
+	@Override
+	boolean keepDocument(XMLHandler forErrors)
+	{
+		return true;
+	}
 
-    boolean isSameAsDocument() {
-        return this == document
-                || (uri == null ? document.uri == null : uri
-                        .equals(document.uri));
-    }
+	boolean isSameAsDocument()
+	{
+		return this == document || (uri == null ? document.uri == null : uri.equals(document.uri));
+	}
 
-    @Override
-    AbsXMLContext clone(IRI u, Taint baseT, String lng,
-            Taint langT) {
-        return new XMLContext(true, document, u, baseT, lng, langT);
-    }
+	@Override
+	AbsXMLContext clone(IRI u, Taint baseT, String lng, Taint langT)
+	{
+		return new XMLContext(true, document, u, baseT, lng, langT);
+	}
 
-    void baseUsed(XMLHandler forErrors, Taint taintMe, String relUri,
-            String resolvedURI) throws SAXParseException {
+	void baseUsed(XMLHandler forErrors, Taint taintMe, String relUri, String resolvedURI) throws SAXParseException
+	{
 
-        if (document == null || relUri.equals(resolvedURI))
-            return;
-        if (!isSameAsDocument()) {
-            String other = document.uri.create(relUri).toString();
-            if (!other.equals(resolvedURI)) {
-                forErrors.warning(taintMe, IGN_XMLBASE_SIGNIFICANT,
-                        "Use of attribute xml:base changes interpretation of relative URI: \""
-                                + relUri + "\".");
-            }
-        }
-    }
+		if (document == null || relUri.equals(resolvedURI))
+			return;
+		if (!isSameAsDocument())
+		{
+			String other = document.uri.create(relUri).toString();
+			if (!other.equals(resolvedURI))
+			{
+				forErrors.warning(taintMe, IGN_XMLBASE_SIGNIFICANT, "Use of attribute xml:base changes interpretation of relative URI: \"" + relUri + "\".");
+			}
+		}
+	}
 
-    @Override
-    void checkBaseUse(XMLHandler forErrors, Taint taintMe, String relUri,
-            IRI rslt) throws SAXParseException {
-        if (document == null)
-            return;
+	@Override
+	void checkBaseUse(XMLHandler forErrors, Taint taintMe, String relUri, IRI rslt) throws SAXParseException
+	{
+		if (document == null)
+			return;
 
-        String resolvedURI = rslt.toString();
-        if (relUri.equals(resolvedURI))
-            return;
-        if (!isSameAsDocument()) {
-            String other = document.uri.create(relUri).toString();
-            if (!other.equals(resolvedURI)) {
-                forErrors.warning(taintMe, IGN_XMLBASE_SIGNIFICANT,
-                        "Use of attribute xml:base changes interpretation of relative URI: \""
-                                + relUri + "\".");
-            }
-        }
+		String resolvedURI = rslt.toString();
+		if (relUri.equals(resolvedURI))
+			return;
+		if (!isSameAsDocument())
+		{
+			String other = document.uri.create(relUri).toString();
+			if (!other.equals(resolvedURI))
+			{
+				forErrors.warning(taintMe, IGN_XMLBASE_SIGNIFICANT, "Use of attribute xml:base changes interpretation of relative URI: \"" + relUri + "\".");
+			}
+		}
 
-    }
+	}
 
 }

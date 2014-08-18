@@ -16,46 +16,53 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.iterator;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator;
 
 /**
  * A ClosableIterator that contains only one element
  */
-public class SingletonIterator<T> extends NiceIterator<T> implements ExtendedIterator<T> {
-    
-    /** The single value to be returned */
-    private T item;
+public class SingletonIterator<T> extends NiceIterator<T> implements ExtendedIterator<T>
+{
 
-    /** element delivered */
-    private boolean delivered = false;
-        
-    /**
-     * Constructor
-     * @param element the single value to be returned
-     */
-    public SingletonIterator(T element) {
-        this.item = element;
-    }
-    
-    /**
-     * Can return a single value
-     */
-    @Override
-    public boolean hasNext() {
-        return !delivered;
-    }
+	/** The single value to be returned */
+	private T item;
 
-    /**
-     * Return the value
-     */
-    @Override
-    public T next() {
-        if (delivered) 
-            return noElements( "no objects in this iterator" );
-        else {
-            delivered = true;
-            return item;
-        }
-    }
+	/** element delivered */
+	private boolean delivered = false;
+
+	/**
+	 * Constructor
+	 * 
+	 * @param element
+	 *            the single value to be returned
+	 */
+	public SingletonIterator(T element)
+	{
+		this.item = element;
+	}
+
+	/**
+	 * Can return a single value
+	 */
+	@Override
+	public boolean hasNext()
+	{
+		return !delivered;
+	}
+
+	/**
+	 * Return the value
+	 */
+	@Override
+	public T next()
+	{
+		if (delivered)
+			return noElements("no objects in this iterator");
+		else
+		{
+			delivered = true;
+			return item;
+		}
+	}
 
 }

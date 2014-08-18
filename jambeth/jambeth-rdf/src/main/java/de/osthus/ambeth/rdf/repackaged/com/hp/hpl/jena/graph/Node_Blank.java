@@ -16,31 +16,44 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-    RDF blank nodes, ie nodes with identity but without URIs.
-*/
+ * RDF blank nodes, ie nodes with identity but without URIs.
+ */
 
 public class Node_Blank extends Node_Concrete
-    {    
-    /* package */ Node_Blank( Object id ) { super( id ); }
+{
+	/* package */Node_Blank(Object id)
+	{
+		super(id);
+	}
 
-    @Override
-    public boolean isBlank() { return true; }
+	@Override
+	public boolean isBlank()
+	{
+		return true;
+	}
 
-    @Override
-    public AnonId getBlankNodeId()  { return (AnonId) label; }
-    
-    @Override
-    public Object visitWith( NodeVisitor v )
-        { return v.visitBlank( this, (AnonId) label ); }
-    
-    @Override
-    public boolean equals( Object other )
-        {
-        if ( this == other ) return true ;
-        return other instanceof Node_Blank && label.equals( ((Node_Blank) other).label ); }
-        }
+	@Override
+	public AnonId getBlankNodeId()
+	{
+		return (AnonId) label;
+	}
+
+	@Override
+	public Object visitWith(NodeVisitor v)
+	{
+		return v.visitBlank(this, (AnonId) label);
+	}
+
+	@Override
+	public boolean equals(Object other)
+	{
+		if (this == other)
+			return true;
+		return other instanceof Node_Blank && label.equals(((Node_Blank) other).label);
+	}
+}

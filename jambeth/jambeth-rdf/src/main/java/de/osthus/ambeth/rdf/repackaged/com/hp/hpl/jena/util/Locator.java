@@ -16,15 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util;
 
 /**
- *  Interface to things that open streams by some string reference
+ * Interface to things that open streams by some string reference
  */
 
 public interface Locator
 {
-    public TypedStream open(String filenameOrURI) ;
-    public String getName() ;
+	public TypedStream open(String filenameOrURI);
+
+	public String getName();
 }

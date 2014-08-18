@@ -16,58 +16,59 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
-
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 import java.util.*;
 
 /**
- * For each element in the RDF list (third argument) it asserts 
- * triples with that as the object and subject and predicate given by arguments
- * one and two. A strange and hacky function, only usable in the head of
- * forward rules.
+ * For each element in the RDF list (third argument) it asserts triples with that as the object and subject and predicate given by arguments one and two. A
+ * strange and hacky function, only usable in the head of forward rules.
  */
-public class ListMapAsObject extends BaseBuiltin {
+public class ListMapAsObject extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "listMapAsObject";
-    }
-    
-    /**
-     * Return the expected number of arguments for this functor or 0 if the number is flexible.
-     */
-    @Override
-    public int getArgLength() {
-        return 3;
-    }
-    
-    /**
-     * This method is invoked when the builtin is called in a rule head.
-     * Such a use is only valid in a forward rule.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes.
-     * @param length the length of the argument list, may be less than the length of the args array
-     * for some rule engines
-     * @param context an execution context giving access to other relevant data
-     */
-    @Override
-    public void headAction(Node[] args, int length, RuleContext context) {
-        checkArgs(length, context);
-        Node n0 = getArg(0, args, context);
-        Node n1 = getArg(1, args, context);
-        Node n2 = getArg(2, args, context);
-        List<Node> l = Util.convertList(n2, context);
-        for ( Node x : l )
-        {
-            context.add( new Triple( n0, n1, x ) );
-        }
-    }
-    
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "listMapAsObject";
+	}
+
+	/**
+	 * Return the expected number of arguments for this functor or 0 if the number is flexible.
+	 */
+	@Override
+	public int getArgLength()
+	{
+		return 3;
+	}
+
+	/**
+	 * This method is invoked when the builtin is called in a rule head. Such a use is only valid in a forward rule.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes.
+	 * @param length
+	 *            the length of the argument list, may be less than the length of the args array for some rule engines
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 */
+	@Override
+	public void headAction(Node[] args, int length, RuleContext context)
+	{
+		checkArgs(length, context);
+		Node n0 = getArg(0, args, context);
+		Node n1 = getArg(1, args, context);
+		Node n2 = getArg(2, args, context);
+		List<Node> l = Util.convertList(n2, context);
+		for (Node x : l)
+		{
+			context.add(new Triple(n0, n1, x));
+		}
+	}
+
 }

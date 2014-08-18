@@ -22,26 +22,37 @@
  * Created on June 26, 2001, 9:30 AM
  */
 
-package com.hp.hpl.jena.rdf.arp;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp;
 
-/** The callback from a reader to an RDF application.
- * Each triple in the input file causes a call on one of the statement methods.
- * The same triple may occur more than once in a file, causing repeat calls
- * to the method.
+/**
+ * The callback from a reader to an RDF application. Each triple in the input file causes a call on one of the statement methods. The same triple may occur more
+ * than once in a file, causing repeat calls to the method.
  */
-public interface StatementHandler  {
+public interface StatementHandler
+{
 
-/** A triple in the file.
- * @param subj The subject.
- * @param pred The property.
- * @param obj The object.
- */    
-   public void statement(AResource subj, AResource pred, AResource obj );
-/** A triple in the file.
- * @param subj The subject.
- * @param pred The property.
- * @param lit The object.
- */    
-   public void statement(AResource subj, AResource pred, ALiteral lit );
+	/**
+	 * A triple in the file.
+	 * 
+	 * @param subj
+	 *            The subject.
+	 * @param pred
+	 *            The property.
+	 * @param obj
+	 *            The object.
+	 */
+	public void statement(AResource subj, AResource pred, AResource obj);
+
+	/**
+	 * A triple in the file.
+	 * 
+	 * @param subj
+	 *            The subject.
+	 * @param pred
+	 *            The property.
+	 * @param lit
+	 *            The object.
+	 */
+	public void statement(AResource subj, AResource pred, ALiteral lit);
 
 }

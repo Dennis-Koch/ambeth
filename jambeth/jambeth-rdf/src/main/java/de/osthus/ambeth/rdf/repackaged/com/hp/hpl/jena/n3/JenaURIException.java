@@ -16,17 +16,23 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
-
-/** com.hp.hpl.jena.query.util.RelativeURIException
+/**
+ * de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.query.util. RelativeURIException
  */
 
 public class JenaURIException extends JenaException
 {
-    public JenaURIException(Exception e) { super(e) ; }
-	
-    public JenaURIException(String msg) { super(msg) ; }
+	public JenaURIException(Exception e)
+	{
+		super(e);
+	}
+
+	public JenaURIException(String msg)
+	{
+		super(msg);
+	}
 }

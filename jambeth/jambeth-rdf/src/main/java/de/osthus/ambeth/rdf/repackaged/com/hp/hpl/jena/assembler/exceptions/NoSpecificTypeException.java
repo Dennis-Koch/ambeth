@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 public class NoSpecificTypeException extends AssemblerException
-    {
-    public NoSpecificTypeException( Resource root )
-        {
-        super( root, "the root " + root + " has no most specific type that is a subclass of ja:Object" );
-        }
-    }
+{
+	public NoSpecificTypeException(Resource root)
+	{
+		super(root, "the root " + root + " has no most specific type that is a subclass of ja:Object");
+	}
+}

@@ -16,97 +16,88 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl ;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
-import com.hp.hpl.jena.datatypes.DatatypeFormatException ;
-import com.hp.hpl.jena.datatypes.RDFDatatype ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.DatatypeFormatException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.RDFDatatype;
 
 public interface LiteralLabel
 {
 
-    /** 
-        Answer true iff this is a well-formed XML literal.
-     */
-    public boolean isXML() ;
+	/**
+	 * Answer true iff this is a well-formed XML literal.
+	 */
+	public boolean isXML();
 
-    /** 
-     	Answer true iff this is a well-formed literal.
-     */
-    public boolean isWellFormed() ;
-    
-    /** 
-        Answer true iff the wellformed flag is true. Does not test for datatype. 
-     */
-    public boolean isWellFormedRaw() ;
+	/**
+	 * Answer true iff this is a well-formed literal.
+	 */
+	public boolean isWellFormed();
 
-    /**
-        Answer a human-acceptable representation of this literal value.
-        This is NOT intended for a machine-processed result. 
-     */
-    public String toString(boolean quoting) ;
+	/**
+	 * Answer true iff the wellformed flag is true. Does not test for datatype.
+	 */
+	public boolean isWellFormedRaw();
 
-    @Override
-    public String toString() ;
+	/**
+	 * Answer a human-acceptable representation of this literal value. This is NOT intended for a machine-processed result.
+	 */
+	public String toString(boolean quoting);
 
-    /** 
-     	Answer the lexical form of this literal, constructing it on-the-fly
-        (and remembering it) if necessary.
-     */
-    public String getLexicalForm() ;
+	@Override
+	public String toString();
 
-    /** 
-     	Answer the value used to index this literal
-        TODO Consider pushing indexing decisions down to the datatype
-     */
-    public Object getIndexingValue() ;
+	/**
+	 * Answer the lexical form of this literal, constructing it on-the-fly (and remembering it) if necessary.
+	 */
+	public String getLexicalForm();
 
-    /** 
-     	Answer the language associated with this literal (the empty string if
-        there's no language).
-     */
-    public String language() ;
+	/**
+	 * Answer the value used to index this literal TODO Consider pushing indexing decisions down to the datatype
+	 */
+	public Object getIndexingValue();
 
-    /** 
-     	Answer a suitable instance of a Java class representing this literal's
-        value. May throw an exception if the literal is ill-formed.
-     */
-    public Object getValue() throws DatatypeFormatException ;
+	/**
+	 * Answer the language associated with this literal (the empty string if there's no language).
+	 */
+	public String language();
 
-    /** 
-     	Answer the datatype of this literal, null if it is untyped.
-     */
-    public RDFDatatype getDatatype() ;
+	/**
+	 * Answer a suitable instance of a Java class representing this literal's value. May throw an exception if the literal is ill-formed.
+	 */
+	public Object getValue() throws DatatypeFormatException;
 
-    /** 
-     	Answer the datatype URI of this literal, null if it untyped.
-     */
-    public String getDatatypeURI() ;
+	/**
+	 * Answer the datatype of this literal, null if it is untyped.
+	 */
+	public RDFDatatype getDatatype();
 
-    /** 
-     	Answer true iff this literal is syntactically equal to <code>other</code>.
-        Note: this is <i>not</i> <code>sameValueAs</code>.
-     */
-    @Override
-    public boolean equals(Object other) ;
+	/**
+	 * Answer the datatype URI of this literal, null if it untyped.
+	 */
+	public String getDatatypeURI();
 
-    /** 
-     	Answer true iff this literal represents the same (abstract) value as
-        the other one.
-     */
-    public boolean sameValueAs(LiteralLabel other) ;
+	/**
+	 * Answer true iff this literal is syntactically equal to <code>other</code> . Note: this is <i>not</i> <code>sameValueAs</code>.
+	 */
+	@Override
+	public boolean equals(Object other);
 
-    /** 
-     	Answer the hashcode of this literal, derived from its value if it's
-        well-formed and otherwise its lexical form.
-     */
-    @Override
-    public int hashCode() ;
+	/**
+	 * Answer true iff this literal represents the same (abstract) value as the other one.
+	 */
+	public boolean sameValueAs(LiteralLabel other);
 
-    /**
-        Answer the default hash value, suitable for datatypes which have values
-        which support hashCode() naturally: it is derived from its value if it is 
-        well-formed and otherwise from its lexical form.
-     */
-    public int getDefaultHashcode() ;
+	/**
+	 * Answer the hashcode of this literal, derived from its value if it's well-formed and otherwise its lexical form.
+	 */
+	@Override
+	public int hashCode();
+
+	/**
+	 * Answer the default hash value, suitable for datatypes which have values which support hashCode() naturally: it is derived from its value if it is
+	 * well-formed and otherwise from its lexical form.
+	 */
+	public int getDefaultHashcode();
 
 }

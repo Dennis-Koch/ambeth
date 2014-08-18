@@ -16,32 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd;
 
-import org.apache.xerces.impl.dv.util.HexBin ;
+import org.apache.xerces.impl.dv.util.HexBin;
 
-import com.hp.hpl.jena.datatypes.DatatypeFormatException ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.DatatypeFormatException;
 
 /**
- * Implement hexbinary type. Most of the work is done in the superclass.
- * This only needs to implement the unparsing.
+ * Implement hexbinary type. Most of the work is done in the superclass. This only needs to implement the unparsing.
  */
-public class XSDhexBinary extends XSDbinary {
-    
-    public XSDhexBinary(String typeName) {
-        super(typeName, false);
-    }
+public class XSDhexBinary extends XSDbinary
+{
 
-    /**
-     * Convert a value of this datatype out
-     * to lexical form.
-     */
-    @Override
-    public String unparse(Object value) {
-        if (value instanceof byte[]) {
-            return HexBin.encode((byte[])value);
-        } else {
-            throw new DatatypeFormatException("hexBinary asked to encode a non-byte arrary");
-        }
-    }
+	public XSDhexBinary(String typeName)
+	{
+		super(typeName, false);
+	}
+
+	/**
+	 * Convert a value of this datatype out to lexical form.
+	 */
+	@Override
+	public String unparse(Object value)
+	{
+		if (value instanceof byte[])
+		{
+			return HexBin.encode((byte[]) value);
+		}
+		else
+		{
+			throw new DatatypeFormatException("hexBinary asked to encode a non-byte arrary");
+		}
+	}
 }

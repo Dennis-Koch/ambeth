@@ -16,70 +16,76 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.builtins;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.builtins;
 
-import com.hp.hpl.jena.reasoner.rulesys.*;
-import com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 import java.util.*;
 
 /**
- * CountLiteralValues(X, P, C) sets C to be the number of semantically
- * distinct values for P on resource X. This is expensive.
+ * CountLiteralValues(X, P, C) sets C to be the number of semantically distinct values for P on resource X. This is expensive.
  */
-public class CountLiteralValues extends BaseBuiltin {
+public class CountLiteralValues extends BaseBuiltin
+{
 
-    /**
-     * Return a name for this builtin, normally this will be the name of the 
-     * functor that will be used to invoke it.
-     */
-    @Override
-    public String getName() {
-        return "countLiteralValues";
-    }
-    
-    /**
-     * Return the expected number of arguments for this functor or 0 if the number is flexible.
-     */
-    @Override
-    public int getArgLength() {
-        return 3;
-    }
+	/**
+	 * Return a name for this builtin, normally this will be the name of the functor that will be used to invoke it.
+	 */
+	@Override
+	public String getName()
+	{
+		return "countLiteralValues";
+	}
 
-    /**
-     * This method is invoked when the builtin is called in a rule body.
-     * @param args the array of argument values for the builtin, this is an array 
-     * of Nodes, some of which may be Node_RuleVariables.
-     * @param length the length of the argument list, may be less than the length of the args array
-     * for some rule engines
-     * @param context an execution context giving access to other relevant data
-     * @return return true if the buildin predicate is deemed to have succeeded in
-     * the current environment
-     */
-    @Override
-    public boolean bodyCall(Node[] args, int length, RuleContext context) {
-        List<Node> values = new ArrayList<>();
-        Node a0 = getArg(0, args, context);
-        Node a1 = getArg(1, args, context);
-        for (Iterator<Triple> ni = context.find(a0, a1, null); ni.hasNext(); ) {
-            Node v = ni.next().getObject();
-            if (v.isLiteral()) {
-                // Can't just use contains because distinct objects may
-                // be semantically equal
-                boolean gotit = false;
-                for ( Node value : values )
-                {
-                    if ( v.sameValueAs( value ) )
-                    {
-                        gotit = true;
-                        break;
-                    }
-                }
-                if (!gotit) {
-                    values.add(v);
-                }
-            }
-        }
-        return context.getEnv().bind(args[2], Util.makeIntNode(values.size()));
-    }
-    
+	/**
+	 * Return the expected number of arguments for this functor or 0 if the number is flexible.
+	 */
+	@Override
+	public int getArgLength()
+	{
+		return 3;
+	}
+
+	/**
+	 * This method is invoked when the builtin is called in a rule body.
+	 * 
+	 * @param args
+	 *            the array of argument values for the builtin, this is an array of Nodes, some of which may be Node_RuleVariables.
+	 * @param length
+	 *            the length of the argument list, may be less than the length of the args array for some rule engines
+	 * @param context
+	 *            an execution context giving access to other relevant data
+	 * @return return true if the buildin predicate is deemed to have succeeded in the current environment
+	 */
+	@Override
+	public boolean bodyCall(Node[] args, int length, RuleContext context)
+	{
+		List<Node> values = new ArrayList<>();
+		Node a0 = getArg(0, args, context);
+		Node a1 = getArg(1, args, context);
+		for (Iterator<Triple> ni = context.find(a0, a1, null); ni.hasNext();)
+		{
+			Node v = ni.next().getObject();
+			if (v.isLiteral())
+			{
+				// Can't just use contains because distinct objects may
+				// be semantically equal
+				boolean gotit = false;
+				for (Node value : values)
+				{
+					if (v.sameValueAs(value))
+					{
+						gotit = true;
+						break;
+					}
+				}
+				if (!gotit)
+				{
+					values.add(v);
+				}
+			}
+		}
+		return context.getEnv().bind(args[2], Util.makeIntNode(values.size()));
+	}
+
 }

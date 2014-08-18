@@ -16,29 +16,32 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
-import com.hp.hpl.jena.graph.impl.GraphWithPerform;
-import com.hp.hpl.jena.graph.impl.SimpleBulkUpdateHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.GraphWithPerform;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.SimpleBulkUpdateHandler;
 
 /**
- 	A GraphMemBulkUpdateHandler specialises the SimpleBulkUpdateHandler
- 	by doing removeAll efficiently, by clearing the indexes directly.
+ * A GraphMemBulkUpdateHandler specialises the SimpleBulkUpdateHandler by doing removeAll efficiently, by clearing the indexes directly.
  */
 
 public class GraphMemBulkUpdateHandler extends SimpleBulkUpdateHandler
+{
+	public GraphMemBulkUpdateHandler(GraphWithPerform graph)
 	{
-	public GraphMemBulkUpdateHandler( GraphWithPerform graph ) 
-	    { super( graph ); }
-	
+		super(graph);
+	}
+
 	@Override
 	@Deprecated
-    public void removeAll()
-	    {
-	    clearComponents();
-	    notifyRemoveAll();
-	    }
-	
-	protected void clearComponents()
-	    { ((GraphMemBase) graph).clear(); }
+	public void removeAll()
+	{
+		clearComponents();
+		notifyRemoveAll();
 	}
+
+	protected void clearComponents()
+	{
+		((GraphMemBase) graph).clear();
+	}
+}

@@ -16,22 +16,21 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.util.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.*;
 
 /**
-    An assembler to create location mappings: all the work is done by the
-    LocationMapper constructor (which has its own vocabulary).
-*/
+ * An assembler to create location mappings: all the work is done by the LocationMapper constructor (which has its own vocabulary).
+ */
 public class LocationMapperAssembler extends AssemblerBase
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode irrelevant )
-        {
-        checkType( root, JA.LocationMapper );
-        return new LocationMapper( ResourceUtils.reachableClosure( root ) ); 
-        }
-    }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.LocationMapper);
+		return new LocationMapper(ResourceUtils.reachableClosure(root));
+	}
+}

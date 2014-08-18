@@ -16,61 +16,66 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.impl;
 
-import com.hp.hpl.jena.datatypes.xsd.AbstractDateTime;
-import com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.AbstractDateTime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd.XSDDateTime;
 
 /**
- * Type processor for time, most of the machinery is in the
- * base XSDAbstractDateTimeType class.
+ * Type processor for time, most of the machinery is in the base XSDAbstractDateTimeType class.
  */
-public class XSDTimeType extends XSDAbstractDateTimeType {
+public class XSDTimeType extends XSDAbstractDateTimeType
+{
 
-    /**
-     * Constructor
-     */
-    public XSDTimeType(String typename) {
-        super(typename);
-    }
+	/**
+	 * Constructor
+	 */
+	public XSDTimeType(String typename)
+	{
+		super(typename);
+	}
 
-    /**
-     * Parse a validated date. This is invoked from
-     * XSDDatatype.convertValidatedDataValue rather then from a local
-     * parse method to make the implementation of XSDGenericType easier.
-     */
-    @Override
-    public Object parseValidated(String str) {
-        int len = str.length();
-        int[] date = new int[TOTAL_SIZE];
-        int[] timeZone = new int[2];
+	/**
+	 * Parse a validated date. This is invoked from XSDDatatype.convertValidatedDataValue rather then from a local parse method to make the implementation of
+	 * XSDGenericType easier.
+	 */
+	@Override
+	public Object parseValidated(String str)
+	{
+		int len = str.length();
+		int[] date = new int[TOTAL_SIZE];
+		int[] timeZone = new int[2];
 
-        // time
-        // initialize to default values
-        date[CY]=YEAR;
-        date[M]=MONTH;
-        date[D]=DAY;
-        getTime(str, 0, len, date, timeZone);
+		// time
+		// initialize to default values
+		date[CY] = YEAR;
+		date[M] = MONTH;
+		date[D] = DAY;
+		getTime(str, 0, len, date, timeZone);
 
-        if ( date[utc]!=0 && date[utc]!='Z' ) {
-            AbstractDateTime.normalize(date, timeZone);
-        }
+		if (date[utc] != 0 && date[utc] != 'Z')
+		{
+			AbstractDateTime.normalize(date, timeZone);
+		}
 
-        return new XSDDateTime(date, TIME_MASK);
-    }
-    
-    /**
-     * Convert a value of this datatype out
-     * to lexical form.
-     */
-    @Override
-    public String unparse(Object value) {
-        if (value instanceof XSDDateTime) {
-            return((XSDDateTime)value).timeLexicalForm();
-        } else {
-            // Don't think we should ever get here
-            return value.toString();
-        }
-    }
-    
+		return new XSDDateTime(date, TIME_MASK);
+	}
+
+	/**
+	 * Convert a value of this datatype out to lexical form.
+	 */
+	@Override
+	public String unparse(Object value)
+	{
+		if (value instanceof XSDDateTime)
+		{
+			return ((XSDDateTime) value).timeLexicalForm();
+		}
+		else
+		{
+			// Don't think we should ever get here
+			return value.toString();
+		}
+	}
+
 }

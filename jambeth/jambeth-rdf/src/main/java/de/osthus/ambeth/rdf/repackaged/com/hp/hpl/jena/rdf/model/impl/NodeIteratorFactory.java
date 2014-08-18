@@ -16,16 +16,18 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.Iterator;
 
-/** An internal class not normally of interest to application developers.
+/**
+ * An internal class not normally of interest to application developers.
  */
-public interface NodeIteratorFactory {
-    
-    NodeIterator createIterator(Iterator<Statement> iter, Object o, Container cont);
+public interface NodeIteratorFactory
+{
+
+	NodeIterator createIterator(Iterator<Statement> iter, Object o, Container cont);
 
 }

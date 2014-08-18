@@ -16,18 +16,29 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3.turtle;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3.turtle;
 
-import com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
 
 public class TurtleEventNull implements TurtleEventHandler
 {
-    @Override
-    public void triple(int line, int col, Triple triple)  {}
-    @Override
-    public void startFormula(int line, int col)           {}
-    @Override
-    public void endFormula(int line, int col)             {}
-    @Override
-    public void prefix(int line, int col, String prefix, String iri) {}
+	@Override
+	public void triple(int line, int col, Triple triple)
+	{
+	}
+
+	@Override
+	public void startFormula(int line, int col)
+	{
+	}
+
+	@Override
+	public void endFormula(int line, int col)
+	{
+	}
+
+	@Override
+	public void prefix(int line, int col, String prefix, String iri)
+	{
+	}
 }

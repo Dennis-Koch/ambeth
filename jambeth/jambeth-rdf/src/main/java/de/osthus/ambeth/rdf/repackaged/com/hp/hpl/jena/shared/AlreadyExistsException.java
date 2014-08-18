@@ -16,16 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when an attempt is made to create a named
-    object (eg persistent model) when an object of that name already
-    exists.
-*/
+ * Exception to throw when an attempt is made to create a named object (eg persistent model) when an object of that name already exists.
+ */
 public class AlreadyExistsException extends JenaException
-    {
-    public AlreadyExistsException( String name )
-        { super( name ); }
-    }
+{
+	public AlreadyExistsException(String name)
+	{
+		super(name);
+	}
+}

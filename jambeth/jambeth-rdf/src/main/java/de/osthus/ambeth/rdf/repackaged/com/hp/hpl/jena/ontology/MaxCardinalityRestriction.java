@@ -18,63 +18,73 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
 /**
  * <p>
- * A property restriction that requires the named property to have have at most
- * the given number of values for a given instance to be a member of the class defined
- * by the restriction.
+ * A property restriction that requires the named property to have have at most the given number of values for a given instance to be a member of the class
+ * defined by the restriction.
  * </p>
  */
-public interface MaxCardinalityRestriction
-    extends Restriction 
+public interface MaxCardinalityRestriction extends Restriction
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
+	// External signature methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// maxCardinality
 
-    // maxCardinality
-    
-    /**
-     * <p>Assert that this restriction restricts the property to have the given
-     * maximum cardinality. Any existing statements for <code>maxCardinality</code>
-     * will be removed.</p>
-     * @param cardinality The maximum cardinality of the restricted property
-     * @exception ProfileException If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.   
-     */ 
-    public void setMaxCardinality( int cardinality );
+	/**
+	 * <p>
+	 * Assert that this restriction restricts the property to have the given maximum cardinality. Any existing statements for <code>maxCardinality</code> will
+	 * be removed.
+	 * </p>
+	 * 
+	 * @param cardinality
+	 *            The maximum cardinality of the restricted property
+	 * @exception ProfileException
+	 *                If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.
+	 */
+	public void setMaxCardinality(int cardinality);
 
-    /**
-     * <p>Answer the maximum cardinality of the restricted property.</p>
-     * @return The maximum cardinality of the restricted property
-     * @exception ProfileException If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.   
-     */ 
-    public int getMaxCardinality();
+	/**
+	 * <p>
+	 * Answer the maximum cardinality of the restricted property.
+	 * </p>
+	 * 
+	 * @return The maximum cardinality of the restricted property
+	 * @exception ProfileException
+	 *                If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.
+	 */
+	public int getMaxCardinality();
 
-    /**
-     * <p>Answer true if this property restriction has the given maximum cardinality.</p>
-     * @param cardinality The cardinality to test against 
-     * @return True if the given cardinality is the max cardinality of the restricted property in this restriction
-     * @exception ProfileException If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.   
-     */
-    public boolean hasMaxCardinality( int cardinality );
-    
-    /**
-     * <p>Remove the statement that this restriction has the given maximum cardinality 
-     * for the restricted property.  If this statement
-     * is not true of the current model, nothing happens.</p>
-     * @param cardinality A max cardinality value to be removed from this restriction
-     */
-    public void removeMaxCardinality( int cardinality );
-    
+	/**
+	 * <p>
+	 * Answer true if this property restriction has the given maximum cardinality.
+	 * </p>
+	 * 
+	 * @param cardinality
+	 *            The cardinality to test against
+	 * @return True if the given cardinality is the max cardinality of the restricted property in this restriction
+	 * @exception ProfileException
+	 *                If the {@link Profile#MAX_CARDINALITY()} property is not supported in the current language profile.
+	 */
+	public boolean hasMaxCardinality(int cardinality);
 
+	/**
+	 * <p>
+	 * Remove the statement that this restriction has the given maximum cardinality for the restricted property. If this statement is not true of the current
+	 * model, nothing happens.
+	 * </p>
+	 * 
+	 * @param cardinality
+	 *            A max cardinality value to be removed from this restriction
+	 */
+	public void removeMaxCardinality(int cardinality);
 
 }

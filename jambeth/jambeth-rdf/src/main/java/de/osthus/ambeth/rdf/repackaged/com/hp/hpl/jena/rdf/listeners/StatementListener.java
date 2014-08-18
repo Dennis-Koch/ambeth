@@ -16,75 +16,99 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.listeners;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.listeners;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.*;
 
 /**
-    A listener that filters all its listening down to the single-statement level. Users of this
-    class override <code>addedStatement(Statement)</code> and 
-    <code>removedStatement(Statement)</code>.
-*/
+ * A listener that filters all its listening down to the single-statement level. Users of this class override <code>addedStatement(Statement)</code> and
+ * <code>removedStatement(Statement)</code>.
+ */
 public class StatementListener implements ModelChangedListener
-    {
-    /**
-        Override this to listen to all incoming added statements
-    */
-    @Override
-    public void addedStatement( Statement s ) {}
-    /**
-        Override this to listen to all incoming removed statements
-    */
-    @Override
-    public void removedStatement( Statement s ) {}   
-/* */
-    @Override
-    public void addedStatements( Statement [] statements ) 
-        {
-            for ( Statement statement : statements )
-            {
-                addedStatement( statement );
-            }
-        }
-    @Override
-    public void addedStatements( List<Statement> statements ) 
-        {
-            for ( Statement statement : statements )
-            {
-                addedStatement( statement );
-            }
-        }
-    @Override
-    public void addedStatements( StmtIterator statements ) 
-        { while (statements.hasNext()) addedStatement( statements.nextStatement() ); }
-    @Override
-    public void addedStatements( Model m ) 
-        { addedStatements( m.listStatements() ); }
-    @Override
-    public void removedStatements( Statement [] statements ) 
-        {
-            for ( Statement statement : statements )
-            {
-                removedStatement( statement );
-            }
-        }
-    @Override
-    public void removedStatements( List<Statement> statements ) 
-        {
-            for ( Statement statement : statements )
-            {
-                removedStatement( statement );
-            }
-        }
-    @Override
-    public void removedStatements( StmtIterator statements ) 
-        { while (statements.hasNext()) removedStatement( statements.nextStatement() ); }
-    @Override
-    public void removedStatements( Model m ) 
-        { removedStatements( m.listStatements() ); }            
-    @Override
-    public void notifyEvent( Model m, Object event ) 
-        {}
-    }
+{
+	/**
+	 * Override this to listen to all incoming added statements
+	 */
+	@Override
+	public void addedStatement(Statement s)
+	{
+	}
+
+	/**
+	 * Override this to listen to all incoming removed statements
+	 */
+	@Override
+	public void removedStatement(Statement s)
+	{
+	}
+
+	/* */
+	@Override
+	public void addedStatements(Statement[] statements)
+	{
+		for (Statement statement : statements)
+		{
+			addedStatement(statement);
+		}
+	}
+
+	@Override
+	public void addedStatements(List<Statement> statements)
+	{
+		for (Statement statement : statements)
+		{
+			addedStatement(statement);
+		}
+	}
+
+	@Override
+	public void addedStatements(StmtIterator statements)
+	{
+		while (statements.hasNext())
+			addedStatement(statements.nextStatement());
+	}
+
+	@Override
+	public void addedStatements(Model m)
+	{
+		addedStatements(m.listStatements());
+	}
+
+	@Override
+	public void removedStatements(Statement[] statements)
+	{
+		for (Statement statement : statements)
+		{
+			removedStatement(statement);
+		}
+	}
+
+	@Override
+	public void removedStatements(List<Statement> statements)
+	{
+		for (Statement statement : statements)
+		{
+			removedStatement(statement);
+		}
+	}
+
+	@Override
+	public void removedStatements(StmtIterator statements)
+	{
+		while (statements.hasNext())
+			removedStatement(statements.nextStatement());
+	}
+
+	@Override
+	public void removedStatements(Model m)
+	{
+		removedStatements(m.listStatements());
+	}
+
+	@Override
+	public void notifyEvent(Model m, Object event)
+	{
+	}
+}

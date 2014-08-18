@@ -18,54 +18,52 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
 /**
  * <p>
- * Exception that is thrown when an ontology resource is converted to another
- * facet, using {@link com.hp.hpl.jena.rdf.model.RDFNode#as as()}, and the requested conversion is not
- * possible. The reasons for the failure may be that the requested term is not
- * in the language {@linkplain Profile profile} of the language attached to the
- * ontology model, or because the pre-conditions for the conversion are not met. 
+ * Exception that is thrown when an ontology resource is converted to another facet, using
+ * {@link de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFNode#as as()}, and the requested conversion is not possible. The reasons for the failure
+ * may be that the requested term is not in the language {@linkplain Profile profile} of the language attached to the ontology model, or because the
+ * pre-conditions for the conversion are not met.
  * </p>
  */
-public class ConversionException 
-    extends OntologyException
+public class ConversionException extends OntologyException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Static variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    /**
-     * Construct an ontology exception with a given message.
-     * 
-     * @param msg The exception message.
-     */
-    public ConversionException( String msg ) {
-        super( msg );
-    }
+	/**
+	 * Construct an ontology exception with a given message.
+	 * 
+	 * @param msg
+	 *            The exception message.
+	 */
+	public ConversionException(String msg)
+	{
+		super(msg);
+	}
 
+	// External signature methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    // Internal implementation methods
-    //////////////////////////////////
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

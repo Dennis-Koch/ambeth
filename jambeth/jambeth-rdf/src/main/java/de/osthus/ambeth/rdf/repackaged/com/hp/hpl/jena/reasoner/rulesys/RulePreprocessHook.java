@@ -16,39 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.reasoner.Finder;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Graph;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.Finder;
 
 /**
- * Implementors of this interface can be used as proprocessing passes
- * during intialization of (hybrid) rule systems. They are typically
- * used to generate additional data-dependent rules or additional
- * deductions (normally from comprehension axioms) which are cheaper
- * this way than using the generic rule engines.
+ * Implementors of this interface can be used as proprocessing passes during intialization of (hybrid) rule systems. They are typically used to generate
+ * additional data-dependent rules or additional deductions (normally from comprehension axioms) which are cheaper this way than using the generic rule engines.
  */
-public interface RulePreprocessHook {
+public interface RulePreprocessHook
+{
 
-    /**
-     * Invoke the preprocessing hook. This will be called during the
-     * preparation time of the hybrid reasoner.
-     * @param infGraph the inference graph which is being prepared,
-     * the hook code can use this to add pure deductions or add additional
-     * rules (using addRuleDuringPrepare).
-     * @param dataFind the finder which packages up the raw data (both
-     * schema and data bind) and any cached transitive closures.
-     * @param inserts a temporary graph into which the hook should insert
-     * all new deductions that should be seen by the rules.
-     */
-    public void run(FBRuleInfGraph infGraph, Finder dataFind, Graph inserts);
-    
-    /**
-     * Validate a triple add to see if it should reinvoke the hook. If so
-     * then the inference will be restarted at next prepare time. Incremental
-     * re-processing is not yet supported.
-     */
-    public boolean needsRerun(FBRuleInfGraph infGraph, Triple t);
-    
+	/**
+	 * Invoke the preprocessing hook. This will be called during the preparation time of the hybrid reasoner.
+	 * 
+	 * @param infGraph
+	 *            the inference graph which is being prepared, the hook code can use this to add pure deductions or add additional rules (using
+	 *            addRuleDuringPrepare).
+	 * @param dataFind
+	 *            the finder which packages up the raw data (both schema and data bind) and any cached transitive closures.
+	 * @param inserts
+	 *            a temporary graph into which the hook should insert all new deductions that should be seen by the rules.
+	 */
+	public void run(FBRuleInfGraph infGraph, Finder dataFind, Graph inserts);
+
+	/**
+	 * Validate a triple add to see if it should reinvoke the hook. If so then the inference will be restarted at next prepare time. Incremental re-processing
+	 * is not yet supported.
+	 */
+	public boolean needsRerun(FBRuleInfGraph infGraph, Triple t);
+
 }

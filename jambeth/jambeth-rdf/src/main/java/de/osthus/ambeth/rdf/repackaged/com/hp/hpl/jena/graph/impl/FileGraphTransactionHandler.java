@@ -16,66 +16,73 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl;
 
 import java.io.File;
 
-import com.hp.hpl.jena.graph.TransactionHandler;
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.TransactionHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
-    A TransactionHandler for FileGraphs. When a FileGraph begin()s a 
-    transaction, its current contents are checkpointed into a sibling file
-    (whose name starts "checkPoint-"). On an abort(), the current contents 
-    are discarded, and the checkpointed contents restored; on a commit(),
-    the current contents are written back to the backing file, and the
-    checkpoint file is deleted. Nested transactions are Not Allowed.
+ * A TransactionHandler for FileGraphs. When a FileGraph begin()s a transaction, its current contents are checkpointed into a sibling file (whose name starts
+ * "checkPoint-"). On an abort(), the current contents are discarded, and the checkpointed contents restored; on a commit(), the current contents are written
+ * back to the backing file, and the checkpoint file is deleted. Nested transactions are Not Allowed.
+ */
+public class FileGraphTransactionHandler extends TransactionHandlerBase implements TransactionHandler
+{
+	protected boolean inTransaction;
+	protected FileGraph fileGraph;
+	protected File checkPointFile;
 
-*/
-public class FileGraphTransactionHandler 
-    extends TransactionHandlerBase implements TransactionHandler
-    {
-    protected boolean inTransaction;
-    protected FileGraph fileGraph;
-    protected File checkPointFile;
-    
-    public FileGraphTransactionHandler( FileGraph fileGraph )
-        { this.fileGraph = fileGraph; }
-    
-    @Override
-    public boolean transactionsSupported()
-        { return true; }
-    
-    @Override
-    public void begin()
-        { if (inTransaction) 
-            throw new JenaException( "nested transactions not supported" );
-        else 
-            { checkPointFile = new File( checkPointName( fileGraph.name ) ); 
-            checkPointFile.deleteOnExit();
-            fileGraph.saveContents( checkPointFile );
-            inTransaction = true; } }
-    
-    protected String checkPointName( File name )
-        {
-        String path = name.getPath();
-        int pos = path.lastIndexOf( File.separatorChar );
-        String start = path.substring( 0, pos + 1 );
-        String finish = path.substring( pos + 1 );
-        return start + "checkPoint-" + finish;
-        }
-    
-    @Override
-    public void abort()
-        { fileGraph.clear();
-        fileGraph.readModelFrom( fileGraph.model, true, checkPointFile );
-        checkPointFile.delete();
-        inTransaction = false; }
-    
-    @Override
-    public void commit()
-        { fileGraph.saveContents( fileGraph.name ); 
-        checkPointFile.delete(); 
-        inTransaction = false; }
-    
-    }
+	public FileGraphTransactionHandler(FileGraph fileGraph)
+	{
+		this.fileGraph = fileGraph;
+	}
+
+	@Override
+	public boolean transactionsSupported()
+	{
+		return true;
+	}
+
+	@Override
+	public void begin()
+	{
+		if (inTransaction)
+			throw new JenaException("nested transactions not supported");
+		else
+		{
+			checkPointFile = new File(checkPointName(fileGraph.name));
+			checkPointFile.deleteOnExit();
+			fileGraph.saveContents(checkPointFile);
+			inTransaction = true;
+		}
+	}
+
+	protected String checkPointName(File name)
+	{
+		String path = name.getPath();
+		int pos = path.lastIndexOf(File.separatorChar);
+		String start = path.substring(0, pos + 1);
+		String finish = path.substring(pos + 1);
+		return start + "checkPoint-" + finish;
+	}
+
+	@Override
+	public void abort()
+	{
+		fileGraph.clear();
+		fileGraph.readModelFrom(fileGraph.model, true, checkPointFile);
+		checkPointFile.delete();
+		inTransaction = false;
+	}
+
+	@Override
+	public void commit()
+	{
+		fileGraph.saveContents(fileGraph.name);
+		checkPointFile.delete();
+		inTransaction = false;
+	}
+
+}

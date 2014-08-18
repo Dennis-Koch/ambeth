@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw if there is no writer for the specified language.
-*/
+ * Exception to throw if there is no writer for the specified language.
+ */
 public class NoWriterForLangException extends JenaException
-    {
-    public NoWriterForLangException( String lang )
-        { super( lang ); }
-    }
+{
+	public NoWriterForLangException(String lang)
+	{
+		super(lang);
+	}
+}

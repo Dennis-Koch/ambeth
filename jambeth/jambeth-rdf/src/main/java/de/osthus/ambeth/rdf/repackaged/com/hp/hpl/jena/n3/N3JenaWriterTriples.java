@@ -16,49 +16,47 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
 //import org.apache.commons.logging.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
-/** A simple N3 writer - writes N3 out as triples with prefixes done.
- *  "N3 triples" - triples with N3 abbreviations and prefixes.
- *  Very simple.  
+/**
+ * A simple N3 writer - writes N3 out as triples with prefixes done. "N3 triples" - triples with N3 abbreviations and prefixes. Very simple.
  */
 
 public class N3JenaWriterTriples extends N3JenaWriterCommon
 {
-    static public final int colWidth = 8 ; 
-    
-    @Override
-    protected void writeModel(Model model)
-    {
-        alwaysAllocateBNodeLabel = true ;
-        StmtIterator sIter = model.listStatements() ;
-        for ( ; sIter.hasNext() ; )
-        {
-            Statement stmt = sIter.nextStatement() ;
-            String subjStr = formatResource(stmt.getSubject()) ;
-            
-            out.print(subjStr) ;
-            padCol(subjStr) ; 
-            out.print(minGapStr) ;
-            
-            
-            String predStr = formatProperty(stmt.getPredicate()) ;
-            out.print(predStr) ;
-            padCol(predStr) ;
-            out.print(minGapStr) ;
-            
-            out.print( formatNode(stmt.getObject()) ) ;
-            out.println(" .") ; 
-        }
-        sIter.close() ;
-    }
-    
-    private void padCol(String tmp)
-    {
-        if ( tmp.length() < (colWidth) )
-            out.print(pad( colWidth - tmp.length())) ;
-    }
+	static public final int colWidth = 8;
+
+	@Override
+	protected void writeModel(Model model)
+	{
+		alwaysAllocateBNodeLabel = true;
+		StmtIterator sIter = model.listStatements();
+		for (; sIter.hasNext();)
+		{
+			Statement stmt = sIter.nextStatement();
+			String subjStr = formatResource(stmt.getSubject());
+
+			out.print(subjStr);
+			padCol(subjStr);
+			out.print(minGapStr);
+
+			String predStr = formatProperty(stmt.getPredicate());
+			out.print(predStr);
+			padCol(predStr);
+			out.print(minGapStr);
+
+			out.print(formatNode(stmt.getObject()));
+			out.println(" .");
+		}
+		sIter.close();
+	}
+
+	private void padCol(String tmp)
+	{
+		if (tmp.length() < (colWidth))
+			out.print(pad(colWidth - tmp.length()));
+	}
 }

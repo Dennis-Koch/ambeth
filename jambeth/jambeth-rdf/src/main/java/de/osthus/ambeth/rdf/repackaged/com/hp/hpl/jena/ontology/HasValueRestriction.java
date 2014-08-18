@@ -18,65 +18,73 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.rdf.model.*;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
  * <p>
- * A property restriction that requires the named property to have a given individual as
- * its value. 
+ * A property restriction that requires the named property to have a given individual as its value.
  * </p>
  */
-public interface HasValueRestriction
-    extends Restriction 
+public interface HasValueRestriction extends Restriction
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    // hasValue
-    
-    /**
-     * <p>Assert that this restriction restricts the property to have the given
-     * value. Any existing statements for <code>hasValue</code>
-     * will be removed.</p>
-     * @param value The RDF value (an individual or a literal) 
-     * that is the value that the restricted property must have to be a member of the
-     * class defined by this restriction.
-     * @exception ProfileException If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.   
-     */ 
-    public void setHasValue( RDFNode value );
+	// hasValue
 
-    /**
-     * <p>Answer the RDF value that all values of the restricted property must be equal to.</p>
-     * @return An RDFNode that is the value of the restricted property
-     * @exception ProfileException If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.   
-     */ 
-    public RDFNode getHasValue();
+	/**
+	 * <p>
+	 * Assert that this restriction restricts the property to have the given value. Any existing statements for <code>hasValue</code> will be removed.
+	 * </p>
+	 * 
+	 * @param value
+	 *            The RDF value (an individual or a literal) that is the value that the restricted property must have to be a member of the class defined by
+	 *            this restriction.
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.
+	 */
+	public void setHasValue(RDFNode value);
 
-    /**
-     * <p>Answer true if this property restriction has the given RDF value as the value which all 
-     * values of the restricted property must equal.</p>
-     * @param value An RDF value to test 
-     * @return True if the given value is the value of the restricted property in this restriction
-     * @exception ProfileException If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.   
-     */
-    public boolean hasValue( RDFNode value );
-    
-    /**
-     * <p>Remove the statement that this restriction requires the restricted property to have
-     * the given value.  If this statement
-     * is not true of the current model, nothing happens.</p>
-     * @param value An RDF value that is to be removed as the required value for the restricted property
-     */
-    public void removeHasValue( RDFNode value );
-    
+	/**
+	 * <p>
+	 * Answer the RDF value that all values of the restricted property must be equal to.
+	 * </p>
+	 * 
+	 * @return An RDFNode that is the value of the restricted property
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.
+	 */
+	public RDFNode getHasValue();
+
+	/**
+	 * <p>
+	 * Answer true if this property restriction has the given RDF value as the value which all values of the restricted property must equal.
+	 * </p>
+	 * 
+	 * @param value
+	 *            An RDF value to test
+	 * @return True if the given value is the value of the restricted property in this restriction
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_VALUE()} property is not supported in the current language profile.
+	 */
+	public boolean hasValue(RDFNode value);
+
+	/**
+	 * <p>
+	 * Remove the statement that this restriction requires the restricted property to have the given value. If this statement is not true of the current model,
+	 * nothing happens.
+	 * </p>
+	 * 
+	 * @param value
+	 *            An RDF value that is to be removed as the required value for the restricted property
+	 */
+	public void removeHasValue(RDFNode value);
 
 }

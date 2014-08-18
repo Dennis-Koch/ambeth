@@ -16,19 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    A graph's StatisticsHandler offers access to some statistics about that
-    graph's contents that might be useful for optimisation.
-    
+ * A graph's StatisticsHandler offers access to some statistics about that graph's contents that might be useful for optimisation.
  */
 public interface GraphStatisticsHandler
-    {
-    /**
-        Answer a good estimate of the number of triples that would match the
-        pattern <code>(S, P, O)</code>, or -1 if no good estimate is available.
-        The estimate is good until the graph is updated.
-    */
-    public long getStatistic( Node S, Node P, Node O );
-    }
+{
+	/**
+	 * Answer a good estimate of the number of triples that would match the pattern <code>(S, P, O)</code>, or -1 if no good estimate is available. The estimate
+	 * is good until the graph is updated.
+	 */
+	public long getStatistic(Node S, Node P, Node O);
+}

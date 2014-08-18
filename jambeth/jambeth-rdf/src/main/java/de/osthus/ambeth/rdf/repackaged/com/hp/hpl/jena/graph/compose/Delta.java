@@ -16,86 +16,83 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph.compose ;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.compose;
 
-import com.hp.hpl.jena.graph.* ;
-import com.hp.hpl.jena.util.iterator.* ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
- * Graph operation for wrapping a base graph and leaving it unchanged while
- * recording all the attempted updates for later access.
+ * Graph operation for wrapping a base graph and leaving it unchanged while recording all the attempted updates for later access.
  */
 
 @Deprecated
 public class Delta extends Dyadic implements Graph
 {
-    private Graph base ;
+	private Graph base;
 
-    public Delta(Graph base)
-    {
-        super(Factory.createGraphMem(), Factory.createGraphMem()) ;
-        this.base = base ;
-    }
+	public Delta(Graph base)
+	{
+		super(Factory.createGraphMem(), Factory.createGraphMem());
+		this.base = base;
+	}
 
-    /**
-     * Answer the graph of all triples added
-     */
-    public Graph getAdditions()
-    {
-        return L ;
-    }
+	/**
+	 * Answer the graph of all triples added
+	 */
+	public Graph getAdditions()
+	{
+		return L;
+	}
 
-    /**
-     * Answer the graph of all triples removed
-     */
-    public Graph getDeletions()
-    {
-        return R ;
-    }
+	/**
+	 * Answer the graph of all triples removed
+	 */
+	public Graph getDeletions()
+	{
+		return R;
+	}
 
-    /**
-     * Add the triple to the graph, ie add it to the additions, remove it from
-     * the removals.
-     */
-    @Override
-    public void performAdd(Triple t)
-    {
-        if (!base.contains(t)) 
-            L.add(t) ;
-        R.delete(t) ;
-    }
+	/**
+	 * Add the triple to the graph, ie add it to the additions, remove it from the removals.
+	 */
+	@Override
+	public void performAdd(Triple t)
+	{
+		if (!base.contains(t))
+			L.add(t);
+		R.delete(t);
+	}
 
-    /**
-     * Remove the triple, ie, remove it from the adds, add it to the removals.
-     */
-    @Override
-    public void performDelete(Triple t)
-    {
-        L.delete(t) ;
-        if (base.contains(t)) 
-            R.add(t) ;
-    }
+	/**
+	 * Remove the triple, ie, remove it from the adds, add it to the removals.
+	 */
+	@Override
+	public void performDelete(Triple t)
+	{
+		L.delete(t);
+		if (base.contains(t))
+			R.add(t);
+	}
 
-    /**
-     * Find all the base triples matching tm, exclude the ones that are deleted,
-     * add the ones that have been added.
-     */
-    @Override
-    protected ExtendedIterator<Triple> _graphBaseFind(TripleMatch tm)
-    {
-        return base.find(tm).filterDrop(ifIn(GraphUtil.findAll(R))).andThen(L.find(tm)) ;
-    }
+	/**
+	 * Find all the base triples matching tm, exclude the ones that are deleted, add the ones that have been added.
+	 */
+	@Override
+	protected ExtendedIterator<Triple> _graphBaseFind(TripleMatch tm)
+	{
+		return base.find(tm).filterDrop(ifIn(GraphUtil.findAll(R))).andThen(L.find(tm));
+	}
 
-    @Override
-    public void close()
-    {
-        super.close() ;
-        base.close() ;
-    }
+	@Override
+	public void close()
+	{
+		super.close();
+		base.close();
+	}
 
-    @Override
-    public int graphBaseSize()
-    {
-        return base.size() + L.size() - R.size() ;
-    }
+	@Override
+	public int graphBaseSize()
+	{
+		return base.size() + L.size() - R.size();
+	}
 }

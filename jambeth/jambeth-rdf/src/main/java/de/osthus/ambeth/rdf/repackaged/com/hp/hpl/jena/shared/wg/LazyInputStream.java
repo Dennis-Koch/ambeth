@@ -16,47 +16,48 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared.wg;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.wg;
 
 import java.io.*;
 
 /**
- *In test cases we cannot open all the input files
- * while creating the test suite, but must defer the
- * opening until the test is actually run.
+ * In test cases we cannot open all the input files while creating the test suite, but must defer the opening until the test is actually run.
  */
-abstract class LazyInputStream extends InputStream {
+abstract class LazyInputStream extends InputStream
+{
 
-    private InputStream underlying;
-    abstract InputStream open() throws IOException;
-    
-    boolean connect() throws IOException {
-    	if ( underlying != null )
-    	  return true;
-    	else {
-            underlying = open();
-    	}
-    	return underlying != null;
-    		
-    }
-    
-    
-    @Override
-    public int read() throws IOException {
-        if (underlying == null)
-            underlying = open();
-        return underlying.read();
-    }
-    
-    @Override
-    public void close() throws IOException {
-        if (underlying != null) {
-            underlying.close();
-            underlying = null;
-        }
-    }
-    
-    
+	private InputStream underlying;
+
+	abstract InputStream open() throws IOException;
+
+	boolean connect() throws IOException
+	{
+		if (underlying != null)
+			return true;
+		else
+		{
+			underlying = open();
+		}
+		return underlying != null;
+
+	}
+
+	@Override
+	public int read() throws IOException
+	{
+		if (underlying == null)
+			underlying = open();
+		return underlying.read();
+	}
+
+	@Override
+	public void close() throws IOException
+	{
+		if (underlying != null)
+		{
+			underlying.close();
+			underlying = null;
+		}
+	}
 
 }

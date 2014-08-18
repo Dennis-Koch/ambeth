@@ -16,40 +16,45 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
-import com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
 
-public class WantTopLevelDescription extends WantDescription {
+public class WantTopLevelDescription extends WantDescription
+{
 
-    public WantTopLevelDescription(FrameI s, AttributeLexer x)  throws SAXParseException {
-        super(s, x);
-    }
-    
-    public WantTopLevelDescription(XMLHandler handler, AbsXMLContext x) {
-        super(handler,x);
-    }
+	public WantTopLevelDescription(FrameI s, AttributeLexer x) throws SAXParseException
+	{
+		super(s, x);
+	}
 
+	public WantTopLevelDescription(XMLHandler handler, AbsXMLContext x)
+	{
+		super(handler, x);
+	}
 
-    @Override
-    String suggestParsetypeLiteral() {
-        return "";
-    }
-    
-    @Override
-    public void endElement() throws SAXParseException {
-        super.endElement();
-        arp.endRDF();
-    }
-    
-    @Override
-    public void abort() {
-        super.abort();
-        arp.endRDF();
-    }
+	@Override
+	String suggestParsetypeLiteral()
+	{
+		return "";
+	}
+
+	@Override
+	public void endElement() throws SAXParseException
+	{
+		super.endElement();
+		arp.endRDF();
+	}
+
+	@Override
+	public void abort()
+	{
+		super.abort();
+		arp.endRDF();
+	}
 
 }

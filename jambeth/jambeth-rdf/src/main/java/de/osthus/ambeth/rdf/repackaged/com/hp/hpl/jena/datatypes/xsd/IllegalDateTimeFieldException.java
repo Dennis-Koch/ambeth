@@ -16,19 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.datatypes.xsd;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.datatypes.xsd;
 
-import com.hp.hpl.jena.shared.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
 
 /**
- * Exception thrown when attempting to access a field of an XSDDateTime 
- * object that is not legal for the current date/time type. For example,
- * accessing the day from a gYearMonth object.
+ * Exception thrown when attempting to access a field of an XSDDateTime object that is not legal for the current date/time type. For example, accessing the day
+ * from a gYearMonth object.
  */
-public class IllegalDateTimeFieldException extends JenaException {
-    
-    /** Constructor */
-    public IllegalDateTimeFieldException(String msg) {
-        super(msg);
-    }
+public class IllegalDateTimeFieldException extends JenaException
+{
+
+	/** Constructor */
+	public IllegalDateTimeFieldException(String msg)
+	{
+		super(msg);
+	}
 }

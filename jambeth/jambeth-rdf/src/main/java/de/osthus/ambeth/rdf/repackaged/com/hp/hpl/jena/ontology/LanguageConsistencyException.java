@@ -18,48 +18,45 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
 /**
  * <p>
- * An exception that denotes some inconsistency between the arguments to a method
- * in the ontology API, and the language definition for a given ontology profile.
+ * An exception that denotes some inconsistency between the arguments to a method in the ontology API, and the language definition for a given ontology profile.
  * For example, the arguments of an intersection class description should all be classes.
  * </p>
  */
-public class LanguageConsistencyException
-    extends OntologyException
+public class LanguageConsistencyException extends OntologyException
 {
-    // Constants
-    //////////////////////////////////
-    private static final long serialVersionUID = 1962961408291647160L;
+	// Constants
+	// ////////////////////////////////
+	private static final long serialVersionUID = 1962961408291647160L;
 
+	// Static variables
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	public LanguageConsistencyException(String message)
+	{
+		super(message);
+	}
 
-    public LanguageConsistencyException( String message ) {
-        super( message );
-    }
+	// External signature methods
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// Internal implementation methods
+	// ////////////////////////////////
 
-    // Internal implementation methods
-    //////////////////////////////////
-
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

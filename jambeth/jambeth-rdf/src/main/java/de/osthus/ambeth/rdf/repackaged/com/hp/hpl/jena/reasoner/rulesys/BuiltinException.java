@@ -16,24 +16,28 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys;
 
-import com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
- * Exceptions thrown by runtime errors in exceuting rule system
- * builtin operations.
+ * Exceptions thrown by runtime errors in exceuting rule system builtin operations.
  */
-public class BuiltinException extends JenaException {
+public class BuiltinException extends JenaException
+{
 
-    /**
-     * Constructor.
-     * @param builtin the invoking builtin
-     * @param context the invoking rule context
-     * @param message a text explanation of the error
-     */
-    public BuiltinException(Builtin builtin, RuleContext context, String message) {
-        super("Error in clause of rule (" + context.getRule().toShortString() + ") "
-                                         + builtin.getName() + ": " + message);
-    }
+	/**
+	 * Constructor.
+	 * 
+	 * @param builtin
+	 *            the invoking builtin
+	 * @param context
+	 *            the invoking rule context
+	 * @param message
+	 *            a text explanation of the error
+	 */
+	public BuiltinException(Builtin builtin, RuleContext context, String message)
+	{
+		super("Error in clause of rule (" + context.getRule().toShortString() + ") " + builtin.getName() + ": " + message);
+	}
 }

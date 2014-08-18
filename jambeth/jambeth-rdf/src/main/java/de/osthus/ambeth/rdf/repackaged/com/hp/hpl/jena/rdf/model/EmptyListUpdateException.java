@@ -18,58 +18,51 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.rdf.model;
-
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model;
 
 // Imports
 ///////////////
-import com.hp.hpl.jena.shared.JenaException;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
 /**
  * <p>
- * Exception that is thrown when an attept is made to perform a side-effectful
- * operation on an {@link RDFList} that is the empty list, or <code>rdf:nil</code>.
- * This is not permissible, since it would cause the URI of the RDFList to change
- * from <code>rdf:nil</code> to a new bNode, and in Jena the URI of a node is
- * invariant.  To avoid this operation, when extending an empty list use operations
- * that return the updated list (such as {@link RDFList#cons}, or {@link RDFList#with},
- * or check first to see if the list {@linkplain RDFList#isEmpty is empty}, and replace
- * it with a non-null list.
+ * Exception that is thrown when an attept is made to perform a side-effectful operation on an {@link RDFList} that is the empty list, or <code>rdf:nil</code>.
+ * This is not permissible, since it would cause the URI of the RDFList to change from <code>rdf:nil</code> to a new bNode, and in Jena the URI of a node is
+ * invariant. To avoid this operation, when extending an empty list use operations that return the updated list (such as {@link RDFList#cons}, or
+ * {@link RDFList#with}, or check first to see if the list {@linkplain RDFList#isEmpty is empty}, and replace it with a non-null list.
  * </p>
  */
-public class EmptyListUpdateException 
-    extends JenaException
+public class EmptyListUpdateException extends JenaException
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // Static variables
-    //////////////////////////////////
+	// Static variables
+	// ////////////////////////////////
 
-    // Instance variables
-    //////////////////////////////////
+	// Instance variables
+	// ////////////////////////////////
 
-    // Constructors
-    //////////////////////////////////
+	// Constructors
+	// ////////////////////////////////
 
-    public EmptyListUpdateException() {
-    }
-    
-    public EmptyListUpdateException( String message ) {
-        super( message );
-    }
-    
-    
-    // External signature methods
-    //////////////////////////////////
+	public EmptyListUpdateException()
+	{
+	}
 
-    // Internal implementation methods
-    //////////////////////////////////
+	public EmptyListUpdateException(String message)
+	{
+		super(message);
+	}
 
-    //==============================================================================
-    // Inner class definitions
-    //==============================================================================
+	// External signature methods
+	// ////////////////////////////////
+
+	// Internal implementation methods
+	// ////////////////////////////////
+
+	// ==============================================================================
+	// Inner class definitions
+	// ==============================================================================
 
 }

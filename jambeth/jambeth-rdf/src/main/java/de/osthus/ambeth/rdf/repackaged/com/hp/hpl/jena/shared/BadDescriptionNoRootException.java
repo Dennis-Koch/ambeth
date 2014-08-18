@@ -16,18 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-     Exception to throw if a Description has no root of a specified type
-*/
+ * Exception to throw if a Description has no root of a specified type
+ */
 public class BadDescriptionNoRootException extends BadDescriptionException
-    {
-    public final Resource type;
-    
-    public BadDescriptionNoRootException( Model badModel, Resource type )
-        { super( "no root with type " + type, badModel ); 
-        this.type = type; }
-    }
+{
+	public final Resource type;
+
+	public BadDescriptionNoRootException(Model badModel, Resource type)
+	{
+		super("no root with type " + type, badModel);
+		this.type = type;
+	}
+}

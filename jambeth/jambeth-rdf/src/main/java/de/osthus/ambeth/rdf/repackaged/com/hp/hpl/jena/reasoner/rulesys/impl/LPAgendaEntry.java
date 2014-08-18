@@ -16,28 +16,27 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.reasoner.rulesys.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.reasoner.rulesys.impl;
 
 /**
- * The signature of classes that can go on the LPEngines processing
- * agenda. 
+ * The signature of classes that can go on the LPEngines processing agenda.
  */
-public interface LPAgendaEntry {
+public interface LPAgendaEntry
+{
 
-    /**
-     * Cycle this object, recording new results in any associated memoization
-     * table until hit a stop or suspend point.
-     */
-    public void pump();
-    
-    /**
-     * Tests true if this state is ready to be usefully run.
-     */
-    public boolean isReady();
-    
-    /**
-     * Return the generator associated with this entry (might be the entry itself)
-     */
-    public Generator getGenerator();
-    
+	/**
+	 * Cycle this object, recording new results in any associated memoization table until hit a stop or suspend point.
+	 */
+	public void pump();
+
+	/**
+	 * Tests true if this state is ready to be usefully run.
+	 */
+	public boolean isReady();
+
+	/**
+	 * Return the generator associated with this entry (might be the entry itself)
+	 */
+	public Generator getGenerator();
+
 }

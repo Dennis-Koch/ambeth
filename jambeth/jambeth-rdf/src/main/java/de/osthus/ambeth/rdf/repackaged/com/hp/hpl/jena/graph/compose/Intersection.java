@@ -17,42 +17,45 @@
  */
 
 /*
-    INSERT HP DISCLAIMER HERE
-    
-    Dynamic intersection, May 2002, hedgehog
-*/
+ INSERT HP DISCLAIMER HERE
 
-package com.hp.hpl.jena.graph.compose;
+ Dynamic intersection, May 2002, hedgehog
+ */
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.util.iterator.*;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.compose;
 
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
 /**
-    an implementation of a dynamic intersection of two models.
-*/
+ * an implementation of a dynamic intersection of two models.
+ */
 
 @Deprecated
 public class Intersection extends Dyadic implements Graph
+{
+	public Intersection(Graph L, Graph R)
 	{
-	public Intersection( Graph L, Graph R )
-	    {
-	    super( L, R );
-	    }
-	    
-	@Override public void performAdd( Triple t )
-	    {
-	    L.add( t );
-	    R.add( t );
-	    }
-
-	@Override public void performDelete( Triple t )
-		{
-		if (this.contains( t )) L.delete( t );
-		}
-		
-	@Override protected ExtendedIterator<Triple> _graphBaseFind( TripleMatch s )
-		{
-        return L.find( s ) .filterKeep(  ifIn( R ) );
-		}
+		super(L, R);
 	}
+
+	@Override
+	public void performAdd(Triple t)
+	{
+		L.add(t);
+		R.add(t);
+	}
+
+	@Override
+	public void performDelete(Triple t)
+	{
+		if (this.contains(t))
+			L.delete(t);
+	}
+
+	@Override
+	protected ExtendedIterator<Triple> _graphBaseFind(TripleMatch s)
+	{
+		return L.find(s).filterKeep(ifIn(R));
+	}
+}

@@ -16,22 +16,21 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-
-public class LockMutex implements Lock 
+public class LockMutex implements Lock
 {
-    java.util.concurrent.locks.Lock mutex = new java.util.concurrent.locks.ReentrantLock() ;
-    
-    @Override
-    public void enterCriticalSection(boolean readLockRequested)
-    {
-        mutex.lock();
-    }
+	java.util.concurrent.locks.Lock mutex = new java.util.concurrent.locks.ReentrantLock();
 
-    @Override
-    public void leaveCriticalSection()
-    {
-        mutex.unlock() ;
-    }
+	@Override
+	public void enterCriticalSection(boolean readLockRequested)
+	{
+		mutex.lock();
+	}
+
+	@Override
+	public void leaveCriticalSection()
+	{
+		mutex.unlock();
+	}
 }

@@ -16,13 +16,15 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    NoReasonerSuppliedException - the exception to throw if a reasoner (spec)
-    was required, but none was given (eg in ModelSpecs).
-*/
+ * NoReasonerSuppliedException - the exception to throw if a reasoner (spec) was required, but none was given (eg in ModelSpecs).
+ */
 public class NoReasonerSuppliedException extends JenaException
-    {
-    public NoReasonerSuppliedException() { super(); }
-    }
+{
+	public NoReasonerSuppliedException()
+	{
+		super();
+	}
+}

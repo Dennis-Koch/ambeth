@@ -16,22 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
 /**
-    this interface describes types that can have a triple extracted using
-    a <code>getTriple</code> method. It was constructed so that Node's 
-    can have possibly embedded triples but defer to a GetTriple object if 
-    they have no triple of their own; the particular GetTriple used initially is
-    in Reifier, but that seemed excessively special.
-*/
+ * this interface describes types that can have a triple extracted using a <code>getTriple</code> method. It was constructed so that Node's can have possibly
+ * embedded triples but defer to a GetTriple object if they have no triple of their own; the particular GetTriple used initially is in Reifier, but that seemed
+ * excessively special.
+ */
 
 public interface GetTriple
-    {
-    /**
-        Answer the triple associated with the node <code>n</code>.
-        @param n the node to use as the key
-        @return the associated triple, or <code>null</code> if none
-    */
-    public Triple getTriple( Node n );
-    }
+{
+	/**
+	 * Answer the triple associated with the node <code>n</code>.
+	 * 
+	 * @param n
+	 *            the node to use as the key
+	 * @return the associated triple, or <code>null</code> if none
+	 */
+	public Triple getTriple(Node n);
+}

@@ -16,78 +16,142 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.n3;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.n3;
 
-import java.io.* ;
+import java.io.*;
 
-import com.hp.hpl.jena.JenaRuntime ;
-import com.hp.hpl.jena.shared.JenaException ;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.JenaRuntime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
 
-/** Simple class that provides output with moving left margin.
- *  Does not cope with tabs or newlines in output strings.
+/**
+ * Simple class that provides output with moving left margin. Does not cope with tabs or newlines in output strings.
  */
 
 // Not robust/complete enough for public use
 public class N3IndentedWriter
 {
-	String lineSeparator = JenaRuntime.getLineSeparator() ;
-	
-	Writer writer ;
-	int column ;
-	int row ;
-	int currentIndent ;
-	
+	String lineSeparator = JenaRuntime.getLineSeparator();
+
+	Writer writer;
+	int column;
+	int row;
+	int currentIndent;
+
 	public N3IndentedWriter(Writer w)
 	{
-		writer = w ;
-		column = 0 ; 
-		row = 0 ;
-		currentIndent = 0 ;
+		writer = w;
+		column = 0;
+		row = 0;
+		currentIndent = 0;
 	}
 
-    public Writer getWriter() { return writer ; }
+	public Writer getWriter()
+	{
+		return writer;
+	}
 
-	public int getRow() { return row ; }
-	public int getCol() { return column ; }
-	public int getIndent() { return currentIndent ; }
-	
-	public void incIndent(int x) { currentIndent += x ; }
-	public void decIndent(int x) { currentIndent -= x ; }
-	public void setIndent(int x) { currentIndent = x ; }
-	
+	public int getRow()
+	{
+		return row;
+	}
+
+	public int getCol()
+	{
+		return column;
+	}
+
+	public int getIndent()
+	{
+		return currentIndent;
+	}
+
+	public void incIndent(int x)
+	{
+		currentIndent += x;
+	}
+
+	public void decIndent(int x)
+	{
+		currentIndent -= x;
+	}
+
+	public void setIndent(int x)
+	{
+		currentIndent = x;
+	}
+
 	public void print(String s)
 	{
-		try { writer.write(s); column += s.length() ; }
-		catch (java.io.IOException ex) { throw new JenaException(ex) ; }
+		try
+		{
+			writer.write(s);
+			column += s.length();
+		}
+		catch (java.io.IOException ex)
+		{
+			throw new JenaException(ex);
+		}
 	}
 
 	public void println(String s)
 	{
-		try { writer.write(s);	println() ; }
-		catch (java.io.IOException ex) { throw new JenaException(ex) ; }
+		try
+		{
+			writer.write(s);
+			println();
+		}
+		catch (java.io.IOException ex)
+		{
+			throw new JenaException(ex);
+		}
 	}
-	
+
 	public void println()
 	{
-		try {
-			writer.write(lineSeparator); 
-			writer.flush() ;
-			column = 0 ;
-			row++ ; 
-			padTo() ;
+		try
+		{
+			writer.write(lineSeparator);
+			writer.flush();
+			column = 0;
+			row++;
+			padTo();
 		}
-		catch (java.io.IOException ex) { throw new JenaException(ex) ; }
+		catch (java.io.IOException ex)
+		{
+			throw new JenaException(ex);
+		}
 	}
-	
+
 	public void padTo() throws IOException
 	{
-		StringBuilder sBuff = new StringBuilder() ;
-		for ( int i = 0 ; i < currentIndent ; i++ )
-			writer.write(' ') ;
-		column = column + currentIndent ;
+		StringBuilder sBuff = new StringBuilder();
+		for (int i = 0; i < currentIndent; i++)
+			writer.write(' ');
+		column = column + currentIndent;
 	}
-	
-	public void flush() { try { writer.flush() ; } catch (IOException ioEx) { throw new JenaException(ioEx) ; } }
-	public void close() { try { writer.close() ; } catch (IOException ioEx) { throw new JenaException(ioEx) ; } }
+
+	public void flush()
+	{
+		try
+		{
+			writer.flush();
+		}
+		catch (IOException ioEx)
+		{
+			throw new JenaException(ioEx);
+		}
+	}
+
+	public void close()
+	{
+		try
+		{
+			writer.close();
+		}
+		catch (IOException ioEx)
+		{
+			throw new JenaException(ioEx);
+		}
+	}
 
 }

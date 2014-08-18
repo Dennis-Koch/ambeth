@@ -16,27 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.graph.Triple.*;
-import com.hp.hpl.jena.graph.impl.TripleStore;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Triple.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.impl.TripleStore;
 
 /**
-    GraphTripleStore - the underlying triple-indexed triple store for GraphMem et al,
-    ripped out from the heart of GraphMem as part of simplifying the reification code.
-    A GraphTripleStore is a searchable repository for triples. 
-
-*/
+ * GraphTripleStore - the underlying triple-indexed triple store for GraphMem et al, ripped out from the heart of GraphMem as part of simplifying the
+ * reification code. A GraphTripleStore is a searchable repository for triples.
+ */
 
 public class GraphTripleStore extends GraphTripleStoreBase implements TripleStore
-    {   
-    public GraphTripleStore( Graph parent )
-        { 
-        super( parent,
-            new NodeToTriplesMap( Field.fieldSubject, Field.fieldPredicate, Field.fieldObject ),
-            new NodeToTriplesMap( Field.fieldPredicate, Field.fieldObject, Field.fieldSubject ),
-            new NodeToTriplesMap( Field.fieldObject, Field.fieldSubject, Field.fieldPredicate )
-            ); 
-        }
-    }
+{
+	public GraphTripleStore(Graph parent)
+	{
+		super(parent, new NodeToTriplesMap(Field.fieldSubject, Field.fieldPredicate, Field.fieldObject), new NodeToTriplesMap(Field.fieldPredicate,
+				Field.fieldObject, Field.fieldSubject), new NodeToTriplesMap(Field.fieldObject, Field.fieldSubject, Field.fieldPredicate));
+	}
+}

@@ -16,24 +16,22 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.Resource;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.Resource;
 
 /**
-    Exception used to report that a transaction was aborted when loading
-    content into a model.
-*/
+ * Exception used to report that a transaction was aborted when loading content into a model.
+ */
 public class TransactionAbortedException extends AssemblerException
-    {    
-    public TransactionAbortedException( Resource root, Throwable t )
-        { super( root, makeMessage( root, t ), t ); }
+{
+	public TransactionAbortedException(Resource root, Throwable t)
+	{
+		super(root, makeMessage(root, t), t);
+	}
 
-    private static String makeMessage( Resource root, Throwable t )
-        {
-        return 
-            "the loading of content into " + nice( root ) 
-            + " was aborted because of " + t.getMessage()
-            ;
-        }
-    }
+	private static String makeMessage(Resource root, Throwable t)
+	{
+		return "the loading of content into " + nice(root) + " was aborted because of " + t.getMessage();
+	}
+}

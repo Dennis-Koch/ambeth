@@ -16,48 +16,43 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.mem;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.mem;
 
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
-    A pruned (and slightly stewed) version of Map, containing just those operations
-    required by NodeToTriplesMaps. BunchMaps contain only TripleBunch's.
-
-*/
+ * A pruned (and slightly stewed) version of Map, containing just those operations required by NodeToTriplesMaps. BunchMaps contain only TripleBunch's.
+ */
 public interface BunchMap
-    {
-    /**
-        Clear this map: all entries are removed.
-    */
-    public void clear();
-    
-    /**
-        The number of items in the bunch.
-    */
-    public long size();
+{
+	/**
+	 * Clear this map: all entries are removed.
+	 */
+	public void clear();
 
-    /**
-        Answer the TripleBunch associated with <code>key</code>, or 
-        <code>null</code> if there isn't one.
-    */
-    public TripleBunch get( Object key );
+	/**
+	 * The number of items in the bunch.
+	 */
+	public long size();
 
-    /**
-        Associate <code>key</code> and <code>value</code>. Any existing
-        association of <code>key</code> is lost. <code>get</code> on this key
-        will now deliver this value.
-    */
-    public void put( Object key, TripleBunch value );
+	/**
+	 * Answer the TripleBunch associated with <code>key</code>, or <code>null</code> if there isn't one.
+	 */
+	public TripleBunch get(Object key);
 
-    /**
-        Remove any association for <code>key</code>; <code>get</code> on this
-        key will now deliver <code>null</code>.
-    */
-    public void remove( Object key );
+	/**
+	 * Associate <code>key</code> and <code>value</code>. Any existing association of <code>key</code> is lost. <code>get</code> on this key will now deliver
+	 * this value.
+	 */
+	public void put(Object key, TripleBunch value);
 
-    /**
-        Answer an iterator over all the keys in this map.
-    */
-    public ExtendedIterator<Object> keyIterator();
-    }
+	/**
+	 * Remove any association for <code>key</code>; <code>get</code> on this key will now deliver <code>null</code>.
+	 */
+	public void remove(Object key);
+
+	/**
+	 * Answer an iterator over all the keys in this map.
+	 */
+	public ExtendedIterator<Object> keyIterator();
+}

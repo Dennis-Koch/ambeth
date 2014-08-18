@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 public abstract class NamedModelAssembler extends ModelAssembler
-    {
-    protected String getModelName( Resource root )
-        { 
-        Literal L = getRequiredLiteral( root, JA.modelName );
-        return L.getLexicalForm();
-        }
-    }
+{
+	protected String getModelName(Resource root)
+	{
+		Literal L = getRequiredLiteral(root, JA.modelName);
+		return L.getLexicalForm();
+	}
+}

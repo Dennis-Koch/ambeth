@@ -16,44 +16,54 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
-import com.hp.hpl.jena.graph.*;
-import com.hp.hpl.jena.enhanced.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.enhanced.*;
 
-/** An implementation of Bag
+/**
+ * An implementation of Bag
  */
-public class BagImpl extends ContainerImpl implements Bag {
-    
-    @SuppressWarnings("hiding")
-    final static public Implementation factory = new Implementation() {
-        @Override
-        public boolean canWrap( Node n, EnhGraph eg )
-            { return true; }
-        @Override
-        public EnhNode wrap(Node n,EnhGraph eg) {
-            return new BagImpl(n,eg);
-        }
-    };
-        
-    /** Creates new BagMem */
-    public BagImpl( ModelCom model )  {
-        super(model);
-    }
-    
-    public BagImpl( String uri, ModelCom model )  {
-        super(uri, model);
-    }
-    
-    public BagImpl( Resource r, ModelCom m )  {
-        super( r, m );
-    }
-    
-    public BagImpl( Node n, EnhGraph g ) {
-        super(n,g);
-    }
-    
+public class BagImpl extends ContainerImpl implements Bag
+{
+
+	@SuppressWarnings("hiding")
+	final static public Implementation factory = new Implementation()
+	{
+		@Override
+		public boolean canWrap(Node n, EnhGraph eg)
+		{
+			return true;
+		}
+
+		@Override
+		public EnhNode wrap(Node n, EnhGraph eg)
+		{
+			return new BagImpl(n, eg);
+		}
+	};
+
+	/** Creates new BagMem */
+	public BagImpl(ModelCom model)
+	{
+		super(model);
+	}
+
+	public BagImpl(String uri, ModelCom model)
+	{
+		super(uri, model);
+	}
+
+	public BagImpl(Resource r, ModelCom m)
+	{
+		super(r, m);
+	}
+
+	public BagImpl(Node n, EnhGraph g)
+	{
+		super(n, g);
+	}
 
 }

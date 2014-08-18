@@ -16,18 +16,20 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 import java.util.Iterator;
 
-/** An internal class, not normally of interest to application developers.
- *  A simple factory class which creates ContainerNodeIterator's.
+/**
+ * An internal class, not normally of interest to application developers. A simple factory class which creates ContainerNodeIterator's.
  */
-public class ContNodeIteratorFactoryImpl implements NodeIteratorFactory 
-    {
-    @Override
-    public NodeIterator createIterator( Iterator<Statement> iter,Object o,Container cont )
-        { return new ContNodeIteratorImpl(iter, o, cont); }
-    }
+public class ContNodeIteratorFactoryImpl implements NodeIteratorFactory
+{
+	@Override
+	public NodeIterator createIterator(Iterator<Statement> iter, Object o, Container cont)
+	{
+		return new ContNodeIteratorImpl(iter, o, cont);
+	}
+}

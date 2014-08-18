@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.graph;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph;
 
-import com.hp.hpl.jena.util.iterator.ExtendedIterator;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
 /**
-    An extended iterator that can return its next element as a Triple.
+ * An extended iterator that can return its next element as a Triple.
  */
 public interface TripleIterator extends ExtendedIterator<Triple>
-    {
-    /**
-        Answer the next() element cast to Triple.
-        @return (Triple) next()
-    */
-    Triple nextTriple();
-    }
+{
+	/**
+	 * Answer the next() element cast to Triple.
+	 * 
+	 * @return (Triple) next()
+	 */
+	Triple nextTriple();
+}

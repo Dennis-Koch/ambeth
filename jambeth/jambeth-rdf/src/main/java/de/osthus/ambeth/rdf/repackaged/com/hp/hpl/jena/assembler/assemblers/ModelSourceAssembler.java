@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.assemblers;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.assemblers;
 
-import com.hp.hpl.jena.assembler.*;
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.rdf.model.impl.MemoryModelGetter;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl.MemoryModelGetter;
 
 public class ModelSourceAssembler extends AssemblerBase
-    {
-    @Override
-    public Object open( Assembler a, Resource root, Mode irrelevant )
-        {
-        checkType( root, JA.ModelSource );
-        return new MemoryModelGetter() ;
-        }
-    }
+{
+	@Override
+	public Object open(Assembler a, Resource root, Mode irrelevant)
+	{
+		checkType(root, JA.ModelSource);
+		return new MemoryModelGetter();
+	}
+}

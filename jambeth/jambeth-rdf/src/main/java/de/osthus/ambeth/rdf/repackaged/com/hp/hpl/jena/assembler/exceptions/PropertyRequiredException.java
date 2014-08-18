@@ -16,34 +16,33 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.assembler.exceptions;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.assembler.exceptions;
 
-import com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
 
 /**
-    Exception used to report that a required property is missing.
-*/
+ * Exception used to report that a required property is missing.
+ */
 public class PropertyRequiredException extends AssemblerException
-    {
-    protected final Property property;
-    
-    public PropertyRequiredException( Resource root, Property property )
-        {
-        super( root, makeMessage( root, property ) );
-        this.property = property;
-        }
-    
-    private static String makeMessage( Resource root, Property property )
-        {
-        return
-            "the object " + nice( root ) 
-            + " could not be constructed because it is missing the required property " + nice( property )
-            ;
-        }
-    
-    /**
-        Answer the required property.
-    */
-    public Resource getProperty()
-        { return property; }
-    }
+{
+	protected final Property property;
+
+	public PropertyRequiredException(Resource root, Property property)
+	{
+		super(root, makeMessage(root, property));
+		this.property = property;
+	}
+
+	private static String makeMessage(Resource root, Property property)
+	{
+		return "the object " + nice(root) + " could not be constructed because it is missing the required property " + nice(property);
+	}
+
+	/**
+	 * Answer the required property.
+	 */
+	public Resource getProperty()
+	{
+		return property;
+	}
+}

@@ -16,33 +16,36 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
 /**
-    Exception to throw when a character cannot be encoded into some context
-    for some reason.
-*/
+ * Exception to throw when a character cannot be encoded into some context for some reason.
+ */
 public class CannotEncodeCharacterException extends JenaException
-    {
-    protected final char badChar;
-    protected final String encodingContext;
-    
-    public CannotEncodeCharacterException( char badChar, String encodingContext )
-        {
-        super( "cannot encode (char) " + badChar + " in context " + encodingContext );
-        this.badChar = badChar; 
-        this.encodingContext = encodingContext;
-        }
+{
+	protected final char badChar;
+	protected final String encodingContext;
 
-    /**
-        Answer the character that could not be encoded.
-    */
-    public char getBadChar()
-        { return badChar; }
+	public CannotEncodeCharacterException(char badChar, String encodingContext)
+	{
+		super("cannot encode (char) " + badChar + " in context " + encodingContext);
+		this.badChar = badChar;
+		this.encodingContext = encodingContext;
+	}
 
-    /**
-        Answer the name of the context in which the encoding failed.
-    */
-    public String getEncodingContext()
-        { return encodingContext; }
-    }
+	/**
+	 * Answer the character that could not be encoded.
+	 */
+	public char getBadChar()
+	{
+		return badChar;
+	}
+
+	/**
+	 * Answer the name of the context in which the encoding failed.
+	 */
+	public String getEncodingContext()
+	{
+		return encodingContext;
+	}
+}

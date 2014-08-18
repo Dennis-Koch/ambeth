@@ -16,14 +16,17 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared;
 
-import com.hp.hpl.jena.graph.Node;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.Node;
 
 /**
-    The exception raised by reifyAs if a node is already bound to
-    a single reified triple.
-*/
-public class AlreadyReifiedException extends CannotReifyException 
-    { public AlreadyReifiedException( Node n ) { super( n ); } }
+ * The exception raised by reifyAs if a node is already bound to a single reified triple.
+ */
+public class AlreadyReifiedException extends CannotReifyException
+{
+	public AlreadyReifiedException(Node n)
+	{
+		super(n);
+	}
+}

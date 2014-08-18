@@ -18,78 +18,95 @@
 
 // Package
 ///////////////
-package com.hp.hpl.jena.ontology;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.ontology;
 
 // Imports
 ///////////////
 
 /**
  * <p>
- * Represents a qualified restriction, in which all values of the restricted property
- * are required to be members of a given class.  At present, this capability is only
- * part of DAML+OIL, not OWL.
+ * Represents a qualified restriction, in which all values of the restricted property are required to be members of a given class. At present, this capability
+ * is only part of DAML+OIL, not OWL.
  * </p>
  */
-public interface QualifiedRestriction
-    extends Restriction
+public interface QualifiedRestriction extends Restriction
 {
-    // Constants
-    //////////////////////////////////
+	// Constants
+	// ////////////////////////////////
 
-    // External signature methods
-    //////////////////////////////////
+	// External signature methods
+	// ////////////////////////////////
 
-    /**
-     * <p>Assert that this qualified restriction restricts the property to have a given
-     * cardinality and to have values belonging to the class denoted by <code>hasClassQ</code>.
-     * Any existing statements for <code>hasClassQ</code>
-     * will be removed.</p>
-     * @param cls The class to which all of the value of the restricted property must belong
-     * @exception ProfileException If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
-     */
-    public void setHasClassQ( OntClass cls );
+	/**
+	 * <p>
+	 * Assert that this qualified restriction restricts the property to have a given cardinality and to have values belonging to the class denoted by
+	 * <code>hasClassQ</code>. Any existing statements for <code>hasClassQ</code> will be removed.
+	 * </p>
+	 * 
+	 * @param cls
+	 *            The class to which all of the value of the restricted property must belong
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
+	 */
+	public void setHasClassQ(OntClass cls);
 
-    /**
-     * <p>Answer the class or datarange to which all values of the restricted property belong.</p>
-     * @return The ontology class of the restricted property values
-     * @exception ProfileException If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
-     */
-    public OntResource getHasClassQ();
+	/**
+	 * <p>
+	 * Answer the class or datarange to which all values of the restricted property belong.
+	 * </p>
+	 * 
+	 * @return The ontology class of the restricted property values
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
+	 */
+	public OntResource getHasClassQ();
 
-    /**
-     * <p>Answer true if this qualified property restriction has the given class as
-     * the class to which all of the property values must belong.</p>
-     * @param cls The class to test against
-     * @return True if the given class is the class to which all members of this restriction must belong
-     * @exception ProfileException If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
-     */
-    public boolean hasHasClassQ( OntClass cls );
+	/**
+	 * <p>
+	 * Answer true if this qualified property restriction has the given class as the class to which all of the property values must belong.
+	 * </p>
+	 * 
+	 * @param cls
+	 *            The class to test against
+	 * @return True if the given class is the class to which all members of this restriction must belong
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
+	 */
+	public boolean hasHasClassQ(OntClass cls);
 
-    /**
-     * <p>Answer true if this qualified property restriction has the given datarange as
-     * the class to which all of the property values must belong.</p>
-     * @param dr The datarange to test against
-     * @return True if the given class is the class to which all members of this restriction must belong
-     * @exception ProfileException If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
-     */
-    public boolean hasHasClassQ( DataRange dr );
+	/**
+	 * <p>
+	 * Answer true if this qualified property restriction has the given datarange as the class to which all of the property values must belong.
+	 * </p>
+	 * 
+	 * @param dr
+	 *            The datarange to test against
+	 * @return True if the given class is the class to which all members of this restriction must belong
+	 * @exception ProfileException
+	 *                If the {@link Profile#HAS_CLASS_Q()} property is not supported in the current language profile.
+	 */
+	public boolean hasHasClassQ(DataRange dr);
 
-    /**
-     * <p>Remove the statement that this restriction has the given class
-     * as the class to which all values must belong.  If this statement
-     * is not true of the current model, nothing happens.</p>
-     * @param cls The ont class that is the object of the <code>hasClassQ</code> property.
-     */
-    public void removeHasClassQ( OntClass cls );
+	/**
+	 * <p>
+	 * Remove the statement that this restriction has the given class as the class to which all values must belong. If this statement is not true of the current
+	 * model, nothing happens.
+	 * </p>
+	 * 
+	 * @param cls
+	 *            The ont class that is the object of the <code>hasClassQ</code> property.
+	 */
+	public void removeHasClassQ(OntClass cls);
 
-    /**
-     * <p>Remove the statement that this restriction has the given datarange
-     * as the class to which all values must belong.  If this statement
-     * is not true of the current model, nothing happens.</p>
-     * @param dr The datarange that is the object of the <code>hasClassQ</code> property.
-     */
-    public void removeHasClassQ( DataRange dr );
-
+	/**
+	 * <p>
+	 * Remove the statement that this restriction has the given datarange as the class to which all values must belong. If this statement is not true of the
+	 * current model, nothing happens.
+	 * </p>
+	 * 
+	 * @param dr
+	 *            The datarange that is the object of the <code>hasClassQ</code> property.
+	 */
+	public void removeHasClassQ(DataRange dr);
 
 }

@@ -22,48 +22,64 @@
  * Created on July 14, 2001, 11:47 AM
  */
 
-package com.hp.hpl.jena.rdf.arp.impl;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl;
+
 import org.xml.sax.Locator;
 
-public class ARPLocation implements Locator {
-    public final String inputName;
-    final String publicId;
-    public final int endLine;
-    public final int endColumn;
-    ARPLocation(Locator locator) {
-    	if (locator==null){
-    	  inputName = "unknown-source";
-    	  publicId = "unknown-source";
-    	  endLine = -1;
-    	  endColumn = -1;
-    	}else {
-        inputName = locator.getSystemId();
-        endLine = locator.getLineNumber();
-        endColumn = locator.getColumnNumber();
-        publicId = locator.getPublicId();
-    	}
-    }
-    @Override
-    public String toString() {
-        return //"before column " + endColumn +
-        "line " + endLine + " in '"
-        + inputName + "'";
-    }
-    @Override
-    public String getSystemId() {
-        return inputName;
-    }
-    @Override
-    public int getLineNumber() {
-        return endLine;
-    }
-    @Override
-    public int getColumnNumber() {
-        return endColumn;
-    }
-    @Override
-    public String getPublicId() {
-        return publicId;
-    }
-    
+public class ARPLocation implements Locator
+{
+	public final String inputName;
+	final String publicId;
+	public final int endLine;
+	public final int endColumn;
+
+	ARPLocation(Locator locator)
+	{
+		if (locator == null)
+		{
+			inputName = "unknown-source";
+			publicId = "unknown-source";
+			endLine = -1;
+			endColumn = -1;
+		}
+		else
+		{
+			inputName = locator.getSystemId();
+			endLine = locator.getLineNumber();
+			endColumn = locator.getColumnNumber();
+			publicId = locator.getPublicId();
+		}
+	}
+
+	@Override
+	public String toString()
+	{
+		return // "before column " + endColumn +
+		"line " + endLine + " in '" + inputName + "'";
+	}
+
+	@Override
+	public String getSystemId()
+	{
+		return inputName;
+	}
+
+	@Override
+	public int getLineNumber()
+	{
+		return endLine;
+	}
+
+	@Override
+	public int getColumnNumber()
+	{
+		return endColumn;
+	}
+
+	@Override
+	public String getPublicId()
+	{
+		return publicId;
+	}
+
 }

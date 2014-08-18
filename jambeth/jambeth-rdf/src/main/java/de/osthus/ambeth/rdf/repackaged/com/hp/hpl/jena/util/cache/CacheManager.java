@@ -16,39 +16,45 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.util.cache;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.cache;
 
-/** A factory for creating cache objects
+/**
+ * A factory for creating cache objects
  */
 
-public class CacheManager {
+public class CacheManager
+{
 
-    public static final String RAND = "RAND";
-    
-    public static final String ENHNODECACHE = "ENHNODECACHE";
+	public static final String RAND = "RAND";
 
-    /** Creates new Manager */
-    private CacheManager() {
-    }
+	public static final String ENHNODECACHE = "ENHNODECACHE";
 
-    /** Create a new cache
-     * @param type The type of cache to create.  This should be one
-     * of the standard cache types defined in this class.
-     * @param name A name for the cache.  This should be unique and
-     * may be used to identify the cache in logging and
-     * other operations.  To ensure uniqueness it is
-     * suggested that cache's be given names similar to
-     * full java names such as
-     * com.hp.hpl.jena.graph.Node.NodeCache.
-     * @param size Teh size of the cache in terms of the number of
-     * objects it can store.
-     * @return a newly created cache object
-     *
-     */
-    public static Cache createCache(String type, String name, int size) {
-        // for now we just have one type
-        if (type.equals(RAND)) return new RandCache( name, size );
-        if (type.equals(ENHNODECACHE)) return new EnhancedNodeCache( name, size );
-        throw new Error( "Bad cache type: " + type );
-    }
+	/** Creates new Manager */
+	private CacheManager()
+	{
+	}
+
+	/**
+	 * Create a new cache
+	 * 
+	 * @param type
+	 *            The type of cache to create. This should be one of the standard cache types defined in this class.
+	 * @param name
+	 *            A name for the cache. This should be unique and may be used to identify the cache in logging and other operations. To ensure uniqueness it is
+	 *            suggested that cache's be given names similar to full java names such as de.osthus.ambeth.rdf.repackaged.com.
+	 *            hp.hpl.jena.graph.Node.NodeCache.
+	 * @param size
+	 *            Teh size of the cache in terms of the number of objects it can store.
+	 * @return a newly created cache object
+	 * 
+	 */
+	public static Cache createCache(String type, String name, int size)
+	{
+		// for now we just have one type
+		if (type.equals(RAND))
+			return new RandCache(name, size);
+		if (type.equals(ENHNODECACHE))
+			return new EnhancedNodeCache(name, size);
+		throw new Error("Bad cache type: " + type);
+	}
 }

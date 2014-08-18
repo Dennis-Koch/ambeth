@@ -16,69 +16,89 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.model.impl;
-
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
 import java.util.*;
 
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.util.iterator.*;
 
-
-import com.hp.hpl.jena.rdf.model.*;
-import com.hp.hpl.jena.util.iterator.*;
-
-import com.hp.hpl.jena.graph.*;
-
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.graph.*;
 
 /**
- *  Builds Jena Iterators and other things (RDFNode and Statement)
- *  needed in a Model.
+ * Builds Jena Iterators and other things (RDFNode and Statement) needed in a Model.
  */
 public final class IteratorFactory
-    {
-    private IteratorFactory(){}
+{
+	private IteratorFactory()
+	{
+	}
 
 	/**
 	 * 
 	 */
-	static public StmtIterator asStmtIterator( Iterator<Triple> i, final ModelCom m ) 
-	    {
-	    Map1<Triple, Statement> asStatement = new Map1<Triple, Statement>() 
-	        { @Override
-            public Statement map1( Triple t ) { return m.asStatement( t ); }};
-	    return new StmtIteratorImpl( WrappedIterator.create( i ).mapWith( asStatement ) );
-	   }
+	static public StmtIterator asStmtIterator(Iterator<Triple> i, final ModelCom m)
+	{
+		Map1<Triple, Statement> asStatement = new Map1<Triple, Statement>()
+		{
+			@Override
+			public Statement map1(Triple t)
+			{
+				return m.asStatement(t);
+			}
+		};
+		return new StmtIteratorImpl(WrappedIterator.create(i).mapWith(asStatement));
+	}
 
 	/**
 	 * 
 	 */
-	static public ResIterator asResIterator( Iterator<Node> i, final ModelCom m) 
-	    {
-		Map1<Node, Resource> asResource = new Map1<Node, Resource>() 
-		    { @Override
-            public Resource map1( Node o) { return (Resource) m.asRDFNode( o ); }};
-		return new ResIteratorImpl( WrappedIterator.create( i ).mapWith( asResource ), null );
-	    }
+	static public ResIterator asResIterator(Iterator<Node> i, final ModelCom m)
+	{
+		Map1<Node, Resource> asResource = new Map1<Node, Resource>()
+		{
+			@Override
+			public Resource map1(Node o)
+			{
+				return (Resource) m.asRDFNode(o);
+			}
+		};
+		return new ResIteratorImpl(WrappedIterator.create(i).mapWith(asResource), null);
+	}
 
 	/**
 	 * 
 	 */
-	static public NodeIterator asRDFNodeIterator( Iterator<Node> i, final ModelCom m) 
-	    {      
-	    Map1<Node, RDFNode> asRDFNode = new Map1<Node, RDFNode>() 
-	        { @Override
-            public RDFNode map1( Node o) { return m.asRDFNode( o ); }};
-	    return new NodeIteratorImpl( WrappedIterator.create( i ).mapWith( asRDFNode ), null );
-	    }
-	    
-    static  Resource asResource( Node n, ModelCom m )  
-        { return asResource( n, Resource.class, m );  }	    
-    
-    static Property asProperty( Node n, ModelCom m ) 
-        { return (Property)asResource( n, Property.class, m ); }
-    
-    static Literal asLiteral(Node n,ModelCom m) 
-        { return m.getNodeAs( n, Literal.class ); }
-    
-    static <X extends RDFNode> Resource asResource( Node n, Class<X> cl, ModelCom m ) 
-        { return (Resource) m.getNodeAs( n, cl ); }
-    }
+	static public NodeIterator asRDFNodeIterator(Iterator<Node> i, final ModelCom m)
+	{
+		Map1<Node, RDFNode> asRDFNode = new Map1<Node, RDFNode>()
+		{
+			@Override
+			public RDFNode map1(Node o)
+			{
+				return m.asRDFNode(o);
+			}
+		};
+		return new NodeIteratorImpl(WrappedIterator.create(i).mapWith(asRDFNode), null);
+	}
+
+	static Resource asResource(Node n, ModelCom m)
+	{
+		return asResource(n, Resource.class, m);
+	}
+
+	static Property asProperty(Node n, ModelCom m)
+	{
+		return (Property) asResource(n, Property.class, m);
+	}
+
+	static Literal asLiteral(Node n, ModelCom m)
+	{
+		return m.getNodeAs(n, Literal.class);
+	}
+
+	static <X extends RDFNode> Resource asResource(Node n, Class<X> cl, ModelCom m)
+	{
+		return (Resource) m.getNodeAs(n, cl);
+	}
+}

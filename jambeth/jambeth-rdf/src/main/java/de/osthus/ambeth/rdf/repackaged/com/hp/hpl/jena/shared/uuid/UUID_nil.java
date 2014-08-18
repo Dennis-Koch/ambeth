@@ -16,53 +16,75 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.shared.uuid;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.uuid;
 
-/** The nil UUID.  There is only one in the system.
+/**
+ * The nil UUID. There is only one in the system.
  */
 
-public final
-class UUID_nil extends JenaUUID
+public final class UUID_nil extends JenaUUID
 {
-    private static final String nilStr = "00000000-0000-0000-0000-000000000000" ;
-    private static UUID_nil nil = new UUID_nil() ;
-    
-    // Constants
-    static final int version = 0 ;
-    static final int variant = 0 ;
+	private static final String nilStr = "00000000-0000-0000-0000-000000000000";
+	private static UUID_nil nil = new UUID_nil();
 
-    // The only state-per-object
-    long bitsMostSignificant = 0 ;
-    long bitsLeastSignificant = 0 ;
-    
-    private UUID_nil()
-    {}
-    
-    
-    @Override
-    public long getMostSignificantBits() { return bitsMostSignificant ; }
-    @Override
-    public long getLeastSignificantBits() { return bitsLeastSignificant ; }
-    
-    @Override
-    public String toString()
-    { return nilStr ; }
+	// Constants
+	static final int version = 0;
+	static final int variant = 0;
 
-    @Override
-    public boolean equals(Object other)
-    {
-        if ( ! ( other instanceof UUID_nil ) )
-            return false ;
-        UUID_nil x = (UUID_nil)other ;
-        return this.bitsMostSignificant == x.bitsMostSignificant &&  this.bitsLeastSignificant == x.bitsLeastSignificant ;
-    }
+	// The only state-per-object
+	long bitsMostSignificant = 0;
+	long bitsLeastSignificant = 0;
 
+	private UUID_nil()
+	{
+	}
 
-    @Override
-    public int getVariant() { return variant ; }
-    @Override
-    public int getVersion() { return version ; }
-    
-    public static UUID_nil getNil() { return nil ; }
-    public static String  getNilString() { return nilStr ; }
+	@Override
+	public long getMostSignificantBits()
+	{
+		return bitsMostSignificant;
+	}
+
+	@Override
+	public long getLeastSignificantBits()
+	{
+		return bitsLeastSignificant;
+	}
+
+	@Override
+	public String toString()
+	{
+		return nilStr;
+	}
+
+	@Override
+	public boolean equals(Object other)
+	{
+		if (!(other instanceof UUID_nil))
+			return false;
+		UUID_nil x = (UUID_nil) other;
+		return this.bitsMostSignificant == x.bitsMostSignificant && this.bitsLeastSignificant == x.bitsLeastSignificant;
+	}
+
+	@Override
+	public int getVariant()
+	{
+		return variant;
+	}
+
+	@Override
+	public int getVersion()
+	{
+		return version;
+	}
+
+	public static UUID_nil getNil()
+	{
+		return nil;
+	}
+
+	public static String getNilString()
+	{
+		return nilStr;
+	}
 }

@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
-public interface WantsObjectFrameI extends WantsObjectI, FrameI {
+public interface WantsObjectFrameI extends WantsObjectI, FrameI
+{
 }

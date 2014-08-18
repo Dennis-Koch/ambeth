@@ -16,40 +16,45 @@
  * limitations under the License.
  */
 
-package com.hp.hpl.jena.rdf.arp.states;
+package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.states;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXParseException;
 
-import com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
-import com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
-import com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AbsXMLContext;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.AttributeLexer;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.arp.impl.XMLHandler;
 
-public class LookingForRDF extends Frame {
+public class LookingForRDF extends Frame
+{
 
-    public LookingForRDF(FrameI s, AttributeLexer x)  throws SAXParseException {
-        super(s, x);
-    }
-    
-    @Override
-    String suggestParsetypeLiteral() {
-        return "";
-    }
+	public LookingForRDF(FrameI s, AttributeLexer x) throws SAXParseException
+	{
+		super(s, x);
+	}
 
-    public LookingForRDF(XMLHandler s, AbsXMLContext x) {
-        super(s, x);
-    }
+	@Override
+	String suggestParsetypeLiteral()
+	{
+		return "";
+	}
 
-    @Override
-    public FrameI startElement(String uri, String localName, String rawName,
-            Attributes atts) throws SAXParseException {
-        return rdfStartElement(uri, localName, rawName, atts);
+	public LookingForRDF(XMLHandler s, AbsXMLContext x)
+	{
+		super(s, x);
+	}
 
-    }
+	@Override
+	public FrameI startElement(String uri, String localName, String rawName, Attributes atts) throws SAXParseException
+	{
+		return rdfStartElement(uri, localName, rawName, atts);
 
-    @Override
-    public void characters(char[] ch, int start, int length) {
-        // ignore
-    }
+	}
+
+	@Override
+	public void characters(char[] ch, int start, int length)
+	{
+		// ignore
+	}
 
 }
