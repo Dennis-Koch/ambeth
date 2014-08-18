@@ -548,7 +548,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		state.data.remove(toRemove);
 		state.data.put(newLCs);
-		for (int a = newLCs.length; a-- > 0;)
+		for (int a = 0, size = newLCs.length; a < size; a++)
 		{
 			ILoadContainer newLC = newLCs[a];
 			IObjRef oldObjRef = dupObjRef(changes.get(a).getReference());
