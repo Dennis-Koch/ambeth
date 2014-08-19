@@ -16,6 +16,7 @@ import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserResolver;
+import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.model.IUser;
 
 public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLogger, ITransactionListener
@@ -63,10 +64,10 @@ public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLog
 
 		if (userResolver != null)
 		{
-			IAuthorization authorization = securityScopeProvider.getAuthorization();
+			IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 			if (authorization != null)
 			{
-				String currentSID = securityScopeProvider.getAuthorization().getSID();
+				String currentSID = authorization.getSID();
 				IUser currentUser = userResolver.resolveUserBySID(currentSID);
 				auditEntry.setUser(currentUser);
 			}

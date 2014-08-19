@@ -42,6 +42,7 @@ import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -68,7 +69,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		public PrivilegeKey(Class<?> entityType, byte IdIndex, Object id, String userSID)
 		{
 			this.entityType = entityType;
-			this.idIndex = IdIndex;
+			idIndex = IdIndex;
 			this.id = id;
 			this.userSID = userSID;
 		}
@@ -226,10 +227,10 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authenticated to be able to check for privileges");
+			throw new SecurityException("User must be authorized to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{
@@ -407,10 +408,10 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authenticated to be able to check for privileges");
+			throw new SecurityException("User must be authorized to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{

@@ -8,6 +8,7 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityScopeChangeListener;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -36,7 +37,7 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
