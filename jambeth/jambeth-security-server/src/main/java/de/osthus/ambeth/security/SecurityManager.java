@@ -82,7 +82,8 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
 
-		return (T) filterValue(value, alreadyProcessedMap, securityScopeProvider.getAuthorization(), securityScopeProvider.getSecurityScopes());
+		return (T) filterValue(value, alreadyProcessedMap, SecurityContextHolder.getCreateContext().getAuthorization(),
+				securityScopeProvider.getSecurityScopes());
 	}
 
 	@SuppressWarnings("unchecked")
