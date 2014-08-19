@@ -99,6 +99,11 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 						continue;
 					}
 					MethodGenerator mv = visitMethod(new MethodInstance(setterWithSameName));
+					if (mv.getMethod().getParameters().length != 1)
+					{
+						// this visitor handles only "true" setters with exactly one argument
+						continue;
+					}
 					mv.callThisSetter(m_setterTemplate, new Script()
 					{
 						@Override
