@@ -9,6 +9,8 @@ public final class SecurityContextHolder
 	{
 		protected IAuthentication authentication;
 
+		protected IAuthorization authorization;
+
 		@Override
 		public void setAuthentication(IAuthentication authentication)
 		{
@@ -19,6 +21,18 @@ public final class SecurityContextHolder
 		public IAuthentication getAuthentication()
 		{
 			return authentication;
+		}
+
+		@Override
+		public void setAuthorization(IAuthorization authorization)
+		{
+			this.authorization = authorization;
+		}
+
+		@Override
+		public IAuthorization getAuthorization()
+		{
+			return authorization;
 		}
 	}
 
@@ -60,15 +74,28 @@ public final class SecurityContextHolder
 			contextTL.set(securityContext);
 			created = true;
 		}
+		IAuthorization oldAuthorization = securityContext.getAuthorization();
 		IAuthentication oldAuthentication = securityContext.getAuthentication();
 		try
 		{
-			securityContext.setAuthentication(authentication);
-			return runnableScope.invoke();
+			if (oldAuthentication == authentication)
+			{
+				return runnableScope.invoke();
+			}
+			try
+			{
+				securityContext.setAuthentication(authentication);
+				securityContext.setAuthorization(null);
+				return runnableScope.invoke();
+			}
+			finally
+			{
+				securityContext.setAuthentication(oldAuthentication);
+				securityContext.setAuthorization(oldAuthorization);
+			}
 		}
 		finally
 		{
-			securityContext.setAuthentication(oldAuthentication);
 			if (created)
 			{
 				contextTL.remove();

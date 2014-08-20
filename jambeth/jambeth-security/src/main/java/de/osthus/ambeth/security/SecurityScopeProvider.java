@@ -64,35 +64,12 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 		}
 	}
 
-	@Override
-	public IAuthorization getAuthorization()
-	{
-		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
-		if (securityScopeHandle == null)
-		{
-			return null;
-		}
-		return securityScopeHandle.authorization;
-	}
-
-	@Override
-	public void setAuthorization(IAuthorization authorization)
-	{
-		SecurityScopeHandle securityScopeHandle = securityScopeTL.get();
-		if (securityScopeHandle == null)
-		{
-			securityScopeHandle = new SecurityScopeHandle();
-			securityScopeTL.set(securityScopeHandle);
-		}
-		securityScopeHandle.authorization = authorization;
-		notifySecurityScopeChangeListeners(securityScopeHandle);
-	}
-
 	protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle)
 	{
+		IAuthorization authorization = SecurityContextHolder.getContext().getAuthorization();
 		for (ISecurityScopeChangeListener securityScopeChangeListener : securityScopeChangeListeners.getExtensions())
 		{
-			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.authorization, securityScopeHandle.securityScopes);
+			securityScopeChangeListener.securityScopeChanged(authorization, securityScopeHandle.securityScopes);
 		}
 	}
 

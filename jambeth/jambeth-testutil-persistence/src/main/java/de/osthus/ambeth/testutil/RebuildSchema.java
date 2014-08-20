@@ -7,6 +7,8 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.exception.BeanContextInitException;
+import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class RebuildSchema
 {
@@ -23,7 +25,7 @@ public class RebuildSchema
 	 * @throws InitializationError
 	 * @throws Throwable
 	 */
-	public static void main(final String[] args, Class<?> testClass, String recommendedPropertyFileName) throws InitializationError
+	public static void main(final String[] args, Class<?> testClass, String recommendedPropertyFileName) throws Exception
 	{
 		Properties.getApplication().fillWithCommandLineArgs(args);
 		AmbethPersistenceRunner runner = new AmbethPersistenceRunner(testClass)
@@ -46,6 +48,7 @@ public class RebuildSchema
 							+ bootstrapPropertyFile + "'");
 					props.load(bootstrapPropertyFile, false);
 				}
+				props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
 			}
 		};
 		try
@@ -65,5 +68,6 @@ public class RebuildSchema
 		}
 		runner.rebuildStructure();
 		runner.rebuildData();
+		runner.methodInvoker(new FrameworkMethod(ReflectUtil.getDeclaredMethod(false, Object.class, String.class, "toString")), runner.createTest());
 	}
 }
