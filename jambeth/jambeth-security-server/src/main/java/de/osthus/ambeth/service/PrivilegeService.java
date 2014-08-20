@@ -48,6 +48,7 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -321,7 +322,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
 
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);
@@ -375,7 +376,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	{
 		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<ITypePrivilegeOfService>();
 
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);

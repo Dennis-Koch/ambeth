@@ -59,7 +59,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		}
 		SecurityContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-		IAuthorization oldAuthorization = securityScopeProvider.getAuthorization();
+		IAuthorization oldAuthorization = SecurityContextHolder.getCreateContext().getAuthorization();
 		IAuthorization authorization = null;
 		if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 		{
@@ -82,7 +82,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
 		if (oldAuthorization != authorization)
 		{
-			securityScopeProvider.setAuthorization(authorization);
+			SecurityContextHolder.getCreateContext().setAuthorization(authorization);
 		}
 		try
 		{
@@ -104,7 +104,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			securityScopeProvider.setSecurityScopes(oldSecurityScopes);
 			if (oldAuthorization != authorization)
 			{
-				securityScopeProvider.setAuthorization(oldAuthorization);
+				SecurityContextHolder.getCreateContext().setAuthorization(oldAuthorization);
 			}
 		}
 	}
