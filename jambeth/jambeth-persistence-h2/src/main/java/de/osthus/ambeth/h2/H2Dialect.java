@@ -21,11 +21,13 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
+import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 
 public class H2Dialect extends AbstractConnectionDialect
 {
@@ -37,6 +39,9 @@ public class H2Dialect extends AbstractConnectionDialect
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
+	protected String protocol;
 
 	@Override
 	protected Class<?> getDriverType()
@@ -53,7 +58,11 @@ public class H2Dialect extends AbstractConnectionDialect
 		{
 			stm = connection.createStatement();
 			stm.execute("SET MULTI_THREADED 1");
-			stm.execute("SET DB_CLOSE_DELAY -1");
+
+			if ("jdbc:h2:mem".equals(protocol))
+			{
+				stm.execute("SET DB_CLOSE_DELAY -1");
+			}
 			stm.execute("CREATE SCHEMA IF NOT EXISTS \"" + schemaNames[0] + "\"");
 			stm.execute("SET SCHEMA \"" + schemaNames[0] + "\"");
 
