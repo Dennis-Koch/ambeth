@@ -29,6 +29,9 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	protected IServiceContext beanContext;
 
 	@Autowired
+	protected SecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected IJob job;
 
 	@Property
@@ -86,7 +89,7 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 				}
 				try
 				{
-					SecurityContextHolder.setScopedAuthentication(new DefaultAuthentication(userName, userPass, PasswordType.PLAIN),
+					securityContextHolder.setScopedAuthentication(new DefaultAuthentication(userName, userPass, PasswordType.PLAIN),
 							new IResultingBackgroundWorkerDelegate<Object>()
 							{
 								@Override

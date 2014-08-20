@@ -4,22 +4,24 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.security.IAuthorization;
-import de.osthus.ambeth.security.ISecurityScopeChangeListener;
+import de.osthus.ambeth.security.IAuthorizationChangeListener;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
 
-public class ContextProvider implements IContextProvider, ISecurityScopeChangeListener
+public class ContextProvider implements IContextProvider, IAuthorizationChangeListener
 {
 	protected Long currentTime;
 
 	protected String currentUser;
 
 	protected Reference<Thread> boundThread;
+
+	@Autowired
+	protected SecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -37,7 +39,7 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
-		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
@@ -98,7 +100,7 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 	}
 
 	@Override
-	public void securityScopeChanged(IAuthorization authorization, ISecurityScope[] securityScopes)
+	public void authorizationChanged(IAuthorization authorization)
 	{
 		if (boundThread == null)
 		{
@@ -113,4 +115,5 @@ public class ContextProvider implements IContextProvider, ISecurityScopeChangeLi
 		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}
+
 }

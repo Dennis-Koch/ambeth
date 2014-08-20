@@ -46,6 +46,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -81,6 +82,9 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	private Connection connection;
 
 	private IServiceContext schemaContext;
+
+	@Autowired
+	protected SecurityContextHolder securityContextHolder;
 
 	protected boolean doExecuteStrict = false;
 
@@ -439,7 +443,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class).createProxy(
 						new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
-				SecurityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
+				SecurityContextHolder securityContextHolder = beanContext.getService(SecurityContextHolder.class);
+				securityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
 						PasswordType.PLAIN), new IResultingBackgroundWorkerDelegate<Object>()
 				{
 					@Override

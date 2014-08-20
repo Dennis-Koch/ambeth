@@ -98,6 +98,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
+	protected SecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Property(name = SecurityConfigurationConstants.DefaultReadPrivilegeActive, defaultValue = "true")
@@ -322,7 +325,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
 
-		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);
@@ -376,7 +379,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	{
 		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<ITypePrivilegeOfService>();
 
-		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);

@@ -67,6 +67,9 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
+	protected SecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	public SecurityManager()
@@ -82,7 +85,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	{
 		IdentityHashMap<Object, ReadPermission> alreadyProcessedMap = new IdentityHashMap<Object, ReadPermission>();
 
-		return (T) filterValue(value, alreadyProcessedMap, SecurityContextHolder.getCreateContext().getAuthorization(),
+		return (T) filterValue(value, alreadyProcessedMap, securityContextHolder.getCreateContext().getAuthorization(),
 				securityScopeProvider.getSecurityScopes());
 	}
 
@@ -474,8 +477,8 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				IPropertyPrivilege propertyPrivilege;
 				if (metaData != null)
 				{
-					int relationIndex = metaData.getIndexByPrimitiveName(rui.getMemberName());
-					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(relationIndex);
+					int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
+					propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
 				}
 				else
 				{

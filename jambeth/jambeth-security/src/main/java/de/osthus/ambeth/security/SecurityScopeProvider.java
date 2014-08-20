@@ -66,10 +66,9 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 
 	protected void notifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle)
 	{
-		IAuthorization authorization = SecurityContextHolder.getContext().getAuthorization();
 		for (ISecurityScopeChangeListener securityScopeChangeListener : securityScopeChangeListeners.getExtensions())
 		{
-			securityScopeChangeListener.securityScopeChanged(authorization, securityScopeHandle.securityScopes);
+			securityScopeChangeListener.securityScopeChanged(securityScopeHandle.securityScopes);
 		}
 	}
 
