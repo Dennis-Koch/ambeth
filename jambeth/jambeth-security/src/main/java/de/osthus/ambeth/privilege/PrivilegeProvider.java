@@ -135,6 +135,9 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	protected IPrivilegeService privilegeService;
 
 	@Autowired
+	protected SecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	protected final Lock writeLock = new ReentrantLock();
@@ -227,7 +230,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
 			throw new SecurityException("User must be authorized to be able to check for privileges");
@@ -408,7 +411,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
 			throw new SecurityException("User must be authorized to be able to check for privileges");

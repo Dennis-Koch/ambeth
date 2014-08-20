@@ -20,6 +20,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
@@ -54,6 +55,9 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	protected final Charset utfCharset = Charset.forName("UTF-8");
 
 	private ILogger log;
+
+	@Autowired
+	protected SecurityContextHolder securityContextHolder;
 
 	@Override
 	public void contextInitialized(ServletContextEvent event)
@@ -194,13 +198,13 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	protected void setAuthentication(IAuthentication authentication)
 	{
-		ISecurityContext securityContext = SecurityContextHolder.getCreateContext();
+		ISecurityContext securityContext = securityContextHolder.getCreateContext();
 		securityContext.setAuthentication(authentication);
 	}
 
 	protected void postServiceCall(ServletContext servletContext)
 	{
-		SecurityContextHolder.clearContext();
+		securityContextHolder.clearContext();
 		getService(servletContext, IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 

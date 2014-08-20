@@ -38,6 +38,9 @@ public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLog
 	protected IUserResolver userResolver;
 
 	@Autowired
+	protected SecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired
@@ -64,7 +67,7 @@ public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLog
 
 		if (userResolver != null)
 		{
-			IAuthorization authorization = SecurityContextHolder.getCreateContext().getAuthorization();
+			IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 			if (authorization != null)
 			{
 				String currentSID = authorization.getSID();

@@ -1,11 +1,16 @@
 package de.osthus.ambeth.security;
 
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public final class SecurityContextHolder
+public final class SecurityContextHolder implements IAuthorizationChangeListenerExtendable
 {
-	private static class SecurityContextImpl implements ISecurityContext
+
+	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
+			IAuthorizationChangeListener.class, "authorizationChangeListener");
+
+	private class SecurityContextImpl implements ISecurityContext
 	{
 		protected IAuthentication authentication;
 
@@ -27,6 +32,7 @@ public final class SecurityContextHolder
 		public void setAuthorization(IAuthorization authorization)
 		{
 			this.authorization = authorization;
+			notifyAuthorizationChangeListeners(authorization);
 		}
 
 		@Override
@@ -34,16 +40,37 @@ public final class SecurityContextHolder
 		{
 			return authorization;
 		}
+
 	}
 
-	protected static final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
+	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)
+	{
+		for (IAuthorizationChangeListener authorizationChangeListener : authorizationChangeListeners.getExtensions())
+		{
+			authorizationChangeListener.authorizationChanged(authorization);
+		}
+	}
 
-	public static ISecurityContext getContext()
+	@Override
+	public void registerAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener)
+	{
+		authorizationChangeListeners.register(authorizationChangeListener);
+	}
+
+	@Override
+	public void unregisterAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener)
+	{
+		authorizationChangeListeners.unregister(authorizationChangeListener);
+	}
+
+	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
+
+	public ISecurityContext getContext()
 	{
 		return contextTL.get();
 	}
 
-	public static ISecurityContext getCreateContext()
+	public ISecurityContext getCreateContext()
 	{
 		ISecurityContext securityContext = getContext();
 		if (securityContext == null)
@@ -54,7 +81,7 @@ public final class SecurityContextHolder
 		return securityContext;
 	}
 
-	public static void clearContext()
+	public void clearContext()
 	{
 		ISecurityContext securityContext = contextTL.get();
 		if (securityContext != null)
@@ -64,7 +91,7 @@ public final class SecurityContextHolder
 		}
 	}
 
-	public static <R> R setScopedAuthentication(IAuthentication authentication, IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable
+	public <R> R setScopedAuthentication(IAuthentication authentication, IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable
 	{
 		ISecurityContext securityContext = getContext();
 		boolean created = false;
@@ -101,10 +128,5 @@ public final class SecurityContextHolder
 				contextTL.remove();
 			}
 		}
-	}
-
-	private SecurityContextHolder()
-	{
-		// intended blank
 	}
 }
