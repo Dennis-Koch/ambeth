@@ -529,8 +529,8 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 				IPropertyPrivilege propertyPrivilege;
 				if (metaData != null)
 				{
-					int relationIndex = metaData.getIndexByPrimitiveName(rui.getMemberName());
-					propertyPrivilege = privilege.getPrimitivePropertyPrivilege(relationIndex);
+					int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
+					propertyPrivilege = privilege.getRelationPropertyPrivilege(relationIndex);
 				}
 				else
 				{
