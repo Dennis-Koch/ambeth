@@ -7,7 +7,7 @@ public interface IPasswordUtil
 {
 	void fillNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user);
 
-	void generateNewPassword(IPassword newEmptyPassword, IUser user);
+	String generateNewPassword(IPassword newEmptyPassword, IUser user);
 
 	byte[] hashClearTextPassword(char[] clearTextPassword, IPassword password);
 

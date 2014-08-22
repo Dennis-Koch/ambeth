@@ -343,7 +343,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	}
 
 	@Override
-	public void generateNewPassword(IPassword newEmptyPassword, IUser user)
+	public String generateNewPassword(IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
@@ -365,6 +365,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 		fillPassword(clearTextPassword, newEmptyPassword);
 		setNewPasswordIntern(user, newEmptyPassword);
+		return new String(clearTextPassword);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
