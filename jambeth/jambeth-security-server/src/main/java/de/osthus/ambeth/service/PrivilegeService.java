@@ -491,8 +491,8 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		ITypeInfoItem[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getPrimitivePropertyPrivilege(relationIndex);
-			pe.applyTypePropertyPrivilege(primitiveMembers[relationIndex].getName(), propertyPrivilege);
+			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getRelationPropertyPrivilege(relationIndex);
+			pe.applyTypePropertyPrivilege(relationMembers[relationIndex].getName(), propertyPrivilege);
 		}
 	}
 
