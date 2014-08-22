@@ -1,6 +1,7 @@
 package de.osthus.ambeth.webservice;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -20,7 +21,6 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
@@ -52,11 +52,10 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	public static final String USER_PASS_TYPE = "login-pass-type";
 
-	protected final Charset utfCharset = Charset.forName("UTF-8");
+	protected final Charset utfCharset = StandardCharsets.UTF_8;
 
 	private ILogger log;
 
-	@Autowired
 	protected SecurityContextHolder securityContextHolder;
 
 	@Override
@@ -101,6 +100,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 				}
 			});
 			context = pcc.createPlatformContext();
+			securityContextHolder = context.getBeanContext().getService(SecurityContextHolder.class);
 
 			// store the instance of IServiceContext in servlet context
 			event.getServletContext().setAttribute(ATTRIBUTE_I_SERVICE_CONTEXT, context.getBeanContext());
