@@ -83,7 +83,7 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 		}
 	}
 
-	protected IPropertyInfo[] getMembers(Class<?> type)
+	protected IPropertyInfo[] getMembersIntern(Class<?> type)
 	{
 		Reference<IPropertyInfo[]> membersR = get(type);
 		IPropertyInfo[] members = null;
@@ -91,28 +91,38 @@ public class CallingProxyPostProcessor extends WeakSmartCopyMap<Class<?>, Refere
 		{
 			members = membersR.get();
 		}
+		return members;
+	}
+
+	protected IPropertyInfo[] getMembers(Class<?> type)
+	{
+		IPropertyInfo[] members = getMembersIntern(type);
 		if (members != null)
 		{
+			return members;
+		}
+		ArrayList<IPropertyInfo> ownMembers = new ArrayList<IPropertyInfo>();
+		scanForCallingProxyField(type, type, ownMembers);
+
+		members = getMembersIntern(type);
+		if (members != null)
+		{
+			// discard own members
 			return members;
 		}
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try
 		{
-			membersR = get(type);
-			if (membersR != null)
-			{
-				members = membersR.get();
-			}
+			members = getMembersIntern(type);
 			if (members != null)
 			{
+				// discard own members
 				return members;
 			}
-			ArrayList<IPropertyInfo> targetMembers = new ArrayList<IPropertyInfo>();
-			scanForCallingProxyField(type, type, targetMembers);
-			members = targetMembers.toArray(IPropertyInfo.class);
-			put(type, targetMembers.size() > 0 ? new SoftReference<IPropertyInfo[]>(members) : EMPTY_MEMBERS_R);
-			return members;
+			members = ownMembers.toArray(IPropertyInfo.class);
+			put(type, members.length > 0 ? new SoftReference<IPropertyInfo[]>(members) : EMPTY_MEMBERS_R);
+			return members.length > 0 ? members : EMPTY_MEMBERS;
 		}
 		finally
 		{
