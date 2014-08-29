@@ -5,7 +5,6 @@ import java.util.List;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -366,23 +365,23 @@ public class SqlTable extends Table
 	}
 
 	@Override
-	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, ILinkedMap<Integer, Object> params)
+	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, List<Object> parameters)
 	{
-		return selectVersionJoin(additionalSelectColumnList, null, whereWithOrderBySql, params);
+		return selectVersionJoin(additionalSelectColumnList, null, whereWithOrderBySql, parameters);
 	}
 
 	@Override
 	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			ILinkedMap<Integer, Object> params)
+			List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectVersionJoin(additionalSelectColumnList, joinSql, whereWithOrderBySql, params, tableAlias);
+		return selectVersionJoin(additionalSelectColumnList, joinSql, whereWithOrderBySql, parameters, tableAlias);
 	}
 
 	@Override
 	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			ILinkedMap<Integer, Object> params, String tableAlias)
+			List<Object> parameters, String tableAlias)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
@@ -452,7 +451,7 @@ public class SqlTable extends Table
 			}
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, params,
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, parameters,
 					tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
@@ -466,16 +465,16 @@ public class SqlTable extends Table
 
 	@Override
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, ILinkedMap<Integer, Object> params)
+			int offset, int length, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, offset, length, params, tableAlias);
+		return selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, offset, length, parameters, tableAlias);
 	}
 
 	@Override
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, ILinkedMap<Integer, Object> params, String tableAlias)
+			int offset, int length, List<Object> parameters, String tableAlias)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
@@ -520,7 +519,7 @@ public class SqlTable extends Table
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB, joinSql, whereSql, additionalSelectColumnList,
-					orderBySql, offset, length, params, tableAlias));
+					orderBySql, offset, length, parameters, tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
@@ -531,16 +530,16 @@ public class SqlTable extends Table
 	}
 
 	@Override
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, ILinkedMap<Integer, Object> params)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectDataJoin(selectColumnList, joinSql, whereWithOrderBySql, params, tableAlias);
+		return selectDataJoin(selectColumnList, joinSql, whereWithOrderBySql, parameters, tableAlias);
 	}
 
 	@Override
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			ILinkedMap<Integer, Object> params, String tableAlias)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters,
+			String tableAlias)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		HashMap<String, Integer> propertyToColIndexMap = new HashMap<String, Integer>();
@@ -560,7 +559,7 @@ public class SqlTable extends Table
 			}
 			ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 			dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
-			dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, params,
+			dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, parameters,
 					tableAlias));
 			dataCursor.afterPropertiesSet();
 			return dataCursor;
@@ -573,7 +572,7 @@ public class SqlTable extends Table
 
 	@Override
 	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, int offset,
-			int length, ILinkedMap<Integer, Object> params)
+			int length, List<Object> parameters)
 	{
 		HashMap<String, Integer> propertyToColIndexMap = new HashMap<String, Integer>();
 		for (int a = 0, size = selectColumnList.size(); a < size; a++)
@@ -583,7 +582,7 @@ public class SqlTable extends Table
 		ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 		dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
 		dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), "", joinSql, whereSql, selectColumnList, orderBySql, offset, length,
-				params));
+				parameters));
 		dataCursor.afterPropertiesSet();
 		return dataCursor;
 	}

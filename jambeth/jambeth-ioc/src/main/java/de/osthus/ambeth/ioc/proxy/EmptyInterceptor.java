@@ -4,13 +4,10 @@ import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 
-public final class EmptyInterceptor implements MethodInterceptor
+public final class EmptyInterceptor extends AbstractSimpleInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	public static final MethodInterceptor INSTANCE = new EmptyInterceptor();
 
 	private EmptyInterceptor()
@@ -19,12 +16,8 @@ public final class EmptyInterceptor implements MethodInterceptor
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (Object.class.equals(method.getDeclaringClass()))
 		{
 			return proxy.invoke(this, args);

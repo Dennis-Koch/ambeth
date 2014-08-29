@@ -12,24 +12,12 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public abstract class CascadedInterceptor : ICascadedInterceptor
+    public abstract class CascadedInterceptor : AbstractSimpleInterceptor, ICascadedInterceptor
     {
-        public static readonly MethodInfo equalsMethod = ReflectUtil.GetDeclaredMethod(false, typeof(Object), typeof(bool), "Equals", typeof(Object));
-
         public Object Target { get; set; }
         
-        abstract public void Intercept(IInvocation invocation);
-
         protected virtual void InvokeTarget(IInvocation invocation)
         {
-            if (equalsMethod.Equals(invocation.Method))
-            {
-                if (Object.ReferenceEquals(invocation.Proxy, invocation.Arguments[0]))
-                {
-                    invocation.ReturnValue = true;
-                    return;
-                }
-            }
             if (Target == null)
             {
                 throw new NullReferenceException("Target must be valid");

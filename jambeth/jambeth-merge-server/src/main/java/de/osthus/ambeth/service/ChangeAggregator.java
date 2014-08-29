@@ -7,6 +7,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -14,7 +15,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
-import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
+import de.osthus.ambeth.merge.event.DataChangeOfSession;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -108,7 +109,7 @@ public class ChangeAggregator implements IChangeAggregator
 
 		Long currentTime = database.getContextProvider().getCurrentTime();
 		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
-		LocalDataChangeEvent localDataChange = new LocalDataChangeEvent(database.getSessionId(), dataChange);
+		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(), dataChange);
 		eventDispatcher.dispatchEvent(localDataChange);
 	}
 

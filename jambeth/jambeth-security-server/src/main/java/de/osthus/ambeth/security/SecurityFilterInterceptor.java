@@ -16,9 +16,6 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 {
 	public static final String PROP_CHECK_METHOD_ACCESS = "CheckMethodAccess";
 
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@LogInstance
 	private ILogger log;
 
@@ -35,7 +32,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	protected ISecurityManager securityManager;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -50,12 +47,8 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	protected boolean checkMethodAccess = true;
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (method.getDeclaringClass().equals(Object.class) || !securityActivation.isSecured())
 		{
 			return invokeTarget(obj, method, args, proxy);

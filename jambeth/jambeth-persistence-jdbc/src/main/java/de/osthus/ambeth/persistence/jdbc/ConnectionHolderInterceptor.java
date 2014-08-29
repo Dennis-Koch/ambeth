@@ -4,17 +4,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class ConnectionHolderInterceptor implements MethodInterceptor, IConnectionHolder, IThreadLocalCleanupBean
+public class ConnectionHolderInterceptor extends AbstractSimpleInterceptor implements IConnectionHolder, IThreadLocalCleanupBean
 {
 	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
 	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
@@ -53,12 +53,8 @@ public class ConnectionHolderInterceptor implements MethodInterceptor, IConnecti
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		try
 		{
 			Connection connection = getConnection();

@@ -291,6 +291,9 @@
       <Link>ambeth\schema\%(FileName)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\AbstractSimpleInterceptor.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>

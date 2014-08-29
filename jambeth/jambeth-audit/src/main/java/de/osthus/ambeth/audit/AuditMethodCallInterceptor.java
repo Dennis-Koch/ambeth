@@ -22,7 +22,7 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	protected IMethodLevelBehavior<AuditAccess> methodLevelBehaviour;
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
 		AuditAccess auditMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 		if (auditMethod == null || !auditMethod.value())

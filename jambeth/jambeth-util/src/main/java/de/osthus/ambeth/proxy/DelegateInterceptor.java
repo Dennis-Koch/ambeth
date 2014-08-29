@@ -1,39 +1,75 @@
 package de.osthus.ambeth.proxy;
 
 import java.lang.reflect.Method;
+import java.util.Map.Entry;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
 
-public class DelegateInterceptor implements MethodInterceptor
+public class DelegateInterceptor extends AbstractSimpleInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	protected final Object target;
 
-	protected final HashMap<Method, Method> methodMap;
+	protected final MethodAccess methodAccess;
+
+	protected final HashMap<Method, Object> methodMap;
 
 	public DelegateInterceptor(Object target, HashMap<Method, Method> methodMap)
 	{
 		this.target = target;
-		this.methodMap = methodMap;
+		methodAccess = MethodAccess.get(target.getClass());
+		this.methodMap = HashMap.create(methodMap.size(), 0.5f);
+		for (Entry<Method, Method> entry : methodMap)
+		{
+			Method method = entry.getKey();
+			Method mappedMethod = entry.getValue();
+			try
+			{
+				// first try with "reflect asm"
+				int indexOfMethod = methodAccess.getIndex(mappedMethod.getName(), mappedMethod.getParameterTypes());
+				this.methodMap.put(method, Integer.valueOf(indexOfMethod));
+			}
+			catch (Throwable e)
+			{
+				// fallback with "plain old reflection"
+				this.methodMap.put(method, mappedMethod);
+			}
+		}
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
+		try
 		{
-			// Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
-			return null;
+			Object mapping = methodMap.get(method);
+			if (mapping == null)
+			{
+				return method.invoke(target, args);
+			}
+			if (mapping instanceof Integer)
+			{
+				int index = ((Integer) mapping).intValue();
+				return methodAccess.invoke(target, index, args);
+			}
+			else
+			{
+				Method mappedMethod = (Method) mapping;
+				int expectedArgsLength = mappedMethod.getParameterTypes().length;
+				if (expectedArgsLength != args.length)
+				{
+					Object[] newArgs = new Object[expectedArgsLength];
+					System.arraycopy(args, 0, newArgs, 0, expectedArgsLength);
+					args = newArgs;
+				}
+				return mappedMethod.invoke(target, args);
+			}
 		}
-		Method mappedMethod = methodMap.get(method);
-		if (mappedMethod == null)
+		catch (Throwable e)
 		{
-			return method.invoke(target, args);
+			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
 		}
-		return mappedMethod.invoke(target, args);
 	}
 }

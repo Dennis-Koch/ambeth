@@ -628,11 +628,11 @@ public class JdbcTable extends SqlTable
 		return compositeResultSet;
 	}
 
-	protected IResultSet createSelectForUpdateStatementWithInIntern(List<Object> ids)
+	protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids)
 	{
 		IField idField = getIdField();
 		IField versionField = getVersionField();
-		LinkedHashMap<Integer, Object> params = new LinkedHashMap<Integer, Object>();
+		ArrayList<Object> parameters = new ArrayList<Object>();
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder fieldNamesSQL = tlObjectCollector.create(StringBuilder.class);
 		StringBuilder whereSQL = tlObjectCollector.create(StringBuilder.class);
@@ -644,10 +644,10 @@ public class JdbcTable extends SqlTable
 				fieldNamesSQL.append(',');
 				sqlBuilder.appendName(versionField.getName(), fieldNamesSQL);
 			}
-			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, params, whereSQL);
+			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, parameters, whereSQL);
 			whereSQL.append(" FOR UPDATE NOWAIT");
 
-			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, params);
+			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, parameters);
 		}
 		finally
 		{

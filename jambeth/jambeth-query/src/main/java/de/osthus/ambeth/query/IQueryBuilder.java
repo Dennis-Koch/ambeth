@@ -115,7 +115,7 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperand all();
 
-	IOperand function(String functionName, IOperand... parameters);
+	IOperand function(String functionName, IOperand... operands);
 
 	IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType);
 

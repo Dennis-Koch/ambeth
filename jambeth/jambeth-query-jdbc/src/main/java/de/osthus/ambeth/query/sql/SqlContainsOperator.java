@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.filter.QueryConstants;
@@ -14,9 +15,9 @@ public class SqlContainsOperator extends SqlLikeOperator
 	private ILogger log;
 
 	@Override
-	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			return;
 		}
@@ -25,9 +26,9 @@ public class SqlContainsOperator extends SqlLikeOperator
 	}
 
 	@Override
-	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			return;
 		}
@@ -37,11 +38,11 @@ public class SqlContainsOperator extends SqlLikeOperator
 
 	@Override
 	protected void processRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
-			Map<Integer, Object> params) throws IOException
+			List<Object> parameters) throws IOException
 	{
 		nameToValueMap.put(QueryConstants.PRE_VALUE_KEY, "%");
 		nameToValueMap.put(QueryConstants.POST_VALUE_KEY, "%");
-		super.processRightOperand(querySB, nameToValueMap, joinQuery, leftOperandFieldType, params);
+		super.processRightOperand(querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);
 		nameToValueMap.remove(QueryConstants.PRE_VALUE_KEY);
 		nameToValueMap.remove(QueryConstants.POST_VALUE_KEY);
 	}

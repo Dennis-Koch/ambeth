@@ -6,7 +6,7 @@ import java.util.List;
 import de.osthus.ambeth.audit.model.IAuditEntry;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.database.ITransactionListener;
+import de.osthus.ambeth.event.DatabasePreCommitEvent;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
@@ -14,12 +14,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.IUserResolver;
-import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.model.IUser;
 
-public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLogger, ITransactionListener
+public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLogger
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -38,7 +38,7 @@ public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLog
 	protected IUserResolver userResolver;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -97,8 +97,7 @@ public class MethodCallLogger implements IThreadLocalCleanupBean, IMethodCallLog
 		handle.auditEntry.setSpentTime(System.currentTimeMillis() - handle.start);
 	}
 
-	@Override
-	public void handlePreCommit()
+	public void handlePreCommit(DatabasePreCommitEvent evnt)
 	{
 		List<IAuditEntry> queuedMethodCalls = queuedMethodCallsTL.get();
 		if (queuedMethodCalls == null)

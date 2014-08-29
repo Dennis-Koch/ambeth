@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -126,7 +127,7 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		if (joinQuery || Boolean.TRUE.equals(nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS)))
 		{

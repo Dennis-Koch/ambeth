@@ -2,6 +2,8 @@ package de.osthus.ambeth.model;
 
 public abstract class AbstractEntity extends AbstractBusinessObject
 {
+	public static final String Version = "Version";
+
 	protected int id;
 
 	protected short version;

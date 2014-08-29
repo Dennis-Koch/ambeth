@@ -15,7 +15,7 @@ using Castle.Core.Interceptor;
 
 namespace De.Osthus.Ambeth.Ioc.Extendable
 {
-    public class ExtendableBean : IFactoryBean, IInitializingBean, IInterceptor
+    public class ExtendableBean : AbstractSimpleInterceptor, IFactoryBean, IInitializingBean
     {
         public static readonly String P_PROVIDER_TYPE = "ProviderType";
 
@@ -167,7 +167,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             return proxy;
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             MethodInfo mappedMethod = DictionaryExtension.ValueOrDefault(methodMap, invocation.Method);
             if (mappedMethod == null)

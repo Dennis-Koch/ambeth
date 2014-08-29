@@ -12,16 +12,13 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
 import de.osthus.ambeth.util.Lock;
 
-public abstract class AbstractRootCacheAwareInterceptor implements IThreadLocalCleanupBean
+public abstract class AbstractRootCacheAwareInterceptor extends AbstractSimpleInterceptor implements IThreadLocalCleanupBean
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	protected static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	protected static final Method clearMethod;
 
 	static

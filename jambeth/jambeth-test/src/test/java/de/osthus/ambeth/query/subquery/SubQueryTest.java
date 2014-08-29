@@ -8,9 +8,9 @@ import java.util.Collections;
 
 import org.junit.Test;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
@@ -42,7 +42,7 @@ public class SubQueryTest extends AbstractPersistenceTest
 		ISubQuery<EntityA> subQuery = qb.buildSubQuery();
 		assertNotNull(subQuery);
 
-		String[] sqlParts = subQuery.getSqlParts(new HashMap<Object, Object>(), new LinkedHashMap<Integer, Object>(0), Collections.<String> emptyList());
+		String[] sqlParts = subQuery.getSqlParts(new HashMap<Object, Object>(), new ArrayList<Object>(0), Collections.<String> emptyList());
 		assertNotNull(sqlParts);
 		assertEquals(3, sqlParts.length);
 		assertNull(sqlParts[0]);

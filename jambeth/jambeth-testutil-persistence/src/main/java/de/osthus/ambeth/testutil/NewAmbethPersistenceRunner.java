@@ -59,9 +59,9 @@ import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
-import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -80,7 +80,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	private IServiceContext schemaContext;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	protected boolean doExecuteStrict = false;
 

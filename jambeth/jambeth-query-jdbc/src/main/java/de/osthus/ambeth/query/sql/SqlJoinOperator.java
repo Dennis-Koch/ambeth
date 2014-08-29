@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.criteria.JoinType;
@@ -95,13 +96,13 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
-		operate(querySB, nameToValueMap, joinQuery, params);
+		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		if (!joinQuery)
 		{
@@ -123,6 +124,6 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 				throw RuntimeExceptionUtil.createEnumNotSupportedException(joinType);
 		}
 		querySB.append(" JOIN ").append(fullqualifiedEscapedTableName).append(' ').append(getTableAlias()).append(" ON ");
-		clause.expandQuery(querySB, nameToValueMap, joinQuery, params);
+		clause.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 	}
 }

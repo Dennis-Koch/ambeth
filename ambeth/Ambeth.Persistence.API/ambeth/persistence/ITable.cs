@@ -147,7 +147,7 @@ namespace De.Osthus.Ambeth.Persistence
          * @param params
          * @return Cursor to ID and version of all selected entities.
          */
-        IVersionCursor SelectVersionWhere(IList<String> additionalSelectColumnList, String whereWithOrderBySql, ILinkedMap<int, Object> parameters);
+        IVersionCursor SelectVersionWhere(IList<String> additionalSelectColumnList, String whereWithOrderBySql, IList<Object> parameters);
 
         /**
          * Selects ID, version, and all value fields of all given entities in table.

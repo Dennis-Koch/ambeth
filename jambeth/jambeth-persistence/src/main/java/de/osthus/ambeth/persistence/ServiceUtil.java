@@ -38,15 +38,15 @@ public class ServiceUtil implements IServiceUtil
 		{
 			return;
 		}
-		IConversionHelper conversionHelper = this.conversionHelper;
-		ITable table = database.getTableByType(entityType);
-		Class<?> idType = table.getIdField().getFieldType();
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
-		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
-		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
 		try
 		{
+			IConversionHelper conversionHelper = this.conversionHelper;
+			ITable table = database.getTableByType(entityType);
+			Class<?> idType = table.getIdField().getFieldType();
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
+			Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+			ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
 			while (cursor.moveNext())
 			{
 				IVersionItem item = cursor.getCurrent();

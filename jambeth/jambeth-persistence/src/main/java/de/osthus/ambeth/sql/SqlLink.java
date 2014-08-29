@@ -4,8 +4,6 @@ import java.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -235,7 +233,7 @@ public class SqlLink extends Link
 		throw new UnsupportedOperationException();
 	}
 
-	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, IMap<Integer, Object> params)
+	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -342,17 +340,17 @@ public class SqlLink extends Link
 			{
 				return;
 			}
-			LinkedHashMap<Integer, Object> params = new LinkedHashMap<Integer, Object>();
+			ArrayList<Object> parameters = new ArrayList<Object>();
 			Class<?> fromFieldType = fromField.getFieldType();
 			fromId = conversionHelper.convertValueToType(fromFieldType, fromId);
 
 			sqlBuilder.appendName(fromField.getName(), whereSB);
-			ParamsUtil.addParam(params, fromId);
+			ParamsUtil.addParam(parameters, fromId);
 			whereSB.append("=? AND ");
 
-			persistenceHelper.appendSplittedValues(toField.getName(), toField.getFieldType(), values, params, whereSB);
+			persistenceHelper.appendSplittedValues(toField.getName(), toField.getFieldType(), values, parameters, whereSB);
 
-			unlinkIdsIntern(whereSB.toString(), toFieldType, params);
+			unlinkIdsIntern(whereSB.toString(), toFieldType, parameters);
 		}
 		finally
 		{

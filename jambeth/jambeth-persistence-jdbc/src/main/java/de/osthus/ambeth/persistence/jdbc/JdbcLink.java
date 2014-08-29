@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -116,7 +115,7 @@ public class JdbcLink extends SqlLink
 	}
 
 	@Override
-	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, IMap<Integer, Object> params)
+	protected void unlinkIdsIntern(String whereSQL, Class<?> toIdType, List<Object> parameters)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		try
@@ -139,9 +138,9 @@ public class JdbcLink extends SqlLink
 					tlObjectCollector.dispose(sb);
 				}
 			}
-			for (Entry<Integer, Object> entry : params)
+			for (int index = 0, size = parameters.size(); index < size; index++)
 			{
-				pstm.setObject(entry.getKey(), entry.getValue());
+				pstm.setObject(index + 1, parameters.get(index));
 			}
 			pstm.addBatch();
 			pstm.clearParameters();

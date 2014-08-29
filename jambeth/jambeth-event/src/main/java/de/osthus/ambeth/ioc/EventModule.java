@@ -11,6 +11,7 @@ import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.IEventQueue;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
+import de.osthus.ambeth.event.IEventTargetListenerExtendable;
 import de.osthus.ambeth.event.config.EventConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -33,8 +34,9 @@ public class EventModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(EventListenerRegistry.class).autowireable(IEventListenerExtendable.class, IEventBatcherExtendable.class,
-				IEventTargetExtractorExtendable.class, IEventBatcher.class, IEventDispatcher.class, IEventListener.class, IEventQueue.class);
+		beanContextFactory.registerAnonymousBean(EventListenerRegistry.class).autowireable(IEventListenerExtendable.class,
+				IEventTargetListenerExtendable.class, IEventBatcherExtendable.class, IEventTargetExtractorExtendable.class, IEventBatcher.class,
+				IEventDispatcher.class, IEventListener.class, IEventQueue.class);
 
 		if (isNetworkClientMode)
 		{

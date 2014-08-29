@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.Stack;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
@@ -19,11 +18,12 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class CacheProviderInterceptor implements MethodInterceptor, ICacheProviderExtendable, ICacheProvider, ICacheContext, IThreadLocalCleanupBean
+public class CacheProviderInterceptor extends AbstractSimpleInterceptor implements ICacheProviderExtendable, ICacheProvider, ICacheContext,
+		IThreadLocalCleanupBean
 {
 	public static class SingleCacheProvider implements ICacheProvider
 	{
@@ -48,9 +48,6 @@ public class CacheProviderInterceptor implements MethodInterceptor, ICacheProvid
 	}
 
 	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
-
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -210,12 +207,8 @@ public class CacheProviderInterceptor implements MethodInterceptor, ICacheProvid
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		ICacheProvider cacheProvider = getCurrentCacheProvider();
 		if (method.getDeclaringClass().equals(ICacheProvider.class))
 		{

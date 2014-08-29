@@ -14,17 +14,22 @@ import javax.persistence.criteria.JoinType;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.event.IEventDispatcher;
+import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.QueryConstants;
+import de.osthus.ambeth.filter.model.IPagingResponse;
+import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
@@ -246,6 +251,62 @@ public class QueryTest extends AbstractPersistenceTest
 
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
 		assertSimilar(expected, actual);
+	}
+
+	@Test
+	public void retrieveAllAfterUpdate() throws Exception
+	{
+		transaction.processAndCommit(new DatabaseCallback()
+		{
+			@Override
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				String name1Value = "name1xx";
+				List<Integer> expectedBeforeUpdate = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
+				List<Integer> expectedAfterUpdate = Arrays.asList(new Integer[] { 1, 3, 4, 5, 6 });
+
+				IQuery<QueryEntity> query = qb.build(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
+				List<QueryEntity> allBeforeUpdate = query.retrieve();
+				assertSimilar(expectedBeforeUpdate, allBeforeUpdate);
+
+				QueryEntity changedQueryEntity = beanContext.getService(ICache.class).getObject(QueryEntity.class, 2);
+				changedQueryEntity.setName1(name1Value);
+				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
+
+				List<QueryEntity> allAfterUpdate = query.retrieve();
+				assertSimilar(expectedAfterUpdate, allAfterUpdate);
+			}
+		});
+	}
+
+	@Test
+	@TestProperties(name = QueryConfigurationConstants.PagingPrefetchBehavior, value = "true")
+	public void retrievePagingAfterUpdate() throws Exception
+	{
+		transaction.processAndCommit(new DatabaseCallback()
+		{
+			@Override
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				String name1Value = "name1xx";
+				List<Integer> expectedBeforeUpdate = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
+				List<Integer> expectedAfterUpdate = Arrays.asList(new Integer[] { 1, 3, 4, 5, 6 });
+
+				PagingRequest pr = new PagingRequest().withSize(expectedBeforeUpdate.size());
+				IPagingQuery<QueryEntity> query = qb.buildPaging(qb.isNotEqualTo(qb.property(QueryEntity.Name1), qb.value(name1Value)));
+				IPagingResponse<QueryEntity> allBeforeUpdate = query.retrieve(pr);
+				assertSimilar(expectedBeforeUpdate, allBeforeUpdate.getResult());
+
+				QueryEntity changedQueryEntity = beanContext.getService(ICache.class).getObject(QueryEntity.class, 2);
+				changedQueryEntity.setName1(name1Value);
+				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
+
+				IPagingResponse<QueryEntity> allAfterUpdate = query.retrieve(pr);
+				IPagingResponse<QueryEntity> allAfterUpdate2 = query.retrieve(pr);
+				assertSimilar(expectedAfterUpdate, allAfterUpdate.getResult());
+			}
+		});
+
 	}
 
 	@SuppressWarnings("deprecation")

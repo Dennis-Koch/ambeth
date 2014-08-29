@@ -13,9 +13,9 @@ namespace De.Osthus.Ambeth.Ioc
     public class EventModule : IInitializingModule
     {
         [LogInstance]
-		public ILogger Log { private get; set; }
-                
-        [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue="false")]
+        public ILogger Log { private get; set; }
+
+        [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsNetworkClientMode { get; set; }
 
         [Property(EventConfigurationConstants.PollingActive, DefaultValue = "false")]
@@ -23,10 +23,10 @@ namespace De.Osthus.Ambeth.Ioc
 
         [Property(EventConfigurationConstants.EventServiceBeanActive, DefaultValue = "true")]
         public bool IsEventServiceBeanActive { get; set; }
-        
+
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            beanContextFactory.RegisterBean<EventListenerRegistry>("eventListenerRegistry").Autowireable(typeof(IEventListenerExtendable), typeof(IEventBatcherExtendable),
+            beanContextFactory.RegisterBean<EventListenerRegistry>("eventListenerRegistry").Autowireable(typeof(IEventListenerExtendable), typeof(IEventTargetListenerExtendable), typeof(IEventBatcherExtendable),
                 typeof(IEventTargetExtractorExtendable), typeof(IEventBatcher), typeof(IEventDispatcher), typeof(IEventListener), typeof(IEventQueue));
 
             if (IsNetworkClientMode && IsEventServiceBeanActive)

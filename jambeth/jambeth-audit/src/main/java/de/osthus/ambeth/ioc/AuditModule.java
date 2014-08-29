@@ -5,7 +5,8 @@ import de.osthus.ambeth.audit.IMethodCallLogger;
 import de.osthus.ambeth.audit.MethodCallLogger;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.database.ITransactionListenerExtendable;
+import de.osthus.ambeth.event.DatabasePreCommitEvent;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -30,7 +31,7 @@ public class AuditModule implements IInitializingModule
 			beanContextFactory.registerAnonymousBean(AuditMethodCallPostProcessor.class);
 
 			IBeanConfiguration methodCallLogger = beanContextFactory.registerAnonymousBean(MethodCallLogger.class).autowireable(IMethodCallLogger.class);
-			beanContextFactory.link(methodCallLogger).to(ITransactionListenerExtendable.class);
+			beanContextFactory.link(methodCallLogger, "handlePreCommit").to(IEventListenerExtendable.class).with(DatabasePreCommitEvent.class);
 		}
 	}
 }
