@@ -82,15 +82,9 @@ public abstract class AbstractServiceREST
 
 	private ILogger log;
 
-	private SecurityContextHolder securityContextHolder;
-
 	protected SecurityContextHolder getSecurityContextHolder()
 	{
-		if (securityContextHolder == null)
-		{
-			securityContextHolder = getServiceContext().getService(SecurityContextHolder.class);
-		}
-		return securityContextHolder;
+		return getServiceContext().getService(SecurityContextHolder.class);
 	}
 
 	protected ILogger getLog()
