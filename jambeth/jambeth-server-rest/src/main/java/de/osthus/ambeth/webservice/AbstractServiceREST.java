@@ -44,7 +44,7 @@ import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
-import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.transfer.AmbethServiceException;
 import de.osthus.ambeth.util.Base64;
@@ -81,17 +81,6 @@ public abstract class AbstractServiceREST
 	protected final Pattern pattern = Pattern.compile("(.+) *\\: *(.+)");
 
 	private ILogger log;
-
-	private SecurityContextHolder securityContextHolder;
-
-	protected SecurityContextHolder getSecurityContextHolder()
-	{
-		if (securityContextHolder == null)
-		{
-			securityContextHolder = getServiceContext().getService(SecurityContextHolder.class);
-		}
-		return securityContextHolder;
-	}
 
 	protected ILogger getLog()
 	{
@@ -183,7 +172,7 @@ public abstract class AbstractServiceREST
 
 	protected void setAuthentication(IAuthentication authentication)
 	{
-		ISecurityContext securityContext = getSecurityContextHolder().getCreateContext();
+		ISecurityContext securityContext = getServiceContext().getService(ISecurityContextHolder.class).getCreateContext();
 		securityContext.setAuthentication(authentication);
 	}
 
@@ -194,8 +183,9 @@ public abstract class AbstractServiceREST
 
 	protected void postServiceCall(ServletContext servletContext)
 	{
-		getSecurityContextHolder().clearContext();
-		getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+		IServiceContext beanContext = getServiceContext();
+		beanContext.getService(ISecurityContextHolder.class).clearContext();
+		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	protected <T> T getService(Class<T> serviceType)
