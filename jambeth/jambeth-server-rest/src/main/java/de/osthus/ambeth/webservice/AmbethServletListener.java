@@ -1,7 +1,6 @@
 package de.osthus.ambeth.webservice;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -53,7 +52,7 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 
 	public static final String USER_PASS_TYPE = "login-pass-type";
 
-	protected final Charset utfCharset = StandardCharsets.UTF_8;
+	protected final Charset utfCharset = Charset.forName("UTF-8");
 
 	private ILogger log;
 

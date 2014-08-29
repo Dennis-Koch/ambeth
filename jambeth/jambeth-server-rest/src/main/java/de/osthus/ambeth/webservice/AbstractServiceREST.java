@@ -35,7 +35,6 @@ import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.XmlModule;
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LoggerFactory;
@@ -83,8 +82,16 @@ public abstract class AbstractServiceREST
 
 	private ILogger log;
 
-	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	private SecurityContextHolder securityContextHolder;
+
+	protected SecurityContextHolder getSecurityContextHolder()
+	{
+		if (securityContextHolder == null)
+		{
+			securityContextHolder = getServiceContext().getService(SecurityContextHolder.class);
+		}
+		return securityContextHolder;
+	}
 
 	protected ILogger getLog()
 	{
@@ -176,7 +183,7 @@ public abstract class AbstractServiceREST
 
 	protected void setAuthentication(IAuthentication authentication)
 	{
-		ISecurityContext securityContext = securityContextHolder.getCreateContext();
+		ISecurityContext securityContext = getSecurityContextHolder().getCreateContext();
 		securityContext.setAuthentication(authentication);
 	}
 
@@ -187,7 +194,7 @@ public abstract class AbstractServiceREST
 
 	protected void postServiceCall(ServletContext servletContext)
 	{
-		securityContextHolder.clearContext();
+		getSecurityContextHolder().clearContext();
 		getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
