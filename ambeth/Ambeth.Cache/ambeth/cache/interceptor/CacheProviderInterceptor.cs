@@ -15,7 +15,7 @@ using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class CacheProviderInterceptor : IInterceptor, IInitializingBean, ICacheProviderExtendable, ICacheProvider, ICacheContext,
+    public class CacheProviderInterceptor : AbstractSimpleInterceptor, IInitializingBean, ICacheProviderExtendable, ICacheProvider, ICacheContext,
             IThreadLocalCleanupBean
     {
         [LogInstance]
@@ -187,7 +187,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 		    }
 	    }
 
-        public virtual void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             ICacheProvider cacheProvider = GetCurrentCacheProvider();
             MethodInfo method = invocation.Method;

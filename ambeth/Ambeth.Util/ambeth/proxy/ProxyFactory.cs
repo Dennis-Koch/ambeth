@@ -13,7 +13,7 @@ namespace De.Osthus.Ambeth.Proxy
 {
     public class ProxyFactory : IProxyFactory
     {
-        public class NoOp : IInterceptor
+        public class NoOp : AbstractSimpleInterceptor
         {
             public static readonly NoOp INSTANCE = new NoOp();
 
@@ -22,7 +22,7 @@ namespace De.Osthus.Ambeth.Proxy
                 // intended blank
             }
 
-            public void Intercept(IInvocation invocation)
+            protected override void InterceptIntern(IInvocation invocation)
             {
                 throw new NotImplementedException();
             }

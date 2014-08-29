@@ -2,7 +2,6 @@ package de.osthus.ambeth.ioc.extendable;
 
 import java.lang.reflect.Method;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastMethod;
@@ -16,16 +15,13 @@ import de.osthus.ambeth.ioc.exception.ExtendableException;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodInterceptor
+public class ExtendableBean extends AbstractSimpleInterceptor implements IFactoryBean, IInitializingBean
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	public static final String P_PROVIDER_TYPE = "ProviderType";
 
 	public static final String P_EXTENDABLE_TYPE = "ExtendableType";
@@ -206,12 +202,8 @@ public class ExtendableBean implements IFactoryBean, IInitializingBean, MethodIn
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		FastMethod mappedMethod = methodMap.get(method);
 		if (mappedMethod == null)
 		{

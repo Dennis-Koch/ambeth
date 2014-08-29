@@ -7,28 +7,17 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.datachange.model.IDataChange;
-import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 
-public class LocalToPublicDispatcher implements IEventListener, IInitializingBean
+public class LocalToPublicDispatcher implements IEventListener
 {
-	protected final HashMap<Long, IList<IDataChange>> databaseToChangeDict = new HashMap<Long, IList<IDataChange>>();
-
-	protected final Lock writeLock = new ReentrantLock();
-
+	@Autowired
 	protected IEventDispatcher publicEventDispatcher;
 
-	@Override
-	public void afterPropertiesSet()
-	{
-		ParamChecker.assertNotNull(publicEventDispatcher, "PublicEventDispatcher");
-	}
+	protected final HashMap<Long, ArrayList<IDataChange>> databaseToChangeDict = new HashMap<Long, ArrayList<IDataChange>>();
 
-	public void setPublicEventDispatcher(IEventDispatcher publicEventDispatcher)
-	{
-		this.publicEventDispatcher = publicEventDispatcher;
-	}
+	protected final Lock writeLock = new ReentrantLock();
 
 	@Override
 	public void handleEvent(Object localEventObject, long dispatchTime, long sequenceId)
@@ -63,12 +52,19 @@ public class LocalToPublicDispatcher implements IEventListener, IInitializingBea
 			}
 			if (publicDataChanges != null)
 			{
-				// TODO evtl. in Zukunft noch mit DataChangeEventBatcher die Anzahl reduzieren
 				IEventDispatcher publicEventDispatcher = this.publicEventDispatcher;
+				if (publicDataChanges.size() > 1)
+				{
+					publicEventDispatcher.enableEventQueue();
+				}
 				for (int i = 0; i < publicDataChanges.size(); i++)
 				{
 					IDataChange publicDataChange = publicDataChanges.get(i);
 					publicEventDispatcher.dispatchEvent(publicDataChange, dispatchTime, sequenceId);
+				}
+				if (publicDataChanges.size() > 1)
+				{
+					publicEventDispatcher.flushEventQueue();
 				}
 			}
 		}
@@ -86,18 +82,18 @@ public class LocalToPublicDispatcher implements IEventListener, IInitializingBea
 				writeLock.unlock();
 			}
 		}
-		else if (localEventObject instanceof LocalDataChangeEvent)
+		else if (localEventObject instanceof IDataChangeOfSession)
 		{
-			LocalDataChangeEvent localEvent = (LocalDataChangeEvent) localEventObject;
+			IDataChangeOfSession localEvent = (IDataChangeOfSession) localEventObject;
 			Lock writeLock = this.writeLock;
 			writeLock.lock();
 			try
 			{
-				IList<IDataChange> dataChanges = databaseToChangeDict.get(localEvent.getSessionID());
+				ArrayList<IDataChange> dataChanges = databaseToChangeDict.get(localEvent.getSessionId());
 				if (dataChanges == null)
 				{
 					dataChanges = new ArrayList<IDataChange>();
-					databaseToChangeDict.put(localEvent.getSessionID(), dataChanges);
+					databaseToChangeDict.put(localEvent.getSessionId(), dataChanges);
 				}
 				dataChanges.add(localEvent.getDataChange());
 			}

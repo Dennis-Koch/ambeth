@@ -16,7 +16,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
-import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -29,7 +29,7 @@ public class AmbethCron4jJob extends Task implements IInitializingBean
 	protected IServiceContext beanContext;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected IJob job;

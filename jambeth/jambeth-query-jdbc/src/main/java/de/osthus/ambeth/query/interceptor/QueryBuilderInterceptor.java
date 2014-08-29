@@ -2,22 +2,18 @@ package de.osthus.ambeth.query.interceptor;
 
 import java.lang.reflect.Method;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.ISqlJoin;
 
-public class QueryBuilderInterceptor implements MethodInterceptor
+public class QueryBuilderInterceptor extends AbstractSimpleInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	protected static final Method disposeMethod;
 
 	protected static final HashSet<Method> cleanupMethods = new HashSet<Method>();
@@ -65,12 +61,8 @@ public class QueryBuilderInterceptor implements MethodInterceptor
 	}
 
 	@Override
-	public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (this.finalized)
 		{
 			if (disposeMethod.equals(method))
@@ -81,7 +73,7 @@ public class QueryBuilderInterceptor implements MethodInterceptor
 		}
 		try
 		{
-			Object result = methodProxy.invoke(this.queryBuilder, args);
+			Object result = proxy.invoke(this.queryBuilder, args);
 			if (result == this.queryBuilder)
 			{
 				return proxy;

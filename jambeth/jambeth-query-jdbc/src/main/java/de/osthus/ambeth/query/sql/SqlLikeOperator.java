@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.log.ILogger;
@@ -13,9 +14,9 @@ public class SqlLikeOperator extends CaseSensitiveTwoPlaceOperator
 	private ILogger log;
 
 	@Override
-	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			// Intended blank
 		}
@@ -29,9 +30,9 @@ public class SqlLikeOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			// Intended blank
 		}
@@ -51,10 +52,9 @@ public class SqlLikeOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected void postProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
-			throws IOException
+	protected void postProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		querySB.append(" ESCAPE '\\'");
-		super.postProcessOperate(querySB, nameToValueMap, joinQuery, params);
+		super.postProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 }

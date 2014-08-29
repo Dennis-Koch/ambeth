@@ -34,7 +34,7 @@ namespace De.Osthus.Ambeth.Proxy
 
         protected abstract Attribute GetMethodLevelBehavior(MethodInfo method);
 
-        public override void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             Attribute annotation = GetMethodLevelBehavior(invocation.Method);
 		    if (annotation is IgnoreAttribute)

@@ -14,12 +14,14 @@ import de.osthus.ambeth.database.IDatabaseProvider;
 import de.osthus.ambeth.database.IDatabaseProviderRegistry;
 import de.osthus.ambeth.database.IDatabaseSessionIdController;
 import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.database.ITransactionInfo;
 import de.osthus.ambeth.database.ITransactionListener;
 import de.osthus.ambeth.database.ITransactionListenerProvider;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseCommitEvent;
 import de.osthus.ambeth.event.DatabaseFailEvent;
+import de.osthus.ambeth.event.DatabasePreCommitEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -37,7 +39,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class JdbcTransaction implements ITransaction, ITransactionState, IThreadLocalCleanupBean
 {
-	public static class ThreadLocalItem
+	public static class ThreadLocalItem implements ITransactionInfo
 	{
 		public Boolean ignoreReleaseDatabase;
 
@@ -52,6 +54,18 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 		public Boolean etmActive;
 
 		public LinkedHashMap<Object, IDatabase> databaseMap;
+
+		@Override
+		public long getSessionId()
+		{
+			return sessionId != null ? sessionId.longValue() : 0;
+		}
+
+		@Override
+		public boolean isReadOnly()
+		{
+			return isReadOnly != null ? isReadOnly.booleanValue() : false;
+		}
 	}
 
 	@LogInstance
@@ -98,6 +112,17 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 	public boolean isTransactionActive()
 	{
 		return isActive();
+	}
+
+	@Override
+	public ITransactionInfo getTransactionInfo()
+	{
+		ThreadLocalItem tli = tliTL.get();
+		if (tli != null && tli.sessionId != null)
+		{
+			return tli;
+		}
+		return null;
 	}
 
 	@Override
@@ -175,6 +200,18 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 			{
 				tli.beginInProgress = null;
 			}
+			ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();
+			for (ITransactionListener transactionListener : transactionListeners)
+			{
+				try
+				{
+					transactionListener.handlePostBegin(sessionId);
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
 			if (eventDispatcher != null)
 			{
 				eventDispatcher.dispatchEvent(new TransactionBeginEvent(persistenceUnitToDatabaseMap));
@@ -199,13 +236,21 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 		{
 			return;
 		}
+		boolean releaseSessionId = false;
+		long sessionId = sessionIdValue.longValue();
+		eventDispatcher.dispatchEvent(new DatabasePreCommitEvent(sessionId));
 		ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();
 		for (ITransactionListener transactionListener : transactionListeners)
 		{
-			transactionListener.handlePreCommit();
+			try
+			{
+				transactionListener.handlePreCommit(sessionId);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
-		boolean releaseSessionId = false;
-		long sessionId = sessionIdValue.longValue();
 		ILinkedMap<Object, IDatabaseProvider> persistenceUnitToDatabaseProviderMap = databaseProviderRegistry.getPersistenceUnitToDatabaseProviderMap();
 		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
 		try
@@ -356,6 +401,18 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 					{
 						tli.alreadyOnStack = null;
 					}
+				}
+			}
+			ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();
+			for (ITransactionListener transactionListener : transactionListeners)
+			{
+				try
+				{
+					transactionListener.handlePostRollback(sessionId);
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
 			if (eventDispatcher != null && !Boolean.TRUE.equals(readOnly))
@@ -545,18 +602,19 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 	@Override
 	public boolean isActive()
 	{
-		ThreadLocalItem tli = tliTL.get();
-		if (tli != null)
-		{
-			return tli.sessionId != null;
-		}
-		return false;
+		return getTransactionInfo() != null;
 	}
 
 	@Override
 	public void cleanupThreadLocal()
 	{
-		tliTL.remove();
+		if (getTransactionInfo() == null)
+		{
+			tliTL.remove();
+			return;
+		}
+		throw new UnsupportedOperationException(
+				"It is not supported to clean this ThreadLocal while you are in a transaction because this can lead to an inconsistent state");
 	}
 
 	@Override

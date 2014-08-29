@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="ambeth\config\EventConfigurationConstants.cs" />
     <Compile Include="ambeth\event\IEventPoller.cs" />
+    <Compile Include="ambeth\event\IEventTargetListenerExtendable.cs" />
     <Compile Include="ambeth\event\IQueuedEvent.cs" />
     <Compile Include="ambeth\event\IProcessResumeItem.cs" />
     <Compile Include="ambeth\event\QueuedEvent.cs" />

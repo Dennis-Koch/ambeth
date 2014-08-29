@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.log.ILogger;
@@ -13,7 +14,7 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 	private ILogger log;
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		if (isRightValueNullOrEmpty(nameToValueMap))
 		{
@@ -21,7 +22,7 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 			querySB.append("0=1");
 			return;
 		}
-		super.operate(querySB, nameToValueMap, joinQuery, params);
+		super.operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
@@ -43,24 +44,24 @@ public class SqlIsInOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected void preProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	protected void preProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
 		if (java.sql.Array.class.isAssignableFrom(leftOperandFieldType))
 		{
 			querySB.append("EXISTS");
 		}
-		super.preProcessOperate(querySB, nameToValueMap, joinQuery, params);
+		super.preProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		querySB.append('(');
 	}
 
 	@Override
-	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		querySB.append(')');
 	}

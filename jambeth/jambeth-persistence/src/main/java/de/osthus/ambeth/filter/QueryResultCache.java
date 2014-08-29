@@ -14,13 +14,18 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.database.ITransactionInfo;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
+import de.osthus.ambeth.event.IDatabaseReleaseEvent;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -29,21 +34,44 @@ import de.osthus.ambeth.query.IQueryKey;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class QueryResultCache implements IInitializingBean, IEventListener, IQueryResultCache
+public class QueryResultCache implements IQueryResultCache, IEventListener
 {
+	public static class QueryResultCacheSession
+	{
+		protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap = new HashMap<IQueryKey, Reference<IQueryResultCacheItem>>();
+
+		protected final long sessionId;
+
+		public QueryResultCacheSession(long sessionId)
+		{
+			this.sessionId = sessionId;
+		}
+
+		public void clear()
+		{
+			queryKeyToObjRefMap.clear();
+		}
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected ITransaction transaction;
+
+	@Property(name = PersistenceConfigurationConstants.QueryCacheActive, defaultValue = "true")
+	protected boolean queryCacheActive = true;
 
 	protected final HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap = new HashMap<IQueryKey, Reference<IQueryResultCacheItem>>();
 
 	protected final HashMap<Class<?>, ILinkedSet<IQueryKey>> entityTypeToQueryKeyMap = new HashMap<Class<?>, ILinkedSet<IQueryKey>>();
 
+	protected final HashMap<Long, QueryResultCacheSession> sessionIdToHandleMap = new HashMap<Long, QueryResultCacheSession>();
+
 	protected final Lock readLock, writeLock;
 
 	protected final HashSet<IQueryKey> pendingQueryKeysSet = new HashSet<IQueryKey>(0.5f);
-
-	protected boolean queryCacheActive = true;
 
 	protected final Condition pendingQueryKeysChangedCond;
 
@@ -56,25 +84,33 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 	}
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
+	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
 	{
-		// Intended blank
-	}
-
-	@Property(name = PersistenceConfigurationConstants.QueryCacheActive, defaultValue = "true")
-	public void setQueryCacheActive(boolean queryCacheActive)
-	{
-		this.queryCacheActive = queryCacheActive;
+		throw new UnsupportedOperationException("Should never be called");
 	}
 
 	@Override
 	public IQueryResultCacheItem getCacheItem(IQueryKey queryKey)
 	{
+		ITransactionInfo transactionInfo = transaction.getTransactionInfo();
 		Lock readLock = this.readLock;
 		readLock.lock();
 		try
 		{
-			Reference<IQueryResultCacheItem> sr = queryKeyToObjRefMap.get(queryKey);
+			Reference<IQueryResultCacheItem> sr = null;
+			if (transactionInfo == null || transactionInfo.isReadOnly())
+			{
+				// go directly to the committed cache info
+				sr = queryKeyToObjRefMap.get(queryKey);
+			}
+			else
+			{
+				QueryResultCacheSession session = sessionIdToHandleMap.get(Long.valueOf(transactionInfo.getSessionId()));
+				if (session != null)
+				{
+					sr = session.queryKeyToObjRefMap.get(queryKey);
+				}
+			}
 			return sr != null ? sr.get() : null;
 		}
 		finally
@@ -111,11 +147,26 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 			List<Class<?>> relatedEntityTypes = queryResultRetriever.getRelatedEntityTypes();
 			queryResultCacheItem = queryResultRetriever.getQueryResult();
 
+			ITransactionInfo transactionInfo = transaction.getTransactionInfo();
 			Lock writeLock = this.writeLock;
 			writeLock.lock();
 			try
 			{
-				queryKeyToObjRefMap.put(queryKey, new SoftReference<IQueryResultCacheItem>(queryResultCacheItem));
+				if (transactionInfo != null && !transactionInfo.isReadOnly())
+				{
+					Long sessionId = Long.valueOf(transactionInfo.getSessionId());
+					QueryResultCacheSession session = sessionIdToHandleMap.get(sessionId);
+					if (session == null)
+					{
+						session = new QueryResultCacheSession(sessionId.longValue());
+						sessionIdToHandleMap.put(sessionId, session);
+					}
+					session.queryKeyToObjRefMap.put(queryKey, new SoftReference<IQueryResultCacheItem>(queryResultCacheItem));
+				}
+				else
+				{
+					queryKeyToObjRefMap.put(queryKey, new SoftReference<IQueryResultCacheItem>(queryResultCacheItem));
+				}
 
 				if (relatedEntityTypes != null)
 				{
@@ -213,7 +264,6 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 	protected IList<IObjRef> createResult(IQueryResultCacheItem queryResultCacheItem, byte idIndex, int offset, int length, boolean containsPageOnly,
 			IParamHolder<Integer> totalSize)
 	{
-		ArrayList<IObjRef> resultList = new ArrayList<IObjRef>();
 		int cachedTotalSize = queryResultCacheItem.getSize();
 		if (containsPageOnly)
 		{
@@ -231,6 +281,7 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 				length = Math.min(cachedTotalSize - offset, length);
 			}
 		}
+		ArrayList<IObjRef> resultList = new ArrayList<IObjRef>(length);
 		for (int a = offset, size = offset + length; a < size; a++)
 		{
 			resultList.add(queryResultCacheItem.getObjRef(a, idIndex));
@@ -239,33 +290,8 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 		return resultList;
 	}
 
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)
+	protected ISet<Class<?>> collectOccuringTypes(IDataChange dataChange)
 	{
-		if (eventObject instanceof ClearAllCachesEvent)
-		{
-			Lock writeLock = this.writeLock;
-			writeLock.lock();
-			try
-			{
-				entityTypeToQueryKeyMap.clear();
-				queryKeyToObjRefMap.clear();
-			}
-			finally
-			{
-				writeLock.unlock();
-			}
-			return;
-		}
-		if (!(eventObject instanceof IDataChange))
-		{
-			return;
-		}
-		IDataChange dataChange = (IDataChange) eventObject;
-		if (dataChange.isEmpty())
-		{
-			return;
-		}
 		LinkedHashSet<Class<?>> occuringTypes = new LinkedHashSet<Class<?>>();
 
 		List<IDataChangeEntry> deletes = dataChange.getDeletes();
@@ -298,16 +324,20 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 			}
 			occuringTypes.add(entityType);
 		}
+		return occuringTypes;
+	}
 
-		Lock writeLock = this.writeLock;
+	public void handleDataChange(IDataChange dataChange)
+	{
+		handleDataChangeIntern(dataChange, queryKeyToObjRefMap);
+	}
+
+	public void handleDatabaseRelease(IDatabaseReleaseEvent event)
+	{
 		writeLock.lock();
 		try
 		{
-			for (Class<?> entityType : occuringTypes)
-			{
-				removeCacheItemsRelatedToEntityType(entityType);
-			}
-			removeCacheItemsRelatedToEntityType(Object.class);
+			sessionIdToHandleMap.remove(Long.valueOf(event.getSessionId()));
 		}
 		finally
 		{
@@ -315,14 +345,81 @@ public class QueryResultCache implements IInitializingBean, IEventListener, IQue
 		}
 	}
 
-	protected void removeCacheItemsRelatedToEntityType(Class<?> entityType)
+	protected void handleDataChangeIntern(IDataChange dataChange, HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap)
+	{
+		if (dataChange.isEmpty())
+		{
+			return;
+		}
+		ISet<Class<?>> occuringTypes = collectOccuringTypes(dataChange);
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			for (Class<?> entityType : occuringTypes)
+			{
+				removeCacheItemsRelatedToEntityType(entityType, queryKeyToObjRefMap);
+			}
+			removeCacheItemsRelatedToEntityType(Object.class, queryKeyToObjRefMap);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+
+	}
+
+	public void handleClearAllCaches(ClearAllCachesEvent event)
+	{
+		ITransactionInfo transactionInfo = transaction.getTransactionInfo();
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			if (transactionInfo != null)
+			{
+				QueryResultCacheSession session = sessionIdToHandleMap.get(Long.valueOf(transactionInfo.getSessionId()));
+				if (session != null)
+				{
+					session.clear();
+				}
+			}
+			entityTypeToQueryKeyMap.clear();
+			queryKeyToObjRefMap.clear();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	public void handleDataChangeOfSession(IDataChangeOfSession dataChangeOfSession)
+	{
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			QueryResultCacheSession session = sessionIdToHandleMap.get(Long.valueOf(dataChangeOfSession.getSessionId()));
+			if (session == null)
+			{
+				// nothing to do
+				return;
+			}
+			handleDataChangeIntern(dataChangeOfSession.getDataChange(), session.queryKeyToObjRefMap);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	protected void removeCacheItemsRelatedToEntityType(Class<?> entityType, HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap)
 	{
 		ILinkedSet<IQueryKey> queryKeysRelatedToEntityType = entityTypeToQueryKeyMap.remove(entityType);
 		if (queryKeysRelatedToEntityType == null)
 		{
 			return;
 		}
-		HashMap<IQueryKey, Reference<IQueryResultCacheItem>> queryKeyToObjRefMap = this.queryKeyToObjRefMap;
 		for (IQueryKey queryKeyRelatedToEntityType : queryKeysRelatedToEntityType)
 		{
 			queryKeyToObjRefMap.remove(queryKeyRelatedToEntityType);

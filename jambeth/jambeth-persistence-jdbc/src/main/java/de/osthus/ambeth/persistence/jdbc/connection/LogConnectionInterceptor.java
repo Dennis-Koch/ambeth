@@ -22,21 +22,18 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.event.ConnectionClosedEvent;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.IPrintable;
 
-public class LogConnectionInterceptor implements MethodInterceptor
+public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 {
 	public static final Method createStatementMethod;
 
 	public static final Method isClosedMethod, closeMethod, pooledCloseMethod, toStringMethod;
 
 	public static final Method unwrapMethod, isWrapperForMethod;
-
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -91,12 +88,8 @@ public class LogConnectionInterceptor implements MethodInterceptor
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (connection == null)
 		{
 			if (isClosedMethod.equals(method))

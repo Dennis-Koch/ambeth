@@ -928,14 +928,13 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	}
 
 	@Override
-	public IOperand function(String name, IOperand... parameters)
+	public IOperand function(String name, IOperand... operands)
 	{
 		ParamChecker.assertParamNotNull(name, "name");
-		ParamChecker.assertParamNotNull(parameters, "parameters");
+		ParamChecker.assertParamNotNull(operands, "operands");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Parameters", parameters)
-					.finish();
+			return getBeanContext().registerAnonymousBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
 		}
 		catch (Throwable e)
 		{

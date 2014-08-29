@@ -107,6 +107,7 @@
     <Compile Include="ambeth\model\IMethodDescription.cs" />
     <Compile Include="ambeth\model\INotifyPropertyChangedSource.cs" />
     <Compile Include="ambeth\proxy\AbstractInterceptor.cs" />
+    <Compile Include="ambeth\proxy\AbstractSimpleInterceptor.cs" />
     <Compile Include="ambeth\proxy\DelegateInterceptor.cs" />
     <Compile Include="ambeth\proxy\IProxyFactory.cs" />
     <Compile Include="ambeth\proxy\ITargetProvider.cs" />

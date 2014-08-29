@@ -7,12 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.persistence.PersistenceException;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -64,20 +62,19 @@ public class JDBCSqlConnection extends SqlConnection
 	}
 
 	@Override
-	protected void queueSqlExecute(String sql, ILinkedMap<Integer, Object> params)
+	protected void queueSqlExecute(String sql, List<Object> parameters)
 	{
 		Statement stm = null;
 		try
 		{
-			if (params != null)
+			if (parameters != null)
 			{
 				PreparedStatement pstm = connection.prepareStatement(sql);
 				stm = pstm;
-				for (Entry<Integer, Object> entry : params)
+				for (int index = 0, size = parameters.size(); index < size; index++)
 				{
-					Integer index = entry.getKey();
-					Object value = entry.getValue();
-					pstm.setObject(index.intValue(), value);
+					Object value = parameters.get(index);
+					pstm.setObject(index + 1, value);
 				}
 				pstm.execute();
 			}
@@ -121,14 +118,14 @@ public class JDBCSqlConnection extends SqlConnection
 	}
 
 	@Override
-	protected IResultSet sqlSelect(String sql, ILinkedMap<Integer, Object> params)
+	protected IResultSet sqlSelect(String sql, List<Object> parameters)
 	{
 		ResultSet resultSet = null;
 		Statement stm = null;
 		boolean success = false;
 		try
 		{
-			if (params != null)
+			if (parameters != null)
 			{
 				IList<Object> arraysToDispose = null;
 				IConnectionExtension connectionExtension = this.connectionExtension;
@@ -136,10 +133,9 @@ public class JDBCSqlConnection extends SqlConnection
 				{
 					PreparedStatement pstm = connection.prepareStatement(sql);
 					stm = pstm;
-					for (Entry<Integer, Object> entry : params)
+					for (int index = 0, size = parameters.size(); index < size; index++)
 					{
-						Integer index = entry.getKey();
-						Object value = entry.getValue();
+						Object value = parameters.get(index);
 						if (value instanceof ArrayQueryItem)
 						{
 							ArrayQueryItem aqi = (ArrayQueryItem) value;
@@ -151,7 +147,7 @@ public class JDBCSqlConnection extends SqlConnection
 							}
 							arraysToDispose.add(value);
 						}
-						pstm.setObject(index.intValue(), value);
+						pstm.setObject(index + 1, value);
 					}
 					resultSet = pstm.executeQuery();
 				}

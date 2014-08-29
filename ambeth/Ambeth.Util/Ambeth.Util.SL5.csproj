@@ -159,6 +159,7 @@
     <Compile Include="ambeth\model\IDataObject.cs" />
     <Compile Include="ambeth\model\IMethodDescription.cs" />
     <Compile Include="ambeth\proxy\AbstractInterceptor.cs" />
+    <Compile Include="ambeth\proxy\AbstractSimpleInterceptor.cs" />
     <Compile Include="ambeth\proxy\CascadedInterceptor.cs" />
     <Compile Include="ambeth\proxy\DefaultProxyOptionsFactory.cs" />
     <Compile Include="ambeth\proxy\DelegateInterceptor.cs" />

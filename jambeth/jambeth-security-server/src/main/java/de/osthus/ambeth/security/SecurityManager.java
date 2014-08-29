@@ -67,7 +67,7 @@ public class SecurityManager implements ISecurityManager, IMergeSecurityManager,
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;

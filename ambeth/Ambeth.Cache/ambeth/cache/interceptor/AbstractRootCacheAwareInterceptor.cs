@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public abstract class AbstractRootCacheAwareInterceptor : IThreadLocalCleanupBean
+    public abstract class AbstractRootCacheAwareInterceptor : AbstractSimpleInterceptor, IThreadLocalCleanupBean
     {
         protected static readonly MethodInfo clearMethod;
 

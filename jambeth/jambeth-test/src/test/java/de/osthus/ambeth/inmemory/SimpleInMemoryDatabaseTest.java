@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+
+import javax.persistence.OptimisticLockException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,19 +14,25 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
+import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.database.ITransactionListenerExtendable;
+import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseFailEvent;
+import de.osthus.ambeth.event.DatabasePreCommitEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.inmemory.SimpleInMemoryDatabaseTest.SimpleInMemoryDatabaseTestModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdEntity;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
 import de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity;
@@ -33,6 +42,8 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.util.MultithreadingHelper;
 
 @TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/inmemory/simpleinmemory_orm.xml")
@@ -45,10 +56,11 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 		{
 			IBeanConfiguration inMemoryDatabase = beanContextFactory.registerAnonymousBean(SimpleInMemoryDatabase.class);
 
-			beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
-			beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
+			// beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabaseAcquire").to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
 			// beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseCommitEvent.class);
-			beanContextFactory.link(inMemoryDatabase).to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabasePreCommit").to(IEventListenerExtendable.class).with(DatabasePreCommitEvent.class);
+			beanContextFactory.link(inMemoryDatabase, "handleDatabaseFail").to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);
 
 			beanContextFactory.link(inMemoryDatabase).to(ICacheRetrieverExtendable.class).with(AlternateIdEntity.class);
 			beanContextFactory.link(inMemoryDatabase).to(IMergeServiceExtensionExtendable.class).with(AlternateIdEntity.class);
@@ -137,6 +149,130 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
 
 		Assert.assertSame(entityFromCacheById, entityFromCacheByIdAfterChange);
+	}
+
+	@Test
+	@TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "5"),
+			@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "5") })
+	public void isolationLevel()
+	{
+		final ICache cache = beanContext.getService(ICache.class);
+		final String name1;
+		final int id;
+		{
+			AlternateIdEntity entity = createEntity();
+			id = entity.getId();
+			name1 = entity.getName();
+			beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+		}
+		final CyclicBarrier[] barrier = new CyclicBarrier[6];
+		for (int a = barrier.length; a-- > 0;)
+		{
+			barrier[a] = new CyclicBarrier(3);
+		}
+		Runnable run1 = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					final AlternateIdEntity entity = cache.getObject(AlternateIdEntity.class, id);
+					barrier[0].await();
+					transaction.processAndCommit(new DatabaseCallback()
+					{
+						@Override
+						public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+						{
+							entity.setName(name1 + "1");
+							service.updateAlternateIdEntity(entity);
+							entity.setName(name1 + "11");
+							service.updateAlternateIdEntity(entity);
+							barrier[1].await();
+							barrier[2].await();
+						}
+					});
+					barrier[3].await();
+					barrier[4].await();
+					barrier[5].await();
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		};
+		Runnable run2 = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					final AlternateIdEntity entity = cache.getObject(AlternateIdEntity.class, id);
+					barrier[0].await();
+					barrier[1].await();
+					try
+					{
+						transaction.processAndCommit(new DatabaseCallback()
+						{
+							@Override
+							public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+							{
+								entity.setName(name1 + "2");
+								service.updateAlternateIdEntity(entity);
+							}
+						});
+						throw new IllegalStateException(OptimisticLockException.class.getSimpleName() + " expected");
+					}
+					catch (OptimisticLockException e)
+					{
+						// intended blank
+					}
+					barrier[2].await();
+					barrier[3].await();
+					barrier[4].await();
+					try
+					{
+						service.updateAlternateIdEntity(entity);
+						throw new IllegalStateException(OptimisticLockException.class.getSimpleName() + " expected");
+					}
+					catch (OptimisticLockException e)
+					{
+						// intended blank
+					}
+					barrier[5].await();
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		};
+		Runnable run3 = new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try
+				{
+					barrier[0].await();
+					barrier[1].await();
+					barrier[2].await();
+					barrier[3].await();
+					barrier[4].await();
+					barrier[5].await();
+					AlternateIdEntity entity = cache.getObject(AlternateIdEntity.class, id);
+					entity.setName(name1 + "3");
+					service.updateAlternateIdEntity(entity);
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+		};
+		MultithreadingHelper.invokeInParallel(beanContext, run1, run2, run3);
 	}
 
 	@Test

@@ -20,7 +20,7 @@ using De.Osthus.Ambeth.Security;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class TransactionalRootCacheInterceptor : AbstractRootCacheAwareInterceptor, IInterceptor, ITransactionalRootCache,
+    public class TransactionalRootCacheInterceptor : AbstractRootCacheAwareInterceptor, ITransactionalRootCache,
             ISecondLevelCacheManager
     {
         [LogInstance]
@@ -140,7 +140,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             if (clearMethod.Equals(invocation.Method))
             {

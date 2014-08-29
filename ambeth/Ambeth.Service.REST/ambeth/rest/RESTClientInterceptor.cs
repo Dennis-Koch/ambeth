@@ -27,10 +27,11 @@ using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Security.Transfer;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Rest
 {
-    public class RESTClientInterceptor : IRemoteInterceptor, IInitializingBean, IOfflineListener
+    public class RESTClientInterceptor : AbstractSimpleInterceptor, IRemoteInterceptor, IInitializingBean, IOfflineListener
     {
         public const String DEFLATE_MIME_TYPE = "application/octet-stream";
 
@@ -89,7 +90,7 @@ namespace De.Osthus.Ambeth.Rest
             //bool httpsResult = WebRequest.RegisterPrefix("https://", WebRequestCreator.ClientHttp);
         }
 
-        public virtual void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             if (GuiThreadHelper != null && GuiThreadHelper.IsInGuiThread())
             {

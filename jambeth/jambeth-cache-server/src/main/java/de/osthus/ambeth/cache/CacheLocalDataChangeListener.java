@@ -3,58 +3,33 @@ package de.osthus.ambeth.cache;
 import java.util.Arrays;
 import java.util.List;
 
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.event.IEventTargetEventListener;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
-import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
+import de.osthus.ambeth.merge.event.DataChangeOfSession;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CacheLocalDataChangeListener implements IEventListener, IEventTargetEventListener, IInitializingBean
+public class CacheLocalDataChangeListener implements IEventListener, IEventTargetEventListener
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IEventListener cacheDataChangeListener;
 
+	@Autowired
 	protected IEventTargetEventListener etCacheDataChangeListener;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected ITransactionState transactionState;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(cacheDataChangeListener, "CacheDataChangeListener");
-		ParamChecker.assertNotNull(etCacheDataChangeListener, "EtCacheDataChangeListener");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(transactionState, "TransactionState");
-	}
-
-	public void setCacheDataChangeListener(IEventListener cacheDataChangeListener)
-	{
-		this.cacheDataChangeListener = cacheDataChangeListener;
-	}
-
-	public void setEtCacheDataChangeListener(IEventTargetEventListener etCacheDataChangeListener)
-	{
-		this.etCacheDataChangeListener = etCacheDataChangeListener;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setTransactionState(ITransactionState transactionState)
-	{
-		this.transactionState = transactionState;
-	}
 
 	protected boolean isInTransaction()
 	{
@@ -68,7 +43,7 @@ public class CacheLocalDataChangeListener implements IEventListener, IEventTarge
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
 	{
-		if (!(eventObject instanceof LocalDataChangeEvent))
+		if (!(eventObject instanceof IDataChangeOfSession))
 		{
 			return;
 		}
@@ -76,7 +51,7 @@ public class CacheLocalDataChangeListener implements IEventListener, IEventTarge
 		{
 			return;
 		}
-		LocalDataChangeEvent localDCE = (LocalDataChangeEvent) eventObject;
+		IDataChangeOfSession localDCE = (IDataChangeOfSession) eventObject;
 		if (log.isDebugEnabled())
 		{
 			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "handleEvent() Transactional DCE: ", localDCE.getDataChange()));
@@ -87,7 +62,7 @@ public class CacheLocalDataChangeListener implements IEventListener, IEventTarge
 	@Override
 	public void handleEvent(Object eventObject, Object eventTarget, List<Object> pausedEventTargets, long dispatchTime, long sequenceId) throws Exception
 	{
-		if (!(eventObject instanceof LocalDataChangeEvent))
+		if (!(eventObject instanceof IDataChangeOfSession))
 		{
 			return;
 		}
@@ -95,7 +70,7 @@ public class CacheLocalDataChangeListener implements IEventListener, IEventTarge
 		{
 			return;
 		}
-		LocalDataChangeEvent localDCE = (LocalDataChangeEvent) eventObject;
+		DataChangeOfSession localDCE = (DataChangeOfSession) eventObject;
 		if (log.isDebugEnabled())
 		{
 			log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "handleEvent() Transactional DCE: ", localDCE.getDataChange(), ", ET:",

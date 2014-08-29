@@ -4,9 +4,8 @@ import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public final class SecurityContextHolder implements IAuthorizationChangeListenerExtendable
+public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder
 {
-
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
@@ -65,11 +64,23 @@ public final class SecurityContextHolder implements IAuthorizationChangeListener
 
 	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.security.ISecurityContextHolder#getContext()
+	 */
+	@Override
 	public ISecurityContext getContext()
 	{
 		return contextTL.get();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.security.ISecurityContextHolder#getCreateContext()
+	 */
+	@Override
 	public ISecurityContext getCreateContext()
 	{
 		ISecurityContext securityContext = getContext();
@@ -81,6 +92,12 @@ public final class SecurityContextHolder implements IAuthorizationChangeListener
 		return securityContext;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.security.ISecurityContextHolder#clearContext()
+	 */
+	@Override
 	public void clearContext()
 	{
 		ISecurityContext securityContext = contextTL.get();
@@ -91,6 +108,13 @@ public final class SecurityContextHolder implements IAuthorizationChangeListener
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see de.osthus.ambeth.security.ISecurityContextHolder#setScopedAuthentication(de.osthus.ambeth.security.IAuthentication,
+	 * de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate)
+	 */
+	@Override
 	public <R> R setScopedAuthentication(IAuthentication authentication, IResultingBackgroundWorkerDelegate<R> runnableScope) throws Throwable
 	{
 		ISecurityContext securityContext = getContext();

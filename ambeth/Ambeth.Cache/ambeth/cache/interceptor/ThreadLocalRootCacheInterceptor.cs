@@ -17,7 +17,7 @@ using De.Osthus.Ambeth.Config;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class ThreadLocalRootCacheInterceptor : AbstractRootCacheAwareInterceptor, IInterceptor
+    public class ThreadLocalRootCacheInterceptor : AbstractRootCacheAwareInterceptor
     {
         [LogInstance]
         public new ILogger Log { private get; set; }
@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             return rootCacheTL.Value;
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             if (clearMethod.Equals(invocation.Method))
             {

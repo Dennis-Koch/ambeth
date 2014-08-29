@@ -20,7 +20,6 @@ import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -28,13 +27,13 @@ import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.copy.IObjectCopier;
-import de.osthus.ambeth.database.ITransactionListener;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseFailEvent;
-import de.osthus.ambeth.event.IEventListener;
+import de.osthus.ambeth.event.DatabasePreCommitEvent;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeServiceExtension;
 import de.osthus.ambeth.merge.ITransactionState;
@@ -65,8 +64,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.Lock;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExtension, IInitializingBean, IEventListener, ITransactionListener,
-		IInMemoryDatabase
+public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExtension, IInitializingBean, IInMemoryDatabase, IThreadLocalCleanupBean
 {
 	protected static final Set<CacheDirective> failEntryLoadContainerResult = EnumSet.of(CacheDirective.FailEarly, CacheDirective.LoadContainerResult);
 
@@ -95,19 +93,28 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected RootCache committedData;
 
-	protected final java.util.concurrent.locks.Lock sessionLock = new ReentrantLock();
-
 	protected final java.util.concurrent.locks.Lock sequenceLock = new ReentrantLock();
 
-	protected final HashMap<Long, SimpleInMemorySession> sessionToStateMap = new HashMap<Long, SimpleInMemorySession>();
+	protected final ThreadLocal<SimpleInMemorySession> sessionTL = new ThreadLocal<SimpleInMemorySession>();
+
+	protected final HashSet<IObjRef> pendingChangesInSessionsMap = new HashSet<IObjRef>();
 
 	protected long sequenceValue = 0;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		committedData = beanContext.registerAnonymousBean(RootCache.class).propertyValue("WeakEntries", Boolean.FALSE)
-				.propertyValue("Privileged", Boolean.FALSE).ignoreProperties("CacheRetriever", "EventQueue").finish();
+		this.committedData = this.beanContext.registerAnonymousBean(RootCache.class)//
+				.propertyValue("WeakEntries", Boolean.FALSE)//
+				.propertyValue("Privileged", Boolean.TRUE)//
+				.ignoreProperties("CacheRetriever", "EventQueue", "PrivilegeProvider", "SecurityActivation", "SecurityScopeProvider")//
+				.finish();
+	}
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		this.sessionTL.remove();
 	}
 
 	//
@@ -130,93 +137,102 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	@Override
 	public void initialSetup(Collection<?> entities)
 	{
-		if (transactionState.isTransactionActive())
+		if (this.transactionState.isTransactionActive())
 		{
 			throw new UnsupportedOperationException();
 		}
-		committedData.put(entities);
+		this.committedData.put(entities);
 	}
 
-	@Override
-	public void handlePreCommit()
+	// @Override
+	// public void handlePostBegin(long sessionId) throws Throwable
+	// {
+	// handleDatabaseAcquire(Long.valueOf(sessionId));
+	// }
+	//
+	// @Override
+	// public void handlePostRollback(long sessionId) throws Throwable
+	// {
+	// handleDatabaseFail(Long.valueOf(sessionId));
+	// }
+	//
+	// @Override
+	// public void handlePreCommit(long sessionId) throws Throwable
+	// {
+	// handleDatabaseCommit(Long.valueOf(sessionId));
+	// }
+
+	// @Override
+	// public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
+	// {
+	// // if (eventObject instanceof DatabaseAcquireEvent)
+	// // {
+	// // handleDatabaseAcquire(Long.valueOf(((DatabaseAcquireEvent) eventObject).getSessionId()));
+	// // return;
+	// // }
+	// // if (eventObject instanceof DatabaseFailEvent)
+	// // {
+	// // handleDatabaseFail(Long.valueOf(((DatabaseFailEvent) eventObject).getSessionId()));
+	// // return;
+	// // }
+	// }
+
+	protected SimpleInMemorySession getOrCreateSession()
 	{
-		handleDatabaseCommit(Long.valueOf(database.getSessionId()));
+		SimpleInMemorySession session = this.sessionTL.get();
+		if (session != null)
+		{
+			return session;
+		}
+		RootCache transactionalData = this.beanContext.registerAnonymousBean(RootCache.class)//
+				.propertyValue("WeakEntries", Boolean.FALSE)//
+				.propertyValue("Privileged", Boolean.TRUE)//
+				.propertyValue("CacheRetriever", this.committedData)//
+				.ignoreProperties("EventQueue", "PrivilegeProvider", "SecurityActivation", "SecurityScopeProvider")//
+				.finish();
+		session = new SimpleInMemorySession(this, transactionalData);
+		this.sessionTL.set(session);
+		return session;
 	}
 
-	@Override
-	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
+	public void handleDatabaseAcquire(DatabaseAcquireEvent evnt)
 	{
-		if (eventObject instanceof DatabaseAcquireEvent)
-		{
-			handleDatabaseAcquire(Long.valueOf(((DatabaseAcquireEvent) eventObject).getSessionId()));
-			return;
-		}
-		if (eventObject instanceof DatabaseFailEvent)
-		{
-			handleDatabaseFail(Long.valueOf(((DatabaseFailEvent) eventObject).getSessionId()));
-			return;
-		}
+		// intended blank
 	}
 
-	protected void handleDatabaseAcquire(Long sessionId)
+	public void handleDatabaseFail(DatabaseFailEvent evnt)
 	{
-		Lock writeLock = committedData.getWriteLock();
-		writeLock.lock();
-		try
+		SimpleInMemorySession state = this.sessionTL.get();
+		if (state != null)
 		{
-			RootCache transactionalData = beanContext.registerAnonymousBean(RootCache.class).propertyValue("WeakEntries", Boolean.FALSE)
-					.propertyValue("Privileged", Boolean.FALSE).propertyValue("CacheRetriever", committedData).ignoreProperties("EventQueue").finish();
-			sessionToStateMap.put(sessionId, new SimpleInMemorySession(transactionalData));
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-	}
-
-	protected void handleDatabaseFail(Long sessionId)
-	{
-		sessionLock.lock();
-		try
-		{
-			SimpleInMemorySession state = sessionToStateMap.remove(sessionId);
-			if (state != null)
-			{
-				state.dispose();
-			}
-		}
-		finally
-		{
-			sessionLock.unlock();
+			this.sessionTL.remove();
+			state.dispose();
 		}
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void handleDatabaseCommit(Long sessionId)
+	public void handleDatabasePreCommit(DatabasePreCommitEvent evnt)
 	{
-		SimpleInMemorySession state = null;
+		SimpleInMemorySession session = this.sessionTL.get();
+		if (session == null)
+		{
+			// nothing do to
+			return;
+		}
+		this.sessionTL.remove();
 		try
 		{
-			sessionLock.lock();
-			try
-			{
-				state = sessionToStateMap.remove(sessionId);
-			}
-			finally
-			{
-				sessionLock.unlock();
-			}
-			if (state == null || (state.createdObjRefs.size() == 0 && state.updatedObjRefs.size() == 0 && state.deletedObjRefs.size() == 0))
+			if (session.createdObjRefs.size() == 0 && session.updatedObjRefs.size() == 0 && session.deletedObjRefs.size() == 0)
 			{
 				return;
 			}
 			// Save information into second level cache for committed data
-			IList<IObjRef> deletedObjRefs = state.deletedObjRefs.toList();
-			IList<IObjRef> createdObjRefs = state.createdObjRefs.toList();
-			IList<IObjRef> updatedObjRefs = state.updatedObjRefs.toList();
-			List updatedContent = state.data.getObjects(updatedObjRefs, CacheDirective.cacheValueResult());
-			List createdContent = state.data.getObjects(createdObjRefs, CacheDirective.cacheValueResult());
-			Lock writeLock = committedData.getWriteLock();
+			IList<IObjRef> deletedObjRefs = session.deletedObjRefs.toList();
+			IList<IObjRef> createdObjRefs = session.createdObjRefs.toList();
+			IList<IObjRef> updatedObjRefs = session.updatedObjRefs.toList();
+			List updatedContent = session.data.getObjects(updatedObjRefs, CacheDirective.cacheValueResult());
+			List createdContent = session.data.getObjects(createdObjRefs, CacheDirective.cacheValueResult());
+			Lock writeLock = this.committedData.getWriteLock();
 			writeLock.lock();
 			try
 			{
@@ -230,7 +246,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 				if (existingObjRefs.size() > 0)
 				{
-					IList<Object> existingCommittedValues = committedData.getObjects(existingObjRefs,
+					IList<Object> existingCommittedValues = this.committedData.getObjects(existingObjRefs,
 							EnumSet.of(CacheDirective.ReturnMisses, CacheDirective.CacheValueResult));
 					for (int a = existingCommittedValues.size(); a-- > 0;)
 					{
@@ -240,17 +256,17 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 						{
 							throw new OptimisticLockException("Object not found or outdated: " + objRef);
 						}
-						IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+						IEntityMetaData metaData = this.entityMetaDataProvider.getMetaData(objRef.getRealType());
 						checkVersionForOptimisticLock(metaData, objRef, existingCommittedValue);
 					}
 				}
 				if (deletedObjRefs.size() > 0)
 				{
-					committedData.remove(deletedObjRefs);
+					this.committedData.remove(deletedObjRefs);
 				}
 				if (changedContent.size() > 0)
 				{
-					committedData.put(changedContent);
+					this.committedData.put(changedContent);
 				}
 			}
 			finally
@@ -260,28 +276,18 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		finally
 		{
-			if (state != null)
-			{
-				state.dispose();
-			}
+			session.dispose();
 		}
 	}
 
 	protected IRootCache getData()
 	{
-		if (transactionState.isTransactionActive())
+		SimpleInMemorySession session = this.sessionTL.get();
+		if (session == null)
 		{
-			sessionLock.lock();
-			try
-			{
-				return sessionToStateMap.get(Long.valueOf(database.getSessionId())).data;
-			}
-			finally
-			{
-				sessionLock.unlock();
-			}
+			return this.committedData;
 		}
-		return committedData;
+		return session.data;
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -302,60 +308,63 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public IOriCollection merge(ICUDResult cudResult, IMethodDescription methodDescription)
 	{
-		if (!transactionState.isTransactionActive())
+		if (!this.transactionState.isTransactionActive())
 		{
 			throw new IllegalStateException("No transaction active. This operation-mode is currently not supported!");
 		}
+		IConversionHelper conversionHelper = this.conversionHelper;
+		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		List<IChangeContainer> changes = cudResult.getAllChanges();
 		IdentityHashMap<IObjRef, IObjRef> givenObjRefToCopyMap = new IdentityHashMap<IObjRef, IObjRef>();
 		IdentityHashMap<IObjRef, ILoadContainer> alreadyAcquiredLoadContainerMap = new IdentityHashMap<IObjRef, ILoadContainer>();
 
-		SimpleInMemorySession state = null;
-		sessionLock.lock();
-		try
-		{
-			state = sessionToStateMap.get(Long.valueOf(database.getSessionId()));
-		}
-		finally
-		{
-			sessionLock.unlock();
-		}
+		SimpleInMemorySession session = getOrCreateSession();
 		ArrayList<IObjRef> objRefList = new ArrayList<IObjRef>(changes.size());
 		LoadContainer[] newLCs = new LoadContainer[changes.size()];
-		de.osthus.ambeth.util.Lock writeLock = committedData.getWriteLock();
+		de.osthus.ambeth.util.Lock writeLock = session.data.getWriteLock();
 		writeLock.lock();
 		try
 		{
 			buildCopyOfAllObjRefs(changes, givenObjRefToCopyMap);
+			IObjRef[] changedOrDeletedObjRefs = new IObjRef[changes.size()];
 			for (int a = 0, size = changes.size(); a < size; a++)
 			{
 				IChangeContainer changeContainer = changes.get(a);
-				IObjRef objRef = changeContainer.getReference();
-				objRef = givenObjRefToCopyMap.get(objRef);
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
-				if (changeContainer instanceof DeleteContainer)
+				if (changeContainer instanceof CreateContainer)
 				{
-					ILoadContainer existingLC = (ILoadContainer) committedData.getObject(objRef, CacheDirective.loadContainerResult());
-					if (existingLC == null)
-					{
-						throw new OptimisticLockException("Object not found to delete: " + objRef);
-					}
-					checkVersionForOptimisticLock(metaData, objRef, existingLC);
 					continue;
 				}
+				IObjRef objRef = changeContainer.getReference();
+				objRef = givenObjRefToCopyMap.get(objRef);
+				changedOrDeletedObjRefs[a] = objRef;
+			}
+			IList<Object> existingLCs = session.data.getObjects(changedOrDeletedObjRefs,
+					EnumSet.of(CacheDirective.LoadContainerResult, CacheDirective.ReturnMisses));
+			for (int a = 0, size = changes.size(); a < size; a++)
+			{
+				IChangeContainer changeContainer = changes.get(a);
+				ILoadContainer existingLC = (ILoadContainer) existingLCs.get(a);
+				IObjRef objRef = changeContainer.getReference();
+				objRef = givenObjRefToCopyMap.get(objRef);
 				boolean isUpdate = (changeContainer instanceof UpdateContainer);
-				ILoadContainer oldLC = null;
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+				if (!(changeContainer instanceof CreateContainer))
+				{
+					if (existingLC == null)
+					{
+						throw new OptimisticLockException("Object not found to " + (isUpdate ? "update: " : "delete: ") + objRef);
+					}
+					checkVersionForOptimisticLock(metaData, objRef, existingLC);
+					if (!isUpdate)
+					{
+						continue;
+					}
+				}
 				IPrimitiveUpdateItem[] puis;
 				IRelationUpdateItem[] ruis;
 				if (isUpdate)
 				{
-					oldLC = (ILoadContainer) committedData.getObject(objRef, CacheDirective.loadContainerResult());
-					if (oldLC == null)
-					{
-						throw new OptimisticLockException("Object not found to update: " + objRef);
-					}
-					checkVersionForOptimisticLock(metaData, objRef, oldLC);
-					alreadyAcquiredLoadContainerMap.put(objRef, oldLC);
+					alreadyAcquiredLoadContainerMap.put(objRef, existingLC);
 					puis = ((UpdateContainer) changeContainer).getPrimitives();
 					ruis = ((UpdateContainer) changeContainer).getRelations();
 				}
@@ -368,15 +377,15 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 				LoadContainer newLC = createNewLoadContainer(metaData, objRef, isUpdate);
 				if (isUpdate)
 				{
-					Object[] primitives = oldLC.getPrimitives();
+					Object[] primitives = existingLC.getPrimitives();
 					if (primitives.length > 0)
 					{
 						Object[] newPrimitives = newLC.getPrimitives();
 						System.arraycopy(primitives, 0, newPrimitives, 0, primitives.length);
 					}
-					setPrimitives(metaData, puis, newLC);
+					updatePrimitives(metaData, puis, newLC);
 					setUpdated(metaData, newLC);
-					IObjRef[][] relations = oldLC.getRelations();
+					IObjRef[][] relations = existingLC.getRelations();
 					if (relations.length > 0)
 					{
 						IObjRef[][] newRelations = newLC.getRelations();
@@ -399,7 +408,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 				}
 				else
 				{
-					setPrimitives(metaData, puis, newLC);
+					updatePrimitives(metaData, puis, newLC);
 					setCreated(metaData, newLC);
 					if (metaData.getVersionMember() == null)
 					{
@@ -411,10 +420,11 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 						newLC.getReference().setVersion(version);
 					}
 				}
-				setRelations(metaData, ruis, newLC, givenObjRefToCopyMap);
+				updateRelations(metaData, ruis, newLC, givenObjRefToCopyMap);
 				newLCs[a] = newLC;
 			}
-			doChanges(newLCs, changes, objRefList, givenObjRefToCopyMap, state);
+			markChangesOfSession(changedOrDeletedObjRefs, session);
+			doChanges(newLCs, changes, objRefList, givenObjRefToCopyMap, session);
 
 			OriCollection oriCollection = new OriCollection(objectCopier.clone(objRefList));
 			IContextProvider contextProvider = database.getContextProvider();
@@ -425,6 +435,61 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		finally
 		{
 			writeLock.unlock();
+		}
+	}
+
+	protected void markChangesOfSession(IObjRef[] changedOrDeletedObjRefs, SimpleInMemorySession session)
+	{
+		sequenceLock.lock();
+		try
+		{
+			for (int a = changedOrDeletedObjRefs.length; a-- > 0;)
+			{
+				IObjRef changedOrDeletedObjRef = changedOrDeletedObjRefs[a];
+				if (changedOrDeletedObjRef == null)
+				{
+					// this is an insert which can never collide due to our consistent sequencing
+					continue;
+				}
+				// check if it is a new change in our session
+				if (!session.changesOfSession.add(changedOrDeletedObjRef))
+				{
+					IObjRef existingChangedOrDeletedObjRef = session.changesOfSession.get(changedOrDeletedObjRef);
+					existingChangedOrDeletedObjRef.setVersion(changedOrDeletedObjRef.getVersion());
+					// is is nothing new for our session. so we know we have already registered it globally, too
+					continue;
+				}
+				if (pendingChangesInSessionsMap.add(changedOrDeletedObjRef))
+				{
+					// everything ok our global registration was a success
+					continue;
+				}
+				// cleanup previous successful (but not obsolete) registrations in the global map
+				int cleanupIndex = a + 1;
+				for (int b = changedOrDeletedObjRefs.length; b-- > cleanupIndex;)
+				{
+					pendingChangesInSessionsMap.remove(changedOrDeletedObjRefs[b]);
+				}
+				IObjRef concurrentTransactionObjRef = pendingChangesInSessionsMap.get(changedOrDeletedObjRef);
+				throw new OptimisticLockException("Object is already modified in a concurrent transaction: " + concurrentTransactionObjRef);
+			}
+		}
+		finally
+		{
+			sequenceLock.unlock();
+		}
+	}
+
+	public void releaseChangesOfSession(ISet<IObjRef> changesOfSession)
+	{
+		sequenceLock.lock();
+		try
+		{
+			pendingChangesInSessionsMap.removeAll(changesOfSession);
+		}
+		finally
+		{
+			sequenceLock.unlock();
 		}
 	}
 
@@ -442,7 +507,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected void buildCopyOfAllObjRefs(List<IChangeContainer> changes, IMap<IObjRef, IObjRef> givenObjRefToCopyMap)
 	{
-		sequenceLock.lock();
+		this.sequenceLock.lock();
 		try
 		{
 			for (int a = 0, size = changes.size(); a < size; a++)
@@ -452,7 +517,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		finally
 		{
-			sequenceLock.unlock();
+			this.sequenceLock.unlock();
 		}
 	}
 
@@ -470,7 +535,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			IObjRef newObjRef = givenObjRefToCopyMap.get(objRef);
 			if (newObjRef == null)
 			{
-				newObjRef = new ObjRef(objRef.getRealType(), ObjRef.PRIMARY_KEY_INDEX, Long.valueOf(++sequenceValue), null);
+				newObjRef = new ObjRef(objRef.getRealType(), ObjRef.PRIMARY_KEY_INDEX, Long.valueOf(++this.sequenceValue), null);
 				givenObjRefToCopyMap.put(objRef, newObjRef);
 				givenObjRefToCopyMap.put(newObjRef, newObjRef);
 			}
@@ -515,13 +580,13 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		else if (isUpdate)
 		{
-			Number oldVersion = conversionHelper.convertValueToType(Number.class, objRef.getVersion());
-			Object version = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), Long.valueOf(oldVersion.longValue() + 1));
+			Number oldVersion = this.conversionHelper.convertValueToType(Number.class, objRef.getVersion());
+			Object version = this.conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), Long.valueOf(oldVersion.longValue() + 1));
 			objRef.setVersion(version);
 		}
 		else
 		{
-			Object version = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), Integer.valueOf(1));
+			Object version = this.conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), Long.valueOf(1));
 			objRef.setVersion(version);
 		}
 		LoadContainer newLC = new LoadContainer();
@@ -537,17 +602,17 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	}
 
 	protected void doChanges(ILoadContainer[] newLCs, List<IChangeContainer> changes, List<IObjRef> objRefList, Map<IObjRef, IObjRef> givenToInternalObjRefMap,
-			SimpleInMemorySession state)
+			SimpleInMemorySession session)
 	{
-		IChangeAggregator changeAggregator = beanContext.registerAnonymousBean(ChangeAggregator.class).finish();
-		IList<IObjRef> toRemove = new ArrayList<IObjRef>();
+		IChangeAggregator changeAggregator = this.beanContext.registerAnonymousBean(ChangeAggregator.class).finish();
+		IList<IObjRef> toRemove = new ArrayList<IObjRef>(newLCs.length);
 		for (int a = newLCs.length; a-- > 0;)
 		{
 			IObjRef objRef = givenToInternalObjRefMap.get(changes.get(a).getReference());
 			toRemove.add(objRef);
 		}
-		state.data.remove(toRemove);
-		state.data.put(newLCs);
+		session.data.remove(toRemove);
+		session.data.put(newLCs);
 		for (int a = 0, size = newLCs.length; a < size; a++)
 		{
 			ILoadContainer newLC = newLCs[a];
@@ -556,18 +621,18 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			{
 				objRefList.add(null);
 				changeAggregator.dataChangeDelete(oldObjRef);
-				if (state.createdObjRefs.remove(oldObjRef))
+				if (session.createdObjRefs.remove(oldObjRef))
 				{
 					// object has been created & deleted within same session
 					// nothing to do regarding commit
 					continue;
 				}
-				if (state.updatedObjRefs.remove(oldObjRef))
+				if (session.updatedObjRefs.remove(oldObjRef))
 				{
 					// object has been updated & deleted within same session
 				}
 				// so our delete is the real thing we are interested in
-				state.deletedObjRefs.add(oldObjRef); // intentionally the "oldObjRef" because on the OptimisticLockCheck in preCommit we need the ORIGINAL
+				session.deletedObjRefs.add(oldObjRef); // intentionally the "oldObjRef" because on the OptimisticLockCheck in preCommit we need the ORIGINAL
 				// version
 				continue;
 			}
@@ -577,17 +642,17 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			if (changes.get(a) instanceof CreateContainer)
 			{
 				changeAggregator.dataChangeInsert(objRef);
-				state.createdObjRefs.add(objRef);
+				session.createdObjRefs.add(objRef);
 			}
 			else
 			{
-				if (state.createdObjRefs.contains(objRef))
+				if (session.createdObjRefs.contains(objRef))
 				{
 					// object has been created & update within same session
 					// so the "created" is the main important thing regarding commit
 					continue;
 				}
-				state.updatedObjRefs.add(oldObjRef); // intentionally the "oldObjRef" because on the OptimisticLockCheck in preCommit we need the ORIGINAL
+				session.updatedObjRefs.add(oldObjRef); // intentionally the "oldObjRef" because on the OptimisticLockCheck in preCommit we need the ORIGINAL
 														// version
 				changeAggregator.dataChangeUpdate(objRef);
 			}
@@ -598,7 +663,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	@SuppressWarnings("unchecked")
 	protected void checkVersionForOptimisticLock(IEntityMetaData metaData, IObjRef objRef, Object oldLC)
 	{
-		Object requestedVersion = conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), objRef.getVersion());
+		Object requestedVersion = this.conversionHelper.convertValueToType(metaData.getVersionMember().getRealType(), objRef.getVersion());
 		if (requestedVersion == null)
 		{
 			throw new OptimisticLockException("Mandatory entity version not provided: " + objRef);
@@ -620,7 +685,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected void setCreated(IEntityMetaData metaData, ILoadContainer lc)
 	{
-		IContextProvider contextProvider = database.getContextProvider();
+		IContextProvider contextProvider = this.database.getContextProvider();
 		String currentUser = contextProvider.getCurrentUser();
 		Long currentTime = contextProvider.getCurrentTime();
 		Object[] primitives = lc.getPrimitives();
@@ -638,7 +703,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected void setUpdated(IEntityMetaData metaData, ILoadContainer lc)
 	{
-		IContextProvider contextProvider = database.getContextProvider();
+		IContextProvider contextProvider = this.database.getContextProvider();
 		String currentUser = contextProvider.getCurrentUser();
 		Long currentTime = contextProvider.getCurrentTime();
 		Object[] primitives = lc.getPrimitives();
@@ -654,7 +719,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 	}
 
-	protected void setPrimitives(IEntityMetaData metaData, IPrimitiveUpdateItem[] puis, ILoadContainer lc)
+	protected void updatePrimitives(IEntityMetaData metaData, IPrimitiveUpdateItem[] puis, ILoadContainer lc)
 	{
 		if (puis == null)
 		{
@@ -668,17 +733,17 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
 			ITypeInfoItem primitiveMember = primitiveMembers[primitiveIndex];
 
-			Object value = conversionHelper.convertValueToType(primitiveMember.getRealType(), pui.getNewValue());
+			Object value = this.conversionHelper.convertValueToType(primitiveMember.getRealType(), pui.getNewValue());
 			if (value instanceof Date)
 			{
 				// optimize later clone performance (because Long is immutable)
-				value = conversionHelper.convertValueToType(Long.class, value);
+				value = this.conversionHelper.convertValueToType(Long.class, value);
 			}
 			primitives[primitiveIndex] = value;
 		}
 	}
 
-	protected void setRelations(IEntityMetaData metaData, IRelationUpdateItem[] ruis, ILoadContainer lc, Map<IObjRef, IObjRef> givenToInternalObjRefMap)
+	protected void updateRelations(IEntityMetaData metaData, IRelationUpdateItem[] ruis, ILoadContainer lc, Map<IObjRef, IObjRef> givenToInternalObjRefMap)
 	{
 		if (ruis == null)
 		{
@@ -705,7 +770,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 					if (!existingObjRefsSet.remove(removedObjRef))
 					{
 						throw new PersistenceException("Relation to remove does not exist: " + removedObjRef + " on member '" + relationMember.getName() + "' "
-								+ lc.getReference() + "");
+								+ primaryObjRef + "");
 					}
 				}
 			}
@@ -716,7 +781,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 					if (!existingObjRefsSet.add(givenToInternalObjRefMap.get(addedObjRef)))
 					{
 						throw new PersistenceException("Relation to add does already exist: " + addedObjRef + " on member '" + relationMember.getName() + "' "
-								+ lc.getReference() + "");
+								+ primaryObjRef + "");
 					}
 				}
 			}

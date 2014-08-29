@@ -10,8 +10,8 @@ import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 
 /**
- * Abstract test class easing usage of IOC containers in test scenarios. Isolated modules can be registered with the <code>TestModule</code> annotation. The
- * test itself will be registered as a bean within the IOC container. Therefore it can consume any components for testing purpose and behave like a productively
+ * Abstract test class easing usage of IoC containers in test scenarios. Isolated modules can be registered with the <code>TestModule</code> annotation. The
+ * test itself will be registered as a bean within the IoC container. Therefore it can consume any components for testing purpose and behave like a productively
  * bean.
  * 
  * In addition to registering custom modules the environment can be constructed for specific testing purpose with the <code>TestProperties</code> annotation.
@@ -21,11 +21,10 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
  */
 @RunWith(AmbethIocRunner.class)
 @TestFrameworkModule({ IocBootstrapModule.class })
-@TestPropertiesList({
-		@TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
+@TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "true"),
 		@TestProperties(name = IocConfigurationConstants.DebugModeActive, value = "true"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.accessor.AccessorTypeProvider", value = "INFO"),
-		// @TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "WARN"),
+		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.core.BytecodeEnhancer", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.ClassWriter", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.bytecode.visitor.LogImplementationsClassVisitor", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.template.PropertyChangeTemplate", value = "INFO") })

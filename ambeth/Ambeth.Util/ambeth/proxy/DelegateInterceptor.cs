@@ -8,7 +8,7 @@ using Castle.Core.Interceptor;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public class DelegateInterceptor : IInterceptor
+    public class DelegateInterceptor : AbstractSimpleInterceptor
     {
         protected readonly Object target;
 
@@ -20,7 +20,7 @@ namespace De.Osthus.Ambeth.Proxy
             this.methodMap = methodMap;
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             MethodInfo mappedMethod = methodMap.Get(invocation.Method);
             if (mappedMethod == null)

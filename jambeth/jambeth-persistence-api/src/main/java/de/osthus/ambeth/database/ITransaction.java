@@ -4,6 +4,8 @@ public interface ITransaction
 {
 	boolean isActive();
 
+	ITransactionInfo getTransactionInfo();
+
 	void begin(boolean readOnly);
 
 	void commit();

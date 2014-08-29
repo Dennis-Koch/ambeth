@@ -15,14 +15,20 @@ public class SimpleInMemorySession implements IDisposable
 
 	protected final HashSet<IObjRef> deletedObjRefs = new HashSet<IObjRef>();
 
-	public SimpleInMemorySession(RootCache data)
+	protected final HashSet<IObjRef> changesOfSession = new HashSet<IObjRef>();
+
+	protected final SimpleInMemoryDatabase inMemoryDatabase;
+
+	public SimpleInMemorySession(SimpleInMemoryDatabase inMemoryDatabase, RootCache data)
 	{
+		this.inMemoryDatabase = inMemoryDatabase;
 		this.data = data;
 	}
 
 	@Override
 	public void dispose()
 	{
+		inMemoryDatabase.releaseChangesOfSession(changesOfSession);
 		data.dispose();
 	}
 }

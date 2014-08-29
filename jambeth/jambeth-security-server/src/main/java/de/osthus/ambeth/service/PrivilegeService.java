@@ -45,10 +45,10 @@ import de.osthus.ambeth.privilege.transfer.TypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.TypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
-import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
@@ -98,7 +98,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	protected ISecurityActivation securityActivation;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;

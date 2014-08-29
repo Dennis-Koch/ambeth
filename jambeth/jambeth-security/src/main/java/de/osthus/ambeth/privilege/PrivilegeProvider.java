@@ -41,8 +41,8 @@ import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -135,7 +135,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	protected IPrivilegeService privilegeService;
 
 	@Autowired
-	protected SecurityContextHolder securityContextHolder;
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;

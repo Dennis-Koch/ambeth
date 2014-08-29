@@ -33,7 +33,7 @@ namespace De.Osthus.Ambeth.Proxy
 
         public Type WCFInterfaceType { get; set; }
 
-        public override void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             MethodInfo method = FindMethodOnInterface(invocation.Method);
 

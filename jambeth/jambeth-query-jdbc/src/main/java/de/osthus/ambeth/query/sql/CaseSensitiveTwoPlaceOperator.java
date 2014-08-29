@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
@@ -45,7 +46,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	}
 
 	@Override
-	protected void processLeftOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
+	protected void processLeftOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters)
 			throws IOException
 	{
 		boolean caseSensitive = this.caseSensitive;
@@ -64,7 +65,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 				querySB.append(") COLUMN_VALUE");
 			}
 			querySB.append(" FROM TABLE(");
-			leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, params);
+			leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			querySB.append(")");
 			return;
 		}
@@ -72,7 +73,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		{
 			querySB.append("LOWER(");
 		}
-		super.processLeftOperandAspect(querySB, nameToValueMap, joinQuery, params);
+		super.processLeftOperandAspect(querySB, nameToValueMap, joinQuery, parameters);
 		if (!caseSensitive)
 		{
 			querySB.append(')');
@@ -86,20 +87,20 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 
 	@Override
 	protected void processRightOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
-			Map<Integer, Object> params) throws IOException
+			List<Object> parameters) throws IOException
 	{
 		if (supportsMultiValueOperand() && rightOperand instanceof IMultiValueOperand)
 		{
-			preProcessRightOperand(querySB, nameToValueMap, params);
-			handleMultiValueOperand((IMultiValueOperand) rightOperand, querySB, nameToValueMap, joinQuery, leftOperandFieldType, params);
-			postProcessRightOperand(querySB, nameToValueMap, params);
+			preProcessRightOperand(querySB, nameToValueMap, parameters);
+			handleMultiValueOperand((IMultiValueOperand) rightOperand, querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);
+			postProcessRightOperand(querySB, nameToValueMap, parameters);
 			return;
 		}
 		if (!caseSensitive)
 		{
 			querySB.append("LOWER(");
 		}
-		super.processRightOperandAspect(querySB, nameToValueMap, joinQuery, leftOperandFieldType, params);
+		super.processRightOperandAspect(querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);
 		if (!caseSensitive)
 		{
 			querySB.append(')');
@@ -107,11 +108,11 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	}
 
 	protected void handleMultiValueOperand(IMultiValueOperand operand, Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			Class<?> leftOperandFieldType, Map<Integer, Object> params) throws IOException
+			Class<?> leftOperandFieldType, List<Object> parameters) throws IOException
 	{
 		@SuppressWarnings("unchecked")
 		IList<IList<Object>> splitValues = (IList<IList<Object>>) nameToValueMap.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
-		if (params == null)
+		if (parameters == null)
 		{
 			if (splitValues != null)
 			{
@@ -136,7 +137,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 			if (values.size() > maxInClauseBatchThreshold)
 			{
 				splitValues = persistenceHelper.splitValues(values, maxInClauseBatchThreshold);
-				handleWithMultiValueLeftField(querySB, nameToValueMap, params, splitValues);
+				handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues);
 				return;
 			}
 			splitValues = persistenceHelper.splitValues(values);
@@ -144,15 +145,15 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 
 		if (!java.sql.Array.class.isAssignableFrom(leftOperandFieldType))
 		{
-			handleWithSingleValueLeftField(querySB, nameToValueMap, params, splitValues);
+			handleWithSingleValueLeftField(querySB, nameToValueMap, parameters, splitValues);
 		}
 		else
 		{
-			handleWithMultiValueLeftField(querySB, nameToValueMap, params, splitValues);
+			handleWithMultiValueLeftField(querySB, nameToValueMap, parameters, splitValues);
 		}
 	}
 
-	protected void handleWithSingleValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params,
+	protected void handleWithSingleValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters,
 			IList<IList<Object>> splitValues) throws IOException
 	{
 		if (splitValues.isEmpty())
@@ -178,7 +179,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 				querySB.append(",");
 			}
 			querySB.append(placeholder);
-			ParamsUtil.addParam(params, values.get(i));
+			ParamsUtil.addParam(parameters, values.get(i));
 		}
 
 		if (splitValues.size() > 1)
@@ -192,7 +193,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		}
 	}
 
-	protected void handleWithMultiValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params,
+	protected void handleWithMultiValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters,
 			IList<IList<Object>> splitValues) throws IOException
 	{
 		Class<?> leftOperandFieldType;
@@ -202,7 +203,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		{
 			// Special scenario with EMPTY argument
 			ArrayQueryItem aqi = new ArrayQueryItem(new Object[0], leftOperandFieldType);
-			ParamsUtil.addParam(params, aqi);
+			ParamsUtil.addParam(parameters, aqi);
 			querySB.append("SELECT ");
 			if (!caseSensitive)
 			{
@@ -240,7 +241,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 					querySB.append('(');
 				}
 				ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), leftOperandFieldType);
-				ParamsUtil.addParam(params, aqi);
+				ParamsUtil.addParam(parameters, aqi);
 				querySB.append("SELECT ").append(placeholder);
 				if (size < 2)
 				{
