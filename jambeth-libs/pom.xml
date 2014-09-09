@@ -15,6 +15,7 @@
 
 	<modules>
 		<module>jambeth-weblib-extjs</module>
+		<module>jambeth-weblib-deftjs</module>
 		<module>jambeth-weblib-teechart</module>
 	</modules>
 
