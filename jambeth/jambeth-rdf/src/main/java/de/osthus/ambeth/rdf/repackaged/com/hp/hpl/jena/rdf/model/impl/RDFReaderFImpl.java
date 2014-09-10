@@ -18,12 +18,16 @@
 
 package de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.impl;
 
-import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.*;
-import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.*;
-import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.*;
-
 import java.util.Arrays;
 import java.util.Properties;
+
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.Jena;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.JenaRuntime;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFReader;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.rdf.model.RDFReaderF;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.ConfigException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.JenaException;
+import de.osthus.ambeth.rdf.repackaged.com.hp.hpl.jena.shared.NoReaderForLangException;
 
 /**
  */
@@ -104,19 +108,27 @@ public class RDFReaderFImpl extends Object implements RDFReaderF
 		{
 			throw new NoReaderForLangException(lang);
 		}
-		try
+		if (className.startsWith("com.hp.hpl.jena"))
 		{
-			return (RDFReader) Class.forName(className).newInstance();
+			className = className.replace("com.hp.hpl.jena", Jena.PATH);
 		}
-		catch (ClassNotFoundException e)
 		{
-			if (className.equals(GRDDLREADER))
-				throw new ConfigException("The GRDDL reader must be downloaded separately from Sourceforge, and included on the classpath.", e);
-			throw new ConfigException("Reader not found on classpath", e);
-		}
-		catch (Exception e)
-		{
-			throw new JenaException(e);
+			try
+			{
+				return (RDFReader) Class.forName(className).newInstance();
+			}
+			catch (ClassNotFoundException e)
+			{
+				if (className.endsWith(GRDDLREADER))
+				{
+					throw new ConfigException("The GRDDL reader must be downloaded separately from Sourceforge, and included on the classpath.", e);
+				}
+				throw new ConfigException("Reader not found on classpath", e);
+			}
+			catch (Exception e)
+			{
+				throw new JenaException(e);
+			}
 		}
 	}
 
