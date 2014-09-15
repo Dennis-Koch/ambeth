@@ -63,8 +63,12 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 			Object newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
 			if (newTargetValue == null)
 			{
-				throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
-						+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+				if (expectedType.isPrimitive())
+				{
+					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
+							+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+				}
+				return null;
 			}
 			if (expectedType.isAssignableFrom(newTargetValue.getClass()))
 			{
