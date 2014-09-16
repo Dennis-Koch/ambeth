@@ -63,7 +63,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 			    if (m_setterTemplate == null)
 			    {
                     m_setterTemplate = new MethodInstance(null, MethodAttributes.Public | MethodAttributes.SpecialName, m_setterTemplate != null ? m_setterTemplate.ReturnType : NewType.VOID_TYPE,
-						    "set_" + propertyInfo.Name, null, f_backingField.Type);
+						    "set_" + propertyInfo.Name, f_backingField.Type);
 			    }
 			    // implement setter
 			    m_setterTemplate = ImplementSetter(m_setterTemplate, f_backingField);
