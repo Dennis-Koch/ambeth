@@ -6,6 +6,8 @@ import de.osthus.ambeth.model.AbstractEntity;
 
 public class QueryEntity extends AbstractEntity
 {
+	public static final String Name1 = "Name1";
+
 	@Cascade(load = CascadeLoadMode.EAGER_VERSION)
 	protected JoinQueryEntity fk;
 

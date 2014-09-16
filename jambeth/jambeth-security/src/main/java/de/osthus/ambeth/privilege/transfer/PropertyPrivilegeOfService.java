@@ -1,35 +1,61 @@
 package de.osthus.ambeth.privilege.transfer;
 
-import de.osthus.ambeth.collections.HashSet;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import de.osthus.ambeth.util.IPrintable;
 
+@XmlRootElement(name = "PropertyPrivilegeOfService", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlAccessorType(XmlAccessType.FIELD)
 public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfService, IPrintable
 {
-	private static final HashSet<PropertyPrivilegeOfService> set = new HashSet<PropertyPrivilegeOfService>(0.5f);
+	private static final PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[1 << 4];
 
 	static
 	{
-		set.add(new PropertyPrivilegeOfService(false, false, false, false));
-		set.add(new PropertyPrivilegeOfService(false, false, false, true));
-		set.add(new PropertyPrivilegeOfService(false, false, true, false));
-		set.add(new PropertyPrivilegeOfService(false, false, true, true));
-		set.add(new PropertyPrivilegeOfService(false, true, false, false));
-		set.add(new PropertyPrivilegeOfService(false, true, false, true));
-		set.add(new PropertyPrivilegeOfService(false, true, true, false));
-		set.add(new PropertyPrivilegeOfService(false, true, true, true));
-		set.add(new PropertyPrivilegeOfService(true, false, false, false));
-		set.add(new PropertyPrivilegeOfService(true, false, false, true));
-		set.add(new PropertyPrivilegeOfService(true, false, true, false));
-		set.add(new PropertyPrivilegeOfService(true, false, true, true));
-		set.add(new PropertyPrivilegeOfService(true, true, false, false));
-		set.add(new PropertyPrivilegeOfService(true, true, false, true));
-		set.add(new PropertyPrivilegeOfService(true, true, true, false));
-		set.add(new PropertyPrivilegeOfService(true, true, true, true));
+		put1();
 	}
 
-	public static PropertyPrivilegeOfService create(boolean create, boolean read, boolean update, boolean delete)
+	private static void put1()
 	{
-		return set.get(new PropertyPrivilegeOfService(create, read, update, delete));
+		put2(true);
+		put2(false);
+	}
+
+	private static void put2(boolean create)
+	{
+		put3(create, true);
+		put3(create, false);
+	}
+
+	private static void put3(boolean create, boolean read)
+	{
+		put4(create, read, true);
+		put4(create, read, false);
+	}
+
+	private static void put4(boolean create, boolean read, boolean update)
+	{
+		put(create, read, update, true);
+		put(create, read, update, false);
+	}
+
+	protected static int toBitValue(boolean value, int startingBit)
+	{
+		return value ? 1 << startingBit : 0;
+	}
+
+	private static void put(boolean create, boolean read, boolean update, boolean delete)
+	{
+		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		array[index] = new PropertyPrivilegeOfService(create, read, update, delete);
+	}
+
+	public static IPropertyPrivilegeOfService create(boolean create, boolean read, boolean update, boolean delete)
+	{
+		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		return array[index];
 	}
 
 	private final boolean create;
@@ -87,7 +113,7 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 	@Override
 	public int hashCode()
 	{
-		return (create ? 1 : 0) * 7 ^ (read ? 1 : 0) * 17 ^ (update ? 1 : 0) * 11 ^ (delete ? 1 : 0) * 13;
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
 	}
 
 	@Override

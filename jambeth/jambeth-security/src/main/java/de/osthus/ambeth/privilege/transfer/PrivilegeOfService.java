@@ -7,10 +7,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.util.IPrintable;
 
-@XmlRootElement(name = "PrivilegeResult", namespace = "http://schemas.osthus.de/Ambeth")
+@XmlRootElement(name = "PrivilegeOfService", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PrivilegeOfService implements IPrivilegeOfService
+public class PrivilegeOfService implements IPrivilegeOfService, IPrintable
 {
 	@XmlElement(required = true)
 	protected IObjRef reference;
@@ -136,5 +137,23 @@ public class PrivilegeOfService implements IPrivilegeOfService
 	public void setPropertyPrivileges(IPropertyPrivilegeOfService[] propertyPrivileges)
 	{
 		this.propertyPrivileges = propertyPrivileges;
+	}
+
+	@Override
+	public final String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append(isReadAllowed() ? "+R" : "-R");
+		sb.append(isCreateAllowed() ? "+C" : "-C");
+		sb.append(isUpdateAllowed() ? "+U" : "-U");
+		sb.append(isDeleteAllowed() ? "+D" : "-D");
+		sb.append(isExecuteAllowed() ? "+E" : "-E");
 	}
 }

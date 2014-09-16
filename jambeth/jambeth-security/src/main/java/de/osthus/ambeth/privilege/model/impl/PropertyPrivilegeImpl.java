@@ -1,6 +1,5 @@
 package de.osthus.ambeth.privilege.model.impl;
 
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
@@ -12,31 +11,57 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 {
 	public static final IPropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new IPropertyPrivilege[0];
 
-	private static final HashSet<PropertyPrivilegeImpl> set = new HashSet<PropertyPrivilegeImpl>(0.5f);
+	private static final PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[1 << 4];
 
 	static
 	{
-		set.add(new PropertyPrivilegeImpl(false, false, false, false));
-		set.add(new PropertyPrivilegeImpl(false, false, false, true));
-		set.add(new PropertyPrivilegeImpl(false, false, true, false));
-		set.add(new PropertyPrivilegeImpl(false, false, true, true));
-		set.add(new PropertyPrivilegeImpl(false, true, false, false));
-		set.add(new PropertyPrivilegeImpl(false, true, false, true));
-		set.add(new PropertyPrivilegeImpl(false, true, true, false));
-		set.add(new PropertyPrivilegeImpl(false, true, true, true));
-		set.add(new PropertyPrivilegeImpl(true, false, false, false));
-		set.add(new PropertyPrivilegeImpl(true, false, false, true));
-		set.add(new PropertyPrivilegeImpl(true, false, true, false));
-		set.add(new PropertyPrivilegeImpl(true, false, true, true));
-		set.add(new PropertyPrivilegeImpl(true, true, false, false));
-		set.add(new PropertyPrivilegeImpl(true, true, false, true));
-		set.add(new PropertyPrivilegeImpl(true, true, true, false));
-		set.add(new PropertyPrivilegeImpl(true, true, true, true));
+		put1();
+	}
+
+	private static void put1()
+	{
+		put2(true);
+		put2(false);
+	}
+
+	private static void put2(boolean create)
+	{
+		put3(create, true);
+		put3(create, false);
+	}
+
+	private static void put3(boolean create, boolean read)
+	{
+		put4(create, read, true);
+		put4(create, read, false);
+	}
+
+	private static void put4(boolean create, boolean read, boolean update)
+	{
+		put(create, read, update, true);
+		put(create, read, update, false);
+	}
+
+	public static int toBitValue(boolean value, int startingBit)
+	{
+		return value ? 1 << startingBit : 0;
+	}
+
+	public static int toBitValue(boolean create, boolean read, boolean update, boolean delete, boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+	}
+
+	private static void put(boolean create, boolean read, boolean update, boolean delete)
+	{
+		int index = toBitValue(create, read, update, delete, false);
+		array[index] = new PropertyPrivilegeImpl(create, read, update, delete);
 	}
 
 	public static IPropertyPrivilege create(boolean create, boolean read, boolean update, boolean delete)
 	{
-		return set.get(new PropertyPrivilegeImpl(create, read, update, delete));
+		int index = toBitValue(create, read, update, delete, false);
+		return array[index];
 	}
 
 	public static IPropertyPrivilege createFrom(IPrivilege privilegeAsTemplate)
@@ -112,7 +137,7 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 	@Override
 	public int hashCode()
 	{
-		return (create ? 1 : 0) * 7 ^ (read ? 1 : 0) * 17 ^ (update ? 1 : 0) * 11 ^ (delete ? 1 : 0) * 13;
+		return toBitValue(create, read, update, delete, false);
 	}
 
 	@Override

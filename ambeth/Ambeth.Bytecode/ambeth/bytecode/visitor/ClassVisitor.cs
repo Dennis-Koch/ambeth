@@ -73,7 +73,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             return property;
         }
 
-        public IMethodVisitor VisitConstructor(MethodAttributes access, params Type[] parameters)
+        public virtual IMethodVisitor VisitConstructor(MethodAttributes access, params Type[] parameters)
         {
             if (cv != null)
             {
@@ -166,7 +166,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
             return null;
         }
-        
+
         public virtual MethodInstance ImplementSetter(MethodInstance method, FieldInstance field)
         {
             if (cv != null)
@@ -242,7 +242,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             if (cv != null)
             {
-                cv.Visit(access, name,  superName, interfaces);
+                cv.Visit(access, name, superName, interfaces);
             }
         }
 

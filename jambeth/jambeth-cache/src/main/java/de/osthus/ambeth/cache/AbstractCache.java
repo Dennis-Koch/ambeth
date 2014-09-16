@@ -2,6 +2,7 @@ package de.osthus.ambeth.cache;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Set;
 
 import de.osthus.ambeth.cache.collections.CacheHashMap;
 import de.osthus.ambeth.cache.collections.ICacheMapEntryTypeProvider;
+import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
@@ -518,6 +520,15 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		{
 			return;
 		}
+		if (objectToCache.getClass().isArray())
+		{
+			int length = Array.getLength(objectToCache);
+			for (int a = length; a-- > 0;)
+			{
+				putIntern(Array.get(objectToCache, a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+			}
+			return;
+		}
 		if (objectToCache instanceof List)
 		{
 			List<?> list = (List<?>) objectToCache;
@@ -549,6 +560,11 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 				return;
 			}
 			putInternObjRelation(cacheValue, metaData2, objRelation, objRelationResult.getRelations());
+			return;
+		}
+		if (objectToCache instanceof ILoadContainer)
+		{
+			putIntern((ILoadContainer) objectToCache);
 			return;
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(getEntityTypeOfObject(objectToCache));
@@ -601,6 +617,8 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	{
 		return false;
 	}
+
+	protected abstract void putIntern(ILoadContainer loadContainer);
 
 	protected V putIntern(IEntityMetaData metaData, Object obj, Object id, Object version, CacheKey[] alternateCacheKeys, Object[] primitives,
 			IObjRef[][] relations)

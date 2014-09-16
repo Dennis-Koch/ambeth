@@ -26,8 +26,8 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 
         public virtual Object ReadObject(Type returnType, String elementName, int id, IReader reader)
 	    {
-		    String timeString = reader.GetAttributeValue(XmlDictionary.ValueAttribute);
-            long time = ConversionHelper.ConvertValueToType<long>(timeString);
+		    String spanString = reader.GetAttributeValue(XmlDictionary.ValueAttribute);
+            long time = ConversionHelper.ConvertValueToType<long>(spanString);
             return TimeSpan.FromMilliseconds(time);
 	    }
     }

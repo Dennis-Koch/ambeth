@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.query.sql.ITableAliasProvider;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
@@ -77,9 +76,9 @@ public class SubQueryWeakReference<T> implements ISubQuery<T>, IDisposable
 	}
 
 	@Override
-	public String[] getSqlParts(Map<Object, Object> nameToValueMap, ILinkedMap<Integer, Object> params, List<String> additionalSelectColumnList)
+	public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList)
 	{
-		return query.getSqlParts(nameToValueMap, params, additionalSelectColumnList);
+		return query.getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
 	}
 
 	public void reAlias(ITableAliasProvider tableAliasProvider)

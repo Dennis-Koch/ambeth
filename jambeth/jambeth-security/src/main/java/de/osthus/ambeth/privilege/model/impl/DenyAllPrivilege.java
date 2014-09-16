@@ -2,9 +2,8 @@ package de.osthus.ambeth.privilege.model.impl;
 
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
-import de.osthus.ambeth.util.IPrintable;
 
-public final class DenyAllPrivilege implements IPrivilege, IPrintable
+public final class DenyAllPrivilege extends AbstractPrivilege
 {
 	public static final IPrivilege INSTANCE = new DenyAllPrivilege();
 
@@ -12,7 +11,7 @@ public final class DenyAllPrivilege implements IPrivilege, IPrintable
 
 	private DenyAllPrivilege()
 	{
-		// intended blank
+		super(false, false, false, false, false, null, null);
 	}
 
 	@Override
@@ -61,23 +60,5 @@ public final class DenyAllPrivilege implements IPrivilege, IPrintable
 	public boolean isExecuteAllowed()
 	{
 		return false;
-	}
-
-	@Override
-	public final String toString()
-	{
-		StringBuilder sb = new StringBuilder();
-		toString(sb);
-		return sb.toString();
-	}
-
-	@Override
-	public void toString(StringBuilder sb)
-	{
-		sb.append(isReadAllowed() ? "+R" : "-R");
-		sb.append(isCreateAllowed() ? "+C" : "-C");
-		sb.append(isUpdateAllowed() ? "+U" : "-U");
-		sb.append(isDeleteAllowed() ? "+D" : "-D");
-		sb.append(isExecuteAllowed() ? "+X" : "-X");
 	}
 }

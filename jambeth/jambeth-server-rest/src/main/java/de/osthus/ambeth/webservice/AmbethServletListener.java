@@ -31,7 +31,8 @@ import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
-import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.util.ClassLoaderUtil;
 
 @Provider
 public class AmbethServletListener implements ServletContextListener, ServletRequestListener
@@ -139,10 +140,17 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		{
 			platformContext.dispose();
 		}
+		ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
 		Enumeration<Driver> drivers = DriverManager.getDrivers();
 		while (drivers.hasMoreElements())
 		{
 			Driver driver = drivers.nextElement();
+			ClassLoader driverCL = driver.getClass().getClassLoader();
+			if (!ClassLoaderUtil.isParentOf(currentCL, driverCL))
+			{
+				// this driver is not associated to the current CL
+				continue;
+			}
 			try
 			{
 				DriverManager.deregisterDriver(driver);
@@ -169,19 +177,20 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		String userPass = servletRequest.getParameter(USER_PASS);
 		String passwordType = servletRequest.getParameter(USER_PASS_TYPE);
 		HttpSession session = ((HttpServletRequest) servletRequest).getSession();
+		ServletContext servletContext = sre.getServletContext();
 		if (userName != null)
 		{
 			PasswordType passwordTypeEnum = passwordType != null ? PasswordType.valueOf(passwordType) : PasswordType.PLAIN;
 			DefaultAuthentication authentication = new DefaultAuthentication(userName, userPass != null ? userPass.toCharArray() : null, passwordTypeEnum);
 			session.setAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE, authentication);
-			setAuthentication(authentication);
+			setAuthentication(servletContext, authentication);
 		}
 		else
 		{
 			IAuthentication authentication = (IAuthentication) session.getAttribute(ATTRIBUTE_AUTHENTICATION_HANDLE);
 			if (authentication != null)
 			{
-				setAuthentication(authentication);
+				setAuthentication(servletContext, authentication);
 			}
 		}
 	}
@@ -192,16 +201,17 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 		postServiceCall(sre.getServletContext());
 	}
 
-	protected void setAuthentication(IAuthentication authentication)
+	protected void setAuthentication(ServletContext servletContext, IAuthentication authentication)
 	{
-		ISecurityContext securityContext = SecurityContextHolder.getCreateContext();
+		ISecurityContext securityContext = getService(servletContext, ISecurityContextHolder.class).getCreateContext();
 		securityContext.setAuthentication(authentication);
 	}
 
 	protected void postServiceCall(ServletContext servletContext)
 	{
-		SecurityContextHolder.clearContext();
-		getService(servletContext, IThreadLocalCleanupController.class).cleanupThreadLocal();
+		IServiceContext beanContext = getServiceContext(servletContext);
+		beanContext.getService(ISecurityContextHolder.class).clearContext();
+		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	protected <T> T getService(ServletContext servletContext, Class<T> serviceType)

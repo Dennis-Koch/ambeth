@@ -1,5 +1,8 @@
+using De.Osthus.Ambeth.Annotation;
+
 namespace De.Osthus.Ambeth.Privilege.Transfer
 {
+    [XmlType]
     public interface IPropertyPrivilegeOfService
     {
         bool ReadAllowed { get; }

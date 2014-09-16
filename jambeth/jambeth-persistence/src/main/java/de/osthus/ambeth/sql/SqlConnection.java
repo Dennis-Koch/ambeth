@@ -7,9 +7,7 @@ import java.util.regex.Pattern;
 import javax.persistence.OptimisticLockException;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -60,7 +58,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	protected void queueSqlExecute(String sql, ILinkedMap<Integer, Object> params)
+	protected void queueSqlExecute(String sql, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -70,7 +68,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	protected IResultSet sqlSelect(String sql, ILinkedMap<Integer, Object> params)
+	protected IResultSet sqlSelect(String sql, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -87,7 +85,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	}
 
 	@Override
-	public void queueDelete(String tableName, String whereSql, ILinkedMap<Integer, Object> params)
+	public void queueDelete(String tableName, String whereSql, List<Object> parameters)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
 		StringBuilder sb = current.create(StringBuilder.class);
@@ -96,7 +94,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			sb.append("DELETE FROM ");
 			sqlBuilder.appendName(tableName, sb);
 			sb.append(" WHERE ").append(whereSql);
-			queueSqlExecute(sb.toString(), params);
+			queueSqlExecute(sb.toString(), parameters);
 		}
 		finally
 		{
@@ -170,22 +168,22 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, ILinkedMap<Integer, Object> params)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, List<Object> parameters)
 	{
-		return selectFields(tableName, fieldNamesSql, "", whereSql, params);
+		return selectFields(tableName, fieldNamesSql, "", whereSql, parameters);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, ILinkedMap<Integer, Object> params)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, params, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, parameters, tableAlias);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			ILinkedMap<Integer, Object> params, String tableAlias)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters,
+			String tableAlias)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
@@ -211,7 +209,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			{
 				sb.append(" WHERE ").append(whereSql);
 			}
-			return sqlSelect(sb.toString(), params);
+			return sqlSelect(sb.toString(), parameters);
 		}
 		finally
 		{
@@ -221,16 +219,16 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, ILinkedMap<Integer, Object> params)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, offset, length, params, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, offset, length, parameters, tableAlias);
 	}
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, ILinkedMap<Integer, Object> params, String tableAlias)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters, String tableAlias)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -285,10 +283,10 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			}
 			sb.append(") WHERE rn>? AND rn<=?");
 
-			ParamsUtil.addParam(params, offset);
-			ParamsUtil.addParam(params, offset + length);
+			ParamsUtil.addParam(parameters, offset);
+			ParamsUtil.addParam(parameters, offset + length);
 
-			return sqlSelect(sb.toString(), params);
+			return sqlSelect(sb.toString(), parameters);
 		}
 		finally
 		{
@@ -340,11 +338,11 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			List<?> ids)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		LinkedHashMap<Integer, Object> params = new LinkedHashMap<Integer, Object>();
+		ArrayList<Object> parameters = new ArrayList<Object>();
 		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			persistenceHelper.appendSplittedValues(idFieldName, idFieldType, ids, params, whereSB);
+			persistenceHelper.appendSplittedValues(idFieldName, idFieldType, ids, parameters, whereSB);
 			if (additionalWhereSQL != null)
 			{
 				whereSB.append(" AND ").append(additionalWhereSQL);
@@ -354,7 +352,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			// whereSB.Append(" ORDER BY ");
 			// SqlBuilder.Append(idFieldName, whereSB);
 			// }
-			return selectFields(tableName, fieldsSQL, whereSB.toString(), params);
+			return selectFields(tableName, fieldsSQL, whereSB.toString(), parameters);
 		}
 		finally
 		{

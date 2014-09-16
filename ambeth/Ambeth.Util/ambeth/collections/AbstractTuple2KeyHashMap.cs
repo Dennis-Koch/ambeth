@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+
 namespace De.Osthus.Ambeth.Collections
 {
     public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> : IPrintable, Iterable<Tuple2KeyEntry<Key1, Key2, V>>
@@ -61,7 +62,7 @@ namespace De.Osthus.Ambeth.Collections
 
         protected virtual int ExtractHash(Key1 key1, Key2 key2)
         {
-            return key1.GetHashCode() ^ key2.GetHashCode();
+            return (key1 != null ? key1.GetHashCode() : 3) ^ (key2 != null ? key2.GetHashCode() : 5);
         }
 
         protected static int Hash(int hash)
@@ -243,7 +244,7 @@ namespace De.Osthus.Ambeth.Collections
 
         protected virtual bool EqualKeys(Key1 key1, Key2 key2, Tuple2KeyEntry<Key1, Key2, V> entry)
         {
-            return key1.Equals(entry.GetKey1()) && key2.Equals(entry.GetKey2());
+            return Object.Equals(key1, entry.GetKey1()) && Object.Equals(key2, entry.GetKey2());
         }
 
         public V Put(Key1 key1, Key2 key2, V value)

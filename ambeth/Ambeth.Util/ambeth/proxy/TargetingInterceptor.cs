@@ -7,7 +7,7 @@ using Castle.Core.Interceptor;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public class TargetingInterceptor : IInterceptor
+    public class TargetingInterceptor : AbstractSimpleInterceptor
     {
         public static TargetingInterceptor Create(ITargetProvider threadLocalProvider)
         {
@@ -18,9 +18,13 @@ namespace De.Osthus.Ambeth.Proxy
 
         public ITargetProvider TargetProvider { get; set; }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             Object target = TargetProvider.GetTarget();
+            if (target == null)
+            {
+                throw new NullReferenceException("Object reference has to be valid. TargetProvider: " + TargetProvider);
+            }
             invocation.ReturnValue = invocation.Method.Invoke(target, invocation.Arguments);
         }
     }

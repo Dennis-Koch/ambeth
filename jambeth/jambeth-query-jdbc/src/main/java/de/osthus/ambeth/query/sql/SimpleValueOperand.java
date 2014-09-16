@@ -3,6 +3,7 @@ package de.osthus.ambeth.query.sql;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -117,11 +118,11 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		Object value = getValue(nameToValueMap);
 
-		if (params != null)
+		if (parameters != null)
 		{
 			String preValue = (String) nameToValueMap.get(QueryConstants.PRE_VALUE_KEY);
 			String postValue = (String) nameToValueMap.get(QueryConstants.POST_VALUE_KEY);
@@ -150,7 +151,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 			}
 			if (value != null)
 			{
-				ParamsUtil.addParam(params, value);
+				ParamsUtil.addParam(parameters, value);
 				querySB.append('?');
 			}
 			else

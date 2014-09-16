@@ -123,7 +123,6 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             }
             visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper);
             visitor = new SetCacheModificationMethodCreator(visitor);
-            //cascadePendingBehaviors.Add(BeanContext.RegisterWithLifecycle(new CascadeBehavior(metaData, implementValueHolderContainerInterface)).Finish());
             return visitor;
         }
     }

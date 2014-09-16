@@ -19,9 +19,6 @@ import de.osthus.ambeth.util.IDisposable;
 
 public class PersistenceContextInterceptor extends CascadedInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -36,12 +33,8 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 	protected IMethodLevelBehavior<PersistenceContextType> methodLevelBehaviour;
 
 	@Override
-	public Object intercept(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		Class<?> declaringClass = method.getDeclaringClass();
 		if (declaringClass.equals(Object.class) || declaringClass.equals(IDisposable.class))
 		{

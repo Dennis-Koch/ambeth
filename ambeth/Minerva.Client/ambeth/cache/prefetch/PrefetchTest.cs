@@ -1,5 +1,6 @@
 ﻿using De.Osthus.Ambeth.Collections.Specialized;
 using De.Osthus.Ambeth.Helloworld.Transfer;
+using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;

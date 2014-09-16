@@ -33,7 +33,7 @@ namespace De.Osthus.Ambeth.Proxy
 
         public Type InterfaceType { get; set; }
 
-        public override void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             MethodInfo originalMethod = invocation.Method;
             MethodInfo method = FindMethodOnInterface(originalMethod);

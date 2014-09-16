@@ -460,7 +460,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 				Boolean reverse = stepReverse.get(i);
 				if (reverse)
 				{
-					dLink = dLink.getReverse();
+					dLink = dLink.getReverseLink();
 				}
 				entityType = dLink.getToTable().getEntityType();
 
@@ -928,14 +928,13 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	}
 
 	@Override
-	public IOperand function(String name, IOperand... parameters)
+	public IOperand function(String name, IOperand... operands)
 	{
 		ParamChecker.assertParamNotNull(name, "name");
-		ParamChecker.assertParamNotNull(parameters, "parameters");
+		ParamChecker.assertParamNotNull(operands, "operands");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Parameters", parameters)
-					.finish();
+			return getBeanContext().registerAnonymousBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
 		}
 		catch (Throwable e)
 		{
@@ -1011,10 +1010,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(clause, "clause");
-		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
+		ITable table = database.getTableByType(entityType);
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", tableName).propertyValue("Clause", clause)
+			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", table.getName())
+					.propertyValue("FullqualifiedEscapedTableName", table.getFullqualifiedEscapedName()).propertyValue("Clause", clause)
 					.propertyValue("JoinType", joinType).finish();
 		}
 		catch (Throwable e)
@@ -1035,7 +1035,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
-		String tableName = database.getTableByType(entityType).getFullqualifiedEscapedName();
+		String tableName = database.getTableByType(entityType).getName();
 		return join(tableName, columnBase, columnJoined, joinType);
 	}
 
@@ -1050,9 +1050,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 
 		Class<?> entityType = null;
 		ITable table = database.getTableByName(tableName);
+		String fullqualifiedEscapedTableName = tableName;
 		if (table != null)
 		{
 			entityType = table.getEntityType();
+			fullqualifiedEscapedTableName = table.getFullqualifiedEscapedName();
 		}
 		if (entityType != null)
 		{
@@ -1061,8 +1063,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		try
 		{
 			SqlJoinOperator joinClause = getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
-					.propertyValue("TableName", tableName).propertyValue("Clause", isEqualTo(columnBase, columnJoined))
-					.propertyValue("JoinedColumn", columnJoined).finish();
+					.propertyValue("TableName", tableName).propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
+					.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).finish();
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
 			return joinClause;
 		}

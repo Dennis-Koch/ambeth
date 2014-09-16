@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.log.ILogger;
@@ -38,17 +39,16 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator
 	}
 
 	@Override
-	protected void processLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
-			throws IOException
+	protected void processLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
-		leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, params);
+		leftOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
 	protected void processRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType,
-			Map<Integer, Object> params) throws IOException
+			List<Object> parameters) throws IOException
 	{
-		rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, params);
+		rightOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator
 	}
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		IOperand leftOperand = this.leftOperand;
 		IOperand rightOperand = this.rightOperand;
@@ -119,7 +119,7 @@ public abstract class TwoPlaceOperator extends BasicTwoPlaceOperator
 		}
 		try
 		{
-			super.operate(querySB, nameToValueMap, joinQuery, params);
+			super.operate(querySB, nameToValueMap, joinQuery, parameters);
 		}
 		finally
 		{

@@ -22,9 +22,9 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
-		operate(querySB, nameToValueMap, joinQuery, params);
+		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	protected abstract boolean isRightValueNull(Map<Object, Object> nameToValueMap);
@@ -48,7 +48,7 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 	}
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		boolean rightValueIsNull = isRightValueNull(nameToValueMap);
 
@@ -58,13 +58,13 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 		Object outerRemainingRightOperandHandle = nameToValueMap.remove(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
 		Object outerConsumeRightOperandHandle = nameToValueMap.remove(QueryConstants.CONSUME_RIGHT_OPERAND_HANDLE);
 
-		preProcessOperate(querySB, nameToValueMap, joinQuery, params);
+		preProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 		boolean loopRight = true;
 		while (loopRight)
 		{
 			loopRight = true;
 
-			processLeftOperandAspect(querySB, nameToValueMap, joinQuery, params);
+			processLeftOperandAspect(querySB, nameToValueMap, joinQuery, parameters);
 			// loopLeft = getRemainingLeftOperandHandle(nameToValueMap) != null;
 			expandOperatorQuery(querySB, nameToValueMap, rightValueIsNull);
 
@@ -72,7 +72,7 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 			// {
 			// nameToValueMap.put(QueryConstants.CONSUME_RIGHT_OPERAND_HANDLE, value)
 			// }
-			processRightOperandAspect(querySB, nameToValueMap, joinQuery, leftOperandFieldType, params);
+			processRightOperandAspect(querySB, nameToValueMap, joinQuery, leftOperandFieldType, parameters);
 			loopRight = getRemainingRightOperandHandle(nameToValueMap) != null;
 
 			if (loopRight)
@@ -80,7 +80,7 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 				querySB.append(" OR ");
 			}
 		}
-		postProcessOperate(querySB, nameToValueMap, joinQuery, params);
+		postProcessOperate(querySB, nameToValueMap, joinQuery, parameters);
 
 		if (outerRemainingLeftOperandHandle != null)
 		{
@@ -96,55 +96,54 @@ public abstract class BasicTwoPlaceOperator implements IOperator, IInitializingB
 		}
 	}
 
-	protected void preProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	protected void preProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		querySB.append('(');
 	}
 
-	protected void postProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
-			throws IOException
+	protected void postProcessOperate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		querySB.append(')');
 	}
 
-	protected void processLeftOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
+	protected void processLeftOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters)
 			throws IOException
 	{
-		preProcessLeftOperand(querySB, nameToValueMap, params);
-		processLeftOperand(querySB, nameToValueMap, joinQuery, params);
-		postProcessLeftOperand(querySB, nameToValueMap, params);
+		preProcessLeftOperand(querySB, nameToValueMap, parameters);
+		processLeftOperand(querySB, nameToValueMap, joinQuery, parameters);
+		postProcessLeftOperand(querySB, nameToValueMap, parameters);
 	}
 
 	protected void processRightOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType,
-			Map<Integer, Object> params) throws IOException
+			List<Object> parameters) throws IOException
 	{
-		preProcessRightOperand(querySB, nameToValueMap, params);
-		processRightOperand(querySB, nameToValueMap, joinQuery, leftValueOperandType, params);
-		postProcessRightOperand(querySB, nameToValueMap, params);
+		preProcessRightOperand(querySB, nameToValueMap, parameters);
+		processRightOperand(querySB, nameToValueMap, joinQuery, leftValueOperandType, parameters);
+		postProcessRightOperand(querySB, nameToValueMap, parameters);
 	}
 
-	protected abstract void processLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params)
+	protected abstract void processLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters)
 			throws IOException;
 
 	protected abstract void processRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftValueOperandType,
-			Map<Integer, Object> params) throws IOException;
+			List<Object> parameters) throws IOException;
 
-	protected void preProcessLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		// Intended blank
 	}
 
-	protected void postProcessLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessLeftOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		// Intended blank
 	}
 
-	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		// Intended blank
 	}
 
-	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
 		// Intended blank
 	}

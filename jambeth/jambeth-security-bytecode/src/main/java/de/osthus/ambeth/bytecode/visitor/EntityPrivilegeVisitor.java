@@ -16,7 +16,6 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
-import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
@@ -47,13 +46,13 @@ public class EntityPrivilegeVisitor extends ClassGenerator
 		// AbstractPrivilege.class;
 		MethodInstance template_m_getPrimitivePropertyPrivilege = new MethodInstance(null, IPrivilege.class, IPropertyPrivilege.class,
 				"getPrimitivePropertyPrivilege", int.class);
-		MethodInstance template_m_setPrimitivePropertyPrivilege = new MethodInstance(null, AbstractPrivilege.class, void.class,
-				"setPrimitivePropertyPrivilege", int.class, IPropertyPrivilege.class);
+		MethodInstance template_m_setPrimitivePropertyPrivilege = new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "setPrimitivePropertyPrivilege",
+				null, int.class, IPropertyPrivilege.class);
 
 		MethodInstance template_m_getRelationPropertyPrivilege = new MethodInstance(null, IPrivilege.class, IPropertyPrivilege.class,
 				"getRelationPropertyPrivilege", int.class);
-		MethodInstance template_m_setRelationPropertyPrivilege = new MethodInstance(null, AbstractPrivilege.class, void.class, "setRelationPropertyPrivilege",
-				int.class, IPropertyPrivilege.class);
+		MethodInstance template_m_setRelationPropertyPrivilege = new MethodInstance(null, Opcodes.ACC_PROTECTED, void.class, "setRelationPropertyPrivilege",
+				null, int.class, IPropertyPrivilege.class);
 
 		implementGetSetPropertyPrivilege(metaData.getPrimitiveMembers(), template_m_getPrimitivePropertyPrivilege, template_m_setPrimitivePropertyPrivilege);
 		implementGetSetPropertyPrivilege(metaData.getRelationMembers(), template_m_getRelationPropertyPrivilege, template_m_setRelationPropertyPrivilege);

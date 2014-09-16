@@ -10,10 +10,10 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.PrivilegeProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.EntityPrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.EntityTypePrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityPrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.EntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.EntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityTypePrivilegeFactoryProvider;
 
 @FrameworkModule
 public class PrivilegeModule implements IInitializingModule
@@ -25,9 +25,7 @@ public class PrivilegeModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class)
-		// .propertyRefs("privilegeServiceWCF")
-				.autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
+		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class).autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
 		beanContextFactory.registerBean("privilegeProvider_EventListener", UnfilteredDataChangeListener.class).propertyRefs("privilegeProvider");
 		beanContextFactory.link("privilegeProvider_EventListener").to(IEventListenerExtendable.class).with(IDataChange.class);
 

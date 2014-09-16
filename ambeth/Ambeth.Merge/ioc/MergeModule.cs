@@ -29,6 +29,8 @@ namespace De.Osthus.Ambeth.Ioc
 
         public const String REMOTE_ENTITY_METADATA_PROVIDER = "entityMetaDataProvider.remote";
 
+        public const String DEFAULT_MERGE_SERVICE_EXTENSION = "mergeServiceExtension.default";
+
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public virtual bool IsNetworkClientMode { get; set; }
 
@@ -65,9 +67,11 @@ namespace De.Osthus.Ambeth.Ioc
             IBeanConfiguration entityMetaDataProvider = beanContextFactory.RegisterAnonymousBean<EntityMetaDataProvider>()
                 .PropertyRef("ValueObjectMap", valueObjectMap)
                 .Autowireable<IEntityMetaDataProvider>()
-                .Autowireable<IEntityMetaDataExtendable>()
                 .Autowireable<IEntityMetaDataRefresher>()
-                .Autowireable<IValueObjectConfigExtendable>();
+                .Autowireable<IValueObjectConfigExtendable>()
+                .Autowireable<IEntityLifecycleExtendable>()
+                .Autowireable<ITechnicalEntityTypeExtendable>()
+                .Autowireable<IEntityMetaDataExtendable>();
 
             if (!IndependentMetaData)
             {
@@ -104,11 +108,13 @@ namespace De.Osthus.Ambeth.Ioc
 
             if (IsNetworkClientMode && IsMergeServiceBeanActive)
             {
-                beanContextFactory.RegisterBean<ClientServiceBean>("mergeServiceWCF")
+                IBeanConfiguration remoteMergeServiceExtension = beanContextFactory.RegisterBean<ClientServiceBean>(DEFAULT_MERGE_SERVICE_EXTENSION)
                     .PropertyValue("Interface", typeof(IMergeServiceExtension))
                     .PropertyValue("SyncRemoteInterface", typeof(IMergeServiceWCF))
                     .PropertyValue("AsyncRemoteInterface", typeof(IMergeClient));
-                // beanContextFactory.registerBean<MergeServiceDelegate>("mergeService").autowireable<IMergeService>();
+
+                // register to all entities in a "most-weak" manner
+                beanContextFactory.Link(remoteMergeServiceExtension).To<IMergeServiceExtensionExtendable>().With(typeof(Object));
             }
         }
     }

@@ -2,7 +2,6 @@ package de.osthus.ambeth.cache.interceptor;
 
 import java.lang.reflect.Method;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.HandleContentDelegate;
 import de.osthus.ambeth.cache.ICacheIntern;
@@ -21,12 +20,8 @@ import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements MethodInterceptor, ITransactionalRootCache,
-		ISecondLevelCacheManager
+public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements ITransactionalRootCache, ISecondLevelCacheManager
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	protected static final Method finalizeMethod = AbstractRootCacheAwareInterceptor.finalizeMethod;
-
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
 
 	@SuppressWarnings("unused")
@@ -74,7 +69,7 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		if (privilegedRootCache == null)
 		{
 			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
-			privilegedRootCache = acquireRootCache(privileged, privilegedRootCacheTL);
+			privilegedRootCache = acquireRootCache(true, privilegedRootCacheTL);
 		}
 		if (privileged)
 		{
@@ -155,12 +150,8 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (clearMethod.equals(method))
 		{
 			IRootCache rootCache = privilegedRootCacheTL.get();

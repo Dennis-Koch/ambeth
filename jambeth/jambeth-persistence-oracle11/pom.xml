@@ -22,11 +22,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-jdbc</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-jdbc</artifactId>
-			<classifier>tests</classifier>
-		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

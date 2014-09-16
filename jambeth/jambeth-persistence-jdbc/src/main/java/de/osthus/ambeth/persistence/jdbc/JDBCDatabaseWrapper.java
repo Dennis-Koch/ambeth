@@ -3,7 +3,6 @@ package de.osthus.ambeth.persistence.jdbc;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +45,7 @@ import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
@@ -175,11 +175,10 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName
 						+ " as data table waiting for entity mapping");
 			}
-			String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(fqTableName);
 			JdbcTable table = new JdbcTable();
 			table.setInitialVersion(Integer.valueOf(1));
-			table.setName(schemaAndName[0] + "." + schemaAndName[1]);
-			table.setFullqualifiedEscapedName(fqTableName);
+			table.setName(fqTableName);
+			table.setFullqualifiedEscapedName(XmlDatabaseMapper.escapeName(fqTableName));
 			table.setViewBased(viewNames.contains(fqTableName));
 
 			List<String> pkFieldNames = tableNameToPkFieldsMap.get(fqTableName);
@@ -1285,7 +1284,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void revert(Savepoint savepoint)
+	public void revert(ISavepoint savepoint)
 	{
 		alreadyLinkedCache.clear();
 		try
@@ -1347,11 +1346,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public Savepoint setSavepoint()
+	public ISavepoint setSavepoint()
 	{
 		try
 		{
-			return connection.setSavepoint();
+			return new JdbcSavepoint(connection.setSavepoint());
 		}
 		catch (SQLException e)
 		{
@@ -1360,11 +1359,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint)
+	public void releaseSavepoint(ISavepoint savepoint)
 	{
 		try
 		{
-			connectionDialect.releaseSavepoint(savepoint, connection);
+			connectionDialect.releaseSavepoint(((JdbcSavepoint) savepoint).getSavepoint(), connection);
 		}
 		catch (SQLException e)
 		{
@@ -1373,11 +1372,11 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	}
 
 	@Override
-	public void rollback(Savepoint savepoint)
+	public void rollback(ISavepoint savepoint)
 	{
 		try
 		{
-			connection.rollback(savepoint);
+			connection.rollback(((JdbcSavepoint) savepoint).getSavepoint());
 		}
 		catch (SQLException e)
 		{

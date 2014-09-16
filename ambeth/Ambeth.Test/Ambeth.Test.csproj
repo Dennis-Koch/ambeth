@@ -223,7 +223,7 @@
   <ItemGroup>
     <EmbeddedResource Include="ambeth\cache\valueholdercontainer\orm.xml" />
     <EmbeddedResource Include="ambeth\xml\oriwrapper\orm.xml" />
-    <EmbeddedResource Include="..\..\jambeth\jambeth-test\src\test\resources\de\osthus\ambeth\xml\oriwrapper\OriWrapperTestData.properties">
+    <EmbeddedResource Include="..\..\jambeth\jambeth-test\src\test\java\de\osthus\ambeth\xml\oriwrapper\OriWrapperTestData.properties">
       <Link>ambeth\xml\oriwrapper\OriWrapperTestData.properties</Link>
     </EmbeddedResource>
   </ItemGroup>

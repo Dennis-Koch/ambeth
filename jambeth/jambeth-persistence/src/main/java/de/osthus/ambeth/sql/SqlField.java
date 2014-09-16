@@ -75,7 +75,7 @@ public class SqlField extends Field
 
 			sqlBuilder.appendNameValue(getName(), value, whereSB);
 
-			IResultSet resultSet = connection.selectFields(table.getName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
@@ -92,7 +92,7 @@ public class SqlField extends Field
 	}
 
 	@Override
-	public IVersionCursor findMany(List<Object> values)
+	public IVersionCursor findMany(List<?> values)
 	{
 		ITable table = getTable();
 		String idFieldName = table.getIdField().getName();
@@ -120,7 +120,7 @@ public class SqlField extends Field
 
 			this.sqlBuilder.appendNameValues(getName(), converted, whereSB);
 
-			IResultSet resultSet = this.connection.selectFields(table.getName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = this.connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
@@ -158,7 +158,7 @@ public class SqlField extends Field
 
 			sqlBuilder.appendNameValue(getName(), value, whereSB);
 
-			IResultSet resultSet = connection.selectFields(table.getName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
 
 			if (resultSet == null)
 			{

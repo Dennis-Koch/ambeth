@@ -3,7 +3,6 @@ package de.osthus.ambeth.persistence;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -193,7 +192,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 	}
 
 	@Override
-	public StringBuilder appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, Map<Integer, Object> params, StringBuilder sb)
+	public StringBuilder appendSplittedValues(String idColumnName, Class<?> fieldType, List<?> ids, List<Object> parameters, StringBuilder sb)
 	{
 		if (ids.size() > maxInClauseBatchThreshold)
 		{
@@ -214,7 +213,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 					sb.append('(');
 				}
 				ArrayQueryItem aqi = new ArrayQueryItem(values.toArray(), fieldType);
-				ParamsUtil.addParam(params, aqi);
+				ParamsUtil.addParam(parameters, aqi);
 				sb.append("SELECT COLUMN_VALUE");
 				if (size < 2)
 				{
@@ -253,7 +252,7 @@ public class PersistenceHelper implements IPersistenceHelper, IInitializingBean
 					sb.append(',');
 				}
 				sb.append('?');
-				ParamsUtil.addParam(params, id);
+				ParamsUtil.addParam(parameters, id);
 			}
 			sb.append(')');
 		}

@@ -51,7 +51,6 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.privilege.IPrivilegeCache;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
@@ -156,24 +155,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected final Lock pendingKeysReadLock, pendingKeysWriteLock;
 
-	protected IPrivilegeCache privilegeCache;
-
 	public RootCache()
 	{
 		ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
 		pendingKeysReadLock = pendingKeysRwLock.getReadLock();
 		pendingKeysWriteLock = pendingKeysRwLock.getWriteLock();
-	}
-
-	@Override
-	public void afterPropertiesSet()
-	{
-		super.afterPropertiesSet();
-
-		if (securityActive && privilegeProvider != null)
-		{
-			privilegeCache = privilegeProvider.createPrivilegeCache();
-		}
 	}
 
 	@Override
@@ -188,11 +174,6 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		prefetchHelper = null;
 		privilegeProvider = null;
 
-		if (privilegeCache != null)
-		{
-			privilegeCache.dispose();
-			privilegeCache = null;
-		}
 		super.dispose();
 	}
 
@@ -772,7 +753,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			permittedObjRefs.add(primaryObjRef);
 		}
-		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(permittedObjRefs, privilegeCache);
+		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(permittedObjRefs);
 		HashMap<IObjRef, IntArrayList> relatedObjRefs = new HashMap<IObjRef, IntArrayList>();
 		for (int index = permittedObjRefs.size(); index-- > 0;)
 		{
@@ -796,7 +777,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 		}
 		IList<IObjRef> relatedObjRefKeys = relatedObjRefs.keySet().toList();
-		privileges = privilegeProvider.getPrivilegesByObjRef(relatedObjRefKeys, privilegeCache);
+		privileges = getPrivilegesByObjRefWithoutReadLock(relatedObjRefKeys);
 		for (int a = 0, size = relatedObjRefKeys.size(); a < size; a++)
 		{
 			IPrivilege privilege = privileges.get(a);
@@ -1029,33 +1010,45 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	protected void loadObjects(List<ILoadContainer> loadedEntities, LinkedHashSet<IObjRef> neededORIs, ArrayList<DirectValueHolderRef> pendingValueHolders)
 	{
-		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		Lock writeLock = getWriteLock();
 		writeLock.lock();
 		try
 		{
 			for (int a = 0, size = loadedEntities.size(); a < size; a++)
 			{
-				ILoadContainer loadContainer = loadedEntities.get(a);
-				IObjRef reference = loadContainer.getReference();
-
-				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
-				Object[] primitives = loadContainer.getPrimitives();
-				CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
-
-				RootCacheValue cacheValue = putIntern(metaData, null, reference.getId(), reference.getVersion(), alternateCacheKeys, primitives,
-						loadContainer.getRelations());
-				if (weakEntries)
-				{
-					addHardRefTL(cacheValue);
-				}
-				ensureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+				loadObject(loadedEntities.get(a), neededORIs, pendingValueHolders);
 			}
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+	}
+
+	protected void loadObject(ILoadContainer loadContainer, LinkedHashSet<IObjRef> neededORIs, ArrayList<DirectValueHolderRef> pendingValueHolders)
+	{
+		IObjRef reference = loadContainer.getReference();
+
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(reference.getRealType());
+		Object[] primitives = loadContainer.getPrimitives();
+		CacheKey[] alternateCacheKeys = extractAlternateCacheKeys(metaData, primitives);
+
+		RootCacheValue cacheValue = putIntern(metaData, null, reference.getId(), reference.getVersion(), alternateCacheKeys, primitives,
+				loadContainer.getRelations());
+		if (weakEntries)
+		{
+			addHardRefTL(cacheValue);
+		}
+		if (pendingValueHolders != null)
+		{
+			ensureRelationsExist(cacheValue, metaData, neededORIs, pendingValueHolders);
+		}
+	}
+
+	@Override
+	protected void putIntern(ILoadContainer loadContainer)
+	{
+		loadObject(loadContainer, null, null);
 	}
 
 	protected void clearPendingKeysOfCurrentThread(ArrayList<IObjRef> cacheKeysToRemove)
@@ -1104,13 +1097,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		ArrayList<IPrivilege> privilegesOfObjRefsToGet = null;
 		if (filteringNecessary)
 		{
-			IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefsToGet, privilegeCache);
+			IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
 			privilegesOfObjRefsToGet = new ArrayList<IPrivilege>(objRefsToGet.size());
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
 				IPrivilege privilege = privileges.get(a);
-				if (privilege.isReadAllowed())
+				if (privilege != null && privilege.isReadAllowed())
 				{
 					filteredObjRefsToGet.add(objRefsToGet.get(a));
 					privilegesOfObjRefsToGet.add(privilege);
@@ -1294,8 +1287,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				if (privilegeOfObjRef == null)
 				{
-					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version),
-							privilegeCache);
+					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
 				}
 				if (privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
 				{
@@ -1310,8 +1302,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				if (privilegeOfObjRef == null)
 				{
-					privilegeOfObjRef = privilegeProvider.getPrivilegeByObjRef(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version),
-							privilegeCache);
+					privilegeOfObjRef = getPrivilegeByObjRefWithoutReadLock(new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, version));
 				}
 				if (!privilegeOfObjRef.getPrimitivePropertyPrivilege(primitiveIndex).isReadAllowed())
 				{
@@ -1383,6 +1374,50 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		targetCache.addDirect(metaData, id, version, obj, cacheValue, relations);
 	}
 
+	protected IPrivilege getPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
+	{
+		Lock readLock = getReadLock();
+		LockState lockState = null;
+		if (privileged && !readLock.isWriteLockHeld() && readLock.isReadLockHeld())
+		{
+			// release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+			lockState = readLock.releaseAllLocks();
+		}
+		try
+		{
+			return privilegeProvider.getPrivilegeByObjRef(objRef);
+		}
+		finally
+		{
+			if (lockState != null)
+			{
+				readLock.reacquireLocks(lockState);
+			}
+		}
+	}
+
+	protected IList<IPrivilege> getPrivilegesByObjRefWithoutReadLock(Collection<? extends IObjRef> objRefs)
+	{
+		Lock readLock = getReadLock();
+		LockState lockState = null;
+		if (privileged && !readLock.isWriteLockHeld() && readLock.isReadLockHeld())
+		{
+			// release the read lock because the PrivilegeProvider MAY request write lock on the privileged cache during rule evaluation
+			lockState = readLock.releaseAllLocks();
+		}
+		try
+		{
+			return privilegeProvider.getPrivilegesByObjRef(objRefs);
+		}
+		finally
+		{
+			if (lockState != null)
+			{
+				readLock.reacquireLocks(lockState);
+			}
+		}
+	}
+
 	protected IObjRef[][] filterRelations(IObjRef[][] relations, boolean filteringNecessary)
 	{
 		if (relations.length == 0 || !filteringNecessary)
@@ -1406,8 +1441,13 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				allKnownRelations.add(relationOfMember);
 			}
 		}
+		if (allKnownRelations.size() == 0)
+		{
+			// nothing to filter
+			return relations;
+		}
 		IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet.create(allKnownRelations.size());
-		IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(allKnownRelations, privilegeCache);
+		IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(allKnownRelations);
 		for (int a = privileges.size(); a-- > 0;)
 		{
 			IPrivilege privilege = privileges.get(a);

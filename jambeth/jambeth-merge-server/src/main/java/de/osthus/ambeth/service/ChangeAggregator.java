@@ -7,57 +7,37 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
-import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
+import de.osthus.ambeth.merge.event.DataChangeOfSession;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ChangeAggregator implements IChangeAggregator, IInitializingBean
+public class ChangeAggregator implements IChangeAggregator
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
+	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
 	protected boolean deleteDataChangesByAlternateIds;
 
 	protected IList<IDataChangeEntry> inserts;
 	protected IList<IDataChangeEntry> updates;
 	protected IList<IDataChangeEntry> deletes;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(eventDispatcher, "EventDispatcher");
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setEventDispatcher(IEventDispatcher eventDispatcher)
-	{
-		this.eventDispatcher = eventDispatcher;
-	}
-
-	@Property(name = MergeConfigurationConstants.DeleteDataChangesByAlternateIds, defaultValue = "false")
-	public void setDeleteDataChangesByAlternateIds(boolean deleteDataChangesByAlternateIds)
-	{
-		this.deleteDataChangesByAlternateIds = deleteDataChangesByAlternateIds;
-	}
 
 	@Override
 	public void dataChangeInsert(IObjRef reference)
@@ -129,7 +109,7 @@ public class ChangeAggregator implements IChangeAggregator, IInitializingBean
 
 		Long currentTime = database.getContextProvider().getCurrentTime();
 		DataChangeEvent dataChange = new DataChangeEvent(inserts, updates, deletes, currentTime.longValue(), false);
-		LocalDataChangeEvent localDataChange = new LocalDataChangeEvent(database.getSessionId(), dataChange);
+		IDataChangeOfSession localDataChange = new DataChangeOfSession(database.getSessionId(), dataChange);
 		eventDispatcher.dispatchEvent(localDataChange);
 	}
 

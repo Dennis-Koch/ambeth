@@ -41,14 +41,14 @@ public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
-		operate(querySB, nameToValueMap, joinQuery, params);
+		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		List<String> additionalSelectColumnList = (List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
 		if (additionalSelectColumnList == null)
@@ -59,11 +59,11 @@ public class SqlAdditionalSelectOperand implements IOperator, IInitializingBean
 		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			column.expandQuery(sb, nameToValueMap, joinQuery, params);
+			column.expandQuery(sb, nameToValueMap, joinQuery, parameters);
 			additionalSelectColumnList.add(sb.toString());
 			if (querySB != null)
 			{
-				column.expandQuery(querySB, nameToValueMap, joinQuery, params);
+				column.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
 		finally

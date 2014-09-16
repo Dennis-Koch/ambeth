@@ -10,8 +10,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -22,6 +27,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
@@ -38,7 +44,7 @@ import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
-import de.osthus.ambeth.security.SecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.transfer.AmbethServiceException;
 import de.osthus.ambeth.util.Base64;
@@ -46,6 +52,10 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 public abstract class AbstractServiceREST
 {
+	public static final String deflateEncoding = "deflate";
+
+	public static final String gzipEncoding = "gzip";
+
 	public static final String DEFLATE_MIME_TYPE = MediaType.APPLICATION_OCTET_STREAM;
 
 	private static final Set<String> ignoreExceptions = new HashSet<String>();
@@ -60,6 +70,9 @@ public abstract class AbstractServiceREST
 
 	@Context
 	protected HttpHeaders headers;
+
+	@Context
+	protected HttpServletResponse response;
 
 	protected final Charset utfCharset = Charset.forName("UTF-8");
 
@@ -130,9 +143,7 @@ public abstract class AbstractServiceREST
 
 	protected IAuthentication readAuthentication()
 	{
-
-		List<String> values = headers.getRequestHeader("Authorization");
-		String value = values != null && values.size() > 0 ? values.get(0) : null;
+		String value = readSingleValueFromHeader("Authorization");
 
 		String userName = null;
 		char[] userPass = null;
@@ -161,7 +172,7 @@ public abstract class AbstractServiceREST
 
 	protected void setAuthentication(IAuthentication authentication)
 	{
-		ISecurityContext securityContext = SecurityContextHolder.getCreateContext();
+		ISecurityContext securityContext = getServiceContext().getService(ISecurityContextHolder.class).getCreateContext();
 		securityContext.setAuthentication(authentication);
 	}
 
@@ -172,8 +183,9 @@ public abstract class AbstractServiceREST
 
 	protected void postServiceCall(ServletContext servletContext)
 	{
-		SecurityContextHolder.clearContext();
-		getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+		IServiceContext beanContext = getServiceContext();
+		beanContext.getService(ISecurityContextHolder.class).clearContext();
+		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	protected <T> T getService(Class<T> serviceType)
@@ -186,8 +198,21 @@ public abstract class AbstractServiceREST
 		return getServiceContext().getService(beanName, serviceType);
 	}
 
+	protected String readSingleValueFromHeader(String name)
+	{
+		List<String> values = headers.getRequestHeader(name);
+		return values != null && values.size() > 0 ? values.get(0) : null;
+	}
+
+	protected List<String> readMultiValueFromHeader(String name)
+	{
+		List<String> values = headers.getRequestHeader(name);
+		return values != null && values.size() > 0 ? values : EmptyList.<String> getInstance();
+	}
+
 	protected Object[] getArguments(InputStream is)
 	{
+		is = decompressContentIfNecessary(is);
 		ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
 		return (Object[]) cyclicXmlHandler.readFromStream(is);
 	}
@@ -197,6 +222,10 @@ public abstract class AbstractServiceREST
 		logException(e, null);
 		AmbethServiceException result = new AmbethServiceException();
 
+		if (e instanceof MaskingRuntimeException && e.getMessage() == null)
+		{
+			e = e.getCause();
+		}
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw, false);
 		e.printStackTrace(pw);
@@ -208,15 +237,29 @@ public abstract class AbstractServiceREST
 
 	protected StreamingOutput createResult(final Object result)
 	{
+		final String contentEncoding = evaluateAcceptedContentEncoding();
 		final ICyclicXMLHandler cyclicXmlHandler = getService(XmlModule.CYCLIC_XML_HANDLER, ICyclicXMLHandler.class);
 		return new StreamingOutput()
 		{
 			@Override
-			public void write(final OutputStream output) throws IOException, WebApplicationException
+			public void write(OutputStream output) throws IOException, WebApplicationException
 			{
+				response.setHeader(HttpHeaders.CONTENT_ENCODING, contentEncoding);
+				if (gzipEncoding.equals(contentEncoding))
+				{
+					output = new GZIPOutputStream(output);
+				}
+				else if (deflateEncoding.equals(contentEncoding))
+				{
+					output = new DeflaterOutputStream(output);
+				}
 				try
 				{
 					cyclicXmlHandler.writeToStream(output, result);
+					if (output instanceof DeflaterOutputStream)
+					{
+						((DeflaterOutputStream) output).finish();
+					}
 				}
 				catch (RuntimeException e)
 				{
@@ -256,6 +299,60 @@ public abstract class AbstractServiceREST
 				}
 			}
 		};
+	}
+
+	protected String evaluateAcceptedContentEncoding()
+	{
+		List<String> acceptEncoding = readMultiValueFromHeader("Accept-Encoding-Workaround");
+		if (acceptEncoding.size() == 0)
+		{
+			acceptEncoding = readMultiValueFromHeader(HttpHeaders.ACCEPT_ENCODING);
+		}
+		for (int a = acceptEncoding.size(); a-- > 0;)
+		{
+			acceptEncoding.set(a, acceptEncoding.get(a).toLowerCase());
+		}
+		if (acceptEncoding.contains(deflateEncoding))
+		{
+			response.setHeader(HttpHeaders.CONTENT_ENCODING, deflateEncoding);
+			return deflateEncoding;
+		}
+		else if (acceptEncoding.contains(gzipEncoding))
+		{
+			response.setHeader(HttpHeaders.CONTENT_ENCODING, gzipEncoding);
+			return gzipEncoding;
+		}
+		return "text/xml";
+	}
+
+	protected InputStream decompressContentIfNecessary(InputStream is)
+	{
+		String contentEncoding = readSingleValueFromHeader("Content-Encoding-Workaround");
+		if (contentEncoding == null || contentEncoding.length() == 0)
+		{
+			contentEncoding = readSingleValueFromHeader(HttpHeaders.CONTENT_ENCODING);
+		}
+		if (contentEncoding == null)
+		{
+			contentEncoding = "";
+		}
+		contentEncoding = contentEncoding.toLowerCase();
+		if (deflateEncoding.equals(contentEncoding))
+		{
+			return new InflaterInputStream(is);
+		}
+		else if (gzipEncoding.equals(contentEncoding))
+		{
+			try
+			{
+				return new GZIPInputStream(is);
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		return is;
 	}
 
 	protected void logException(Throwable e, StringBuilder sb)

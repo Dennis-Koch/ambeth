@@ -1,20 +1,19 @@
 package de.osthus.ambeth.sql;
 
 import java.util.List;
-import java.util.Map;
 
 public final class ParamsUtil
 {
-	public static void addParam(Map<Integer, Object> params, Object value)
+	public static void addParam(List<Object> parameters, Object value)
 	{
-		params.put(Integer.valueOf(params.size() + 1), value);
+		parameters.add(value);
 	}
 
-	public static void addParams(Map<Integer, Object> params, List<Object> values)
+	public static void addParams(List<Object> parameters, List<Object> values)
 	{
 		for (int i = 0, size = values.size(); i < size; i++)
 		{
-			params.put(Integer.valueOf(params.size() + 1), values.get(i));
+			parameters.add(values.get(i));
 		}
 	}
 

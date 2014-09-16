@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseFactory;
 import de.osthus.ambeth.database.IDatabaseMappedListenerExtendable;
@@ -24,11 +23,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.ContextProvider;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.persistence.parallel.ModifyingDatabase;
 import de.osthus.ambeth.proxy.IProxyFactory;
-import de.osthus.ambeth.security.ISecurityScopeChangeListenerExtendable;
+import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
 import de.osthus.ambeth.util.AlreadyLinkedCache;
 import de.osthus.ambeth.util.AlreadyLoadedCache;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
@@ -45,7 +45,8 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 
 	protected Class<?>[] additionalModules;
 
-	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers = new DefaultExtendableContainer<IDatabaseMapper>(IDatabaseMapper.class, "databaseMapper");
+	protected final DefaultExtendableContainer<IDatabaseMapper> databaseMappers = new DefaultExtendableContainer<IDatabaseMapper>(IDatabaseMapper.class,
+			"databaseMapper");
 
 	@Autowired
 	protected IConnectionFactory connectionFactory;
@@ -87,7 +88,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 	{
 		Connection connection = database.getAutowiredBeanInContext(Connection.class);
 
-		this.connectionFactory.create(connection);
+		connectionFactory.create(connection);
 	}
 
 	@Override
@@ -111,7 +112,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 		boolean success = false;
 		try
 		{
-			conn = this.connectionFactory.create();
+			conn = connectionFactory.create();
 			conn.setAutoCommit(false);
 
 			final Connection fConn = conn;
@@ -126,7 +127,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 			try
 			{
 				connectionHolder.setConnection(conn);
-				childService = this.serviceContext.createService("jdbc-session", new RegisterPhaseDelegate()
+				childService = serviceContext.createService("jdbc-session", new RegisterPhaseDelegate()
 				{
 					@Override
 					public void invoke(IBeanContextFactory confSP)
@@ -136,24 +137,23 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 						confSP.registerAutowireableBean(IModifyingDatabase.class, ModifyingDatabase.class);
 						confSP.registerAutowireableBean(IAlreadyLoadedCache.class, AlreadyLoadedCache.class);
 						confSP.registerAutowireableBean(IAlreadyLinkedCache.class, AlreadyLinkedCache.class);
-						
+
 						IBeanConfiguration contextProviderBC = confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
-						confSP.link(contextProviderBC).to(ISecurityScopeChangeListenerExtendable.class);
-						
+						confSP.link(contextProviderBC).to(IAuthorizationChangeListenerExtendable.class);
+
 						confSP.registerAnonymousBean(ConnectionShutdownBean.class);
-						confSP.registerExternalBean(JdbcDatabaseFactory.this.databaseProvider).autowireable(IDatabaseProvider.class);
+						confSP.registerExternalBean(databaseProvider).autowireable(IDatabaseProvider.class);
 
 						confSP.registerBean("database", JDBCDatabaseWrapper.class).propertyValue("DefaultVersionFieldName", "Version")
 								.propertyValue("DefaultCreatedByFieldName", "Created_By").propertyValue("DefaultCreatedOnFieldName", "Created_On")
 								.propertyValue("DefaultUpdatedByFieldName", "Updated_By").propertyValue("DefaultUpdatedOnFieldName", "Updated_On")
-								.propertyValue("CachedSchemaInfos", JdbcDatabaseFactory.this.cachedSchemaInfos)
-								.autowireable(IDatabase.class, IDatabaseMappedListenerExtendable.class);
+								.propertyValue("CachedSchemaInfos", cachedSchemaInfos).autowireable(IDatabase.class, IDatabaseMappedListenerExtendable.class);
 
-						if (JdbcDatabaseFactory.this.additionalModules != null)
+						if (additionalModules != null)
 						{
-							for (int a = JdbcDatabaseFactory.this.additionalModules.length; a-- > 0;)
+							for (int a = additionalModules.length; a-- > 0;)
 							{
-								confSP.registerAnonymousBean(JdbcDatabaseFactory.this.additionalModules[a]);
+								confSP.registerAnonymousBean(additionalModules[a]);
 							}
 						}
 					}
@@ -175,9 +175,9 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 			}
 			IDatabase database = childService.getService(IDatabase.class);
 
-			if (this.schemaCacheActive && this.cachedSchemaInfos == null && database instanceof JDBCDatabaseWrapper)
+			if (schemaCacheActive && cachedSchemaInfos == null && database instanceof JDBCDatabaseWrapper)
 			{
-				this.cachedSchemaInfos = ((JDBCDatabaseWrapper) database).getCachedSchemaInfos();
+				cachedSchemaInfos = ((JDBCDatabaseWrapper) database).getCachedSchemaInfos();
 			}
 
 			// IDatabaseMapper[] databaseMappers =

@@ -1,6 +1,5 @@
 package de.osthus.ambeth.privilege.model.impl;
 
-import de.osthus.ambeth.collections.Tuple4KeyHashMap;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
@@ -12,8 +11,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 {
 	public static final ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
 
-	private static final Tuple4KeyHashMap<Boolean, Boolean, Boolean, Boolean, TypePropertyPrivilegeImpl> set = new Tuple4KeyHashMap<Boolean, Boolean, Boolean, Boolean, TypePropertyPrivilegeImpl>(
-			0.5f);
+	private static final TypePropertyPrivilegeImpl[] array = new TypePropertyPrivilegeImpl[1 << 8];
 
 	static
 	{
@@ -48,14 +46,30 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 		put(create, read, update, Boolean.TRUE);
 	}
 
+	public static int toBitValue(Boolean value, int startingBit)
+	{
+		if (value == null)
+		{
+			return 0;
+		}
+		return value.booleanValue() ? 1 << startingBit : 1 << (startingBit + 1);
+	}
+
+	public static int toBitValue(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6) + toBitValue(execute, 8);
+	}
+
 	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		set.put(create, read, update, delete, new TypePropertyPrivilegeImpl(create, read, update, delete));
+		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		array[index] = new TypePropertyPrivilegeImpl(create, read, update, delete);
 	}
 
 	public static ITypePropertyPrivilege create(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		return set.get(create, read, update, delete);
+		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		return array[index];
 	}
 
 	public static ITypePropertyPrivilege createFrom(ITypePrivilege privilegeAsTemplate)
@@ -131,8 +145,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 	@Override
 	public int hashCode()
 	{
-		return (create != null ? create.hashCode() : 1) * 7 ^ (read != null ? read.hashCode() : 1) * 17 ^ (update != null ? update.hashCode() : 1) * 11
-				^ (delete ? delete.hashCode() : 1) * 13;
+		return toBitValue(create, read, update, delete, null);
 	}
 
 	@Override

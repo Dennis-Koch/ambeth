@@ -16,18 +16,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-ioc</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 </project>

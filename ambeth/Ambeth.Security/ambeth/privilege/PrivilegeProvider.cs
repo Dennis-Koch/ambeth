@@ -20,6 +20,7 @@ using System.Security;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Privilege.Model.Impl;
+using De.Osthus.Ambeth.Privilege.Factory;
 
 namespace De.Osthus.Ambeth.Privilege
 {
@@ -142,12 +143,21 @@ namespace De.Osthus.Ambeth.Privilege
         public ILogger Log { private get; set; }
 
         [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
+        [Autowired]
+        public IEntityPrivilegeFactoryProvider EntityPrivilegeFactoryProvider { protected get; set; }
+
+        [Autowired]
+        public IEntityTypePrivilegeFactoryProvider EntityTypePrivilegeFactoryProvider { protected get; set; }
+
+        [Autowired]
         public IInterningFeature InterningFeature { protected get; set; }
 
         [Autowired]
         public IObjRefHelper ObjRefHelper { protected get; set; }
 
-        [Autowired]
+        [Autowired(Optional = true)]
         public IPrivilegeService PrivilegeService { protected get; set; }
 
         [Autowired]
@@ -155,7 +165,9 @@ namespace De.Osthus.Ambeth.Privilege
 
         protected readonly Object writeLock = new Object();
 
-        protected readonly HashMap<Object, IPrivilege> privilegeCache = new HashMap<Object, IPrivilege>();
+        protected readonly HashMap<PrivilegeKey, IPrivilege> privilegeCache = new HashMap<PrivilegeKey, IPrivilege>();
+
+        protected readonly Tuple3KeyHashMap<Type, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Type, String, String, ITypePrivilege>();
 
         public virtual void AfterPropertiesSet()
         {
@@ -163,31 +175,6 @@ namespace De.Osthus.Ambeth.Privilege
             {
                 Log.Debug("Privilege Service could not be resolved - Privilege functionality deactivated");
             }
-        }
-
-        public bool IsCreateAllowed(Object entity, params ISecurityScope[] securityScopes)
-        {
-            return GetPrivilege(entity, securityScopes).CreateAllowed;
-        }
-
-        public bool IsUpdateAllowed(Object entity, params ISecurityScope[] securityScopes)
-        {
-            return GetPrivilege(entity, securityScopes).UpdateAllowed;
-        }
-
-        public bool IsDeleteAllowed(Object entity, params ISecurityScope[] securityScopes)
-        {
-            return GetPrivilege(entity, securityScopes).DeleteAllowed;
-        }
-
-        public bool IsReadAllowed(Object entity, params ISecurityScope[] securityScopes)
-        {
-            return GetPrivilege(entity, securityScopes).ReadAllowed;
-        }
-
-        public bool IsExecutionAllowed(Object entity, params ISecurityScope[] securityScopes)
-        {
-            return GetPrivilege(entity, securityScopes).ExecutionAllowed;
         }
 
         public IPrivilege GetPrivilege(Object entity, params ISecurityScope[] securityScopes)
@@ -237,6 +224,11 @@ namespace De.Osthus.Ambeth.Privilege
                     return result;
                 }
             }
+            if (PrivilegeService == null)
+		    {
+			    throw new SecurityException("No bean of type " + typeof(IPrivilegeService).FullName
+					    + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
+		    }
             String userSID = authorization.SID;
             IList<IPrivilegeOfService> privilegeResults = PrivilegeService.GetPrivileges(missingObjRefs.ToArray(), securityScopes);
             lock (writeLock)
@@ -256,32 +248,10 @@ namespace De.Osthus.Ambeth.Privilege
                     }
                     privilegeKey.SecurityScope = InterningFeature.Intern(privilegeResult.SecurityScope.Name);
 
-                    String[] propertyPrivilegeNames = privilegeResult.PropertyPrivilegeNames;
-                    IPropertyPrivilegeOfService[] propertyPrivileges = privilegeResult.PropertyPrivileges;
-
-                    String[] propertyNames;
-                    IMap<String, IPropertyPrivilege> propertyPrivilegeMap;
-                    if (propertyPrivileges == null || propertyPrivileges.Length == 0)
-                    {
-                        propertyNames = PrivilegeImpl.EMPTY_PROPERTY_NAMES;
-                        propertyPrivilegeMap = EmptyMap<String, IPropertyPrivilege>.Empty();
-                    }
-                    else
-                    {
-                        propertyNames = propertyPrivilegeNames;
-                        propertyPrivilegeMap = HashMap<String, IPropertyPrivilege>.Create(propertyPrivileges.Length);
-                        for (int b = propertyPrivileges.Length; b-- > 0; )
-                        {
-                            IPropertyPrivilegeOfService propertyPrivilege = propertyPrivileges[b];
-                            String propertyName = InterningFeature.Intern(propertyPrivilegeNames[b]);
-                            propertyPrivilegeMap.Put(propertyName, PropertyPrivilegeImpl.CreateFrom(propertyPrivilege));
-                        }
-                    }
-                    PrivilegeImpl pi = new PrivilegeImpl(privilegeResult.ReadAllowed, privilegeResult.CreateAllowed, privilegeResult.UpdateAllowed,
-                            privilegeResult.DeleteAllowed, privilegeResult.ExecutionAllowed, propertyPrivilegeMap, propertyNames);
+                    IPrivilege privilege = CreatePrivilegeFromServiceResult(reference, privilegeResult);
                     if (useCache)
                     {
-                        privilegeCache.Put(privilegeKey, pi);
+                        privilegeCache.Put(privilegeKey, privilege);
                     }
                     else
                     {
@@ -289,24 +259,120 @@ namespace De.Osthus.Ambeth.Privilege
                         {
                             privilegeResultOfNewEntities = new HashMap<PrivilegeKey, IPrivilege>();
                         }
-                        privilegeResultOfNewEntities.Put(privilegeKey, pi);
+                        privilegeResultOfNewEntities.Put(privilegeKey, privilege);
                     }
                 }
                 return CreateResult(objRefs, securityScopes, null, authorization, privilegeResultOfNewEntities);
             }
         }
 
-        public IPrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes)
+        protected IPrivilege CreatePrivilegeFromServiceResult(IObjRef objRef, IPrivilegeOfService privilegeOfService)
+	    {
+		    IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
+
+		    IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
+		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
+		    {
+			    return new SimplePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
+					    privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, defaultPropertyPrivilege);
+		    }
+		    String[] propertyPrivilegeNames = privilegeOfService.PropertyPrivilegeNames;
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRef.RealType);
+		    IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.PrimitiveMembers.Length];
+            IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.RelationMembers.Length];
+            for (int a = primitivePropertyPrivileges.Length; a-- > 0; )
+            {
+                primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
+            }
+            for (int a = relationPropertyPrivileges.Length; a-- > 0; )
+            {
+                relationPropertyPrivileges[a] = defaultPropertyPrivilege;
+            }
+		    for (int b = propertyPrivilegesOfService.Length; b-- > 0;)
+		    {
+			    IPropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
+			    String propertyName = InterningFeature.Intern(propertyPrivilegeNames[b]);
+			    IPropertyPrivilege propertyPrivilege = PropertyPrivilegeImpl.Create(propertyPrivilegeOfService.CreateAllowed,
+					    propertyPrivilegeOfService.ReadAllowed, propertyPrivilegeOfService.UpdateAllowed, propertyPrivilegeOfService.DeleteAllowed);
+			    if (metaData.IsRelationMember(propertyName))
+			    {
+				    relationPropertyPrivileges[metaData.GetIndexByRelationName(propertyName)] = propertyPrivilege;
+			    }
+			    if (metaData.IsPrimitiveMember(propertyName))
+			    {
+				    primitivePropertyPrivileges[metaData.GetIndexByPrimitiveName(propertyName)] = propertyPrivilege;
+			    }
+		    }
+		    return EntityPrivilegeFactoryProvider.GetEntityPrivilegeFactory(metaData.EntityType, privilegeOfService.CreateAllowed,
+				    privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed, privilegeOfService.DeleteAllowed,
+				    privilegeOfService.ExecuteAllowed).CreatePrivilege(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed,
+				    privilegeOfService.UpdateAllowed, privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, primitivePropertyPrivileges,
+				    relationPropertyPrivileges);
+	    }
+
+	    protected ITypePrivilege CreateTypePrivilegeFromServiceResult(Type entityType, ITypePrivilegeOfService privilegeOfService)
+	    {
+		    ITypePropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
+
+		    ITypePropertyPrivilege defaultPropertyPrivilege = TypePropertyPrivilegeImpl.CreateFrom(privilegeOfService);
+		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
+		    {
+			    return new SimpleTypePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
+					    privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, defaultPropertyPrivilege);
+		    }
+            String[] propertyPrivilegeNames = privilegeOfService.PropertyPrivilegeNames;
+		    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
+            ITypePropertyPrivilege[] primitivePropertyPrivileges = new ITypePropertyPrivilege[metaData.PrimitiveMembers.Length];
+		    ITypePropertyPrivilege[] relationPropertyPrivileges = new ITypePropertyPrivilege[metaData.RelationMembers.Length];
+            for (int a = primitivePropertyPrivileges.Length; a-- > 0; )
+            {
+                primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
+            }
+            for (int a = relationPropertyPrivileges.Length; a-- > 0; )
+            {
+                relationPropertyPrivileges[a] = defaultPropertyPrivilege;
+            }
+		    for (int b = propertyPrivilegesOfService.Length; b-- > 0;)
+		    {
+			    ITypePropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
+                String propertyName = InterningFeature.Intern(propertyPrivilegeNames[b]);
+			    ITypePropertyPrivilege propertyPrivilege;
+			    if (propertyPrivilegeOfService != null)
+			    {
+				    propertyPrivilege = TypePropertyPrivilegeImpl.Create(propertyPrivilegeOfService.CreateAllowed, propertyPrivilegeOfService.ReadAllowed,
+						    propertyPrivilegeOfService.UpdateAllowed, propertyPrivilegeOfService.DeleteAllowed);
+			    }
+			    else
+			    {
+                    propertyPrivilege = TypePropertyPrivilegeImpl.Create(null, null, null, null);
+			    }
+			    if (metaData.IsRelationMember(propertyName))
+			    {
+				    relationPropertyPrivileges[metaData.GetIndexByRelationName(propertyName)] = propertyPrivilege;
+			    }
+			    if (metaData.IsPrimitiveMember(propertyName))
+			    {
+				    primitivePropertyPrivileges[metaData.GetIndexByPrimitiveName(propertyName)] = propertyPrivilege;
+			    }
+		    }
+		    return EntityTypePrivilegeFactoryProvider.GetEntityTypePrivilegeFactory(metaData.EntityType, privilegeOfService.CreateAllowed,
+				    privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed, privilegeOfService.DeleteAllowed,
+				    privilegeOfService.ExecuteAllowed).CreatePrivilege(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed,
+				    privilegeOfService.UpdateAllowed, privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, primitivePropertyPrivileges,
+				    relationPropertyPrivileges);
+	    }
+
+        public ITypePrivilege GetPrivilegeByType(Type entityType, params ISecurityScope[] securityScopes)
         {
-            IList<IPrivilege> result = GetPrivilegesByType(new Type[] { entityType }, securityScopes);
+            IList<ITypePrivilege> result = GetPrivilegesByType(new Type[] { entityType }, securityScopes);
             if (result.Count == 0)
             {
-                return DenyAllPrivilege.INSTANCE;
+                return SkipAllTypePrivilege.INSTANCE;
             }
             return result[0];
         }
 
-        public IList<IPrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes)
+        public IList<ITypePrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes)
         {
             IAuthorization authorization = SecurityScopeProvider.Authorization;
             if (authorization == null)
@@ -321,48 +387,30 @@ namespace De.Osthus.Ambeth.Privilege
             Object writeLock = this.writeLock;
             lock (writeLock)
             {
-                IList<IPrivilege> result = CreateResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
+                IList<ITypePrivilege> result = CreateResultByType(entityTypes, securityScopes, missingEntityTypes, authorization);
                 if (missingEntityTypes.Count == 0)
                 {
                     return result;
                 }
             }
+            if (PrivilegeService == null)
+            {
+                throw new SecurityException("No bean of type " + typeof(IPrivilegeService).FullName
+                        + " could be injected. Privilege functionality is deactivated. The current operation is not supported");
+            }
             String userSID = authorization.SID;
-            IList<IPrivilegeOfService> privilegeResults = PrivilegeService.GetPrivilegesOfTypes(missingEntityTypes.ToArray(), securityScopes);
+            IList<ITypePrivilegeOfService> privilegeResults = PrivilegeService.GetPrivilegesOfTypes(missingEntityTypes.ToArray(), securityScopes);
             lock (writeLock)
             {
                 for (int a = 0, size = privilegeResults.Count; a < size; a++)
                 {
-                    IPrivilegeOfService privilegeResult = privilegeResults[a];
-                    IObjRef reference = privilegeResult.Reference;
+                    ITypePrivilegeOfService privilegeResult = privilegeResults[a];
+                    Type entityType = privilegeResult.EntityType;
 
-                    PrivilegeKeyOfType privilegeKey = new PrivilegeKeyOfType(reference.RealType, userSID);
-                    privilegeKey.securityScope = InterningFeature.Intern(privilegeResult.SecurityScope.Name);
+                    String securityScope = InterningFeature.Intern(privilegeResult.SecurityScope.Name);
 
-                    String[] propertyPrivilegeNames = privilegeResult.PropertyPrivilegeNames;
-                    IPropertyPrivilegeOfService[] propertyPrivileges = privilegeResult.PropertyPrivileges;
-
-                    String[] propertyNames;
-                    IMap<String, IPropertyPrivilege> propertyPrivilegeMap;
-                    if (propertyPrivileges == null || propertyPrivileges.Length == 0)
-                    {
-                        propertyNames = PrivilegeImpl.EMPTY_PROPERTY_NAMES;
-                        propertyPrivilegeMap = EmptyMap<String, IPropertyPrivilege>.Empty();
-                    }
-                    else
-                    {
-                        propertyNames = propertyPrivilegeNames;
-                        propertyPrivilegeMap = HashMap<String, IPropertyPrivilege>.Create(propertyPrivileges.Length);
-                        for (int b = propertyPrivileges.Length; b-- > 0; )
-                        {
-                            IPropertyPrivilegeOfService propertyPrivilegeResult = propertyPrivileges[b];
-                            String propertyName = InterningFeature.Intern(propertyPrivilegeNames[b]);
-                            propertyPrivilegeMap.Put(propertyName, PropertyPrivilegeImpl.CreateFrom(propertyPrivilegeResult));
-                        }
-                    }
-                    PrivilegeImpl pi = new PrivilegeImpl(privilegeResult.ReadAllowed, privilegeResult.CreateAllowed, privilegeResult.UpdateAllowed,
-                            privilegeResult.DeleteAllowed, privilegeResult.ExecutionAllowed, propertyPrivilegeMap, propertyNames);
-                    privilegeCache.Put(privilegeKey, pi);
+                    ITypePrivilege pi = CreateTypePrivilegeFromServiceResult(entityType, privilegeResult);
+                    entityTypePrivilegeCache.Put(entityType, securityScope, userSID, pi);
                 }
                 return CreateResultByType(entityTypes, securityScopes, null, authorization);
             }
@@ -439,12 +487,10 @@ namespace De.Osthus.Ambeth.Privilege
             return result;
         }
 
-        protected IList<IPrivilege> CreateResultByType(IEnumerable<Type> entityTypes, ISecurityScope[] securityScopes, IList<Type> missingEntityTypes,
+        protected IList<ITypePrivilege> CreateResultByType(IEnumerable<Type> entityTypes, ISecurityScope[] securityScopes, IList<Type> missingEntityTypes,
             IAuthorization authorization)
         {
-            PrivilegeKeyOfType privilegeKey = null;
-
-            List<IPrivilege> result = new List<IPrivilege>();
+            List<ITypePrivilege> result = new List<ITypePrivilege>();
             String userSID = authorization.SID;
 
             foreach (Type entityType in entityTypes)
@@ -454,28 +500,19 @@ namespace De.Osthus.Ambeth.Privilege
                     result.Add(null);
                     continue;
                 }
-                if (privilegeKey == null)
-                {
-                    privilegeKey = new PrivilegeKeyOfType();
-                }
-                privilegeKey.entityType = entityType;
-                privilegeKey.userSID = userSID;
-
-                IPrivilege mergedPrivilegeItem = null;
+                ITypePrivilege mergedTypePrivilege = null;
                 for (int a = securityScopes.Length; a-- > 0; )
                 {
-                    privilegeKey.securityScope = securityScopes[a].Name;
-
-                    IPrivilege existingPrivilegeItem = privilegeCache.Get(privilegeKey);
-                    if (existingPrivilegeItem == null)
+                    ITypePrivilege existingTypePrivilege = entityTypePrivilegeCache.Get(entityType, securityScopes[a].Name, userSID);
+                    if (existingTypePrivilege == null)
                     {
-                        mergedPrivilegeItem = null;
+                        mergedTypePrivilege = null;
                         break;
                     }
-                    if (mergedPrivilegeItem == null)
+                    if (mergedTypePrivilege == null)
                     {
                         // Take first existing privilege as a start
-                        mergedPrivilegeItem = existingPrivilegeItem;
+                        mergedTypePrivilege = existingTypePrivilege;
                     }
                     else
                     {
@@ -483,7 +520,7 @@ namespace De.Osthus.Ambeth.Privilege
                         throw new NotSupportedException("Not yet implemented");
                     }
                 }
-                if (mergedPrivilegeItem == null)
+                if (mergedTypePrivilege == null)
                 {
                     if (missingEntityTypes != null)
                     {
@@ -491,11 +528,11 @@ namespace De.Osthus.Ambeth.Privilege
                     }
                     else
                     {
-                        result.Add(DenyAllPrivilege.INSTANCE);
+                        result.Add(SkipAllTypePrivilege.INSTANCE);
                     }
                     continue;
                 }
-                result.Add(mergedPrivilegeItem);
+                result.Add(mergedTypePrivilege);
             }
             return result;
         }

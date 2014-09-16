@@ -51,6 +51,12 @@ public class RootCacheValueEnhancementHint implements IEnhancementHint, ITargetN
 	}
 
 	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + ": " + getTargetName(null);
+	}
+
+	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
 		return Type.getInternalName(entityType) + "$" + RootCacheValue.class.getSimpleName();

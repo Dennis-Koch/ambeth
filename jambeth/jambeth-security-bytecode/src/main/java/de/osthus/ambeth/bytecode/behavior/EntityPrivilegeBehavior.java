@@ -8,7 +8,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
-import de.osthus.ambeth.privilege.bytecode.collections.EntityPrivilegeEnhancementHint;
+import de.osthus.ambeth.privilege.factory.EntityPrivilegeEnhancementHint;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 
 public class EntityPrivilegeBehavior extends AbstractBehavior

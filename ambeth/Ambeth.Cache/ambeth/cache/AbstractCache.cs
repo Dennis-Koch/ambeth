@@ -525,6 +525,15 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return;
             }
+            if (objectToCache.GetType().IsArray)
+            {
+                Array array = (Array)objectToCache;
+                for (int a = array.Length; a-- > 0; )
+                {
+                    PutIntern(array.GetValue(a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+                }
+                return;
+            }
             if (objectToCache is IList)
             {
                 IList list = (IList)objectToCache;
@@ -558,6 +567,11 @@ namespace De.Osthus.Ambeth.Cache
                 PutInternObjRelation(cacheValue, metaData2, objRelation, objRelationResult.Relations);
                 return;
             }
+       		if (objectToCache is ILoadContainer)
+		    {
+			    PutIntern((ILoadContainer) objectToCache);
+                return;
+		    }
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(GetEntityTypeOfObject(objectToCache));
             Object key = GetIdOfObject(metaData, objectToCache);
 
@@ -606,6 +620,8 @@ namespace De.Osthus.Ambeth.Cache
         {
             return false;
         }
+
+        protected abstract void PutIntern(ILoadContainer loadContainer);
 
         protected V PutIntern(IEntityMetaData metaData, Object obj, Object id, Object version, CacheKey[] alternateCacheKeys, Object[] primitives,
                 IObjRef[][] relations)

@@ -30,7 +30,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 // already implemented
                 return;
             }
-            FieldInstance f_entityMetaData = ImplementStaticAssignedField("$entityMetaData", metaData);
+            FieldInstance f_entityMetaData = ImplementStaticAssignedField("entityMetaData", metaData);
 
             ImplementGetter(m_template_getEntityMetaData, f_entityMetaData);
         }

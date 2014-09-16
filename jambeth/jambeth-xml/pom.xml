@@ -39,25 +39,12 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-log</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>

@@ -2,14 +2,12 @@ package de.osthus.ambeth.persistence;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Savepoint;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
-import de.osthus.ambeth.IDatabasePool;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -96,141 +94,146 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@Override
 	public void afterStarted()
 	{
-		List<IField> alternateIdMembers = new ArrayList<IField>();
 		List<ITable> tables = getTables();
 		for (int tableIndex = tables.size(); tableIndex-- > 0;)
 		{
 			ITable table = tables.get(tableIndex);
-			Class<?> fromType = table.getEntityType();
-			if (fromType == null)
+			handleTable(table);
+		}
+
+	}
+
+	protected void handleTable(ITable table)
+	{
+		ArrayList<IField> alternateIdMembers = new ArrayList<IField>();
+		Class<?> fromType = table.getEntityType();
+		if (fromType == null)
+		{
+			if (log.isWarnEnabled())
 			{
-				if (log.isWarnEnabled())
-				{
-					PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No entity mapped to table '" + table.getName() + "'");
-				}
-				continue;
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No entity mapped to table '" + table.getName() + "'");
 			}
-			if (!table.isArchive())
+			return;
+		}
+		if (!table.isArchive())
+		{
+			typeToTableDict.put(fromType, table);
+		}
+		else
+		{
+			typeToArchiveTableDict.put(fromType, table);
+			return;
+		}
+
+		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
+		List<IDirectedLink> links = table.getLinks();
+		for (int linkIndex = links.size(); linkIndex-- > 0;)
+		{
+			IDirectedLink link = links.get(linkIndex);
+			ITable toTable = link.getToTable();
+
+			Class<?> toType;
+			if (toTable != null)
 			{
-				typeToTableDict.put(fromType, table);
+				toType = toTable.getEntityType();
+				if (toType == null)
+				{
+					if (log.isWarnEnabled())
+					{
+						log.warn("No entity mapped to table '" + toTable.getName() + "'. Error occured while handling link '" + link.getName() + "'");
+					}
+					continue;
+				}
 			}
 			else
 			{
-				typeToArchiveTableDict.put(fromType, table);
+				toType = link.getToEntityType();
+			}
+			String memberName = table.getMemberNameByLinkName(link.getName());
+			if (!(memberName == null || memberName.isEmpty()))
+			{
 				continue;
 			}
-
-			ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
-			List<IDirectedLink> links = table.getLinks();
-			for (int linkIndex = links.size(); linkIndex-- > 0;)
+			ITypeInfoItem matchingMember = null;
+			String typeNamePluralLower = null;
+			for (ITypeInfoItem member : typeInfo.getMembers())
 			{
-				IDirectedLink link = links.get(linkIndex);
-				ITable toTable = link.getToTable();
-
-				Class<?> toType;
-				if (toTable != null)
+				Class<?> elementType = member.getElementType();
+				if (table.isIgnoredMember(member.getName()))
 				{
-					toType = toTable.getEntityType();
-					if (toType == null)
+					continue;
+				}
+				if (!relationProvider.isEntityType(member.getElementType()))
+				{
+					continue;
+				}
+				if (!elementType.isAssignableFrom(toType))
+				{
+					if (Collection.class.isAssignableFrom(elementType))
 					{
-						if (log.isWarnEnabled())
+						// No generic info at runtime, so we guess by name.
+						if (typeNamePluralLower == null)
 						{
-							log.warn("No entity mapped to table '" + toTable.getName() + "'. Error occured while handling link '" + link.getName() + "'");
+							typeNamePluralLower = StringConversionHelper.entityNameToPlural(objectCollector,
+									typeInfoProvider.getTypeInfo(toType).getSimpleName()).toLowerCase();
 						}
-						continue;
+						String memberNameLower = member.getName().toLowerCase();
+						if (memberNameLower.equals(typeNamePluralLower))
+						{
+							matchingMember = member;
+						}
 					}
+					continue;
 				}
-				else
+				// Check if this member is already configured to another link
+				if (table.getLinkByMemberName(member.getName()) != null)
 				{
-					toType = link.getToEntityType();
+					continue;
 				}
-				String memberName = table.getMemberNameByLinkName(link.getName());
+				if (matchingMember != null)
+				{
+					// ambiguous property-to-entity relationship so we do nothing automatically here
+					throw new IllegalArgumentException("Ambiguous property-to-entity relationship. Automatic mapping for link '" + link.getName()
+							+ "' not possible! Multiple properties with the same expected relationtype found: " + matchingMember.toString() + " vs. "
+							+ member.toString() + " on entity '" + table.getEntityType().getName() + "'");
+				}
+				matchingMember = member;
+			}
+			if (matchingMember == null)
+			{
 				if (!(memberName == null || memberName.isEmpty()))
 				{
-					continue;
+					throw new IllegalArgumentException("Property-to-entity relationship which is explicit defined for member '" + fromType.getName() + "."
+							+ memberName + "' not possible. Member not found");
 				}
-				ITypeInfoItem matchingMember = null;
-				String typeNamePluralLower = null;
-				for (ITypeInfoItem member : typeInfo.getMembers())
-				{
-					Class<?> elementType = member.getElementType();
-					if (table.isIgnoredMember(member.getName()))
-					{
-						continue;
-					}
-					if (!relationProvider.isEntityType(member.getElementType()))
-					{
-						continue;
-					}
-					if (!elementType.isAssignableFrom(toType))
-					{
-						if (Collection.class.isAssignableFrom(elementType))
-						{
-							// No generic info at runtime, so we guess by name.
-							if (typeNamePluralLower == null)
-							{
-								typeNamePluralLower = StringConversionHelper.entityNameToPlural(objectCollector,
-										typeInfoProvider.getTypeInfo(toType).getSimpleName()).toLowerCase();
-							}
-							String memberNameLower = member.getName().toLowerCase();
-							if (memberNameLower.equals(typeNamePluralLower))
-							{
-								matchingMember = member;
-							}
-						}
-						continue;
-					}
-					// Check if this member is already configured to another link
-					if (table.getLinkByMemberName(member.getName()) != null)
-					{
-						continue;
-					}
-					if (matchingMember != null)
-					{
-						// ambiguous property-to-entity relationship so we do nothing automatically here
-						throw new IllegalArgumentException("Ambiguous property-to-entity relationship. Automatic mapping for link '" + link.getName()
-								+ "' not possible! Multiple properties with the same expected relationtype found: " + matchingMember.toString() + " vs. "
-								+ member.toString() + " on entity '" + table.getEntityType().getName() + "'");
-					}
-					matchingMember = member;
-				}
-				if (matchingMember == null)
-				{
-					if (!(memberName == null || memberName.isEmpty()))
-					{
-						throw new IllegalArgumentException("Property-to-entity relationship which is explicit defined for member '" + fromType.getName() + "."
-								+ memberName + "' not possible. Member not found");
-					}
-					continue;
-				}
-				((Table) link.getFromTable()).mapLink(link.getName(), matchingMember.getName());
+				continue;
 			}
-			// TODO Reactivate this check with embedded-type case handling
-			// for (ITypeInfoItem member : typeInfo.getChildMembers())
-			// {
-			// if (member.isXMLIgnore())
-			// {
-			// continue;
-			// }
-			// String memberName = member.getName();
-			// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
-			// {
-			// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
-			// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
-			// }
-			// }
-
-			// Remove not-mapped (and so not usable) alternate id fields
-			for (IField alternateIdMember : table.getAlternateIdFields())
-			{
-				if (alternateIdMember.getMember() != null)
-				{
-					alternateIdMembers.add(alternateIdMember);
-				}
-			}
-			((Table) table).setAlternateIdFields(alternateIdMembers.toArray(new IField[alternateIdMembers.size()]));
-			alternateIdMembers.clear();
+			((Table) link.getFromTable()).mapLink(link.getName(), matchingMember.getName());
 		}
+		// TODO Reactivate this check with embedded-type case handling
+		// for (ITypeInfoItem member : typeInfo.getChildMembers())
+		// {
+		// if (member.isXMLIgnore())
+		// {
+		// continue;
+		// }
+		// String memberName = member.getName();
+		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
+		// {
+		// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
+		// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
+		// }
+		// }
+
+		// Remove not-mapped (and so not usable) alternate id fields
+		for (IField alternateIdMember : table.getAlternateIdFields())
+		{
+			if (alternateIdMember.getMember() != null)
+			{
+				alternateIdMembers.add(alternateIdMember);
+			}
+		}
+		((Table) table).setAlternateIdFields(alternateIdMembers.toArray(IField.class));
 	}
 
 	@Override
@@ -552,7 +555,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
-	public void revert(Savepoint savepoint)
+	public void revert(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -582,19 +585,19 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
-	public Savepoint setSavepoint()
+	public ISavepoint setSavepoint()
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void releaseSavepoint(Savepoint savepoint)
+	public void releaseSavepoint(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public void rollback(Savepoint savepoint)
+	public void rollback(ISavepoint savepoint)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

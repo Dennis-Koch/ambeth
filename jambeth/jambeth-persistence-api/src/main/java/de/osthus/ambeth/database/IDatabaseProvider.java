@@ -10,5 +10,5 @@ public interface IDatabaseProvider
 
 	IDatabase acquireInstance();
 
-	IDatabase acquireInstance(boolean readonly);
+	IDatabase acquireInstance(boolean readOnly);
 }

@@ -16,9 +16,6 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 {
 	public static final String PROP_CHECK_METHOD_ACCESS = "CheckMethodAccess";
 
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@LogInstance
 	private ILogger log;
 
@@ -35,6 +32,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	protected ISecurityManager securityManager;
 
 	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
 
 	@Autowired(optional = true)
@@ -47,19 +47,15 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	protected boolean checkMethodAccess = true;
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (method.getDeclaringClass().equals(Object.class) || !securityActivation.isSecured())
 		{
 			return invokeTarget(obj, method, args, proxy);
 		}
 		SecurityContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-		IAuthorization oldAuthorization = securityScopeProvider.getAuthorization();
+		IAuthorization oldAuthorization = securityContextHolder.getCreateContext().getAuthorization();
 		IAuthorization authorization = null;
 		if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 		{
@@ -82,7 +78,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();
 		if (oldAuthorization != authorization)
 		{
-			securityScopeProvider.setAuthorization(authorization);
+			securityContextHolder.getCreateContext().setAuthorization(authorization);
 		}
 		try
 		{
@@ -104,14 +100,14 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			securityScopeProvider.setSecurityScopes(oldSecurityScopes);
 			if (oldAuthorization != authorization)
 			{
-				securityScopeProvider.setAuthorization(oldAuthorization);
+				securityContextHolder.getCreateContext().setAuthorization(oldAuthorization);
 			}
 		}
 	}
 
 	protected IAuthentication getAuthentication()
 	{
-		ISecurityContext currentSecurityContext = SecurityContextHolder.getContext();
+		ISecurityContext currentSecurityContext = securityContextHolder.getContext();
 		return currentSecurityContext != null ? currentSecurityContext.getAuthentication() : null;
 	}
 

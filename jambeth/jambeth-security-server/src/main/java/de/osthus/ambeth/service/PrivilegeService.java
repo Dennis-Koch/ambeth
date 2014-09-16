@@ -47,6 +47,7 @@ import de.osthus.ambeth.privilege.transfer.TypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.TypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
@@ -96,6 +97,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -322,7 +326,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
 
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);
@@ -376,7 +380,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	{
 		ArrayList<ITypePrivilegeOfService> privilegeResults = new ArrayList<ITypePrivilegeOfService>();
 
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		EntityPermissionEvaluation pe = new EntityPermissionEvaluation(securityScopes, isDefaultCreatePrivilege, isDefaultReadPrivilege,
 				isDefaultUpdatePrivilege, isDefaultDeletePrivilege, isDefaultExecutePrivilege, isDefaultCreatePropertyPrivilege,
 				isDefaultReadPropertyPrivilege, isDefaultUpdatePropertyPrivilege, isDefaultDeletePropertyPrivilege);
@@ -488,8 +492,8 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 		{
-			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getPrimitivePropertyPrivilege(relationIndex);
-			pe.applyTypePropertyPrivilege(primitiveMembers[relationIndex].getName(), propertyPrivilege);
+			ITypePropertyPrivilege propertyPrivilege = entityTypePrivilege.getRelationPropertyPrivilege(relationIndex);
+			pe.applyTypePropertyPrivilege(relationMembers[relationIndex].getName(), propertyPrivilege);
 		}
 	}
 

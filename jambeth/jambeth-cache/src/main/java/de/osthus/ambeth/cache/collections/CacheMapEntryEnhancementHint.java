@@ -60,6 +60,12 @@ public class CacheMapEntryEnhancementHint implements IEnhancementHint, ITargetNa
 	}
 
 	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + ": " + getTargetName(null);
+	}
+
+	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
 		return Type.getInternalName(entityType) + "$" + CacheMapEntry.class.getSimpleName() + "$" + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : idIndex);

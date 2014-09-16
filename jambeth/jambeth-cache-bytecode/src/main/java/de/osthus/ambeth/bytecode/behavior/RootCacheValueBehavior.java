@@ -2,6 +2,7 @@ package de.osthus.ambeth.bytecode.behavior;
 
 import java.util.List;
 
+import de.osthus.ambeth.bytecode.visitor.EntityMetaDataHolderVisitor;
 import de.osthus.ambeth.bytecode.visitor.RootCacheValueVisitor;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueEnhancementHint;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -31,6 +32,7 @@ public class RootCacheValueBehavior extends AbstractBehavior
 		}
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(hint.getEntityType());
 		visitor = new RootCacheValueVisitor(visitor, metaData);
+		visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
 		return visitor;
 	}
 }

@@ -9,28 +9,25 @@ using Castle.DynamicProxy;
 using System.Reflection;
 using System;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class CacheContextInterceptor : CascadedInterceptor, IInitializingBean
+    public class CacheContextInterceptor : CascadedInterceptor
     {
         [LogInstance]
 		public ILogger Log { private get; set; }
 
-        public virtual ICacheContext CacheContext { protected get; set; }
+        [Autowired]
+        public ICacheContext CacheContext { protected get; set; }
 
-        public virtual ICacheFactory CacheFactory { protected get; set; }
+        [Autowired]
+        public ICacheFactory CacheFactory { protected get; set; }
 
-        public virtual ICacheProvider CacheProvider { protected get; set; }
+        [Autowired]
+        public ICacheProvider CacheProvider { protected get; set; }
 
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(CacheContext, "CacheContext");
-            ParamChecker.AssertNotNull(CacheFactory, "CacheFactory");
-            ParamChecker.AssertNotNull(CacheProvider, "CacheProvider");
-        }
-
-        public override void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             MethodInfo method = invocation.Method;
             if (method.DeclaringType.Equals(typeof(Object)))

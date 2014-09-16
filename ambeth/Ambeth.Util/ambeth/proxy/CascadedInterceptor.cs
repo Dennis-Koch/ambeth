@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Text;
 #if !SILVERLIGHT
 using Castle.DynamicProxy;
@@ -7,15 +8,14 @@ using System.Threading;
 using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
+using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public abstract class CascadedInterceptor : ICascadedInterceptor
+    public abstract class CascadedInterceptor : AbstractSimpleInterceptor, ICascadedInterceptor
     {
         public Object Target { get; set; }
         
-        abstract public void Intercept(IInvocation invocation);
-
         protected virtual void InvokeTarget(IInvocation invocation)
         {
             if (Target == null)
