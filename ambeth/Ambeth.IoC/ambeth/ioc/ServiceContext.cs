@@ -228,9 +228,42 @@ namespace De.Osthus.Ambeth.Ioc
             {
                 postProcessors = new List<IBeanPostProcessor>();
             }
-            postProcessors.Add(postProcessor);
+            PostProcessorOrder order = PostProcessorOrder.DEFAULT;
+		    if (postProcessor is IOrderedBeanPostProcessor)
+		    {
+			    order = ((IOrderedBeanPostProcessor) postProcessor).GetOrder();
+			    if (order == null)
+			    {
+				    order = PostProcessorOrder.DEFAULT;
+			    }
+		    }
+		    bool added = false;
+		    // Insert postprocessor at the correct order index
+		    for (int a = postProcessors.Count; a-- > 0;)
+		    {
+			    IBeanPostProcessor existingPostProcessor = postProcessors[a];
+			    PostProcessorOrder existingOrder = PostProcessorOrder.DEFAULT;
+			    if (existingPostProcessor is IOrderedBeanPostProcessor)
+			    {
+				    existingOrder = ((IOrderedBeanPostProcessor) existingPostProcessor).GetOrder();
+				    if (existingOrder == null)
+				    {
+					    existingOrder = PostProcessorOrder.DEFAULT;
+				    }
+			    }
+			    if (existingOrder.Position >= order.Position)
+			    {
+				    // if same order then append directly behind the existing processor of that level
+                    postProcessors.Insert(a + 1, postProcessor);
+				    added = true;
+				    break;
+			    }
+		    }
+		    if (!added)
+		    {
+			    postProcessors.Insert(0, postProcessor);
+		    }
         }
-
 
         public IBeanConfiguration GetBeanConfiguration(String beanName)
         {
