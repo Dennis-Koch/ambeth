@@ -292,7 +292,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 				order = PostProcessorOrder.DEFAULT;
 			}
 		}
-		int index = -1;
+		boolean added = false;
 		// Insert postprocessor at the correct order index
 		for (int a = postProcessors.size(); a-- > 0;)
 		{
@@ -306,59 +306,17 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 					existingOrder = PostProcessorOrder.DEFAULT;
 				}
 			}
-			if (PostProcessorOrder.HIGHEST.equals(existingOrder))
+			if (existingOrder.getPosition() >= order.getPosition())
 			{
-				// Highest existing results in append
-				continue;
-			}
-			else if (PostProcessorOrder.HIGH.equals(existingOrder))
-			{
-				if (PostProcessorOrder.HIGHEST.equals(order))
-				{
-					index = a;
-					break;
-				}
-				// Anything else results in append
-				continue;
-			}
-			else if (PostProcessorOrder.NORMAL.equals(existingOrder) || PostProcessorOrder.DEFAULT.equals(existingOrder))
-			{
-				if (PostProcessorOrder.HIGHEST.equals(order) || PostProcessorOrder.HIGH.equals(order))
-				{
-					index = a;
-					break;
-				}
-				// Anything else results in append
-				continue;
-			}
-			else if (PostProcessorOrder.LOW.equals(existingOrder))
-			{
-				if (!PostProcessorOrder.LOW.equals(order) && !PostProcessorOrder.LOWEST.equals(order))
-				{
-					index = a;
-					break;
-				}
-				// Anything else results in append
-				continue;
-			}
-			else if (PostProcessorOrder.LOWEST.equals(existingOrder))
-			{
-				if (!PostProcessorOrder.LOWEST.equals(order))
-				{
-					index = a;
-					break;
-				}
-				// Anything else results in append
-				continue;
+				// if same order then append directly behind the existing processor of that level
+				postProcessors.add(a + 1, postProcessor);
+				added = true;
+				break;
 			}
 		}
-		if (index != -1)
+		if (!added)
 		{
-			postProcessors.add(index, postProcessor);
-		}
-		else
-		{
-			postProcessors.add(postProcessor);
+			postProcessors.add(0, postProcessor);
 		}
 	}
 
