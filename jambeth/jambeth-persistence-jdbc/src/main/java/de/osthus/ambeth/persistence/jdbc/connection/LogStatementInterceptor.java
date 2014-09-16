@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Set;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.Property;
@@ -20,7 +19,7 @@ import de.osthus.ambeth.log.LogTypesUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.sensor.ISensor;
 import de.osthus.ambeth.sensor.Sensor;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
@@ -29,7 +28,7 @@ import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class LogStatementInterceptor implements MethodInterceptor, IInitializingBean, IPrintable
+public class LogStatementInterceptor extends AbstractSimpleInterceptor implements IInitializingBean, IPrintable
 {
 	public static final String SENSOR_NAME = "de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor";
 
@@ -42,9 +41,6 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	public static final Method executeQueryMethod;
 
 	public static final Method executeBatchMethod;
-
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -134,12 +130,8 @@ public class LogStatementInterceptor implements MethodInterceptor, IInitializing
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (getConnectionMethod.equals(method))
 		{
 			return connection;

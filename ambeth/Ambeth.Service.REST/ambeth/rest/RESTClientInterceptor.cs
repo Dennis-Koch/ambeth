@@ -27,10 +27,11 @@ using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Security.Transfer;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Rest
 {
-    public class RESTClientInterceptor : IRemoteInterceptor, IInitializingBean, IOfflineListener
+    public class RESTClientInterceptor : AbstractSimpleInterceptor, IRemoteInterceptor, IInitializingBean, IOfflineListener
     {
         public const String DEFLATE_MIME_TYPE = "application/octet-stream";
 
@@ -89,7 +90,7 @@ namespace De.Osthus.Ambeth.Rest
             //bool httpsResult = WebRequest.RegisterPrefix("https://", WebRequestCreator.ClientHttp);
         }
 
-        public virtual void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             if (GuiThreadHelper != null && GuiThreadHelper.IsInGuiThread())
             {
@@ -131,7 +132,6 @@ namespace De.Osthus.Ambeth.Rest
                     TryToSetHeader(HttpRequestHeader.AcceptEncoding, webRequest, "gzip");
                     webRequest.Headers["Accept-Encoding-Workaround"] = "gzip";
                 }
-
                 SetAuthorization(webRequest);
 
                 if (invocation.Arguments.Length == 0)
@@ -194,9 +194,10 @@ namespace De.Osthus.Ambeth.Rest
                 {
                     webRequest.Method = "POST";
                     webRequest.ContentType = "text/plain";
-                    if (HttpAcceptEncodingZipped)
+                    if (HttpContentEncodingZipped)
                     {
-                        webRequest.Headers[HttpRequestHeader.ContentEncoding] = "gzip";
+                        TryToSetHeader(HttpRequestHeader.ContentEncoding, webRequest, "gzip");
+                        webRequest.Headers["Content-Encoding-Workaround"] = "gzip";
                     }
                     webRequest.BeginGetRequestStream(delegate(IAsyncResult asyncResult)
                     {

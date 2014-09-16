@@ -10,10 +10,11 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Service.Interceptor
 {
-    public class SyncCallInterceptor : IInterceptor, IInitializingBean
+    public class SyncCallInterceptor : AbstractSimpleInterceptor, IInitializingBean
     {
         public Object AsyncService { get; set; }
 
@@ -26,7 +27,7 @@ namespace De.Osthus.Ambeth.Service.Interceptor
             ParamChecker.AssertNotNull(OfflineListenerExtendable, "OfflineListenerExtendable");
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             ParameterInfo[] parameters = invocation.Method.GetParameters();
             Object[] arguments = invocation.Arguments;

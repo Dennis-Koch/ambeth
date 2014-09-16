@@ -102,7 +102,14 @@ namespace De.Osthus.Ambeth.Util
             BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy;
             if (returnType != null)
             {
-                propertyInfo = type.GetProperty(propertyName, flags, null, returnType.Type, null, new ParameterModifier[0]);
+                try
+                {
+                    propertyInfo = type.GetProperty(propertyName, flags, null, returnType.Type, Type.EmptyTypes, new ParameterModifier[0]);
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
             }
             else
             {

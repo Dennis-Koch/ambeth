@@ -6,6 +6,7 @@ import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.NoOp;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
@@ -78,11 +79,11 @@ public class ProxyFactory extends SmartCopyMap<ProxyTypeKey, Class<? extends Fac
 		}
 		if (type.isInterface())
 		{
-			Class<?>[] allInterfaces = new Class<?>[interfaces.length + 1];
-			allInterfaces[0] = type;
-			System.arraycopy(interfaces, 0, allInterfaces, 1, interfaces.length);
+			LinkedHashSet<Class<?>> allInterfaces = LinkedHashSet.create(interfaces.length + 1);
+			allInterfaces.add(type);
+			allInterfaces.addAll(interfaces);
 
-			return (T) createProxy(allInterfaces, interceptors);
+			return (T) createProxy(allInterfaces.toArray(Class.class), interceptors);
 		}
 		ArrayList<Class<?>> tempList = new ArrayList<Class<?>>();
 		for (int a = interfaces.length; a-- > 0;)

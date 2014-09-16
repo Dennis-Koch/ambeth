@@ -9,9 +9,5 @@ public interface ISecurityScopeProvider
 
 	void setSecurityScopes(ISecurityScope[] securityScopes);
 
-	IAuthorization getAuthorization();
-
-	void setAuthorization(IAuthorization authorization);
-
 	<R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable, ISecurityScope... securityScopes) throws Throwable;
 }

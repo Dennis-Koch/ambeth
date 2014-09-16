@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.criteria.JoinType;
@@ -23,6 +24,8 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 
 	protected IOperand clause;
 
+	protected String fullqualifiedEscapedTableName;
+
 	protected String tableName;
 
 	protected String tableAlias;
@@ -35,6 +38,8 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 		ParamChecker.assertNotNull(clause, "clause");
 		ParamChecker.assertNotNull(tableName, "tableName");
 		ParamChecker.assertFalse(tableName.isEmpty(), "tableName.isNotEmpty");
+		ParamChecker.assertNotNull(fullqualifiedEscapedTableName, "fullqualifiedEscapedTableName");
+		ParamChecker.assertFalse(fullqualifiedEscapedTableName.isEmpty(), "fullqualifiedEscapedTableName.isNotEmpty");
 	}
 
 	public void setClause(IOperand clause)
@@ -45,6 +50,17 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 	public void setJoinType(JoinType joinType)
 	{
 		this.joinType = joinType;
+	}
+
+	@Override
+	public String getFullqualifiedEscapedTableName()
+	{
+		return fullqualifiedEscapedTableName;
+	}
+
+	public void setFullqualifiedEscapedTableName(String fullqualifiedEscapedTableName)
+	{
+		this.fullqualifiedEscapedTableName = fullqualifiedEscapedTableName;
 	}
 
 	@Override
@@ -80,13 +96,13 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
-		operate(querySB, nameToValueMap, joinQuery, params);
+		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Map<Integer, Object> params) throws IOException
+	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
 	{
 		if (!joinQuery)
 		{
@@ -107,7 +123,7 @@ public class SqlJoinOperator implements ISqlJoin, IInitializingBean
 			default:
 				throw RuntimeExceptionUtil.createEnumNotSupportedException(joinType);
 		}
-		querySB.append(" JOIN ").append(tableName).append(' ').append(getTableAlias()).append(" ON ");
-		clause.expandQuery(querySB, nameToValueMap, joinQuery, params);
+		querySB.append(" JOIN ").append(fullqualifiedEscapedTableName).append(' ').append(getTableAlias()).append(" ON ");
+		clause.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 	}
 }

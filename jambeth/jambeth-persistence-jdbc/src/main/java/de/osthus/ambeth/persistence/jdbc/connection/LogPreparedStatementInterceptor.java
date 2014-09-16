@@ -97,12 +97,8 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (ISqlValue.class.equals(method.getDeclaringClass()))
 		{
 			try
@@ -131,7 +127,7 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 		}
 		try
 		{
-			return super.intercept(obj, method, args, proxy);
+			return super.interceptIntern(obj, method, args, proxy);
 		}
 		finally
 		{

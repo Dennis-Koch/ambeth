@@ -11,7 +11,7 @@ using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Event
 {
-    public class EventListenerRegistry : IEventListenerExtendable, IEventBatcherExtendable, IEventTargetExtractorExtendable, IEventBatcher, IEventDispatcher, IEventListener, IEventQueue
+    public class EventListenerRegistry : IEventListenerExtendable, IEventTargetListenerExtendable, IEventBatcherExtendable, IEventTargetExtractorExtendable, IEventBatcher, IEventDispatcher, IEventListener, IEventQueue
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -255,13 +255,28 @@ namespace De.Osthus.Ambeth.Event
             }
         }
 
-        public void RegisterEventListener(IEventListenerMarker eventListener)
-        {
-            RegisterEventListener(eventListener, null);
-        }
+	    public void RegisterEventListener(IEventListener eventListener)
+	    {
+		    RegisterEventListenerIntern(eventListener, null);
+	    }
 
-        public void RegisterEventListener(IEventListenerMarker eventListener, Type eventType)
-        {
+	    public void RegisterEventTargetListener(IEventTargetEventListener eventTargetListener)
+	    {
+		    RegisterEventListenerIntern(eventTargetListener, null);
+	    }
+
+	    public void RegisterEventListener(IEventListener eventListener, Type eventType)
+	    {
+		    RegisterEventListenerIntern(eventListener, eventType);
+	    }
+
+	    public void RegisterEventTargetListener(IEventTargetEventListener eventTargetListener, Type eventType)
+	    {
+		    RegisterEventListenerIntern(eventTargetListener, eventType);
+	    }
+
+        protected void RegisterEventListenerIntern(IEventListenerMarker eventListener, Type eventType)
+	    {
             if (eventType == null)
 		    {
 			    eventType = typeof(Object);
@@ -269,13 +284,28 @@ namespace De.Osthus.Ambeth.Event
 		    typeToListenersDict.Register(eventListener, eventType);
         }
 
-        public void UnregisterEventListener(IEventListenerMarker eventListener)
-        {
-            UnregisterEventListener(eventListener, null);
-        }
+	    public void UnregisterEventListener(IEventListener eventListener)
+	    {
+		    UnregisterEventListenerIntern(eventListener, null);
+	    }
 
-        public void UnregisterEventListener(IEventListenerMarker eventListener, Type eventType)
-        {
+        public void UnregisterEventTargetListener(IEventTargetEventListener eventTargetListener)
+	    {
+		    UnregisterEventListenerIntern(eventTargetListener, null);
+	    }
+
+        public void UnregisterEventListener(IEventListener eventListener, Type eventType)
+	    {
+		    UnregisterEventListenerIntern(eventListener, eventType);
+	    }
+
+	    public void UnregisterEventTargetListener(IEventTargetEventListener eventTargetListener, Type eventType)
+	    {
+		    UnregisterEventListenerIntern(eventTargetListener, eventType);
+	    }
+
+	    protected void UnregisterEventListenerIntern(IEventListenerMarker eventListener, Type eventType)
+	    {
             if (eventType == null)
             {
                 eventType = typeof(Object);

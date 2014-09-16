@@ -12,12 +12,12 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 @SuiteClasses({ de.osthus.ambeth.audit.AllAuditTests.class, //
 		de.osthus.ambeth.cache.AllBundleCacheTests.class, //
 		de.osthus.ambeth.bytecode.AllBytecodeTests.class, //
-		de.osthus.ambeth.AllDataChangePersistenceTests.class, //
-		de.osthus.ambeth.AllIocTests.class,//
+		// de.osthus.ambeth.AllDataChangePersistenceTests.class, //
+		// de.osthus.ambeth.AllIocTests.class,//
 		de.osthus.ambeth.AllMergeBytecodeTests.class, //
-		de.osthus.ambeth.AllPersistenceTests.class, //
-		de.osthus.ambeth.AllMergeTests.class, //
-		de.osthus.ambeth.AllUtilTests.class, //
+		// de.osthus.ambeth.AllPersistenceTests.class, //
+		// de.osthus.ambeth.AllMergeTests.class, //
+		// de.osthus.ambeth.AllUtilTests.class, //
 		de.osthus.ambeth.ioc.AllIocTests.class, //
 		de.osthus.ambeth.bytecode.AllBundleBytecodeTests.class, //
 		de.osthus.ambeth.merge.mergecontroller.AllMergeControllerTests.class, //
@@ -28,11 +28,11 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 		de.osthus.ambeth.persistence.streaming.StreamingEntityTest.class, //
 		de.osthus.ambeth.persistence.xml.AllPersistenceXmlTests.class, //
 		de.osthus.ambeth.query.AllBundleQueryTests.class, //
-		de.osthus.ambeth.query.AllQueryTests.class, //
+		// de.osthus.ambeth.query.AllQueryTests.class, //
 		de.osthus.ambeth.relations.AllRelationTests.class,//
 		de.osthus.ambeth.service.AllServiceTests.class, //
-		de.osthus.ambeth.testutil.AllTestUtilTests.class, //
-		de.osthus.ambeth.testutil.AllTestUtilPersistenceTests.class, //
+		// de.osthus.ambeth.testutil.AllTestUtilTests.class, //
+		// de.osthus.ambeth.testutil.AllTestUtilPersistenceTests.class, //
 		de.osthus.ambeth.util.LongIdTest.class, //
 		de.osthus.ambeth.xml.AllXmlTests.class, //
 		de.osthus.ambeth.xml.oriwrapper.AllOriWrapperTests.class })

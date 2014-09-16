@@ -83,24 +83,43 @@ namespace De.Osthus.Ambeth.Ioc.Proxy
             }
         }
 
-        protected MemberInfo[] GetMembers(Type type)
-        {
-            Object readLock = this.readLock;
-            lock (readLock)
-            {
-                MemberInfo[] members = typeToMembersMap.Get(type);
-                if (members != null)
-                {
-                    return members;
-                }
-            }
-            List<MemberInfo> targetMembers = new List<MemberInfo>();
-            ScanForCallingProxyField(type, type, targetMembers);
+        protected MemberInfo[] GetMembersIntern(Type type)
+	    {
             Object writeLock = this.writeLock;
             lock (writeLock)
             {
-                typeToMembersMap.PutIfNotExists(type, targetMembers.Count > 0 ? targetMembers.ToArray() : EMPTY_MEMBERS);
                 return typeToMembersMap.Get(type);
+            }
+	    }
+
+        protected MemberInfo[] GetMembers(Type type)
+        {
+            MemberInfo[] members = GetMembersIntern(type);
+            if (members != null)
+            {
+                return members;
+            }
+            List<MemberInfo> ownMembers = new List<MemberInfo>();
+            ScanForCallingProxyField(type, type, ownMembers);
+
+            members = GetMembersIntern(type);
+            if (members != null)
+            {
+                // discard own members
+                return members;
+            }
+            Object writeLock = this.writeLock;
+            lock (writeLock)
+            {
+                members = GetMembersIntern(type);
+                if (members != null)
+                {
+                    // discard own members
+                    return members;
+                }
+                members = ownMembers.ToArray();
+                typeToMembersMap.Put(type, members.Length > 0 ? members : EMPTY_MEMBERS);
+                return members.Length > 0 ? members : EMPTY_MEMBERS;
             }
         }
 

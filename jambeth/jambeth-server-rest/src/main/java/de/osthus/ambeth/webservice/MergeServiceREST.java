@@ -12,6 +12,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 
+import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IOriCollection;
@@ -61,7 +62,7 @@ public class MergeServiceREST extends AbstractServiceREST
 		{
 			preServiceCall();
 			Object[] args = getArguments(is);
-			List<IEntityMetaData> result = getMergeService().getMetaData((List<Class<?>>) args[0]);
+			List<IEntityMetaData> result = getService(IEntityMetaDataProvider.class).getMetaData((List<Class<?>>) args[0]);
 
 			ArrayList<EntityMetaDataTransfer> emdTransfer = new ArrayList<EntityMetaDataTransfer>(result.size());
 			for (int a = 0, size = result.size(); a < size; a++)

@@ -60,6 +60,11 @@ namespace De.Osthus.Ambeth.Cache.Collections
             return null;
         }
 
+        public override string ToString()
+        {
+            return GetType().Name + ": " + GetTargetName(null);
+        }
+
         public String GetTargetName(Type typeToEnhance)
         {
             return NewType.GetType(entityType).InternalName + "$" + typeof(CacheMapEntry).Name + "$"

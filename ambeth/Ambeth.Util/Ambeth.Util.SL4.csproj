@@ -101,6 +101,7 @@
     <Compile Include="ambeth\collections\AbstractLinkedMap.cs" />
     <Compile Include="ambeth\collections\AbstractListElem.cs" />
     <Compile Include="ambeth\collections\AbstractTuple2KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />
     <Compile Include="ambeth\collections\CHashSet.cs" />
     <Compile Include="ambeth\collections\EmptyIterator.cs" />
     <Compile Include="ambeth\collections\EmptyMap.cs" />
@@ -142,6 +143,9 @@
     <Compile Include="ambeth\collections\Tuple2KeyEntry.cs" />
     <Compile Include="ambeth\collections\Tuple2KeyHashMap.cs" />
     <Compile Include="ambeth\collections\Tuple2KeyIterator.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyEntry.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyHashMap.cs" />
+    <Compile Include="ambeth\collections\Tuple3KeyIterator.cs" />
     <Compile Include="ambeth\collections\WeakHashSet.cs" />
     <Compile Include="ambeth\config\IProperties.cs" />
     <Compile Include="ambeth\config\UtilConfigurationConstants.cs" />
@@ -215,6 +219,7 @@
     <Compile Include="ambeth\util\converter\SByteArrayConverter.cs" />
     <Compile Include="ambeth\util\DelegateFactory.cs" />
     <Compile Include="ambeth\util\IDelegateFactory.cs" />
+    <Compile Include="ambeth\util\IImmutableType.cs" />
     <Compile Include="ambeth\util\IInterningFeature.cs" />
     <Compile Include="ambeth\util\ImmutableTypeSet.cs" />
     <Compile Include="ambeth\util\IParamHolder.cs" />
@@ -285,6 +290,9 @@
     <EmbeddedResource Include="..\..\jambeth\jambeth-util\src\main\resources\de\osthus\ambeth\schema\*.*">
       <Link>ambeth\schema\%(FileName)%(Extension)</Link>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\AbstractSimpleInterceptor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>

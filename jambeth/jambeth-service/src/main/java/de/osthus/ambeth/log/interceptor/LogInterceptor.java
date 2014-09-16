@@ -32,9 +32,6 @@ public class LogInterceptor extends CascadedInterceptor
 		};
 	};
 
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@LogInstance
 	private ILogger log;
 
@@ -50,14 +47,10 @@ public class LogInterceptor extends CascadedInterceptor
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean isClientLogger;
 
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	@SuppressWarnings("rawtypes")
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		Class<?> declaringClass = method.getDeclaringClass();
 		if (Object.class.equals(declaringClass))
 		{

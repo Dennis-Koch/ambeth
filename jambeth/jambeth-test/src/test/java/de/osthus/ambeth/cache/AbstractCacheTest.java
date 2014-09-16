@@ -16,6 +16,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
+import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
@@ -187,6 +188,12 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 			protected void putInternObjRelation(AbstractCacheValue cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
 			{
 				// Intended blank
+			}
+
+			@Override
+			protected void putIntern(ILoadContainer loadContainer)
+			{
+				throw new UnsupportedOperationException();
 			}
 		};
 		this.fixture = beanContext.registerExternalBean(fixture).finish();

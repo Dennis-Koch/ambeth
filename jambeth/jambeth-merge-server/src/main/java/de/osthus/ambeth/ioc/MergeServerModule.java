@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.datachange.model.IDataChangeOfSession;
 import de.osthus.ambeth.event.DatabaseAcquireEvent;
 import de.osthus.ambeth.event.DatabaseCommitEvent;
 import de.osthus.ambeth.event.DatabaseFailEvent;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.DatabaseToEntityMetaData;
-import de.osthus.ambeth.merge.event.LocalDataChangeEvent;
 import de.osthus.ambeth.service.IRelationMergeService;
 import de.osthus.ambeth.service.PersistenceMergeServiceExtension;
 import de.osthus.ambeth.service.RelationMergeService;
@@ -42,7 +42,7 @@ public class MergeServerModule implements IInitializingModule
 
 		IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerAnonymousBean(LocalToPublicDispatcher.class);
 
-		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(LocalDataChangeEvent.class);
+		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseCommitEvent.class);
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseFailEvent.class);

@@ -63,19 +63,19 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	}
 
 	@Override
-	public String fillQuery(Map<Integer, Object> params)
+	public String fillQuery(List<Object> parameters)
 	{
-		return fillQuery(null, params);
+		return fillQuery(null, parameters);
 	}
 
 	@Override
-	public String fillQuery(Map<Object, Object> nameToValueMap, Map<Integer, Object> params)
+	public String fillQuery(Map<Object, Object> nameToValueMap, List<Object> parameters)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			rootOperand.expandQuery(whereSB, nameToValueMap, false, params);
+			rootOperand.expandQuery(whereSB, nameToValueMap, false, parameters);
 			return whereSB.toString();
 		}
 		catch (IOException e)
@@ -89,19 +89,19 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	}
 
 	@Override
-	public String[] fillJoinQuery(Map<Object, Object> nameToValueMap, Map<Integer, Object> params)
+	public String[] fillJoinQuery(Map<Object, Object> nameToValueMap, List<Object> parameters)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
 		StringBuilder joinSB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			rootOperand.expandQuery(whereSB, nameToValueMap, true, params);
-			joinClauses.get(0).expandQuery(joinSB, nameToValueMap, true, params);
+			rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
+			joinClauses.get(0).expandQuery(joinSB, nameToValueMap, true, parameters);
 			for (int i = 1; i < joinClauses.size(); i++)
 			{
 				joinSB.append(' ');
-				joinClauses.get(i).expandQuery(joinSB, nameToValueMap, true, params);
+				joinClauses.get(i).expandQuery(joinSB, nameToValueMap, true, parameters);
 			}
 			return new String[] { joinSB.toString(), whereSB.toString() };
 		}

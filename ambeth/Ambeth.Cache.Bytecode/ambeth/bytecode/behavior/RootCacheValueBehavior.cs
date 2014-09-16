@@ -26,6 +26,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             }
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(hint.EntityType);
             visitor = new RootCacheValueVisitor(visitor, metaData);
+            visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
             return visitor;
         }
 

@@ -1,7 +1,10 @@
 package de.osthus.ambeth.ioc.link;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import net.sf.cglib.proxy.Callback;
+import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.reflect.FastMethod;
 import de.osthus.ambeth.collections.HashMap;
@@ -9,6 +12,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.extendable.IExtendableRegistry;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.DelegateInterceptor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.ParamChecker;
@@ -71,36 +75,92 @@ public class LinkContainer extends AbstractLinkContainer
 	protected Object resolveListenerIntern(Object listener)
 	{
 		listener = super.resolveListenerIntern(listener);
-		if (listenerMethodName != null)
+		if (listenerMethodName == null)
 		{
-			Class<?> parameterType = addMethod.getParameterTypes()[0];
-			Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);
-			HashMap<Method, Method> mappedMethods = new HashMap<Method, Method>();
-			for (Method methodOnExpectedListenerType : methodsOnExpectedListenerType)
+			return listener;
+		}
+		Class<?> parameterType = addMethod.getParameterTypes()[0];
+		Method[] methodsOnExpectedListenerType = ReflectUtil.getDeclaredMethods(parameterType);
+		HashMap<Method, Method> mappedMethods = new HashMap<Method, Method>();
+		for (Method methodOnExpectedListenerType : methodsOnExpectedListenerType)
+		{
+			Annotation[][] parameterAnnotations = methodOnExpectedListenerType.getParameterAnnotations();
+			Class<?>[] types = methodOnExpectedListenerType.getParameterTypes();
+
+			CascadedInterceptor cascadedInterceptor = null;
+			if (listener instanceof Factory)
 			{
-				Class<?>[] types = methodOnExpectedListenerType.getParameterTypes();
-				Method method;
-				try
+				Callback[] callbacks = ((Factory) listener).getCallbacks();
+				if (callbacks != null && callbacks.length == 1)
 				{
-					method = listener.getClass().getDeclaredMethod(listenerMethodName, types);
-					method.setAccessible(true);
+					Callback callback = callbacks[0];
+					if (callback instanceof CascadedInterceptor)
+					{
+						cascadedInterceptor = (CascadedInterceptor) callback;
+						Object target = cascadedInterceptor;
+						while (target instanceof CascadedInterceptor)
+						{
+							Object targetOfTarget = ((CascadedInterceptor) target).getTarget();
+							if (targetOfTarget != null)
+							{
+								target = targetOfTarget;
+							}
+							else
+							{
+								target = null;
+								break;
+							}
+						}
+						if (target != null)
+						{
+							listener = target;
+						}
+					}
 				}
-				catch (SecurityException e)
+			}
+			Method method = null;
+			while (method == null)
+			{
+				method = ReflectUtil.getDeclaredMethod(true, listener.getClass(), methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
+				if (method == null && types.length > 0)
 				{
-					throw RuntimeExceptionUtil.mask(e);
-				}
-				catch (NoSuchMethodException e)
-				{
-					throw RuntimeExceptionUtil.mask(e);
+					Class<?> firstType = types[0];
+					types[0] = null;
+					method = ReflectUtil.getDeclaredMethod(true, listener.getClass(), methodOnExpectedListenerType.getReturnType(), listenerMethodName, types);
+					types[0] = firstType;
 				}
 				if (method != null)
 				{
-					mappedMethods.put(methodOnExpectedListenerType, method);
+					break;
 				}
+				if (types.length > 1)
+				{
+					Annotation[] annotationsOfLastType = parameterAnnotations[types.length - 1];
+					LinkOptional linkOptional = null;
+					for (Annotation annotationOfLastType : annotationsOfLastType)
+					{
+						if (annotationOfLastType instanceof LinkOptional)
+						{
+							linkOptional = (LinkOptional) annotationOfLastType;
+							break;
+						}
+					}
+					if (linkOptional != null)
+					{
+						// drop last expected argument and look again
+						Class<?>[] newTypes = new Class<?>[types.length - 1];
+						System.arraycopy(types, 0, newTypes, 0, newTypes.length);
+						types = newTypes;
+						continue;
+					}
+				}
+				throw new IllegalArgumentException("Could not map given method '" + listenerMethodName + "' of listener " + listener + " to signature: "
+						+ methodOnExpectedListenerType);
 			}
-			MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
-			listener = proxyFactory.createProxy(parameterType, interceptor);
+			mappedMethods.put(methodOnExpectedListenerType, method);
 		}
+		MethodInterceptor interceptor = new DelegateInterceptor(listener, mappedMethods);
+		listener = proxyFactory.createProxy(parameterType, listener.getClass().getInterfaces(), interceptor);
 		return listener;
 	}
 

@@ -127,7 +127,6 @@
     <Compile Include="ambeth\proxy\EntityFactory.cs" />
     <Compile Include="ambeth\proxy\IDefaultCollection.cs" />
     <Compile Include="ambeth\proxy\IEntityMetaDataHolder.cs" />
-    <Compile Include="ambeth\proxy\InterfaceEntityInterceptor.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
     <Compile Include="ambeth\proxy\IObjRefContainer.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
@@ -245,6 +244,9 @@
   <ItemGroup>
     <Compile Include="ambeth\proxy\MergeContext.cs" />
     <Compile Include="ambeth\proxy\MergePostProcessor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\ITechnicalEntityTypeExtendable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -24,8 +24,8 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityPrivilegeFactoryProvider;
-import de.osthus.ambeth.privilege.bytecode.collections.IEntityTypePrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityPrivilegeFactoryProvider;
+import de.osthus.ambeth.privilege.factory.IEntityTypePrivilegeFactoryProvider;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
@@ -41,6 +41,7 @@ import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IPrivilegeService;
 import de.osthus.ambeth.util.EqualsUtil;
@@ -68,7 +69,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		public PrivilegeKey(Class<?> entityType, byte IdIndex, Object id, String userSID)
 		{
 			this.entityType = entityType;
-			this.idIndex = IdIndex;
+			idIndex = IdIndex;
 			this.id = id;
 			this.userSID = userSID;
 		}
@@ -132,6 +133,9 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 	@Autowired(optional = true)
 	protected IPrivilegeService privilegeService;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
@@ -226,10 +230,10 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authenticated to be able to check for privileges");
+			throw new SecurityException("User must be authorized to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{
@@ -249,6 +253,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		finally
 		{
 			writeLock.unlock();
+		}
+		if (privilegeService == null)
+		{
+			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
+					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
 		String userSID = authorization.getSID();
 		List<IPrivilegeOfService> privilegeResults = privilegeService.getPrivileges(missingObjRefs.toArray(IObjRef.class), securityScopes);
@@ -402,10 +411,10 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityScopeProvider.getAuthorization();
+		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authenticated to be able to check for privileges");
+			throw new SecurityException("User must be authorized to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{
@@ -425,6 +434,11 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		finally
 		{
 			writeLock.unlock();
+		}
+		if (privilegeService == null)
+		{
+			throw new SecurityException("No bean of type " + IPrivilegeService.class.getName()
+					+ " could be injected. Privilege functionality is deactivated. The current operation is not supported");
 		}
 		String userSID = authorization.getSID();
 		List<ITypePrivilegeOfService> privilegeResults = privilegeService.getPrivilegesOfTypes(missingEntityTypes.toArray(Class.class), securityScopes);

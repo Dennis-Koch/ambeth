@@ -6,11 +6,11 @@ import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
-import de.osthus.ambeth.exceptions.ServiceCallForbiddenException;
 import de.osthus.ambeth.helloworld.service.IHelloWorldService;
 import de.osthus.ambeth.helloworld.transfer.TestEntity;
 import de.osthus.ambeth.helloworld.transfer.TestEntity2;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.job.IJob;
 import de.osthus.ambeth.job.IJobContext;
 import de.osthus.ambeth.log.ILogger;
@@ -33,50 +33,25 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 		NOTHING, INSERT, UPDATE, DELETE;
 	}
 
+	@Autowired
 	protected IEntityFactory entityFactory;
 
+	@Autowired
 	protected IHelloWorldService helloWorldService;
 
+	@Autowired
 	protected ITransaction transaction;
 
+	@Property(name = "random.min", mandatory = false)
 	protected int minThreshold = 10;
 
+	@Property(name = "random.max", mandatory = false)
 	protected int maxThreadhold = 20;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(entityFactory, "EntityFactory");
-		ParamChecker.assertNotNull(helloWorldService, "HelloWorldService");
-		ParamChecker.assertNotNull(transaction, "Transaction");
 		ParamChecker.assertTrue(maxThreadhold > minThreshold, "Thresholds must be valid: " + maxThreadhold + " > " + minThreshold);
-	}
-
-	public void setEntityFactory(IEntityFactory entityFactory)
-	{
-		this.entityFactory = entityFactory;
-	}
-
-	public void setHelloWorldService(IHelloWorldService helloWorldService)
-	{
-		this.helloWorldService = helloWorldService;
-	}
-
-	@Property(name = "random.min", mandatory = false)
-	public void setMinThreshold(int minThreshold)
-	{
-		this.minThreshold = minThreshold;
-	}
-
-	@Property(name = "random.max", mandatory = false)
-	public void setMaxThreadhold(int maxThreadhold)
-	{
-		this.maxThreadhold = maxThreadhold;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
 	}
 
 	@Override
@@ -108,19 +83,19 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 	{
 		long start = System.currentTimeMillis();
 
-		boolean forbiddenSuccess = false;
-		try
-		{
-			helloWorldService.forbiddenMethod();
-		}
-		catch (ServiceCallForbiddenException e)
-		{
-			forbiddenSuccess = true;
-		}
-		if (!forbiddenSuccess)
-		{
-			throw new IllegalStateException("Service call should have been failed!");
-		}
+		// boolean forbiddenSuccess = false;
+		// try
+		// {
+		// helloWorldService.forbiddenMethod();
+		// }
+		// catch (ServiceCallForbiddenException e)
+		// {
+		// forbiddenSuccess = true;
+		// }
+		// if (!forbiddenSuccess)
+		// {
+		// throw new IllegalStateException("Service call should have been failed!");
+		// }
 
 		final List<TestEntity> allTestEntities = helloWorldService.getAllTestEntities();
 		final List<TestEntity2> allTest2Entities = helloWorldService.getAllTest2Entities();
@@ -191,7 +166,7 @@ public class RandomDataGenerator implements IInitializingBean, IJob
 			changeOperation = ChangeOperation.UPDATE;
 		}
 
-		boolean changeTestEntity = Math.random() > 0.1;
+		boolean changeTestEntity = allTest2Entities.size() > 0 && Math.random() > 0.1;
 
 		doChange(allTestEntities, allTest2Entities, selectEntityIndex, selectEntity2Index, changeOperation, changeTestEntity);
 	}

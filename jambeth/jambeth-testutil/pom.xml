@@ -6,9 +6,9 @@
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>
-		<artifactId>jambeth-pom</artifactId>
+		<artifactId>jambeth-test-pom</artifactId>
 		<version>2.1.X-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath>../jambeth-test-pom/pom.xml</relativePath>
 	</parent>
 
 	<dependencies>
@@ -18,8 +18,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-ioc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -34,9 +33,8 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-xml</artifactId>
-			<classifier>tests</classifier>
-			<scope>test</scope>
+			<artifactId>jambeth-xml-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>

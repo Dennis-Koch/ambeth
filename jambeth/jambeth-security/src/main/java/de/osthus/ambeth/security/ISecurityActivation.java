@@ -8,10 +8,6 @@ public interface ISecurityActivation
 
 	boolean isFilterActivated();
 
-	boolean setPrivilegedMode(boolean privilegedModeActive);
-
-	void restorePrivilegedMode(boolean previousPrivilegedMode);
-
 	<R> R executeWithoutSecurity(IResultingBackgroundWorkerDelegate<R> pausedSecurityRunnable) throws Throwable;
 
 	<R> R executeWithoutFiltering(IResultingBackgroundWorkerDelegate<R> noFilterRunnable) throws Throwable;

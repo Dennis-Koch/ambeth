@@ -21,6 +21,7 @@ import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
 import de.osthus.ambeth.merge.IObjRefHelper;
+import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
 import de.osthus.ambeth.merge.MergeController;
 import de.osthus.ambeth.merge.MergeProcess;
@@ -97,7 +98,7 @@ public class MergeModule implements IInitializingModule
 				.registerAnonymousBean(EntityMetaDataProvider.class)
 				.propertyRef("ValueObjectMap", valueObjectMap)
 				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
-						IEntityLifecycleExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
+						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
 		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
 
 		if (!independentMetaData)

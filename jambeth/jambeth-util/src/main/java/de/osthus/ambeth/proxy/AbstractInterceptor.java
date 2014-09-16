@@ -12,18 +12,11 @@ import de.osthus.ambeth.annotation.Remove;
 
 public abstract class AbstractInterceptor extends CascadedInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	protected abstract Annotation getMethodLevelBehavior(Method method);
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		Annotation annotation = getMethodLevelBehavior(method);
 		if (annotation instanceof NoProxy)
 		{

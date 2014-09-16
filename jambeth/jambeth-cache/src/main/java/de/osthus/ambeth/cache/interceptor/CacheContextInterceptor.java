@@ -15,9 +15,6 @@ import de.osthus.ambeth.proxy.CascadedInterceptor;
 
 public class CacheContextInterceptor extends CascadedInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -32,12 +29,8 @@ public class CacheContextInterceptor extends CascadedInterceptor
 	protected ICacheProvider cacheProvider;
 
 	@Override
-	public Object intercept(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (method.getDeclaringClass().equals(Object.class))
 		{
 			return invokeTarget(obj, method, args, proxy);

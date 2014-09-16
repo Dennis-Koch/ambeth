@@ -1138,11 +1138,11 @@ namespace De.Osthus.Ambeth.Ioc
             return new BeanRuntime<V>(this, typeof(V), true);
         }
 
-        public IBeanRuntime<V> RegisterAnonymousBean<V>(Type type)
+        public IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type type)
         {
             CheckNotDisposed();
             ParamChecker.AssertParamNotNull(type, "type");
-            return new BeanRuntime<V>(this, type, true);
+            return new BeanRuntime<Object>(this, type, true);
         }
 
         public IBeanRuntime<V> RegisterWithLifecycle<V>(V obj)

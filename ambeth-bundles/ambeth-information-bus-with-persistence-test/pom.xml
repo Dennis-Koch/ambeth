@@ -18,74 +18,70 @@
 			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-cache-server</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-cache-server-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-event-server</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-event-server-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-job</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-job-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-job-cron4j</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-job-cron4j-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-merge-server</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-merge-server-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-persistence-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-persistence-jdbc</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-persistence-jdbc-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-query</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-query-test</artifactId>
+			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-security-server</artifactId>
-			<version>${project.version}</version>
-			<classifier>tests</classifier>
+			<artifactId>jambeth-security-server-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-testutil-persistence</artifactId>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 
@@ -101,4 +97,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>

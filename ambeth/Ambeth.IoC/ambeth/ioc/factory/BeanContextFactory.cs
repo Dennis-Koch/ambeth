@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using De.Osthus.Ambeth.Accessor;
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Extendable;
@@ -13,7 +14,6 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
-using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -101,6 +101,10 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             propertiesPreProcessor.ConversionHelper = delegatingConversionHelper;
             propertiesPreProcessor.PropertyInfoProvider = propertyInfoProvider;
             propertiesPreProcessor.AfterPropertiesSet();
+
+            // The DelegatingConversionHelper is functional, but has yet no properties set
+            propertiesPreProcessor.PreProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, null);
+            delegatingConversionHelper.AfterPropertiesSet();
 
             BeanContextFactory parentContextFactory = new BeanContextFactory(linkController, beanContextInitializer, proxyFactory, null, newProps, null);
 

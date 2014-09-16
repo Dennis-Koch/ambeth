@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -18,7 +19,7 @@ import de.osthus.ambeth.persistence.IConnectionDialect;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 
-public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean
+public abstract class AbstractConnectionDialect implements IConnectionDialect, IInitializingBean, IDisposableBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -32,6 +33,8 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 
 	@Property(name = PersistenceConfigurationConstants.ExternalTransactionManager, defaultValue = "false")
 	protected boolean externalTransactionManager;
+
+	protected Driver driverRegisteredExplicitly;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -60,13 +63,23 @@ public abstract class AbstractConnectionDialect implements IConnectionDialect, I
 				{
 					throw e;
 				}
-				Driver driver = (Driver) databaseDriver.newInstance();
-				DriverManager.registerDriver(driver);
+				driverRegisteredExplicitly = (Driver) databaseDriver.newInstance();
+				DriverManager.registerDriver(driverRegisteredExplicitly);
 			}
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
+	public void destroy() throws Throwable
+	{
+		if (driverRegisteredExplicitly != null)
+		{
+			DriverManager.deregisterDriver(driverRegisteredExplicitly);
+			driverRegisteredExplicitly = null;
 		}
 	}
 

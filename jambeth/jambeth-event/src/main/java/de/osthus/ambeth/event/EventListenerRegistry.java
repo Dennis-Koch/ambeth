@@ -23,8 +23,8 @@ import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class EventListenerRegistry implements IEventListenerExtendable, IEventBatcherExtendable, IEventTargetExtractorExtendable, IEventBatcher,
-		IEventDispatcher, IEventListener, IEventQueue
+public class EventListenerRegistry implements IEventListenerExtendable, IEventTargetListenerExtendable, IEventBatcherExtendable,
+		IEventTargetExtractorExtendable, IEventBatcher, IEventDispatcher, IEventListener, IEventQueue
 {
 	@LogInstance
 	private ILogger log;
@@ -275,13 +275,30 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	}
 
 	@Override
-	public void registerEventListener(IEventListenerMarker eventListener)
+	public void registerEventListener(IEventListener eventListener)
 	{
-		registerEventListener(eventListener, null);
+		registerEventListenerIntern(eventListener, null);
 	}
 
 	@Override
-	public void registerEventListener(IEventListenerMarker eventListener, Class<?> eventType)
+	public void registerEventTargetListener(IEventTargetEventListener eventTargetListener)
+	{
+		registerEventListenerIntern(eventTargetListener, null);
+	}
+
+	@Override
+	public void registerEventListener(IEventListener eventListener, Class<?> eventType)
+	{
+		registerEventListenerIntern(eventListener, eventType);
+	}
+
+	@Override
+	public void registerEventTargetListener(IEventTargetEventListener eventTargetListener, Class<?> eventType)
+	{
+		registerEventListenerIntern(eventTargetListener, eventType);
+	}
+
+	protected void registerEventListenerIntern(IEventListenerMarker eventListener, Class<?> eventType)
 	{
 		if (eventType == null)
 		{
@@ -291,13 +308,30 @@ public class EventListenerRegistry implements IEventListenerExtendable, IEventBa
 	}
 
 	@Override
-	public void unregisterEventListener(IEventListenerMarker eventListener)
+	public void unregisterEventListener(IEventListener eventListener)
 	{
-		unregisterEventListener(eventListener, null);
+		unregisterEventListenerIntern(eventListener, null);
 	}
 
 	@Override
-	public void unregisterEventListener(IEventListenerMarker eventListener, Class<?> eventType)
+	public void unregisterEventTargetListener(IEventTargetEventListener eventTargetListener)
+	{
+		unregisterEventListenerIntern(eventTargetListener, null);
+	}
+
+	@Override
+	public void unregisterEventListener(IEventListener eventListener, Class<?> eventType)
+	{
+		unregisterEventListenerIntern(eventListener, eventType);
+	}
+
+	@Override
+	public void unregisterEventTargetListener(IEventTargetEventListener eventTargetListener, Class<?> eventType)
+	{
+		unregisterEventListenerIntern(eventTargetListener, eventType);
+	}
+
+	protected void unregisterEventListenerIntern(IEventListenerMarker eventListener, Class<?> eventType)
 	{
 		if (eventType == null)
 		{

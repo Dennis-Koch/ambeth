@@ -26,6 +26,22 @@ import de.osthus.ambeth.util.ParamChecker;
 
 public class AmbethPlatformContext implements IAmbethPlatformContext
 {
+	private class AmbethPlatformContextModule implements IInitializingModule
+	{
+		protected final AmbethPlatformContext apc;
+
+		public AmbethPlatformContextModule(AmbethPlatformContext apc)
+		{
+			this.apc = apc;
+		}
+
+		@Override
+		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
+		{
+			beanContextFactory.registerExternalBean(apc).autowireable(IAmbethPlatformContext.class);
+		}
+	}
+
 	public static IAmbethPlatformContext create(Properties props, Class<?>[] providerModules, Class<?>[] frameworkModules, Class<?>[] bootstrapModules,
 			IInitializingModule[] providerModuleInstances, final IInitializingModule[] frameworkModuleInstances,
 			final IInitializingModule[] bootstrapModuleInstances)
@@ -38,15 +54,7 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 		{
 			IInitializingModule[] providerModuleInstancesCopy = new IInitializingModule[providerModuleInstances.length + 1];
 			System.arraycopy(providerModuleInstances, 0, providerModuleInstancesCopy, 0, providerModuleInstances.length);
-			providerModuleInstancesCopy[providerModuleInstancesCopy.length - 1] = new IInitializingModule()
-			{
-
-				@Override
-				public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-				{
-					beanContextFactory.registerExternalBean(apc).autowireable(IAmbethPlatformContext.class);
-				}
-			};
+			providerModuleInstancesCopy[providerModuleInstancesCopy.length - 1] = apc.new AmbethPlatformContextModule(apc);
 			providerModuleInstances = providerModuleInstancesCopy;
 
 			bootstrapContext = BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
@@ -215,7 +223,8 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 		{
 			try
 			{
-				IDatabase database = beanContext.getService("databaseProvider", IDatabaseProvider.class).tryGetInstance();
+				IDatabaseProvider databaseProvider = beanContext.getService("databaseProvider", IDatabaseProvider.class, false);
+				IDatabase database = databaseProvider != null ? databaseProvider.tryGetInstance() : null;
 				if (database != null)
 				{
 					database.dispose();

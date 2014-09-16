@@ -19,6 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.config.IocConfigurationConstants;
@@ -342,7 +343,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	}
 
 	@Override
-	public void generateNewPassword(IPassword newEmptyPassword, IUser user)
+	public String generateNewPassword(IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
@@ -364,6 +365,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 		fillPassword(clearTextPassword, newEmptyPassword);
 		setNewPasswordIntern(user, newEmptyPassword);
+		return new String(clearTextPassword);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
@@ -373,8 +375,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		user.setPassword(password);
 		if (existingPassword != null)
 		{
-			// ugly hack because of generics
-			((Collection<IPassword>) ((Collection) user.getPasswordHistory())).add(existingPassword);
+			Collection<? extends IPassword> passwordHistory = user.getPasswordHistory();
+			if (passwordHistory != null)
+			{
+				// ugly hack because of generics
+				((Collection<IPassword>) ((Collection) passwordHistory)).add(existingPassword);
+			}
 		}
 		cleanupPasswordHistory(user);
 	}
@@ -382,6 +388,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	protected void cleanupPasswordHistory(IUser user)
 	{
 		Collection<? extends IPassword> passwordHistory = user.getPasswordHistory();
+		if (passwordHistory == null)
+		{
+			return;
+		}
 		while (passwordHistory.size() > passwordHistoryCount)
 		{
 			ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
@@ -400,12 +410,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected List<IPassword> buildPasswordHistory(IUser user)
 	{
-		ArrayList<IPassword> passwordHistory = new ArrayList<IPassword>(user.getPasswordHistory());
+		Collection<? extends IPassword> passwordHistory = user.getPasswordHistory();
+		if (passwordHistory == null)
+		{
+			return EmptyList.getInstance();
+		}
+		ArrayList<IPassword> passwordHistoryList = new ArrayList<IPassword>(passwordHistory);
 		if (user.getPassword() != null)
 		{
-			passwordHistory.add(user.getPassword());
+			passwordHistoryList.add(user.getPassword());
 		}
-		return passwordHistory;
+		return passwordHistoryList;
 	}
 
 	protected boolean isPasswordUsedInHistory(char[] newPassword, Collection<? extends IPassword> passwordHistory)

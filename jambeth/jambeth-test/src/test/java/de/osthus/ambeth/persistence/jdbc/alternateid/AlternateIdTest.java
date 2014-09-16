@@ -18,10 +18,10 @@ import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeProcess;
-import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateIdModule;
 import de.osthus.ambeth.proxy.IObjRefContainer;
@@ -32,7 +32,6 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
@@ -51,31 +50,11 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 	protected String name = "myNameIs";
 
+	@Autowired
 	protected IAlternateIdEntityService service;
 
+	@Autowired(CacheNamedBeans.CacheProviderSingleton)
 	protected ICacheProvider cacheProvider;
-
-	protected IProxyHelper proxyHelper;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(proxyHelper, "ProxyHelper");
-
-		cacheProvider = beanContext.getService(CacheNamedBeans.CacheProviderSingleton, ICacheProvider.class);
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
-	}
-
-	public void setService(IAlternateIdEntityService service)
-	{
-		this.service = service;
-	}
 
 	protected AlternateIdEntity createEntity()
 	{

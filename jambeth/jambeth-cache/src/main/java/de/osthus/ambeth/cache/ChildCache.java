@@ -11,6 +11,7 @@ import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.cache.collections.CacheHashMap;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
+import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
@@ -138,6 +139,12 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	public int getCacheId()
 	{
 		return cacheId;
+	}
+
+	@Override
+	protected void putIntern(ILoadContainer loadContainer)
+	{
+		throw new UnsupportedOperationException();
 	}
 
 	@Override

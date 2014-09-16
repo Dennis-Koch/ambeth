@@ -4,10 +4,11 @@ using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
 using System;
+using De.Osthus.Ambeth.Proxy;
 
 namespace De.Osthus.Ambeth.Ioc.Proxy
 {
-    public class EmptyInterceptor : IInterceptor
+    public class EmptyInterceptor : AbstractSimpleInterceptor
     {
         public static readonly IInterceptor INSTANCE = new EmptyInterceptor();
 
@@ -16,7 +17,7 @@ namespace De.Osthus.Ambeth.Ioc.Proxy
             // Intended blank
         }
 
-        public void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             if (typeof(Object).Equals(invocation.Method.DeclaringType))
             {

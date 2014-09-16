@@ -103,6 +103,7 @@
     <Compile Include="ambeth\bytecode\visitor\FieldVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\IClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\IFieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\IILGenerator.cs" />
     <Compile Include="ambeth\bytecode\visitor\IMethodVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\InterfaceAdder.cs" />
     <Compile Include="ambeth\bytecode\visitor\InterfaceToClassVisitor.cs" />
@@ -113,6 +114,10 @@
     <Compile Include="ambeth\bytecode\visitor\PublicConstructorVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\SuppressLinesClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\SuppressLinesMethodVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceClassVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceFieldVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceILGenerator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\TraceMethodVisitor.cs" />
     <Compile Include="ambeth\ioc\BytecodeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

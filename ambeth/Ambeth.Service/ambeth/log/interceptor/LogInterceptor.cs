@@ -50,7 +50,7 @@ namespace De.Osthus.Ambeth.Log.Interceptor
         }
 
         [HandleProcessCorruptedStateExceptions]
-        public override void Intercept(IInvocation invocation)
+        protected override void InterceptIntern(IInvocation invocation)
         {
             try
             {

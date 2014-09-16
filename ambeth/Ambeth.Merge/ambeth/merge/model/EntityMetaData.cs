@@ -165,6 +165,16 @@ namespace De.Osthus.Ambeth.Merge.Model
             return index.Value;
         }
 
+	    public bool IsPrimitiveMember(String primitiveMemberName)
+	    {
+		    return primMemberNameToIndexDict.ContainsKey(primitiveMemberName);
+	    }
+
+	    public bool IsRelationMember(String relationMemberName)
+	    {
+		    return relMemberNameToIndexDict.ContainsKey(relationMemberName);
+	    }
+
         public int GetIndexByRelation(IRelationInfoItem relationMember)
         {
             int? index = DictionaryExtension.ValueOrDefault(relMemberToIndexDict, relationMember);

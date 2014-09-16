@@ -13,6 +13,23 @@ namespace De.Osthus.Ambeth.Proxy
 {
     public class ProxyFactory : IProxyFactory
     {
+        public class NoOp : AbstractSimpleInterceptor
+        {
+            public static readonly NoOp INSTANCE = new NoOp();
+
+            private NoOp()
+            {
+                // intended blank
+            }
+
+            protected override void InterceptIntern(IInvocation invocation)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        protected static readonly IInterceptor[] emptyCallbacks = new IInterceptor[] { NoOp.INSTANCE };
+        
         protected readonly ProxyGenerator proxyGenerator;
         
         public IProxyOptionsFactory ProxyOptionsFactory { get; set; }
@@ -42,6 +59,10 @@ namespace De.Osthus.Ambeth.Proxy
 
         public Object CreateProxy(Type type, params IInterceptor[] interceptors)
         {
+            if (interceptors.Length == 0)
+            {
+                interceptors = emptyCallbacks;
+            }
             if (type.IsInterface)
             {
                 return proxyGenerator.CreateInterfaceProxyWithoutTarget(type, ProxyOptionsFactory.CreateProxyGenerationOptions(), interceptors);

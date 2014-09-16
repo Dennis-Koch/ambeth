@@ -1,6 +1,7 @@
 package de.osthus.ambeth.query.sql;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import de.osthus.ambeth.filter.QueryConstants;
@@ -14,9 +15,9 @@ public class SqlStartsWithOperator extends CaseSensitiveTwoPlaceOperator
 	private ILogger log;
 
 	@Override
-	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void preProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			nameToValueMap.put(QueryConstants.POST_VALUE_KEY, "%");
 		}
@@ -30,9 +31,9 @@ public class SqlStartsWithOperator extends CaseSensitiveTwoPlaceOperator
 	}
 
 	@Override
-	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, Map<Integer, Object> params) throws IOException
+	protected void postProcessRightOperand(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters) throws IOException
 	{
-		if (params != null)
+		if (parameters != null)
 		{
 			nameToValueMap.remove(QueryConstants.POST_VALUE_KEY);
 		}

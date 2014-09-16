@@ -204,6 +204,11 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			propertiesPreProcessor.setPropertyInfoProvider(propertyInfoProvider);
 			propertiesPreProcessor.afterPropertiesSet();
 
+			// The DelegatingConversionHelper is functional, but has yet no properties set
+			propertiesPreProcessor.preProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
+					DelegatingConversionHelper.class, null, null);
+			delegatingConversionHelper.afterPropertiesSet();
+
 			BeanContextFactory parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null,
 					newProps, null);
 
@@ -317,7 +322,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		this.beanContextInitializer = beanContextInitializer;
 		this.proxyFactory = proxyFactory;
 		this.typeInfoProvider = typeInfoProvider;
-		this.props = properties;
+		props = properties;
 		this.parent = parent;
 	}
 

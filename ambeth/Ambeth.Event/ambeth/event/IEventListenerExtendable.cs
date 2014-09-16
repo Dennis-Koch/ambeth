@@ -5,12 +5,12 @@ namespace De.Osthus.Ambeth.Event
 {
     public interface IEventListenerExtendable
     {
-        void RegisterEventListener(IEventListenerMarker eventListener, Type eventType);
+        void RegisterEventListener(IEventListener eventListener, Type eventType);
 
-        void UnregisterEventListener(IEventListenerMarker eventListener, Type eventType);
+	    void UnregisterEventListener(IEventListener eventListener, Type eventType);
 
-        void RegisterEventListener(IEventListenerMarker eventListener);
+	    void RegisterEventListener(IEventListener eventListener);
 
-        void UnregisterEventListener(IEventListenerMarker eventListener);
+	    void UnregisterEventListener(IEventListener eventListener);
     }
 }

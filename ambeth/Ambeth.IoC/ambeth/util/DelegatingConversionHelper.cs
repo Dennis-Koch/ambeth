@@ -73,8 +73,12 @@ namespace De.Osthus.Ambeth.Util
                 Object newTargetValue = dedicatedConverter.ConvertValueToType(expectedType, targetClass, targetValue, additionalInformation);
                 if (newTargetValue == null)
                 {
-                    throw new Exception("It is not allowed that an instance of " + typeof(IDedicatedConverter).FullName + " returns null like "
-                            + dedicatedConverter + " did");
+                    if (expectedType.IsValueType)
+                    {
+                        throw new Exception("It is not allowed that an instance of " + typeof(IDedicatedConverter).FullName + " returns null like "
+                                + dedicatedConverter + " did for conversion from '" + targetClass.FullName + "' to '" + expectedType + "'");
+                    }
+                    return null;
                 }
                 if (expectedType.IsAssignableFrom(newTargetValue.GetType()))
                 {

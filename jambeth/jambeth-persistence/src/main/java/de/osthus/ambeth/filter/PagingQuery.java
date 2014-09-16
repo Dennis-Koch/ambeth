@@ -13,8 +13,8 @@ import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.PagingResponse;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -25,75 +25,34 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.query.IQueryIntern;
 import de.osthus.ambeth.query.IQueryKey;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T>, IInitializingBean
+public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T>
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected ICache cache;
 
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IQueryIntern<Object> query;
 
+	@Autowired
 	protected IQueryResultCache queryResultCache;
 
-	protected boolean prefetchAllPages;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(cache, "Cache");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(query, "Query");
-		ParamChecker.assertNotNull(queryResultCache, "QueryResultCache");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setQuery(IQueryIntern<Object> query)
-	{
-		this.query = query;
-	}
-
-	public void setQueryResultCache(IQueryResultCache queryResultCache)
-	{
-		this.queryResultCache = queryResultCache;
-	}
-
 	@Property(name = QueryConfigurationConstants.PagingPrefetchBehavior, defaultValue = "false")
-	public void setPrefetchAllPages(boolean prefetchAllPages)
-	{
-		this.prefetchAllPages = prefetchAllPages;
-	}
+	protected boolean prefetchAllPages;
 
 	@Override
 	public void dispose()

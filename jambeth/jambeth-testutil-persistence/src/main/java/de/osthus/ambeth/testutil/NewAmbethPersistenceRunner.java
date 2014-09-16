@@ -43,6 +43,7 @@ import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -58,9 +59,9 @@ import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication.PasswordType;
+import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
-import de.osthus.ambeth.security.SecurityContextHolder;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -77,6 +78,9 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 	private Connection connection;
 
 	private IServiceContext schemaContext;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
 
 	protected boolean doExecuteStrict = false;
 
@@ -435,7 +439,7 @@ public class NewAmbethPersistenceRunner extends AmbethIocRunner
 				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class).createProxy(
 						new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
-				SecurityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
+				securityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
 						PasswordType.PLAIN), new IResultingBackgroundWorkerDelegate<Object>()
 				{
 					@Override

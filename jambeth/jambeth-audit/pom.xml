@@ -21,4 +21,5 @@
 			<artifactId>jambeth-security-server</artifactId>
 		</dependency>
 	</dependencies>
+
 </project>

@@ -13,7 +13,6 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -255,12 +254,12 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 
 		ArrayList<String> additionalSelectColumnList = new ArrayList<String>();
 		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
-		LinkedHashMap<Integer, Object> params = new LinkedHashMap<Integer, Object>();
+		ArrayList<Object> parameters = new ArrayList<Object>();
 		try
 		{
 			Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
 
-			String[] sqlParts = getSqlParts(nameToValueMap, params, additionalSelectColumnList);
+			String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
 			String joinSql = sqlParts[0];
 			String whereSql = sqlParts[1];
 			String orderBySql = sqlParts[2];
@@ -271,7 +270,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 
 			if (!versionOnly)
 			{
-				fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), params);
+				fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), parameters);
 			}
 			if (pagingSizeObject == null)
 			{
@@ -280,17 +279,17 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 					whereSB.append(whereSql).append(' ').append(orderBySql);
 					if (versionOnly)
 					{
-						return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSB, params, tableAlias);
+						return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
 					}
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSB, params, tableAlias);
+					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
 				}
 				else if (versionOnly)
 				{
-					return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, params, tableAlias);
+					return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
 				}
 				else
 				{
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, params, tableAlias);
+					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
 				}
 			}
 			else
@@ -302,9 +301,10 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 
 				if (versionOnly)
 				{
-					return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, params, tableAlias);
+					return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, parameters,
+							tableAlias);
 				}
-				return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, params);
+				return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, pagingOffset, pagingLimit, parameters);
 			}
 		}
 		finally
@@ -314,7 +314,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public String[] getSqlParts(Map<Object, Object> nameToValueMap, ILinkedMap<Integer, Object> params, List<String> additionalSelectColumnList)
+	public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
@@ -329,11 +329,11 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		if (!joinQuery)
 		{
 			joinSql = null;
-			whereSql = stringQuery.fillQuery(nameToValueMap, params);
+			whereSql = stringQuery.fillQuery(nameToValueMap, parameters);
 		}
 		else
 		{
-			String[] sqlParts = stringQuery.fillJoinQuery(nameToValueMap, params);
+			String[] sqlParts = stringQuery.fillJoinQuery(nameToValueMap, parameters);
 
 			joinSql = sqlParts[0];
 			whereSql = sqlParts[1];
@@ -341,7 +341,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		StringBuilder orderBySB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			fillOrderBySQL(additionalSelectColumnList, orderBySB, nameToValueMap, joinQuery, params);
+			fillOrderBySQL(additionalSelectColumnList, orderBySB, nameToValueMap, joinQuery, parameters);
 
 			String[] sqlParts = { joinSql, whereSql, orderBySB.toString() };
 			return sqlParts;
@@ -354,7 +354,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	protected void fillOrderBySQL(List<String> additionalSelectColumnList, StringBuilder orderBySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			ILinkedMap<Integer, Object> params)
+			List<Object> parameters)
 	{
 		if (orderByOperands == null)
 		{
@@ -366,7 +366,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		{
 			for (int a = 0, size = orderByOperands.length; a < size; a++)
 			{
-				orderByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, params);
+				orderByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
 		catch (IOException e)
@@ -381,7 +381,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	protected void fillAdditionalFieldsSQL(List<String> additionalSelectColumnList, Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			ILinkedMap<Integer, Object> params)
+			List<Object> parameters)
 	{
 		if (selectOperands == null)
 		{
@@ -392,7 +392,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		{
 			for (int a = 0, size = selectOperands.length; a < size; a++)
 			{
-				selectOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, params);
+				selectOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
 		catch (IOException e)

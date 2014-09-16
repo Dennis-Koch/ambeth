@@ -324,7 +324,7 @@ public class EntityPermissionEvaluation implements IEntityPermissionEvaluation, 
 
 	public void applyTypePropertyPrivilege(String propertyName, ITypePropertyPrivilege propertyPrivilege)
 	{
-		if (!propertyPrivilege.isReadAllowed())
+		if (Boolean.FALSE.equals(propertyPrivilege.isReadAllowed()))
 		{
 			denyReadProperty(propertyName);
 			return;

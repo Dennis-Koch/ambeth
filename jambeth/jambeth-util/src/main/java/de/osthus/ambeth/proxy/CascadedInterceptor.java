@@ -4,24 +4,9 @@ import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
-public abstract class CascadedInterceptor implements ICascadedInterceptor
+public abstract class CascadedInterceptor extends AbstractSimpleInterceptor implements ICascadedInterceptor
 {
-	public static final Method finalizeMethod;
-
-	static
-	{
-		try
-		{
-			finalizeMethod = Object.class.getDeclaredMethod("finalize");
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
 	protected Object target;
 
 	@Override
@@ -38,11 +23,6 @@ public abstract class CascadedInterceptor implements ICascadedInterceptor
 
 	protected Object invokeTarget(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			// Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
-			return null;
-		}
 		if (target instanceof MethodInterceptor)
 		{
 			return ((MethodInterceptor) target).intercept(obj, method, args, proxy);

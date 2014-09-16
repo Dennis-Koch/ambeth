@@ -2,6 +2,8 @@
 using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Config;
+using De.Osthus.Ambeth.Security.Config;
 #if SILVERLIGHT
 using De.Osthus.Ambeth.Util;
 #endif
@@ -17,6 +19,9 @@ namespace De.Osthus.Ambeth.Security
 
         protected readonly ThreadLocal<bool?> filterActiveTL = new ThreadLocal<bool?>();
 
+        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+	    public bool SecurityActive { protected get; set; }
+
         public bool Secured
         {
             get
@@ -24,7 +29,7 @@ namespace De.Osthus.Ambeth.Security
                 bool? value = securityActiveTL.Value;
                 if (value == null)
                 {
-                    return true;
+                    return SecurityActive;
                 }
                 return value.Value;
             }

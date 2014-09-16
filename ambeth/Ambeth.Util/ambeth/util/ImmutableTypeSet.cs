@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Collections;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace De.Osthus.Ambeth.Util
 {
@@ -53,8 +54,12 @@ namespace De.Osthus.Ambeth.Util
             immutableTypeSet.Add(typeof(String));
             immutableTypeSet.Add(typeof(Type));
             immutableTypeSet.Add(typeof(void));
+
             immutableTypeSet.Add(typeof(Regex));
-	    }
+            immutableTypeSet.Add(typeof(Uri));
+            // In Java also: URL
+            immutableTypeSet.Add(typeof(File));
+        }
 
 	    public static void AddImmutableTypesTo(IList<Type> collection)
 	    {
@@ -74,7 +79,7 @@ namespace De.Osthus.Ambeth.Util
 
 	    public static bool IsImmutableType(Type type)
 	    {
-		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || "RuntimeType".Equals(type.Name);
+		    return type.IsPrimitive || type.IsValueType || type.IsEnum || immutableTypeSet.Contains(type) || typeof(IImmutableType).IsAssignableFrom(type) || "RuntimeType".Equals(type.Name);
 	    }
 
 	    private ImmutableTypeSet()

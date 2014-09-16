@@ -6,6 +6,7 @@ import de.osthus.ambeth.cache.CacheFactory;
 import de.osthus.ambeth.cache.CacheProvider;
 import de.osthus.ambeth.cache.CacheRetrieverRegistry;
 import de.osthus.ambeth.cache.CacheType;
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.FirstLevelCacheManager;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
@@ -38,10 +39,12 @@ import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -112,7 +115,8 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 		}
 		ParamChecker.assertNotNull(proxyFactory, "proxyFactory");
 
-		beanContextFactory.registerBean("serviceResultCache", ServiceResultCache.class).autowireable(IServiceResultCache.class);
+		IBeanConfiguration serviceResultcache = beanContextFactory.registerAnonymousBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
+		beanContextFactory.link(serviceResultcache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 		beanContextFactory.registerBean("proxyHelper", ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
 

@@ -54,6 +54,7 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
+import de.osthus.ambeth.privilege.transfer.TypePropertyPrivilegeOfService;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -220,6 +221,7 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 
 	protected void massDataReadIntern() throws Exception
 	{
+		TypePropertyPrivilegeOfService.create(true, null, false, null);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override

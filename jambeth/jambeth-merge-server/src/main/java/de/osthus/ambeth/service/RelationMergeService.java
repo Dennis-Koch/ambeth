@@ -166,7 +166,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	public void handleUpdateNotifications(ILinkChangeCommand changeCommand, IMap<String, ITableChange> tableChangeMap)
 	{
 		IDirectedLink fromLink = changeCommand.getDirectedLink();
-		IDirectedLink toLink = fromLink.getReverse();
+		IDirectedLink toLink = fromLink.getReverseLink();
 
 		RelationMember member = toLink.getMember();
 		if (member != null)
@@ -274,7 +274,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			}
 			if (addedORIs != null && addedORIs.length > 0)
 			{
-				if (!link.getReverse().isStandaloneLink())
+				if (!link.getReverseLink().isStandaloneLink())
 				{
 					CheckForPreviousParentKey key = new CheckForPreviousParentKey(metaData.getEntityType(), rui.getMemberName());
 					IList<IObjRef> movedOris = previousParentToMovedOrisMap.get(key);
@@ -433,7 +433,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		{
 			IDirectedLink link = links.get(i);
 
-			IDirectedLink reverseLink = link.getReverse();
+			IDirectedLink reverseLink = link.getReverseLink();
 			if (reverseLink.getMember() != null)
 			{
 				RelationMember member = reverseLink.getMember();
@@ -457,7 +457,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			}
 			else if (cascadeDelete)
 			{
-				removeRelations = link.isStandaloneLink() && link.getReverse().isStandaloneLink();
+				removeRelations = link.isStandaloneLink() && link.getReverseLink().isStandaloneLink();
 			}
 			else
 			{
@@ -483,7 +483,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 				// removeRelations);
 			}
 			Boolean becauseOfSelfRelation = null;
-			if (link.getReverse().getMember() != null)
+			if (link.getReverseLink().getMember() != null)
 			{
 				becauseOfSelfRelation = Boolean.FALSE;
 			}
@@ -646,7 +646,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		}
 		else if (cascadeDelete)
 		{
-			removeRelations = link.isStandaloneLink() && link.getReverse().isStandaloneLink();
+			removeRelations = link.isStandaloneLink() && link.getReverseLink().isStandaloneLink();
 		}
 		else
 		{
@@ -672,7 +672,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		}
 		else if (cascadeDelete)
 		{
-			removeRelations = link.isStandaloneLink() && link.getReverse().isStandaloneLink();
+			removeRelations = link.isStandaloneLink() && link.getReverseLink().isStandaloneLink();
 		}
 		else
 		{
@@ -683,7 +683,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			throw new IllegalStateException("Must never happen, because the queueing map would not have been filled with this state");
 		}
 		Boolean becauseOfSelfRelation = null;
-		if (link.getReverse().getMember() != null)
+		if (link.getReverseLink().getMember() != null)
 		{
 			becauseOfSelfRelation = Boolean.FALSE;
 		}
@@ -706,8 +706,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		IObjRefHelper oriHelper = this.oriHelper;
 		IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getEntityType());
 		Class<?> relatedType = relatedMetaData.getEntityType();
-		RelationMember member = becauseOfSelfRelation ? link.getMember() : link.getReverse().getMember();
-		removeRelations &= becauseOfSelfRelation ? link.isNullable() : link.getReverse().isNullable();
+		ITypeInfoItem member = becauseOfSelfRelation ? link.getMember() : link.getReverseLink().getMember();
+		removeRelations &= becauseOfSelfRelation ? link.isNullable() : link.getReverseLink().isNullable();
 
 		ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(references, member.getElementType());
 		IQuery<?> query = buildParentChildQuery(relatedType, member.getName(), childMemberNameToIdsMap);
@@ -722,7 +722,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			if (cascadeDelete)
 			{
 				IList<?> relatingEntities = query.retrieve();
-				byte idIndex = becauseOfSelfRelation ? link.getToField().getIdIndex() : link.getReverse().getToField().getIdIndex();
+				byte idIndex = becauseOfSelfRelation ? link.getToField().getIdIndex() : link.getReverseLink().getToField().getIdIndex();
 				for (int j = 0; j < relatingEntities.size(); j++)
 				{
 					Object relatingEntity = relatingEntities.get(j);
@@ -763,7 +763,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 
 			if (removeRelations && !relatingRefs.isEmpty())
 			{
-				IDirectedLink directedLink = becauseOfSelfRelation ? link : link.getReverse();
+				IDirectedLink directedLink = becauseOfSelfRelation ? link : link.getReverseLink();
 				addLinkChangeContainer(changeContainers, directedLink, relatingRefs, references);
 			}
 			return changeContainers;

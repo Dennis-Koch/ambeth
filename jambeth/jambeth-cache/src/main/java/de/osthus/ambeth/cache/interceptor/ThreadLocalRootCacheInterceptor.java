@@ -2,7 +2,6 @@ package de.osthus.ambeth.cache.interceptor;
 
 import java.lang.reflect.Method;
 
-import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.RootCache;
@@ -11,11 +10,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements MethodInterceptor
+public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor
 {
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	protected static final Method finalizeMethod = AbstractRootCacheAwareInterceptor.finalizeMethod;
-
 	protected static final Method clearMethod = AbstractRootCacheAwareInterceptor.clearMethod;
 
 	@SuppressWarnings("unused")
@@ -43,12 +39,8 @@ public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInter
 	}
 
 	@Override
-	public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
+	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
-		if (finalizeMethod.equals(method))
-		{
-			return null;
-		}
 		if (clearMethod.equals(method))
 		{
 			IRootCache rootCache = getCurrentRootCacheIfValid();

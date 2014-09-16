@@ -53,6 +53,11 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
             return null;
         }
 
+        public override string ToString()
+        {
+            return GetType().Name + ": " + GetTargetName(null);
+        }
+
         public String GetTargetName(Type typeToEnhance)
         {
             return EntityType.FullName + "$" + typeof(RootCacheValue).Name;
