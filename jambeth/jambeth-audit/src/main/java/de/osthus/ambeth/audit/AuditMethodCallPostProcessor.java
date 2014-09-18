@@ -4,7 +4,9 @@ import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
 import de.osthus.ambeth.ioc.IBeanRuntime;
+import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.PostProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -15,7 +17,7 @@ import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
 
-public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
+public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -59,5 +61,11 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor
 		IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(interceptor);
 		interceptorBC.propertyValue("MethodLevelBehaviour", behaviour);
 		return interceptor;
+	}
+
+	@Override
+	public PostProcessorOrder getOrder()
+	{
+		return PostProcessorOrder.LOW;
 	}
 }
