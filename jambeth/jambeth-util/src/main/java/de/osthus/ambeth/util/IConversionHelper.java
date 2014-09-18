@@ -2,8 +2,8 @@ package de.osthus.ambeth.util;
 
 /**
  * Interface for the Ambeth conversion feature. It is used throughout the framework to convert values to different types in one unified way. Event the most
- * basic Ambeth context has a bean autowired to this interface. The conversion feature is extendible via the {@wiki wikipedia_en Extensibility_pattern
- * Extensibility pattern} by implementing the {@link IDedicatedConverter} interface an linking the bean to {@link IDedicatedConverterExtendable}.
+ * basic Ambeth context has a bean autowired to this interface. The conversion feature is extendable via the {@wiki wikipedia_en Extensibility_pattern
+ * Extensibility pattern} by implementing the {@link IDedicatedConverter} interface and linking the bean to {@link IDedicatedConverterExtendable}.
  */
 public interface IConversionHelper
 {
