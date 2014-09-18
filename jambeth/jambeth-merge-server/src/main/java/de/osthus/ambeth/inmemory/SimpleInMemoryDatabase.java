@@ -50,6 +50,8 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.OriCollection;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IMethodDescription;
 import de.osthus.ambeth.persistence.IContextProvider;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -58,8 +60,6 @@ import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.service.ChangeAggregator;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.IChangeAggregator;
-import de.osthus.ambeth.typeinfo.IRelationInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.Lock;
 
@@ -725,19 +725,20 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		{
 			return;
 		}
+		IConversionHelper conversionHelper = this.conversionHelper;
 		Object[] primitives = lc.getPrimitives();
-		ITypeInfoItem[] primitiveMembers = metaData.getPrimitiveMembers();
+		Member[] primitiveMembers = metaData.getPrimitiveMembers();
 		for (int a = puis.length; a-- > 0;)
 		{
 			IPrimitiveUpdateItem pui = puis[a];
 			int primitiveIndex = metaData.getIndexByPrimitiveName(pui.getMemberName());
-			ITypeInfoItem primitiveMember = primitiveMembers[primitiveIndex];
+			Member primitiveMember = primitiveMembers[primitiveIndex];
 
-			Object value = this.conversionHelper.convertValueToType(primitiveMember.getRealType(), pui.getNewValue());
+			Object value = conversionHelper.convertValueToType(primitiveMember.getRealType(), pui.getNewValue());
 			if (value instanceof Date)
 			{
 				// optimize later clone performance (because Long is immutable)
-				value = this.conversionHelper.convertValueToType(Long.class, value);
+				value = conversionHelper.convertValueToType(Long.class, value);
 			}
 			primitives[primitiveIndex] = value;
 		}
@@ -751,12 +752,12 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		}
 		IObjRef primaryObjRef = lc.getReference();
 		IObjRef[][] relations = lc.getRelations();
-		IRelationInfoItem[] relationMembers = metaData.getRelationMembers();
+		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int a = ruis.length; a-- > 0;)
 		{
 			IRelationUpdateItem rui = ruis[a];
 			int relationIndex = metaData.getIndexByRelationName(rui.getMemberName());
-			IRelationInfoItem relationMember = relationMembers[relationIndex];
+			RelationMember relationMember = relationMembers[relationIndex];
 
 			IObjRef[] existingObjRefs = relations[relationIndex];
 			ISet<IObjRef> existingObjRefsSet = existingObjRefs != null ? new HashSet<IObjRef>(existingObjRefs) : new HashSet<IObjRef>();

@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.IRootCache;
@@ -33,6 +34,7 @@ import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
@@ -148,6 +150,8 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 			entities.add(qe);
 		}
 		beanContext.getService(IMergeProcess.class).process(entities, null, null, null);
+		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	@Test

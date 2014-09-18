@@ -302,7 +302,6 @@ public class QueryTest extends AbstractPersistenceTest
 				beanContext.getService(IMergeProcess.class).process(changedQueryEntity, null, null, null);
 
 				IPagingResponse<QueryEntity> allAfterUpdate = query.retrieve(pr);
-				IPagingResponse<QueryEntity> allAfterUpdate2 = query.retrieve(pr);
 				assertSimilar(expectedAfterUpdate, allAfterUpdate.getResult());
 			}
 		});
