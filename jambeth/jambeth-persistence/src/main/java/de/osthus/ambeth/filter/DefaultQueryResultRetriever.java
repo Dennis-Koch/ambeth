@@ -7,6 +7,7 @@ import java.util.Map;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -14,6 +15,8 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.query.IQueryIntern;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
@@ -57,17 +60,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 	@Override
 	public IQueryResultCacheItem getQueryResult()
 	{
-		IConversionHelper conversionHelper = this.conversionHelper;
-		IQueryIntern<?> query = this.query;
-		Class<?> entityType = query.getEntityType();
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		Member[] alternateIdMembers = metaData.getAlternateIdMembers();
-		int length = alternateIdMembers.length + 1;
-
-		ArrayList<Object>[] idLists = new ArrayList[length];
-		Class<?> versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
-		Class<?>[] idTypes = new Class[length];
-		for (int a = length; a-- > 0;)
+		return transaction.processAndCommit(new ResultingDatabaseCallback<IQueryResultCacheItem>()
 		{
 			@Override
 			public IQueryResultCacheItem callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
@@ -76,7 +69,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 				IQueryIntern<?> query = DefaultQueryResultRetriever.this.query;
 				Class<?> entityType = query.getEntityType();
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-				ITypeInfoItem[] alternateIdMembers = metaData.getAlternateIdMembers();
+				Member[] alternateIdMembers = metaData.getAlternateIdMembers();
 				int length = alternateIdMembers.length + 1;
 
 				ArrayList<Object>[] idLists = new ArrayList[length];

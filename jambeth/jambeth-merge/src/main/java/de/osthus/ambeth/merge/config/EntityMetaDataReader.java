@@ -172,10 +172,6 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		for (int i = 0; i < properties.length; i++)
 		{
 			IPropertyInfo property = properties[i];
-			if (!property.isWritable())
-			{
-				continue;
-			}
 			String memberName = property.getName();
 			if (memberNamesToIgnore.contains(memberName))
 			{

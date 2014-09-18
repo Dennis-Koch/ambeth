@@ -126,7 +126,7 @@ public class CompositeIdMember extends PrimitiveMember
 		return fieldIndexOfMembers;
 	}
 
-	public Member[] getMembers()
+	public PrimitiveMember[] getMembers()
 	{
 		return members;
 	}

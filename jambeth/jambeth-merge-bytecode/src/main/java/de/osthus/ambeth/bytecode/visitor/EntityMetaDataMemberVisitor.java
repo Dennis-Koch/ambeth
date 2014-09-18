@@ -238,18 +238,22 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 	{
 		MethodGenerator mv = visitMethod(template_m_setValue);
 
-		for (int a = 0, size = propertyPath.length - 1; a < size; a++)
-		{
-			IPropertyInfo property = propertyPath[a];
-			if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
-			{
-				throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
-			}
-		}
+		// for (int a = 0, size = propertyPath.length - 1; a < size; a++)
+		// {
+		// IPropertyInfo property = propertyPath[a];
+		// if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
+		// {
+		// throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
+		// }
+		// }
 		IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
 		if (lastProperty instanceof MethodPropertyInfo && ((MethodPropertyInfo) lastProperty).getSetter() == null)
 		{
-			throw new IllegalStateException("Property not writable: " + lastProperty.getEntityType().getName() + "." + lastProperty.getName());
+			mv.throwException(Type.getType(UnsupportedOperationException.class), "Property not writable: " + lastProperty.getEntityType().getName() + "."
+					+ lastProperty.getName());
+			mv.returnValue();
+			mv.endMethod();
+			return;
 		}
 		mv.loadArg(0);
 		mv.checkCast(propertyPath[0].getEntityType());

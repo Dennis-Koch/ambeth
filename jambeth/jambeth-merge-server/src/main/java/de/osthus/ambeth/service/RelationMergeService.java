@@ -706,7 +706,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		IObjRefHelper oriHelper = this.oriHelper;
 		IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getEntityType());
 		Class<?> relatedType = relatedMetaData.getEntityType();
-		ITypeInfoItem member = becauseOfSelfRelation ? link.getMember() : link.getReverseLink().getMember();
+		Member member = becauseOfSelfRelation ? link.getMember() : link.getReverseLink().getMember();
 		removeRelations &= becauseOfSelfRelation ? link.isNullable() : link.getReverseLink().isNullable();
 
 		ILinkedMap<String, IList<Object>> childMemberNameToIdsMap = buildPropertyNameToIdsMap(references, member.getElementType());
