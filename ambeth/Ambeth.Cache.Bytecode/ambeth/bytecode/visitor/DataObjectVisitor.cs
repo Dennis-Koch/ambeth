@@ -1,6 +1,7 @@
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
@@ -126,11 +127,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             IMethodVisitor mg = VisitMethod(p_toBeCreated.Getter);
             p_toBeCreated = PropertyInstance.FindByTemplate(p_toBeCreated, false);
-            ITypeInfoItem idMember = metaData.IdMember;
-            if (idMember is CompositeIdTypeInfoItem)
+            Member idMember = metaData.IdMember;
+            if (idMember is CompositeIdMember)
             {
                 List<String> names = new List<String>();
-                foreach (ITypeInfoItem itemMember in ((CompositeIdTypeInfoItem)idMember).Members)
+                foreach (Member itemMember in ((CompositeIdMember)idMember).Members)
                 {
                     names.Add(itemMember.Name);   
                 }

@@ -7,28 +7,23 @@ using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.Pending;
 using De.Osthus.Ambeth.Xml.Typehandler;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Xml.Namehandler
 {
-    public class OriWrapperElementHandler : AbstractHandler, INameBasedHandler
+    public class ObjRefWrapperElementHandler : AbstractHandler, INameBasedHandler
     {
         [LogInstance]
         public new ILogger Log { private get; set; }
 
         protected const String idNameIndex = "ix";
 
-        public virtual IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+        [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
-        public virtual IObjRefHelper OriHelper { protected get; set; }
-
-        public override void AfterPropertiesSet()
-        {
-            base.AfterPropertiesSet();
-
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(OriHelper, "OriHelper");
-        }
-
+        [Autowired]
+        public IObjRefHelper ObjRefHelper { protected get; set; }
+        
         public bool WritesCustom(Object obj, Type type, IWriter writer)
         {
             if (SyncToAsyncUtil.IsLowLevelSerializationType(type))
@@ -52,7 +47,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
             else
             {
                 writer.AddSubstitutedEntity(obj);
-                IObjRef ori = OriHelper.EntityToObjRef(obj, true);
+                IObjRef ori = ObjRefHelper.EntityToObjRef(obj, true);
                 WriteOpenElement(ori, obj, writer);
                 writer.WriteObject(ori.RealType);
                 writer.WriteObject(ori.Id);

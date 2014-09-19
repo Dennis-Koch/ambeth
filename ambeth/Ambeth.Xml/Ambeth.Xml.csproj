@@ -51,7 +51,7 @@
     <Compile Include="ambeth\util\ModuleScanner.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlController.cs" />
     <Compile Include="ambeth\xml\namehandler\ObjRefElementHandler.cs" />
-    <Compile Include="ambeth\xml\namehandler\OriWrapperElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\pending\AbstractObjectCommand.cs" />
     <Compile Include="ambeth\xml\pending\ArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommand.cs" />

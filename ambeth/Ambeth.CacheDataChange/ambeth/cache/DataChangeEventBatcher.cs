@@ -12,6 +12,7 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Datachange
 {
@@ -213,8 +214,8 @@ namespace De.Osthus.Ambeth.Datachange
             Object id = dataChangeEntry.Id;
             sbyte idIndex = dataChangeEntry.IdNameIndex;
 
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            Member idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            Member versionMember = metaData.VersionMember;
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             Object version = versionMember != null ? ConversionHelper.ConvertValueToType(versionMember.RealType, dataChangeEntry.Version) : null;
             return new ObjRef(dataChangeEntry.EntityType, idIndex, id, version);

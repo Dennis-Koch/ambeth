@@ -1,5 +1,5 @@
 using De.Osthus.Ambeth.Annotation;
-using De.Osthus.Ambeth.Typeinfo;
+using De.Osthus.Ambeth.Metadata;
 using System;
 using System.Collections;
 namespace De.Osthus.Ambeth.Persistence
@@ -14,7 +14,7 @@ namespace De.Osthus.Ambeth.Persistence
 
         sbyte FromIdIndex { get; }
 
-        ITypeInfoItem FromMember { get; }
+        Member FromMember { get; }
 
         ITable ToTable { get; }
 
@@ -24,7 +24,7 @@ namespace De.Osthus.Ambeth.Persistence
 
         sbyte ToIdIndex { get; }
 
-        ITypeInfoItem ToMember { get; }
+        Member ToMember { get; }
 
         String Name { get; }
 
@@ -45,7 +45,7 @@ namespace De.Osthus.Ambeth.Persistence
 
         Type EntityType { get; }
 
-        IRelationInfoItem Member { get; }
+        RelationMember Member { get; }
 
         ILink Link { get; }
 

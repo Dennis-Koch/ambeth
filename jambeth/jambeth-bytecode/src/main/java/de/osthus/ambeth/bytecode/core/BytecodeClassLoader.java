@@ -51,7 +51,7 @@ public class BytecodeClassLoader implements IBytecodeClassLoader, IEventListener
 	public BytecodeClassLoader()
 	{
 		ambethClassLoader = new AmbethClassLoader(Thread.currentThread().getContextClassLoader());
-		typeToContentMap.setAutoCleanupReference(true);
+		typeToContentMap.setAutoCleanupNullValue(true);
 	}
 
 	@Override

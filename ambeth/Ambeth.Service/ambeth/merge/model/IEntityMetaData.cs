@@ -1,4 +1,5 @@
-﻿using De.Osthus.Ambeth.Typeinfo;
+﻿using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Typeinfo;
 using System;
 using System.Reflection;
 
@@ -14,43 +15,43 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         bool LocalEntity { get; }
 
-        ITypeInfoItem IdMember { get; }
+        PrimitiveMember IdMember { get; }
 
-        ITypeInfoItem GetIdMemberByIdIndex(sbyte idIndex);
+        PrimitiveMember GetIdMemberByIdIndex(sbyte idIndex);
 
         sbyte GetIdIndexByMemberName(String memberName);
 
-        ITypeInfoItem VersionMember { get; }
+        PrimitiveMember VersionMember { get; }
 
-        ITypeInfoItem[] AlternateIdMembers { get; }
+        PrimitiveMember[] AlternateIdMembers { get; }
 
         int[][] AlternateIdMemberIndicesInPrimitives { get; }
 
         int GetAlternateIdCount();
 
-        ITypeInfoItem CreatedOnMember { get; }
+        PrimitiveMember CreatedOnMember { get; }
 
-        ITypeInfoItem CreatedByMember { get; }
+        PrimitiveMember CreatedByMember { get; }
 
-        ITypeInfoItem UpdatedOnMember { get; }
+        PrimitiveMember UpdatedOnMember { get; }
 
-        ITypeInfoItem UpdatedByMember { get; }
+        PrimitiveMember UpdatedByMember { get; }
 
-        ITypeInfoItem[] PrimitiveMembers { get; }
+        PrimitiveMember[] PrimitiveMembers { get; }
 
-        IRelationInfoItem[] RelationMembers { get; }
+        RelationMember[] RelationMembers { get; }
 
-        bool IsMergeRelevant(ITypeInfoItem primitiveMember);
+        bool IsMergeRelevant(Member primitiveMember);
 
-        ITypeInfoItem GetMemberByName(String memberName);
+        Member GetMemberByName(String memberName);
 
         int GetIndexByRelationName(String relationMemberName);
 
-        int GetIndexByRelation(IRelationInfoItem relationMember);
+        int GetIndexByRelation(Member relationMember);
 
         int GetIndexByPrimitiveName(String primitiveMemberName);
 
-        int GetIndexByPrimitive(ITypeInfoItem primitiveMember);
+        int GetIndexByPrimitive(Member primitiveMember);
         
         bool IsPrimitiveMember(String primitiveMemberName);
 
@@ -61,6 +62,8 @@ namespace De.Osthus.Ambeth.Merge.Model
         bool IsRelatingToThis(Type childType);
 
         bool IsCascadeDelete(Type other);
+
+        void PostProcessNewEntity(Object newEntity);
 
         void PostLoad(Object entity);
 

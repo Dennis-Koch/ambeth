@@ -8,14 +8,14 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.xml.INameBasedHandler;
 import de.osthus.ambeth.xml.IReader;
 import de.osthus.ambeth.xml.IWriter;
 import de.osthus.ambeth.xml.pending.ObjRefFuture;
 import de.osthus.ambeth.xml.typehandler.AbstractHandler;
 
-public class OriWrapperElementHandler extends AbstractHandler implements INameBasedHandler
+public class ObjRefWrapperElementHandler extends AbstractHandler implements INameBasedHandler
 {
 	@LogInstance
 	private ILogger log;
@@ -80,7 +80,7 @@ public class OriWrapperElementHandler extends AbstractHandler implements INameBa
 			{
 				if (objId != null)
 				{
-					Member idMember = metaData.getIdMemberByIdIndex(idIndex);
+					PrimitiveMember idMember = metaData.getIdMemberByIdIndex(idIndex);
 					if (objId.equals(idMember.getNullEquivalentValue()))
 					{
 						objId = null;
@@ -88,7 +88,7 @@ public class OriWrapperElementHandler extends AbstractHandler implements INameBa
 				}
 				if (version != null)
 				{
-					Member versionMember = metaData.getVersionMember();
+					PrimitiveMember versionMember = metaData.getVersionMember();
 					if (versionMember != null)
 					{
 						if (version.equals(versionMember.getNullEquivalentValue()))

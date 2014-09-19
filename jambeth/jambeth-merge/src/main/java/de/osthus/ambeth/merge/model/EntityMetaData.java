@@ -14,7 +14,6 @@ import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 
 public class EntityMetaData implements IEntityMetaData
 {
@@ -34,11 +33,9 @@ public class EntityMetaData implements IEntityMetaData
 
 	public static final Class<?>[] emptyTypes = new Class<?>[0];
 
-	public static final ITypeInfoItem[] emptyTypeInfoItems = new ITypeInfoItem[0];
+	public static final PrimitiveMember[] emptyPrimitiveMembers = new PrimitiveMember[0];
 
-	public static final PrimitiveMember[] emptyMembers = new PrimitiveMember[0];
-
-	public static final RelationMember[] emptyRelationInfoItems = new RelationMember[0];
+	public static final RelationMember[] emptyRelationMembers = new RelationMember[0];
 
 	public static final IEntityLifecycleExtension[] emptyEntityLifecycleExtensions = new IEntityLifecycleExtension[0];
 
@@ -58,13 +55,13 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected IEntityLifecycleExtension[] entityLifecycleExtensions = emptyEntityLifecycleExtensions;
 
-	protected RelationMember[] relationMembers = emptyRelationInfoItems;
+	protected RelationMember[] relationMembers = emptyRelationMembers;
 
-	protected PrimitiveMember[] primitiveMembers = emptyMembers;
+	protected PrimitiveMember[] primitiveMembers = emptyPrimitiveMembers;
 
-	protected PrimitiveMember[] alternateIdMembers = emptyMembers;
+	protected PrimitiveMember[] alternateIdMembers = emptyPrimitiveMembers;
 
-	protected PrimitiveMember[] fulltextMembers = emptyMembers;
+	protected PrimitiveMember[] fulltextMembers = emptyPrimitiveMembers;
 
 	protected PrimitiveMember versionMember;
 
@@ -372,7 +369,7 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public int getIndexByRelation(RelationMember relationMember)
+	public int getIndexByRelation(Member relationMember)
 	{
 		Integer index = relMemberToIndexDict.get(relationMember);
 		if (index == null)
@@ -478,7 +475,7 @@ public class EntityMetaData implements IEntityMetaData
 		this.entityFactory = entityFactory;
 		if (primitiveMembers == null)
 		{
-			primitiveMembers = emptyMembers;
+			primitiveMembers = emptyPrimitiveMembers;
 		}
 		else
 		{
@@ -487,7 +484,7 @@ public class EntityMetaData implements IEntityMetaData
 
 		if (relationMembers == null)
 		{
-			relationMembers = emptyRelationInfoItems;
+			relationMembers = emptyRelationMembers;
 		}
 		else
 		{
@@ -496,7 +493,7 @@ public class EntityMetaData implements IEntityMetaData
 
 		if (alternateIdMembers == null)
 		{
-			alternateIdMembers = emptyMembers;
+			alternateIdMembers = emptyPrimitiveMembers;
 		}
 		else
 		{
@@ -505,7 +502,7 @@ public class EntityMetaData implements IEntityMetaData
 
 		if (fulltextMembers == null)
 		{
-			fulltextMembers = emptyMembers;
+			fulltextMembers = emptyPrimitiveMembers;
 		}
 
 		fulltextMemberSet.clear();

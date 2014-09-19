@@ -41,6 +41,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.IMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -1173,13 +1174,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	protected void addTypeInfoMapping(Map<String, Member> typeInfoMap, IValueObjectConfig config, String boMemberName, StringBuilder sb)
 	{
 		String voMemberName = config.getValueObjectMemberName(boMemberName);
-		Member voMember = memberTypeProvider.getPrimitiveMember(config.getValueType(), voMemberName);
+		Member voMember = memberTypeProvider.getMember(config.getValueType(), voMemberName);
 		if (voMember != null)
 		{
 			Class<?> elementType = config.getMemberType(voMemberName);
 			if (elementType != null)
 			{
-				voMember.setElementType(elementType);
+				((IMemberWrite) voMember).setElementType(elementType);
 			}
 			typeInfoMap.put(boMemberName, voMember);
 			if (sb != null)

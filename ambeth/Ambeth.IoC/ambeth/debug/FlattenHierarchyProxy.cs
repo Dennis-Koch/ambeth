@@ -22,7 +22,7 @@ namespace De.Osthus.Ambeth.Debug
         }
 
         [DebuggerDisplay("{Value}", Name = "{Name,nq}", Type = "{Type.ToString(),nq}")]
-        public class Member : IMember
+        public class FHPMember : IMember
         {
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             public String Name { get; set; }
@@ -33,7 +33,7 @@ namespace De.Osthus.Ambeth.Debug
             [DebuggerBrowsable(DebuggerBrowsableState.Never)]
             public Type Type;
 
-            public Member(String name, Object value, Type type)
+            public FHPMember(String name, Object value, Type type)
             {
                 Name = name;
                 Value = value;
@@ -96,7 +96,7 @@ namespace De.Osthus.Ambeth.Debug
                     {
                         value = ex;
                     }
-                    list.Add(new Member(member.Name, value, member.RealType));
+                    list.Add(new FHPMember(member.Name, value, member.RealType));
                 }
             }
             else
@@ -122,7 +122,7 @@ namespace De.Osthus.Ambeth.Debug
                             continue;
                         }
                         var value = field.GetValue(_target);
-                        list.Add(new Member(field.Name, value, field.FieldType));
+                        list.Add(new FHPMember(field.Name, value, field.FieldType));
                     }
                     foreach (var prop in currType.GetProperties(flags))
                     {
@@ -144,7 +144,7 @@ namespace De.Osthus.Ambeth.Debug
                         {
                             value = ex;
                         }
-                        list.Add(new Member(prop.Name, value, prop.PropertyType));
+                        list.Add(new FHPMember(prop.Name, value, prop.PropertyType));
                     }
                     currType = currType.BaseType;
                 }

@@ -62,7 +62,7 @@
     <Compile Include="ambeth\cache\ICache.cs" />
     <Compile Include="ambeth\cache\IWritableCache.cs" />
     <Compile Include="ambeth\cache\ValueHolderState.cs" />
-    <Compile Include="ambeth\compositeid\CompositeIdTypeInfoItem.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdMember.cs" />
     <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
     <Compile Include="ambeth\event\EntityMetaDataRemovedEvent.cs" />
     <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
@@ -150,6 +150,7 @@
     <Compile Include="ambeth\transfer\PrimitiveUpdateItem.cs" />
     <Compile Include="ambeth\transfer\RelationUpdateItem.cs" />
     <Compile Include="ambeth\transfer\UpdateContainer.cs" />
+    <Compile Include="ambeth\typeinfo\RelationProvider.cs" />
     <Compile Include="ambeth\util\DirectValueHolderRef.cs" />
     <Compile Include="ambeth\util\ICacheHelper.cs" />
     <Compile Include="ambeth\util\IPrefetchConfig.cs" />
@@ -209,8 +210,8 @@
     <Compile Include="ambeth\proxy\IEnhancedType.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\merge\IEntityFactoryExtension.cs" />
-    <Compile Include="ambeth\merge\IEntityFactoryExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IEntityInstantiationExtension.cs" />
+    <Compile Include="ambeth\merge\IEntityInstantiationExtensionExtendable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\AbstractEntityFactory.cs" />
@@ -247,6 +248,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\merge\ITechnicalEntityTypeExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\merge\IEntityInstantiationExtensionProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\metadata\IMemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\MemberEnhancementHint.cs" />
+    <Compile Include="ambeth\metadata\MemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\RelationMemberEnhancementHint.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\template\EmbeddedMemberTemplate.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

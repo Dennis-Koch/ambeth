@@ -18,6 +18,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -90,11 +91,11 @@ namespace De.Osthus.Ambeth.Merge
                         continue;
                     }
                     IEntityMetaData metaData = ((IEntityMetaDataHolder) originalRef).Get__EntityMetaData();
-                    ITypeInfoItem versionMember = metaData.VersionMember;
+                    PrimitiveMember versionMember = metaData.VersionMember;
 
-                    ITypeInfoItem keyMember = metaData.IdMember;
+                    PrimitiveMember keyMember = metaData.IdMember;
 
-                    ITypeInfoItem onMember, byMember;
+                    PrimitiveMember onMember, byMember;
                     if (keyMember.GetValue(originalRef, false) == null)
                     {
                         onMember = metaData.CreatedOnMember;
@@ -217,7 +218,7 @@ namespace De.Osthus.Ambeth.Merge
                             continue;
                         }
                         ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
-                        IRelationInfoItem member = valueHolderRef.Member;
+                        RelationMember member = valueHolderRef.Member;
                         if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
                         {
                             DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
@@ -323,7 +324,7 @@ namespace De.Osthus.Ambeth.Merge
 		    {
 			    return;
 		    }
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {
                 return;
@@ -331,7 +332,7 @@ namespace De.Osthus.Ambeth.Merge
             IObjRefContainer vhc = (IObjRefContainer)obj;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
@@ -461,13 +462,13 @@ namespace De.Osthus.Ambeth.Merge
 
             AddModification(obj, handle); // Ensure entity will be persisted even if no single property is specified
 
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length > 0)
             {
                 IObjRefContainer vhc = (IObjRefContainer)obj;
                 for (int relationIndex = relationMembers.Length; relationIndex-- > 0;)
                 {
-                    IRelationInfoItem relationMember = relationMembers[relationIndex];
+                    RelationMember relationMember = relationMembers[relationIndex];
                     if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                     {
                         continue;
@@ -481,7 +482,7 @@ namespace De.Osthus.Ambeth.Merge
                     AddOriModification(obj, relationMember.Name, objMember, null, handle);
                 }
             }
-            foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+            foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
             {
                 if (primitiveMember.TechnicalMember)
                 {
@@ -505,13 +506,13 @@ namespace De.Osthus.Ambeth.Merge
             bool oneChangeOccured = false;
             try
             {
-                IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+                RelationMember[] relationMembers = metaData.RelationMembers;
                 if (relationMembers.Length > 0)
                 {
                     IObjRefContainer vhc = (IObjRefContainer)obj;
                     for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
                     {
-                        IRelationInfoItem relationMember = relationMembers[relationIndex];
+                        RelationMember relationMember = relationMembers[relationIndex];
                         if (!metaData.IsMergeRelevant(relationMember))
                         {
                             continue;
@@ -550,7 +551,7 @@ namespace De.Osthus.Ambeth.Merge
                 do
                 {
                     additionalRound = !oneChangeOccured;
-                    foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+                    foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
                     {
                         if (!metaData.IsMergeRelevant(primitiveMember))
                         {
@@ -574,7 +575,7 @@ namespace De.Osthus.Ambeth.Merge
             }
             finally
             {
-                ITypeInfoItem versionMember = metaData.VersionMember;
+                PrimitiveMember versionMember = metaData.VersionMember;
                 if (oneChangeOccured && versionMember !=null)
                 {
                     // Check for early optimistic locking (Another, later level is directly on persistence layer)
@@ -592,7 +593,7 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void MergePrimitivesFieldBased(IEntityMetaData metaData, Object obj, Object clone, MergeHandle handle)
         {
-            foreach (ITypeInfoItem primitiveMember in metaData.PrimitiveMembers)
+            foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
             {
                 if (!metaData.IsMergeRelevant(primitiveMember))
                 {
@@ -607,7 +608,7 @@ namespace De.Osthus.Ambeth.Merge
             }
         }
 
-        protected bool ArePrimitivesEqual(IEntityMetaData metaData, ITypeInfoItem primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
+        protected bool ArePrimitivesEqual(IEntityMetaData metaData, PrimitiveMember primitiveMember, Object objValue, Object cloneValue, MergeHandle handle)
         {
             if (objValue != null && cloneValue != null)
             {
@@ -905,7 +906,7 @@ namespace De.Osthus.Ambeth.Merge
             {
                 return false;
             }
-            ITypeInfoItem keyMember = metaData.IdMember;
+            PrimitiveMember keyMember = metaData.IdMember;
             return Object.Equals(keyMember.GetValue(clone, true), keyMember.GetValue(original, true));
         }
     }

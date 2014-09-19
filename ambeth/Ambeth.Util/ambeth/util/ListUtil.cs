@@ -35,6 +35,11 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
+        public static bool IsCollection(Type type)
+        {
+            return typeof(IEnumerable).IsAssignableFrom(type) && !typeof(String).Equals(type);
+        }
+
         public static T[] ToArray<T>(ICollection<T> list)
         {
             if (list == null)

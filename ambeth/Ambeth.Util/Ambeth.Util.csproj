@@ -150,7 +150,6 @@
     <Compile Include="ambeth\typeinfo\EmbeddedTypeInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\IPropertyInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoHelper.cs" />
-    <Compile Include="ambeth\typeinfo\RelationProvider.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfo.cs" />
     <Compile Include="ambeth\typeinfo\IRelationProvider.cs" />
@@ -234,8 +233,6 @@
     <Compile Include="ambeth\collections\CHashSet.cs" />
     <Compile Include="ambeth\collections\IdentityLinkedMap.cs" />
     <Compile Include="ambeth\collections\IdentityLinkedSet.cs" />
-    <Compile Include="ambeth\typeinfo\IRelationInfoItem.cs" />
-    <Compile Include="ambeth\typeinfo\EmbeddedRelationInfoItem.cs" />
     <Compile Include="ambeth\util\MethodKeyOfType.cs" />
     <Compile Include="ambeth\annotation\EntityEqualsAspect.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
@@ -260,6 +257,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\util\IImmutableType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\IdentityWeakHashMap.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakSmartCopyMap.cs" />
+    <Compile Include="ambeth\collections\WeakHashMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\WeakMapEntry.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\WeakSmartCopyMap.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

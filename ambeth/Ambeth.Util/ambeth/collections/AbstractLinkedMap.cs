@@ -107,26 +107,6 @@ namespace De.Osthus.Ambeth.Collections
             }
         }
 
-        protected override int GetHashOfEntry(E entry)
-        {
-            return entry.Hash;
-        }
-
-        protected override K GetKeyOfEntry(E entry)
-        {
-            return entry.Key;
-        }
-
-        protected override E GetNextEntry(E entry)
-        {
-            return (E)entry.NextEntry;
-        }
-
-        protected override V GetValueOfEntry(E entry)
-        {
-            return entry.Value;
-        }
-
         protected override void SetNextEntry(E entry, E nextEntry)
         {
             entry.NextEntry = nextEntry;

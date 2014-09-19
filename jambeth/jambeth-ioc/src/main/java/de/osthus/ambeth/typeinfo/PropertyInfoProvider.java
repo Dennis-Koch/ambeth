@@ -8,7 +8,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.annotation.PropertyAccessor;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
@@ -28,20 +27,12 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 {
 	private static final Pattern getSetIsPattern = Pattern.compile("(get|set|is)([A-ZÖÄÜ].*)");
 
-	protected IAccessorTypeProvider accessorTypeProvider;
-
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(accessorTypeProvider, "AccessorTypeProvider");
 		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-	}
-
-	public void setAccessorTypeProvider(IAccessorTypeProvider accessorTypeProvider)
-	{
-		this.accessorTypeProvider = accessorTypeProvider;
 	}
 
 	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
@@ -194,8 +185,6 @@ public class PropertyInfoProvider extends SmartCopyMap<Class<?>, PropertyInfoEnt
 				if (methodAccess != null
 						&& (getter == null || !Modifier.isAbstract(getter.getModifiers()) && (setter == null || !Modifier.isAbstract(setter.getModifiers()))))
 				{
-					// AbstractAccessor accessor = accessorTypeProvider.getAccessorType(type, propertyName);
-					// propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, objectCollector, accessor);
 					propertyInfo = new MethodPropertyInfoASM(type, propertyName, getter, setter, objectCollector, methodAccess);
 				}
 				else

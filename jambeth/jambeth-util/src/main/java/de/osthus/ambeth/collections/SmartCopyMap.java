@@ -19,11 +19,11 @@ public class SmartCopyMap<K, V> extends HashMap<K, V>
 {
 	private final Lock writeLock = new ReentrantLock();
 
-	private boolean autoCleanupReference;
+	private boolean autoCleanupNullValue;
 
 	public SmartCopyMap()
 	{
-		super(0.5f);
+		super();
 	}
 
 	public SmartCopyMap(float loadFactor)
@@ -38,12 +38,17 @@ public class SmartCopyMap<K, V> extends HashMap<K, V>
 
 	public SmartCopyMap(int initialCapacity)
 	{
-		super(initialCapacity, 0.5f);
+		super(initialCapacity);
 	}
 
-	public void setAutoCleanupReference(boolean autoCleanupReference)
+	public boolean isAutoCleanupNullValue()
 	{
-		this.autoCleanupReference = autoCleanupReference;
+		return autoCleanupNullValue;
+	}
+
+	public void setAutoCleanupNullValue(boolean autoCleanupNullValue)
+	{
+		this.autoCleanupNullValue = autoCleanupNullValue;
 	}
 
 	public Lock getWriteLock()
@@ -70,7 +75,7 @@ public class SmartCopyMap<K, V> extends HashMap<K, V>
 				return This.extractHash(key);
 			}
 		};
-		if (autoCleanupReference)
+		if (autoCleanupNullValue)
 		{
 			for (int a = table.length; a-- > 0;)
 			{

@@ -166,7 +166,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
 			Class<?> baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
-			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.EntityEnhancementHint));
+			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));
 		}
 		RelationMember[] relationMembers = metaData.getRelationMembers();
 		for (int a = relationMembers.length; a-- > 0;)
@@ -920,16 +920,16 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	}
 
 	@Override
-	public void registerEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type)
+	public void registerEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type)
 	{
-		entityInstantiationExtensions.register(entityFactoryExtension, type);
+		entityInstantiationExtensions.register(entityInstantiationExtension, type);
 		initialize();
 	}
 
 	@Override
-	public void unregisterEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type)
+	public void unregisterEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type)
 	{
-		entityInstantiationExtensions.unregister(entityFactoryExtension, type);
+		entityInstantiationExtensions.unregister(entityInstantiationExtension, type);
 		initialize();
 	}
 }

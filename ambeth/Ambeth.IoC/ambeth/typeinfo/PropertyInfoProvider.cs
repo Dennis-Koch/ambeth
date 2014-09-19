@@ -143,17 +143,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                     MethodInfo getter = propertyMethods.Get("get");
                     MethodInfo setter = propertyMethods.Get("set");
 
-                    IPropertyInfo propertyInfo;
-                    if ((getter == null || !getter.IsAbstract) && (setter == null || !setter.IsAbstract))
-                    {
-                        Type propertyType = getter != null ? getter.ReturnType : setter.GetParameters()[0].ParameterType;
-                        AbstractAccessor accessor = AccessorTypeProvider.GetAccessorType(type, propertyName, propertyType);
-                        propertyInfo = new MethodPropertyInfoASM2(type, propertyName, getter, setter, accessor);
-                    }
-                    else
-                    {
-                        propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
-                    }
+                    IPropertyInfo propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
                     propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
 

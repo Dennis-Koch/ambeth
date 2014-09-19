@@ -127,7 +127,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 		{
 			throw new IllegalArgumentException("Member " + entityType.getName() + "." + memberName + " not found");
 		}
-		CachePath newCachePath = new CachePath(member.getElementType(), metaData.getIndexByRelationName(memberName), memberName);
+		CachePath newCachePath = new CachePath(member.getElementType(), metaData.getIndexByRelation(member), memberName);
 		cachePaths.add(newCachePath);
 		return newCachePath;
 	}
@@ -757,7 +757,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 			{
 				Member primitiveMember = primitiveMembers[a];
 
-				Object primitiveValue = primitiveMember.getValue(obj, false);
+				Object primitiveValue = primitiveMember.getValue(obj, true);
 
 				if (primitiveValue != null && java.util.Date.class.isAssignableFrom(primitiveValue.getClass()))
 				{

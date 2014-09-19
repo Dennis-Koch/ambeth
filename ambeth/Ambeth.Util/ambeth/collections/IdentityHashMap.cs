@@ -64,6 +64,13 @@ namespace De.Osthus.Ambeth.Collections
             // Intended blank
         }
 
+        public override IISet<K> KeySet()
+        {
+            IdentityLinkedSet<K> keySet = IdentityLinkedSet<K>.Create(Count);
+            KeySet(keySet);
+            return keySet;
+        }
+
         protected override int ExtractHash(K key)
         {
             return RuntimeHelpers.GetHashCode(key);

@@ -51,6 +51,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
@@ -1260,6 +1261,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IObjectCopier objectCopier = this.objectCopier;
+		IPrivilegeProvider privilegeProvider = this.privilegeProvider;
 		Object id = cacheValue.getId();
 		Object version = cacheValue.getVersion();
 		metaData.getIdMember().setValue(obj, id);

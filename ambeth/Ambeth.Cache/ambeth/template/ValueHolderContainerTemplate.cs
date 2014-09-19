@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Threading;
@@ -153,7 +154,7 @@ namespace De.Osthus.Ambeth.Template
             }
         }
 
-        public Object GetValue(IValueHolderContainer entity, IRelationInfoItem[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs)
+        public Object GetValue(IValueHolderContainer entity, RelationMember[] relationMembers, int relationIndex, ICacheIntern targetCache, IObjRef[] objRefs)
         {
             return GetValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs, CacheDirective.None);
         }
@@ -163,7 +164,7 @@ namespace De.Osthus.Ambeth.Template
             return GetValue(vhc, relationIndex, CacheDirective.None);
         }
 
-        public Object GetValue(IObjRefContainer entity, int relationIndex, IRelationInfoItem relationMember, ICacheIntern targetCache, IObjRef[] objRefs, CacheDirective cacheDirective)
+        public Object GetValue(IObjRefContainer entity, int relationIndex, RelationMember relationMember, ICacheIntern targetCache, IObjRef[] objRefs, CacheDirective cacheDirective)
         {
             Object value;
             if (targetCache == null)
@@ -254,7 +255,7 @@ namespace De.Osthus.Ambeth.Template
                 }
                 return value != null;
             }
-            IRelationInfoItem member = vhc.Get__EntityMetaData().RelationMembers[relationIndex];
+            RelationMember member = vhc.Get__EntityMetaData().RelationMembers[relationIndex];
             bool isInitialized = ValueHolderState.INIT == state;
             ICacheIntern targetCache = null;
             Type expectedType = member.RealType;

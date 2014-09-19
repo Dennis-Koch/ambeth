@@ -167,7 +167,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			beanContextInitializer.setConversionHelper(delegatingConversionHelper);
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
-			propertyInfoProvider.setAccessorTypeProvider(accessorTypeProvider);
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
 
 			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();

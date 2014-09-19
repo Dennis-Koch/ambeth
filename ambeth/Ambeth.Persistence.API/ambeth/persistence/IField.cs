@@ -1,4 +1,4 @@
-using De.Osthus.Ambeth.Typeinfo;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections;
@@ -60,7 +60,7 @@ namespace De.Osthus.Ambeth.Persistence
          * 
          * @return Type info of the linked member.
          */
-        ITypeInfoItem Member { get; }
+        Member Member { get; }
 
         /**
          * Selects ID and version of all entities with a given value in this field.

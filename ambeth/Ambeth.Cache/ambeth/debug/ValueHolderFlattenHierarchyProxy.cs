@@ -144,7 +144,7 @@ namespace De.Osthus.Ambeth.Debug
                         value = ex;
                     }
                 }
-                list.Add(new Member(propertyName, value, member.RealType));
+                list.Add(new FHPMember(propertyName, value, member.RealType));
             }
             return list.OrderBy(m => m.Name).ToList();
         }

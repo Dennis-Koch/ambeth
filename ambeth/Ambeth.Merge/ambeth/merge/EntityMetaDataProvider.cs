@@ -17,10 +17,12 @@ using De.Osthus.Ambeth.Accessor;
 using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Proxy;
 using System.Threading;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
-    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable, IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IValueObjectConfigExtendable, IInitializingBean
+    public class EntityMetaDataProvider : ClassExtendableContainer<IEntityMetaData>, IEntityMetaDataProvider, IEntityMetaDataRefresher, IEntityMetaDataExtendable,
+        IEntityLifecycleExtendable, ITechnicalEntityTypeExtendable, IEntityInstantiationExtensionExtendable, IValueObjectConfigExtendable, IInitializingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -31,11 +33,17 @@ namespace De.Osthus.Ambeth.Merge
         [Autowired]
         public IServiceContext BeanContext { protected get; set; }
 
+        [Autowired]
+        public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
+
         [Autowired(Optional = true)]
         public IEntityFactory EntityFactory { protected get; set; }
 
         [Autowired]
         public IEventDispatcher EventDispatcher { protected get; set; }
+
+        [Autowired]
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
 
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
@@ -62,6 +70,9 @@ namespace De.Osthus.Ambeth.Merge
         protected Type[] businessObjectSaveOrder;
 
         protected readonly ThreadLocal<List<Type>> pendingToRefreshMetaDataTL = new ThreadLocal<List<Type>>();
+
+        protected readonly ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<IEntityInstantiationExtension>(
+			"entityInstantiationExtension", "entityType");
 
         protected readonly HashMap<Type, IMap<String, ITypeInfoItem>> typeToPropertyMap = new HashMap<Type, IMap<String, ITypeInfoItem>>();
 
@@ -99,7 +110,7 @@ namespace De.Osthus.Ambeth.Merge
             IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(GetExtensions().Values());
             foreach (IEntityMetaData metaData in extensions)
             {
-                foreach (IRelationInfoItem relationMember in metaData.RelationMembers)
+                foreach (RelationMember relationMember in metaData.RelationMembers)
                 {
                     AddTypeRelatedByTypes(typeRelatedByTypes, metaData.EntityType, relationMember.ElementType);
                 }
@@ -113,45 +124,55 @@ namespace De.Osthus.Ambeth.Merge
                     relatedByTypes = new CHashSet<Type>();
                 }
                 ((EntityMetaData)metaData).TypesRelatingToThis = relatedByTypes.ToArray();
-                ((EntityMetaData)metaData).Initialize(EntityFactory);
+                RefreshMembers(metaData);
             }
         }
 
         public void RefreshMembers(IEntityMetaData metaData)
         {
             if (metaData.EnhancedType == null)
-            {
-                return;
-            }
-            foreach (ITypeInfoItem member in metaData.RelationMembers)
-            {
-                RefreshMember(metaData, member);
-            }
-            foreach (ITypeInfoItem member in metaData.PrimitiveMembers)
-            {
-                RefreshMember(metaData, member);
-            }
-            RefreshMember(metaData, metaData.IdMember);
-            RefreshMember(metaData, metaData.VersionMember);
+		    {
+			    IEntityInstantiationExtension eie = entityInstantiationExtensions.GetExtension(metaData.EntityType);
+                Type baseType = eie != null ? eie.GetMappedEntityType(metaData.EntityType) : metaData.EntityType;
+			    ((EntityMetaData) metaData).EnhancedType = BytecodeEnhancer.GetEnhancedType(baseType, EntityEnhancementHint.Instance);
+		    }
+		    RelationMember[] relationMembers = metaData.RelationMembers;
+		    for (int a = relationMembers.Length; a-- > 0;)
+		    {
+			    relationMembers[a] = (RelationMember) RefreshMember(metaData, relationMembers[a]);
+		    }
+		    PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
+            for (int a = primitiveMembers.Length; a-- > 0; )
+		    {
+			    primitiveMembers[a] = (PrimitiveMember) RefreshMember(metaData, primitiveMembers[a]);
+		    }
+		    PrimitiveMember[] alternateIdMembers = metaData.AlternateIdMembers;
+            for (int a = alternateIdMembers.Length; a-- > 0; )
+		    {
+			    alternateIdMembers[a] = (PrimitiveMember) RefreshMember(metaData, alternateIdMembers[a]);
+		    }
+		    ((EntityMetaData) metaData).IdMember = (PrimitiveMember) RefreshMember(metaData, metaData.IdMember);
+            ((EntityMetaData)metaData).VersionMember = (PrimitiveMember)RefreshMember(metaData, metaData.VersionMember);
+            ((EntityMetaData)metaData).UpdatedByMember = (PrimitiveMember)RefreshMember(metaData, metaData.UpdatedByMember);
+            ((EntityMetaData)metaData).UpdatedOnMember = (PrimitiveMember)RefreshMember(metaData, metaData.UpdatedOnMember);
+            ((EntityMetaData)metaData).CreatedByMember = (PrimitiveMember)RefreshMember(metaData, metaData.CreatedByMember);
+            ((EntityMetaData)metaData).CreatedOnMember = (PrimitiveMember)RefreshMember(metaData, metaData.CreatedOnMember);
 
-            UpdateEntityMetaDataWithLifecycleExtensions(metaData);
+		    UpdateEntityMetaDataWithLifecycleExtensions(metaData);
+		    ((EntityMetaData) metaData).Initialize(EntityFactory);
         }
 
-        protected void RefreshMember(IEntityMetaData metaData, ITypeInfoItem member)
+        protected Member RefreshMember(IEntityMetaData metaData, Member member)
         {
-            if (!(member is PropertyInfoItem))
-            {
-                return;
-            }
-            PropertyInfoItem pMember = (PropertyInfoItem)member;
-            AbstractPropertyInfo propertyInfo = (AbstractPropertyInfo)pMember.Property;
-            propertyInfo.RefreshAccessors(metaData.EnhancedType);
-            if (propertyInfo is MethodPropertyInfo && !(propertyInfo is MethodPropertyInfoASM))
-            {
-                MethodPropertyInfo mpi = (MethodPropertyInfo)propertyInfo;
-                mpi = new MethodPropertyInfoASM(metaData.EnhancedType, propertyInfo.Name, mpi.Getter, mpi.Setter);
-                pMember.SetProperty(mpi);
-            }
+            if (member == null)
+		    {
+			    return null;
+		    }
+		    if (member is RelationMember)
+		    {
+			    return MemberTypeProvider.GetRelationMember(metaData.EnhancedType, member.Name);
+		    }
+            return MemberTypeProvider.GetPrimitiveMember(metaData.EnhancedType, member.Name);
         }
 
         protected IList<Type> AddLoadedMetaData(IList<Type> entityTypes, IList<IEntityMetaData> loadedMetaData)
@@ -179,7 +200,7 @@ namespace De.Osthus.Ambeth.Merge
                 for (int a = loadedMetaData.Count; a-- > 0; )
                 {
                     IEntityMetaData missingMetaDataItem = loadedMetaData[a];
-                    foreach (IRelationInfoItem relationMember in missingMetaDataItem.RelationMembers)
+                    foreach (RelationMember relationMember in missingMetaDataItem.RelationMembers)
                     {
                         Type relationMemberType = relationMember.ElementType;
                         if (!ContainsKey(relationMemberType))
@@ -795,5 +816,17 @@ namespace De.Osthus.Ambeth.Merge
         {
             return businessObjectSaveOrder;
         }
+
+        public void RegisterEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Type type)
+	    {
+            entityInstantiationExtensions.Register(entityInstantiationExtension, type);
+		    Initialize();
+	    }
+
+	    public void UnregisterEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Type type)
+	    {
+            entityInstantiationExtensions.Unregister(entityInstantiationExtension, type);
+		    Initialize();
+	    }
     }
 }

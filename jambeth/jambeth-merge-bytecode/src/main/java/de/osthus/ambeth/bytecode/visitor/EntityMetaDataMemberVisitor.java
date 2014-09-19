@@ -36,6 +36,8 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 
 	protected static final MethodInstance template_m_getName = new MethodInstance(null, Member.class, String.class, "getName");
 
+	protected static final MethodInstance template_m_getElementType = new MethodInstance(null, Member.class, Class.class, "getElementType");
+
 	protected static final MethodInstance template_m_getRealType = new MethodInstance(null, Member.class, Class.class, "getRealType");
 
 	protected static final MethodInstance template_m_getValue = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class);
@@ -75,6 +77,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		implementGetDeclaringType(propertyPath);
 		implementGetName(propertyPath);
 		implementGetNullEquivalentValue(propertyPath);
+		implementGetElementType(propertyPath);
 		implementGetRealType(propertyPath);
 		implementGetValue(propertyPath);
 		implementSetValue(propertyPath);
@@ -106,6 +109,14 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		{
 			mv.box(Type.getType(propertyType));
 		}
+		mv.returnValue();
+		mv.endMethod();
+	}
+
+	protected void implementGetElementType(IPropertyInfo[] property)
+	{
+		MethodGenerator mv = visitMethod(template_m_getElementType);
+		mv.push(property[property.length - 1].getElementType());
 		mv.returnValue();
 		mv.endMethod();
 	}
@@ -172,66 +183,67 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 			mv.returnValue();
 			mv.endMethod();
 		}
-
-		MethodGenerator mv = visitMethod(template_m_getValueWithFlag);
-
-		for (int a = 0, size = propertyPath.length; a < size; a++)
 		{
-			IPropertyInfo property = propertyPath[a];
-			if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
+			MethodGenerator mv = visitMethod(template_m_getValueWithFlag);
+
+			for (int a = 0, size = propertyPath.length; a < size; a++)
 			{
-				throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
+				IPropertyInfo property = propertyPath[a];
+				if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
+				{
+					throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
+				}
 			}
-		}
-		// IEntityMetaData metaDataOfProperty = entityMetaDataProvider.getMetaData(propertyPath[0].getEntityType(), true);
-		// if (metaDataOfProperty != null)
-		// {
-		// if (metaDataOfProperty.getEnhancedType() == null)
-		// {
-		// }
-		// }
-		// Class<?> declaringType = metaDataOfProperty != null ? metaDataOfProperty.getEnhancedType() : propertyPath[0].getEntityType();
-		Class<?> declaringType = propertyPath[0].getEntityType();
-		Label l_finish = mv.newLabel();
-		mv.loadArg(0);
-		mv.checkCast(declaringType);
-		for (int a = 0, size = propertyPath.length - 1; a < size; a++)
-		{
-			invokeGetProperty(mv, propertyPath[a]);
-			mv.dup();
-			mv.ifNull(l_finish);
-		}
-		IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-		invokeGetProperty(mv, lastProperty);
-		if (lastProperty.getPropertyType().isPrimitive())
-		{
-			Type pType = Type.getType(lastProperty.getPropertyType());
-			int loc_value = mv.newLocal(pType);
-			mv.storeLocal(loc_value);
-			mv.loadLocal(loc_value);
-			Label l_valueIsNonZero = mv.newLabel();
-			Label l_nullAllowed = mv.newLabel();
+			// IEntityMetaData metaDataOfProperty = entityMetaDataProvider.getMetaData(propertyPath[0].getEntityType(), true);
+			// if (metaDataOfProperty != null)
+			// {
+			// if (metaDataOfProperty.getEnhancedType() == null)
+			// {
+			// }
+			// }
+			// Class<?> declaringType = metaDataOfProperty != null ? metaDataOfProperty.getEnhancedType() : propertyPath[0].getEntityType();
+			Class<?> declaringType = propertyPath[0].getEntityType();
+			Label l_finish = mv.newLabel();
+			mv.loadArg(0);
+			mv.checkCast(declaringType);
+			for (int a = 0, size = propertyPath.length - 1; a < size; a++)
+			{
+				invokeGetProperty(mv, propertyPath[a]);
+				mv.dup();
+				mv.ifNull(l_finish);
+			}
+			IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
+			invokeGetProperty(mv, lastProperty);
+			if (lastProperty.getPropertyType().isPrimitive())
+			{
+				Type pType = Type.getType(lastProperty.getPropertyType());
+				int loc_value = mv.newLocal(pType);
+				mv.storeLocal(loc_value);
+				mv.loadLocal(loc_value);
+				Label l_valueIsNonZero = mv.newLabel();
+				Label l_nullAllowed = mv.newLabel();
 
-			mv.ifZCmp(pType, GeneratorAdapter.NE, l_valueIsNonZero);
+				mv.ifZCmp(pType, GeneratorAdapter.NE, l_valueIsNonZero);
 
-			// check null-equi flag
-			mv.loadArg(1);
-			mv.ifZCmp(GeneratorAdapter.EQ, l_nullAllowed);
-			mv.pushNullOrZero(pType);
-			mv.box(pType);
+				// check null-equi flag
+				mv.loadArg(1);
+				mv.ifZCmp(GeneratorAdapter.EQ, l_nullAllowed);
+				mv.pushNullOrZero(pType);
+				mv.box(pType);
+				mv.returnValue();
+
+				mv.mark(l_nullAllowed);
+				mv.pushNull();
+				mv.returnValue();
+
+				mv.mark(l_valueIsNonZero);
+				mv.loadLocal(loc_value);
+				mv.valueOf(pType);
+			}
+			mv.mark(l_finish);
 			mv.returnValue();
-
-			mv.mark(l_nullAllowed);
-			mv.pushNull();
-			mv.returnValue();
-
-			mv.mark(l_valueIsNonZero);
-			mv.loadLocal(loc_value);
-			mv.valueOf(pType);
+			mv.endMethod();
 		}
-		mv.mark(l_finish);
-		mv.returnValue();
-		mv.endMethod();
 	}
 
 	protected void implementSetValue(IPropertyInfo[] propertyPath)

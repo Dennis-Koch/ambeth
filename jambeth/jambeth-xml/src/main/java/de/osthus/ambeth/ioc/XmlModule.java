@@ -26,7 +26,7 @@ import de.osthus.ambeth.xml.namehandler.CollectionElementHandler;
 import de.osthus.ambeth.xml.namehandler.DateElementHandler;
 import de.osthus.ambeth.xml.namehandler.EnumNameHandler;
 import de.osthus.ambeth.xml.namehandler.ObjRefElementHandler;
-import de.osthus.ambeth.xml.namehandler.OriWrapperElementHandler;
+import de.osthus.ambeth.xml.namehandler.ObjRefWrapperElementHandler;
 import de.osthus.ambeth.xml.namehandler.StringNameHandler;
 import de.osthus.ambeth.xml.namehandler.TimeSpanElementHandler;
 import de.osthus.ambeth.xml.pending.CommandBuilder;
@@ -94,7 +94,7 @@ public class XmlModule implements IInitializingModule
 		IBeanConfiguration stringElementHandlerBC = beanContextFactory.registerAnonymousBean(StringNameHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(stringElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("s");
 
-		IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.registerAnonymousBean(OriWrapperElementHandler.class).parent(
+		IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.registerAnonymousBean(ObjRefWrapperElementHandler.class).parent(
 				"abstractElementHandler");
 		beanContextFactory.link(oriWrapperElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("ow");
 

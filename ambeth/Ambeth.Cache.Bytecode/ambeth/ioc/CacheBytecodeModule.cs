@@ -17,6 +17,8 @@ namespace De.Osthus.Ambeth.Ioc
             BytecodeModule.AddDefaultBytecodeBehavior<DefaultPropertiesBehavior>(beanContextFactory);
             // cascade $2
             BytecodeModule.AddDefaultBytecodeBehavior<LazyRelationsBehavior>(beanContextFactory);
+
+            BytecodeModule.AddDefaultBytecodeBehavior<InitializeEmbeddedMemberBehavior>(beanContextFactory);
             // cascade $3
             BytecodeModule.AddDefaultBytecodeBehavior<NotifyPropertyChangedBehavior>(beanContextFactory);
             BytecodeModule.AddDefaultBytecodeBehavior<ParentCacheHardRefBehavior>(beanContextFactory);

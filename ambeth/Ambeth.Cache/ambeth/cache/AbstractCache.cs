@@ -10,6 +10,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -107,7 +108,7 @@ namespace De.Osthus.Ambeth.Cache
             sbyte idNameIndex = objRef.IdNameIndex;
             cacheKey.EntityType = metaData.EntityType;
             cacheKey.IdNameIndex = idNameIndex;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
             cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, objRef.Id);
         }
 
@@ -116,7 +117,7 @@ namespace De.Osthus.Ambeth.Cache
             ParamChecker.AssertParamNotNull(id, "id");
             cacheKey.EntityType = metaData.EntityType;
             cacheKey.IdNameIndex = idNameIndex;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
             cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
         }
 
@@ -226,7 +227,7 @@ namespace De.Osthus.Ambeth.Cache
         protected V ExistsValue(IObjRef ori)
         {
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(ori.RealType);
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(ori.IdNameIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(ori.IdNameIndex);
             Object id = ConversionHelper.ConvertValueToType(idMember.RealType, ori.Id);
             Lock readLock = ReadLock;
             readLock.Lock();
@@ -238,7 +239,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     return default(V);
                 }
-                ITypeInfoItem versionMember = metaData.VersionMember;
+                PrimitiveMember versionMember = metaData.VersionMember;
                 if (versionMember == null)
                 {
                     if (WeakEntries)
@@ -369,7 +370,7 @@ namespace De.Osthus.Ambeth.Cache
         protected void RemoveCacheValueFromCacheCascade(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
             Type entityType = metaData.EntityType;
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             Lock writeLock = WriteLock;
             writeLock.Lock();
@@ -444,7 +445,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected void RemoveCacheValueFromCacheSingle(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             RemoveKeyFromCache(metaData.EntityType, idIndex, id);
         }
@@ -503,7 +504,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected virtual Object GetVersionOfObject(IEntityMetaData metaData, Object obj)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             return versionMember != null ? versionMember.GetValue(obj, false) : null;
         }
 
@@ -702,7 +703,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected Object GetCacheValueR(IEntityMetaData metaData, sbyte idIndex, Object id)
         {
-            ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
             id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
             Object cacheValueR = keyToCacheValueDict.Get(metaData.EntityType, idIndex, id);
             CacheValueHasBeenRead(cacheValueR);

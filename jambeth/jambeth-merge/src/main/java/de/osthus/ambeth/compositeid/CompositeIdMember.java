@@ -6,9 +6,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
-import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 
 public class CompositeIdMember extends PrimitiveMember
 {
@@ -25,28 +25,25 @@ public class CompositeIdMember extends PrimitiveMember
 
 	protected final Constructor<?> realTypeConstructorAccess;
 
-	protected final FieldAccess realTypeFieldAccess;
-
-	protected final int[] fieldIndexOfMembers;
+	protected final Member[] fieldIndexOfMembers;
 
 	protected final String name;
 
 	protected boolean technicalMember;
 
-	public CompositeIdMember(Class<?> declaringType, Class<?> realType, String name, PrimitiveMember[] members)
+	public CompositeIdMember(Class<?> declaringType, Class<?> realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
 	{
 		super(declaringType, null);
 		this.declaringType = declaringType;
 		this.realType = realType;
 		this.name = name;
 		this.members = members;
-		realTypeFieldAccess = FieldAccess.get(realType);
-		fieldIndexOfMembers = new int[members.length];
+		fieldIndexOfMembers = new Member[members.length];
 		Class<?>[] paramTypes = new Class<?>[members.length];
 		for (int a = 0, size = members.length; a < size; a++)
 		{
 			Member member = members[a];
-			fieldIndexOfMembers[a] = realTypeFieldAccess.getIndex(CompositeIdMember.filterEmbeddedFieldName(member.getName()));
+			fieldIndexOfMembers[a] = memberTypeProvider.getMember(realType, CompositeIdMember.filterEmbeddedFieldName(member.getName()));
 			paramTypes[a] = member.getRealType();
 		}
 		try
@@ -102,8 +99,7 @@ public class CompositeIdMember extends PrimitiveMember
 
 	public Object getDecompositedValue(Object compositeId, int compositeMemberIndex)
 	{
-		int fieldIndexOfMember = fieldIndexOfMembers[compositeMemberIndex];
-		return realTypeFieldAccess.get(compositeId, fieldIndexOfMember);
+		return fieldIndexOfMembers[compositeMemberIndex].getValue(compositeId, false);
 	}
 
 	public Object getDecompositedValueOfObject(Object obj, int compositeMemberIndex)
@@ -114,16 +110,6 @@ public class CompositeIdMember extends PrimitiveMember
 	public Constructor<?> getRealTypeConstructorAccess()
 	{
 		return realTypeConstructorAccess;
-	}
-
-	public FieldAccess getRealTypeFieldAccess()
-	{
-		return realTypeFieldAccess;
-	}
-
-	public int[] getFieldIndexOfMembers()
-	{
-		return fieldIndexOfMembers;
 	}
 
 	public PrimitiveMember[] getMembers()
@@ -171,14 +157,12 @@ public class CompositeIdMember extends PrimitiveMember
 	public void setValue(Object obj, Object compositeId)
 	{
 		Member[] members = this.members;
-		FieldAccess realTypeFieldAccess = this.realTypeFieldAccess;
-		int[] fieldIndexOfMembers = this.fieldIndexOfMembers;
+		Member[] fieldIndexOfMembers = this.fieldIndexOfMembers;
 		if (compositeId != null)
 		{
 			for (int a = members.length; a-- > 0;)
 			{
-				int fieldIndexOfMember = fieldIndexOfMembers[a];
-				Object memberValue = realTypeFieldAccess.get(compositeId, fieldIndexOfMember);
+				Object memberValue = fieldIndexOfMembers[a].getValue(compositeId, false);
 				members[a].setValue(obj, memberValue);
 			}
 		}

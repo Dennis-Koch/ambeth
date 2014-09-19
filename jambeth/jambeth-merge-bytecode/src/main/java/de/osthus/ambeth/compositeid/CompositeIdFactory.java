@@ -8,6 +8,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -22,6 +23,9 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -59,7 +63,7 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		Class<?> compositeIdType = bytecodeEnhancer.getEnhancedType(Object.class, new CompositeIdEnhancementHint(idMembers));
 		try
 		{
-			return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers);
+			return new CompositeIdMember(entityType, compositeIdType, nameSB.toString(), idMembers, memberTypeProvider);
 		}
 		catch (Throwable e)
 		{

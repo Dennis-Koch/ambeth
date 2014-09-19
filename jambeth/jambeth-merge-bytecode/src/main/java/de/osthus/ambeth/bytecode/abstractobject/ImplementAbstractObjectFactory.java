@@ -33,7 +33,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 	protected IEntityFactory entityFactory;
 
 	@Autowired
-	protected IEntityInstantiationExtensionExtendable entityFactoryExtensionExtendable;
+	protected IEntityInstantiationExtensionExtendable entityInstantiationExtensionExtendable;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -113,7 +113,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 		if (oldBaseType == null)
 		{
 			baseTypes.register(baseType, keyType);
-			entityFactoryExtensionExtendable.registerEntityFactoryExtension(self, keyType);
+			entityInstantiationExtensionExtendable.registerEntityInstantiationExtension(self, keyType);
 		}
 		else
 		{
@@ -203,7 +203,7 @@ public class ImplementAbstractObjectFactory implements IDisposableBean, IImpleme
 			this.interfaceTypes.unregister(interfaceTypes, keyType);
 		}
 		baseTypes.unregister(baseType, keyType);
-		entityFactoryExtensionExtendable.unregisterEntityFactoryExtension(self, keyType);
+		entityInstantiationExtensionExtendable.unregisterEntityInstantiationExtension(self, keyType);
 	}
 
 	/**
