@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -58,6 +59,9 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
+        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+
+        [Autowired]
         public ValueHolderIEC ValueHolderContainerHelper { protected get; set; }
 
         public override Type[] GetEnhancements()
@@ -85,14 +89,14 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             }
             if (EmbeddedEnhancementHint.HasMemberPath(state.Context))
             {
-                foreach (IRelationInfoItem member in metaData.RelationMembers)
+                foreach (RelationMember member in metaData.RelationMembers)
                 {
-                    if (!(member is EmbeddedRelationInfoItem))
+                    if (!(member is IEmbeddedMember))
                     {
                         continue;
                     }
-                    IRelationInfoItem cMember = ((EmbeddedRelationInfoItem)member).ChildMember;
-                    MethodPropertyInfo prop = (MethodPropertyInfo)((PropertyInfoItem)cMember).Property;
+                    Member cMember = ((IEmbeddedMember)member).ChildMember;
+                    MethodPropertyInfo prop = (MethodPropertyInfo)PropertyInfoProvider.GetProperty(cMember.DeclaringType, cMember.Name);
                     if ((prop.Getter != null && state.HasMethod(new MethodInstance(prop.Getter))) || (prop.Setter != null && state.HasMethod(new MethodInstance(prop.Setter))))
                     {
                         // Handle this behavior in the next iteration
@@ -103,13 +107,13 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             }
             else
             {
-                foreach (IRelationInfoItem member in metaData.RelationMembers)
+                foreach (RelationMember member in metaData.RelationMembers)
                 {
-                    if (!(member is PropertyInfoItem))
+                    if (!(member is IEmbeddedMember))
                     {
                         continue;
                     }
-                    MethodPropertyInfo prop = (MethodPropertyInfo)((PropertyInfoItem)member).Property;
+                    MethodPropertyInfo prop = (MethodPropertyInfo)PropertyInfoProvider.GetProperty(member.DeclaringType, member.Name);
                     if (state.HasMethod(new MethodInstance(prop.Getter)) || state.HasMethod(new MethodInstance(prop.Setter)))
                     {
                         // Handle this behavior in the next iteration
@@ -121,7 +125,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 			    visitor = new InterfaceAdder(visitor, typeof(IValueHolderContainer));
                 visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
             }
-            visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper);
+            visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper, PropertyInfoProvider);
             visitor = new SetCacheModificationMethodCreator(visitor);
             return visitor;
         }

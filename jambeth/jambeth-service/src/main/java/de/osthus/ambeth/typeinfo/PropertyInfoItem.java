@@ -169,12 +169,6 @@ public class PropertyInfoItem extends TypeInfoItem
 	}
 
 	@Override
-	public void setPrimitiveValue(Object obj, IPrimitiveValueProvider primitiveValueProvider, int index)
-	{
-		setValue(obj, primitiveValueProvider.getBoxedValue(index));
-	}
-
-	@Override
 	public Object getValue(Object obj, boolean allowNullEquivalentValue)
 	{
 		Object value;

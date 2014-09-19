@@ -173,7 +173,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	{
 		if (memberNames == null)
 		{
-			return EntityMetaData.emptyMembers;
+			return EntityMetaData.emptyPrimitiveMembers;
 		}
 		PrimitiveMember[] members = new PrimitiveMember[memberNames.length];
 		for (int a = memberNames.length; a-- > 0;)
@@ -187,7 +187,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	{
 		if (memberNames == null)
 		{
-			return EntityMetaData.emptyRelationInfoItems;
+			return EntityMetaData.emptyRelationMembers;
 		}
 		RelationMember[] members = new RelationMember[memberNames.length];
 		for (int a = memberNames.length; a-- > 0;)

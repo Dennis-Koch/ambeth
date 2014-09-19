@@ -95,15 +95,18 @@ namespace De.Osthus.Ambeth.Ioc
             }
             beanContextFactory.RegisterAnonymousBean<RelationProvider>().Autowireable<IRelationProvider>();
 
+            beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>();
+		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberTemplate>().Autowireable<EmbeddedMemberTemplate>();
+
             Type entityFactoryType = this.EntityFactoryType;
             if (entityFactoryType == null)
             {
                 entityFactoryType = typeof(EntityFactory);
             }
             IBeanConfiguration entityFactoryBC = beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
-            if (typeof(IEntityFactoryExtensionExtendable).IsAssignableFrom(entityFactoryType))
+            if (typeof(IEntityInstantiationExtensionExtendable).IsAssignableFrom(entityFactoryType))
             {
-                entityFactoryBC.Autowireable<IEntityFactoryExtensionExtendable>();
+                entityFactoryBC.Autowireable<IEntityInstantiationExtensionExtendable>();
             }
 
             if (IsNetworkClientMode && IsMergeServiceBeanActive)

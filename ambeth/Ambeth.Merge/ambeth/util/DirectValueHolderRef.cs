@@ -1,5 +1,5 @@
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Typeinfo;
 using System;
 
 namespace De.Osthus.Ambeth.Util
@@ -8,18 +8,18 @@ namespace De.Osthus.Ambeth.Util
     {
         protected readonly IObjRefContainer vhc;
 
-        protected readonly IRelationInfoItem member;
+        protected readonly RelationMember member;
 
         protected readonly bool objRefsOnly;
 
-        public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member)
+        public DirectValueHolderRef(IObjRefContainer vhc, RelationMember member)
         {
             this.vhc = vhc;
             this.member = member;
             this.objRefsOnly = false;
         }
 
-        public DirectValueHolderRef(IObjRefContainer vhc, IRelationInfoItem member, bool objRefsOnly)
+        public DirectValueHolderRef(IObjRefContainer vhc, RelationMember member, bool objRefsOnly)
         {
             this.vhc = vhc;
             this.member = member;
@@ -34,7 +34,7 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
-        public IRelationInfoItem Member
+        public RelationMember Member
         {
             get
             {

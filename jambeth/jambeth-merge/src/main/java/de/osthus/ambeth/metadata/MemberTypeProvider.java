@@ -4,7 +4,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
@@ -14,7 +13,6 @@ import de.osthus.ambeth.annotation.Cascade;
 import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.config.IProperties;
@@ -26,12 +24,38 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.typeinfo.FieldPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
-import de.osthus.ambeth.typeinfo.TypeInfoItemUtil;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class MemberTypeProvider implements IMemberTypeProvider
 {
+	public class TypeAndStringWeakMap<T> extends Tuple2KeyHashMap<Class<?>, String, Reference<T>>
+	{
+		@Override
+		protected void transfer(Tuple2KeyEntry<Class<?>, String, Reference<T>>[] newTable)
+		{
+			final int newCapacityMinus1 = newTable.length - 1;
+			final Tuple2KeyEntry<Class<?>, String, Reference<T>>[] table = this.table;
+
+			for (int a = table.length; a-- > 0;)
+			{
+				Tuple2KeyEntry<Class<?>, String, Reference<T>> entry = table[a], next;
+				while (entry != null)
+				{
+					next = entry.getNextEntry();
+
+					// only handle this entry if it has still a valid value
+					if (entry.getValue().get() != null)
+					{
+						int i = entry.getHash() & newCapacityMinus1;
+						entry.setNextEntry(newTable[i]);
+						newTable[i] = entry;
+					}
+					entry = next;
+				}
+			}
+		}
+	}
+
 	public static IPropertyInfo[] buildPropertyPath(Class<?> entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
 	{
 		String[] memberPath = memberName.split(Pattern.quote("."));
@@ -59,77 +83,11 @@ public class MemberTypeProvider implements IMemberTypeProvider
 	@LogInstance
 	private ILogger log;
 
-	protected final Tuple2KeyHashMap<Class<?>, String, Reference<PrimitiveMember>> typeToPrimitiveMemberMap = new Tuple2KeyHashMap<Class<?>, String, Reference<PrimitiveMember>>()
-	{
-		@Override
-		protected void resize(int newCapacity)
-		{
-			ArrayList<Object[]> removeKeys = new ArrayList<Object[]>();
-			for (Tuple2KeyEntry<Class<?>, String, Reference<PrimitiveMember>> entry : this)
-			{
-				if (entry.getValue().get() == null)
-				{
-					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
-				}
-			}
-			for (Object[] removeKey : removeKeys)
-			{
-				remove((Class<?>) removeKey[0], (String) removeKey[1]);
-			}
-			if (size() >= threshold)
-			{
-				super.resize(2 * table.length);
-			}
-		}
-	};
+	protected final TypeAndStringWeakMap<PrimitiveMember> typeToPrimitiveMemberMap = new TypeAndStringWeakMap<PrimitiveMember>();
 
-	protected final Tuple2KeyHashMap<Class<?>, String, Reference<Member>> typeToMemberMap = new Tuple2KeyHashMap<Class<?>, String, Reference<Member>>()
-	{
-		@Override
-		protected void resize(int newCapacity)
-		{
-			ArrayList<Object[]> removeKeys = new ArrayList<Object[]>();
-			for (Tuple2KeyEntry<Class<?>, String, Reference<Member>> entry : this)
-			{
-				if (entry.getValue().get() == null)
-				{
-					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
-				}
-			}
-			for (Object[] removeKey : removeKeys)
-			{
-				remove((Class<?>) removeKey[0], (String) removeKey[1]);
-			}
-			if (size() >= threshold)
-			{
-				super.resize(2 * table.length);
-			}
-		}
-	};
+	protected final TypeAndStringWeakMap<Member> typeToMemberMap = new TypeAndStringWeakMap<Member>();
 
-	protected final Tuple2KeyHashMap<Class<?>, String, Reference<RelationMember>> typeToRelationMemberMap = new Tuple2KeyHashMap<Class<?>, String, Reference<RelationMember>>()
-	{
-		@Override
-		protected void resize(int newCapacity)
-		{
-			ArrayList<Object[]> removeKeys = new ArrayList<Object[]>();
-			for (Tuple2KeyEntry<Class<?>, String, Reference<RelationMember>> entry : this)
-			{
-				if (entry.getValue().get() == null)
-				{
-					removeKeys.add(new Object[] { entry.getKey1(), entry.getKey2() });
-				}
-			}
-			for (Object[] removeKey : removeKeys)
-			{
-				remove((Class<?>) removeKey[0], (String) removeKey[1]);
-			}
-			if (size() >= threshold)
-			{
-				super.resize(2 * table.length);
-			}
-		}
-	};
+	protected final TypeAndStringWeakMap<RelationMember> typeToRelationMemberMap = new TypeAndStringWeakMap<RelationMember>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -161,7 +119,7 @@ public class MemberTypeProvider implements IMemberTypeProvider
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <T extends Member> T getMemberIntern(Class<?> type, String propertyName, Tuple2KeyHashMap<Class<?>, String, Reference<T>> map, Class<?> baseType)
+	protected <T extends Member> T getMemberIntern(Class<?> type, String propertyName, TypeAndStringWeakMap<T> map, Class<?> baseType)
 	{
 		Reference<T> accessorR = map.get(type, propertyName);
 		T member = accessorR != null ? accessorR.get() : null;
@@ -183,20 +141,21 @@ public class MemberTypeProvider implements IMemberTypeProvider
 			member = (T) getMemberIntern(type, propertyName, baseType);
 			if (member.getElementType() == null)
 			{
-				IPropertyInfo[] propertyPath = buildPropertyPath(type, propertyName, propertyInfoProvider);
-				IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-				Class<?> elementType;
-				if (lastProperty instanceof MethodPropertyInfo)
-				{
-					Method getter = ((MethodPropertyInfo) propertyPath[propertyPath.length - 1]).getGetter();
-					elementType = TypeInfoItemUtil.getElementTypeUsingReflection(getter.getReturnType(), getter.getGenericReturnType());
-				}
-				else
-				{
-					Field field = ((FieldPropertyInfo) propertyPath[propertyPath.length - 1]).getBackingField();
-					elementType = TypeInfoItemUtil.getElementTypeUsingReflection(field.getType(), field.getGenericType());
-				}
-				member.setElementType(elementType);
+				throw new IllegalStateException("Should never be called");
+				// IPropertyInfo[] propertyPath = buildPropertyPath(type, propertyName, propertyInfoProvider);
+				// IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
+				// Class<?> elementType;
+				// if (lastProperty instanceof MethodPropertyInfo)
+				// {
+				// Method getter = ((MethodPropertyInfo) propertyPath[propertyPath.length - 1]).getGetter();
+				// elementType = TypeInfoItemUtil.getElementTypeUsingReflection(getter.getReturnType(), getter.getGenericReturnType());
+				// }
+				// else
+				// {
+				// Field field = ((FieldPropertyInfo) propertyPath[propertyPath.length - 1]).getBackingField();
+				// elementType = TypeInfoItemUtil.getElementTypeUsingReflection(field.getType(), field.getGenericType());
+				// }
+				// member.setElementType(elementType);
 			}
 			if (member instanceof RelationMember)
 			{

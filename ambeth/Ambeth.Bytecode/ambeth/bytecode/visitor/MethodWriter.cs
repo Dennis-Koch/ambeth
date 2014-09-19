@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using De.Osthus.Ambeth.Visitor;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -87,6 +88,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void CallThisGetter(MethodInstance method)
         {
             ParamChecker.AssertParamNotNull(method, "method");
+            MethodInstance existingMethodInstance = MethodInstance.FindByTemplate(method, false);
+            if (!existingMethodInstance.Owner.Equals(method.Owner))
+            {
+                CallThisGetter(existingMethodInstance);
+                return;
+            }
             if (!method.Access.HasFlag(MethodAttributes.Static))
             {
                 LoadThis();
@@ -278,7 +285,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             InvokeOnExactOwner(method);
         }
 
-        public virtual void InvokeGetValue(ITypeInfoItem member, Script thisScript)
+        public virtual void InvokeGetValue(PrimitiveMember member, Script thisScript)
         {
             if (member is PropertyInfoItem)
             {
@@ -298,14 +305,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     InvokeVirtual(m_getter);
                 }
             }
-            else if (member is CompositeIdTypeInfoItem)
+            else if (member is CompositeIdMember)
             {
-                CompositeIdTypeInfoItem cidMember = (CompositeIdTypeInfoItem)member;
+                CompositeIdMember cidMember = (CompositeIdMember)member;
 
                 ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.GetRealTypeConstructorAccess());
                 NewInstance(c_compositeId, delegate(IMethodVisitor mg)
                 {
-                    ITypeInfoItem[] members = cidMember.Members;
+                    PrimitiveMember[] members = cidMember.Members;
                     for (int a = 0, size = members.Length; a < size; a++)
                     {
                         InvokeGetValue(members[a], thisScript);
@@ -337,8 +344,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void GetField(FieldInstance field)
         {
-            FieldInstance implementedField = State.GetAlreadyImplementedField(field.Name);
-            gen.Emit(OpCodes.Ldfld, implementedField.Field);
+            ParamChecker.AssertParamNotNull(field, "field");
+            if (!field.Access.HasFlag(FieldAttributes.Static))
+            {
+                gen.Emit(OpCodes.Ldfld, field.Field);
+            }
+            else
+            {
+                GetStatic(field);
+            }
+
         }
 
         public virtual void GetThisField(FieldInstance field)
@@ -422,6 +437,24 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IfZCmp(CompareOperator.NE, l_isTrue);
             executeIfFalse(this);
             Mark(l_isTrue);
+        }
+
+        public virtual void IfZCmp(NewType type, CompareOperator compareOperator, Label label)
+        {
+            IfZCmp(type.Type, compareOperator, label);
+        }
+
+        public virtual void IfZCmp(Type type, CompareOperator compareOperator, Label label)
+        {
+            if (typeof(double).Equals(type) || typeof(float).Equals(type) || typeof(long).Equals(type))
+            {
+                PushNullOrZero(type);
+                IfCmp(type, compareOperator, label);
+            }
+            else
+            {
+                IfZCmp(compareOperator, label);
+            }
         }
 
         public virtual void IfZCmp(CompareOperator compareOperator, Label label)
@@ -575,6 +608,23 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void Push(bool? value)
+        {
+            if (!value.HasValue)
+            {
+                ConstructorInfo nullValueType = typeof(Nullable<bool>).GetConstructor(new Type[0]);
+                NewInstance(new ConstructorInstance(nullValueType), null);
+            }
+            else
+            {
+                ConstructorInfo hasValueType = typeof(Nullable<bool>).GetConstructor(new Type[] { typeof(bool) });
+                NewInstance(new ConstructorInstance(hasValueType), delegate(IMethodVisitor mv)
+                {
+                    mv.Push(value.Value);
+                });
+            }
+        }
+
         public virtual void Push(double value)
         {
             gen.Emit(OpCodes.Ldc_R8, value);
@@ -676,6 +726,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             gen.Emit(OpCodes.Ldnull);
         }
 
+        public virtual void PushNullOrZero(NewType type)
+        {
+            PushNullOrZero(type.Type);
+        }
+
         public virtual void PushNullOrZero(Type type)
         {
             if (typeof(long).Equals(type))
@@ -718,8 +773,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void PutField(FieldInstance field)
         {
-            FieldInstance implementedField = State.GetAlreadyImplementedField(field.Name);
-            gen.Emit(OpCodes.Stfld, implementedField.Field);
+            ParamChecker.AssertParamNotNull(field, "field");
+            if (!field.Access.HasFlag(FieldAttributes.Static))
+            {
+                gen.Emit(OpCodes.Stfld, field.Field);
+            }
+            else
+            {
+                PutStatic(field);
+            }
+            
         }
 
         public virtual void PutStatic(FieldInstance field)

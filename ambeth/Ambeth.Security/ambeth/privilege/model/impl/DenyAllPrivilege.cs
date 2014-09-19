@@ -16,17 +16,17 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             // intended blank
         }
 
-        public override IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
+        public override IPropertyPrivilege GetDefaultPropertyPrivilegeIfValid()
         {
             return denyAllPropertyPrivilege;
         }
 
-        public override IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
+        public override IPropertyPrivilege GetPrimitivePropertyPrivilege(int primitiveIndex)
         {
             return denyAllPropertyPrivilege;
         }
 
-        public override IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
+        public override IPropertyPrivilege GetRelationPropertyPrivilege(int relationIndex)
         {
             return denyAllPropertyPrivilege;
         }

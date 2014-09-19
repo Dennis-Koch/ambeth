@@ -52,7 +52,7 @@ public interface IEntityMetaData
 
 	int getIndexByRelationName(String relationMemberName);
 
-	int getIndexByRelation(RelationMember relationMember);
+	int getIndexByRelation(Member relationMember);
 
 	int getIndexByPrimitiveName(String primitiveMemberName);
 

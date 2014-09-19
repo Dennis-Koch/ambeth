@@ -3,6 +3,7 @@ using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -79,12 +80,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             base.VisitEnd();
         }
 
-        public static String GetFieldName(ITypeInfoItem member)
+        public static String GetFieldName(Member member)
         {
             return "$" + member.Name.Replace('.', '_');
         }
 
-        public static FieldInstance ImplementNativeField(IClassVisitor cv, ITypeInfoItem member, MethodInstance m_get, MethodInstance m_set)
+        public static FieldInstance ImplementNativeField(IClassVisitor cv, Member member, MethodInstance m_get, MethodInstance m_set)
         {
             if (member == null)
             {
@@ -102,7 +103,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 }
                 return null;
             }
-            if (member is CompositeIdTypeInfoItem
+            if (member is CompositeIdMember
                     || (!member.RealType.IsPrimitive && ImmutableTypeSet.GetUnwrappedType(member.RealType) == null))
             {
                 // no business case for any complex efforts

@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Xml.Namehandler
 {
@@ -55,7 +56,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
                 {
                     if (objId != null)
                     {
-                        ITypeInfoItem idMember = metaData.GetIdMemberByIdIndex(idIndex);
+                        PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idIndex);
                         if (objId.Equals(idMember.NullEquivalentValue))
                         {
                             objId = null;
@@ -63,7 +64,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
                     }
                     if (version != null)
                     {
-                        ITypeInfoItem versionMember = metaData.VersionMember;
+                        PrimitiveMember versionMember = metaData.VersionMember;
                         if (versionMember != null)
                         {
                             if (version.Equals(versionMember.NullEquivalentValue))

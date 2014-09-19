@@ -98,24 +98,25 @@ public class EntityFactory extends AbstractEntityFactory
 	protected Object[] getConstructorArguments(FastConstructor constructor)
 	{
 		Object[] beanArgs = constructorToBeanArgsMap.get(constructor);
-		if (beanArgs == null)
+		if (beanArgs != null)
 		{
-			Class<?>[] parameterTypes = constructor.getParameterTypes();
-			beanArgs = new Object[parameterTypes.length];
-			for (int a = parameterTypes.length; a-- > 0;)
-			{
-				Class<?> parameterType = parameterTypes[a];
-				if (IEntityFactory.class.equals(parameterType))
-				{
-					beanArgs[a] = self;
-				}
-				else
-				{
-					beanArgs[a] = beanContext.getService(parameterType);
-				}
-			}
-			constructorToBeanArgsMap.put(constructor, beanArgs);
+			return beanArgs;
 		}
+		Class<?>[] parameterTypes = constructor.getParameterTypes();
+		beanArgs = new Object[parameterTypes.length];
+		for (int a = parameterTypes.length; a-- > 0;)
+		{
+			Class<?> parameterType = parameterTypes[a];
+			if (IEntityFactory.class.equals(parameterType))
+			{
+				beanArgs[a] = self;
+			}
+			else
+			{
+				beanArgs[a] = beanContext.getService(parameterType);
+			}
+		}
+		constructorToBeanArgsMap.put(constructor, beanArgs);
 		return beanArgs;
 	}
 

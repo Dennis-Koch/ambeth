@@ -6,7 +6,7 @@ using System.Xml.Serialization;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
-    public class PropertyInfoItem : RelationInfoItem
+    public class PropertyInfoItem : TypeInfoItem
     {
         protected IPropertyInfoIntern property;
 

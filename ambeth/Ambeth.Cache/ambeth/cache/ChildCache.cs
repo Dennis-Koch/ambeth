@@ -16,6 +16,7 @@ using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -172,7 +173,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override Object GetVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return null;
@@ -182,7 +183,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override void SetVersionOfCacheValue(IEntityMetaData metaData, Object cacheValue, Object version)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -447,7 +448,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations)
         {
             if (id == null)
             {
@@ -491,12 +492,12 @@ namespace De.Osthus.Ambeth.Cache
                 if (newAlternateCacheKeys == null)
                 {
                     // Allocate new array to hold alternate ids
-                    newAlternateCacheKeys = ExtractAlternateCacheKeys(metaData, primitives);
+                    newAlternateCacheKeys = ExtractAlternateCacheKeys(metaData, parentCacheValueOrArray);
                 }
                 else
                 {
                     // reuse existing array for new alternate id-values
-                    ExtractAlternateCacheKeys(metaData, primitives, newAlternateCacheKeys);
+                    ExtractAlternateCacheKeys(metaData, parentCacheValueOrArray, newAlternateCacheKeys);
                 }
                 if (newAlternateCacheKeys.Length > 0)
                 {
@@ -514,7 +515,7 @@ namespace De.Osthus.Ambeth.Cache
             }
             if (relations != null && relations.Length > 0)
             {
-                IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+                RelationMember[] relationMembers = metaData.RelationMembers;
 
                 IValueHolderContainer vhc = (IValueHolderContainer)primitiveFilledObject;
                 vhc.__TargetCache = this;
@@ -526,14 +527,14 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void HandleValueHolderContainer(IValueHolderContainer vhc, IRelationInfoItem[] relationMembers, IObjRef[][] relations)
+        protected void HandleValueHolderContainer(IValueHolderContainer vhc, RelationMember[] relationMembers, IObjRef[][] relations)
         {
             ICacheHelper cacheHelper = this.CacheHelper;
             ICacheIntern parent = this.Parent;
             IProxyHelper proxyHelper = this.ProxyHelper;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
                 IObjRef[] relationsOfMember = relations[relationIndex];
 
                 if (!CascadeLoadMode.EAGER.Equals(relationMember.CascadeLoadMode))

@@ -10,6 +10,7 @@ using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Util;
+using System.Reflection;
 
 namespace De.Osthus.Ambeth.Bytecode.Core
 {
@@ -177,32 +178,101 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 IBytecodeBehavior[] extensions = bytecodeBehaviorExtensions.GetExtensions();
                 pendingBehaviors.AddRange(extensions);
 
-                Type enhancedEntityType;
+                Type enhancedType;
                 if (pendingBehaviors.Count > 0)
                 {
-                    enhancedEntityType = EnhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
+                    enhancedType = EnhanceTypeIntern(typeToEnhance, newTypeNamePrefix, pendingBehaviors, hint);
                 }
                 else
                 {
-                    enhancedEntityType = typeToEnhance;
+                    enhancedType = typeToEnhance;
                 }
                 WeakReference entityTypeR = typeToExtendedType.GetWeakReferenceEntry(typeToEnhance);
 			    if (entityTypeR == null)
 			    {
 				    throw new Exception("Must never happen");
 			    }
-                hardRefToTypes.Add(enhancedEntityType);
+                hardRefToTypes.Add(enhancedType);
                 hardRefToTypes.Add(typeToEnhance);
-                WeakReference enhancedEntityTypeR = new WeakReference(enhancedEntityType);
-                valueType.Put(hint, enhancedEntityTypeR);
-                extendedTypeToType.Add(enhancedEntityType, entityTypeR);
                 if (Log.DebugEnabled)
                 {
-                    Log.Debug(BytecodeClassLoader.ToPrintableBytecode(enhancedEntityType));
+                    Log.Debug(BytecodeClassLoader.ToPrintableBytecode(enhancedType));
                 }
-                return enhancedEntityType;
+                try
+                {
+                    CheckEnhancedTypeConsistency(enhancedType);
+                }
+                catch (Exception e)
+                {
+                    if (Log.ErrorEnabled)
+                    {
+                        Log.Error(BytecodeClassLoader.ToPrintableBytecode(enhancedType), e);
+                    }
+                    throw;
+                }
+                WeakReference enhancedEntityTypeR = new WeakReference(enhancedType);
+                valueType.Put(hint, enhancedEntityTypeR);
+                extendedTypeToType.Add(enhancedType, entityTypeR);
+                if (Log.DebugEnabled)
+                {
+                    Log.Debug("Enhancement finished successfully with type: " + enhancedType);
+                }
+                return enhancedType;
             }
         }
+
+        protected void CheckEnhancedTypeConsistency(Type type)
+	    {
+		    IdentityHashSet<MethodInfo> allMethods = new IdentityHashSet<MethodInfo>();
+		    foreach (Type interf in type.GetInterfaces())
+		    {
+			    allMethods.AddAll(interf.GetMethods());
+		    }
+		    Type currType = type;
+		    while (currType != typeof(Object) && currType != null)
+		    {
+			    allMethods.AddAll(currType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly));
+			    currType = currType.BaseType;
+		    }
+		    if (allMethods.Count == 0)
+		    {
+			    throw new Exception("Type invalid (not a single method): " + type);
+		    }
+		    if (type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly).Length == 0)
+		    {
+			    throw new Exception("Type invalid (not a single constructor): " + type);
+		    }
+		    if (!type.IsAbstract)
+		    {
+			    foreach (MethodInfo method in allMethods)
+			    {
+				    MethodInfo method2 = ReflectUtil.GetDeclaredMethod(true, type, method.ReturnType, method.Name, TypeUtil.GetParameterTypesToTypes(method.GetParameters()));
+				    if (method2 == null || method2.IsAbstract)
+				    {
+					    throw new Exception("Type is not abstract but has at least one abstract method: " + method);
+				    }
+			    }
+		    }
+		    Type[] interfaces = type.GetInterfaces();
+		    foreach (Type interf in interfaces)
+		    {
+			    MethodInfo[] interfaceMethods = ReflectUtil.GetDeclaredMethods(interf);
+			    foreach (MethodInfo interfaceMethod in interfaceMethods)
+			    {
+				    try
+				    {
+                        if (type.GetMethod(interfaceMethod.Name, TypeUtil.GetParameterTypesToTypes(interfaceMethod.GetParameters())) == null)
+                        {
+                            throw new Exception("Type is not abstract but has at least one abstract method: " + interfaceMethod);
+                        }
+				    }
+				    catch (Exception e)
+				    {
+					    throw new Exception("Type is not abstract but has at least one abstract method: " + interfaceMethod);
+				    }
+			    }
+		    }
+	    }
 
         protected Type EnhanceTypeIntern(Type originalType, String newTypeNamePrefix, IList<IBytecodeBehavior> pendingBehaviors,
                 IEnhancementHint hint)

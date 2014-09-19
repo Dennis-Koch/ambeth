@@ -17,6 +17,7 @@ using System.Reflection;
 using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Exceptions;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -24,16 +25,16 @@ namespace De.Osthus.Ambeth.Cache
     {
         protected readonly AbstractValueHolderEntry2[] entries;
 
-        public ValueHolderContainerEntry(Type targetType, IRelationInfoItem[] members, IBytecodeEnhancer bytecodeEnhancer,
-            IPropertyInfoProvider propertyInfoProvider)
+        public ValueHolderContainerEntry(Type targetType, RelationMember[] members, IBytecodeEnhancer bytecodeEnhancer,
+            IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
         {
             entries = new AbstractValueHolderEntry2[members.Length];
             try
             {
                 for (int relationIndex = members.Length; relationIndex-- > 0; )
                 {
-                    IRelationInfoItem member = members[relationIndex];
-                    AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, bytecodeEnhancer, propertyInfoProvider);
+                    RelationMember member = members[relationIndex];
+                    AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
                     entries[relationIndex] = vhEntry;
                 }
             }
@@ -129,201 +130,80 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly MemberSetDelegate setDirectValue;
 
-        protected readonly ITypeInfoItem objRefs;
+        protected readonly Member objRefs;
 
-        protected readonly ITypeInfoItem state;
+        protected readonly Member state;
 
-        protected readonly ITypeInfoItem directValue;
+        protected readonly Member directValue;
 
-        protected readonly ITypeInfoItem member;
+        protected readonly RelationMember member;
 
-        public AbstractValueHolderEntry2(Type targetType, IRelationInfoItem member, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider)
+        public AbstractValueHolderEntry2(Type targetType, RelationMember member, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider,
+            IMemberTypeProvider memberTypeProvider)
         {
             this.member = member;
             this.memberName = member.Name;
             String lastPropertyName = memberName;
             Type currType = targetType;
-            MemberGetDelegate[] getDelegates = null;
-            if (member is IEmbeddedTypeInfoItem)
-            {
-                IEmbeddedTypeInfoItem embeddedMember = (IEmbeddedTypeInfoItem)member;
-                lastPropertyName = embeddedMember.ChildMember.Name;
-                getDelegates = GetMemberDelegate(targetType, embeddedMember.MemberPathToken, out currType,
-                    bytecodeEnhancer, propertyInfoProvider);
-            }
-            FieldInfo[] initIndex = ReflectUtil.GetDeclaredFieldInHierarchy(currType, ValueHolderIEC.GetInitializedFieldName(lastPropertyName));
-            if (initIndex.Length == 0)
-            {
-                throw new Exception("No field '" + ValueHolderIEC.GetInitializedFieldName(lastPropertyName) + "' found");
-            }
-            FieldInfo[] objRefsIndex = ReflectUtil.GetDeclaredFieldInHierarchy(currType, ValueHolderIEC.GetObjRefsFieldName(lastPropertyName));
-            if (objRefsIndex.Length == 0)
-            {
-                throw new Exception("No field '" + ValueHolderIEC.GetObjRefsFieldName(lastPropertyName) + "' found");
-            }
-            MemberGetDelegate getInitializedFI_last = TypeUtility.GetMemberGetDelegate(currType, initIndex[0].Name);
-            MemberSetDelegate setInitializedFI_last = TypeUtility.GetMemberSetDelegate(currType, initIndex[0].Name);
-            MemberGetDelegate getObjRefsFI_last = TypeUtility.GetMemberGetDelegate(currType, objRefsIndex[0].Name);
-            MemberSetDelegate setObjRefsFI_last = TypeUtility.GetMemberSetDelegate(currType, objRefsIndex[0].Name);
-            MemberGetDelegate getDirectValueFI_last = TypeUtility.GetMemberGetDelegate(currType, ValueHolderIEC.GetGetterNameOfRelationPropertyWithNoInit(lastPropertyName));
-            MemberSetDelegate setDirectValueFI_last = TypeUtility.GetMemberSetDelegate(currType, ValueHolderIEC.GetSetterNameOfRelationPropertyWithNoInit(lastPropertyName));
-            getState = BuildCompositeDelegate(getInitializedFI_last, getDelegates);
-            setState = BuildCompositeDelegate(setInitializedFI_last, getDelegates);
-            getObjRefs = BuildCompositeDelegate(getObjRefsFI_last, getDelegates);
-            setObjRefs = BuildCompositeDelegate(setObjRefsFI_last, getDelegates);
-            getDirectValue = BuildCompositeDelegate(getDirectValueFI_last, getDelegates);
-            setDirectValue = BuildCompositeDelegate(setDirectValueFI_last, getDelegates);
+            String prefix = "";
+
+            if (member is IEmbeddedMember)
+			{
+				IEmbeddedMember embeddedMember = (IEmbeddedMember) member;
+				lastPropertyName = embeddedMember.ChildMember.Name;
+				GetMemberDelegate(targetType, embeddedMember, out currType, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+
+				prefix = embeddedMember.GetMemberPathString() + ".";
+			}
+			state = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.GetInitializedFieldName(lastPropertyName));
+			objRefs = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.GetObjRefsFieldName(lastPropertyName));
+			directValue = memberTypeProvider.getMember(targetType, prefix + lastPropertyName + ValueHolderIEC.GetNoInitSuffix());
         }
 
-        protected MemberGetDelegate[] GetMemberDelegate(Type targetType, String[] memberPath,
-            out Type currTypeOut, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider)
+        protected Member[] GetMemberDelegate(Type targetType,  IEmbeddedMember member,
+            out Type currTypeOut, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
         {
             Type currType = targetType;
-            Type parentObjectType = targetType;
-            String embeddedPath = "";
-            MemberGetDelegate[] getDelegates = new MemberGetDelegate[memberPath.Length];
-            //MemberSetDelegate[] setDelegates = new MemberSetDelegate[memberPath.Length];
-            for (int a = 0, size = memberPath.Length; a < size; a++)
-            {
-                String memberItem = memberPath[a];
+			Type parentObjectType = targetType;
+			String embeddedPath = "";
+			String[] memberPath = member.GetMemberPathToken();
+			for (int a = 0, size = memberPath.Length; a < size; a++)
+			{
+				String memberItem = memberPath[a];
 
-                if (embeddedPath.Length > 0)
-                {
-                    embeddedPath += ".";
-                }
-                embeddedPath += memberItem;
-                getDelegates[a] = TypeUtility.GetMemberGetDelegate(currType, memberItem);
-                //  setDelegates[a] = TypeUtility.GetMemberSetDelegate(currType, memberItem);
-                PropertyInfo pi = currType.GetProperty(memberItem);
-                if (pi != null)
-                {
-                    parentObjectType = currType;
-                    currType = pi.PropertyType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                FieldInfo[] fi = ReflectUtil.GetDeclaredFieldInHierarchy(currType, memberItem);
-                if (fi.Length > 0)
-                {
-                    parentObjectType = currType;
-                    currType = fi[0].FieldType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, Type.EmptyTypes);
-                if (mi != null)
-                {
-                    parentObjectType = currType;
-                    currType = mi.ReturnType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                throw new Exception("Property/Field/Method not found: " + currType + "." + memberItem);
-            }
+				if (embeddedPath.Length > 0)
+				{
+					embeddedPath += ".";
+				}
+				embeddedPath += memberItem;
+				IPropertyInfo pi = propertyInfoProvider.GetProperty(currType, memberItem);
+				if (pi != null)
+				{
+					parentObjectType = currType;
+					currType = pi.PropertyType;
+					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
+					continue;
+				}
+				FieldInfo[] fi = ReflectUtil.GetDeclaredFieldInHierarchy(currType, memberItem);
+				if (fi.Length != 0)
+				{
+					parentObjectType = currType;
+					currType = fi[0].FieldType;
+					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
+					continue;
+				}
+				MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, new Type[0]);
+				if (mi != null)
+				{
+					parentObjectType = currType;
+					currType = mi.ReturnType;
+					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
+					continue;
+				}
+				throw new Exception("Property/Field/Method not found: " + currType + "." + memberItem);
+			}
             currTypeOut = currType;
-            return getDelegates;
-        }
-
-        protected MemberGetDelegate BuildCompositeDelegate(MemberGetDelegate lastDelegate, MemberGetDelegate[] getDelegates)
-        {
-            if (getDelegates == null || getDelegates.Length == 0)
-            {
-                return lastDelegate;
-            }
-            return delegate(Object obj)
-            {
-                foreach (MemberGetDelegate getDelegateItem in getDelegates)
-                {
-                    obj = getDelegateItem(obj);
-                    if (obj == null)
-                    {
-                        return null;
-                    }
-                }
-                return lastDelegate(obj);
-            };
-        }
-
-        protected MemberSetDelegate BuildCompositeDelegate(MemberSetDelegate lastDelegate, MemberGetDelegate[] getDelegates)
-        {
-            if (getDelegates == null || getDelegates.Length == 0)
-            {
-                return lastDelegate;
-            }
-            return delegate(Object obj, Object value)
-            {
-                foreach (MemberGetDelegate getDelegateItem in getDelegates)
-                {
-                    obj = getDelegateItem(obj);
-                    if (obj == null)
-                    {
-                        throw new Exception("Embedded object is null");
-                    }
-                }
-                lastDelegate(obj, value);
-            };
-        }
-
-        protected ITypeInfoItem[] GetMemberDelegate(Type targetType, IEmbeddedTypeInfoItem member, IParamHolder<Type> currTypeOut,
-                IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider)
-        {
-            Type currType = targetType;
-            Type parentObjectType = targetType;
-            String embeddedPath = "";
-            String[] memberPath = member.MemberPathToken;
-            for (int a = 0, size = memberPath.Length; a < size; a++)
-            {
-                String memberItem = memberPath[a];
-
-                if (embeddedPath.Length > 0)
-                {
-                    embeddedPath += ".";
-                }
-                embeddedPath += memberItem;
-                IPropertyInfo pi = propertyInfoProvider.GetProperty(currType, memberItem);
-                if (pi != null)
-                {
-                    parentObjectType = currType;
-                    currType = pi.PropertyType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                FieldInfo[] fi = ReflectUtil.GetDeclaredFieldInHierarchy(currType, memberItem);
-                if (fi.Length != 0)
-                {
-                    parentObjectType = currType;
-                    currType = fi[0].FieldType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, Type.EmptyTypes);
-                if (mi != null)
-                {
-                    parentObjectType = currType;
-                    currType = mi.ReturnType;
-                    currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-                    continue;
-                }
-                throw new Exception("Property/Field/Method not found: " + currType + "." + memberItem);
-            }
-            currTypeOut.Value = currType;
-            return member.MemberPath;
-        }
-
-        protected ITypeInfoItem BuildCompositeDelegate(ITypeInfoItem lastDelegate, ITypeInfoItem[] getDelegates)
-        {
-            if (getDelegates == null || getDelegates.Length == 0)
-            {
-                return lastDelegate;
-            }
-            StringBuilder nameSB = new StringBuilder();
-            foreach (ITypeInfoItem member in getDelegates)
-            {
-                nameSB.Append(member.Name);
-                nameSB.Append('.');
-            }
-            nameSB.Append(lastDelegate.Name);
-            return new EmbeddedTypeInfoItem(nameSB.ToString(), lastDelegate, getDelegates);
+			return member.GetMemberPath();
         }
 
         public override void SetObjRefs(Object obj, IObjRef[] objRefs)
@@ -405,6 +285,9 @@ namespace De.Osthus.Ambeth.Cache
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
+
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
         [Autowired(Optional = true)]
@@ -421,7 +304,7 @@ namespace De.Osthus.Ambeth.Cache
             if (vhcEntry == null)
             {
                 IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(targetType);
-                vhcEntry = new ValueHolderContainerEntry(targetType, metaData.RelationMembers, BytecodeEnhancer, PropertyInfoProvider);
+                vhcEntry = new ValueHolderContainerEntry(targetType, metaData.RelationMembers, BytecodeEnhancer, PropertyInfoProvider, MemberTypeProvider);
                 typeToVhcEntryMap.Put(targetType, vhcEntry);
             }
             return vhcEntry;

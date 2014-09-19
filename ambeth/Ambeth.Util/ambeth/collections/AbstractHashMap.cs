@@ -146,7 +146,7 @@ namespace De.Osthus.Ambeth.Collections
                 while (entry != null)
                 {
                     next = GetNextEntry(entry);
-                    int i = GetHashOfEntry(entry) & newCapacityMinus1;
+                    int i = entry.Hash & newCapacityMinus1;
                     SetNextEntry(entry, newTable[i]);
                     newTable[i] = entry;
                     entry = next;
@@ -167,7 +167,7 @@ namespace De.Osthus.Ambeth.Collections
                 E entry = table[a];
                 while (entry != null)
                 {
-                    targetArray[index++] = GetValueOfEntry(entry);
+                    targetArray[index++] = entry.Value;
                     entry = GetNextEntry(entry);
                 }
             }
@@ -224,7 +224,7 @@ namespace De.Osthus.Ambeth.Collections
                     E entry = table[a];
                     while (entry != null)
                     {
-                        Object entryValue = GetValueOfEntry(entry);
+                        Object entryValue = entry.Value;
                         if (entryValue == null)
                         {
                             return true;
@@ -240,7 +240,7 @@ namespace De.Osthus.Ambeth.Collections
                     E entry = table[a];
                     while (entry != null)
                     {
-                        Object entryValue = GetValueOfEntry(entry);
+                        Object entryValue = entry.Value;
                         if (value.Equals(entryValue))
                         {
                             return true;
@@ -254,7 +254,7 @@ namespace De.Osthus.Ambeth.Collections
 
         protected virtual bool EqualKeys(K key, E entry)
         {
-            return key.Equals(GetKeyOfEntry(entry));
+            return key.Equals(entry.Key);
         }
 
         public virtual V Put(K key, V value)
@@ -303,7 +303,7 @@ namespace De.Osthus.Ambeth.Collections
                 if (EqualKeys(key, entry))
                 {
                     table[i] = GetNextEntry(entry);
-                    V existingValue = GetValueOfEntry(entry);
+                    V existingValue = entry.Value;
                     if (!Object.ReferenceEquals(existingValue, value)) // Test if reference identical
                     {
                         return false;
@@ -318,7 +318,7 @@ namespace De.Osthus.Ambeth.Collections
                     if (EqualKeys(key, entry))
                     {
                         SetNextEntry(prevEntry, GetNextEntry(entry));
-                        V existingValue = GetValueOfEntry(entry);
+                        V existingValue = entry.Value;
                         if (!Object.ReferenceEquals(existingValue, value)) // Test if reference identical
                         {
                             return false;
@@ -348,7 +348,7 @@ namespace De.Osthus.Ambeth.Collections
                 if (EqualKeys(key, entry))
                 {
                     table[i] = GetNextEntry(entry);
-                    V value = GetValueOfEntry(entry);
+                    V value = entry.Value;
                     EntryRemoved(entry);
                     return value;
                 }
@@ -359,7 +359,7 @@ namespace De.Osthus.Ambeth.Collections
                     if (EqualKeys(key, entry))
                     {
                         SetNextEntry(prevEntry, GetNextEntry(entry));
-                        V value = GetValueOfEntry(entry);
+                        V value = entry.Value;
                         EntryRemoved(entry);
                         return value;
                     }
@@ -379,7 +379,7 @@ namespace De.Osthus.Ambeth.Collections
             {
                 if (EqualKeys(key, entry))
                 {
-                    return GetValueOfEntry(entry);
+                    return entry.Value;
                 }
                 entry = GetNextEntry(entry);
             }
@@ -395,28 +395,19 @@ namespace De.Osthus.Ambeth.Collections
             {
                 if (EqualKeys(key, entry))
                 {
-                    return GetKeyOfEntry(entry);
+                    return entry.Key;
                 }
                 entry = GetNextEntry(entry);
             }
             return default(K);
         }
-
-        protected virtual K GetKeyOfEntry(E entry)
-        {
-            return entry.Key;
-        }
-
-        protected virtual V GetValueOfEntry(E entry)
-        {
-            return entry.Value;
-        }
-
+        
         protected abstract V SetValueForEntry(E entry, V value);
 
-        protected abstract int GetHashOfEntry(E entry);
-
-        protected abstract E GetNextEntry(E entry);
+        protected virtual E GetNextEntry(E entry)
+        {
+            return (E)entry.NextEntry;
+        }
 
         protected abstract void SetNextEntry(E entry, E nextEntry);
 
@@ -440,7 +431,7 @@ namespace De.Osthus.Ambeth.Collections
             }
         }
 
-        public IISet<K> KeySet()
+        public virtual IISet<K> KeySet()
         {
             LinkedHashSet<K> keySet = LinkedHashSet<K>.Create(Count);
             KeySet(keySet);
@@ -454,7 +445,7 @@ namespace De.Osthus.Ambeth.Collections
                 E entry = table[a];
                 while (entry != null)
                 {
-                    targetKeySet.Add(GetKeyOfEntry(entry));
+                    targetKeySet.Add(entry.Key);
                     entry = GetNextEntry(entry);
                 }
             }
@@ -468,7 +459,7 @@ namespace De.Osthus.Ambeth.Collections
                 E entry = table[a];
                 while (entry != null)
                 {
-                    valueList.Add(GetValueOfEntry(entry));
+                    valueList.Add(entry.Value);
                     entry = GetNextEntry(entry);
                 }
             }
@@ -482,7 +473,7 @@ namespace De.Osthus.Ambeth.Collections
             return sb.ToString();
         }
 
-        public void ToString(StringBuilder sb)
+        public virtual void ToString(StringBuilder sb)
         {
             sb.Append(GetType().FullName).Append(' ').Append(Count).Append(" items: [");
 
@@ -493,8 +484,8 @@ namespace De.Osthus.Ambeth.Collections
                 E entry = table[a];
                 while (entry != null)
                 {
-                    K key = GetKeyOfEntry(entry);
-                    V value = GetValueOfEntry(entry);
+                    K key = entry.Key;
+                    V value = entry.Value;
 
                     if (first)
                     {

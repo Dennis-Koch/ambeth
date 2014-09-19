@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Template;
@@ -407,7 +408,7 @@ namespace De.Osthus.Ambeth.Cache
             }
             ObjRef objRef = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
             objRefs.Add(objRef);
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {
                 return;
@@ -415,7 +416,7 @@ namespace De.Osthus.Ambeth.Cache
             IObjRefContainer vhc = (IObjRefContainer)obj;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
                     continue;
@@ -492,7 +493,7 @@ namespace De.Osthus.Ambeth.Cache
                     IObjRef[][] relations = loadContainer.Relations;
                     IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToUpdate).Get__EntityMetaData();
                     Type entityType = metaData.EntityType;
-                    IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+                    RelationMember[] relationMembers = metaData.RelationMembers;
                     if (relationMembers.Length == 0)
                     {
                         continue;
@@ -532,7 +533,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void BatchPendingRelations(IObjRefContainer entity, IRelationInfoItem member, IObjRef[] relationsOfMember, IISet<IObjRef> cascadeRefreshObjRefsSet,
+        protected void BatchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, IISet<IObjRef> cascadeRefreshObjRefsSet,
             ISet<IObjRelation> cascadeRefreshObjRelationsSet)
         {
             if (relationsOfMember == null)

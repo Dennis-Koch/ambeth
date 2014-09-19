@@ -21,17 +21,17 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             this.defaultPropertyPrivileges = defaultPropertyPrivileges;
         }
 
-        public override IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex)
+        public override IPropertyPrivilege GetPrimitivePropertyPrivilege(int primitiveIndex)
         {
             return defaultPropertyPrivileges;
         }
 
-        public override IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex)
+        public override IPropertyPrivilege GetRelationPropertyPrivilege(int relationIndex)
         {
             return defaultPropertyPrivileges;
         }
 
-        public override IPropertyPrivilege getDefaultPropertyPrivilegeIfValid()
+        public override IPropertyPrivilege GetDefaultPropertyPrivilegeIfValid()
         {
             return defaultPropertyPrivileges;
         }

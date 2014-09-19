@@ -34,9 +34,9 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             // intended blank
         }
 
-        public abstract IPropertyPrivilege getPrimitivePropertyPrivilege(int primitiveIndex);
+        public abstract IPropertyPrivilege GetPrimitivePropertyPrivilege(int primitiveIndex);
 
-        public abstract IPropertyPrivilege getRelationPropertyPrivilege(int relationIndex);
+        public abstract IPropertyPrivilege GetRelationPropertyPrivilege(int relationIndex);
 
         public override String ToString()
         {
@@ -64,6 +64,6 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 
         public abstract bool ExecuteAllowed { get; }
 
-        public abstract IPropertyPrivilege getDefaultPropertyPrivilegeIfValid();
+        public abstract IPropertyPrivilege GetDefaultPropertyPrivilegeIfValid();
     }
 }

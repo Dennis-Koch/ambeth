@@ -27,6 +27,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void CallThisSetter(PropertyInstance property, Script script);
 
+        void CheckCast(NewType castedType);
+
         void CheckCast(Type castedType);
 
         void Dup();
@@ -50,6 +52,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void IfThisInstanceOf(Type instanceOfType, Script loadValue, Script executeIfTrue, Script executeIfFalse);
 
         void IfZCmp(CompareOperator compareOperator, Label label);
+
+        void IfZCmp(NewType type, CompareOperator compareOperator, Label label);
+
+        void IfZCmp(Type type, CompareOperator compareOperator, Label label);
 
         void InvokeConstructor(ConstructorInfo constructor);
 
@@ -102,6 +108,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void Push<T>();
 
         void Push(bool value);
+
+        void Push(bool? value);
 
         void Push(double value);
 

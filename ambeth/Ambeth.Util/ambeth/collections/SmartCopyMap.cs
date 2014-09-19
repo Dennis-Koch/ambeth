@@ -14,46 +14,30 @@ namespace De.Osthus.Ambeth.Collections
     /// </summary>
     /// <typeparam name="K"></typeparam>
     /// <typeparam name="V"></typeparam>   
-    public class SmartCopyMap<K, V> : HashMap<K, V>
+    public class SmartCopyMap<K, V> : HashMap<K, V> where V : class
     {
         private readonly Object writeLock = new Object();
 
-        private bool autoCleanupReference;
+        public bool AutoCleanupNullValue { get; set; }
 
-        public SmartCopyMap()
-            : base()
+        public SmartCopyMap() : base()
         {
             // Intended blank
         }
 
-        public SmartCopyMap(float loadFactor)
-            : base(loadFactor)
+        public SmartCopyMap(float loadFactor) : base(loadFactor)
         {
             // Intended blank
         }
 
-        public SmartCopyMap(int initialCapacity, float loadFactor)
-            : base(initialCapacity, loadFactor)
+        public SmartCopyMap(int initialCapacity, float loadFactor) : base(initialCapacity, loadFactor)
         {
             // Intended blank
         }
 
-        public SmartCopyMap(int initialCapacity)
-            : base(initialCapacity)
+        public SmartCopyMap(int initialCapacity) : base(initialCapacity)
         {
             // Intended blank
-        }
-
-        public bool AutoCleanupReference
-        {
-            get
-            {
-                return autoCleanupReference;
-            }
-            set
-            {
-                autoCleanupReference = value;
-            }
         }
 
         public Object GetWriteLock()
@@ -61,35 +45,81 @@ namespace De.Osthus.Ambeth.Collections
             return writeLock;
         }
 
-        protected TempHashMap<K, V> CreateCopy()
+        protected virtual TempHashMap<MapEntry<K, V>, K, V> CreateEmptyInstance()
         {
+            SmartCopyMap<K, V> This = this;
+            return new TempHashMap<MapEntry<K, V>, K, V>(table.Length, this.loadFactor,
+                delegate(int hash, K key, V value, MapEntry<K, V> nextEntry)
+                {
+                    return This.CreateEntry(hash, key, value, nextEntry);
+                },
+                delegate(K key, MapEntry<K, V> entry)
+                {
+                    return This.EqualKeys(key, entry);
+                },
+                delegate(K key)
+                {
+                    return This.ExtractHash(key);
+                },
+                delegate(MapEntry<K, V> entry, MapEntry<K, V> nextEntry)
+                {
+                    This.SetNextEntry(entry, nextEntry);
+                },
+                delegate(MapEntry<K, V> entry, V value)
+                {
+                    return This.SetValueForEntry(entry, value);
+                });            
+        }
+
+        protected TempHashMap<MapEntry<K, V>, K, V> CreateCopy()
+        {
+            SmartCopyMap<K, V> This = this;
             // Copy existing data in FULLY NEW STRUCTURE
             MapEntry<K, V>[] table = this.table;
-            TempHashMap<K, V> backupMap = new TempHashMap<K, V>(table.Length, this.loadFactor, delegate(K key, MapEntry<K, V> entry)
-                {
-                    return EqualKeys(key, entry);
-                }, delegate(K key)
-                {
-                    return ExtractHash(key);
-                });
-            for (int a = table.Length; a-- > 0; )
+            TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateEmptyInstance();
+            if (AutoCleanupNullValue)
             {
-                MapEntry<K, V> entry = table[a];
-                while (entry != null)
+                for (int a = table.Length; a-- > 0;)
+			    {
+				    MapEntry<K, V> entry = table[a];
+				    while (entry != null)
+				    {
+					    K key = entry.Key;
+					    if (key != null)
+					    {
+						    V value = entry.Value;
+                            WeakReference valueAsRef = value as WeakReference;
+                            if (valueAsRef.Target != null)
+						    {
+							    // Only copy the entry if the value content is still valid
+							    backupMap.Put(CloneKey(key), CloneValue(value));
+						    }
+					    }
+					    entry = entry.NextEntryReal;
+				    }
+			    }
+            }
+            else
+            {
+                for (int a = table.Length; a-- > 0; )
                 {
-                    K key = GetKeyOfEntry(entry);
-                    if (key != null)
+                    MapEntry<K, V> entry = table[a];
+                    while (entry != null)
                     {
-                        V value = GetValueOfEntry(entry);
-                        backupMap.Put(CloneKey(key), CloneValue(value));
+                        K key = entry.Key;
+                        if (key != null)
+                        {
+                            V value = entry.Value;
+                            backupMap.Put(CloneKey(key), CloneValue(value));
+                        }
+                        entry = GetNextEntry(entry);
                     }
-                    entry = GetNextEntry(entry);
                 }
             }
             return backupMap;
         }
 
-        protected void SaveCopy(TempHashMap<K, V> copy)
+        protected void SaveCopy(TempHashMap<MapEntry<K,V>, K, V> copy)
         {
             // Now the structure contains all necessary data, so we "retarget" the existing table
             table = copy.GetTable();
@@ -113,7 +143,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 backupMap.Clear();
                 SaveCopy(backupMap);
             }
@@ -124,7 +154,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 // Write new data in the copied structure
                 V existingValue = backupMap.Put(key, value);
                 SaveCopy(backupMap);
@@ -137,7 +167,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 // Write new data in the copied structure
                 backupMap.PutAll(map);
                 SaveCopy(backupMap);
@@ -149,7 +179,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 // Write new data in the copied structure
                 if (!backupMap.PutIfNotExists(key, value))
                 {
@@ -165,7 +195,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 // Write new data in the copied structure
                 V existingValue = backupMap.Remove(key);
                 SaveCopy(backupMap);
@@ -178,7 +208,7 @@ namespace De.Osthus.Ambeth.Collections
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
-                TempHashMap<K, V> backupMap = CreateCopy();
+                TempHashMap<MapEntry<K, V>, K, V> backupMap = CreateCopy();
                 // Write new data in the copied structure
                 if (!backupMap.RemoveIfValue(key, value))
                 {

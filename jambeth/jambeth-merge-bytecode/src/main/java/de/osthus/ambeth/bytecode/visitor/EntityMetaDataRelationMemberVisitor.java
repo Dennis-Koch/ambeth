@@ -57,7 +57,7 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 
 	protected void implementCascadeLoadMode(IPropertyInfo[] propertyPath)
 	{
-		FieldInstance f_cascadeLoadMode = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "cascadeLoadMode", null, CascadeLoadMode.class));
+		FieldInstance f_cascadeLoadMode = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__cascadeLoadMode", null, CascadeLoadMode.class));
 
 		implementGetter(template_m_getCascadeLoadMode, f_cascadeLoadMode);
 		implementSetter(template_m_setCascadeLoadMode, f_cascadeLoadMode);
@@ -87,7 +87,7 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 
 	protected void implementIsManyTo(IPropertyInfo[] propertyPath)
 	{
-		FieldInstance f_isManyTo = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "isManyTo", null, boolean.class));
+		FieldInstance f_isManyTo = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__isManyTo", null, boolean.class));
 
 		implementGetter(template_m_isManyTo, f_isManyTo);
 	}

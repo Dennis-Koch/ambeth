@@ -9,6 +9,7 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -196,7 +197,7 @@ namespace De.Osthus.Ambeth.Merge
             }
             else
             {
-                ITypeInfoItem versionMember = metaData.VersionMember;
+                Member versionMember = metaData.VersionMember;
                 ori = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.GetValue(obj, true) : null);
             }
             if (objToOriDict != null)
@@ -241,7 +242,7 @@ namespace De.Osthus.Ambeth.Merge
         {
             Object id;
             Object version;
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            Member versionMember = metaData.VersionMember;
             if (entity is AbstractCacheValue)
             {
                 AbstractCacheValue cacheValue = (AbstractCacheValue)entity;
@@ -289,7 +290,7 @@ namespace De.Osthus.Ambeth.Merge
 
             Type entityType = metaData.EntityType;
             // Convert id and version to the correct metadata type
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            Member versionMember = metaData.VersionMember;
             if (versionMember != null && version != null)
             {
                 version = ConversionHelper.ConvertValueToType(versionMember.RealType, version);
@@ -301,15 +302,15 @@ namespace De.Osthus.Ambeth.Merge
             }
             if (alternateIdCount > 0)
             {
-                ITypeInfoItem[] alternateIdMembers = metaData.AlternateIdMembers;
+                Member[] alternateIdMembers = metaData.AlternateIdMembers;
 
-                ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
+                Member[] primitiveMembers = metaData.PrimitiveMembers;
                 for (int a = primitiveMembers.Length; a-- > 0; )
                 {
-                    ITypeInfoItem primitiveMember = primitiveMembers[a];
+                    Member primitiveMember = primitiveMembers[a];
                     for (int b = alternateIdMembers.Length; b-- > 0; )
                     {
-                        ITypeInfoItem alternateIdMember = alternateIdMembers[b];
+                        Member alternateIdMember = alternateIdMembers[b];
                         if (alternateIdMember == primitiveMember)
                         {
                             Object alternateId = primitives[a];

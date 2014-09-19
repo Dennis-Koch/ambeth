@@ -206,7 +206,6 @@
   <ItemGroup>
     <Compile Include="ambeth\accessor\AccessorClassLoader.cs" />
     <Compile Include="ambeth\accessor\AccessorTypeProvider.cs" />
-    <Compile Include="ambeth\accessor\DefaultAccessor.cs" />
     <Compile Include="ambeth\accessor\IAccessorTypeProvider.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
 
@@ -7,9 +8,9 @@ namespace De.Osthus.Ambeth.CompositeId
 {
     public interface ICompositeIdFactory
     {
-        ITypeInfoItem CreateCompositeIdMember(IEntityMetaData metaData, ITypeInfoItem[] idMembers);
+        PrimitiveMember CreateCompositeIdMember(IEntityMetaData metaData, PrimitiveMember[] idMembers);
 
-        ITypeInfoItem CreateCompositeIdMember(Type entityType, ITypeInfoItem[] idMembers);
+        PrimitiveMember CreateCompositeIdMember(Type entityType, PrimitiveMember[] idMembers);
 
         Object CreateCompositeId(IEntityMetaData metaData, ITypeInfoItem compositeIdMember, params Object[] ids);
 

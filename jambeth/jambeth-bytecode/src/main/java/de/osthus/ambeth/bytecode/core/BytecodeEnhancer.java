@@ -80,7 +80,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	public BytecodeEnhancer()
 	{
-		extendedTypeToType.setAutoCleanupReference(true);
+		extendedTypeToType.setAutoCleanupNullValue(true);
 	}
 
 	@Override
@@ -234,7 +234,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			{
 				if (log.isErrorEnabled())
 				{
-					log.error(bytecodeClassLoader.toPrintableBytecode(enhancedType));
+					log.error(bytecodeClassLoader.toPrintableBytecode(enhancedType), e);
 				}
 				throw e;
 			}

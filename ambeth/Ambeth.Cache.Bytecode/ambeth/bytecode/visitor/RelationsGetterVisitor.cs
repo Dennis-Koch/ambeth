@@ -3,6 +3,7 @@ using De.Osthus.Ambeth.Cache.Model;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
@@ -91,7 +92,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 typeof(IObjRefContainer), typeof(int));
 
         private static readonly MethodInstance m_template_getValue = new MethodInstance(null, templateType, typeof(Object), "GetValue",
-                typeof(IValueHolderContainer), typeof(IRelationInfoItem[]), typeof(int), typeof(ICacheIntern), typeof(IObjRef[]));
+                typeof(IValueHolderContainer), typeof(RelationMember[]), typeof(int), typeof(ICacheIntern), typeof(IObjRef[]));
 
         public static PropertyInstance GetValueHolderContainerTemplatePI(IClassVisitor cv)
         {
@@ -130,13 +131,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         private readonly IEntityMetaData metaData;
 
+        private readonly IPropertyInfoProvider propertyInfoProvider;
+
         private readonly ValueHolderIEC valueHolderContainerHelper;
 
-        public RelationsGetterVisitor(IClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper)
+        public RelationsGetterVisitor(IClassVisitor cv, IEntityMetaData metaData, ValueHolderIEC valueHolderContainerHelper, IPropertyInfoProvider propertyInfoProvider)
             : base(cv)
         {
             this.metaData = metaData;
             this.valueHolderContainerHelper = valueHolderContainerHelper;
+            this.propertyInfoProvider = propertyInfoProvider;
         }
 
         public override void VisitEnd()
@@ -171,13 +175,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 return;
             }
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             List<FieldInstance[]> fieldsList = new List<FieldInstance[]>();
 
             for (int a = relationMembers.Length; a-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[a];
-                relationMember = GetApplicableMember(relationMember);
+                RelationMember relationMember = relationMembers[a];
+                relationMember = (RelationMember) GetApplicableMember(relationMember);
                 if (relationMember == null)
                 {
                     // member is handled in another type
@@ -392,20 +396,20 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_targetCache, PropertyInstance p_relationMembers)
         {
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             NewType owner = State.NewType;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
 
-                relationMember = GetApplicableMember(relationMember);
+                relationMember = (RelationMember) GetApplicableMember(relationMember);
                 if (relationMember == null)
                 {
                     // member is handled in another type
                     continue;
                 }
                 String propertyName = relationMember.Name;
-                IPropertyInfo propertyInfo = ((PropertyInfoItem)relationMember).Property;
+                IPropertyInfo propertyInfo = propertyInfoProvider.GetProperty(relationMember.DeclaringType, propertyName);
                 PropertyInstance prop = PropertyInstance.FindByTemplate(propertyInfo, true);
                 MethodInstance m_get = prop != null ? prop.Getter : new MethodInstance(((MethodPropertyInfo)propertyInfo).Getter);
                 MethodInstance m_set = prop != null ? prop.Setter : new MethodInstance(((MethodPropertyInfo)propertyInfo).Setter);
@@ -430,10 +434,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        protected IRelationInfoItem GetApplicableMember(IRelationInfoItem relationMember)
+        protected Member GetApplicableMember(Member relationMember)
         {
             String propertyName = relationMember.Name;
-            if (relationMember is IEmbeddedTypeInfoItem)
+            if (relationMember is IEmbeddedMember)
             {
                 String memberPath = EmbeddedEnhancementHint.GetMemberPath(State.Context);
                 if (memberPath != null)
@@ -449,7 +453,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                         // This relation has to be handled by another child embedded type of this embedded type
                         return null;
                     }
-                    relationMember = ((EmbeddedRelationInfoItem)relationMember).ChildMember;
+                    if (relationMember is IEmbeddedMember)
+				    {
+					    relationMember = ((IEmbeddedMember) relationMember).ChildMember;
+				    }
+				    else
+				    {
+					    relationMember = ((EmbeddedPrimitiveMember) relationMember).ChildMember;
+				    }
                 }
                 else if (propertyName.Contains("."))
                 {
@@ -521,9 +532,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 PropertyInstance p_cacheModification = SetCacheModificationMethodCreator.GetCacheModificationPI(this);
                 MethodInstance m_getMethod_scoped = new MethodInstance(State.NewType,
-                        MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.Final, NewType.VOID_TYPE, m_getMethod_template.Name + "_GetValue");
+                        MethodAttributes.HideBySig | MethodAttributes.Private | MethodAttributes.Final, NewType.VOID_TYPE, propertyName + "$DoInitialize");
                 {
-                    IMethodVisitor mg = base.VisitMethod(m_getMethod_scoped);
+                    IMethodVisitor mg = VisitMethod(m_getMethod_scoped);
 
                     // this => for this.setPropertyName(...)
                     mg.LoadThis();

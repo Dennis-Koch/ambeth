@@ -62,7 +62,7 @@ namespace De.Osthus.Ambeth.Ioc
             IBeanConfiguration stringElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(StringNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(stringElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("s");
 
-            IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(OriWrapperElementHandler)).Parent(
+            IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ObjRefWrapperElementHandler)).Parent(
                     "abstractElementHandler");
             beanContextFactory.Link(oriWrapperElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("ow");
 

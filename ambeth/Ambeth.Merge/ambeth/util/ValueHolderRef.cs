@@ -1,15 +1,17 @@
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
+
 namespace De.Osthus.Ambeth.Util
 {
     public class ValueHolderRef
     {
         protected IObjRef objRef;
 
-        protected IRelationInfoItem member;
+        protected RelationMember member;
 
-        public ValueHolderRef(IObjRef objRef, IRelationInfoItem member)
+        public ValueHolderRef(IObjRef objRef, RelationMember member)
         {
             this.objRef = objRef;
             this.member = member;
@@ -23,7 +25,7 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
-        public IRelationInfoItem Member
+        public RelationMember Member
         {
             get
             {

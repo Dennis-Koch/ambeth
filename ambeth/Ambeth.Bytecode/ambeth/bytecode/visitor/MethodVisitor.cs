@@ -397,6 +397,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void Push(bool? value)
+        {
+            if (mv != null)
+            {
+                mv.Push(value);
+            }
+        }
+
         public virtual void Push(double value)
         {
             if (mv != null)

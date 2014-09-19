@@ -5,7 +5,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class EntityMetaDataHolderVisitor : ClassVisitor
     {
-        private static readonly MethodInstance m_template_getEntityMetaData = new MethodInstance(null, typeof(IEntityMetaDataHolder), typeof(IEntityMetaData),
+        public static readonly MethodInstance m_template_getEntityMetaData = new MethodInstance(null, typeof(IEntityMetaDataHolder), typeof(IEntityMetaData),
                 "Get__EntityMetaData");
 
         protected IEntityMetaData metaData;

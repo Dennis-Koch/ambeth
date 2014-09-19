@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -143,7 +144,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void InternPrimitiveMember(IEntityMetaData metaData, Object[] primitives, ITypeInfoItem member)
+        protected void InternPrimitiveMember(IEntityMetaData metaData, Object[] primitives, Member member)
         {
             if (member == null)
             {

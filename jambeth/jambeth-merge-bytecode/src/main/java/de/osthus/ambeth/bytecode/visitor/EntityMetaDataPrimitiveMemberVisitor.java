@@ -42,7 +42,7 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator
 
 	protected void implementIsTechnicalMember(IPropertyInfo[] propertyPath)
 	{
-		FieldInstance f_technicalMember = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "technicalMember", null, boolean.class));
+		FieldInstance f_technicalMember = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__technicalMember", null, boolean.class));
 
 		implementGetter(template_m_isTechnicalMember, f_technicalMember);
 		implementSetter(template_m_setTechnicalMember, f_technicalMember);

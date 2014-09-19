@@ -46,8 +46,6 @@ public class LoggingPostProcessor extends AbstractCascadePostProcessor implement
 	@Override
 	public PostProcessorOrder getOrder()
 	{
-		// A logger interceptor has to be OUTERMOST of all potential postprocessor-created proxies, to get each call correctly despite any custom behavior of
-		// other proxies
-		return PostProcessorOrder.LOWEST;
+		return PostProcessorOrder.HIGHEST;
 	}
 }

@@ -13,6 +13,7 @@ using De.Osthus.Ambeth.Service;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -191,7 +192,7 @@ namespace De.Osthus.Ambeth.Cache
                 IObjRelation orelToLoad = orisToLoad[i];
                 Type typeOfContainerBO = orelToLoad.RealType;
                 IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(typeOfContainerBO);
-                ITypeInfoItem relationMember = metaData.GetMemberByName(orelToLoad.MemberName);
+                Member relationMember = metaData.GetMemberByName(orelToLoad.MemberName);
 
                 Type type = relationMember.ElementType;
                 IList<IObjRelation> objRefs = DictionaryExtension.ValueOrDefault(sortedIObjRefs, type);

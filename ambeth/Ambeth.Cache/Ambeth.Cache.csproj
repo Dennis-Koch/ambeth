@@ -52,6 +52,7 @@
     <Compile Include="ambeth\cache\ChildCache.cs" />
     <Compile Include="ambeth\cache\AbstractCache.cs" />
     <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
+    <Compile Include="ambeth\cache\IParentEntityAware.cs" />
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
     <Compile Include="ambeth\cache\FlcEntry.cs" />
     <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
@@ -206,6 +207,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\interceptor\AbstractRootCacheAwareInterceptor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\proxy\IPropertyChangeConfigurable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

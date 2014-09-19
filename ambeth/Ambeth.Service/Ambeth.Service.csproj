@@ -59,6 +59,7 @@
     <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\metadata\Embeddable.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />
     <Compile Include="ambeth\merge\model\IObjRef.cs" />
     <Compile Include="ambeth\model\IObjRelation.cs" />
@@ -129,9 +130,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\typeinfo\RelationInfoItem.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\typeinfo\FieldInfoItem.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +150,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\MethodLevelHashMap.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\metadata\EmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\EmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\EmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />
+    <Compile Include="ambeth\metadata\Member.cs" />
+    <Compile Include="ambeth\metadata\PrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\RelationMember.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

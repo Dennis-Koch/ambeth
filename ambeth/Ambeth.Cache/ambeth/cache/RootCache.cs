@@ -36,6 +36,7 @@ using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Privilege.Model;
 using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -191,7 +192,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected override void SetVersionOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue, Object version)
         {
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -581,9 +582,7 @@ namespace De.Osthus.Ambeth.Cache
         protected IList<IObjRelationResult> CreateResult(IList<IObjRelation> objRels, ICacheIntern targetCache,
                 Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs, bool returnMisses)
         {
-            IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IObjRefHelper oriHelper = this.OriHelper;
-            IProxyHelper proxyHelper = this.ProxyHelper;
             IList<IObjRelationResult> objRelResults = new List<IObjRelationResult>(objRels.Count);
 
             for (int a = 0, size = objRels.Count; a < size; a++)
@@ -606,7 +605,7 @@ namespace De.Osthus.Ambeth.Cache
                 IObjRefContainer item = (IObjRefContainer)cacheResult[0]; // Only first hit is needed
                 IEntityMetaData metaData = item.Get__EntityMetaData();
                 int relationIndex = metaData.GetIndexByRelationName(objRel.MemberName);
-                IRelationInfoItem member = metaData.RelationMembers[relationIndex];
+                RelationMember member = metaData.RelationMembers[relationIndex];
 
                 if (ValueHolderState.INIT != item.Get__State(relationIndex))
                 {
@@ -1096,7 +1095,8 @@ namespace De.Osthus.Ambeth.Cache
                             tempObjRefList = new List<IObjRef>(1);
                             tempObjRefList.Add(new ObjRef());
                         }
-                        Object cacheHitObject = CreateObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary);
+                        Object cacheHitObject = CreateObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary,
+                            privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet[a] : null);
                         result.Add(cacheHitObject);
                     }
                 }
@@ -1112,7 +1112,7 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         protected Object CreateObjectFromScratch(IEntityMetaData metaData, RootCacheValue cacheValue, ICacheIntern targetCache,
-            List<IObjRef> tempObjRefList, bool filteringNecessary)
+            List<IObjRef> tempObjRefList, bool filteringNecessary, IPrivilege privilegeOfObjRef)
         {
             Type entityType = cacheValue.EntityType;
 
@@ -1131,8 +1131,19 @@ namespace De.Osthus.Ambeth.Cache
                     return cacheObject;
                 }
                 cacheObject = targetCache.CreateCacheValueInstance(metaData, null);
-                UpdateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary);
-
+                IPropertyChangeConfigurable pcc = null;
+			    if (cacheObject is IPropertyChangeConfigurable)
+			    {
+				    // we deactivate the current PCE processing because we just created the entity
+				    // we know that there is no property change listener that might handle the initial PCEs
+				    pcc = (IPropertyChangeConfigurable) cacheObject;
+				    pcc.Set__PropertyChangeActive(false);
+			    }
+                UpdateExistingObject(metaData, cacheValue, cacheObject, targetCache, filteringNecessary, privilegeOfObjRef);
+                if (pcc != null)
+                {
+                    pcc.Set__PropertyChangeActive(true);
+                }
                 metaData.PostLoad(cacheObject);
                 return cacheObject;
             }
@@ -1142,8 +1153,11 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected void UpdateExistingObject(IEntityMetaData metaData, RootCacheValue cacheValue, Object obj, ICacheIntern targetCache, bool filteringNecessary)
+        protected void UpdateExistingObject(IEntityMetaData metaData, RootCacheValue cacheValue, Object obj, ICacheIntern targetCache, bool filteringNecessary, IPrivilege privilegeOfObjRef)
         {
+            IConversionHelper conversionHelper = ConversionHelper;
+            IObjectCopier objectCopier = ObjectCopier;
+            IPrivilegeProvider privilegeProvider = PrivilegeProvider;
             Object id = cacheValue.Id;
             Object version = cacheValue.Version;
             metaData.IdMember.SetValue(obj, id);
@@ -1151,52 +1165,111 @@ namespace De.Osthus.Ambeth.Cache
             {
                 ((IParentCacheValueHardRef)obj).ParentCacheValueHardRef = cacheValue;
             }
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember != null)
             {
                 versionMember.SetValue(obj, version);
             }
-            ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
-            Object[] primitiveTemplates = cacheValue.GetPrimitives();
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
 
-            for (int a = primitiveMembers.Length; a-- > 0; )
+            for (int primitiveIndex = primitiveMembers.Length; primitiveIndex-- > 0; )
             {
-                ITypeInfoItem primitiveMember = primitiveMembers[a];
-                Type memberType = primitiveMember.RealType;
+                PrimitiveMember primitiveMember = primitiveMembers[primitiveIndex];
 
-                Object primitiveTemplate = primitiveTemplates[a];
+                Object primitiveTemplate = null;
+			    if (!filteringNecessary)
+			    {
+				    primitiveTemplate = cacheValue.GetPrimitive(primitiveIndex);
+			    }
+			    else
+			    {
+				    if (privilegeOfObjRef == null)
+				    {
+					    privilegeOfObjRef = privilegeProvider.GetPrivilegeByObjRef(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+				    }
+				    if (privilegeOfObjRef.GetPrimitivePropertyPrivilege(primitiveIndex).ReadAllowed)
+				    {
+					    // current user has no permission to read the property of the given entity
+					    // so we treat this case as if the property is null/empty anyway
+					    // effectively we handle user-specific data-blinding this way
+					    primitiveTemplate = cacheValue.GetPrimitive(primitiveIndex);
+				    }
+			    }
 
-                Object primitive;
+			    if (primitiveTemplate != null && filteringNecessary)
+			    {
+				    if (privilegeOfObjRef == null)
+				    {
+					    privilegeOfObjRef = GetPrivilegeByObjRefWithoutReadLock(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+				    }
+				    if (!privilegeOfObjRef.GetPrimitivePropertyPrivilege(primitiveIndex).ReadAllowed)
+				    {
+					    // current user has no permission to read the property of the given entity
+					    // so we treat this case as if the property is null/empty anyway
+					    // effectively we handle user-specific data-blinding this way
+					    primitiveTemplate = null;
+				    }
+			    }
+			    Object primitive = null;
 
-                if (primitiveTemplate == null)
-                {
-                    if (typeof(IEnumerable).IsAssignableFrom(memberType) && !typeof(String).IsAssignableFrom(memberType))
-                    {
-                        primitive = ListUtil.CreateCollectionOfType(memberType, 0);
-                    }
-                    else if (memberType.IsArray)
-                    {
-                        primitive = Array.CreateInstance(memberType, 0);
-                    }
-                    else
-                    {
-                        primitive = null;
-                    }
-                }
-                else if (ObjectCopier != null)
-                {
-                    primitive = ObjectCopier.Clone(primitiveTemplate);
-                    primitive = ConversionHelper.ConvertValueToType(memberType, primitive);
-                }
-                else
-                {
-                    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
-                }
-                primitiveMember.SetValue(obj, primitive);
+			    Type memberType = primitiveMember.RealType;
+
+			    if (ListUtil.IsCollection(memberType))
+			    {
+				    Object existingCollection = (Object) primitiveMember.GetValue(obj, false);
+				    if (existingCollection != null)
+				    {
+                        ListUtil.ClearList(existingCollection);
+					    if (primitiveTemplate == null)
+					    {
+						    // intended blank
+					    }
+					    else if (objectCopier != null)
+					    {
+						    primitive = objectCopier.Clone(primitiveTemplate);
+						    primitive = conversionHelper.ConvertValueToType(memberType, primitive);
+                            ListUtil.FillList(existingCollection, (IEnumerable) primitive);
+					    }
+					    else
+					    {
+						    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
+                            ListUtil.FillList(existingCollection, (IEnumerable) primitive);
+					    }
+					    primitive = existingCollection;
+				    }
+			    }
+			    if (primitive == null)
+			    {
+				    if (primitiveTemplate == null)
+				    {
+					    if (ListUtil.IsCollection(memberType))
+					    {
+						    primitive = ListUtil.CreateObservableCollectionOfType(memberType, 0);
+					    }
+					    else
+					    {
+						    primitive = null;
+					    }
+				    }
+				    else if (objectCopier != null)
+				    {
+					    primitive = objectCopier.Clone(primitiveTemplate);
+					    primitive = conversionHelper.ConvertValueToType(memberType, primitive);
+				    }
+				    else
+				    {
+					    primitive = CreatePrimitiveFromTemplate(memberType, primitiveTemplate);
+				    }
+				    primitiveMember.SetValue(obj, primitive);
+			    }
+                if (primitive is IParentEntityAware)
+			    {
+				    ((IParentEntityAware) primitive).SetParentEntity(obj, primitiveMember);
+			    }
             }
             IObjRef[][] relations = cacheValue.GetRelations();
             relations = FilterRelations(relations, targetCache, filteringNecessary);
-            targetCache.AddDirect(metaData, id, version, obj, primitiveTemplates, cacheValue.GetRelations());
+            targetCache.AddDirect(metaData, id, version, obj, cacheValue, cacheValue.GetRelations());
         }
 
         protected IPrivilege GetPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
@@ -1483,7 +1556,7 @@ namespace De.Osthus.Ambeth.Cache
             return null;
         }
 
-        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object[] primitives, IObjRef[][] relations)
+        public void AddDirect(IEntityMetaData metaData, Object id, Object version, Object primitiveFilledObject, Object parentCacheValueOrArray, IObjRef[][] relations)
         {
             throw new NotSupportedException("Not implemented");
         }
@@ -1678,7 +1751,7 @@ namespace De.Osthus.Ambeth.Cache
             }
 
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(ori.RealType);
-            ITypeInfoItem versionMember = metaData.VersionMember;
+            PrimitiveMember versionMember = metaData.VersionMember;
             if (versionMember == null)
             {
                 return;
@@ -1700,13 +1773,13 @@ namespace De.Osthus.Ambeth.Cache
         protected void EnsureRelationsExist(RootCacheValue cacheValue, IEntityMetaData metaData, ISet<IObjRef> cascadeNeededORIs,
             IList<DirectValueHolderRef> pendingValueHolders)
         {
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             IObjRef[][] relations = cacheValue.GetRelations();
             for (int a = relations.Length; a-- > 0; )
             {
                 IObjRef[] relationsOfMember = relations[a];
 
-                IRelationInfoItem relationMember = relationMembers[a];
+                RelationMember relationMember = relationMembers[a];
 
                 CascadeLoadMode loadCascadeMode = relationMember.CascadeLoadMode;
                 switch (loadCascadeMode)
@@ -1755,7 +1828,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     return false;
                 }
-                UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache));
+                UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), null);
                 return true;
             }
             finally

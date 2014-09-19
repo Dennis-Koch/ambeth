@@ -14,6 +14,8 @@ import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.IdentityLinkedMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
+import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -62,20 +64,20 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 	{
 		Class<?> realType = entityConfig.getRealType();
 
-		ISet<String> memberNamesToIgnore = new HashSet<String>();
-		IList<IMemberConfig> embeddedMembers = new ArrayList<IMemberConfig>();
-		IMap<String, IMemberConfig> nameToMemberConfig = new HashMap<String, IMemberConfig>();
-		IMap<String, IRelationConfig> nameToRelationConfig = new HashMap<String, IRelationConfig>();
-		IdentityLinkedMap<String, Member> nameToMemberMap = new IdentityLinkedMap<String, Member>();
+		HashSet<String> memberNamesToIgnore = new HashSet<String>();
+		ArrayList<IMemberConfig> embeddedMembers = new ArrayList<IMemberConfig>();
+		HashMap<String, IMemberConfig> nameToMemberConfig = new HashMap<String, IMemberConfig>();
+		HashMap<String, IRelationConfig> nameToRelationConfig = new HashMap<String, IRelationConfig>();
+		LinkedHashMap<String, Member> nameToMemberMap = new LinkedHashMap<String, Member>();
 
 		fillNameCollections(entityConfig, memberNamesToIgnore, embeddedMembers, nameToMemberConfig, nameToRelationConfig);
 
-		IdentityLinkedSet<Member> alternateIdMembers = new IdentityLinkedSet<Member>();
-		IdentityLinkedSet<Member> primitiveMembers = new IdentityLinkedSet<Member>();
-		IdentityLinkedSet<RelationMember> relationMembers = new IdentityLinkedSet<RelationMember>();
-		IdentityLinkedSet<Member> notMergeRelevant = new IdentityLinkedSet<Member>();
+		LinkedHashSet<PrimitiveMember> alternateIdMembers = new LinkedHashSet<PrimitiveMember>();
+		LinkedHashSet<PrimitiveMember> primitiveMembers = new LinkedHashSet<PrimitiveMember>();
+		LinkedHashSet<RelationMember> relationMembers = new LinkedHashSet<RelationMember>();
+		LinkedHashSet<Member> notMergeRelevant = new IdentityLinkedSet<Member>();
 
-		IdentityLinkedSet<Member> containedInAlternateIdMember = new IdentityLinkedSet<Member>();
+		LinkedHashSet<Member> containedInAlternateIdMember = new IdentityLinkedSet<Member>();
 
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(realType);
 
@@ -141,7 +143,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			}
 			if (((IMemberConfig) ormConfig).isAlternateId())
 			{
-				if (!alternateIdMembers.add(member))
+				if (!alternateIdMembers.add((PrimitiveMember) member))
 				{
 					throw new IllegalStateException("Member has been registered as alternate id multiple times: " + member.getName());
 				}
@@ -155,7 +157,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			{
 				// Alternate Ids are normally primitives, too. But Composite Alternate Ids not - only their composite
 				// items are primitives
-				primitiveMembers.add(member);
+				primitiveMembers.add((PrimitiveMember) member);
 			}
 		}
 		IdentityHashSet<String> explicitTypeInfoItems = IdentityHashSet.<String> create(memberConfigToInfoItem.size());

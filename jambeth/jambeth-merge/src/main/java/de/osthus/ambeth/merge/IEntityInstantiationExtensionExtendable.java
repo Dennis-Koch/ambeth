@@ -2,7 +2,7 @@ package de.osthus.ambeth.merge;
 
 public interface IEntityInstantiationExtensionExtendable
 {
-	void registerEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type);
+	void registerEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type);
 
-	void unregisterEntityFactoryExtension(IEntityInstantiationExtension entityFactoryExtension, Class<?> type);
+	void unregisterEntityInstantiationExtension(IEntityInstantiationExtension entityInstantiationExtension, Class<?> type);
 }

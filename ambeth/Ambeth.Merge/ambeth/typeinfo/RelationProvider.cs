@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Typeinfo
 {
@@ -22,6 +24,10 @@ namespace De.Osthus.Ambeth.Typeinfo
             {
                 return false;
             }
+            if (AnnotationUtil.IsAnnotationPresent<Embeddable>(type, false))
+		    {
+			    return false;
+		    }
             return true;
         }
 

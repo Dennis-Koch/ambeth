@@ -621,9 +621,9 @@ public class RelationsGetterVisitor extends ClassGenerator
 		{
 			PropertyInstance p_cacheModification = SetCacheModificationMethodCreator.getCacheModificationPI(this);
 			final MethodInstance m_getMethod_scoped = new MethodInstance(BytecodeBehaviorState.getState().getNewType(),
-					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, Type.VOID_TYPE, m_getMethod_template.getName() + "$getValue", null);
+					Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, Type.VOID_TYPE, propertyName + "$doInitialize", null);
 			{
-				MethodGenerator mg = super.visitMethod(m_getMethod_scoped);
+				MethodGenerator mg = visitMethod(m_getMethod_scoped);
 
 				// property => for this.setPropertyName(...)
 				mg.loadThis();

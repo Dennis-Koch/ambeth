@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Threading;
@@ -42,11 +43,11 @@ namespace De.Osthus.Ambeth.Util
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
         [Autowired]
-        public IObjRefHelper OriHelper { protected get; set; }
-        
-        [Autowired]
-        public ITypeInfoProvider TypeInfoProvider { protected get; set; }
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
 
+        [Autowired]
+        public IObjRefHelper ObjRefHelper { protected get; set; }
+        
         [Autowired]
         public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
 
@@ -97,14 +98,14 @@ namespace De.Osthus.Ambeth.Util
             }
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
 
-            ITypeInfoItem member = metaData.GetMemberByName(memberName);
+            Member member = metaData.GetMemberByName(memberName);
             if (member == null)
             {
                 throw new Exception("Member " + entityType.FullName + "." + memberName + " not found");
             }
             CachePath newCachePath = new CachePath();
             newCachePath.memberType = member.ElementType;
-            newCachePath.memberIndex = metaData.GetIndexByRelation((IRelationInfoItem)member);
+            newCachePath.memberIndex = metaData.GetIndexByRelation(member);
             newCachePath.memberName = memberName;
             cachePaths.Add(newCachePath);
             return newCachePath;
@@ -309,7 +310,7 @@ namespace De.Osthus.Ambeth.Util
 
                                 IObjRefContainer vhc;
 						        ICacheIntern targetCache;
-						        IRelationInfoItem member;
+                                RelationMember member;
 						        bool doSetValue = false;
 						        Object obj;
 						        if (valueHolder is IndirectValueHolderRef)
@@ -521,7 +522,7 @@ namespace De.Osthus.Ambeth.Util
                 return;
             }
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             if (relationMembers.Length == 0)
             {
                 return;
@@ -532,7 +533,7 @@ namespace De.Osthus.Ambeth.Util
                 CachePath path = cachePaths[a];
 
                 int relationIndex = path.memberIndex;
-                IRelationInfoItem member = relationMembers[relationIndex];
+                RelationMember member = relationMembers[relationIndex];
 
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
@@ -555,7 +556,7 @@ namespace De.Osthus.Ambeth.Util
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory,
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory, ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
         {
-            IRelationInfoItem member = vhr.Member;
+            RelationMember member = vhr.Member;
             bool newOriToLoad = false;
             if (vhr is IndirectValueHolderRef)
             {
@@ -747,7 +748,7 @@ namespace De.Osthus.Ambeth.Util
 
         public Object[] ExtractPrimitives(IEntityMetaData metaData, Object obj)
         {
-            ITypeInfoItem[] primitiveMembers = metaData.PrimitiveMembers;
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
             Object[] primitives;
 
             if (primitiveMembers.Length == 0)
@@ -759,9 +760,9 @@ namespace De.Osthus.Ambeth.Util
                 primitives = new Object[primitiveMembers.Length];
                 for (int a = primitiveMembers.Length; a-- > 0; )
                 {
-                    ITypeInfoItem primitiveMember = primitiveMembers[a];
+                    PrimitiveMember primitiveMember = primitiveMembers[a];
 
-                    Object primitiveValue = primitiveMember.GetValue(obj, false);
+                    Object primitiveValue = primitiveMember.GetValue(obj, true);
 
                     primitives[a] = primitiveValue;
                 }
@@ -777,7 +778,7 @@ namespace De.Osthus.Ambeth.Util
 
         public IObjRef[][] ExtractRelations(IEntityMetaData metaData, Object obj, IList<Object> relationValues)
         {
-            IRelationInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
 
             if (relationMembers.Length == 0)
             {
@@ -786,10 +787,10 @@ namespace De.Osthus.Ambeth.Util
             IValueHolderContainer vhc = (IValueHolderContainer)obj;
             IObjRef[][] relations = new IObjRef[relationMembers.Length][];
 
-            IObjRefHelper oriHelper = this.OriHelper;
+            IObjRefHelper oriHelper = this.ObjRefHelper;
             for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
             {
-                IRelationInfoItem relationMember = relationMembers[relationIndex];
+                RelationMember relationMember = relationMembers[relationIndex];
 
                 if (ValueHolderState.INIT != vhc.Get__State(relationIndex))
                 {
@@ -816,12 +817,12 @@ namespace De.Osthus.Ambeth.Util
         public ICollection<T> ExtractTargetEntities<T, S>(IEnumerable<S> sourceEntities, String sourceToTargetEntityPropertyPath)
         {
             // Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath („A.B.C“) selbstständig traversiert
-            ITypeInfoItem member = TypeInfoProvider.GetHierarchicMember(typeof(S), sourceToTargetEntityPropertyPath);
+            RelationMember member = MemberTypeProvider.GetRelationMember(typeof(S), sourceToTargetEntityPropertyPath);
 
             // MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein DISTINCT-Behavior durch eine Map als Zwischenstruktur zu
             // erreichen
             IEntityMetaData targetMetaData = EntityMetaDataProvider.GetMetaData(member.ElementType);
-            ITypeInfoItem targetIdMember = targetMetaData.IdMember;
+            PrimitiveMember targetIdMember = targetMetaData.IdMember;
 
             // Damit bei der Traversion keine Initialisierungen mit DB-Roundtrips entstehen, machen wir vorher eine Prefetch passend zum PropertyPath auf allen
             // übergebenen Quell-Entities
