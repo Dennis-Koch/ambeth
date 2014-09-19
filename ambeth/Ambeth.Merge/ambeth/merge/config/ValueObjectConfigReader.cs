@@ -14,7 +14,7 @@ using De.Osthus.Ambeth.Util.Xml;
 
 namespace De.Osthus.Ambeth.Merge.Config
 {
-    public class ValueObjectConfigReader : IEventListener, IDisposableBean
+    public class ValueObjectConfigReader : IEventListener, IDisposableBean, IInitializingBean, IStartingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -39,6 +39,38 @@ namespace De.Osthus.Ambeth.Merge.Config
         public bool RuntimeValidationActive { protected get; set; }
 
         protected String xmlFileName = null;
+
+        protected HashMap<Type, IList<XElement>> configsToConsume;
+
+        public void AfterPropertiesSet()
+	    {
+		    if (xmlFileName != null)
+		    {
+			    XDocument[] docs = XmlConfigUtil.ReadXmlFiles(xmlFileName);
+			    ParamChecker.AssertNotNull(docs, "docs");
+			    configsToConsume = ReadConfig(docs);
+		    }
+	    }
+
+	    public void AfterStarted()
+        {
+		    if (configsToConsume == null)
+		    {
+			    return;
+		    }
+		    foreach (Entry<Type, IList<XElement>> entry in configsToConsume)
+		    {
+			    Type entityType = entry.Key;
+			    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType, true);
+			    if (metaData == null)
+			    {
+				    if (Log.InfoEnabled)
+				    {
+					    Log.Info("Could not resolve entity meta data for '" + entityType.Name + "'");
+				    }
+			    }
+		    }
+	    }
 
         public void Destroy()
         {
@@ -69,50 +101,67 @@ namespace De.Osthus.Ambeth.Merge.Config
             {
                 return;
             }
-            if (xmlFileName != null)
-            {
-                XDocument[] docs = XmlConfigUtil.ReadXmlFiles(xmlFileName);
-                ParamChecker.AssertNotNull(docs, "docs");
-                ReadConfig(docs);
-            }
+            if (configsToConsume == null)
+		    {
+			    return;
+		    }
+		    foreach (Type entityType in ((EntityMetaDataAddedEvent) eventObject).EntityTypes)
+		    {
+			    IList<XElement> configs = configsToConsume.Get(entityType);
+			    if (configs == null)
+			    {
+				    continue;
+			    }
+			    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
+			    ConsumeConfigs(metaData, configs);
+		    }
         }
 
-        protected void ReadConfig(XDocument[] docs)
-        {
-            IList<XElement> entities = new List<XElement>();
+        protected HashMap<Type, IList<XElement>> ReadConfig(XDocument[] docs)
+	    {
+            HashMap<Type, IList<XElement>> entities = new HashMap<Type, IList<XElement>>();
             foreach (XDocument doc in docs)
             {
                 IList<XElement> docEntities = new List<XElement>(doc.Descendants(XmlConstants.ENTITY));
-                foreach (XElement entity in docEntities)
-                {
-                    entities.Add(entity);
-                }
-            }
+                for (int a = docEntities.Count; a-- > 0;)
+			    {
+				    XElement docEntity = docEntities[a];
+				    Type entityType = ResolveEntityType(docEntity);
+				    if (entityType == null)
+				    {
+					    // ignore all entries without a valid entity type mapping
+					    continue;
+				    }
+				    IList<XElement> list = entities.Get(entityType);
+				    if (list == null)
+				    {
+					    list = new List<XElement>();
+					    entities.Put(entityType, list);
+				    }
+				    list.Add(docEntity);
+			    }
+		    }
+		    return entities;
+        }
 
+        protected Type ResolveEntityType(XElement item)
+	    {
+		    IMap<String, IList<XElement>> configs = XmlConfigUtil.ChildrenToElementMap(item);
+		    if (!configs.ContainsKey(XmlConstants.VALUE_OBJECT.LocalName))
+		    {
+			    return null;
+		    }
+		    String entityTypeName = XmlConfigUtil.GetRequiredAttribute(item, XmlConstants.CLASS);
+		    return XmlConfigUtil.GetTypeForName(entityTypeName);
+	    }
+
+        protected void ConsumeConfigs(IEntityMetaData metaData, IList<XElement> entities)
+        {
             for (int i = entities.Count; i-- > 0; )
             {
                 XElement item = entities[i];
 
-                String entityTypeName = XmlConfigUtil.GetRequiredAttribute(item, XmlConstants.CLASS);
-                Type entityType = XmlConfigUtil.GetTypeForName(entityTypeName);
-
                 IMap<String, IList<XElement>> configs = XmlConfigUtil.ChildrenToElementMap(item);
-                if (!configs.ContainsKey(XmlConstants.VALUE_OBJECT.LocalName))
-                {
-                    continue;
-                }
-
-                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType, true);
-                if (metaData == null)
-                {
-                    // may be possible if the metadata is not yet loaded
-                    if (Log.InfoEnabled)
-                    {
-                        Log.Info("Could not resolve entity meta data for '" + entityType.FullName + "'");
-                    }
-                    continue;
-                }
-
                 IList<XElement> voConfigs = configs.Get(XmlConstants.VALUE_OBJECT.LocalName);
                 for (int j = voConfigs.Count; j-- > 0; )
                 {
@@ -124,7 +173,7 @@ namespace De.Osthus.Ambeth.Merge.Config
                     bool exists = false;
                     foreach (IValueObjectConfig conf in managedValueObjectConfigs)
                     {
-                        if (conf.ValueType.Equals(valueType) && conf.EntityType.Equals(entityType))
+                        if (conf.ValueType.Equals(valueType) && conf.EntityType.Equals(metaData.EntityType))
                         {
                             exists = true;
                             break;
@@ -136,7 +185,7 @@ namespace De.Osthus.Ambeth.Merge.Config
                     }
 
                     ValueObjectConfig config = new ValueObjectConfig();
-                    config.EntityType = entityType;
+                    config.EntityType = metaData.EntityType;
                     config.ValueType = valueType;
 
                     HandleMembers(config, voConfig, metaData);
