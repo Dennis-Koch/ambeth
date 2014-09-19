@@ -50,6 +50,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
@@ -59,6 +60,8 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor;
+import de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -153,6 +156,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		Properties.loadBootstrapPropertyFile();
 
 		Properties baseProps = new Properties(Properties.getApplication());
+		baseProps.putString(LoggerFactory.logLevelProperty(LogPreparedStatementInterceptor.class), "INFO");
+		baseProps.putString(LoggerFactory.logLevelProperty(LogStatementInterceptor.class), "INFO");
 
 		extendProperties(null, baseProps);
 
@@ -537,6 +542,11 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
 
+	protected ILogger getLog()
+	{
+		return schemaContext.getService(ILoggerCache.class).getCachedLogger(schemaContext, AmbethPersistenceRunner.class);
+	}
+
 	/**
 	 * Due to a lot of new DB connections during tests /dev/random on CI servers may run low.
 	 */
@@ -846,12 +856,12 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 
 	private List<String> readSqlFile(final String fileName, final AnnotatedElement callingClass) throws IOException
 	{
-		ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
+		ILogger log = getLog();
 
 		BufferedReader br = null;
 		try
 		{
-			InputStream sqlStream = FileUtil.openFileStream(fileName, log);
+			InputStream sqlStream = FileUtil.openFileStream(fileName);
 			if (sqlStream != null)
 			{
 				br = new BufferedReader(new InputStreamReader(sqlStream));
@@ -1193,7 +1203,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 						// When executing multiple sql files some statements collide and cannot all be executed
 						if (!doExecuteStrict && canFailBeTolerated(command))
 						{
-							ILogger log = LoggerFactory.getLogger(AmbethPersistenceRunner.class);
+							ILogger log = getLog();
 
 							if (log.isWarnEnabled())
 							{
