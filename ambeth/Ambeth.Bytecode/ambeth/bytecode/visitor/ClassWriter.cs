@@ -463,6 +463,44 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             return mg;
         }
 
+        public MethodInstance ImplementSwitchByIndex(MethodInstance method, String exceptionMessageOnIllegalIndex, int indexSize, ScriptWithIndex script)
+        {
+            IMethodVisitor mv = VisitMethod(method);
+
+            if (indexSize == 0)
+            {
+                mv.ThrowException(typeof(ArgumentException), exceptionMessageOnIllegalIndex);
+                mv.PushNull();
+                mv.ReturnValue();
+                mv.EndMethod();
+                return mv.Method;
+            }
+
+            Label l_default = mv.NewLabel();
+            Label[] l_fields = new Label[indexSize];
+            for (int index = 0, size = indexSize; index < size; index++)
+            {
+                l_fields[index] = mv.NewLabel();
+            }
+
+            mv.LoadArg(0);
+            mv.VisitTableSwitchInsn(0, l_fields.Length - 1, l_default, l_fields);
+
+            for (int index = 0, size = l_fields.Length; index < size; index++)
+            {
+                mv.Mark(l_fields[index]);
+
+                script(mv, index);
+            }
+            mv.Mark(l_default);
+
+            mv.ThrowException(typeof(ArgumentException), "Given relationIndex not known");
+            mv.PushNull();
+            mv.ReturnValue();
+            mv.EndMethod();
+            return mv.Method;
+        }
+
         public void Visit(TypeAttributes access, String name, Type superName, Type[] interfaces)
         {
             tb = ambethClassLoader.CreateNewType(access, name, superName, interfaces);

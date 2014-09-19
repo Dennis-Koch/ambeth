@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace De.Osthus.Ambeth.CompositeId
 {
-    public class CompositeIdMember : PrimitiveMember
+    public class CompositeIdMember : PrimitiveMember, IPrimitiveMemberWrite
     {
         public static String FilterEmbeddedFieldName(String fieldName)
         {
@@ -24,6 +24,8 @@ namespace De.Osthus.Ambeth.CompositeId
 
         protected readonly String name;
 
+        protected bool technicalMember;
+
         public CompositeIdMember(Type declaringType, Type realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
             : base(declaringType, null)
         {
@@ -41,28 +43,12 @@ namespace De.Osthus.Ambeth.CompositeId
             }
             realTypeConstructorAccess = realType.GetConstructor(paramTypes);
         }
-
-        public Object DefaultValue
+        
+        public override Object NullEquivalentValue
         {
             get
             {
                 return null;
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
-        public Object NullEquivalentValue
-        {
-            get
-            {
-                return null;
-            }
-            set
-            {
-                throw new NotSupportedException();
             }
         }
 
@@ -71,7 +57,7 @@ namespace De.Osthus.Ambeth.CompositeId
             throw new NotSupportedException();
         }
 
-        public Type RealType
+        public override Type RealType
         {
             get
             {
@@ -79,7 +65,7 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public Type ElementType
+        public override Type ElementType
         {
             get
             {
@@ -87,7 +73,7 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public Type DeclaringType
+        public override Type DeclaringType
         {
             get
             {
@@ -95,7 +81,7 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public bool CanRead
+        public override bool CanRead
         {
             get
             {
@@ -103,7 +89,7 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public bool CanWrite
+        public override bool CanWrite
         {
             get
             {
@@ -111,7 +97,18 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public bool TechnicalMember { get; set; }
+        public override bool TechnicalMember
+        {
+            get
+            {
+                return technicalMember;
+            }
+        }
+
+        public void SetTechnicalMember(bool technicalMember)
+        {
+            this.technicalMember = technicalMember;
+        }
 
         public Object GetDecompositedValue(Object compositeId, int compositeMemberIndex)
         {
@@ -136,12 +133,12 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public Object GetValue(Object obj)
+        public override Object GetValue(Object obj)
         {
             return GetValue(obj, true);
         }
 
-        public Object GetValue(Object obj, bool allowNullEquivalentValue)
+        public override Object GetValue(Object obj, bool allowNullEquivalentValue)
         {
             PrimitiveMember[] members = this.members;
             Object[] args = new Object[members.Length];
@@ -157,7 +154,7 @@ namespace De.Osthus.Ambeth.CompositeId
             return realTypeConstructorAccess.Invoke(args);
         }
 
-        public void SetValue(Object obj, Object compositeId)
+        public override void SetValue(Object obj, Object compositeId)
         {
             PrimitiveMember[] members = this.members;
             Member[] fieldIndexOfMembers = this.fieldIndexOfMembers;
@@ -179,12 +176,12 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public V GetAnnotation<V>() where V : Attribute
+        public override V GetAnnotation<V>()
         {
             throw new NotSupportedException();
         }
 
-        public String Name
+        public override String Name
         {
             get
             {

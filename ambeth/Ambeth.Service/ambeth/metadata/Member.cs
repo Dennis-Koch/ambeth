@@ -7,8 +7,6 @@ namespace De.Osthus.Ambeth.Metadata
 {
     public abstract class Member : AbstractAccessor, IComparable<Member>
     {
-        protected readonly HashMap<Type, Attribute> typeToAnnotation = new HashMap<Type, Attribute>();
-
         protected Member(Type type, IPropertyInfo property)
             : base(type, property)
         {
@@ -28,10 +26,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public abstract Object NullEquivalentValue { get; }
 
-        public V GetAnnotation<V>() where V : Attribute
-        {
-            return (V)typeToAnnotation.Get(typeof(V));
-        }
+        public abstract V GetAnnotation<V>() where V : Attribute;
 
         public abstract String Name { get; }
 

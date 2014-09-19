@@ -91,7 +91,7 @@ namespace De.Osthus.Ambeth.Metadata
             }
         }
 
-        public V GetAnnotation<V>() where V : Attribute
+        public override V GetAnnotation<V>()
         {
             return childMember.GetAnnotation<V>();
         }

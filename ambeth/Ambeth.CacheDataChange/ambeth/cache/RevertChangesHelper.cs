@@ -21,6 +21,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -192,10 +193,10 @@ namespace De.Osthus.Ambeth.Cache
             Object id = metaData.IdMember.GetValue(obj);
             objList.Add(obj);
             objRefs.Add(new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null));
-            ITypeInfoItem[] relationMembers = metaData.RelationMembers;
+            RelationMember[] relationMembers = metaData.RelationMembers;
             for (int a = relationMembers.Length; a-- > 0; )
             {
-                ITypeInfoItem relationMember = relationMembers[a];
+                RelationMember relationMember = relationMembers[a];
                 Object item = relationMember.GetValue(obj);
                 FindAllObjectsToBackup(item, objList, objRefs, alreadyProcessedSet);
             }
@@ -281,8 +282,8 @@ namespace De.Osthus.Ambeth.Cache
             if (recursive)
             {
                 IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
-                IRelationInfoItem[] relations = metaData.RelationMembers;
-                foreach (IRelationInfoItem relation in relations)
+                RelationMember[] relations = metaData.RelationMembers;
+                foreach (RelationMember relation in relations)
                 {
                     Object value = relation.GetValue(obj);
                     FillRevertList(value, alreadyScannedSet, revertList, recursive);

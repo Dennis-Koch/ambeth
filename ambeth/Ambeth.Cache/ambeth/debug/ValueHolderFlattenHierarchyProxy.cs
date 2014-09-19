@@ -3,6 +3,7 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
@@ -85,13 +86,13 @@ namespace De.Osthus.Ambeth.Debug
                 return base.BuildMemberList();
             }
             HashSet<String> suppressedPropertyNames = new HashSet<String>();
-            foreach (IRelationInfoItem member in metaData.RelationMembers)
+            foreach (RelationMember member in metaData.RelationMembers)
             {
                 suppressedPropertyNames.Add(ValueHolderIEC.GetObjRefsFieldName(member.Name));
                 suppressedPropertyNames.Add(ValueHolderIEC.GetInitializedFieldName(member.Name));
             }
-            HashMap<String, IRelationInfoItem> nameToRelationMap = new HashMap<String, IRelationInfoItem>();
-            foreach (IRelationInfoItem member in metaData.RelationMembers)
+            HashMap<String, RelationMember> nameToRelationMap = new HashMap<String, RelationMember>();
+            foreach (RelationMember member in metaData.RelationMembers)
             {
                 nameToRelationMap.Put(member.Name + ValueHolderIEC.GetNoInitSuffix(), member);
             }
@@ -112,7 +113,7 @@ namespace De.Osthus.Ambeth.Debug
                 {
                     continue;
                 }
-                IRelationInfoItem relMember = nameToRelationMap.Get(propertyName);
+                RelationMember relMember = nameToRelationMap.Get(propertyName);
                 Object value = null;
                 if (relMember != null)
                 {

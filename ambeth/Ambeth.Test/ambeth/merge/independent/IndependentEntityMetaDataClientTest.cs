@@ -9,6 +9,7 @@ using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Typeinfo;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using De.Osthus.Ambeth.Ioc;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -130,7 +131,7 @@ namespace De.Osthus.Ambeth.Merge
         public virtual void TestEmbeddedTypeAccess()
         {
             IEntityMetaData actual = EntityMetaDataProvider.GetMetaData(typeof(EntityA));
-            ITypeInfoItem nameMember = actual.GetMemberByName("Embedded.Name");
+            Member nameMember = actual.GetMemberByName("Embedded.Name");
             Assert.AssertNotNull(nameMember);
 
             EntityA entity = new EntityA();
