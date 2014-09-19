@@ -139,24 +139,6 @@ public class MemberTypeProvider implements IMemberTypeProvider
 				return member;
 			}
 			member = (T) getMemberIntern(type, propertyName, baseType);
-			if (member.getElementType() == null)
-			{
-				throw new IllegalStateException("Should never be called");
-				// IPropertyInfo[] propertyPath = buildPropertyPath(type, propertyName, propertyInfoProvider);
-				// IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-				// Class<?> elementType;
-				// if (lastProperty instanceof MethodPropertyInfo)
-				// {
-				// Method getter = ((MethodPropertyInfo) propertyPath[propertyPath.length - 1]).getGetter();
-				// elementType = TypeInfoItemUtil.getElementTypeUsingReflection(getter.getReturnType(), getter.getGenericReturnType());
-				// }
-				// else
-				// {
-				// Field field = ((FieldPropertyInfo) propertyPath[propertyPath.length - 1]).getBackingField();
-				// elementType = TypeInfoItemUtil.getElementTypeUsingReflection(field.getType(), field.getGenericType());
-				// }
-				// member.setElementType(elementType);
-			}
 			if (member instanceof RelationMember)
 			{
 				CascadeLoadMode cascadeLoadMode = null;

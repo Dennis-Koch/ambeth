@@ -87,8 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\copy\ObjectCopierTest.cs" />
-    <Compile Include="ambeth\merge\EntityMetaDataFake.cs" />
-    <Compile Include="ambeth\merge\IEntityMetaDataFiller.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\jambeth\jambeth-merge-test\src\test\java\de\osthus\ambeth\util\orm_simple.xml">

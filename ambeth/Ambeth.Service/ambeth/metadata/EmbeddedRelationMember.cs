@@ -89,6 +89,14 @@ namespace De.Osthus.Ambeth.Metadata
             return token;
         }
 
+        Member IEmbeddedMember.ChildMember
+        {
+            get
+            {
+                return childMember;
+            }
+        }
+
         public RelationMember ChildMember
         {
             get
@@ -180,7 +188,7 @@ namespace De.Osthus.Ambeth.Metadata
             return childMember.GetValue(currentObj, allowNullEquivalentValue);
         }
 
-        public void SetValue(Object obj, Object value)
+        public override void SetValue(Object obj, Object value)
         {
             Object currentObj = obj;
             for (int a = 0, size = memberPath.Length; a < size; a++)

@@ -137,6 +137,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             gen.Emit(OpCodes.Castclass, castedType);
         }
 
+        public virtual void CheckCast(NewType castedType)
+        {
+            gen.Emit(OpCodes.Castclass, castedType.Type);
+        }
+
         public virtual void Dup()
         {
             gen.Emit(OpCodes.Dup);
@@ -283,63 +288,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 throw new ArgumentException("Given method is not static: " + method);
             }
             InvokeOnExactOwner(method);
-        }
-
-        public virtual void InvokeGetValue(PrimitiveMember member, Script thisScript)
-        {
-            if (member is PropertyInfoItem)
-            {
-                MethodInfo getter = ((MethodPropertyInfo)((PropertyInfoItem)member).Property).Getter;
-                MethodInstance m_getter = new MethodInstance(getter);
-
-                if (thisScript != null)
-                {
-                    thisScript.Invoke(this);
-                }
-                if (getter.DeclaringType.IsInterface)
-                {
-                    InvokeInterface(m_getter);
-                }
-                else
-                {
-                    InvokeVirtual(m_getter);
-                }
-            }
-            else if (member is CompositeIdMember)
-            {
-                CompositeIdMember cidMember = (CompositeIdMember)member;
-
-                ConstructorInstance c_compositeId = new ConstructorInstance(cidMember.GetRealTypeConstructorAccess());
-                NewInstance(c_compositeId, delegate(IMethodVisitor mg)
-                {
-                    PrimitiveMember[] members = cidMember.Members;
-                    for (int a = 0, size = members.Length; a < size; a++)
-                    {
-                        InvokeGetValue(members[a], thisScript);
-                    }
-                });
-            }
-            else if (member is IEmbeddedTypeInfoItem)
-            {
-                IEmbeddedTypeInfoItem embedded = (IEmbeddedTypeInfoItem)member;
-                ITypeInfoItem[] memberPath = embedded.MemberPath;
-                InvokeGetValue(memberPath[0], thisScript);
-                for (int a = 1, size = memberPath.Length; a < size; a++)
-                {
-                    InvokeGetValue(memberPath[a], null);
-                }
-                InvokeGetValue(embedded.ChildMember, null);
-            }
-            else
-            {
-                FieldInstance field = new FieldInstance(((FieldInfoItem)member).Field);
-
-                if (thisScript != null)
-                {
-                    thisScript.Invoke(this);
-                }
-                GetField(field);
-            }
         }
 
         public virtual void GetField(FieldInstance field)
@@ -891,6 +839,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public virtual void ValueOf(Type type)
         {
             Box(type);
+        }
+
+        public virtual void VisitTableSwitchInsn(int min, int max, Label defaultCaseLabel, params Label[] caseLabels)
+        {
+            gen.Emit(OpCodes.Switch, caseLabels);
+
+            gen.Emit(OpCodes.Br, defaultCaseLabel);
         }
     }
 }

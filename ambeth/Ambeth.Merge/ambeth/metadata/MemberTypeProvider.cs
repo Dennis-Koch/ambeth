@@ -80,10 +80,10 @@ namespace De.Osthus.Ambeth.Metadata
         public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
 
         [Autowired]
-        protected IProperties Properties { protected get; set; }
+        public IProperties Properties { protected get; set; }
 
         [Autowired]
-        protected IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
 
         public RelationMember GetRelationMember(Type type, String propertyName)
         {
@@ -119,23 +119,6 @@ namespace De.Osthus.Ambeth.Metadata
                     return member;
                 }
                 member = (T)GetMemberIntern(type, propertyName, baseType);
-                if (member.ElementType == null)
-                {
-                    IPropertyInfo[] propertyPath = BuildPropertyPath(type, propertyName, PropertyInfoProvider);
-                    IPropertyInfo lastProperty = propertyPath[propertyPath.Length - 1];
-                    Type elementType;
-                    if (lastProperty is MethodPropertyInfo)
-                    {
-                        MethodInfo getter = ((MethodPropertyInfo)propertyPath[propertyPath.Length - 1]).Getter;
-                        elementType = TypeInfoItemUtil.GetElementTypeUsingReflection(getter.ReturnType, null);
-                    }
-                    else
-                    {
-                        FieldInfo field = ((FieldPropertyInfo)propertyPath[propertyPath.Length - 1]).BackingField;
-                        elementType = TypeInfoItemUtil.GetElementTypeUsingReflection(field.FieldType, null);
-                    }
-                    member.ElementType = elementType;
-                }
                 if (member is RelationMember)
                 {
                     CascadeLoadMode? cascadeLoadMode = null;
@@ -146,8 +129,8 @@ namespace De.Osthus.Ambeth.Metadata
                     }
                     if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
                     {
-                        cascadeLoadMode = CascadeLoadMode.valueOf(Properties.GetString(
-                                ((RelationMember)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
+                        cascadeLoadMode = (CascadeLoadMode) Enum.Parse(typeof(CascadeLoadMode), Properties.GetString(
+                                ((RelationMember)(dynamic)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
                                         : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, CascadeLoadMode.DEFAULT.ToString()));
                     }
                     if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))

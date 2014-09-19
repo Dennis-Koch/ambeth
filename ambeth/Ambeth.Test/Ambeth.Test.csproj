@@ -90,7 +90,6 @@
     <Compile Include="ambeth\xml\CacheFactoryMock.cs" />
     <Compile Include="ambeth\xml\CacheMock.cs" />
     <Compile Include="ambeth\xml\CyclicXMLWriterTest.cs" />
-    <Compile Include="ambeth\xml\EmptyDummy.cs" />
     <Compile Include="ambeth\xml\EntityFactoryMock.cs" />
     <Compile Include="ambeth\xml\EntityMetaDataProviderMock.cs" />
     <Compile Include="ambeth\xml\Material.cs" />

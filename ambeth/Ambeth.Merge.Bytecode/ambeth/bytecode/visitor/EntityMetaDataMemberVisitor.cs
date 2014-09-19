@@ -31,12 +31,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static readonly MethodInstance template_m_getRealType = new MethodInstance(null, typeof(Member), typeof(Type), "get_RealType");
 
-        protected static readonly MethodInstance template_m_getValue = new MethodInstance(null, typeof(Member), typeof(Object), "getValue", typeof(Object));
+        protected static readonly MethodInstance template_m_getValue = new MethodInstance(null, typeof(Member), typeof(Object), "GetValue", typeof(Object));
 
-        protected static readonly MethodInstance template_m_getValueWithFlag = new MethodInstance(null, typeof(Member), typeof(Object), "getValue", typeof(Object),
+        public static readonly MethodInstance template_m_getValueWithFlag = new MethodInstance(null, typeof(Member), typeof(Object), "GetValue", typeof(Object),
                 typeof(bool));
 
-        protected static readonly MethodInstance template_m_setValue = new MethodInstance(null, typeof(Member), typeof(void), "setValue", typeof(Object), typeof(Object));
+        protected static readonly MethodInstance template_m_setValue = new MethodInstance(null, typeof(Member), typeof(void), "SetValue", typeof(Object), typeof(Object));
 
         protected readonly Type entityType;
 
@@ -48,7 +48,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected IPropertyInfoProvider propertyInfoProvider;
 
-        public EntityMetaDataMemberVisitor(ClassVisitor cv, Type entityType, String memberName, IBytecodeEnhancer bytecodeEnhancer,
+        public EntityMetaDataMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IBytecodeEnhancer bytecodeEnhancer,
                 IEntityMetaDataProvider entityMetaDataProvider, IPropertyInfoProvider propertyInfoProvider)
             : base(cv)
         {

@@ -65,7 +65,7 @@ namespace De.Osthus.Ambeth.Metadata
             return null;
         }
 
-        public String GetTargetName(Type typeToEnhance)
+        public virtual String GetTargetName(Type typeToEnhance)
         {
             return entityType.FullName + "$" + typeof(Member).Name + "$" + memberName;
         }

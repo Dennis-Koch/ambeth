@@ -589,7 +589,7 @@ namespace De.Osthus.Ambeth.Merge
                     }
                     IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(valueType);
 
-                    foreach (IRelationInfoItem boMember in metaData.RelationMembers)
+                    foreach (RelationMember boMember in metaData.RelationMembers)
                     {
                         String boMemberName = boMember.Name;
                         String voMemberName = voConfig.GetValueObjectMemberName(boMemberName);

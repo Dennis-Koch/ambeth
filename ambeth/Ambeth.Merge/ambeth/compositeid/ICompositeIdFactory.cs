@@ -12,7 +12,7 @@ namespace De.Osthus.Ambeth.CompositeId
 
         PrimitiveMember CreateCompositeIdMember(Type entityType, PrimitiveMember[] idMembers);
 
-        Object CreateCompositeId(IEntityMetaData metaData, ITypeInfoItem compositeIdMember, params Object[] ids);
+        Object CreateCompositeId(IEntityMetaData metaData, PrimitiveMember compositeIdMember, params Object[] ids);
 
         Object CreateIdFromPrimitives(IEntityMetaData metaData, int idIndex, Object[] primitives);
 

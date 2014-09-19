@@ -173,11 +173,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             throw new NotImplementedException();
         }
 
-        public override void InvokeGetValue(ITypeInfoItem member, Script thisScript)
-        {
-            throw new NotImplementedException();
-        }
-
         public override void LoadArg(int argIndex)
         {
             throw new NotImplementedException();

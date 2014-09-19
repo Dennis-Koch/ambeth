@@ -1068,7 +1068,11 @@ namespace De.Osthus.Ambeth.Mapping
                 Type elementType = config.GetMemberType(voMemberName);
                 if (elementType != null)
                 {
-                    ((Member)voMember).ElementType = elementType;
+                    //TODO
+                    //FIXME
+                    //TBD
+                    throw new NotSupportedException("Fix this code path");
+                    //((Member)voMember).ElementType = elementType;
                 }
                 typeInfoMap.Put(boMemberName, voMember);
                 if (sb != null)

@@ -39,21 +39,21 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 			{
 				return visitor;
 			}
-			String[] memberNameSplit = memberHint.getMemberName().split('.');
+            String[] memberNameSplit = memberHint.MemberName.Split('.');
 			if (memberNameSplit.Length == 1)
 			{
 				RelationMemberEnhancementHint relationMemberHint = state.GetContext<RelationMemberEnhancementHint>();
-				visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getEntityType(), memberNameSplit[0], BytecodeEnhancer, EntityMetaDataProvider,
-						propertyInfoProvider);
+				visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], BytecodeEnhancer, EntityMetaDataProvider,
+						PropertyInfoProvider);
 				if (relationMemberHint != null)
 				{
 					visitor = new InterfaceAdder(visitor, typeof(IRelationMemberWrite));
-					visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], propertyInfoProvider);
+                    visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], PropertyInfoProvider);
 				}
 				else
 				{
 					visitor = new InterfaceAdder(visitor, typeof(IPrimitiveMemberWrite));
-					visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], propertyInfoProvider);
+                    visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], PropertyInfoProvider);
 				}
 			}
 			else

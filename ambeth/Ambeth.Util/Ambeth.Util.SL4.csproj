@@ -106,6 +106,8 @@
     <Compile Include="ambeth\collections\EmptyIterator.cs" />
     <Compile Include="ambeth\collections\EmptyMap.cs" />
     <Compile Include="ambeth\collections\EmptySet.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakHashMap.cs" />
+    <Compile Include="ambeth\collections\IdentityWeakSmartCopyMap.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
     <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
     <Compile Include="ambeth\collections\specialized\PropertyChangeSupport.cs" />
@@ -146,7 +148,10 @@
     <Compile Include="ambeth\collections\Tuple3KeyEntry.cs" />
     <Compile Include="ambeth\collections\Tuple3KeyHashMap.cs" />
     <Compile Include="ambeth\collections\Tuple3KeyIterator.cs" />
+    <Compile Include="ambeth\collections\WeakHashMap.cs" />
     <Compile Include="ambeth\collections\WeakHashSet.cs" />
+    <Compile Include="ambeth\collections\WeakMapEntry.cs" />
+    <Compile Include="ambeth\collections\WeakSmartCopyMap.cs" />
     <Compile Include="ambeth\config\IProperties.cs" />
     <Compile Include="ambeth\config\UtilConfigurationConstants.cs" />
     <Compile Include="ambeth\event\PropertyChangeEvent.cs" />
@@ -192,12 +197,10 @@
     <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM.cs" />
     <Compile Include="ambeth\typeinfo\NullEquivalentValueUtil.cs" />
     <Compile Include="ambeth\typeinfo\WrappedPropertyInfo.cs" />
-    <Compile Include="ambeth\typeinfo\EmbeddedRelationInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\FieldPropertyInfo.cs" />
     <Compile Include="ambeth\typeinfo\IPropertyInfo.cs" />
     <Compile Include="ambeth\typeinfo\IPropertyInfoIntern.cs" />
     <Compile Include="ambeth\typeinfo\IPropertyInfoProvider.cs" />
-    <Compile Include="ambeth\typeinfo\IRelationInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\IRelationProvider.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfo.cs" />
     <Compile Include="ambeth\typeinfo\ITypeInfoItem.cs" />
@@ -205,7 +208,6 @@
     <Compile Include="ambeth\typeinfo\ITypeInfoProviderFactory.cs" />
     <Compile Include="ambeth\typeinfo\MethodPropertyInfo.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoHelper.cs" />
-    <Compile Include="ambeth\typeinfo\RelationProvider.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfo.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoItemUtil.cs" />
     <Compile Include="ambeth\typeinfo\TypeUtility.cs" />

@@ -93,6 +93,7 @@
     <Compile Include="ambeth\cache\IDisposableCache.cs" />
     <Compile Include="ambeth\cache\IWritableCache.cs" />
     <Compile Include="ambeth\cache\ValueHolderState.cs" />
+    <Compile Include="ambeth\compositeid\CompositeIdMember.cs" />
     <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
     <Compile Include="ambeth\event\EntityMetaDataRemovedEvent.cs" />
     <Compile Include="ambeth\event\IEntityMetaDataEvent.cs" />
@@ -109,8 +110,9 @@
     <Compile Include="ambeth\merge\ICUDResultExtendable.cs" />
     <Compile Include="ambeth\merge\ICUDResultExtension.cs" />
     <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />
-    <Compile Include="ambeth\merge\IEntityFactoryExtension.cs" />
-    <Compile Include="ambeth\merge\IEntityFactoryExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IEntityInstantiationExtension.cs" />
+    <Compile Include="ambeth\merge\IEntityInstantiationExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IEntityInstantiationExtensionProvider.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\merge\IObjRefHelper.cs" />
@@ -157,6 +159,10 @@
     <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
     <Compile Include="ambeth\merge\ValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMap.cs" />
+    <Compile Include="ambeth\metadata\IMemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\MemberEnhancementHint.cs" />
+    <Compile Include="ambeth\metadata\MemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\RelationMemberEnhancementHint.cs" />
     <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
     <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
     <Compile Include="ambeth\orm\EntityConfig.cs" />
@@ -225,7 +231,6 @@
     <Compile Include="ambeth\util\ValueHolderRef.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\compositeid\CompositeIdTypeInfoItem.cs" />
     <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
   </ItemGroup>
   <ItemGroup>

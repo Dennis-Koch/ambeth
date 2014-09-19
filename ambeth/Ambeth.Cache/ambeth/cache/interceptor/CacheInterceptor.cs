@@ -24,6 +24,7 @@ using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Cache.Model;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
@@ -103,7 +104,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 					    + method.ToString());
 		    }
        		IEntityMetaData metaData = GetSpecifiedMetaData(method, typeof(CachedAttribute), entityType);
-            ITypeInfoItem member = GetSpecifiedMember(method, typeof(CachedAttribute), metaData, cached.AlternateIdName);
+            Member member = GetSpecifiedMember(method, typeof(CachedAttribute), metaData, cached.AlternateIdName);
 
             sbyte idIndex;
 		    try

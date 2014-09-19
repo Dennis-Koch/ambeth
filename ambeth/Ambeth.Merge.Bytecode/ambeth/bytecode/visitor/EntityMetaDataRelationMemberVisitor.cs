@@ -1,14 +1,9 @@
 using De.Osthus.Ambeth.Annotation;
-using De.Osthus.Ambeth.Attribute;
-using De.Osthus.Ambeth.Bytecode.Behavior;
-using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Metadata;
-using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
-using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
@@ -30,7 +25,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected IPropertyInfoProvider propertyInfoProvider;
 
-        public EntityMetaDataRelationMemberVisitor(ClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
+        public EntityMetaDataRelationMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
             : base(cv)
         {
             this.entityType = entityType;

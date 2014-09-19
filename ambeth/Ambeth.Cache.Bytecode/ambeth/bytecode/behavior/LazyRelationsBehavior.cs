@@ -27,6 +27,9 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             protected bool implementValueHolderContainerInterface;
 
             [Autowired]
+            public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+
+            [Autowired]
             public ValueHolderIEC ValueHolderContainerHelper { protected get; set; }
 
             public CascadeBehavior(IEntityMetaData metaData, bool implementValueHolderContainerInterface)
@@ -46,7 +49,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 {
                     visitor = new InterfaceAdder(visitor, typeof(IValueHolderContainer));
                 }
-                visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper);
+                visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper, PropertyInfoProvider);
                 visitor = new SetCacheModificationMethodCreator(visitor);
                 return visitor;
             }

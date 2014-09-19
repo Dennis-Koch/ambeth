@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;

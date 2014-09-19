@@ -79,8 +79,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void InvokeStatic(MethodInstance method);
 
-        void InvokeGetValue(ITypeInfoItem member, Script thisScript);
-
         void LoadArg(int argIndex);
 
         void LoadArgs();
@@ -148,5 +146,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void TryFinally(Script tryScript, Script finallyScript);
 
         void ValueOf(Type type);
+
+        void VisitTableSwitchInsn(int min, int max, Label dflt, params Label[] labels);
     }
 }

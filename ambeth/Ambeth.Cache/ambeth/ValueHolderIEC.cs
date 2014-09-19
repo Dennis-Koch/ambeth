@@ -155,9 +155,9 @@ namespace De.Osthus.Ambeth.Cache
 
 				prefix = embeddedMember.GetMemberPathString() + ".";
 			}
-			state = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.GetInitializedFieldName(lastPropertyName));
-			objRefs = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.GetObjRefsFieldName(lastPropertyName));
-			directValue = memberTypeProvider.getMember(targetType, prefix + lastPropertyName + ValueHolderIEC.GetNoInitSuffix());
+			state = memberTypeProvider.GetMember(targetType, prefix + ValueHolderIEC.GetInitializedFieldName(lastPropertyName));
+			objRefs = memberTypeProvider.GetMember(targetType, prefix + ValueHolderIEC.GetObjRefsFieldName(lastPropertyName));
+			directValue = memberTypeProvider.GetMember(targetType, prefix + lastPropertyName + ValueHolderIEC.GetNoInitSuffix());
         }
 
         protected Member[] GetMemberDelegate(Type targetType,  IEmbeddedMember member,

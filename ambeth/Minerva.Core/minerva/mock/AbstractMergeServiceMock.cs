@@ -12,38 +12,35 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Datachange.Transfer;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Minerva.Mock
 {
-    abstract public class AbstractMergeServiceMock : IMergeService, IInitializingBean
+    abstract public class AbstractMergeServiceMock : IMergeService
     {
-        public virtual IPersistenceMock PersistenceMock { get; set; }
+        [Autowired]
+        public IPersistenceMock PersistenceMock { protected get; set; }
 
-        public virtual IConversionHelper ConversionHelper { get; set; }
+        [Autowired]
+        public IConversionHelper ConversionHelper { protected get; set; }
 
         [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
 
-        public virtual IEntityMetaDataProvider EntityMetaDataProvider { get; set; }
+        [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
-        public virtual IEventDispatcher EventDispatcher { get; set; }
+        [Autowired]
+        public IEventDispatcher EventDispatcher { protected get; set; }
 
-        public virtual IMergeController MergeController { get; set; }
+        [Autowired]
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
 
-        public virtual ITypeInfoProvider TypeInfoProvider { get; set; }
+        [Autowired]
+        public IMergeController MergeController { protected get; set; }
 
         protected int dcId = 0;
-
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(PersistenceMock, "PersistenceMock");
-            ParamChecker.AssertNotNull(ConversionHelper, "ConversionHelper");
-            ParamChecker.AssertNotNull(EntityMetaDataProvider, "EntityMetaDataProvider");
-            ParamChecker.AssertNotNull(EventDispatcher, "EventDispatcher");
-            ParamChecker.AssertNotNull(MergeController, "MergeController");
-            ParamChecker.AssertNotNull(TypeInfoProvider, "TypeInfoProvider");
-        }
-
+        
         public IOriCollection Merge(ICUDResult cudResult, IMethodDescription methodDescription)
         {
             int localDcId;
@@ -119,28 +116,26 @@ namespace De.Osthus.Minerva.Mock
             {
                 Type entityType = entityTypes[a];
 
-                ITypeInfo typeInfo = TypeInfoProvider.GetTypeInfo(entityType);
-
                 List<Type> typesRelatingToThis = new List<Type>();
                 IList<String> primitiveMemberNames = new List<String>();
                 IList<String> relationMemberNames = new List<String>();
 
                 FillMetaData(entityType, typesRelatingToThis, primitiveMemberNames, relationMemberNames);
 
-                List<ITypeInfoItem> primitiveMembers = new List<ITypeInfoItem>();
+                List<PrimitiveMember> primitiveMembers = new List<PrimitiveMember>();
                 foreach (String primitiveMemberName in primitiveMemberNames)
                 {
-                    ITypeInfoItem primitiveMember = TypeInfoProvider.GetHierarchicMember(entityType, primitiveMemberName);
+                    PrimitiveMember primitiveMember = MemberTypeProvider.GetPrimitiveMember(entityType, primitiveMemberName);
                     if (primitiveMember == null)
                     {
                         throw new Exception("No member with name '" + primitiveMemberName + "' found on entity type '" + entityType.FullName + "'");
                     }
                     primitiveMembers.Add(primitiveMember);
                 }
-                List<IRelationInfoItem> relationMembers = new List<IRelationInfoItem>();
+                List<RelationMember> relationMembers = new List<RelationMember>();
                 foreach (String relationMemberName in relationMemberNames)
                 {
-                    IRelationInfoItem relationMember = (IRelationInfoItem)typeInfo.GetMemberByName(relationMemberName);
+                    RelationMember relationMember = MemberTypeProvider.GetRelationMember(entityType, relationMemberName);
                     if (relationMember == null)
                     {
                         throw new Exception("No member with name '" + relationMemberName + "' found on entity type '" + entityType.FullName + "'");
@@ -149,12 +144,12 @@ namespace De.Osthus.Minerva.Mock
                 }
                 EntityMetaData emd = new EntityMetaData();
                 emd.EntityType = entityType;
-                emd.IdMember = typeInfo.GetMemberByName("Id");
-                emd.VersionMember = typeInfo.GetMemberByName("Version");
-                emd.UpdatedByMember = typeInfo.GetMemberByName("UpdatedBy");
-                emd.UpdatedOnMember = typeInfo.GetMemberByName("UpdatedOn");
-                emd.CreatedByMember = typeInfo.GetMemberByName("CreatedBy");
-                emd.CreatedOnMember = typeInfo.GetMemberByName("CreatedOn");
+                emd.IdMember = MemberTypeProvider.GetPrimitiveMember(entityType, "Id");
+                emd.VersionMember = MemberTypeProvider.GetPrimitiveMember(entityType, "Version");
+                emd.UpdatedByMember = MemberTypeProvider.GetPrimitiveMember(entityType, "UpdatedBy");
+                emd.UpdatedOnMember = MemberTypeProvider.GetPrimitiveMember(entityType, "UpdatedOn");
+                emd.CreatedByMember = MemberTypeProvider.GetPrimitiveMember(entityType, "CreatedBy");
+                emd.CreatedOnMember = MemberTypeProvider.GetPrimitiveMember(entityType, "CreatedOn");
 
                 if (emd.UpdatedByMember != null)
                 {

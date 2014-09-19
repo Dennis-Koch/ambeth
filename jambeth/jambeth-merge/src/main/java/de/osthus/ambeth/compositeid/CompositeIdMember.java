@@ -7,10 +7,11 @@ import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 
-public class CompositeIdMember extends PrimitiveMember
+public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemberWrite
 {
 	public static String filterEmbeddedFieldName(String fieldName)
 	{

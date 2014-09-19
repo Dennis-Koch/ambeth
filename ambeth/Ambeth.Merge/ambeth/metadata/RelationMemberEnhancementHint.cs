@@ -12,7 +12,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public override Object Unwrap(Type includedHintType)
         {
-            T hint = base.Unwrap(includedHintType);
+            Object hint = base.Unwrap(includedHintType);
             if (hint != null)
             {
                 return hint;
@@ -24,7 +24,7 @@ namespace De.Osthus.Ambeth.Metadata
             return null;
         }
 
-        public override String getTargetName(Type typeToEnhance)
+        public override String GetTargetName(Type typeToEnhance)
         {
             return entityType.FullName + "$" + typeof(RelationMember).Name + "$" + memberName;
         }

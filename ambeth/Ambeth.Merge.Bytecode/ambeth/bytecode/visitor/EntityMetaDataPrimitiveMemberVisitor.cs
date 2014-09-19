@@ -12,10 +12,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class EntityMetaDataPrimitiveMemberVisitor : ClassVisitor
     {
-        protected static readonly MethodInstance template_m_isTechnicalMember = new MethodInstance(null, typeof(PrimitiveMember), typeof(bool), "isTechnicalMember");
+        protected static readonly MethodInstance template_m_isTechnicalMember = new MethodInstance(null, typeof(PrimitiveMember), typeof(bool), "get_TechnicalMember");
 
         protected static readonly MethodInstance template_m_setTechnicalMember = new MethodInstance(null, typeof(IPrimitiveMemberWrite), typeof(void),
-                "setTechnicalMember", typeof(bool));
+                "SetTechnicalMember", typeof(bool));
 
         protected readonly Type entityType;
 
@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected IPropertyInfoProvider propertyInfoProvider;
 
-        public EntityMetaDataPrimitiveMemberVisitor(ClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
+        public EntityMetaDataPrimitiveMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
             : base(cv)
         {
             this.entityType = entityType;

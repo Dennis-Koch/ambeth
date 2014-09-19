@@ -19,6 +19,7 @@ using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Xml;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Ioc
 {

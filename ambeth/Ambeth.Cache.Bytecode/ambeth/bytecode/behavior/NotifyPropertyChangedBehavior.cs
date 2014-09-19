@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 // add IPropertyChanged
                 visitor = new InterfaceAdder(visitor, typeof(INotifyPropertyChanged), typeof(INotifyPropertyChangedSource),
                     typeof(IPropertyChangedEventHandler), typeof(INotifyCollectionChangedListener), typeof(IPropertyChangeConfigurable));
-                visitor = BeanContext.RegisterWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, metaData, null)).Finish();
+                visitor = BeanContext.RegisterWithLifecycle(new NotifyPropertyChangedClassVisitor(visitor, MetaData, null)).Finish();
                 return visitor;
             }
         }

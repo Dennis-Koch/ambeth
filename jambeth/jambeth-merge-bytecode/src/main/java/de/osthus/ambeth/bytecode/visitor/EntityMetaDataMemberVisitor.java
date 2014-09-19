@@ -42,7 +42,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 
 	protected static final MethodInstance template_m_getValue = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class);
 
-	protected static final MethodInstance template_m_getValueWithFlag = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class,
+	public static final MethodInstance template_m_getValueWithFlag = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class,
 			boolean.class);
 
 	protected static final MethodInstance template_m_setValue = new MethodInstance(null, Member.class, void.class, "setValue", Object.class, Object.class);
