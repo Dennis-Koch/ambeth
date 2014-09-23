@@ -8,7 +8,7 @@
 	<name>Osthus super POM</name>
 	<packaging>pom</packaging>
 
-	<version>0.0.24-SNAPSHOT</version>
+	<version>0.0.24</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -173,6 +173,7 @@
 							<configuration>
 								<groups>!de.osthus.ambeth.testutil.category.ReminderTests</groups>
 								<groups>!de.osthus.ambeth.testutil.category.SlowTests</groups>
+								<groups>!de.osthus.ambeth.testutil.category.SpecialTests</groups>
 							</configuration>
 						</plugin>
 					</plugins>
