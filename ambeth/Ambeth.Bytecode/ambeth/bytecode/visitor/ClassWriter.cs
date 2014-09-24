@@ -128,7 +128,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual IFieldVisitor VisitField(FieldInstance field)
         {
-            if (Log.DebugEnabled)
+            if (Log.DebugEnabled && !State.OriginalType.Name.Contains("Member"))
             {
                 Log.Debug("Implement field: " + field.ToString());
             }
@@ -151,12 +151,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual IMethodVisitor VisitMethod(MethodInstance method)
         {
-            if (Log.DebugEnabled)
+            NewType owner = State.NewType;
+            method = method.DeriveOwner();
+            if (Log.DebugEnabled && !State.OriginalType.Name.Contains("Member"))
             {
                 Log.Debug("Implement method: " + method.ToString());
             }
-            NewType owner = State.NewType;
-            method = method.DeriveOwner();
             Type[] parameters = new Type[method.Parameters.Length];
             for (int a = parameters.Length; a-- > 0; )
             {
@@ -311,7 +311,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             ParamChecker.AssertParamNotNull(propertyName, "propertyName");
             ParamChecker.AssertParamNotNull(fieldValue, "fieldValue");
-            FieldInstance field = ImplementStaticAssignedField("sf_" + propertyName, fieldValue);
+            String fieldName = propertyName.StartsWith("__") ? "sf" + propertyName : "sf__" + propertyName;
+            FieldInstance field = ImplementStaticAssignedField(fieldName, fieldValue);
             MethodInstance getter = new MethodInstance(State.NewType, MethodAttributes.Public | MethodAttributes.Static, field.Type, "get_" + propertyName);
             getter = HideFromDebug(ImplementGetter(getter, field));
             PropertyInstance property = State.GetProperty(propertyName, field.Type);

@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.Util
 
         public static ConstructorInfo[] GetDeclaredConstructors(Type type)
         {
-            return type.GetConstructors();
+            return type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         }
 
         public static ConstructorInfo GetDeclaredConstructor(bool tryOnly, Type type, NewType[] parameters)

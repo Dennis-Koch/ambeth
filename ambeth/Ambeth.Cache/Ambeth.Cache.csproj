@@ -79,6 +79,7 @@
     <Compile Include="ambeth\service\ICacheService.cs" />
     <Compile Include="ambeth\service\ICacheServiceByNameExtendable.cs" />
     <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
+    <Compile Include="ambeth\template\EntityEqualsTemplate.cs" />
     <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
     <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
     <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
@@ -169,9 +170,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\IEntityEquals.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\collections\CacheMapEntry.cs" />

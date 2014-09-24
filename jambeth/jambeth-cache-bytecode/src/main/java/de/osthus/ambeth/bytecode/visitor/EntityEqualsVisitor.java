@@ -3,26 +3,40 @@ package de.osthus.ambeth.bytecode.visitor;
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
+import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
+import de.osthus.ambeth.template.EntityEqualsTemplate;
 import de.osthus.ambeth.util.IPrintable;
-import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class EntityEqualsVisitor extends ClassGenerator
 {
-	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, EntityEqualsVisitor.class, boolean.class, "entityEquals_equals",
-			IEntityEquals.class, Object.class);
+	public static final Class<?> templateType = EntityEqualsTemplate.class;
 
-	private static final MethodInstance entityEquals_HashCode = new MethodInstance(null, EntityEqualsVisitor.class, int.class, "entityEquals_hashCode",
-			IEntityEquals.class);
+	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
-	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null, EntityEqualsVisitor.class, String.class, "entityEquals_toString",
-			IEntityEquals.class, IPrintable.class);
+	private static final MethodInstance entityEquals_Equals = new MethodInstance(null, templateType, boolean.class, "equals", IEntityEquals.class, Object.class);
 
-	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, EntityEqualsVisitor.class, void.class,
-			"entityEquals_toString", IEntityEquals.class, StringBuilder.class);
+	private static final MethodInstance entityEquals_HashCode = new MethodInstance(null, templateType, int.class, "hashCode", IEntityEquals.class);
+
+	private static final MethodInstance entityEquals_toString_Obj = new MethodInstance(null, templateType, String.class, "toString", IEntityEquals.class,
+			IPrintable.class);
+
+	private static final MethodInstance entityEquals_toString_Printable = new MethodInstance(null, templateType, void.class, "toString", IEntityEquals.class,
+			StringBuilder.class);
+
+	public static PropertyInstance getEntityEqualsTemplateProperty(ClassGenerator cv)
+	{
+		Object bean = getState().getBeanContext().getService(templateType);
+		PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
+		if (p_embeddedTypeTemplate != null)
+		{
+			return p_embeddedTypeTemplate;
+		}
+		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
+	}
 
 	public EntityEqualsVisitor(ClassVisitor cv)
 	{
@@ -38,43 +52,46 @@ public class EntityEqualsVisitor extends ClassGenerator
 
 	protected void implementIEntityEqualsCode()
 	{
-		implementEqualsMethod();
-		implementHashCodeMethod();
-		implementToStringMethod();
+		PropertyInstance p_entityEqualsTemplate = getEntityEqualsTemplateProperty(this);
+		implementEqualsMethod(p_entityEqualsTemplate);
+		implementHashCodeMethod(p_entityEqualsTemplate);
+		implementToStringMethod(p_entityEqualsTemplate);
 	}
 
-	protected void implementEqualsMethod()
+	protected void implementEqualsMethod(PropertyInstance p_entityEqualsTemplate)
 	{
 		MethodInstance methodTemplate = new MethodInstance(null, Object.class, boolean.class, "equals", Object.class);
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 		{
 			MethodGenerator mg = visitMethod(methodTemplate);
+			mg.callThisGetter(p_entityEqualsTemplate);
 			mg.loadThis();
 			mg.loadArgs();
-			mg.invokeStatic(entityEquals_Equals);
+			mg.invokeVirtual(entityEquals_Equals);
 			mg.returnValue();
 			mg.endMethod();
 		}
 	}
 
-	protected void implementHashCodeMethod()
+	protected void implementHashCodeMethod(PropertyInstance p_entityEqualsTemplate)
 	{
 		MethodInstance methodTemplate = new MethodInstance(null, Object.class, int.class, "hashCode");
 		MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
 		if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 		{
 			MethodGenerator mg = visitMethod(methodTemplate);
+			mg.callThisGetter(p_entityEqualsTemplate);
 			mg.loadThis();
 			mg.loadArgs();
-			mg.invokeStatic(entityEquals_HashCode);
+			mg.invokeVirtual(entityEquals_HashCode);
 
 			mg.returnValue();
 			mg.endMethod();
 		}
 	}
 
-	protected void implementToStringMethod()
+	protected void implementToStringMethod(PropertyInstance p_entityEqualsTemplate)
 	{
 		{
 			MethodInstance methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
@@ -82,9 +99,10 @@ public class EntityEqualsVisitor extends ClassGenerator
 			if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 			{
 				MethodGenerator mg = visitMethod(methodTemplate);
+				mg.callThisGetter(p_entityEqualsTemplate);
 				mg.loadThis();
 				mg.loadThis();
-				mg.invokeStatic(entityEquals_toString_Obj);
+				mg.invokeVirtual(entityEquals_toString_Obj);
 				mg.returnValue();
 				mg.endMethod();
 			}
@@ -96,55 +114,13 @@ public class EntityEqualsVisitor extends ClassGenerator
 			if (method == null || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 			{
 				MethodGenerator mg = visitMethod(methodTemplate);
+				mg.callThisGetter(p_entityEqualsTemplate);
 				mg.loadThis();
 				mg.loadArgs();
-				mg.invokeStatic(entityEquals_toString_Printable);
+				mg.invokeVirtual(entityEquals_toString_Printable);
 				mg.returnValue();
 				mg.endMethod();
 			}
 		}
-	}
-
-	public static boolean entityEquals_equals(IEntityEquals left, Object right)
-	{
-		if (right == left)
-		{
-			return true;
-		}
-		if (!(right instanceof IEntityEquals))
-		{
-			return false;
-		}
-		Object id = left.get__Id();
-		if (id == null)
-		{
-			// Null id can never be equal with something other than itself
-			return false;
-		}
-		IEntityEquals other = (IEntityEquals) right;
-		return id.equals(other.get__Id()) && left.get__BaseType().equals(other.get__BaseType());
-	}
-
-	public static int entityEquals_hashCode(IEntityEquals left)
-	{
-		Object id = left.get__Id();
-		if (id == null)
-		{
-			return System.identityHashCode(left);
-		}
-		return left.get__BaseType().hashCode() ^ id.hashCode();
-	}
-
-	public static String entityEquals_toString(IEntityEquals left, IPrintable printable)
-	{
-		StringBuilder sb = new StringBuilder();
-		printable.toString(sb);
-		return sb.toString();
-	}
-
-	public static void entityEquals_toString(IEntityEquals left, StringBuilder sb)
-	{
-		sb.append(left.get__BaseType().getName()).append('-');
-		StringBuilderUtil.appendPrintable(sb, left.get__Id());
 	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using De.Osthus.Ambeth.Metadata;
+using System;
 using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer

@@ -13,13 +13,14 @@ using De.Osthus.Ambeth.Datachange.Transfer;
 using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Cache;
 
 namespace De.Osthus.Minerva.Mock
 {
     abstract public class AbstractMergeServiceMock : IMergeService
     {
         [Autowired]
-        public IPersistenceMock PersistenceMock { protected get; set; }
+        public ICacheModification CacheModification { protected get; set; }
 
         [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
@@ -38,6 +39,9 @@ namespace De.Osthus.Minerva.Mock
 
         [Autowired]
         public IMergeController MergeController { protected get; set; }
+
+        [Autowired]
+        public IPersistenceMock PersistenceMock { protected get; set; }
 
         protected int dcId = 0;
         
@@ -171,7 +175,7 @@ namespace De.Osthus.Minerva.Mock
                 emd.RelationMembers = relationMembers.ToArray();
                 emd.TypesRelatingToThis = typesRelatingToThis.ToArray();
 
-                emd.Initialize(EntityFactory);
+                emd.Initialize(CacheModification, EntityFactory);
                 result.Add(emd);
             }
             return result;

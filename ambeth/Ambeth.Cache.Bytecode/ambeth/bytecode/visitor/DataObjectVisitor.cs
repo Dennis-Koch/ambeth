@@ -17,7 +17,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     {
         public static readonly Type templateType = typeof(DataObjectTemplate);
 
-        protected static readonly String templatePropertyName = templateType.Name;
+        protected static readonly String templatePropertyName = "__" + templateType.Name;
 
         public static readonly MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, typeof(DataObjectTemplate), typeof(void), "ToBeUpdatedChanged",
             typeof(IDataObject), typeof(bool), typeof(bool));
@@ -34,7 +34,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static PropertyInstance GetDataObjectTemplatePI(IClassVisitor cv)
         {
-            Object bean = State.BeanContext.GetService<DataObjectTemplate>();
+            Object bean = State.BeanContext.GetService(templateType);
             PropertyInstance p_dataObjectTemplate = State.GetProperty(templatePropertyName, NewType.GetType(bean.GetType()));
             if (p_dataObjectTemplate != null)
             {

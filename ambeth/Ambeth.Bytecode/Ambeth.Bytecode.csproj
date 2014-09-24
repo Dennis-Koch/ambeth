@@ -52,12 +52,15 @@
     <Compile Include="ambeth\bytecode\behavior\AbstractBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\AbstractBehaviorGroup.cs" />
     <Compile Include="ambeth\bytecode\behavior\BytecodeBehaviorState.cs" />
+    <Compile Include="ambeth\bytecode\behavior\WaitForApplyBehaviorDelegate.cs" />
+    <Compile Include="ambeth\bytecode\behavior\WaitForApplyBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\IBytecodeBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\IBytecodeBehaviorExtendable.cs" />
     <Compile Include="ambeth\bytecode\behavior\IBytecodeBehaviorState.cs" />
     <Compile Include="ambeth\bytecode\behavior\ImplementAbstractObjectBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\PublicConstructorBehavior.cs" />
     <Compile Include="ambeth\bytecode\ConstructorInstance.cs" />
+    <Compile Include="ambeth\bytecode\core\ByVisitor.cs" />
     <Compile Include="ambeth\bytecode\PropertyInstance.cs" />
     <Compile Include="ambeth\bytecode\FScript.cs" />
     <Compile Include="ambeth\bytecode\Script.cs" />
@@ -127,6 +130,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\bytecode\ScriptWithIndex.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\bytecode\config\BytecodeConfigurationConstants.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

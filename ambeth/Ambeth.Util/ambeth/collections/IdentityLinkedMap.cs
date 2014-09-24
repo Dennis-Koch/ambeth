@@ -60,5 +60,12 @@ namespace De.Osthus.Ambeth.Collections
         {
             return Object.ReferenceEquals(key, entry.Key);
         }
+
+        public override IISet<K> KeySet()
+        {
+            IdentityLinkedSet<K> keySet = IdentityLinkedSet<K>.Create(Count);
+            KeySet(keySet);
+            return keySet;
+        }
     }
 }

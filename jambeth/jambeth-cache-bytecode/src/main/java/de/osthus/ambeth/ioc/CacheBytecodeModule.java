@@ -17,6 +17,7 @@ import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.template.DataObjectTemplate;
 import de.osthus.ambeth.template.EmbeddedTypeTemplate;
+import de.osthus.ambeth.template.EntityEqualsTemplate;
 import de.osthus.ambeth.template.PropertyChangeTemplate;
 import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 
@@ -46,6 +47,7 @@ public class CacheBytecodeModule implements IInitializingModule
 		BytecodeModule.addDefaultBytecodeBehavior(beanContextFactory, RootCacheValueBehavior.class);
 
 		beanContextFactory.registerAnonymousBean(DataObjectTemplate.class).autowireable(DataObjectTemplate.class);
+		beanContextFactory.registerAnonymousBean(EntityEqualsTemplate.class).autowireable(EntityEqualsTemplate.class);
 		beanContextFactory.registerAnonymousBean(EmbeddedTypeTemplate.class).autowireable(EmbeddedTypeTemplate.class);
 		beanContextFactory.registerAnonymousBean(PropertyChangeTemplate.class).autowireable(PropertyChangeTemplate.class,
 				IPropertyChangeExtensionExtendable.class, ICollectionChangeExtensionExtendable.class);

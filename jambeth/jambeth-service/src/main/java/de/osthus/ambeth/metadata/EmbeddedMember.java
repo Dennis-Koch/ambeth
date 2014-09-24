@@ -86,6 +86,12 @@ public class EmbeddedMember extends Member implements IEmbeddedMember
 	}
 
 	@Override
+	public boolean isToMany()
+	{
+		return childMember.isToMany();
+	}
+
+	@Override
 	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
 	{
 		return childMember.getAnnotation(annotationType);

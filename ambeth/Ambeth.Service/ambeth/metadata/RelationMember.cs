@@ -12,15 +12,15 @@ namespace De.Osthus.Ambeth.Metadata
             // intended blank
         }
 
-
-        public Object GetNullEquivalentValue()
+        public override Object NullEquivalentValue
         {
-            return null;
+            get
+            {
+                return null;
+            }
         }
 
         public abstract CascadeLoadMode CascadeLoadMode { get; }
-
-        public abstract bool IsToMany { get; }
 
         public abstract bool IsManyTo { get; }
     }

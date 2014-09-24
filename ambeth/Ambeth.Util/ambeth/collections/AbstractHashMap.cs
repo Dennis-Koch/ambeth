@@ -438,7 +438,7 @@ namespace De.Osthus.Ambeth.Collections
             return keySet;
         }
 
-        public void KeySet(IISet<K> targetKeySet)
+        public virtual void KeySet(IISet<K> targetKeySet)
         {
             for (int a = table.Length; a-- > 0; )
             {
@@ -522,7 +522,7 @@ namespace De.Osthus.Ambeth.Collections
             return new MapIterator<E, K, V>(this, table, removeAllowed);
         }
 
-        public IEnumerator<Entry<K, V>> GetEnumerator()
+        public virtual IEnumerator<Entry<K, V>> GetEnumerator()
         {
             return new MapIterator<E, K, V>(this, table, false);
         }

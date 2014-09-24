@@ -103,10 +103,10 @@ namespace De.Osthus.Ambeth.Metadata
         protected T GetMemberIntern<T>(Type type, String propertyName, TypeAndStringWeakMap<T> map, Type baseType) where T : Member
         {
             WeakReference accessorR = map.Get(type, propertyName);
-            T member = accessorR != null ? (T)accessorR.Target : null;
+            Member member = accessorR != null ? (Member)accessorR.Target : null;
             if (member != null)
             {
-                return member;
+                return (T)member;
             }
             Object writeLock = this.writeLock;
             lock (writeLock)
@@ -116,13 +116,13 @@ namespace De.Osthus.Ambeth.Metadata
                 member = accessorR != null ? (T)accessorR.Target : null;
                 if (member != null)
                 {
-                    return member;
+                    return (T)member;
                 }
                 member = (T)GetMemberIntern(type, propertyName, baseType);
                 if (member is RelationMember)
                 {
                     CascadeLoadMode? cascadeLoadMode = null;
-                    CascadeAttribute cascadeAnnotation = member.GetAnnotation<CascadeAttribute>();
+                    CascadeAttribute cascadeAnnotation = (CascadeAttribute) member.GetAnnotation(typeof(CascadeAttribute));
                     if (cascadeAnnotation != null)
                     {
                         cascadeLoadMode = cascadeAnnotation.Load;
@@ -130,8 +130,8 @@ namespace De.Osthus.Ambeth.Metadata
                     if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
                     {
                         cascadeLoadMode = (CascadeLoadMode) Enum.Parse(typeof(CascadeLoadMode), Properties.GetString(
-                                ((RelationMember)(dynamic)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
-                                        : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, CascadeLoadMode.DEFAULT.ToString()));
+                                ((RelationMember)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
+                                        : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, CascadeLoadMode.DEFAULT.ToString()), false);
                     }
                     if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
                     {
@@ -140,7 +140,7 @@ namespace De.Osthus.Ambeth.Metadata
                     ((IRelationMemberWrite)member).SetCascadeLoadMode(cascadeLoadMode.Value);
                 }
                 map.Put(type, propertyName, new WeakReference(member));
-                return member;
+                return (T)member;
             }
         }
 

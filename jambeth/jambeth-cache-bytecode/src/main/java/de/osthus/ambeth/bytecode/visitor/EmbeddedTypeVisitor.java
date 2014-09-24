@@ -19,7 +19,7 @@ public class EmbeddedTypeVisitor extends ClassGenerator
 {
 	public static final Class<?> templateType = EmbeddedTypeTemplate.class;
 
-	public static final String templatePropertyName = templateType.getSimpleName();
+	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final PropertyInstance t_p_Parent = PropertyInstance.findByTemplate(IEmbeddedType.class, "Parent", Object.class, false);
 
@@ -60,7 +60,7 @@ public class EmbeddedTypeVisitor extends ClassGenerator
 
 	public static PropertyInstance getEmbeddedTypeTemplateProperty(ClassGenerator cv)
 	{
-		Object bean = getState().getBeanContext().getService(EmbeddedTypeTemplate.class);
+		Object bean = getState().getBeanContext().getService(templateType);
 		PropertyInstance p_embeddedTypeTemplate = PropertyInstance.findByTemplate(templatePropertyName, bean.getClass(), true);
 		if (p_embeddedTypeTemplate != null)
 		{

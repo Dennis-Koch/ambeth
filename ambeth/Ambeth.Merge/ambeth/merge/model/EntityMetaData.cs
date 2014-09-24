@@ -1,4 +1,5 @@
 ﻿using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge.Transfer;
@@ -61,6 +62,8 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         public PrimitiveMember[] PrimitiveMembers { get; set; }
 
+        protected PrimitiveMember[] primitiveToManyMembers;
+
         public RelationMember[] RelationMembers { get; set; }
 
         public PrimitiveMember[] AlternateIdMembers { get; set; }
@@ -102,6 +105,8 @@ namespace De.Osthus.Ambeth.Merge.Model
         protected readonly Dictionary<String, sbyte?> memberNameToIdIndexDict = new Dictionary<String, sbyte?>();
 
         protected readonly HashMap<Member, bool?> memberToMergeRelevanceDict = new HashMap<Member, bool?>(0.5f);
+
+        protected ICacheModification cacheModification;
 
         protected IEntityFactory entityFactory;
 
@@ -234,6 +239,29 @@ namespace De.Osthus.Ambeth.Merge.Model
 
 	    public void PostProcessNewEntity(Object newEntity)
 	    {
+            PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
+            if (primitiveToManyMembers.Length > 0)
+            {
+                bool oldInternalUpdate = cacheModification.InternalUpdate;
+                if (!oldInternalUpdate)
+                {
+                    cacheModification.InternalUpdate = true;
+                }
+                try
+                {
+                    foreach (PrimitiveMember primitiveMember in primitiveToManyMembers)
+                    {
+                        primitiveMember.SetValue(newEntity, ListUtil.CreateObservableCollectionOfType(primitiveMember.RealType));
+                    }
+                }
+                finally
+                {
+                    if (!oldInternalUpdate)
+                    {
+                        cacheModification.InternalUpdate = false;
+                    }
+                }
+            }
 		    foreach (IEntityLifecycleExtension entityLifecycleExtension in entityLifecycleExtensions)
 		    {
 			    entityLifecycleExtension.PostCreate(this, newEntity);
@@ -256,8 +284,9 @@ namespace De.Osthus.Ambeth.Merge.Model
             }
         }
 
-        public void Initialize(IEntityFactory entityFactory)
+        public void Initialize(ICacheModification cacheModification, IEntityFactory entityFactory)
         {
+            this.cacheModification = cacheModification;
             this.entityFactory = entityFactory;
             if (AlternateIdMemberIndicesInPrimitives == null)
             {
@@ -272,6 +301,15 @@ namespace De.Osthus.Ambeth.Merge.Model
             {
                 // Array.Sort<INamed>(PrimitiveMembers, namedItemComparer);
             }
+            List<PrimitiveMember> primitiveToManyMembers = new List<PrimitiveMember>();
+		    foreach (PrimitiveMember primitiveMember in PrimitiveMembers)
+		    {
+			    if (primitiveMember.IsToMany)
+			    {
+				    primitiveToManyMembers.Add(primitiveMember);
+			    }
+		    }
+		    this.primitiveToManyMembers = primitiveToManyMembers.ToArray();
 
             if (RelationMembers == null)
             {

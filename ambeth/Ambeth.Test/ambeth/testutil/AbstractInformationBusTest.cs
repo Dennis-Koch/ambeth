@@ -29,6 +29,6 @@ namespace De.Osthus.Ambeth.Testutil
     public abstract class AbstractInformationBusTest : AbstractIocTest
     {
 	    [LogInstance]
-	    public ILogger Log { private get; set; }
+	    public new ILogger Log { private get; set; }
     }
 }

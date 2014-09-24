@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
@@ -7,11 +8,11 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 {
     public class AmbethClassLoader
     {
+        protected String moduleName = "AmbethBytecodeEnhancement.dll";
+
         protected readonly ModuleBuilder moduleBuilder;
-
-
+        
         AssemblyBuilder assemblyBuilder;
-        //protected readonly WeakHashMap<Type, byte[]> classToContentMap = new WeakHashMap<Type, byte[]>();
 
 	    public AmbethClassLoader()
 	    {
@@ -24,7 +25,8 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             access = AssemblyBuilderAccess.RunAndSave;
 #endif
             AssemblyBuilder assemblyBuilder = Thread.GetDomain().DefineDynamicAssembly(assemblyName, access);
-            moduleBuilder = assemblyBuilder.DefineDynamicModule(name, true);
+            moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName, true);
+            
             this.assemblyBuilder = assemblyBuilder;
 	    }
 
@@ -35,7 +37,10 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
         public void Save()
         {
-            //assemblyBuilder.Save("abc.dll");
+            Type[] t = assemblyBuilder.GetTypes();
+#if !SILVERLIGHT
+            assemblyBuilder.Save(moduleName);
+#endif
         }
 
 	    public Type DefineClass(String name, byte[] b)

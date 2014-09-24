@@ -43,7 +43,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 {
 	public static final Class<?> templateType = PropertyChangeTemplate.class;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final MethodInstance template_m_collectionChanged = new MethodInstance(null, INotifyCollectionChangedListener.class, void.class,
 			"collectionChanged", NotifyCollectionChangedEvent.class);
@@ -142,6 +142,7 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 		implementPropertyChangeConfigurable();
 
 		MethodInstance m_usePropertyChangeSupport = implementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+		f_propertyChangeSupport = getState().getAlreadyImplementedField(f_propertyChangeSupport.getName());
 
 		implementNotifyPropertyChanged(p_propertyChangeTemplate, m_usePropertyChangeSupport);
 

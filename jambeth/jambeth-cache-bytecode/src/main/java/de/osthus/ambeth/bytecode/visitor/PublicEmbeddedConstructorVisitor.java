@@ -26,7 +26,7 @@ public class PublicEmbeddedConstructorVisitor extends ClassGenerator
 	public void visitEnd()
 	{
 		FieldInstance f_parent = new FieldInstance(Opcodes.ACC_PROTECTED | Opcodes.ACC_FINAL, "parent", null, Object.class);
-		implementField(f_parent);
+		f_parent = implementField(f_parent);
 
 		Class<?> superType = BytecodeBehaviorState.getState().getCurrentType();
 		Constructor<?>[] superConstructors = superType.getDeclaredConstructors();

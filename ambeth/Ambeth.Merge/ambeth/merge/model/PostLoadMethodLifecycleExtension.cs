@@ -1,4 +1,5 @@
 using System;
+
 namespace De.Osthus.Ambeth.Merge.Model
 {
 	public class PostLoadMethodLifecycleExtension : AbstractMethodLifecycleExtension

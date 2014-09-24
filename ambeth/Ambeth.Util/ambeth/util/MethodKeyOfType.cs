@@ -9,10 +9,21 @@ namespace De.Osthus.Ambeth.Util
 
         protected readonly NewType[] parameterTypes;
 
-        public MethodKeyOfType(String methodName, NewType[] parameterTypes)
+        protected readonly NewType returnType;
+
+        public MethodKeyOfType(NewType returnType, String methodName, NewType[] parameterTypes)
         {
+            this.returnType = returnType;
             this.methodName = methodName;
             this.parameterTypes = parameterTypes;
+        }
+
+        public NewType ReturnType
+        {
+            get
+            {
+                return returnType;
+            }
         }
 
         public String MethodName
@@ -33,7 +44,7 @@ namespace De.Osthus.Ambeth.Util
 
         public override int GetHashCode()
         {
-            return methodName.GetHashCode() ^ parameterTypes.Length;
+            return returnType.GetHashCode() ^ methodName.GetHashCode() ^ parameterTypes.Length;
         }
 
         public override bool Equals(Object obj)
@@ -59,6 +70,10 @@ namespace De.Osthus.Ambeth.Util
             {
                 return false;
             }
+            if (!Object.Equals(returnType, other.returnType))
+            {
+                return false;
+            }
             return true;
         }
 
@@ -71,7 +86,7 @@ namespace De.Osthus.Ambeth.Util
 
 	    public void ToString(StringBuilder sb)
 	    {
-            sb.Append("MethodKey: ").Append(methodName).Append('(');
+            sb.Append("MethodKey: ").Append(returnType.ClassName).Append(' ').Append(methodName).Append('(');
 		    for (int a = 0, size = parameterTypes.Length; a < size; a++)
 		    {
 			    if (a > 0)

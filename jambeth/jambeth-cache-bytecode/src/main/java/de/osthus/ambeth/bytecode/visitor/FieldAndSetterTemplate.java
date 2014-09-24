@@ -42,7 +42,7 @@ public class FieldAndSetterTemplate
 	{
 		String fieldSignature = FieldInstance.getSignatureFromParameterType(setterMethod, 0);
 		FieldInstance f_beanContext = new FieldInstance(fieldAccess, fieldName, fieldSignature, setterMethod.getParameterTypes()[0]);
-		cg.implementField(f_beanContext);
+		f_beanContext = cg.implementField(f_beanContext);
 		cg.implementSetter(new MethodInstance(setterMethod), f_beanContext);
 		return f_beanContext;
 	}

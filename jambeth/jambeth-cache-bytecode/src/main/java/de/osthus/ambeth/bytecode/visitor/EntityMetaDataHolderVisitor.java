@@ -12,6 +12,19 @@ public class EntityMetaDataHolderVisitor extends ClassGenerator
 	public static final MethodInstance m_template_getEntityMetaData = new MethodInstance(null, IEntityMetaDataHolder.class, IEntityMetaData.class,
 			"get__EntityMetaData");
 
+	public static MethodInstance getImplementedGetEntityMetaData(ClassGenerator cv, IEntityMetaData metaData)
+	{
+		MethodInstance method = MethodInstance.findByTemplate(m_template_getEntityMetaData, true);
+		if (method != null)
+		{
+			// already implemented
+			return method;
+		}
+		FieldInstance f_entityMetaData = cv.implementStaticAssignedField("sf__entityMetaData", metaData);
+
+		return cv.implementGetter(m_template_getEntityMetaData, f_entityMetaData);
+	}
+
 	protected IEntityMetaData metaData;
 
 	public EntityMetaDataHolderVisitor(ClassVisitor cv, IEntityMetaData metaData)
@@ -29,14 +42,6 @@ public class EntityMetaDataHolderVisitor extends ClassGenerator
 
 	protected void implementGetEntityMetaData()
 	{
-		MethodInstance method = MethodInstance.findByTemplate(m_template_getEntityMetaData, true);
-		if (method != null)
-		{
-			// already implemented
-			return;
-		}
-		FieldInstance f_entityMetaData = implementStaticAssignedField("$entityMetaData", metaData);
-
-		implementGetter(m_template_getEntityMetaData, f_entityMetaData);
+		getImplementedGetEntityMetaData(this, metaData);
 	}
 }

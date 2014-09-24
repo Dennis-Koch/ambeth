@@ -3,7 +3,6 @@ package de.osthus.ambeth.bytecode.visitor;
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
-import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.proxy.IEntityEquals;
@@ -36,10 +35,9 @@ public class GetIdMethodCreator extends ClassGenerator
 			super.visitEnd();
 			return;
 		}
-		m_get__Id = new MethodInstance(BytecodeBehaviorState.getState().getNewType(), GetIdMethodCreator.template_m_entityEquals_getId);
-
-		MethodGenerator mg = visitMethod(m_get__Id);
-		mg.callThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+		MethodInstance m_getEntityMetaData = EntityMetaDataHolderVisitor.getImplementedGetEntityMetaData(this, metaData);
+		MethodGenerator mg = visitMethod(GetIdMethodCreator.template_m_entityEquals_getId);
+		mg.callThisGetter(m_getEntityMetaData);
 		mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, PrimitiveMember.class, "getIdMember"));
 		mg.loadThis();
 		mg.push(false);

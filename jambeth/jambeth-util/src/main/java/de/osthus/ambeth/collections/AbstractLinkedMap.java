@@ -5,9 +5,9 @@ import java.util.List;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
 /**
- * Erweiterte Map, welche zus�tzlich zu den �blichen Key/Value-Entries eine Liste aller Eintr�ge verwaltet. Somit die Komplexit�t f�r das Iterieren
- * �ber eine solchen Map mit O(n) = n identisch mit jener einer �blichen Array-Liste. Der Tradeoff sind hierbei nat�rlich die leicht aufw�ndigeren
- * put()- und remove()-Operationen, welche jedoch weiterhin bzgl. der Komplexit�t mit O(n) = 1 konstant bleiben.
+ * Erweiterte Map, welche zus�tzlich zu den �blichen Key/Value-Entries eine Liste aller Eintr�ge verwaltet. Somit die Komplexit�t f�r das Iterieren �ber eine
+ * solchen Map mit O(n) = n identisch mit jener einer �blichen Array-Liste. Der Tradeoff sind hierbei nat�rlich die leicht aufw�ndigeren put()- und
+ * remove()-Operationen, welche jedoch weiterhin bzgl. der Komplexit�t mit O(n) = 1 konstant bleiben.
  * 
  * @author kochd
  * @param <K>
@@ -141,14 +141,6 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public ISet<Entry<K, V>> entrySet()
-	{
-		LinkedHashSet<Entry<K, V>> set = LinkedHashSet.create(size());
-		entrySet(set);
-		return set;
-	}
-
-	@Override
 	public void entrySet(ISet<Entry<K, V>> targetEntrySet)
 	{
 		MapLinkedIterator<K, V> iter = iterator();
@@ -157,14 +149,6 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 			MapLinkedEntry<K, V> entry = iter.next();
 			targetEntrySet.add(entry);
 		}
-	}
-
-	@Override
-	public ISet<K> keySet()
-	{
-		LinkedHashSet<K> set = LinkedHashSet.create(size());
-		keySet(set);
-		return set;
 	}
 
 	@Override

@@ -11,5 +11,7 @@ namespace De.Osthus.Ambeth.Collections
         IList<K> ToList();
 
         K RemoveAndGet(K key);
+
+        bool RemoveAll(IEnumerable c);
     }
 }

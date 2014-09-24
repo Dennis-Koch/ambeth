@@ -15,7 +15,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     {
         public static readonly Type templateType = typeof(EmbeddedMemberTemplate);
 
-        public static readonly String templatePropertyName = templateType.Name;
+        public static readonly String templatePropertyName = "__" + templateType.Name;
 
         protected static readonly MethodInstance template_m_createEmbeddedObject = new MethodInstance(null, templateType, typeof(Object), "CreateEmbeddedObject",
                 typeof(Type), typeof(Type), typeof(Object), typeof(String));
@@ -79,39 +79,83 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public override void VisitEnd()
         {
             PropertyInstance p_embeddedMemberTemplate = GetEmbeddedMemberTemplatePI(this);
+            ImplementConstructor(p_embeddedMemberTemplate);
 
-            IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
-
-            foreach (Member member in metaData.PrimitiveMembers)
-            {
-                HandleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-            }
-            foreach (RelationMember member in metaData.RelationMembers)
-            {
-                HandleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-            }
             base.VisitEnd();
         }
 
-        protected void HandleMember(PropertyInstance p_embeddedMemberTemplate, Member member, ISet<Member> alreadyHandledFirstMembers)
+        protected void ImplementConstructor(PropertyInstance p_embeddedMemberTemplate)
         {
-            if (!(member is IEmbeddedMember))
+            IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
+
+            List<Script> scripts = new List<Script>();
+            foreach (Member member in metaData.PrimitiveMembers)
+            {
+                Script script = HandleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
+                if (script != null)
+                {
+                    scripts.Add(script);
+                }
+            }
+            foreach (RelationMember member in metaData.RelationMembers)
+            {
+                Script script = HandleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
+                if (script != null)
+                {
+                    scripts.Add(script);
+                }
+            }
+            if (scripts.Count == 0)
             {
                 return;
             }
-            Member[] memberPath = ((IEmbeddedMember)member).GetMemberPath();
+            OverrideConstructors(delegate(IClassVisitor cv, ConstructorInstance superConstructor)
+                {
+                    IMethodVisitor mv = cv.VisitMethod(superConstructor);
+                    mv.LoadThis();
+                    mv.LoadArgs();
+                    mv.InvokeSuperOfCurrentMethod();
 
+                    foreach (Script script in scripts)
+                    {
+                        script(mv);
+                    }
+                    mv.ReturnValue();
+                    mv.EndMethod();
+                });
+        }
+
+        protected Script HandleMember(PropertyInstance p_embeddedMemberTemplate, Member member, ISet<Member> alreadyHandledFirstMembers)
+        {
+            if (!(member is IEmbeddedMember))
+            {
+                return null;
+            }
+            Member[] memberPath = ((IEmbeddedMember)member).GetMemberPath();
             Member firstMember;
             if (memberPathSplit != null)
             {
+                if (memberPath.Length < memberPathSplit.Length)
+                {
+                    // nothing to do in this case. This member has nothing to do with our current scope
+                    return null;
+                }
+                for (int a = 0, size = memberPathSplit.Length; a < size; a++)
+                {
+                    if (!memberPathSplit[a].Equals(memberPath[a].Name))
+                    {
+                        // nothing to do in this case. This member has nothing to do with our current scope
+                        return null;
+                    }
+                }
                 if (memberPath.Length > memberPathSplit.Length)
                 {
                     firstMember = memberPath[memberPathSplit.Length];
                 }
                 else
                 {
-                    // nothing to do in this case
-                    return;
+                    // nothing to do in this case. This is a leaf member
+                    return null;
                 }
             }
             else
@@ -120,102 +164,45 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
             if (!alreadyHandledFirstMembers.Add(firstMember))
             {
-                return;
+                return null;
             }
-            ImplementGetter(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath : firstMember.Name);
+            return CreateEmbeddedObjectInstance(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath + "." + firstMember.Name
+                    : firstMember.Name);
         }
 
-        // protected void implementGetter(IProperty)
-        // {
-        // MethodGenerator mv = visitMethod(template_m_getValue);
-        //
-        // for (int a = 0, size = propertyPath.length; a < size; a++)
-        // {
-        // IPropertyInfo property = propertyPath[a];
-        // if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
-        // {
-        // throw new IllegalStateException("Property not readable: " + property.getDeclaringType().getName() + "." + property.getName());
-        // }
-        // }
-        // Label l_pathHasNull = null;
-        // mv.loadArg(0);
-        // mv.checkCast(propertyPath[0].getDeclaringType());
-        // for (int a = 0, size = propertyPath.length - 1; a < size; a++)
-        // {
-        // if (l_pathHasNull == null)
-        // {
-        // l_pathHasNull = mv.newLabel();
-        // }
-        // invokeGetProperty(mv, propertyPath[a]);
-        // mv.dup();
-        // mv.ifNull(l_pathHasNull);
-        // }
-        // IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-        // Type lastPropertyType = Type.getType(lastProperty.getPropertyType());
-        // invokeGetProperty(mv, lastProperty);
-        // mv.valueOf(lastPropertyType);
-        // mv.returnValue();
-        //
-        // if (l_pathHasNull != null)
-        // {
-        // mv.mark(l_pathHasNull);
-        // if (lastProperty.getPropertyType().isPrimitive())
-        // {
-        // mv.pop(); // remove the current null value
-        // mv.pushNullOrZero(lastPropertyType);
-        // mv.valueOf(lastPropertyType);
-        // }
-        // mv.returnValue();
-        // }
-        // mv.endMethod();
-        // }
-
-        protected void ImplementGetter(PropertyInstance p_embeddedMemberTemplate, Member firstMember, String memberPath)
+        protected Script CreateEmbeddedObjectInstance(PropertyInstance p_embeddedMemberTemplate, Member firstMember, String memberPath)
         {
             PropertyInstance property = PropertyInstance.FindByTemplate(firstMember.Name, firstMember.RealType, false);
-
             PropertyInstance p_rootEntity = memberPathSplit == null ? null : EmbeddedTypeVisitor.GetRootEntityProperty(this);
 
-            IMethodVisitor mv = VisitMethod(property.Getter);
-            Label l_valueIsValid = mv.NewLabel();
-
-            mv.LoadThis();
-            mv.InvokeSuperOfCurrentMethod();
-            mv.Dup(); // cache member value
-
-            mv.IfNonNull(l_valueIsValid);
-
-            mv.Pop(); // remove remaining null value
-
-            mv.CallThisSetter(property, delegate(IMethodVisitor mg)
+            return delegate(IMethodVisitor mg2)
                 {
-                    // Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String memberPath)
-                    mg.CallThisGetter(p_embeddedMemberTemplate);
+                    mg2.CallThisSetter(property, delegate(IMethodVisitor mg)
+                        {
+                            // Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String
+                            // memberPath)
+                            mg.CallThisGetter(p_embeddedMemberTemplate);
 
-                    mg.Push(firstMember.RealType); // embeddedType
+                            mg.Push(firstMember.RealType); // embeddedType
 
-                    if (p_rootEntity != null)
-                    {
-                        mg.CallThisGetter(p_rootEntity);
-                        mg.CheckCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.Owner);
-                        mg.InvokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
-                    }
-                    else
-                    {
-                        mg.CallThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
-                    }
-                    mg.InvokeInterface(new MethodInstance(null, typeof(IEntityMetaData), typeof(Type), "get_EnhancedType"));
-                    mg.LoadThis(); // parentObject
-                    mg.Push(memberPath);
+                            if (p_rootEntity != null)
+                            {
+                                mg.CallThisGetter(p_rootEntity);
+                                mg.CheckCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.Owner);
+                                mg.InvokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+                            }
+                            else
+                            {
+                                mg.CallThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+                            }
+                            mg.InvokeInterface(new MethodInstance(null, typeof(IEntityMetaData), typeof(Type), "get_EnhancedType"));
+                            mg.LoadThis(); // parentObject
+                            mg.Push(memberPath);
 
-                    mg.InvokeVirtual(template_m_createEmbeddedObject);
-                    mg.CheckCast(firstMember.RealType);
-                });
-            mv.LoadThis();
-            mv.InvokeSuperOfCurrentMethod();
-            mv.Mark(l_valueIsValid);
-            mv.ReturnValue();
-            mv.EndMethod();
+                            mg.InvokeVirtual(template_m_createEmbeddedObject);
+                            mg.CheckCast(firstMember.RealType);
+                        });
+                };
         }
 
         protected void InvokeGetProperty(IMethodVisitor mv, IPropertyInfo property)

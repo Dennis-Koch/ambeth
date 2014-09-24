@@ -3,6 +3,7 @@ package de.osthus.ambeth.bytecode.visitor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.FieldInstance;
@@ -39,6 +40,8 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 	protected static final MethodInstance template_m_getElementType = new MethodInstance(null, Member.class, Class.class, "getElementType");
 
 	protected static final MethodInstance template_m_getRealType = new MethodInstance(null, Member.class, Class.class, "getRealType");
+
+	protected static final MethodInstance template_m_isToMany = new MethodInstance(null, Member.class, boolean.class, "isToMany");
 
 	protected static final MethodInstance template_m_getValue = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class);
 
@@ -79,6 +82,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		implementGetNullEquivalentValue(propertyPath);
 		implementGetElementType(propertyPath);
 		implementGetRealType(propertyPath);
+		implementIsToMany(propertyPath);
 		implementGetValue(propertyPath);
 		implementSetValue(propertyPath);
 		super.visitEnd();
@@ -137,7 +141,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		{
 			typeToAnnotationMap.put(annotation.getClass(), annotation);
 		}
-		FieldInstance f_typeToAnnotationMap = implementStaticAssignedField("typeToAnnotationMap", typeToAnnotationMap);
+		FieldInstance f_typeToAnnotationMap = implementStaticAssignedField("sf__typeToAnnotationMap", typeToAnnotationMap);
 		MethodGenerator mv = visitMethod(template_m_getAnnotation);
 		mv.getThisField(f_typeToAnnotationMap);
 		mv.loadArg(0);
@@ -358,4 +362,13 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 			mv.putField(new FieldInstance(field));
 		}
 	}
+
+	protected void implementIsToMany(IPropertyInfo[] propertyPath)
+	{
+		MethodGenerator mv = visitMethod(template_m_isToMany);
+		mv.push(Collection.class.isAssignableFrom(propertyPath[propertyPath.length - 1].getPropertyType()));
+		mv.returnValue();
+		mv.endMethod();
+	}
+
 }

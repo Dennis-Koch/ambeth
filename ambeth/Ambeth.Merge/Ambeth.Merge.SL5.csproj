@@ -197,6 +197,7 @@
     <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
     <Compile Include="ambeth\template\CompositeIdTemplate.cs" />
+    <Compile Include="ambeth\template\EmbeddedMemberTemplate.cs" />
     <Compile Include="ambeth\transfer\AbstractChangeContainer.cs" />
     <Compile Include="ambeth\transfer\CreateContainer.cs" />
     <Compile Include="ambeth\transfer\CUDResult.cs" />
@@ -208,6 +209,7 @@
     <Compile Include="ambeth\transfer\PrimitiveUpdateItem.cs" />
     <Compile Include="ambeth\transfer\RelationUpdateItem.cs" />
     <Compile Include="ambeth\transfer\UpdateContainer.cs" />
+    <Compile Include="ambeth\typeinfo\RelationProvider.cs" />
     <Compile Include="ambeth\util\DirectValueHolderRef.cs" />
     <Compile Include="ambeth\util\ICacheHelper.cs" />
     <Compile Include="ambeth\util\IPrefetchConfig.cs" />

@@ -73,7 +73,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectFactory.cs" />
+    <Compile Include="ambeth\bytecode\behavior\EntityMetaDataMemberBehavior.cs" />
     <Compile Include="ambeth\bytecode\visitor\CompositeIdCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataPrimitiveMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataRelationMemberVisitor.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdBehavior.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdEnhancementHint.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdFactory.cs" />

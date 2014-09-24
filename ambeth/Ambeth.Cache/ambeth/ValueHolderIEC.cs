@@ -23,18 +23,18 @@ namespace De.Osthus.Ambeth.Cache
 {
     public class ValueHolderContainerEntry
     {
-        protected readonly AbstractValueHolderEntry2[] entries;
+        protected readonly ValueHolderEntry[] entries;
 
         public ValueHolderContainerEntry(Type targetType, RelationMember[] members, IBytecodeEnhancer bytecodeEnhancer,
             IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
         {
-            entries = new AbstractValueHolderEntry2[members.Length];
+            entries = new ValueHolderEntry[members.Length];
             try
             {
                 for (int relationIndex = members.Length; relationIndex-- > 0; )
                 {
                     RelationMember member = members[relationIndex];
-                    AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+                    ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
                     entries[relationIndex] = vhEntry;
                 }
             }
@@ -114,21 +114,9 @@ namespace De.Osthus.Ambeth.Cache
         public abstract void SetState(Object obj, ValueHolderState state);
     }
 
-    public class AbstractValueHolderEntry2 : AbstractValueHolderEntry
+    public class ValueHolderEntry : AbstractValueHolderEntry
     {
         protected readonly String memberName;
-
-        protected readonly MemberGetDelegate getState;
-
-        protected readonly MemberSetDelegate setState;
-
-        protected readonly MemberGetDelegate getObjRefs;
-
-        protected readonly MemberSetDelegate setObjRefs;
-
-        protected readonly MemberGetDelegate getDirectValue;
-
-        protected readonly MemberSetDelegate setDirectValue;
 
         protected readonly Member objRefs;
 
@@ -138,20 +126,18 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly RelationMember member;
 
-        public AbstractValueHolderEntry2(Type targetType, RelationMember member, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider,
+        public ValueHolderEntry(Type targetType, RelationMember member, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider,
             IMemberTypeProvider memberTypeProvider)
         {
             this.member = member;
             this.memberName = member.Name;
             String lastPropertyName = memberName;
-            Type currType = targetType;
             String prefix = "";
 
             if (member is IEmbeddedMember)
 			{
 				IEmbeddedMember embeddedMember = (IEmbeddedMember) member;
 				lastPropertyName = embeddedMember.ChildMember.Name;
-				GetMemberDelegate(targetType, embeddedMember, out currType, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
 
 				prefix = embeddedMember.GetMemberPathString() + ".";
 			}
@@ -160,62 +146,16 @@ namespace De.Osthus.Ambeth.Cache
 			directValue = memberTypeProvider.GetMember(targetType, prefix + lastPropertyName + ValueHolderIEC.GetNoInitSuffix());
         }
 
-        protected Member[] GetMemberDelegate(Type targetType,  IEmbeddedMember member,
-            out Type currTypeOut, IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
-        {
-            Type currType = targetType;
-			Type parentObjectType = targetType;
-			String embeddedPath = "";
-			String[] memberPath = member.GetMemberPathToken();
-			for (int a = 0, size = memberPath.Length; a < size; a++)
-			{
-				String memberItem = memberPath[a];
-
-				if (embeddedPath.Length > 0)
-				{
-					embeddedPath += ".";
-				}
-				embeddedPath += memberItem;
-				IPropertyInfo pi = propertyInfoProvider.GetProperty(currType, memberItem);
-				if (pi != null)
-				{
-					parentObjectType = currType;
-					currType = pi.PropertyType;
-					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				FieldInfo[] fi = ReflectUtil.GetDeclaredFieldInHierarchy(currType, memberItem);
-				if (fi.Length != 0)
-				{
-					parentObjectType = currType;
-					currType = fi[0].FieldType;
-					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				MethodInfo mi = ReflectUtil.GetDeclaredMethod(true, currType, null, memberItem, new Type[0]);
-				if (mi != null)
-				{
-					parentObjectType = currType;
-					currType = mi.ReturnType;
-					currType = bytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				throw new Exception("Property/Field/Method not found: " + currType + "." + memberItem);
-			}
-            currTypeOut = currType;
-			return member.GetMemberPath();
-        }
-
         public override void SetObjRefs(Object obj, IObjRef[] objRefs)
         {
-            setObjRefs(obj, objRefs);
+            this.objRefs.SetValue(obj, objRefs);
         }
 
         public override void SetUninitialized(Object obj, IObjRef[] objRefs)
         {
-            setState(obj, ValueHolderState.LAZY);
-            setObjRefs(obj, objRefs);
-            setDirectValue(obj, null);
+            this.state.SetValue(obj, ValueHolderState.LAZY);
+            this.objRefs.SetValue(obj, objRefs);
+            this.directValue.SetValue(obj, null);
         }
 
         public override void SetInitialized(Object obj, Object value)
@@ -225,27 +165,27 @@ namespace De.Osthus.Ambeth.Cache
 
         public override void SetInitPending(Object obj)
         {
-            setState(obj, ValueHolderState.PENDING);
+            this.state.SetValue(obj, ValueHolderState.PENDING);
         }
 
         public override IObjRef[] GetObjRefs(Object obj)
         {
-            return (IObjRef[])getObjRefs(obj);
+            return (IObjRef[])this.objRefs.GetValue(obj);
         }
 
         public override object GetValueDirect(Object obj)
         {
-            return getDirectValue(obj);
+            return this.directValue.GetValue(obj);
         }
 
         public override ValueHolderState GetState(Object obj)
         {
-            return (ValueHolderState)getState(obj);
+            return (ValueHolderState)this.state.GetValue(obj);
         }
 
         public override void SetState(Object obj, ValueHolderState state)
         {
-            setState(obj, state);
+            this.state.SetValue(obj, state);
         }
     }
 

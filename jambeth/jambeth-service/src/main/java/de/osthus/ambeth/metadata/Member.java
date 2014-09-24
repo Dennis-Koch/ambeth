@@ -24,6 +24,8 @@ public abstract class Member extends AbstractAccessor implements Comparable<Memb
 
 	public abstract Class<?> getRealType();
 
+	public abstract boolean isToMany();
+
 	public abstract Object getNullEquivalentValue();
 
 	public abstract <V extends Annotation> V getAnnotation(Class<V> annotationType);

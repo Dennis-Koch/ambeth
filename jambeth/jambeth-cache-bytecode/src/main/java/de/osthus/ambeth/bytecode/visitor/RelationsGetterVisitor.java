@@ -38,9 +38,31 @@ import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 
 public class RelationsGetterVisitor extends ClassGenerator
 {
+	public class ValueHolderContainerEntryValueResolver implements IValueResolveDelegate
+	{
+		private final ValueHolderIEC valueHolderContainerHelper;
+
+		public ValueHolderContainerEntryValueResolver(ValueHolderIEC valueHolderContainerHelper)
+		{
+			this.valueHolderContainerHelper = valueHolderContainerHelper;
+		}
+
+		@Override
+		public Class<?> getValueType()
+		{
+			return ValueHolderContainerEntry.class;
+		}
+
+		@Override
+		public Object invoke(String fieldName, Class<?> enhancedType)
+		{
+			return valueHolderContainerHelper.getVhcEntry(enhancedType);
+		}
+	}
+
 	public static final Class<?> templateType = ValueHolderContainerTemplate.class;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	private static final Type objRefArrayType = Type.getType(IObjRef[].class);
 
@@ -157,27 +179,16 @@ public class RelationsGetterVisitor extends ClassGenerator
 	public void visitEnd()
 	{
 		PropertyInstance p_valueHolderContainerTemplate = getValueHolderContainerTemplatePI(this);
-		PropertyInstance p_relationMembers = implementAssignedReadonlyProperty("sf_$relationMembers", metaData.getRelationMembers());
+		PropertyInstance p_relationMembers = implementAssignedReadonlyProperty("__RelationMembers", metaData.getRelationMembers());
 
 		PropertyInstance p_targetCache = implementTargetCache(p_valueHolderContainerTemplate);
 
 		if (!EmbeddedEnhancementHint.hasMemberPath(getState().getContext()))
 		{
-			PropertyInstance p_valueHolderContainerEntry = implementAssignedReadonlyProperty("ValueHolderContainerEntry", new IValueResolveDelegate()
-			{
-				@Override
-				public Class<?> getValueType()
-				{
-					return ValueHolderContainerEntry.class;
-				}
-
-				@Override
-				public Object invoke(String fieldName, Class<?> enhancedType)
-				{
-					return valueHolderContainerHelper.getVhcEntry(enhancedType);
-				}
-			});
+			PropertyInstance p_valueHolderContainerEntry = implementAssignedReadonlyProperty("ValueHolderContainerEntry",
+					new ValueHolderContainerEntryValueResolver(valueHolderContainerHelper));
 			implementGetState(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
+			implementSetInitPending(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementIsInitialized(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementGetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
 			implementSetObjRefs(p_valueHolderContainerTemplate, p_valueHolderContainerEntry);
@@ -417,7 +428,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 		implementSelfGetter(p_valueHolderContainerTemplate);
 
-		final FieldInstance f_targetCache = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "$targetCache", p_template_targetCache.getSignature(),
+		final FieldInstance f_targetCache = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__targetCache", p_template_targetCache.getSignature(),
 				p_template_targetCache.getPropertyType()));
 
 		return implementProperty(p_template_targetCache, new Script()

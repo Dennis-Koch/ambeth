@@ -841,6 +841,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             Box(type);
         }
 
+        public virtual void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments)
+        {
+            ((MethodBuilder)Method.Method).SetCustomAttribute(new CustomAttributeBuilder(annotationConstructor, arguments));
+        }
+
         public virtual void VisitTableSwitchInsn(int min, int max, Label defaultCaseLabel, params Label[] caseLabels)
         {
             gen.Emit(OpCodes.Switch, caseLabels);

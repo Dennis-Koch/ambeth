@@ -127,6 +127,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void PushNullOrZero(Type type);
 
+        void PushNullOrZero(NewType type);
+
         void PutField(FieldInstance field);
 
         void PutStatic(FieldInstance field);
@@ -146,6 +148,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         void TryFinally(Script tryScript, Script finallyScript);
 
         void ValueOf(Type type);
+
+        void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments);
 
         void VisitTableSwitchInsn(int min, int max, Label dflt, params Label[] labels);
     }

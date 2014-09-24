@@ -116,42 +116,16 @@ namespace De.Osthus.Ambeth.Collections
         {
             return entry.SetValue(value);
         }
-
-        //public ISet<Entry<K, V>> EntrySet()
-        //{
-        //    LinkedHashSet<Entry<K, V>> set = new LinkedHashSet<Entry<K, V>>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
-        //    entrySet(set);
-        //    return set;
-        //}
-
-        //public void EntrySet(ISet<Entry<K, V>> targetEntrySet)
-        //{
-        //    MapIterator<K, V> iter = iterator();
-        //    while (iter.hasNext())
-        //    {
-        //        MapLinkedEntry<K, V> entry = iter.nextEntry();
-        //        targetEntrySet.add(entry);
-        //    }
-        //}
-
-        //@Override
-        //public ISet<K> KeySet()
-        //{
-        //    LinkedHashSet<K> set = new LinkedHashSet<K>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
-        //    keySet(set);
-        //    return set;
-        //}
-
-        //@Override
-        //public void KeySet(ISet<K> targetKeySet)
-        //{
-        //    MapIterator<K, V> iter = iterator();
-        //    while (iter.hasNext())
-        //    {
-        //        MapLinkedEntry<K, V> entry = iter.nextEntry();
-        //        targetKeySet.add(entry.getKey());
-        //    }
-        //}
+     
+        public override void KeySet(IISet<K> targetKeySet)
+        {
+            Iterator<Entry<K, V>> iter = Iterator();
+            while (iter.MoveNext())
+            {
+                Entry<K, V> entry = iter.Current;
+                targetKeySet.Add(entry.Key);
+            }
+        }
 
         public override IList<V> Values()
         {
@@ -209,7 +183,27 @@ namespace De.Osthus.Ambeth.Collections
             return false;
         }
 
-        IEnumerator<Entry<K, V>> System.Collections.Generic.IEnumerable<Entry<K, V>>.GetEnumerator()
+        public override Iterator<Entry<K, V>> Iterator()
+        {
+            return new MapLinkedIterator<E, K, V>(this, fastIterationList, true);
+        }
+
+        public override Iterator<Entry<K, V>> Iterator(bool removeAllowed)
+        {
+            return new MapLinkedIterator<E, K, V>(this, fastIterationList, removeAllowed);
+        }
+
+        Iterator Iterable.Iterator()
+        {
+            return new MapLinkedIterator<E, K, V>(this, fastIterationList, true);
+        }
+
+        Iterator Iterable.Iterator(bool removeAllowed)
+        {
+            return new MapLinkedIterator<E, K, V>(this, fastIterationList, removeAllowed);
+        }
+
+        public override IEnumerator<Entry<K, V>> GetEnumerator()
         {
             return new MapLinkedIterator<E, K, V>(this, fastIterationList, false);
         }
@@ -218,25 +212,5 @@ namespace De.Osthus.Ambeth.Collections
         {
             return new MapLinkedIterator<E, K, V>(this, fastIterationList, false);
         }
-
-        //public override IEnumerator<Entry<K, V>> GetEnumerator()
-        //{
-        //    return new MapLinkedIterator<E, K, V>(this, fastIterationList, false);
-        //}
-
-        public override Iterator<Entry<K, V>> Iterator()
-        {
-            return new MapLinkedIterator<E, K, V>(this, fastIterationList, true);
-        }
-
-	    public override Iterator<Entry<K, V>> Iterator(bool removeAllowed)
-	    {
-            return new MapLinkedIterator<E, K, V>(this, fastIterationList, removeAllowed);
-	    }
-
-        //System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        //{
-        //    return new MapLinkedIterator<E, K, V>(this, fastIterationList, false);
-        //}
     }
 }

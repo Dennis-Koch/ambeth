@@ -10,7 +10,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     {
         public static readonly Type templateType = typeof(EmbeddedTypeTemplate);
 
-        public static readonly String templatePropertyName = templateType.Name;
+        public static readonly String templatePropertyName = "__" + templateType.Name;
 
         public static readonly PropertyInstance t_p_Parent = PropertyInstance.FindByTemplate(typeof(IEmbeddedType), "Parent", typeof(Object), false);
 
@@ -51,7 +51,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static PropertyInstance GetEmbeddedTypeTemplateProperty(IClassVisitor cv)
         {
-            Object bean = State.BeanContext.GetService<EmbeddedTypeTemplate>();
+            Object bean = State.BeanContext.GetService(templateType);
             PropertyInstance p_embeddedTypeTemplate = PropertyInstance.FindByTemplate(templatePropertyName, NewType.GetType(bean.GetType()), true);
             if (p_embeddedTypeTemplate != null)
             {

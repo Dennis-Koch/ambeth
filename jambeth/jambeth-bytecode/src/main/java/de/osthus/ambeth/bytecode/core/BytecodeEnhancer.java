@@ -1,11 +1,15 @@
 package de.osthus.ambeth.bytecode.core;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,12 +24,14 @@ import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehavior;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorExtendable;
 import de.osthus.ambeth.bytecode.behavior.IBytecodeBehaviorState;
+import de.osthus.ambeth.bytecode.config.BytecodeConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -66,6 +72,9 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 
 	@Autowired
 	protected IBytecodeClassLoader bytecodeClassLoader;
+
+	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory)
+	protected String traceDir;
 
 	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType = new WeakSmartCopyMap<Class<?>, ValueType>();
 
@@ -170,6 +179,29 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		return getEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
 	}
 
+	protected void logBytecodeOutput(String typeName, String bytecodeOutput)
+	{
+		File outputFileDir = new File(traceDir, getClass().getName());
+		outputFileDir.mkdirs();
+		File outputFile = new File(outputFileDir, typeName + ".txt");
+		try
+		{
+			FileWriter fw = new FileWriter(outputFile);
+			try
+			{
+				fw.write(bytecodeOutput);
+			}
+			finally
+			{
+				fw.close();
+			}
+		}
+		catch (IOException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
 	@Override
 	public Class<?> getEnhancedType(Class<?> typeToEnhance, String newTypeNamePrefix, IEnhancementHint hint)
 	{
@@ -222,8 +254,13 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			{
 				throw new IllegalStateException("Must never happen");
 			}
-			if (log.isDebugEnabled())
+			if (traceDir != null)
 			{
+				logBytecodeOutput(enhancedType.getName(), bytecodeClassLoader.toPrintableBytecode(enhancedType));
+			}
+			else if (log.isDebugEnabled())
+			{
+				// note that this intentionally will only be logged to the console if the traceDir is NOT specified already
 				log.debug(bytecodeClassLoader.toPrintableBytecode(enhancedType));
 			}
 			try
@@ -317,6 +354,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		{
 			throw new IllegalStateException("Must never happen");
 		}
+		String lastTypeHandleName = newTypeNamePrefix;
 		newTypeNamePrefix = newTypeNamePrefix.replaceAll(Pattern.quote("."), "/");
 		final StringWriter sw = new StringWriter();
 		try
@@ -343,9 +381,15 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				iterationCount++;
 
 				Type newTypeHandle = Type.getObjectType(newTypeNamePrefix + "$A" + iterationCount);
+				lastTypeHandleName = newTypeHandle.getClassName();
 
 				final IBytecodeBehavior[] currentPendingBehaviors = pendingBehaviors.toArray(IBytecodeBehavior.class);
 				pendingBehaviors.clear();
+
+				if (currentPendingBehaviors.length > 0 && log.isDebugEnabled())
+				{
+					log.debug("Applying behaviors on " + newTypeHandle.getClassName() + ": " + Arrays.toString(currentPendingBehaviors));
+				}
 				final BytecodeEnhancer This = this;
 				final byte[] fCurrentContent = currentContent;
 
@@ -387,7 +431,14 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			String classByteCode = sw.toString();
 			if (classByteCode.length() > 0)
 			{
-				throw RuntimeExceptionUtil.mask(e, "Bytecode:\n" + classByteCode);
+				if (traceDir != null)
+				{
+					logBytecodeOutput(lastTypeHandleName, classByteCode);
+				}
+				else
+				{
+					throw RuntimeExceptionUtil.mask(e, "Bytecode:\n" + classByteCode);
+				}
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}

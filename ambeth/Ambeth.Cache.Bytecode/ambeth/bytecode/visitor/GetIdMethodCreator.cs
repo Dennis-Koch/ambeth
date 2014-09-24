@@ -33,15 +33,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 base.VisitEnd();
                 return;
             }
-            m_get__Id = GetIdMethodCreator.template_m_entityEquals_getId.DeriveOwner();
+            MethodInstance m_getEntityMetaData = EntityMetaDataHolderVisitor.GetImplementedGetEntityMetaData(this, metaData);
+            IMethodVisitor mg = VisitMethod(GetIdMethodCreator.template_m_entityEquals_getId);
 
-            IMethodVisitor mg = VisitMethod(m_get__Id);
-
-            mg.CallThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
-		    mg.InvokeInterface(new MethodInstance(null, typeof(IEntityMetaData), typeof(PrimitiveMember), "get_IdMember"));
-		    mg.LoadThis();
-		    mg.Push(false);
-		    mg.InvokeVirtual(EntityMetaDataMemberVisitor.template_m_getValueWithFlag);
+            mg.CallThisGetter(m_getEntityMetaData);
+            mg.InvokeInterface(new MethodInstance(null, typeof(IEntityMetaData), typeof(PrimitiveMember), "get_IdMember"));
+            mg.LoadThis();
+            mg.Push(false);
+            mg.InvokeVirtual(EntityMetaDataMemberVisitor.template_m_getValueWithFlag);
             mg.ReturnValue();
 		    mg.EndMethod();
 

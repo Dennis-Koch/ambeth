@@ -152,6 +152,10 @@ namespace De.Osthus.Ambeth.Proxy
         
 	    protected virtual void PostProcessEntity(Object entity, IEntityMetaData metaData)
 	    {
+            if (entity is IBeanContextAware)
+            {
+                ((IBeanContextAware)entity).BeanContext = BeanContext;
+            }
             metaData.PostProcessNewEntity(entity);
 	    }
 

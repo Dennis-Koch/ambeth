@@ -1,23 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using De.Osthus.Ambeth.Accessor;
+using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Bytecode;
+using De.Osthus.Ambeth.Cache;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Event;
+using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml;
-using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Event;
+using System;
+using System.Collections.Generic;
 using System.Reflection;
-using De.Osthus.Ambeth.Annotation;
-using De.Osthus.Ambeth.Accessor;
-using De.Osthus.Ambeth.Bytecode;
-using De.Osthus.Ambeth.Proxy;
+using System.Text;
 using System.Threading;
-using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -35,6 +36,9 @@ namespace De.Osthus.Ambeth.Merge
 
         [Autowired]
         public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
+
+        [Autowired]
+        public ICacheModification CacheModification { protected get; set; }
 
         [Autowired(Optional = true)]
         public IEntityFactory EntityFactory { protected get; set; }
@@ -159,7 +163,7 @@ namespace De.Osthus.Ambeth.Merge
             ((EntityMetaData)metaData).CreatedOnMember = (PrimitiveMember)RefreshMember(metaData, metaData.CreatedOnMember);
 
 		    UpdateEntityMetaDataWithLifecycleExtensions(metaData);
-		    ((EntityMetaData) metaData).Initialize(EntityFactory);
+		    ((EntityMetaData) metaData).Initialize(CacheModification, EntityFactory);
         }
 
         protected Member RefreshMember(IEntityMetaData metaData, Member member)

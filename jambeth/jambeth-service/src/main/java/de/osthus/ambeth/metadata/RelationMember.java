@@ -18,7 +18,5 @@ public abstract class RelationMember extends Member
 
 	public abstract CascadeLoadMode getCascadeLoadMode();
 
-	public abstract boolean isToMany();
-
 	public abstract boolean isManyTo();
 }

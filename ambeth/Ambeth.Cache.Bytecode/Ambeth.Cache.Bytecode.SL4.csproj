@@ -78,6 +78,7 @@
     <Compile Include="ambeth\bytecode\behavior\EmbeddedTypeBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\EnhancedTypeBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\EntityEqualsBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\InitializeEmbeddedMemberBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\LazyRelationsBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\NotifyPropertyChangedBehavior.cs" />
     <Compile Include="ambeth\bytecode\behavior\ParentCacheHardRefBehavior.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="ambeth\bytecode\visitor\FlattenDebugHierarchyVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetBaseTypeMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetIdMethodCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\InitializeEmbeddedMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\NotifyPropertyChangedClassVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\ParentCacheHardRefVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\PublicEmbeddedConstructorVisitor.cs" />

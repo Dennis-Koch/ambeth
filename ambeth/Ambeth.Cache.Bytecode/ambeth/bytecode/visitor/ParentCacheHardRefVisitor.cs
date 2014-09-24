@@ -23,9 +23,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementParentCacheValueHardRef()
         {
-            FieldInstance f_pcvhr = new FieldInstance(FieldAttributes.Private, "f_pcvhr", template_m_setParentCacheValueHardRef.Parameters[0]);
+            FieldInstance f_pcvhr = new FieldInstance(FieldAttributes.Private, "$f_pcvhr", template_m_setParentCacheValueHardRef.Parameters[0]);
 
-            ImplementField(f_pcvhr);
+            f_pcvhr = ImplementField(f_pcvhr);
             ImplementSetter(template_m_setParentCacheValueHardRef, f_pcvhr);
         }
     }

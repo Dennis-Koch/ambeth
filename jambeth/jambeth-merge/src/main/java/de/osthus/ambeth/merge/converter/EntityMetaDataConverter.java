@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -29,6 +30,9 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected ICacheModification cacheModification;
 
 	@Autowired
 	protected IEntityFactory entityFactory;
@@ -123,7 +127,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 			setMergeRelevant(target, target.getUpdatedOnMember(), false);
 			setMergeRelevant(target, target.getIdMember(), false);
 			setMergeRelevant(target, target.getVersionMember(), false);
-			target.initialize(entityFactory);
+			target.initialize(cacheModification, entityFactory);
 			return target;
 		}
 		throw new IllegalStateException("Source of type " + sourceType.getName() + " not supported");

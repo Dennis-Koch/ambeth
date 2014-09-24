@@ -533,7 +533,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	@Override
 	public ISet<Entry<K, V>> entrySet()
 	{
-		final LinkedHashSet<Entry<K, V>> entrySet = new LinkedHashSet<Entry<K, V>>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
+		final LinkedHashSet<Entry<K, V>> entrySet = LinkedHashSet.create(size());
 		entrySet(entrySet);
 		return entrySet;
 	}
@@ -581,7 +581,7 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	@Override
 	public ISet<K> keySet()
 	{
-		final LinkedHashSet<K> keySet = new LinkedHashSet<K>((int) (size() / AbstractHashSet.DEFAULT_LOAD_FACTOR) + 1);
+		final LinkedHashSet<K> keySet = LinkedHashSet.create(size());
 		keySet(keySet);
 		return keySet;
 	}

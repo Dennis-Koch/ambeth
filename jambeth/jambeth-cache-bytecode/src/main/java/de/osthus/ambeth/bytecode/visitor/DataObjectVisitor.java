@@ -26,7 +26,7 @@ public class DataObjectVisitor extends ClassGenerator
 {
 	public static final Class<?> templateType = DataObjectTemplate.class;
 
-	protected static final String templatePropertyName = templateType.getSimpleName();
+	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	public static final MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, templateType, void.class, "toBeUpdatedChanged", IDataObject.class,
 			boolean.class, boolean.class);

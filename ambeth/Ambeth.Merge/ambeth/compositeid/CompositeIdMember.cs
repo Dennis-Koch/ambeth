@@ -81,6 +81,14 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
+        public override bool IsToMany
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public override bool CanRead
         {
             get
@@ -176,9 +184,9 @@ namespace De.Osthus.Ambeth.CompositeId
             }
         }
 
-        public override V GetAnnotation<V>()
+        public override Attribute GetAnnotation(Type annotationType)
         {
-            throw new NotSupportedException();
+            return null;
         }
 
         public override String Name
