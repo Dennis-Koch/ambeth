@@ -17,10 +17,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public override void VisitEnd()
         {
             FieldInstance f_parent = new FieldInstance(FieldAttributes.Family | FieldAttributes.InitOnly, "parent", typeof(Object));
-            ImplementField(f_parent);
+            f_parent = ImplementField(f_parent);
 
             Type superType = State.CurrentType;
-            ConstructorInfo[] superConstructors = superType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            ConstructorInfo[] superConstructors = superType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             if (superConstructors.Length == 0)
             {
                 // Default constructor

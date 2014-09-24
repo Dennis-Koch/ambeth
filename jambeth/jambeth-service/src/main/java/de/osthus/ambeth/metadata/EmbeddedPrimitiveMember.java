@@ -98,6 +98,12 @@ public class EmbeddedPrimitiveMember extends PrimitiveMember implements IEmbedde
 	}
 
 	@Override
+	public boolean isToMany()
+	{
+		return childMember.isToMany();
+	}
+
+	@Override
 	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
 	{
 		return childMember.getAnnotation(annotationType);

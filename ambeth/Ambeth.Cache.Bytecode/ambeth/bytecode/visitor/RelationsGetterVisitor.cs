@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly Type templateType = typeof(ValueHolderContainerTemplate);
 
-        protected static readonly String templatePropertyName = templateType.Name;
+        protected static readonly String templatePropertyName = "__" + templateType.Name;
 
         private static readonly PropertyInstance p_template_targetCache = new PropertyInstance(typeof(IValueHolderContainer).GetProperty("__TargetCache"));
 
@@ -146,7 +146,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public override void VisitEnd()
         {
             PropertyInstance p_valueHolderContainerTemplate = GetValueHolderContainerTemplatePI(this);
-            PropertyInstance p_relationMembers = ImplementAssignedReadonlyProperty("sf_$relationMembers", metaData.RelationMembers);
+            PropertyInstance p_relationMembers = ImplementAssignedReadonlyProperty("__RelationMembers", metaData.RelationMembers);
 
             PropertyInstance p_targetCache = ImplementTargetCache(p_valueHolderContainerTemplate);
 
@@ -378,7 +378,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
             ImplementSelfGetter(p_valueHolderContainerTemplate);
 
-            FieldInstance f_targetCache = ImplementField(new FieldInstance(FieldAttributes.Private, "f_targetCache", p_template_targetCache.PropertyType));
+            FieldInstance f_targetCache = ImplementField(new FieldInstance(FieldAttributes.Private, "__targetCache", p_template_targetCache.PropertyType));
 
             return ImplementProperty(p_template_targetCache, delegate(IMethodVisitor mv)
             {

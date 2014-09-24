@@ -152,7 +152,6 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             {
                 throw new Exception("A visitor did not correctly call its cascaded visitor with VisitEnd()");
             }
-            ambethClassLoader.Save();
             //Verify(content);
             return content;
         }
@@ -171,7 +170,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
         protected void ToPrintableByteCodeIntern(Type type, StringBuilder sb)
         {
-            if (type.BaseType != null)// && typeof(IEnhancedType).IsAssignableFrom(type.BaseType))
+            if (type.BaseType != null && typeof(IEnhancedType).IsAssignableFrom(type.BaseType))
             {
                 // write parent classes first
                 ToPrintableByteCodeIntern(type.BaseType, sb);
@@ -259,6 +258,11 @@ namespace De.Osthus.Ambeth.Bytecode.Core
         protected String GetBytecodeTypeName(String typeName)
         {
             return typeName.Replace('.', '/');
+        }
+
+        public void Save()
+        {
+            ambethClassLoader.Save();
         }
     }
 }

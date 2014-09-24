@@ -1,7 +1,6 @@
 package de.osthus.ambeth.bytecode.visitor;
 
 import java.lang.reflect.Constructor;
-import java.util.Collection;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.bytecode.ClassGenerator;
@@ -29,8 +28,6 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 
 	protected static final MethodInstance template_m_isManyTo = new MethodInstance(null, RelationMember.class, boolean.class, "isManyTo");
 
-	protected static final MethodInstance template_m_isToMany = new MethodInstance(null, RelationMember.class, boolean.class, "isToMany");
-
 	protected final Class<?> entityType;
 
 	protected final String memberName;
@@ -51,7 +48,6 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 		IPropertyInfo[] propertyPath = MemberTypeProvider.buildPropertyPath(entityType, memberName, propertyInfoProvider);
 		implementCascadeLoadMode(propertyPath);
 		implementIsManyTo(propertyPath);
-		implementIsToMany(propertyPath);
 		super.visitEnd();
 	}
 
@@ -91,13 +87,4 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 
 		implementGetter(template_m_isManyTo, f_isManyTo);
 	}
-
-	protected void implementIsToMany(IPropertyInfo[] propertyPath)
-	{
-		MethodGenerator mv = visitMethod(template_m_isToMany);
-		mv.push(Collection.class.isAssignableFrom(propertyPath[propertyPath.length - 1].getPropertyType()));
-		mv.returnValue();
-		mv.endMethod();
-	}
-
 }

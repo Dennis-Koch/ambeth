@@ -17,8 +17,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static readonly MethodInstance template_m_isManyTo = new MethodInstance(null, typeof(RelationMember), typeof(bool), "get_IsManyTo");
 
-        protected static readonly MethodInstance template_m_isToMany = new MethodInstance(null, typeof(RelationMember), typeof(bool), "get_IsToMany");
-
         protected readonly Type entityType;
 
         protected readonly String memberName;
@@ -38,7 +36,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IPropertyInfo[] propertyPath = MemberTypeProvider.BuildPropertyPath(entityType, memberName, propertyInfoProvider);
             ImplementCascadeLoadMode(propertyPath);
             ImplementIsManyTo(propertyPath);
-            ImplementIsToMany(propertyPath);
             base.VisitEnd();
         }
 
@@ -49,7 +46,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementGetter(template_m_getCascadeLoadMode, f_cascadeLoadMode);
             ImplementSetter(template_m_setCascadeLoadMode, f_cascadeLoadMode);
 
-            ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic);
+            ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
             for (int a = constructors.Length; a-- > 0; )
             {
                 ConstructorInstance ci = new ConstructorInstance(constructors[a]);
@@ -73,14 +70,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             FieldInstance f_isManyTo = ImplementField(new FieldInstance(FieldAttributes.Private, "__isManyTo", typeof(bool)));
 
             ImplementGetter(template_m_isManyTo, f_isManyTo);
-        }
-
-        protected void ImplementIsToMany(IPropertyInfo[] propertyPath)
-        {
-            IMethodVisitor mv = VisitMethod(template_m_isToMany);
-            mv.Push(ListUtil.IsCollection(propertyPath[propertyPath.Length - 1].PropertyType));
-            mv.ReturnValue();
-            mv.EndMethod();
         }
     }
 }

@@ -17,6 +17,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         public IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap;
 
+        public IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap;
+
         public IISet<Object> allLifeCycledBeansSet;
 
         public IList<Object> initializedOrdering;

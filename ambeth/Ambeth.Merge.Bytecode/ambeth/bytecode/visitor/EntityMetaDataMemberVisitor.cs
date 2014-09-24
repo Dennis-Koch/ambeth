@@ -19,7 +19,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static readonly MethodInstance template_m_canWrite = new MethodInstance(null, typeof(Member), typeof(bool), "get_CanWrite");
 
-        protected static readonly MethodInstance template_m_getAttribute = new MethodInstance(null, typeof(Member), typeof(Attribute), "getAttribute", typeof(Type));
+        protected static readonly MethodInstance template_m_getAttribute = new MethodInstance(null, typeof(Member), typeof(Attribute), "GetAnnotation", typeof(Type));
 
         protected static readonly MethodInstance template_m_getDeclaringType = new MethodInstance(null, typeof(Member), typeof(Type), "get_DeclaringType");
 
@@ -30,6 +30,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected static readonly MethodInstance template_m_getElementType = new MethodInstance(null, typeof(Member), typeof(Type), "get_ElementType");
 
         protected static readonly MethodInstance template_m_getRealType = new MethodInstance(null, typeof(Member), typeof(Type), "get_RealType");
+
+        protected static readonly MethodInstance template_m_isToMany = new MethodInstance(null, typeof(Member), typeof(bool), "get_IsToMany");
 
         protected static readonly MethodInstance template_m_getValue = new MethodInstance(null, typeof(Member), typeof(Object), "GetValue", typeof(Object));
 
@@ -69,6 +71,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementGetNullEquivalentValue(propertyPath);
             ImplementGetElementType(propertyPath);
             ImplementGetRealType(propertyPath);
+            ImplementIsToMany(propertyPath);
             ImplementGetValue(propertyPath);
             ImplementSetValue(propertyPath);
             base.VisitEnd();
@@ -127,7 +130,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 typeToAttributeMap.Put(annotation.GetType(), annotation);
             }
-            FieldInstance f_typeToAttributeMap = ImplementStaticAssignedField("typeToAttributeMap", typeToAttributeMap);
+            FieldInstance f_typeToAttributeMap = ImplementStaticAssignedField("sf__typeToAttributeMap", typeToAttributeMap);
             IMethodVisitor mv = VisitMethod(template_m_getAttribute);
             mv.GetThisField(f_typeToAttributeMap);
             mv.LoadArg(0);
@@ -164,77 +167,156 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementGetValue(IPropertyInfo[] propertyPath)
         {
+            for (int a = 0, size = propertyPath.Length; a < size; a++)
             {
-                IMethodVisitor mv = VisitMethod(template_m_getValue);
-                mv.LoadThis();
-                mv.LoadArg(0);
-                mv.Push(false);
-                mv.InvokeVirtual(template_m_getValueWithFlag);
-                mv.ReturnValue();
-                mv.EndMethod();
+                IPropertyInfo property = propertyPath[a];
+                if (property is MethodPropertyInfo && ((MethodPropertyInfo)property).Getter == null)
+                {
+                    throw new Exception("Property not readable: " + property.EntityType.FullName + "." + property.Name);
+                }
             }
-            {
-                IMethodVisitor mv = VisitMethod(template_m_getValueWithFlag);
+            ImplementGetValueIntern(template_m_getValue, propertyPath);
+            ImplementGetValueIntern(template_m_getValueWithFlag, propertyPath);
+        }
 
-                for (int a = 0, size = propertyPath.Length; a < size; a++)
+        protected void ImplementGetValueIntern(MethodInstance template_m_getValue, IPropertyInfo[] propertyPath)
+        {
+            IMethodVisitor mv = VisitMethod(template_m_getValue);
+            
+            Type declaringType = propertyPath[0].EntityType;
+            Label l_finish = mv.NewLabel();
+            mv.LoadArg(0);
+            mv.CheckCast(declaringType);
+            for (int a = 0, size = propertyPath.Length - 1; a < size; a++)
+            {
+                InvokeGetProperty(mv, propertyPath[a]);
+                mv.Dup();
+                mv.IfNull(l_finish);
+            }
+            IPropertyInfo lastProperty = propertyPath[propertyPath.Length - 1];
+            InvokeGetProperty(mv, lastProperty);
+            if (lastProperty.PropertyType.IsPrimitive)
+            {
+                Type pType = lastProperty.PropertyType;
+                LocalVariableInfo loc_value = mv.NewLocal(pType);
+                mv.StoreLocal(loc_value);
+                mv.LoadLocal(loc_value);
+                Label l_valueIsNonZero = mv.NewLabel();
+
+                mv.IfZCmp(pType, CompareOperator.NE, l_valueIsNonZero);
+
+                if (mv.Method.Parameters.Length == 2)
                 {
-                    IPropertyInfo property = propertyPath[a];
-                    if (property is MethodPropertyInfo && ((MethodPropertyInfo)property).Getter == null)
-                    {
-                        throw new Exception("Property not readable: " + property.EntityType.FullName + "." + property.Name);
-                    }
-                }
-                // IEntityMetaData metaDataOfProperty = entityMetaDataProvider.getMetaData(propertyPath[0].EntityType, true);
-                // if (metaDataOfProperty != null)
-                // {
-                // if (metaDataOfProperty.getEnhancedType() == null)
-                // {
-                // }
-                // }
-                // Type declaringType = metaDataOfProperty != null ? metaDataOfProperty.getEnhancedType() : propertyPath[0].EntityType;
-                Type declaringType = propertyPath[0].EntityType;
-                Label l_finish = mv.NewLabel();
-                mv.LoadArg(0);
-                mv.CheckCast(declaringType);
-                for (int a = 0, size = propertyPath.Length - 1; a < size; a++)
-                {
-                    InvokeGetProperty(mv, propertyPath[a]);
-                    mv.Dup();
-                    mv.IfNull(l_finish);
-                }
-                IPropertyInfo lastProperty = propertyPath[propertyPath.Length - 1];
-                InvokeGetProperty(mv, lastProperty);
-                if (lastProperty.PropertyType.IsPrimitive)
-                {
-                    Type pType = lastProperty.PropertyType;
-                    LocalVariableInfo loc_value = mv.NewLocal(pType);
-                    mv.StoreLocal(loc_value);
-                    mv.LoadLocal(loc_value);
-                    Label l_valueIsNonZero = mv.NewLabel();
+                    // check null-equi flag
+
                     Label l_nullAllowed = mv.NewLabel();
 
-                    mv.IfZCmp(pType, CompareOperator.NE, l_valueIsNonZero);
-
-                    // check null-equi flag
                     mv.LoadArg(1);
                     mv.IfZCmp(CompareOperator.EQ, l_nullAllowed);
                     mv.PushNullOrZero(pType);
-                    mv.Box(pType);
+                    if (!mv.Method.ReturnType.Type.IsValueType)
+                    {
+                        mv.ValueOf(pType);
+                    }
                     mv.ReturnValue();
 
                     mv.Mark(l_nullAllowed);
-                    mv.PushNull();
+                }
+                mv.PushNullOrZero(mv.Method.ReturnType);
+                mv.ReturnValue();
+
+                mv.Mark(l_valueIsNonZero);
+                mv.LoadLocal(loc_value);
+                mv.ValueOf(pType);
+            }
+            else if (lastProperty.PropertyType.IsValueType)
+            {
+                Type pType = lastProperty.PropertyType;
+
+                MethodInfo m_hasValue = pType.GetMethod("get_HasValue");
+                if (m_hasValue != null)
+                {
+                    LocalVariableInfo loc_value = mv.NewLocal(pType);
+                    mv.StoreLocal(loc_value);
+                    mv.LoadLocal(loc_value);
+
+                    MethodInfo m_getValue = pType.GetMethod("get_Value");
+                    LocalVariableInfo loc_realValue = mv.NewLocal(m_getValue.ReturnType);
+                    Label l_hasNoValue = mv.NewLabel();
+                    Label l_valueIsNonZero = mv.NewLabel();
+
+                    mv.InvokeOnExactOwner(m_hasValue);
+                    mv.IfZCmp(CompareOperator.EQ, l_hasNoValue);
+                    mv.LoadLocal(loc_value);
+                    mv.InvokeOnExactOwner(m_getValue);
+                    mv.StoreLocal(loc_realValue);
+                    mv.LoadLocal(loc_realValue);
+                    mv.IfZCmp(CompareOperator.EQ, l_hasNoValue);
+                    mv.LoadLocal(loc_realValue);
+                    if (!mv.Method.ReturnType.Type.IsValueType)
+                    {
+                        mv.ValueOf(m_getValue.ReturnType);
+                    }
                     mv.ReturnValue();
 
-                    mv.Mark(l_valueIsNonZero);
-                    mv.LoadLocal(loc_value);
-                    mv.ValueOf(pType);
+                    mv.Mark(l_hasNoValue);
+
+                    if (mv.Method.Parameters.Length == 2)
+                    {
+                        Label l_nullEquivalentValueAllowed = mv.NewLabel();
+                        // check null-equi flag
+                        mv.LoadArg(1);
+                        mv.IfZCmp(CompareOperator.NE, l_nullEquivalentValueAllowed);
+                        mv.PushNull();
+                        mv.ReturnValue();
+
+                        mv.Mark(l_nullEquivalentValueAllowed);
+                    }
+                    mv.PushNullOrZero(m_getValue.ReturnType);
+                    if (!mv.Method.ReturnType.Type.IsValueType)
+                    {
+                        mv.ValueOf(m_getValue.ReturnType);
+                    }
                 }
-                mv.Mark(l_finish);
-                mv.ReturnValue();
-                mv.EndMethod();
+                else
+                {
+                    mv.Box(pType);
+                }
             }
+            mv.Mark(l_finish);
+            mv.ReturnValue();
+            mv.EndMethod();
         }
+
+        public int? GetId()
+        {
+            return 5;
+        }
+
+        public Object GetValue(Object obj)
+        {
+            return null;
+        }
+
+        public V GetValue<V>(Object obj)
+        {
+            return (V)GetValue(obj);
+        }
+
+        public Object GetValue(Object value, bool value2)
+        {
+            int? id = ((EntityMetaDataMemberVisitor)value).GetId();
+            if (id.HasValue)
+            {
+                return id.Value;
+            }
+            if (value2)
+            {
+                return 0;
+            }
+            return null;
+        }
+
 
         protected void ImplementSetValue(IPropertyInfo[] propertyPath)
         {
@@ -343,6 +425,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 FieldInfo field = ((FieldPropertyInfo)property).BackingField;
                 mv.PutField(new FieldInstance(field));
             }
+        }
+
+        protected void ImplementIsToMany(IPropertyInfo[] propertyPath)
+        {
+            IMethodVisitor mv = VisitMethod(template_m_isToMany);
+            mv.Push(ListUtil.IsCollection(propertyPath[propertyPath.Length - 1].PropertyType));
+            mv.ReturnValue();
+            mv.EndMethod();
         }
     }
 }

@@ -13,6 +13,7 @@ import javax.persistence.PrePersist;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.bytecode.EntityEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
+import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -69,6 +70,9 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 	@Autowired
 	protected IBytecodeEnhancer bytecodeEnhancer;
+
+	@Autowired
+	protected ICacheModification cacheModification;
 
 	@Autowired(optional = true)
 	protected IEntityFactory entityFactory;
@@ -191,7 +195,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		((EntityMetaData) metaData).setCreatedOnMember((PrimitiveMember) refreshMember(metaData, metaData.getCreatedOnMember()));
 
 		updateEntityMetaDataWithLifecycleExtensions(metaData);
-		((EntityMetaData) metaData).initialize(entityFactory);
+		((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
 	}
 
 	protected Member refreshMember(IEntityMetaData metaData, Member member)

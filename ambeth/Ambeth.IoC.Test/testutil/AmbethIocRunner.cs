@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Testutil
 {
@@ -46,6 +48,33 @@ namespace De.Osthus.Ambeth.Testutil
             }
         }
 
+        protected IList<Type> BuildTestModuleList(MethodInfo frameworkMethod)
+	    {
+		    IList<IAnnotationInfo<TestModule>> testModulesList = FindAnnotations<TestModule>(testClass, frameworkMethod);
+
+		    List<Type> moduleList = new List<Type>();
+            foreach (IAnnotationInfo<TestModule> testModuleItem in testModulesList)
+		    {
+			    TestModule testFrameworkModule = testModuleItem.Annotation;
+                moduleList.AddRange(testFrameworkModule.Value);
+		    }
+            return moduleList;
+	    }
+
+	    protected IList<Type> BuildFrameworkTestModuleList(MethodInfo frameworkMethod)
+	    {
+            IList<IAnnotationInfo<TestFrameworkModule>> testFrameworkModulesList = FindAnnotations<TestFrameworkModule>(testClass,
+                    frameworkMethod);
+
+		    List<Type> frameworkModuleList = new List<Type>();
+            foreach (IAnnotationInfo<TestFrameworkModule> testModuleItem in testFrameworkModulesList)
+		    {
+			    TestFrameworkModule testFrameworkModule = testModuleItem.Annotation;
+			    frameworkModuleList.AddRange(testFrameworkModule.Value);
+		    }
+		    return frameworkModuleList;
+	    }
+
         public void RebuildContext(MethodInfo frameworkMethod)
         {
             DisposeContext();
@@ -56,50 +85,41 @@ namespace De.Osthus.Ambeth.Testutil
 
             ExtendProperties(frameworkMethod, baseProps);
 
-            IList<IAnnotationInfo<TestModule>> testModulesList = FindAnnotations<TestModule>(testClass, frameworkMethod);
+            LinkedHashSet<Type> testClassLevelTestFrameworkModulesList = new LinkedHashSet<Type>();
+            LinkedHashSet<Type> testClassLevelTestModulesList = new LinkedHashSet<Type>();
 
-            IList<IAnnotationInfo<TestFrameworkModule>> testFrameworkModulesList = FindAnnotations<TestFrameworkModule>(testClass,
-                    frameworkMethod);
+            testClassLevelTestModulesList.AddAll(BuildTestModuleList(frameworkMethod));
+            testClassLevelTestFrameworkModulesList.AddAll(BuildFrameworkTestModuleList(frameworkMethod));
 
-            ISet<Type> testClassLevelTestFrameworkModulesList = new HashSet<Type>();
-            ISet<Type> testClassLevelTestModulesList = new HashSet<Type>();
-
-            foreach (IAnnotationInfo<TestFrameworkModule> testModuleItem in testFrameworkModulesList)
-            {
-                TestFrameworkModule testFrameworkModule = testModuleItem.Annotation;
-                foreach (Type type in testFrameworkModule.Value)
-                {
-                    AssemblyHelper.RegisterAssemblyFromType(type);
-                    testClassLevelTestFrameworkModulesList.Add(type);
-                }
-            }
-            foreach (IAnnotationInfo<TestModule> testModuleItem in testModulesList)
-            {
-                TestModule testModule = testModuleItem.Annotation;
-                foreach (Type type in testModule.Value)
-                {
-                    AssemblyHelper.RegisterAssemblyFromType(type);
-                    testClassLevelTestModulesList.Add(type);
-                }
-            }
-            Type[] frameworkModules = ListUtil.ToArray(testClassLevelTestFrameworkModulesList);
-            Type[] bootstrapModules = ListUtil.ToArray(testClassLevelTestModulesList);
+            Type[] frameworkModules = testClassLevelTestFrameworkModulesList.ToArray();
+            Type[] applicationModules = testClassLevelTestModulesList.ToArray();
 
             testClassLevelContext = BeanContextFactory.CreateBootstrap(baseProps);
-            IServiceContext currentBeanContext = testClassLevelContext;
-            if (frameworkModules.Length > 0)
+            bool success = false;
+            try
             {
-                currentBeanContext = currentBeanContext.CreateService(delegate(IBeanContextFactory childContextFactory)
-                    {
-                        RebuildContextDetails(childContextFactory);
-                    }, frameworkModules);
+                IServiceContext currentBeanContext = testClassLevelContext;
+                if (frameworkModules.Length > 0)
+                {
+                    currentBeanContext = currentBeanContext.CreateService(delegate(IBeanContextFactory childContextFactory)
+                        {
+                            RebuildContextDetails(childContextFactory);
+                        }, frameworkModules);
+                }
+                if (applicationModules.Length > 0)
+                {
+                    currentBeanContext = currentBeanContext.CreateService(applicationModules);
+                }
+                currentBeanContext.RegisterWithLifecycle(originalTestInstance).Finish();
+                beanContext = currentBeanContext;
             }
-            if (bootstrapModules.Length > 0)
+            finally
             {
-                currentBeanContext = currentBeanContext.CreateService(bootstrapModules);
+                if (!success && testClassLevelContext != null)
+			    {
+				    testClassLevelContext.GetService<IThreadLocalCleanupController>().CleanupThreadLocal();
+			    }
             }
-            currentBeanContext.RegisterWithLifecycle(originalTestInstance).Finish();
-            beanContext = currentBeanContext;
         }
 
         protected void ExtendProperties(MethodInfo frameworkMethod, Properties props)

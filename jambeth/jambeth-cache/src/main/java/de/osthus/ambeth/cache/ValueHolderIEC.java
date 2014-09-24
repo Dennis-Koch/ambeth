@@ -1,9 +1,5 @@
 package de.osthus.ambeth.cache;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
-import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -23,22 +19,18 @@ import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.MethodAccess;
-import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
-import de.osthus.ambeth.util.IParamHolder;
-import de.osthus.ambeth.util.ParamHolder;
-import de.osthus.ambeth.util.ReflectUtil;
 
 public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements IProxyHelper, IInitializingBean
 {
 	public static class ValueHolderContainerEntry
 	{
-		protected final AbstractValueHolderEntry2[] entries;
+		protected final ValueHolderEntry[] entries;
 
 		public ValueHolderContainerEntry(Class<?> targetType, RelationMember[] members, IBytecodeEnhancer bytecodeEnhancer,
 				IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
 		{
-			entries = new AbstractValueHolderEntry2[members.length];
+			entries = new ValueHolderEntry[members.length];
 			try
 			{
 				FieldAccess targetFieldAccess = FieldAccess.get(targetType);
@@ -47,8 +39,8 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 				for (int relationIndex = members.length; relationIndex-- > 0;)
 				{
 					RelationMember member = members[relationIndex];
-					AbstractValueHolderEntry2 vhEntry = new AbstractValueHolderEntry2(targetType, member, targetMethodAccess, targetFieldAccess,
-							bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
+					ValueHolderEntry vhEntry = new ValueHolderEntry(targetType, member, targetMethodAccess, targetFieldAccess, bytecodeEnhancer,
+							propertyInfoProvider, memberTypeProvider);
 					entries[relationIndex] = vhEntry;
 				}
 			}
@@ -128,7 +120,7 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 		public abstract void setState(Object obj, ValueHolderState state);
 	}
 
-	public static class AbstractValueHolderEntry2 extends AbstractValueHolderEntry
+	public static class ValueHolderEntry extends AbstractValueHolderEntry
 	{
 		protected static final Object[] EMPTY_ARGS = new Object[0];
 
@@ -144,74 +136,24 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 
 		protected final RelationMember member;
 
-		public AbstractValueHolderEntry2(Class<?> targetType, RelationMember member, MethodAccess methodAccess, FieldAccess fieldAccess,
+		public ValueHolderEntry(Class<?> targetType, RelationMember member, MethodAccess methodAccess, FieldAccess fieldAccess,
 				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
 		{
 			this.member = member;
 			memberName = member.getName();
 			String lastPropertyName = memberName;
-			Class<?> currType = targetType;
 			String prefix = "";
 
 			if (member instanceof IEmbeddedMember)
 			{
 				IEmbeddedMember embeddedMember = (IEmbeddedMember) member;
 				lastPropertyName = embeddedMember.getChildMember().getName();
-				ParamHolder<Class<?>> currTypeOut = new ParamHolder<Class<?>>();
-				getMemberDelegate(targetType, embeddedMember, currTypeOut, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
-				currType = currTypeOut.getValue();
 
 				prefix = embeddedMember.getMemberPathString() + ".";
 			}
 			state = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getInitializedFieldName(lastPropertyName));
 			objRefs = memberTypeProvider.getMember(targetType, prefix + ValueHolderIEC.getObjRefsFieldName(lastPropertyName));
 			directValue = memberTypeProvider.getMember(targetType, prefix + lastPropertyName + ValueHolderIEC.getNoInitSuffix());
-		}
-
-		protected Member[] getMemberDelegate(Class<?> targetType, IEmbeddedMember member, IParamHolder<Class<?>> currTypeOut,
-				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
-		{
-			Class<?> currType = targetType;
-			Class<?> parentObjectType = targetType;
-			String embeddedPath = "";
-			String[] memberPath = member.getMemberPathToken();
-			for (int a = 0, size = memberPath.length; a < size; a++)
-			{
-				String memberItem = memberPath[a];
-
-				if (embeddedPath.length() > 0)
-				{
-					embeddedPath += ".";
-				}
-				embeddedPath += memberItem;
-				IPropertyInfo pi = propertyInfoProvider.getProperty(currType, memberItem);
-				if (pi != null)
-				{
-					parentObjectType = currType;
-					currType = pi.getPropertyType();
-					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				Field[] fi = ReflectUtil.getDeclaredFieldInHierarchy(currType, memberItem);
-				if (fi.length != 0)
-				{
-					parentObjectType = currType;
-					currType = fi[0].getType();
-					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				Method mi = ReflectUtil.getDeclaredMethod(true, currType, null, memberItem, new Class<?>[0]);
-				if (mi != null)
-				{
-					parentObjectType = currType;
-					currType = mi.getReturnType();
-					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(targetType, parentObjectType, embeddedPath));
-					continue;
-				}
-				throw new IllegalStateException("Property/Field/Method not found: " + currType + "." + memberItem);
-			}
-			currTypeOut.setValue(currType);
-			return member.getMemberPath();
 		}
 
 		@Override
@@ -319,25 +261,6 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 	// entityFieldAccess.set(obj, fieldIndex, null);
 	// }
 	// }
-
-	public static class ValueHolderTypeInfoItemEntry extends AbstractValueHolderEntry2
-	{
-		protected final RelationMember member;
-
-		public ValueHolderTypeInfoItemEntry(Class<?> targetType, RelationMember member, MethodAccess methodAccess, FieldAccess fieldAccess,
-				IBytecodeEnhancer bytecodeEnhancer, IPropertyInfoProvider propertyInfoProvider, IMemberTypeProvider memberTypeProvider)
-		{
-			super(targetType, member, methodAccess, fieldAccess, bytecodeEnhancer, propertyInfoProvider, memberTypeProvider);
-			this.member = member;
-		}
-
-		@Override
-		public void setUninitialized(Object obj, IObjRef[] objRefs)
-		{
-			super.setUninitialized(obj, objRefs);
-			member.setValue(obj, null);
-		}
-	}
 
 	public static final String getObjRefsFieldName(String propertyName)
 	{

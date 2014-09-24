@@ -15,6 +15,8 @@ namespace De.Osthus.Ambeth.Bytecode
 
 	    Type LoadClass(String typeName, byte[] content);
 
+        void Save();
+
 	    void Verify(byte[] content);
     }
 }

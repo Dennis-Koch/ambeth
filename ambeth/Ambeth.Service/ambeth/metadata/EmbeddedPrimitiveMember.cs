@@ -104,9 +104,17 @@ namespace De.Osthus.Ambeth.Metadata
             }
         }
 
-        public override V GetAnnotation<V>()
+        public override bool IsToMany
         {
-            return childMember.GetAnnotation<V>();
+            get
+            {
+                return childMember.IsToMany;
+            }
+        }
+
+        public override Attribute GetAnnotation(Type annotationType)
+        {
+            return childMember.GetAnnotation(annotationType);
         }
 
         public override String Name
@@ -132,7 +140,7 @@ namespace De.Osthus.Ambeth.Metadata
                 return childMember.CanWrite;
             }
         }
-
+        
         public override Object GetValue(Object obj)
         {
             Object currentObj = obj;

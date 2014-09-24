@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
     [TestFrameworkModule(typeof(ValueHolderContainerTestModule))]
     [TestRebuildContext]
     [TestClass]
-    public class ValueHolderCnotainerTest : AbstractInformationBusTest
+    public class ValueHolderContainerTest : AbstractInformationBusTest
     {
         public static readonly String getIdName = "Get__Id";
 

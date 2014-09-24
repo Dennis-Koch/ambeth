@@ -101,6 +101,7 @@
     <Compile Include="ambeth\cache\interceptor\ThreadLocalRootCacheInterceptor.cs" />
     <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
+    <Compile Include="ambeth\cache\IParentEntityAware.cs" />
     <Compile Include="ambeth\cache\IRootCache.cs" />
     <Compile Include="ambeth\cache\ISecondLevelCacheManager.cs" />
     <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
@@ -132,9 +133,9 @@
     <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
     <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />
-    <Compile Include="ambeth\proxy\CacheEntityFactory.cs" />
     <Compile Include="ambeth\proxy\CachePostProcessor.cs" />
     <Compile Include="ambeth\proxy\IEntityEquals.cs" />
+    <Compile Include="ambeth\proxy\IPropertyChangeConfigurable.cs" />
     <Compile Include="ambeth\service\CacheServiceDelegate.cs" />
     <Compile Include="ambeth\service\CacheServiceModelProvider.cs" />
     <Compile Include="ambeth\service\ICacheRetrieverExtendable.cs" />
@@ -145,6 +146,7 @@
     <Compile Include="ambeth\cache\RootCache.cs" />
     <Compile Include="ambeth\template\DataObjectTemplate.cs" />
     <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
+    <Compile Include="ambeth\template\EntityEqualsTemplate.cs" />
     <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
     <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
     <Compile Include="ambeth\transfer\LoadContainer.cs" />

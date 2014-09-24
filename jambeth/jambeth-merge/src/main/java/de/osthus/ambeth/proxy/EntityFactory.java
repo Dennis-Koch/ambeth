@@ -11,6 +11,7 @@ import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IBeanContextAware;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.proxy.Self;
@@ -166,6 +167,10 @@ public class EntityFactory extends AbstractEntityFactory
 
 	protected void postProcessEntity(Object entity, IEntityMetaData metaData, boolean doEmptyInit)
 	{
+		if (entity instanceof IBeanContextAware)
+		{
+			((IBeanContextAware) entity).setBeanContext(beanContext);
+		}
 		metaData.postProcessNewEntity(entity);
 	}
 

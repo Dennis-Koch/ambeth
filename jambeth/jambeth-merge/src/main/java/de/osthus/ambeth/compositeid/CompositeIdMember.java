@@ -63,6 +63,7 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 		return technicalMember;
 	}
 
+	@Override
 	public void setTechnicalMember(boolean technicalMember)
 	{
 		this.technicalMember = technicalMember;
@@ -84,6 +85,12 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 	public Class<?> getDeclaringType()
 	{
 		return declaringType;
+	}
+
+	@Override
+	public boolean isToMany()
+	{
+		return false;
 	}
 
 	@Override

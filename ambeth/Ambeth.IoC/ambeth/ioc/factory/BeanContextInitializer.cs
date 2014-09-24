@@ -81,6 +81,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 return;
             }
             IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = new IdentityLinkedMap<Object, IBeanConfiguration>();
+            IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = new IdentityHashMap<Object, IBeanConfiguration>();
             HashMap<String, IBeanConfiguration> nameToBeanConfigurationMap = new HashMap<String, IBeanConfiguration>();
             HashMap<Type, IBeanConfiguration> typeToBeanConfigurationMap = new HashMap<Type, IBeanConfiguration>();
             IdentityHashSet<Object> allLifeCycledBeansSet = new IdentityHashSet<Object>();
@@ -97,6 +98,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 beanContextInit.beanContext = beanContext;
                 beanContextInit.beanContextFactory = beanContextFactory;
                 beanContextInit.objectToBeanConfigurationMap = objectToBeanConfigurationMap;
+                beanContextInit.objectToHandledBeanConfigurationMap = objectToHandledBeanConfigurationMap;
                 beanContextInit.allLifeCycledBeansSet = allLifeCycledBeansSet;
                 beanContextInit.initializedOrdering = initializedOrdering;
 
@@ -256,8 +258,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 return;
             }
-            //IServiceContext beanContext = beanContextInit.beanContext;
-            //IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
+            IServiceContext beanContext = beanContextInit.beanContext;
+            IdentityHashMap<Object, IBeanConfiguration> objectToHandledBeanConfigurationMap = beanContextInit.objectToHandledBeanConfigurationMap;
             //final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             //final List<ObjectName> mBeans = new ArrayList<ObjectName>();
             //boolean success = false;
@@ -492,6 +494,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 currentBeanContextInit.beanContext = beanContext;
                 currentBeanContextInit.beanContextFactory = beanContextFactory;
                 currentBeanContextInit.objectToBeanConfigurationMap = new IdentityLinkedMap<Object, IBeanConfiguration>();
+                currentBeanContextInit.objectToHandledBeanConfigurationMap = new IdentityHashMap<Object, IBeanConfiguration>();
 
                 currentBeanContextInit.properties = beanContext.GetService<Properties>();
             }
@@ -505,9 +508,8 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         public void InitializeBean(BeanContextInit beanContextInit, Object bean)
         {
-            IdentityLinkedMap<Object, IBeanConfiguration> objectToBeanConfigurationMap = beanContextInit.objectToBeanConfigurationMap;
-            IBeanConfiguration beanConfiguration = objectToBeanConfigurationMap.Get(bean);
-            objectToBeanConfigurationMap.Remove(bean);
+            IBeanConfiguration beanConfiguration = beanContextInit.objectToBeanConfigurationMap.Remove(bean);
+            beanContextInit.objectToHandledBeanConfigurationMap.Put(bean, beanConfiguration);
             IISet<Object> allLifeCycledBeansSet = beanContextInit.allLifeCycledBeansSet;
 
             IList<IBeanConfiguration> beanConfHierarchy = new List<IBeanConfiguration>(3);

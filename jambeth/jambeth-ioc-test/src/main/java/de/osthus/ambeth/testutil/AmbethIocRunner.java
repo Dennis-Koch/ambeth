@@ -2,7 +2,6 @@ package de.osthus.ambeth.testutil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Ignore;
@@ -17,7 +16,7 @@ import org.junit.runners.model.Statement;
 import de.osthus.ambeth.annotation.AnnotationInfo;
 import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -77,16 +76,16 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 	protected List<Class<? extends IInitializingModule>> buildTestModuleList(FrameworkMethod frameworkMethod)
 	{
-		List<IAnnotationInfo<?>> testFrameworkModulesList = findAnnotations(getTestClass().getJavaClass(),
-				frameworkMethod != null ? frameworkMethod.getMethod() : null, TestModule.class);
+		List<IAnnotationInfo<?>> testModulesList = findAnnotations(getTestClass().getJavaClass(), frameworkMethod != null ? frameworkMethod.getMethod() : null,
+				TestModule.class);
 
-		ArrayList<Class<? extends IInitializingModule>> frameworkModuleList = new ArrayList<Class<? extends IInitializingModule>>();
-		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
+		ArrayList<Class<? extends IInitializingModule>> moduleList = new ArrayList<Class<? extends IInitializingModule>>();
+		for (IAnnotationInfo<?> testModuleItem : testModulesList)
 		{
 			TestModule testFrameworkModule = (TestModule) testModuleItem.getAnnotation();
-			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+			moduleList.addAll(testFrameworkModule.value());
 		}
-		return frameworkModuleList;
+		return moduleList;
 	}
 
 	protected List<Class<? extends IInitializingModule>> buildFrameworkTestModuleList(FrameworkMethod frameworkMethod)
@@ -98,7 +97,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		for (IAnnotationInfo<?> testModuleItem : testFrameworkModulesList)
 		{
 			TestFrameworkModule testFrameworkModule = (TestFrameworkModule) testModuleItem.getAnnotation();
-			frameworkModuleList.addAll(Arrays.asList(testFrameworkModule.value()));
+			frameworkModuleList.addAll(testFrameworkModule.value());
 		}
 		return frameworkModuleList;
 	}
@@ -114,14 +113,14 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 		extendProperties(frameworkMethod, baseProps);
 
-		HashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new HashSet<Class<? extends IInitializingModule>>();
-		HashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new HashSet<Class<? extends IInitializingModule>>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestFrameworkModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
+		LinkedHashSet<Class<? extends IInitializingModule>> testClassLevelTestModulesList = new LinkedHashSet<Class<? extends IInitializingModule>>();
 
 		testClassLevelTestModulesList.addAll(buildTestModuleList(frameworkMethod));
 		testClassLevelTestFrameworkModulesList.addAll(buildFrameworkTestModuleList(frameworkMethod));
 
-		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toList().toArray(Class.class);
-		Class<? extends IInitializingModule>[] bootstrapModules = testClassLevelTestModulesList.toList().toArray(Class.class);
+		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
+		Class<? extends IInitializingModule>[] applicationModules = testClassLevelTestModulesList.toArray(Class.class);
 
 		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps);
 		boolean success = false;
@@ -137,7 +136,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			{
 				currentBeanContext = currentBeanContext.createService("framework", new RegisterPhaseDelegate()
 				{
-
 					@Override
 					public void invoke(IBeanContextFactory childContextFactory)
 					{
@@ -145,9 +143,9 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 					}
 				}, frameworkModules);
 			}
-			if (bootstrapModules.length > 0)
+			if (applicationModules.length > 0)
 			{
-				currentBeanContext = currentBeanContext.createService("application", bootstrapModules);
+				currentBeanContext = currentBeanContext.createService("application", applicationModules);
 			}
 			beanContext = currentBeanContext;
 			success = true;

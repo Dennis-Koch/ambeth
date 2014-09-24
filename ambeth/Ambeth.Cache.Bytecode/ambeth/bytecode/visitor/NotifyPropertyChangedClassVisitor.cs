@@ -50,7 +50,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static readonly Type templateType = typeof(PropertyChangeTemplate);
 
-        protected static readonly String templatePropertyName = templateType.Name;
+        protected static readonly String templatePropertyName = "__" + templateType.Name;
 
         public static readonly MethodInstance template_m_collectionChanged = new MethodInstance(null, typeof(INotifyCollectionChangedListener),
                 typeof(void), "CollectionChanged", typeof(Object), typeof(NotifyCollectionChangedEventArgs));
@@ -91,7 +91,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         public static readonly MethodInstance template_m_firePropertyChange = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Family, typeof(void), "FirePropertyChange",
                 typeof(PropertyChangeSupport), typeof(IPropertyInfo), typeof(Object), typeof(Object));
 
-        protected static readonly MethodInstance template_m_getOrCreatePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, typeof(PropertyChangeSupport), "Use$PropertyChangeSupport");
+        protected static readonly MethodInstance template_m_usePropertyChangeSupport = new MethodInstance(null, MethodAttributes.HideBySig | MethodAttributes.Public, typeof(PropertyChangeSupport), "Use$PropertyChangeSupport");
 
         public static readonly PropertyInstance p_propertyChangeSupport = new PropertyInstance(typeof(INotifyPropertyChangedSource).GetProperty("PropertyChangeSupport"));
 
@@ -179,7 +179,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
             ImplementPropertyChangeConfigurable();
 
-            MethodInstance m_getPropertyChangeSupport = ImplementGetPropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+            MethodInstance m_getPropertyChangeSupport = ImplementUsePropertyChangeSupport(p_propertyChangeTemplate, f_propertyChangeSupport);
+            f_propertyChangeSupport = State.GetAlreadyImplementedField(f_propertyChangeSupport.Name);
 
             ImplementNotifyPropertyChanged(p_propertyChangeTemplate, m_getPropertyChangeSupport);
 
@@ -457,15 +458,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             return f_propertyChangeSupport;
         }
 
-        protected MethodInstance ImplementGetPropertyChangeSupport(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
+        protected MethodInstance ImplementUsePropertyChangeSupport(PropertyInstance p_propertyChangeTemplate, FieldInstance f_propertyChangeSupport)
         {
-            MethodInstance m_getPropertyChangeSupport = MethodInstance.FindByTemplate(template_m_getOrCreatePropertyChangeSupport, true);
+            MethodInstance m_getPropertyChangeSupport = MethodInstance.FindByTemplate(template_m_usePropertyChangeSupport, true);
 
             if (m_getPropertyChangeSupport == null)
             {
                 // create field that holds propertyChangeSupport
                 f_propertyChangeSupport = ImplementField(f_propertyChangeSupport);
-                IMethodVisitor mg = VisitMethod(template_m_getOrCreatePropertyChangeSupport);
+                IMethodVisitor mg = VisitMethod(template_m_usePropertyChangeSupport);
                 HideFromDebug(mg.Method);
                 Label l_pcsValid = mg.NewLabel();
                 mg.GetThisField(f_propertyChangeSupport);
@@ -647,7 +648,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 	    {
 		    FieldInstance f_propertyChangeActive = ImplementField(new FieldInstance(FieldAttributes.Private, "__propertyChangeActive", typeof(bool)));
 
-		    ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic);
+            ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
 		    for (int a = constructors.Length; a-- > 0;)
 		    {
 			    ConstructorInstance ci = new ConstructorInstance(constructors[a]);

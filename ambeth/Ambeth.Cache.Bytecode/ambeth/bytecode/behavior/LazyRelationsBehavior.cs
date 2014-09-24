@@ -43,7 +43,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             {
                 ListUtil.AddAll(cascadePendingBehaviors, 0, remainingPendingBehaviors);
                 remainingPendingBehaviors.Clear();
-                
+
                 // Add this interface only for real entities, not for embedded types
                 if (implementValueHolderContainerInterface)
                 {
@@ -86,10 +86,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                 return visitor;
             }
             visitor = new FlattenDebugHierarchyVisitor(visitor, metaData.RelationMembers.Length != 0);
-            if (metaData.RelationMembers.Length == 0)
-            {
-                return visitor;
-            }
+            bool addValueHolderContainer;
             if (EmbeddedEnhancementHint.HasMemberPath(state.Context))
             {
                 foreach (RelationMember member in metaData.RelationMembers)
@@ -107,17 +104,18 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                         return visitor;
                     }
                 }
+                addValueHolderContainer = false;
             }
             else
             {
                 foreach (RelationMember member in metaData.RelationMembers)
                 {
-                    if (!(member is IEmbeddedMember))
+                    if (member is IEmbeddedMember)
                     {
                         continue;
                     }
                     MethodPropertyInfo prop = (MethodPropertyInfo)PropertyInfoProvider.GetProperty(member.DeclaringType, member.Name);
-                    if (state.HasMethod(new MethodInstance(prop.Getter)) || state.HasMethod(new MethodInstance(prop.Setter)))
+                    if ((prop.Getter != null && state.HasMethod(new MethodInstance(prop.Getter))) || (prop.Setter != null && state.HasMethod(new MethodInstance(prop.Setter))))
                     {
                         // Handle this behavior in the next iteration
                         cascadePendingBehaviors.Add(this);
@@ -125,11 +123,20 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                     }
                 }
                 // Add this interface only for real entities, not for embedded types
-			    visitor = new InterfaceAdder(visitor, typeof(IValueHolderContainer));
+                addValueHolderContainer = true;
                 visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
             }
-            visitor = new RelationsGetterVisitor(visitor, metaData, ValueHolderContainerHelper, PropertyInfoProvider);
             visitor = new SetCacheModificationMethodCreator(visitor);
+            cascadePendingBehaviors.Add(WaitForApplyBehavior.Create(BeanContext, delegate(IClassVisitor visitor2, IBytecodeBehaviorState state2, IList<IBytecodeBehavior> remainingPendingBehaviors2,
+                        IList<IBytecodeBehavior> cascadePendingBehaviors2)
+                        {
+                            if (addValueHolderContainer)
+                            {
+                                visitor2 = new InterfaceAdder(visitor2, typeof(IValueHolderContainer));
+                            }
+                            visitor2 = new RelationsGetterVisitor(visitor2, metaData, ValueHolderContainerHelper, PropertyInfoProvider);
+                            return visitor2;
+                        }));
             return visitor;
         }
     }

@@ -24,9 +24,11 @@ namespace De.Osthus.Ambeth.Metadata
 
         public abstract Type RealType { get; }
 
+        public abstract bool IsToMany { get; }
+
         public abstract Object NullEquivalentValue { get; }
 
-        public abstract V GetAnnotation<V>() where V : Attribute;
+        public abstract Attribute GetAnnotation(Type annotationType);
 
         public abstract String Name { get; }
 

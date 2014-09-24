@@ -40,7 +40,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected FieldInstance ImplementSetter(IClassVisitor cg)
         {
             FieldInstance f_beanContext = new FieldInstance(fieldAccess, fieldName, setterMethod.GetParameters()[0].ParameterType);
-            cg.ImplementField(f_beanContext);
+            f_beanContext = cg.ImplementField(f_beanContext);
             cg.ImplementSetter(new MethodInstance(setterMethod), f_beanContext);
 
             return f_beanContext;

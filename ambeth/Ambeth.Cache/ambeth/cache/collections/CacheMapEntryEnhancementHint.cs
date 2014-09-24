@@ -67,8 +67,7 @@ namespace De.Osthus.Ambeth.Cache.Collections
 
         public String GetTargetName(Type typeToEnhance)
         {
-            return NewType.GetType(entityType).InternalName + "$" + typeof(CacheMapEntry).Name + "$"
-                    + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "" + idIndex);
+            return entityType.FullName + "$" + typeof(CacheMapEntry).Name + "$" + (idIndex == ObjRef.PRIMARY_KEY_INDEX ? "PK" : "" + idIndex);
         }
     }
 }

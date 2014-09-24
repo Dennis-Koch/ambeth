@@ -26,7 +26,7 @@ using De.Osthus.Ambeth.Ioc.Config;
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
-    public class CacheModule : IInitializingModule, IPropertyLoadingBean
+    public class CacheModule : IInitializingModule
     {
         public static readonly String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
@@ -55,11 +55,6 @@ namespace De.Osthus.Ambeth.Ioc
 
         [Property(CacheConfigurationConstants.FirstLevelCacheType, Mandatory = false)]
         public CacheType DefaultCacheType { get; set; }
-
-        public void ApplyProperties(Properties contextProperties)
-        {
-            contextProperties.Set(MergeConfigurationConstants.EntityFactoryType, typeof(CacheEntityFactory).FullName);
-        }
 
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {

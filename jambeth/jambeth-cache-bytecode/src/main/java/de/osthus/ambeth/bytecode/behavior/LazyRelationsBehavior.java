@@ -55,10 +55,11 @@ public class LazyRelationsBehavior extends AbstractBehavior
 			return visitor;
 		}
 		final IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
-		if (metaData == null || metaData.getRelationMembers().length == 0)
+		if (metaData == null)
 		{
 			return visitor;
 		}
+		final boolean addValueHolderContainer;
 		if (EmbeddedEnhancementHint.hasMemberPath(state.getContext()))
 		{
 			for (RelationMember member : metaData.getRelationMembers())
@@ -76,6 +77,7 @@ public class LazyRelationsBehavior extends AbstractBehavior
 					return visitor;
 				}
 			}
+			addValueHolderContainer = false;
 		}
 		else
 		{
@@ -95,11 +97,24 @@ public class LazyRelationsBehavior extends AbstractBehavior
 				}
 			}
 			// Add this interface only for real entities, not for embedded types
-			visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
+			addValueHolderContainer = true;
 			visitor = new EntityMetaDataHolderVisitor(visitor, metaData);
 		}
-		visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper, propertyInfoProvider);
 		visitor = new SetCacheModificationMethodCreator(visitor);
+		cascadePendingBehaviors.add(WaitForApplyBehavior.create(beanContext, new WaitForApplyBehaviorDelegate()
+		{
+			@Override
+			public ClassVisitor extend(ClassVisitor visitor, IBytecodeBehaviorState state, List<IBytecodeBehavior> remainingPendingBehaviors,
+					List<IBytecodeBehavior> cascadePendingBehaviors)
+			{
+				if (addValueHolderContainer)
+				{
+					visitor = new InterfaceAdder(visitor, IValueHolderContainer.class);
+				}
+				visitor = new RelationsGetterVisitor(visitor, metaData, valueHolderContainerHelper, propertyInfoProvider);
+				return visitor;
+			}
+		}));
 		return visitor;
 	}
 }

@@ -9,6 +9,7 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Cache;
 
 namespace De.Osthus.Ambeth.Converter.Merge
 {
@@ -16,6 +17,9 @@ namespace De.Osthus.Ambeth.Converter.Merge
     {
 	    [LogInstance]
 		public ILogger Log { private get; set; }
+
+        [Autowired]
+        public ICacheModification CacheModification { protected get; set; }
 
         [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
@@ -111,7 +115,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
                 SetMergeRelevant(target, target.UpdatedOnMember, false);
                 SetMergeRelevant(target, target.IdMember, false);
                 SetMergeRelevant(target, target.VersionMember, false);
-                target.Initialize(EntityFactory);
+                target.Initialize(CacheModification, EntityFactory);
 			    return target;
 		    }
 		    throw new Exception("Source of type " + sourceType.Name + " not supported");

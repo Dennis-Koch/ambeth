@@ -16,7 +16,7 @@ public class SetCacheModificationMethodCreator extends ClassGenerator
 	private static final MethodInstance m_callCacheModificationInternalUpdate = new MethodInstance(null, SetCacheModificationMethodCreator.class, void.class,
 			"callCacheModificationInternalUpdate", ICacheModification.class, boolean.class, boolean.class);
 
-	private static final String cacheModificationName = "$cacheModification";
+	private static final String cacheModificationName = "__CacheModification";
 
 	public static PropertyInstance getCacheModificationPI(ClassGenerator cv)
 	{

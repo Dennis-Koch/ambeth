@@ -103,11 +103,11 @@
     <Compile Include="ambeth\xml\namehandler\ClassNameHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\CollectionElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\ObjRefElementHandler.cs" />
+    <Compile Include="ambeth\xml\namehandler\ObjRefWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\TimeSpanElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\DateElementHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\EnumNameHandler.cs" />
     <Compile Include="ambeth\xml\namehandler\StringNameHandler.cs" />
-    <Compile Include="ambeth\xml\namehandler\OriWrapperElementHandler.cs" />
     <Compile Include="ambeth\xml\pending\AbstractObjectCommand.cs" />
     <Compile Include="ambeth\xml\pending\ArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\pending\CollectionSetterCommand.cs" />

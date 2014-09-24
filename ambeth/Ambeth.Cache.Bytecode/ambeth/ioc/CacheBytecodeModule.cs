@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Ioc
             BytecodeModule.AddDefaultBytecodeBehavior<NotifyPropertyChangedBehavior>(beanContextFactory);
             BytecodeModule.AddDefaultBytecodeBehavior<ParentCacheHardRefBehavior>(beanContextFactory);
             BytecodeModule.AddDefaultBytecodeBehavior<EntityEqualsBehavior>(beanContextFactory);
-            BytecodeModule.AddDefaultBytecodeBehavior<PublicEmbeddedConstructorBehavior>(beanContextFactory);
+            //BytecodeModule.AddDefaultBytecodeBehavior<PublicEmbeddedConstructorBehavior>(beanContextFactory);
             // cascade $4
             BytecodeModule.AddDefaultBytecodeBehavior<DataObjectBehavior>(beanContextFactory);
 
@@ -31,8 +31,10 @@ namespace De.Osthus.Ambeth.Ioc
             BytecodeModule.AddDefaultBytecodeBehavior<RootCacheValueBehavior>(beanContextFactory);
 
             beanContextFactory.RegisterAnonymousBean<DataObjectTemplate>().Autowireable<DataObjectTemplate>();
+            beanContextFactory.RegisterAnonymousBean<EntityEqualsTemplate>().Autowireable<EntityEqualsTemplate>();
             beanContextFactory.RegisterAnonymousBean<EmbeddedTypeTemplate>().Autowireable<EmbeddedTypeTemplate>();
-            beanContextFactory.RegisterAnonymousBean<PropertyChangeTemplate>().Autowireable(typeof(PropertyChangeTemplate), typeof(IPropertyChangeExtensionExtendable), typeof(ICollectionChangeExtensionExtendable));
+            beanContextFactory.RegisterAnonymousBean<PropertyChangeTemplate>().Autowireable(typeof(PropertyChangeTemplate),
+                typeof(IPropertyChangeExtensionExtendable), typeof(ICollectionChangeExtensionExtendable));
             beanContextFactory.RegisterAnonymousBean<ValueHolderContainerTemplate>().Autowireable<ValueHolderContainerTemplate>();
         }
     }

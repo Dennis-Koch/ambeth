@@ -231,6 +231,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			}
 			primitiveMembers.add(member);
 		}
+		FilterWrongRelationMappings(relationMembers);
 		// Order of setter calls is important
 		PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
 		PrimitiveMember[] alternateIds = alternateIdMembers.toArray(PrimitiveMember.class);
@@ -250,6 +251,48 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			throw new IllegalStateException("No ID member could be resolved for entity of type " + metaData.getRealType());
 		}
+	}
+
+	protected void FilterWrongRelationMappings(ISet<RelationMember> relationMembers)
+	{
+		// filter all relations which can not be a relation because of explicit embedded property mapping
+		IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
+		for (RelationMember relationMember : relationMembers)
+		{
+			String[] memberPath = relationMember.getName().split(Pattern.quote("."));
+			for (RelationMember otherRelationMember : relationMembers)
+			{
+				if (relationMember == otherRelationMember || toRemove.contains(otherRelationMember))
+				{
+					continue;
+				}
+				if (!(otherRelationMember instanceof IEmbeddedMember))
+				{
+					// only embedded members can help identifying other wrong relation members
+					continue;
+				}
+				String[] otherMemberPath = ((IEmbeddedMember) otherRelationMember).getMemberPathToken();
+				if (memberPath.length > otherMemberPath.length)
+				{
+					continue;
+				}
+				boolean match = true;
+				for (int a = 0, size = memberPath.length; a < size; a++)
+				{
+					if (!memberPath[a].equals(otherMemberPath[a]))
+					{
+						match = false;
+						break;
+					}
+				}
+				if (match)
+				{
+					toRemove.add(relationMember);
+					break;
+				}
+			}
+		}
+		relationMembers.removeAll(toRemove);
 	}
 
 	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, IPropertyInfo property, Map<String, Member> nameToMemberMap)

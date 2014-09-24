@@ -6,18 +6,20 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
+import de.osthus.ambeth.bytecode.ConstructorInstance;
 import de.osthus.ambeth.bytecode.FieldInstance;
+import de.osthus.ambeth.bytecode.IOverrideConstructorDelegate;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.template.EmbeddedMemberTemplate;
 import de.osthus.ambeth.typeinfo.FieldPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
@@ -28,7 +30,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 {
 	public static final Class<?> templateType = EmbeddedMemberTemplate.class;
 
-	public static final String templatePropertyName = templateType.getSimpleName();
+	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 
 	protected static final MethodInstance template_m_createEmbeddedObject = new MethodInstance(null, templateType, Object.class, "createEmbeddedObject",
 			Class.class, Class.class, Object.class, String.class);
@@ -93,39 +95,87 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 	public void visitEnd()
 	{
 		PropertyInstance p_embeddedMemberTemplate = getEmbeddedMemberTemplatePI(this);
+		implementConstructor(p_embeddedMemberTemplate);
 
-		IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
-
-		for (Member member : metaData.getPrimitiveMembers())
-		{
-			handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-		}
-		for (RelationMember member : metaData.getRelationMembers())
-		{
-			handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
-		}
 		super.visitEnd();
 	}
 
-	protected void handleMember(PropertyInstance p_embeddedMemberTemplate, Member member, Set<Member> alreadyHandledFirstMembers)
+	protected void implementConstructor(PropertyInstance p_embeddedMemberTemplate)
 	{
-		if (!(member instanceof IEmbeddedMember))
+		IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
+
+		final ArrayList<Script> scripts = new ArrayList<Script>();
+		for (Member member : metaData.getPrimitiveMembers())
+		{
+			Script script = handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
+			if (script != null)
+			{
+				scripts.add(script);
+			}
+		}
+		for (RelationMember member : metaData.getRelationMembers())
+		{
+			Script script = handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
+			if (script != null)
+			{
+				scripts.add(script);
+			}
+		}
+		if (scripts.size() == 0)
 		{
 			return;
 		}
-		Member[] memberPath = ((IEmbeddedMember) member).getMemberPath();
+		overrideConstructors(new IOverrideConstructorDelegate()
+		{
+			@Override
+			public void invoke(ClassGenerator cv, ConstructorInstance superConstructor)
+			{
+				MethodGenerator mv = cv.visitMethod(superConstructor);
+				mv.loadThis();
+				mv.loadArgs();
+				mv.invokeSuperOfCurrentMethod();
 
+				for (Script script : scripts)
+				{
+					script.execute(mv);
+				}
+				mv.returnValue();
+				mv.endMethod();
+			}
+		});
+	}
+
+	protected Script handleMember(PropertyInstance p_embeddedMemberTemplate, Member member, Set<Member> alreadyHandledFirstMembers)
+	{
+		if (!(member instanceof IEmbeddedMember))
+		{
+			return null;
+		}
+		Member[] memberPath = ((IEmbeddedMember) member).getMemberPath();
 		Member firstMember;
 		if (memberPathSplit != null)
 		{
+			if (memberPath.length < memberPathSplit.length)
+			{
+				// nothing to do in this case. This member has nothing to do with our current scope
+				return null;
+			}
+			for (int a = 0, size = memberPathSplit.length; a < size; a++)
+			{
+				if (!memberPathSplit[a].equals(memberPath[a].getName()))
+				{
+					// nothing to do in this case. This member has nothing to do with our current scope
+					return null;
+				}
+			}
 			if (memberPath.length > memberPathSplit.length)
 			{
 				firstMember = memberPath[memberPathSplit.length];
 			}
 			else
 			{
-				// nothing to do in this case
-				return;
+				// nothing to do in this case. This is a leaf member
+				return null;
 			}
 		}
 		else
@@ -134,106 +184,53 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		}
 		if (!alreadyHandledFirstMembers.add(firstMember))
 		{
-			return;
+			return null;
 		}
-		implementGetter(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath : firstMember.getName());
+		return createEmbeddedObjectInstance(p_embeddedMemberTemplate, firstMember, this.memberPath != null ? this.memberPath + "." + firstMember.getName()
+				: firstMember.getName());
 	}
 
-	// protected void implementGetter(IProperty)
-	// {
-	// MethodGenerator mv = visitMethod(template_m_getValue);
-	//
-	// for (int a = 0, size = propertyPath.length; a < size; a++)
-	// {
-	// IPropertyInfo property = propertyPath[a];
-	// if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
-	// {
-	// throw new IllegalStateException("Property not readable: " + property.getDeclaringType().getName() + "." + property.getName());
-	// }
-	// }
-	// Label l_pathHasNull = null;
-	// mv.loadArg(0);
-	// mv.checkCast(propertyPath[0].getDeclaringType());
-	// for (int a = 0, size = propertyPath.length - 1; a < size; a++)
-	// {
-	// if (l_pathHasNull == null)
-	// {
-	// l_pathHasNull = mv.newLabel();
-	// }
-	// invokeGetProperty(mv, propertyPath[a]);
-	// mv.dup();
-	// mv.ifNull(l_pathHasNull);
-	// }
-	// IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-	// Type lastPropertyType = Type.getType(lastProperty.getPropertyType());
-	// invokeGetProperty(mv, lastProperty);
-	// mv.valueOf(lastPropertyType);
-	// mv.returnValue();
-	//
-	// if (l_pathHasNull != null)
-	// {
-	// mv.mark(l_pathHasNull);
-	// if (lastProperty.getPropertyType().isPrimitive())
-	// {
-	// mv.pop(); // remove the current null value
-	// mv.pushNullOrZero(lastPropertyType);
-	// mv.valueOf(lastPropertyType);
-	// }
-	// mv.returnValue();
-	// }
-	// mv.endMethod();
-	// }
-
-	protected void implementGetter(final PropertyInstance p_embeddedMemberTemplate, final Member firstMember, final String memberPath)
+	protected Script createEmbeddedObjectInstance(final PropertyInstance p_embeddedMemberTemplate, final Member firstMember, final String memberPath)
 	{
-		PropertyInstance property = PropertyInstance.findByTemplate(firstMember.getName(), firstMember.getRealType(), false);
-
+		final PropertyInstance property = PropertyInstance.findByTemplate(firstMember.getName(), firstMember.getRealType(), false);
 		final PropertyInstance p_rootEntity = memberPathSplit == null ? null : EmbeddedTypeVisitor.getRootEntityProperty(this);
 
-		MethodGenerator mv = visitMethod(property.getGetter());
-		Label l_valueIsValid = mv.newLabel();
-
-		mv.loadThis();
-		mv.invokeSuperOfCurrentMethod();
-		mv.dup(); // cache member value
-
-		mv.ifNonNull(l_valueIsValid);
-
-		mv.pop(); // remove remaining null value
-
-		mv.callThisSetter(property, new Script()
+		return new Script()
 		{
 			@Override
-			public void execute(MethodGenerator mg)
+			public void execute(MethodGenerator mg2)
 			{
-				// Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String memberPath)
-				mg.callThisGetter(p_embeddedMemberTemplate);
-
-				mg.push(firstMember.getRealType()); // embeddedType
-
-				if (p_rootEntity != null)
+				mg2.callThisSetter(property, new Script()
 				{
-					mg.callThisGetter(p_rootEntity);
-					mg.checkCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.getOwner());
-					mg.invokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
-				}
-				else
-				{
-					mg.callThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
-				}
-				mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, Class.class, "getEnhancedType"));
-				mg.loadThis(); // parentObject
-				mg.push(memberPath);
+					@Override
+					public void execute(MethodGenerator mg)
+					{
+						// Object p_embeddedMemberTemplate.createEmbeddedObject(Class<?> embeddedType, Class<?> entityType, Object parentObject, String
+						// memberPath)
+						mg.callThisGetter(p_embeddedMemberTemplate);
 
-				mg.invokeVirtual(template_m_createEmbeddedObject);
-				mg.checkCast(firstMember.getRealType());
+						mg.push(firstMember.getRealType()); // embeddedType
+
+						if (p_rootEntity != null)
+						{
+							mg.callThisGetter(p_rootEntity);
+							mg.checkCast(EntityMetaDataHolderVisitor.m_template_getEntityMetaData.getOwner());
+							mg.invokeInterface(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+						}
+						else
+						{
+							mg.callThisGetter(EntityMetaDataHolderVisitor.m_template_getEntityMetaData);
+						}
+						mg.invokeInterface(new MethodInstance(null, IEntityMetaData.class, Class.class, "getEnhancedType"));
+						mg.loadThis(); // parentObject
+						mg.push(memberPath);
+
+						mg.invokeVirtual(template_m_createEmbeddedObject);
+						mg.checkCast(firstMember.getRealType());
+					}
+				});
 			}
-		});
-		mv.loadThis();
-		mv.invokeSuperOfCurrentMethod();
-		mv.mark(l_valueIsValid);
-		mv.returnValue();
-		mv.endMethod();
+		};
 	}
 
 	protected void invokeGetProperty(MethodGenerator mv, IPropertyInfo property)

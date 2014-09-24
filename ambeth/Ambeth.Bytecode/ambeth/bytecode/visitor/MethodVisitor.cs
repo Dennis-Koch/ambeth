@@ -493,6 +493,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void PushNullOrZero(NewType type)
+        {
+            if (mv != null)
+            {
+                mv.PushNullOrZero(type);
+            }
+        }
+
         public virtual void PutField(FieldInstance field)
         {
             if (mv != null)
@@ -578,6 +586,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (mv != null)
             {
                 mv.ValueOf(type);
+            }
+        }
+
+        public virtual void VisitAnnotation(ConstructorInfo annotationConstructor, params Object[] arguments)
+        {
+            if (mv != null)
+            {
+                mv.VisitAnnotation(annotationConstructor, arguments);
             }
         }
 

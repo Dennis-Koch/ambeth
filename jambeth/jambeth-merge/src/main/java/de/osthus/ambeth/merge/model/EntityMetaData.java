@@ -3,6 +3,8 @@ package de.osthus.ambeth.merge.model;
 import java.util.Arrays;
 import java.util.Set;
 
+import de.osthus.ambeth.cache.ICacheModification;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IdentityHashMap;
@@ -14,6 +16,7 @@ import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.util.ListUtil;
 
 public class EntityMetaData implements IEntityMetaData
 {
@@ -59,6 +62,8 @@ public class EntityMetaData implements IEntityMetaData
 
 	protected PrimitiveMember[] primitiveMembers = emptyPrimitiveMembers;
 
+	protected PrimitiveMember[] primitiveToManyMembers = emptyPrimitiveMembers;
+
 	protected PrimitiveMember[] alternateIdMembers = emptyPrimitiveMembers;
 
 	protected PrimitiveMember[] fulltextMembers = emptyPrimitiveMembers;
@@ -96,6 +101,8 @@ public class EntityMetaData implements IEntityMetaData
 	protected final IdentityHashMap<RelationMember, Integer> relMemberToIndexDict = new IdentityHashMap<RelationMember, Integer>(0.5f);
 
 	protected final IdentityHashMap<Member, Integer> primMemberToIndexDict = new IdentityHashMap<Member, Integer>(0.5f);
+
+	protected ICacheModification cacheModification;
 
 	protected IEntityFactory entityFactory;
 
@@ -432,6 +439,29 @@ public class EntityMetaData implements IEntityMetaData
 	@Override
 	public void postProcessNewEntity(Object newEntity)
 	{
+		PrimitiveMember[] primitiveToManyMembers = this.primitiveToManyMembers;
+		if (primitiveToManyMembers.length > 0)
+		{
+			boolean oldInternalUpdate = cacheModification.isInternalUpdate();
+			if (!oldInternalUpdate)
+			{
+				cacheModification.setInternalUpdate(true);
+			}
+			try
+			{
+				for (PrimitiveMember primitiveMember : primitiveToManyMembers)
+				{
+					primitiveMember.setValue(newEntity, ListUtil.createObservableCollectionOfType(primitiveMember.getRealType()));
+				}
+			}
+			finally
+			{
+				if (!oldInternalUpdate)
+				{
+					cacheModification.setInternalUpdate(false);
+				}
+			}
+		}
 		for (IEntityLifecycleExtension entityLifecycleExtension : entityLifecycleExtensions)
 		{
 			entityLifecycleExtension.postCreate(this, newEntity);
@@ -470,8 +500,9 @@ public class EntityMetaData implements IEntityMetaData
 		this.entityLifecycleExtensions = entityLifecycleExtensions;
 	}
 
-	public void initialize(IEntityFactory entityFactory)
+	public void initialize(ICacheModification cacheModification, IEntityFactory entityFactory)
 	{
+		this.cacheModification = cacheModification;
 		this.entityFactory = entityFactory;
 		if (primitiveMembers == null)
 		{
@@ -481,6 +512,15 @@ public class EntityMetaData implements IEntityMetaData
 		{
 			// Arrays.sort(primitiveMembers, typeInfoItemComparator);
 		}
+		ArrayList<PrimitiveMember> primitiveToManyMembers = new ArrayList<PrimitiveMember>();
+		for (PrimitiveMember primitiveMember : getPrimitiveMembers())
+		{
+			if (primitiveMember.isToMany())
+			{
+				primitiveToManyMembers.add(primitiveMember);
+			}
+		}
+		this.primitiveToManyMembers = primitiveToManyMembers.toArray(PrimitiveMember.class);
 
 		if (relationMembers == null)
 		{

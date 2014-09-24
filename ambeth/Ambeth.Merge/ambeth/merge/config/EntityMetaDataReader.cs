@@ -212,6 +212,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    }
 			    primitiveMembers.Add(member2);
 		    }
+            FilterWrongRelationMappings(relationMembers);
 		    // Order of setter calls is important
 		    PrimitiveMember[] primitives = primitiveMembers.ToArray();
 		    PrimitiveMember[] alternateIds = alternateIdMembers.ToArray();
@@ -231,6 +232,48 @@ namespace De.Osthus.Ambeth.Merge.Config
             {
                 throw new Exception("No ID member could be resolved for entity of type " + metaData.RealType);
             }
+        }
+
+        protected void FilterWrongRelationMappings(IISet<RelationMember> relationMembers)
+        {
+            // filter all relations which can not be a relation because of explicit embedded property mapping
+            IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
+            foreach (RelationMember relationMember in relationMembers)
+            {
+                String[] memberPath = relationMember.Name.Split('.');
+                foreach (RelationMember otherRelationMember in relationMembers)
+                {
+                    if (Object.ReferenceEquals(relationMember, otherRelationMember) || toRemove.Contains(otherRelationMember))
+                    {
+                        continue;
+                    }
+                    if (!(otherRelationMember is IEmbeddedMember))
+                    {
+                        // only embedded members can help identifying other wrong relation members
+                        continue;
+                    }
+                    String[] otherMemberPath = ((IEmbeddedMember)otherRelationMember).GetMemberPathToken();
+                    if (memberPath.Length > otherMemberPath.Length)
+                    {
+                        continue;
+                    }
+                    bool match = true;
+                    for (int a = 0, size = memberPath.Length; a < size; a++)
+                    {
+                        if (!memberPath[a].Equals(otherMemberPath[a]))
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match)
+                    {
+                        toRemove.Add(relationMember);
+                        break;
+                    }
+                }
+            }
+            relationMembers.RemoveAll(toRemove);
         }
 
         protected PrimitiveMember GetPrimitiveMember(Type entityType, IPropertyInfo property, IMap<String, Member> nameToMemberMap)

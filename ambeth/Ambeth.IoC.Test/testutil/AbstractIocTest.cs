@@ -10,6 +10,7 @@ using System.Reflection;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Debug;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Log;
 
 namespace De.Osthus.Ambeth.Testutil
 {
@@ -169,6 +170,9 @@ namespace De.Osthus.Ambeth.Testutil
             }
         }
 
+        [LogInstance]
+        public ILogger Log { private get; set; }
+
         private static bool assemblyInitRan = false;
 
         private readonly AmbethIocRunner runner;
@@ -210,11 +214,22 @@ namespace De.Osthus.Ambeth.Testutil
         [TestInitialize]
         public virtual void InitAutomatically()
         {
-            if (!assemblyInitRan)
+            try
             {
-                RegisterAssemblies(null);
+                if (!assemblyInitRan)
+                {
+                    RegisterAssemblies(null);
+                }
+                InitManually(GetType());
             }
-            InitManually(GetType());
+            catch (Exception e)
+            {
+                if (Log != null)
+                {
+                    Log.Error(e);
+                }
+                throw;
+            }
         }
 
         //[TestInitialize]

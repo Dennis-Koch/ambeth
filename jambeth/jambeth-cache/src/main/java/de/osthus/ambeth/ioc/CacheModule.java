@@ -36,7 +36,6 @@ import de.osthus.ambeth.cache.interceptor.ThreadLocalRootCacheInterceptor;
 import de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor;
 import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
-import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventListenerExtendable;
@@ -49,9 +48,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
-import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.proxy.CacheContextPostProcessor;
-import de.osthus.ambeth.proxy.CacheEntityFactory;
 import de.osthus.ambeth.proxy.CachePostProcessor;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
@@ -65,7 +62,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 @FrameworkModule
-public class CacheModule implements IInitializingModule, IPropertyLoadingBean
+public class CacheModule implements IInitializingModule
 {
 	public static final String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
@@ -99,12 +96,6 @@ public class CacheModule implements IInitializingModule, IPropertyLoadingBean
 
 	@Property(name = CacheConfigurationConstants.SecondLevelCacheActive, defaultValue = "true")
 	protected boolean secondLevelCacheActive;
-
-	@Override
-	public void applyProperties(Properties contextProperties)
-	{
-		contextProperties.putString(MergeConfigurationConstants.EntityFactoryType, CacheEntityFactory.class.getName());
-	}
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
