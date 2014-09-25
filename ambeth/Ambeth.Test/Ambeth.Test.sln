@@ -174,8 +174,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Security.Bytecode.SL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Security.Bytecode.SL5", "..\Ambeth.Security.Bytecode\Ambeth.Security.Bytecode.SL5.csproj", "{DCB65FE0-B21B-4BFB-B84B-0D644D8AF428}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "..\ConsoleApplication1\ConsoleApplication1.csproj", "{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}"
-EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Ambeth.Test.vsmdi
@@ -1019,16 +1017,6 @@ Global
 		{DCB65FE0-B21B-4BFB-B84B-0D644D8AF428}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{DCB65FE0-B21B-4BFB-B84B-0D644D8AF428}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{DCB65FE0-B21B-4BFB-B84B-0D644D8AF428}.Release|x86.ActiveCfg = Release|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{3E3BB1FF-19FF-4297-A5FD-3C92E14F392F}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
