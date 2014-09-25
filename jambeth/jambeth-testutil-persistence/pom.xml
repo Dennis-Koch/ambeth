@@ -193,7 +193,7 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-			<url>file:///${project.build.directory}/../src/test/lib</url>
+			<url>file://${project.build.directory}/../src/test/lib</url>
 		</repository>
 	</repositories>
 
