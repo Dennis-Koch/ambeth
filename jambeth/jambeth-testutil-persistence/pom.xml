@@ -174,13 +174,27 @@
 
 		<!-- Contains data for a junit test -->
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
+			<groupId>test</groupId>
 			<artifactId>resource</artifactId>
 			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${project.build.directory}/../src/test/java/resource-1.0.0.jar</systemPath>
+			<scope>test</scope>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>test-resource</id>
+			<name>test-resource</name>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>file://${project.basedir}/src/test/lib</url>
+		</repository>
+	</repositories>
 
 </project>
