@@ -73,7 +73,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 	@Autowired
 	protected IBytecodeClassLoader bytecodeClassLoader;
 
-	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory)
+	@Property(name = BytecodeConfigurationConstants.EnhancementTraceDirectory, mandatory = false)
 	protected String traceDir;
 
 	protected final WeakSmartCopyMap<Class<?>, ValueType> typeToExtendedType = new WeakSmartCopyMap<Class<?>, ValueType>();
