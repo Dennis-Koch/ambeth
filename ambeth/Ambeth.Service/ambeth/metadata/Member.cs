@@ -18,6 +18,8 @@ namespace De.Osthus.Ambeth.Metadata
             return Name.CompareTo(o.Name);
         }
 
+        public abstract Type EntityType { get; }
+
         public abstract Type ElementType { get; }
 
         public abstract Type DeclaringType { get; }
@@ -38,17 +40,17 @@ namespace De.Osthus.Ambeth.Metadata
 		    {
 			    return true;
 		    }
-		    if (obj == null || !obj.GetType().Equals(GetType()))
+		    if (obj == null || !(obj is Member))
 		    {
 			    return false;
 		    }
 		    Member other = (Member) obj;
-            return DeclaringType.Equals(other.DeclaringType) && Name.Equals(other.Name);
+            return EntityType.Equals(other.EntityType) && Name.Equals(other.Name);
 	    }
 
 	    public override int GetHashCode()
 	    {
-            return GetType().GetHashCode() ^ DeclaringType.GetHashCode() ^ Name.GetHashCode();
+            return EntityType.GetHashCode() ^ Name.GetHashCode();
 	    }
 
         public override String ToString()

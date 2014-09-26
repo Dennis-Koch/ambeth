@@ -70,6 +70,12 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 	}
 
 	@Override
+	public Class<?> getEntityType()
+	{
+		return getRealType();
+	}
+
+	@Override
 	public Class<?> getRealType()
 	{
 		return realType;

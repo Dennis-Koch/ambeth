@@ -4,10 +4,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.database.IDatabaseMappedListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -18,6 +21,8 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.persistence.DirectedLink;
+import de.osthus.ambeth.persistence.Field;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDirectedLink;
 import de.osthus.ambeth.persistence.IField;
@@ -157,6 +162,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
 			HashSet<Member> primitiveMembers = new HashSet<Member>();
 			HashSet<RelationMember> relationMembers = new HashSet<RelationMember>();
+			HashMap<Member, Object> memberToFieldOrLinkMap = new HashMap<Member, Object>();
 
 			// IField[] fulltextFieldsContains = table.getFulltextFieldsContains();
 			// for (int a = 0; a < fulltextFieldsContains.length; a++)
@@ -180,6 +186,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				if (member != null)
 				{
 					fulltextMembers.add(member);
+					memberToFieldOrLinkMap.put(member, field);
 				}
 			}
 
@@ -193,7 +200,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				{
 					continue;
 				}
-
+				memberToFieldOrLinkMap.put(member, field);
 				if (!alreadyHandledFields.contains(field))
 				{
 					primitiveMembers.add(member);
@@ -204,12 +211,14 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			for (int a = 0; a < links.size(); a++)
 			{
 				IDirectedLink link = links.get(a);
-				if (link.getMember() == null)
+				RelationMember member = link.getMember();
+				if (member == null)
 				{
 					continue;
 				}
+				memberToFieldOrLinkMap.put(member, link);
 				Class<?> otherType = link.getToEntityType();
-				relationMembers.add(link.getMember());
+				relationMembers.add(member);
 				if (link.getReverseLink().isCascadeDelete())
 				{
 					metaData.addCascadeDeleteType(otherType);
@@ -228,27 +237,10 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			});
 
 			// Order of setter calls is important
-			// primitiveMembers.addAll(metaData.getPrimitiveMembers());
-			// for (ITypeInfoItem primitiveMember : metaData.getPrimitiveMembers())
-			// {
-			// primitiveMember.
-			// }
-			if (metaData.getCreatedByMember() != null && !primitiveMembers.contains(metaData.getCreatedByMember()))
-			{
-				metaData.setCreatedByMember(null);
-			}
-			if (metaData.getCreatedOnMember() != null && !primitiveMembers.contains(metaData.getCreatedOnMember()))
-			{
-				metaData.setCreatedOnMember(null);
-			}
-			if (metaData.getUpdatedByMember() != null && !primitiveMembers.contains(metaData.getUpdatedByMember()))
-			{
-				metaData.setUpdatedByMember(null);
-			}
-			if (metaData.getUpdatedOnMember() != null && !primitiveMembers.contains(metaData.getUpdatedOnMember()))
-			{
-				metaData.setUpdatedOnMember(null);
-			}
+			metaData.setCreatedByMember(findPrimitiveMember(metaData.getCreatedByMember(), primitiveMembers));
+			metaData.setCreatedOnMember(findPrimitiveMember(metaData.getCreatedOnMember(), primitiveMembers));
+			metaData.setUpdatedByMember(findPrimitiveMember(metaData.getUpdatedByMember(), primitiveMembers));
+			metaData.setUpdatedOnMember(findPrimitiveMember(metaData.getUpdatedOnMember(), primitiveMembers));
 			PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
 			PrimitiveMember[] fulltexts = fulltextMembers.toArray(PrimitiveMember.class);
 			RelationMember[] relations = relationMembers.toArray(RelationMember.class);
@@ -262,6 +254,30 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			metaData.setEnhancedType(null);
 
 			entityMetaDataRefresher.refreshMembers(metaData);
+			HashSet<Member> allRefreshedMembers = new HashSet<Member>();
+			addValidMember(allRefreshedMembers, metaData.getIdMember());
+			addValidMember(allRefreshedMembers, metaData.getVersionMember());
+			allRefreshedMembers.addAll(metaData.getPrimitiveMembers());
+			allRefreshedMembers.addAll(metaData.getRelationMembers());
+
+			for (Entry<Member, Object> entry : memberToFieldOrLinkMap)
+			{
+				Member member = entry.getKey();
+				Member refreshedMember = allRefreshedMembers.get(member);
+				if (refreshedMember == null)
+				{
+					throw new IllegalStateException("Member '" + member.getName() + "' has not been refreshed");
+				}
+				Object value = entry.getValue();
+				if (value instanceof Field)
+				{
+					((Field) value).setMember(refreshedMember);
+				}
+				else if (value instanceof DirectedLink)
+				{
+					((DirectedLink) value).setMember((RelationMember) refreshedMember);
+				}
+			}
 			newMetaDatas.add(metaData);
 		}
 		for (int a = 0, size = newRegisteredMetaDatas.size(); a < size; a++)
@@ -278,6 +294,31 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			cacheRetrieverExtendable.registerCacheRetriever(persistenceCacheRetriever, entityType);
 			handledMetaDatas.add(newMetaData);
 		}
+	}
+
+	protected void addValidMember(ISet<Member> set, Member member)
+	{
+		if (member == null)
+		{
+			return;
+		}
+		set.add(member);
+	}
+
+	protected PrimitiveMember findPrimitiveMember(PrimitiveMember memberToFind, ISet<Member> members)
+	{
+		if (memberToFind == null)
+		{
+			return null;
+		}
+		for (Member member : members)
+		{
+			if (memberToFind.getName().equals(member.getName()))
+			{
+				return (PrimitiveMember) member;
+			}
+		}
+		return memberToFind;
 	}
 
 	protected boolean isMemberOnFieldBetter(Class<?> entityType, Member existingMember, IField newMemberField)

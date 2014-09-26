@@ -2,6 +2,7 @@ using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge;
+using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
@@ -26,6 +27,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected static readonly MethodInstance template_m_getNullEquivalentValue = new MethodInstance(null, typeof(Member), typeof(Object), "get_NullEquivalentValue");
 
         protected static readonly MethodInstance template_m_getName = new MethodInstance(null, typeof(Member), typeof(String), "get_Name");
+
+        protected static readonly MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(Member), typeof(Type), "get_EntityType");
 
         protected static readonly MethodInstance template_m_getElementType = new MethodInstance(null, typeof(Member), typeof(Type), "get_ElementType");
 
@@ -69,6 +72,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             ImplementGetDeclaringType(propertyPath);
             ImplementGetName(propertyPath);
             ImplementGetNullEquivalentValue(propertyPath);
+            ImplementGetEntityType(propertyPath);
             ImplementGetElementType(propertyPath);
             ImplementGetRealType(propertyPath);
             ImplementIsToMany(propertyPath);
@@ -102,6 +106,20 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             {
                 mv.Box(propertyType);
             }
+            mv.ReturnValue();
+            mv.EndMethod();
+        }
+
+        protected void ImplementGetEntityType(IPropertyInfo[] property)
+        {
+            IMethodVisitor mv = VisitMethod(template_m_getEntityType);
+            Type entityType = this.entityType;
+		    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(entityType, true);
+		    if (metaData != null)
+		    {
+			    entityType = metaData.EntityType;
+		    }
+		    mv.Push(entityType);
             mv.ReturnValue();
             mv.EndMethod();
         }

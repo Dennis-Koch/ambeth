@@ -86,6 +86,12 @@ public class EmbeddedPrimitiveMember extends PrimitiveMember implements IEmbedde
 	}
 
 	@Override
+	public Class<?> getEntityType()
+	{
+		return memberPath[0].getEntityType();
+	}
+
+	@Override
 	public Class<?> getElementType()
 	{
 		return childMember.getElementType();

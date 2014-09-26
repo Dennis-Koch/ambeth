@@ -97,12 +97,12 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 			Class<?> realType = proxyHelper.getRealType(entityType);
 			target.setEntityType(entityType);
 			target.setRealType(realType);
-			target.setIdMember(getMember(entityType, source.getIdMemberName(), nameToMemberDict));
-			target.setVersionMember(getMember(entityType, source.getVersionMemberName(), nameToMemberDict));
-			target.setCreatedByMember(getMember(entityType, source.getCreatedByMemberName(), nameToMemberDict));
-			target.setCreatedOnMember(getMember(entityType, source.getCreatedOnMemberName(), nameToMemberDict));
-			target.setUpdatedByMember(getMember(entityType, source.getUpdatedByMemberName(), nameToMemberDict));
-			target.setUpdatedOnMember(getMember(entityType, source.getUpdatedOnMemberName(), nameToMemberDict));
+			target.setIdMember(getPrimitiveMember(entityType, source.getIdMemberName(), nameToMemberDict));
+			target.setVersionMember(getPrimitiveMember(entityType, source.getVersionMemberName(), nameToMemberDict));
+			target.setCreatedByMember(getPrimitiveMember(entityType, source.getCreatedByMemberName(), nameToMemberDict));
+			target.setCreatedOnMember(getPrimitiveMember(entityType, source.getCreatedOnMemberName(), nameToMemberDict));
+			target.setUpdatedByMember(getPrimitiveMember(entityType, source.getUpdatedByMemberName(), nameToMemberDict));
+			target.setUpdatedOnMember(getPrimitiveMember(entityType, source.getUpdatedOnMemberName(), nameToMemberDict));
 			target.setPrimitiveMembers(getPrimitiveMembers(entityType, source.getPrimitiveMemberNames(), nameToMemberDict));
 			target.setAlternateIdMembers(getPrimitiveMembers(entityType, source.getAlternateIdMemberNames(), nameToMemberDict));
 			target.setRelationMembers(getRelationMembers(entityType, source.getRelationMemberNames(), nameToMemberDict));
@@ -117,7 +117,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 			{
 				for (int a = mergeRelevantNames.length; a-- > 0;)
 				{
-					Member resolvedMember = getMember(entityType, mergeRelevantNames[a], nameToMemberDict);
+					Member resolvedMember = nameToMemberDict.get(mergeRelevantNames[a]);
 					target.setMergeRelevant(resolvedMember, true);
 				}
 			}
@@ -141,8 +141,12 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		}
 	}
 
-	protected PrimitiveMember getMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
+	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
 	{
+		if (memberName == null)
+		{
+			return null;
+		}
 		PrimitiveMember member = (PrimitiveMember) nameToMemberDict.get(memberName);
 		if (member != null)
 		{
@@ -182,7 +186,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		PrimitiveMember[] members = new PrimitiveMember[memberNames.length];
 		for (int a = memberNames.length; a-- > 0;)
 		{
-			members[a] = getMember(entityType, memberNames[a], nameToMemberDict);
+			members[a] = getPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
 		}
 		return members;
 	}
