@@ -83,12 +83,12 @@ namespace De.Osthus.Ambeth.Converter.Merge
                 Type realType = ProxyHelper.GetRealType(entityType);
                 target.EntityType = entityType;
                 target.RealType = realType;
-                target.IdMember = GetMember(entityType, source.IdMemberName, nameToMemberDict);
-                target.VersionMember = GetMember(entityType, source.VersionMemberName, nameToMemberDict);
-                target.CreatedByMember = GetMember(entityType, source.CreatedByMemberName, nameToMemberDict);
-                target.CreatedOnMember = GetMember(entityType, source.CreatedOnMemberName, nameToMemberDict);
-                target.UpdatedByMember = GetMember(entityType, source.UpdatedByMemberName, nameToMemberDict);
-                target.UpdatedOnMember = GetMember(entityType, source.UpdatedOnMemberName, nameToMemberDict);
+                target.IdMember = GetPrimitiveMember(entityType, source.IdMemberName, nameToMemberDict);
+                target.VersionMember = GetPrimitiveMember(entityType, source.VersionMemberName, nameToMemberDict);
+                target.CreatedByMember = GetPrimitiveMember(entityType, source.CreatedByMemberName, nameToMemberDict);
+                target.CreatedOnMember = GetPrimitiveMember(entityType, source.CreatedOnMemberName, nameToMemberDict);
+                target.UpdatedByMember = GetPrimitiveMember(entityType, source.UpdatedByMemberName, nameToMemberDict);
+                target.UpdatedOnMember = GetPrimitiveMember(entityType, source.UpdatedOnMemberName, nameToMemberDict);
                 target.AlternateIdMembers = GetPrimitiveMembers(entityType, source.AlternateIdMemberNames, nameToMemberDict);
                 target.PrimitiveMembers = GetPrimitiveMembers(entityType, source.PrimitiveMemberNames, nameToMemberDict);
                 target.RelationMembers = GetRelationMembers(entityType, source.RelationMemberNames, nameToMemberDict);
@@ -105,7 +105,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
                 {
                     for (int a = mergeRelevantNames.Length; a-- > 0; )
                     {
-                        Member resolvedMember = GetMember(entityType, mergeRelevantNames[a], nameToMemberDict);
+                        Member resolvedMember = nameToMemberDict.Get(mergeRelevantNames[a]);
                         target.SetMergeRelevant(resolvedMember, true);
                     }
                 }
@@ -129,13 +129,18 @@ namespace De.Osthus.Ambeth.Converter.Merge
             }
         }
 
-        protected PrimitiveMember GetMember(Type entityType, String memberName, IMap<String, Member> nameToMemberDict)
+        protected PrimitiveMember GetPrimitiveMember(Type entityType, String memberName, IMap<String, Member> nameToMemberDict)
 	    {
             if (memberName == null)
             {
                 return null;
             }
             PrimitiveMember member = (PrimitiveMember)nameToMemberDict.Get(memberName);
+            if (member != null)
+            {
+                return member;
+            }
+            member = MemberTypeProvider.GetPrimitiveMember(entityType, memberName);
             if (member == null)
             {
                 throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
@@ -169,7 +174,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
             PrimitiveMember[] members = new PrimitiveMember[memberNames.Length];
 		    for (int a = memberNames.Length; a-- > 0;)
 		    {
-                members[a] = GetMember(entityType, memberNames[a], nameToMemberDict);
+                members[a] = GetPrimitiveMember(entityType, memberNames[a], nameToMemberDict);
 		    }
 		    return members;
 	    }

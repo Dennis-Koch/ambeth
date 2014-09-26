@@ -75,6 +75,14 @@ namespace De.Osthus.Ambeth.Metadata
             }
         }
 
+        public override Type EntityType
+        {
+            get
+            {
+                return memberPath[0].EntityType;
+            }
+        }
+
         public override Type ElementType
         {
             get

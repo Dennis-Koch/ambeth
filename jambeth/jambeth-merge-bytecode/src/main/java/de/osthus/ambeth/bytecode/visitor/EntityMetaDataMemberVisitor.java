@@ -12,6 +12,7 @@ import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -36,6 +37,8 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 	protected static final MethodInstance template_m_getNullEquivalentValue = new MethodInstance(null, Member.class, Object.class, "getNullEquivalentValue");
 
 	protected static final MethodInstance template_m_getName = new MethodInstance(null, Member.class, String.class, "getName");
+
+	protected static final MethodInstance template_m_getEntityType = new MethodInstance(null, Member.class, Class.class, "getEntityType");
 
 	protected static final MethodInstance template_m_getElementType = new MethodInstance(null, Member.class, Class.class, "getElementType");
 
@@ -80,6 +83,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		implementGetDeclaringType(propertyPath);
 		implementGetName(propertyPath);
 		implementGetNullEquivalentValue(propertyPath);
+		implementGetEntityType(propertyPath);
 		implementGetElementType(propertyPath);
 		implementGetRealType(propertyPath);
 		implementIsToMany(propertyPath);
@@ -113,6 +117,20 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		{
 			mv.box(Type.getType(propertyType));
 		}
+		mv.returnValue();
+		mv.endMethod();
+	}
+
+	protected void implementGetEntityType(IPropertyInfo[] property)
+	{
+		MethodGenerator mv = visitMethod(template_m_getEntityType);
+		Class<?> entityType = this.entityType;
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
+		if (metaData != null)
+		{
+			entityType = metaData.getEntityType();
+		}
+		mv.push(entityType);
 		mv.returnValue();
 		mv.endMethod();
 	}

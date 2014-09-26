@@ -24,6 +24,8 @@ public abstract class Member extends AbstractAccessor implements Comparable<Memb
 
 	public abstract Class<?> getRealType();
 
+	public abstract Class<?> getEntityType();
+
 	public abstract boolean isToMany();
 
 	public abstract Object getNullEquivalentValue();
@@ -39,18 +41,18 @@ public abstract class Member extends AbstractAccessor implements Comparable<Memb
 		{
 			return true;
 		}
-		if (obj == null || !obj.getClass().equals(getClass()))
+		if (obj == null || !(obj instanceof Member))
 		{
 			return false;
 		}
 		Member other = (Member) obj;
-		return getDeclaringType().equals(other.getDeclaringType()) && getName().equals(other.getName());
+		return getEntityType().equals(other.getEntityType()) && getName().equals(other.getName());
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getDeclaringType().hashCode() ^ getName().hashCode();
+		return getEntityType().hashCode() ^ getName().hashCode();
 	}
 
 	@Override

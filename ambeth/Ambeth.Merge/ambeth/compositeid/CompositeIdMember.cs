@@ -57,6 +57,14 @@ namespace De.Osthus.Ambeth.CompositeId
             throw new NotSupportedException();
         }
 
+        public override Type EntityType
+        {
+            get
+            {
+                return RealType;
+            }
+        }
+
         public override Type RealType
         {
             get

@@ -99,6 +99,12 @@ public class EmbeddedRelationMember extends RelationMember implements IEmbeddedM
 	}
 
 	@Override
+	public Class<?> getEntityType()
+	{
+		return memberPath[0].getEntityType();
+	}
+
+	@Override
 	public Class<?> getElementType()
 	{
 		return childMember.getElementType();

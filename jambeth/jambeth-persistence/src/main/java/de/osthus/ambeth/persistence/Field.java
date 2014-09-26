@@ -96,7 +96,7 @@ public class Field implements IField, IInitializingBean
 		{
 			return;
 		}
-		if (this.member != null)
+		if (this.member != null && !this.member.getName().equals(member.getName()))
 		{
 			throw new IllegalStateException("Member already configured and can not be changed later. A call to this method here is a bug");
 		}
