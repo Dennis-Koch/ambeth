@@ -14,6 +14,7 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
+import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IntermediateEmbeddedPrimitiveMember;
 import de.osthus.ambeth.metadata.IntermediateEmbeddedRelationMember;
 import de.osthus.ambeth.metadata.IntermediatePrimitiveMember;
@@ -156,7 +157,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		{
 			return member;
 		}
-		String[] memberNameSplit = memberName.split(Pattern.quote("."));
+		String[] memberNameSplit = EmbeddedMember.split(memberName);
 		Class<?> currentType = entityType;
 		Member[] memberSplit = new Member[memberNameSplit.length];
 		for (int a = 0, size = memberNameSplit.length; a < size; a++)
@@ -196,7 +197,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		{
 			return member;
 		}
-		String[] memberNameSplit = memberName.split(Pattern.quote("."));
+		String[] memberNameSplit = EmbeddedMember.split(memberName);
 		Class<?> currentType = entityType;
 		Member[] memberSplit = new Member[memberNameSplit.length];
 		for (int a = 0, size = memberNameSplit.length; a < size; a++)

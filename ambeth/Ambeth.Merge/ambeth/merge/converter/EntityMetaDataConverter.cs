@@ -140,7 +140,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
             {
                 return member;
             }
-            String[] memberNameSplit = memberName.Split('.');
+            String[] memberNameSplit = EmbeddedMember.Split(memberName);
             Type currentType = entityType;
             Member[] memberSplit = new Member[memberNameSplit.Length];
             for (int a = 0, size = memberNameSplit.Length; a < size; a++)
@@ -179,7 +179,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
 		    {
 			    return member;
 		    }
-            String[] memberNameSplit = memberName.Split('.');
+            String[] memberNameSplit = EmbeddedMember.Split(memberName);
             Type currentType = entityType;
             Member[] memberSplit = new Member[memberNameSplit.Length];
             for (int a = 0, size = memberNameSplit.Length; a < size; a++)
