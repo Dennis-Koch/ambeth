@@ -152,6 +152,7 @@
     <Compile Include="ambeth\transfer\LoadContainer.cs" />
     <Compile Include="ambeth\transfer\ObjRelation.cs" />
     <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
+    <Compile Include="ambeth\util\AppendableCachePath.cs" />
     <Compile Include="ambeth\util\CacheHelper.cs" />
     <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
     <Compile Include="ambeth\util\CachePath.cs" />

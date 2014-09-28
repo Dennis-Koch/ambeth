@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import de.osthus.ambeth.annotation.ParentChild;
+
 @XmlRootElement(namespace = "HelloWorld")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class TestEntity extends AbstractEntity
@@ -75,6 +77,7 @@ public class TestEntity extends AbstractEntity
 		this.relation = relation;
 	}
 
+	@ParentChild
 	public TestEntity2 getRelation()
 	{
 		return relation;

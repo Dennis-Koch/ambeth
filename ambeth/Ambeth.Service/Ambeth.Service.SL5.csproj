@@ -96,6 +96,10 @@
     <Compile Include="ambeth\metadata\EmbeddedPrimitiveMember.cs" />
     <Compile Include="ambeth\metadata\EmbeddedRelationMember.cs" />
     <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediatePrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateRelationMember.cs" />
     <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
     <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />
     <Compile Include="ambeth\metadata\Member.cs" />

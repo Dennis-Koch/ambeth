@@ -24,7 +24,7 @@ namespace De.Osthus.Ambeth.Typeinfo
             {
                 return false;
             }
-            if (AnnotationUtil.IsAnnotationPresent<Embeddable>(type, false))
+            if (AnnotationUtil.IsAnnotationPresent<Embeddable>(type, false) || typeof(IImmutableType).IsAssignableFrom(type))
 		    {
 			    return false;
 		    }

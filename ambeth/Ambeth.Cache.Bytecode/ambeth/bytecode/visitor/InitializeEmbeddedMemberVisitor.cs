@@ -40,7 +40,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 {
                     continue;
                 }
-                if (((IEmbeddedMember)member).GetMemberPath()[0].Name.Equals(nameSplit[0]))
+                if (((IEmbeddedMember)member).GetMemberPathToken()[0].Equals(nameSplit[0]))
                 {
                     return true;
                 }
@@ -51,7 +51,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 {
                     continue;
                 }
-                if (((IEmbeddedMember)member).GetMemberPath()[0].Name.Equals(nameSplit[0]))
+                if (((IEmbeddedMember)member).GetMemberPathToken()[0].Equals(nameSplit[0]))
                 {
                     return true;
                 }
@@ -86,7 +86,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementConstructor(PropertyInstance p_embeddedMemberTemplate)
         {
-            IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
+            HashSet<Member> alreadyHandledFirstMembers = new HashSet<Member>();
 
             List<Script> scripts = new List<Script>();
             foreach (Member member in metaData.PrimitiveMembers)

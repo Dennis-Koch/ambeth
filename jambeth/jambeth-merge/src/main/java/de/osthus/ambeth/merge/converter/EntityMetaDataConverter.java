@@ -14,10 +14,15 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
-import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.IntermediateEmbeddedPrimitiveMember;
+import de.osthus.ambeth.metadata.IntermediateEmbeddedRelationMember;
+import de.osthus.ambeth.metadata.IntermediatePrimitiveMember;
+import de.osthus.ambeth.metadata.IntermediateRelationMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.typeinfo.IPropertyInfo;
+import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.ListUtil;
 
@@ -38,7 +43,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	protected IEntityFactory entityFactory;
 
 	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
+	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -127,7 +132,6 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 			setMergeRelevant(target, target.getUpdatedOnMember(), false);
 			setMergeRelevant(target, target.getIdMember(), false);
 			setMergeRelevant(target, target.getVersionMember(), false);
-			target.initialize(cacheModification, entityFactory);
 			return target;
 		}
 		throw new IllegalStateException("Source of type " + sourceType.getName() + " not supported");
@@ -141,18 +145,42 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		}
 	}
 
-	protected PrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
+	protected IntermediatePrimitiveMember getPrimitiveMember(Class<?> entityType, String memberName, Map<String, Member> nameToMemberDict)
 	{
 		if (memberName == null)
 		{
 			return null;
 		}
-		PrimitiveMember member = (PrimitiveMember) nameToMemberDict.get(memberName);
+		IntermediatePrimitiveMember member = (IntermediatePrimitiveMember) nameToMemberDict.get(memberName);
 		if (member != null)
 		{
 			return member;
 		}
-		member = memberTypeProvider.getPrimitiveMember(entityType, memberName);
+		String[] memberNameSplit = memberName.split(Pattern.quote("."));
+		Class<?> currentType = entityType;
+		Member[] memberSplit = new Member[memberNameSplit.length];
+		for (int a = 0, size = memberNameSplit.length; a < size; a++)
+		{
+			IPropertyInfo property = propertyInfoProvider.getProperty(currentType, memberNameSplit[a]);
+			if (property == null)
+			{
+				throw new IllegalStateException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
+			}
+			memberSplit[a] = new IntermediatePrimitiveMember(currentType, property.getPropertyType(), property.getElementType(), memberNameSplit[a]);
+			currentType = property.getPropertyType();
+		}
+		if (memberSplit.length == 1)
+		{
+			member = (IntermediatePrimitiveMember) memberSplit[0];
+		}
+		else
+		{
+			Member[] memberPath = new Member[memberSplit.length - 1];
+			System.arraycopy(memberSplit, 0, memberPath, 0, memberPath.length);
+			Member childMember = memberSplit[memberPath.length];
+			member = new IntermediateEmbeddedPrimitiveMember(entityType, childMember.getRealType(), childMember.getElementType(), memberName, memberPath,
+					childMember);
+		}
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
@@ -168,7 +196,31 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		{
 			return member;
 		}
-		member = memberTypeProvider.getRelationMember(entityType, memberName);
+		String[] memberNameSplit = memberName.split(Pattern.quote("."));
+		Class<?> currentType = entityType;
+		Member[] memberSplit = new Member[memberNameSplit.length];
+		for (int a = 0, size = memberNameSplit.length; a < size; a++)
+		{
+			IPropertyInfo property = propertyInfoProvider.getProperty(currentType, memberNameSplit[a]);
+			if (property == null)
+			{
+				throw new IllegalStateException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
+			}
+			memberSplit[a] = new IntermediateRelationMember(currentType, property.getPropertyType(), property.getElementType(), memberNameSplit[a]);
+			currentType = property.getPropertyType();
+		}
+		if (memberSplit.length == 1)
+		{
+			member = (IntermediateRelationMember) memberSplit[0];
+		}
+		else
+		{
+			Member[] memberPath = new Member[memberSplit.length - 1];
+			System.arraycopy(memberSplit, 0, memberPath, 0, memberPath.length);
+			Member childMember = memberSplit[memberPath.length];
+			member = new IntermediateEmbeddedRelationMember(entityType, childMember.getRealType(), childMember.getElementType(), memberName, memberPath,
+					childMember);
+		}
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");

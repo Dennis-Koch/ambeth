@@ -70,5 +70,27 @@ namespace De.Osthus.Ambeth.Merge.Model
         void PrePersist(Object entity);
 
         Object NewInstance();
+
+        /// <summary>
+        /// Returns the member which matches the given memberPath best. This is useful in cases where embedded relational members should be traversed in multiple
+	    /// hierarchies. Example:
+	    /// 
+	    /// Given a memberPath "embA.b.c" for an Entity of type A could return a member "embA.b" if A has a relation to B which is mapped to the embedded member
+	    /// "embA.b".
+        /// </summary>
+        /// <param name="memberPath">Any multi-traversal path where the regarding relational member on this meta data should be searched for</param>
+        /// <returns>The relational member which is mentioned in the multi-traversal path</returns>
+        Member GetWidenedMatchingMember(String memberPath);
+
+        /// <summary>
+        /// Returns the member which matches the given memberPath best. This is useful in cases where embedded relational members should be traversed in multiple
+        /// hierarchies. Example:
+        /// 
+        /// Given a memberPath "embA.b.c" for an Entity of type A could return a member "embA.b" if A has a relation to B which is mapped to the embedded member
+        /// "embA.b".
+        /// </summary>
+        /// <param name="memberPath">Any multi-traversal path where the regarding relational member on this meta data should be searched for</param>
+        /// <returns>The relational member which is mentioned in the multi-traversal path</returns>
+        Member GetWidenedMatchingMember(String[] memberPath);
     }
 }

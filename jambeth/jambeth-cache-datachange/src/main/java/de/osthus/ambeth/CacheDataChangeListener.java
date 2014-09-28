@@ -50,7 +50,6 @@ import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
-import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.Lock;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -524,32 +523,21 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		for (int c = cacheChangeItems.size(); c-- > 0;)
 		{
 			CacheChangeItem cci = cacheChangeItems.get(c);
-			IWritableCache childCache = cci.cache;
-
-			ChildCache cacheIntern = (ChildCache) childCache;
 			IList<IObjRef> objectRefsToUpdate = cci.updatedObjRefs;
 			IList<Object> objectsToUpdate = cci.updatedObjects;
-			Map<Class<?>, List<CachePath>> typeToCachePathsDict = cacheIntern.getMembersToInitialize();
-
-			if (typeToCachePathsDict == null || typeToCachePathsDict.size() == 0)
-			{
-				// No custom cascade load path defined here
-				continue;
-			}
 
 			for (int a = objectRefsToUpdate.size(); a-- > 0;)
 			{
-				IObjRef oriToUpdate = objectRefsToUpdate.get(a);
+				IObjRef objRefToUpdate = objectRefsToUpdate.get(a);
 				Object objectToUpdate = objectsToUpdate.get(a);
-				ILoadContainer loadContainer = objRefToLoadContainerDict.get(oriToUpdate);
+				ILoadContainer loadContainer = objRefToLoadContainerDict.get(objRefToUpdate);
 				if (loadContainer == null)
 				{
 					// Current value in childCache is not in our interest here
-					return;
+					continue;
 				}
 				IObjRef[][] relations = loadContainer.getRelations();
 				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToUpdate).get__EntityMetaData();
-				Class<?> entityType = metaData.getEntityType();
 				RelationMember[] relationMembers = metaData.getRelationMembers();
 				if (relationMembers.length == 0)
 				{
@@ -567,23 +555,6 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					// This is because initialized relations have to remain initialized after update but the relations
 					// may have updated, too
 					batchPendingRelations(vhc, relationMembers[b], relations[b], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
-				}
-
-				if (typeToCachePathsDict == null || typeToCachePathsDict.size() == 0)
-				{
-					// No custom cascade load path defined here
-					continue;
-				}
-				List<CachePath> cachePaths = typeToCachePathsDict.get(entityType);
-				if (cachePaths == null)
-				{
-					return; // Nothing to do for this type of entity
-				}
-				for (int b = cachePaths.size(); b-- > 0;)
-				{
-					CachePath cachePath = cachePaths.get(b);
-					int memberIndex = metaData.getIndexByRelationName(cachePath.memberName);
-					batchPendingRelations(vhc, relationMembers[memberIndex], relations[memberIndex], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
 				}
 			}
 		}

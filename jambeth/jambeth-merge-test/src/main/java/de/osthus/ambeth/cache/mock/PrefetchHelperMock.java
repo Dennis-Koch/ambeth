@@ -3,7 +3,6 @@ package de.osthus.ambeth.cache.mock;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.util.IPrefetchConfig;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
@@ -21,12 +20,6 @@ public class PrefetchHelperMock implements IPrefetchHelper
 
 	@Override
 	public IPrefetchState prefetch(Object objects)
-	{
-		return null;
-	}
-
-	@Override
-	public IPrefetchState prefetch(Object objects, IMap<Class<?>, List<String>> typeToMembersToInitialize)
 	{
 		return null;
 	}

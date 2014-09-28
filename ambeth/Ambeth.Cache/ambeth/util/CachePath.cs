@@ -1,29 +1,28 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using De.Osthus.Ambeth.Log;
-using De.Osthus.Ambeth.Util;
-using De.Osthus.Ambeth.Transfer;
-using De.Osthus.Ambeth.Merge.Transfer;
-using System.Collections.ObjectModel;
-using De.Osthus.Ambeth.Cache;
-using System.Text;
-using De.Osthus.Ambeth.Merge.Model;
-using De.Osthus.Ambeth.Ioc;
-using De.Osthus.Ambeth.Merge;
-using De.Osthus.Ambeth.Typeinfo;
 
 namespace De.Osthus.Ambeth.Util
 {
     public class CachePath
     {
-        public int memberIndex;
+        public readonly int memberIndex;
 
-        public String memberName;
+        public readonly String memberName;
 
-        public Type memberType;
+        public readonly Type memberType;
 
-        public IList<CachePath> children;
+        public readonly CachePath[] children;
+
+        public CachePath(Type memberType, int memberIndex, String memberName, CachePath[] children)
+        {
+            this.memberIndex = memberIndex;
+            this.memberName = memberName;
+            this.memberType = memberType;
+            this.children = children;
+        }
+
+        public override String ToString()
+        {
+            return memberName;
+        }
     }
 }

@@ -475,24 +475,21 @@ namespace De.Osthus.Ambeth.Cache
             foreach (CacheChangeItem cci in cacheChangeItems)
             {
                 IWritableCache childCache = cci.Cache;
-                ChildCache cacheIntern = (ChildCache)childCache;
                 IList<IObjRef> objectRefsToUpdate = cci.UpdatedObjRefs;
                 IList<Object> objectsToUpdate = cci.UpdatedObjects;
-                IDictionary<Type, IList<CachePath>> typeToCachePathsDict = cacheIntern.MembersToInitialize;
 
                 for (int a = objectRefsToUpdate.Count; a-- > 0; )
                 {
-                    IObjRef oriToUpdate = objectRefsToUpdate[a];
+                    IObjRef objRefToUpdate = objectRefsToUpdate[a];
                     Object objectToUpdate = objectsToUpdate[a];
-                    ILoadContainer loadContainer = DictionaryExtension.ValueOrDefault(objRefToLoadContainerDict, oriToUpdate);
+                    ILoadContainer loadContainer = DictionaryExtension.ValueOrDefault(objRefToLoadContainerDict, objRefToUpdate);
                     if (loadContainer == null)
                     {
                         // Current value in childCache is not in our interest here
-                        return;
+                        continue;
                     }
                     IObjRef[][] relations = loadContainer.Relations;
                     IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToUpdate).Get__EntityMetaData();
-                    Type entityType = metaData.EntityType;
                     RelationMember[] relationMembers = metaData.RelationMembers;
                     if (relationMembers.Length == 0)
                     {
@@ -505,29 +502,12 @@ namespace De.Osthus.Ambeth.Cache
                         {
                             continue;
                         }
-                            // the object which has to be updated has initialized relations. So we have to ensure
-                            // that these relations are in the RootCache at the time the target object will be updated.
-                            // This is because initialized relations have to remain initialized after update but the relations
-                            // may have updated, too
+                        // the object which has to be updated has initialized relations. So we have to ensure
+                        // that these relations are in the RootCache at the time the target object will be updated.
+                        // This is because initialized relations have to remain initialized after update but the relations
+                        // may have updated, too
                         BatchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex],
                                 cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
-                    }
-
-                    if (typeToCachePathsDict == null || typeToCachePathsDict.Count == 0)
-                    {
-                        // No custom cascade load path defined here
-                        continue;
-                    }
-                    IList<CachePath> cachePaths = DictionaryExtension.ValueOrDefault(typeToCachePathsDict, entityType);
-                    if (cachePaths == null)
-                    {
-                        return; // Nothing to do for this type of entity
-                    }
-                    foreach (CachePath cachePath in cachePaths)
-                    {
-                        int memberIndex = metaData.GetIndexByRelationName(cachePath.memberName);
-                        BatchPendingRelations(vhc, relationMembers[memberIndex], relations[memberIndex],
-                            cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
                     }
                 }
             }

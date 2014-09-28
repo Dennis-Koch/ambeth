@@ -9,6 +9,7 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Merge.Model
 {
@@ -445,5 +446,53 @@ namespace De.Osthus.Ambeth.Merge.Model
         {
             return entityFactory.CreateEntity(this);
         }
+        
+	    public Member GetWidenedMatchingMember(String memberPath)
+	    {
+		    Member member = GetMemberByName(memberPath);
+		    if (member != null)
+		    {
+			    // fast case
+			    return member;
+		    }
+		    String[] memberPathSplit = EmbeddedMember.Split(memberPath);
+		    int length = memberPathSplit.Length - 1; // the full length has already been tested in the fast case
+		    StringBuilder sb = new StringBuilder();
+		    member = GetMemberByName(BuildMemberName(memberPathSplit, length, sb));
+		    while (member == null && length > 0)
+		    {
+			    length--;
+			    member = GetMemberByName(BuildMemberName(memberPathSplit, length, sb));
+		    }
+		    return member;
+	    }
+
+	    public Member GetWidenedMatchingMember(String[] memberPath)
+	    {
+		    int length = memberPath.Length;
+		    StringBuilder sb = new StringBuilder();
+		    Member member = GetMemberByName(BuildMemberName(memberPath, length, sb));
+		    while (member == null && length > 0)
+		    {
+			    length--;
+			    member = GetMemberByName(BuildMemberName(memberPath, length, sb));
+		    }
+		    return member;
+	    }
+
+	    protected String BuildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
+	    {
+		    sb.Length = 0;
+		    for (int a = 0, size = memberNameTokens.Length; a < size; a++)
+		    {
+			    String memberNameToken = memberNameTokens[a];
+			    if (a > 0)
+			    {
+				    sb.Append('.');
+			    }
+			    sb.Append(memberNameToken);
+		    }
+		    return sb.ToString();
+	    }
     }
 }

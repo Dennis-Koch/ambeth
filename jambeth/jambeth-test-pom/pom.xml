@@ -47,7 +47,6 @@
 		<module>../jambeth-security-bytecode-test</module>
 		<module>../jambeth-security-server-test</module>
 		<module>../jambeth-sensor-test</module>
-		<module>../jambeth-server-helloworld-test</module>
 		<module>../jambeth-server-rest-test</module>
 		<module>../jambeth-service-test</module>
 		<module>../jambeth-soap-test</module>

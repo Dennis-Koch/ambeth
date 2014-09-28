@@ -1,6 +1,5 @@
 package de.osthus.ambeth.util;
 
-import java.util.List;
 
 public class CascadeLoadItem
 {
@@ -8,9 +7,9 @@ public class CascadeLoadItem
 
 	public final DirectValueHolderRef valueHolder;
 
-	public final List<CachePath> cachePaths;
+	public final CachePath[] cachePaths;
 
-	public CascadeLoadItem(Class<?> realType, DirectValueHolderRef valueHolder, List<CachePath> cachePaths)
+	public CascadeLoadItem(Class<?> realType, DirectValueHolderRef valueHolder, CachePath[] cachePaths)
 	{
 		this.realType = realType;
 		this.valueHolder = valueHolder;

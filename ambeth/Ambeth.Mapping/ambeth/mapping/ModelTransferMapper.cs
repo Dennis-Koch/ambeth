@@ -1063,29 +1063,30 @@ namespace De.Osthus.Ambeth.Mapping
         {
             String voMemberName = config.GetValueObjectMemberName(boMemberName);
             Member voMember = MemberTypeProvider.GetMember(config.ValueType, voMemberName);
-            if (voMember != null)
+            if (voMember == null)
             {
-                Type elementType = config.GetMemberType(voMemberName);
-                if (elementType != null)
-                {
-                    //TODO
-                    //FIXME
-                    //TBD
-                    throw new NotSupportedException("Fix this code path");
-                    //((Member)voMember).ElementType = elementType;
-                }
-                typeInfoMap.Put(boMemberName, voMember);
-                if (sb != null)
+                return;
+        }
+            Type elementType = config.GetMemberType(voMemberName);
+            if (elementType != null)
+            {
+                //TODO
+                //FIXME
+                //TBD
+                throw new NotSupportedException("Fix this code path");
+                //((Member)voMember).ElementType = elementType;
+            }
+            typeInfoMap.Put(boMemberName, voMember);
+            if (sb != null)
+            {
+                sb.Length = 0;
+                String voSpecifiedName = sb.Append(voMemberName).Append("Specified").ToString();
+                Member voSpecifiedMember = MemberTypeProvider.GetMember(config.ValueType, voSpecifiedName);
+                if (voSpecifiedMember != null)
                 {
                     sb.Length = 0;
-                    String voSpecifiedName = sb.Append(voMemberName).Append("Specified").ToString();
-                    Member voSpecifiedMember = MemberTypeProvider.GetPrimitiveMember(config.ValueType, voSpecifiedName);
-                    if (voSpecifiedMember != null)
-                    {
-                        sb.Length = 0;
-                        String boSpecifiedName = sb.Append(boMemberName).Append("Specified").ToString();
-                        typeInfoMap.Put(boSpecifiedName, voSpecifiedMember);
-                    }
+                    String boSpecifiedName = sb.Append(boMemberName).Append("Specified").ToString();
+                    typeInfoMap.Put(boSpecifiedName, voSpecifiedMember);
                 }
             }
         }

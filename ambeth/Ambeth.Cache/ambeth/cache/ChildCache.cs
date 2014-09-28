@@ -17,6 +17,7 @@ using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Collections;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -26,8 +27,6 @@ namespace De.Osthus.Ambeth.Cache
         public ILogger Log { private get; set; }
 
         protected CacheHashMap keyToAlternateIdsMap;
-
-        public IDictionary<Type, IList<CachePath>> MembersToInitialize { get; set; }
 
         [Autowired]
         public ICacheModification CacheModification { protected get; set; }
@@ -103,7 +102,6 @@ namespace De.Osthus.Ambeth.Cache
             EntityFactory = null;
             FirstLevelCacheExtendable = null;
             Parent = null;
-            MembersToInitialize = null;
             keyToAlternateIdsMap = null;
             base.Dispose();
         }
@@ -244,10 +242,6 @@ namespace De.Osthus.Ambeth.Cache
                         IList<Object> result = GetObjectsRetry(orisToGet, cacheDirective, out doAnotherRetry);
                         if (!doAnotherRetry)
                         {
-                            if (!cacheDirective.HasFlag(CacheDirective.FailEarly) && !cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy))
-                            {
-                                CachePathHelper.EnsureInitializedRelations(result, MembersToInitialize);
-                            }
                             return result;
                         }
                     }
@@ -698,34 +692,7 @@ namespace De.Osthus.Ambeth.Cache
                 writeLock.Unlock();
             }
         }
-
-        public override void CascadeLoadPath(Type entityType, String cascadeLoadPath)
-        {
-            ParamChecker.AssertParamNotNull(cascadeLoadPath, "cascadeLoadPath");
-
-            WriteLock.Lock();
-            try
-            {
-                if (this.MembersToInitialize == null)
-                {
-                    this.MembersToInitialize = new Dictionary<Type, IList<CachePath>>();
-                }
-
-                IList<CachePath> cachePaths = DictionaryExtension.ValueOrDefault(this.MembersToInitialize, entityType);
-                if (cachePaths == null)
-                {
-                    cachePaths = new List<CachePath>();
-                    this.MembersToInitialize.Add(entityType, cachePaths);
-                }
-
-                CachePathHelper.BuildCachePath(entityType, cascadeLoadPath, cachePaths);
-            }
-            finally
-            {
-                WriteLock.Unlock();
-            }
-        }
-
+        
         protected override void PutInternObjRelation(Object cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember)
         {
             int relationIndex = metaData.GetIndexByRelationName(objRelation.MemberName);

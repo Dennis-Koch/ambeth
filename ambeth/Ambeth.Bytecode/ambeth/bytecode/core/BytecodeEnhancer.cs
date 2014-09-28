@@ -263,7 +263,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 		    Type currType = type;
 		    while (currType != typeof(Object) && currType != null)
 		    {
-			    allMethods.AddAll(currType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly));
+                allMethods.AddAll(currType.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly));
 			    currType = currType.BaseType;
 		    }
 		    if (allMethods.Count == 0)

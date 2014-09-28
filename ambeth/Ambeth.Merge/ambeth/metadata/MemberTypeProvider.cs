@@ -108,36 +108,36 @@ namespace De.Osthus.Ambeth.Metadata
             {
                 return (T)member;
             }
+            member = (T)GetMemberIntern(type, propertyName, baseType);
+            if (member is RelationMember)
+            {
+                CascadeLoadMode? cascadeLoadMode = null;
+                CascadeAttribute cascadeAnnotation = (CascadeAttribute) member.GetAnnotation(typeof(CascadeAttribute));
+                if (cascadeAnnotation != null)
+                {
+                    cascadeLoadMode = cascadeAnnotation.Load;
+                }
+                if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
+                {
+                    cascadeLoadMode = (CascadeLoadMode) Enum.Parse(typeof(CascadeLoadMode), Properties.GetString(
+                            ((RelationMember)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
+                                    : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, CascadeLoadMode.DEFAULT.ToString()), false);
+                }
+                if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
+                {
+                    cascadeLoadMode = CascadeLoadMode.LAZY;
+                }
+                ((IRelationMemberWrite)member).SetCascadeLoadMode(cascadeLoadMode.Value);
+            }
             Object writeLock = this.writeLock;
             lock (writeLock)
             {
                 // concurrent thread might have been faster
                 accessorR = map.Get(type, propertyName);
-                member = accessorR != null ? (T)accessorR.Target : null;
-                if (member != null)
+                Object existingMember = accessorR != null ? (T)accessorR.Target : null;
+                if (existingMember != null)
                 {
-                    return (T)member;
-                }
-                member = (T)GetMemberIntern(type, propertyName, baseType);
-                if (member is RelationMember)
-                {
-                    CascadeLoadMode? cascadeLoadMode = null;
-                    CascadeAttribute cascadeAnnotation = (CascadeAttribute) member.GetAnnotation(typeof(CascadeAttribute));
-                    if (cascadeAnnotation != null)
-                    {
-                        cascadeLoadMode = cascadeAnnotation.Load;
-                    }
-                    if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
-                    {
-                        cascadeLoadMode = (CascadeLoadMode) Enum.Parse(typeof(CascadeLoadMode), Properties.GetString(
-                                ((RelationMember)member).IsToMany ? ServiceConfigurationConstants.ToManyDefaultCascadeLoadMode
-                                        : ServiceConfigurationConstants.ToOneDefaultCascadeLoadMode, CascadeLoadMode.DEFAULT.ToString()), false);
-                    }
-                    if (cascadeLoadMode == null || CascadeLoadMode.DEFAULT.Equals(cascadeLoadMode))
-                    {
-                        cascadeLoadMode = CascadeLoadMode.LAZY;
-                    }
-                    ((IRelationMemberWrite)member).SetCascadeLoadMode(cascadeLoadMode.Value);
+                    return (T)existingMember;
                 }
                 map.Put(type, propertyName, new WeakReference(member));
                 return (T)member;

@@ -47,108 +47,90 @@ namespace De.Osthus.Ambeth.Util
 
         [Autowired]
         public IObjRefHelper ObjRefHelper { protected get; set; }
-        
+
         [Autowired]
         public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
 
         protected readonly ThreadLocal<HashSet<AlreadyHandledItem>> alreadyHandledSetTL = new ThreadLocal<HashSet<AlreadyHandledItem>>();
 
-        public void BuildCachePath(Type entityType, String memberToInitialize, IList<CachePath> cachePaths)
-        {
-            String[] path = memberToInitialize.Split('.');
-            CachePath currentCachePath = null;
-            Type currentType = entityType;
-            foreach (String pathItem in path)
-            {
-                if (currentCachePath == null)
-                {
-                    currentCachePath = GetOrCreateCachePath(cachePaths, currentType, pathItem);
-                }
-                else
-                {
-                    if (currentCachePath.children == null)
-                    {
-                        currentCachePath.children = new List<CachePath>();
-                    }
-                    currentCachePath = GetOrCreateCachePath(currentCachePath.children, currentType, pathItem);
-                }
-                currentType = currentCachePath.memberType;
-            }
-        }
+        public void BuildCachePath(Type entityType, String memberToInitialize, CHashSet<AppendableCachePath> cachePaths)
+	    {
+		    Type currentType = entityType;
+		    String requestedMemberName = memberToInitialize;
+		    AppendableCachePath currentCachePath = null;
+            CHashSet<AppendableCachePath> currentCachePaths = cachePaths;
 
-        protected IList<CachePath> BuildCachePath(Type entityType, IList<String> membersToInitialize)
-        {
-            IList<CachePath> cachePaths = new List<CachePath>();
-            foreach (String memberName in membersToInitialize)
-            {
-                BuildCachePath(entityType, memberName, cachePaths);
-            }
-            return cachePaths;
-        }
-
-        protected CachePath GetOrCreateCachePath(IList<CachePath> cachePaths, Type entityType, String memberName)
-        {
-            for (int a = cachePaths.Count; a-- > 0; )
-            {
-                CachePath cachePath = cachePaths[a];
-                if (memberName.Equals(cachePath.memberName))
-                {
-                    return cachePath;
-                }
-            }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
-
-            Member member = metaData.GetMemberByName(memberName);
-            if (member == null)
-            {
-                throw new Exception("Member " + entityType.FullName + "." + memberName + " not found");
-            }
-            CachePath newCachePath = new CachePath();
-            newCachePath.memberType = member.ElementType;
-            newCachePath.memberIndex = metaData.GetIndexByRelation(member);
-            newCachePath.memberName = memberName;
-            cachePaths.Add(newCachePath);
-            return newCachePath;
-        }
+		    while (true)
+		    {
+			    IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(currentType);
+			    Member widenedMember = metaData.GetWidenedMatchingMember(requestedMemberName);
+			    if (widenedMember == null)
+			    {
+				    throw new ArgumentException("No member found to resolve path " + entityType.FullName + "." + memberToInitialize);
+			    }
+			    String widenedMemberName = widenedMember.Name;
+			    if (widenedMember is PrimitiveMember)
+			    {
+				    if (widenedMemberName.Equals(memberToInitialize))
+				    {
+					    // this member does not need to be prefetched
+					    return;
+				    }
+				    // widened member has been found but not the full path of the requested member name
+				    throw new ArgumentException("No member found to resolve path " + entityType.FullName + "." + memberToInitialize);
+			    }
+			    AppendableCachePath childCachePath = null;
+			    if (currentCachePaths == null)
+			    {
+                    currentCachePaths = new CHashSet<AppendableCachePath>();
+				    currentCachePath.children = currentCachePaths;
+			    }
+			    foreach (AppendableCachePath cachePath in currentCachePaths)
+			    {
+				    if (widenedMemberName.Equals(cachePath.memberName))
+				    {
+					    childCachePath = cachePath;
+					    break;
+				    }
+			    }
+			    if (childCachePath == null)
+			    {
+				    int relationIndex = metaData.GetIndexByRelation(widenedMember);
+				    childCachePath = new AppendableCachePath(widenedMember.ElementType, relationIndex, widenedMemberName);
+				    currentCachePaths.Add(childCachePath);
+			    }
+			    if (widenedMemberName.Equals(requestedMemberName))
+			    {
+				    // we have travered the full path of the requested member name
+				    return;
+			    }
+			    requestedMemberName = requestedMemberName.Substring(widenedMemberName.Length + 1);
+			    currentCachePath = childCachePath;
+			    currentType = currentCachePath.memberType;
+			    currentCachePaths = currentCachePath.children;
+		    }
+	    }
 
         public IPrefetchConfig CreatePrefetch()
         {
             return BeanContext.RegisterAnonymousBean<PrefetchConfig>().Finish();
         }
+        
+        public IPrefetchState EnsureInitializedRelations(Object objects, ILinkedMap<Type, CachePath[]> entityTypeToPrefetchSteps)
+	    {
+		    if (objects == null || entityTypeToPrefetchSteps == null || entityTypeToPrefetchSteps.Count == 0)
+		    {
+			    return null;
+		    }
+		    return EnsureInitializedRelationsIntern(objects, entityTypeToPrefetchSteps);
+	    }
 
         public IPrefetchState Prefetch(Object objects)
-        {
-            return EnsureInitializedRelationsIntern<IList<CachePath>>(objects, null);
-        }
+	    {
+		    return EnsureInitializedRelationsIntern(objects, null);
+	    }
 
-        public IPrefetchState Prefetch(Object objects, IDictionary<Type, IList<String>> typeToMembersToInitialize)
-        {
-            if (GuiThreadHelper.IsInGuiThread())
-            {
-                throw new Exception("it is not allowed to call Prefetch from the GUI thread");
-            }
-            if (objects == null || typeToMembersToInitialize == null || typeToMembersToInitialize.Count == 0)
-            {
-                return null;
-            }
-            IDictionary<Type, IList<CachePath>> typeToCachePathsDict = new Dictionary<Type, IList<CachePath>>();
-            DictionaryExtension.Loop(typeToMembersToInitialize, delegate(Type entityType, IList<String> membersToInitialize)
-            {
-                typeToCachePathsDict[entityType] = BuildCachePath(entityType, membersToInitialize);
-            });
-            return EnsureInitializedRelations(objects, typeToCachePathsDict);
-        }
-
-        public IPrefetchState EnsureInitializedRelations<V>(Object objects, IDictionary<Type, V> typeToMembersToInitialize) where V : IList<CachePath>
-        {
-            if (objects == null || typeToMembersToInitialize == null || typeToMembersToInitialize.Count == 0)
-            {
-                return null;
-            }
-            return EnsureInitializedRelationsIntern(objects, typeToMembersToInitialize);
-        }
-
-        protected IList<CachePath> MergeCachePaths<V>(Type entityType, IList<CachePath> baseCachePath, IDictionary<Type, V> typeToMembersToInitialize) where V : IList<CachePath>
+        protected CachePath[] MergeCachePaths(Type entityType, CachePath[] baseCachePath, IMap<Type, CachePath[]> typeToMembersToInitialize)
         {
             if (typeToMembersToInitialize == null)
             {
@@ -159,7 +141,7 @@ namespace De.Osthus.Ambeth.Util
             {
                 return baseCachePath;
             }
-            IList<CachePath> cachePathsOfType = DictionaryExtension.ValueOrDefault(typeToMembersToInitialize, metaData.EntityType);
+            CachePath[] cachePathsOfType = typeToMembersToInitialize.Get(metaData.EntityType);
             if (cachePathsOfType == null)
             {
                 return baseCachePath;
@@ -168,12 +150,13 @@ namespace De.Osthus.Ambeth.Util
             {
                 return cachePathsOfType;
             }
-            List<CachePath> cachePaths = new List<CachePath>(baseCachePath);
-            cachePaths.AddRange(cachePathsOfType);
+            CachePath[] cachePaths = new CachePath[baseCachePath.Length + cachePathsOfType.Length];
+            Array.Copy(baseCachePath, 0, cachePaths, 0, baseCachePath.Length);
+            Array.Copy(cachePathsOfType, 0, cachePaths, baseCachePath.Length, cachePathsOfType.Length);
             return cachePaths;
         }
 
-        protected IPrefetchState EnsureInitializedRelationsIntern<V>(Object objects, IDictionary<Type, V> typeToMembersToInitialize) where V : IList<CachePath>
+        protected IPrefetchState EnsureInitializedRelationsIntern(Object objects, ILinkedMap<Type, CachePath[]> entityTypeToPrefetchSteps)
         {
             if (objects == null)
             {
@@ -217,13 +200,13 @@ namespace De.Osthus.Ambeth.Util
                                 {
                                     continue;
                                 }
-                                IList<CachePath> cachePaths = null;
-                                if (typeToMembersToInitialize != null)
+                                CachePath[] cachePaths = null;
+                                if (entityTypeToPrefetchSteps != null)
                                 {
                                     IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(item.GetType(), true);
                                     if (metaData != null)
                                     {
-                                        cachePaths = DictionaryExtension.ValueOrDefault(typeToMembersToInitialize, metaData.EntityType);
+                                        cachePaths = entityTypeToPrefetchSteps.Get(metaData.EntityType);
                                         if (cachePaths == null)
                                         {
                                             continue;
@@ -236,11 +219,11 @@ namespace De.Osthus.Ambeth.Util
                         }
                         else
                         {
-                            IList<CachePath> cachePaths = null;
-                            if (typeToMembersToInitialize != null)
+                            CachePath[] cachePaths = null;
+                            if (entityTypeToPrefetchSteps != null)
                             {
-                                IEntityMetaData metaData = ((IEntityMetaDataHolder) objects).Get__EntityMetaData();
-                                cachePaths = DictionaryExtension.ValueOrDefault(typeToMembersToInitialize, metaData.EntityType);
+                                IEntityMetaData metaData = ((IEntityMetaDataHolder)objects).Get__EntityMetaData();
+                                cachePaths = entityTypeToPrefetchSteps.Get(metaData.EntityType);
 
                                 if (cachePaths == null)
                                 {
@@ -303,39 +286,39 @@ namespace De.Osthus.Ambeth.Util
                             foreach (CascadeLoadItem cascadeLoadItem in cascadeLoadItems)
                             {
                                 Object valueHolder = cascadeLoadItem.valueHolder;
-                                IList<CachePath> cachePaths = cascadeLoadItem.cachePaths;
+                                CachePath[] cachePaths = cascadeLoadItem.cachePaths;
 
                                 // Merge the root prefetch path with the relative prefetch path
-                                cachePaths = MergeCachePaths(cascadeLoadItem.realType, cachePaths, typeToMembersToInitialize);
+                                cachePaths = MergeCachePaths(cascadeLoadItem.realType, cachePaths, entityTypeToPrefetchSteps);
 
                                 IObjRefContainer vhc;
-						        ICacheIntern targetCache;
+                                ICacheIntern targetCache;
                                 RelationMember member;
-						        bool doSetValue = false;
-						        Object obj;
-						        if (valueHolder is IndirectValueHolderRef)
-						        {
-							        IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef) valueHolder;
-							        vhc = valueHolderKey.Vhc;
-							        targetCache = valueHolderKey.RootCache;
-							        member = valueHolderKey.Member;
-						        }
-						        else
-						        {
-							        DirectValueHolderRef valueHolderKey = (DirectValueHolderRef) valueHolder;
-							        IValueHolderContainer vhcTemp = (IValueHolderContainer) valueHolderKey.Vhc;
-							        vhc = vhcTemp;
+                                bool doSetValue = false;
+                                Object obj;
+                                if (valueHolder is IndirectValueHolderRef)
+                                {
+                                    IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef)valueHolder;
+                                    vhc = valueHolderKey.Vhc;
+                                    targetCache = valueHolderKey.RootCache;
+                                    member = valueHolderKey.Member;
+                                }
+                                else
+                                {
+                                    DirectValueHolderRef valueHolderKey = (DirectValueHolderRef)valueHolder;
+                                    IValueHolderContainer vhcTemp = (IValueHolderContainer)valueHolderKey.Vhc;
+                                    vhc = vhcTemp;
                                     targetCache = vhcTemp.__TargetCache;
-							        member = valueHolderKey.Member;
-							        doSetValue = true;
-						        }
-						        int relationIndex = vhc.Get__EntityMetaData().GetIndexByRelation(member);
-						        IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex);
-						        obj = valueHolderContainerTemplate.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
-						        if (doSetValue && obj != null)
-						        {
-							        member.SetValue(vhc, obj);
-						        }
+                                    member = valueHolderKey.Member;
+                                    doSetValue = true;
+                                }
+                                int relationIndex = vhc.Get__EntityMetaData().GetIndexByRelation(member);
+                                IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex);
+                                obj = valueHolderContainerTemplate.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
+                                if (doSetValue && obj != null)
+                                {
+                                    member.SetValue(vhc, obj);
+                                }
                                 EnsureInitializedRelationsIntern(obj, cachePaths, cacheToOrisToLoad, cacheToOrelsToLoad, cacheToOrisLoadedHistory,
                                         cacheToOrelsLoadedHistory, alreadyHandledSet, loadItems);
                             }
@@ -452,7 +435,7 @@ namespace De.Osthus.Ambeth.Util
             orelsLoadedHistory.AddAll(orelsToLoad);
         }
 
-        protected void EnsureInitializedRelationsIntern(Object obj, IList<CachePath> cachePaths,
+        protected void EnsureInitializedRelationsIntern(Object obj, CachePath[] cachePaths,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory,
             ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
@@ -528,7 +511,7 @@ namespace De.Osthus.Ambeth.Util
                 return;
             }
             IValueHolderContainer vhc = (IValueHolderContainer)obj;
-            for (int a = cachePaths.Count; a-- > 0; )
+            for (int a = cachePaths.Length; a-- > 0; )
             {
                 CachePath path = cachePaths[a];
 
@@ -552,7 +535,7 @@ namespace De.Osthus.Ambeth.Util
             }
         }
 
-        protected bool HandleValueHolder(DirectValueHolderRef vhr, IList<CachePath> cachePaths, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad,
+        protected bool HandleValueHolder(DirectValueHolderRef vhr, CachePath[] cachePaths, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad,
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory,
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory, ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
         {
@@ -875,6 +858,70 @@ namespace De.Osthus.Ambeth.Util
             }
             // Alle values sind unsere eindeutigen Target Entities ohne Duplikate
             return targetDistinctMap.Values;
+        }
+
+        public AppendableCachePath CopyCachePathToAppendable(CachePath cachePath)
+        {
+            CachePath[] children = cachePath.children;
+            CHashSet<AppendableCachePath> clonedChildren = null;
+            if (children != null)
+            {
+                clonedChildren = CHashSet<AppendableCachePath>.Create(children.Length);
+                for (int a = children.Length; a-- > 0; )
+                {
+                    clonedChildren.Add(CopyCachePathToAppendable(children[a]));
+                }
+            }
+            AppendableCachePath clonedCachePath = new AppendableCachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName);
+            clonedCachePath.children = clonedChildren;
+            return clonedCachePath;
+        }
+
+        public CachePath[] CopyAppendableToCachePath(CHashSet<AppendableCachePath> children)
+        {
+            if (children == null)
+            {
+                return null;
+            }
+            CachePath[] clonedChildren = new CachePath[children.Count];
+            int index = 0;
+            foreach (AppendableCachePath child in children)
+            {
+                clonedChildren[index] = CopyAppendableToCachePath(child);
+                index++;
+            }
+            return clonedChildren;
+        }
+
+        public CachePath CopyAppendableToCachePath(AppendableCachePath cachePath)
+        {
+            CachePath[] clonedChildren = CopyAppendableToCachePath(cachePath.children);
+            return new CachePath(cachePath.memberType, cachePath.memberIndex, cachePath.memberName, clonedChildren);
+        }
+
+        public void UnionCachePath(AppendableCachePath cachePath, AppendableCachePath other)
+        {
+            CHashSet<AppendableCachePath> otherChildren = other.children;
+            if (otherChildren == null)
+            {
+                // fast case 1
+                return;
+            }
+            CHashSet<AppendableCachePath> children = cachePath.children;
+            if (children == null)
+            {
+                // fast case 2
+                cachePath.children = otherChildren;
+                return;
+            }
+            foreach (AppendableCachePath otherCachePath in otherChildren)
+            {
+                if (children.Add(otherCachePath))
+                {
+                    continue;
+                }
+                UnionCachePath(children.Get(otherCachePath), otherCachePath);
+            }
         }
     }
 }

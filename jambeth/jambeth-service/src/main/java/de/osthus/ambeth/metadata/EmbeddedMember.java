@@ -1,11 +1,45 @@
 package de.osthus.ambeth.metadata;
 
 import java.lang.annotation.Annotation;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 
 public class EmbeddedMember extends Member implements IEmbeddedMember
 {
+	private static final Pattern pattern = Pattern.compile(Pattern.quote("."));
+
+	public static String[] split(String memberName)
+	{
+		return pattern.split(memberName);
+	}
+
+	public static String buildMemberPathString(Member[] memberPath)
+	{
+		StringBuilder sb = new StringBuilder();
+		for (int a = 0, size = memberPath.length; a < size; a++)
+		{
+			Member member = memberPath[a];
+			if (a > 0)
+			{
+				sb.append('.');
+			}
+			sb.append(member.getName());
+		}
+		return sb.toString();
+	}
+
+	public static String[] buildMemberPathToken(Member[] memberPath)
+	{
+		String[] token = new String[memberPath.length];
+		for (int a = memberPath.length; a-- > 0;)
+		{
+			Member member = memberPath[a];
+			token[a] = member.getName();
+		}
+		return token;
+	}
+
 	private final Member childMember;
 
 	private final Member[] memberPath;
@@ -29,17 +63,7 @@ public class EmbeddedMember extends Member implements IEmbeddedMember
 	@Override
 	public String getMemberPathString()
 	{
-		StringBuilder sb = new StringBuilder();
-		for (int a = 0, size = memberPath.length; a < size; a++)
-		{
-			Member member = memberPath[a];
-			if (a > 0)
-			{
-				sb.append('.');
-			}
-			sb.append(member.getName());
-		}
-		return sb.toString();
+		return buildMemberPathString(memberPath);
 	}
 
 	@Override
@@ -51,14 +75,7 @@ public class EmbeddedMember extends Member implements IEmbeddedMember
 	@Override
 	public String[] getMemberPathToken()
 	{
-		Member[] memberPath = getMemberPath();
-		String[] token = new String[memberPath.length];
-		for (int a = memberPath.length; a-- > 0;)
-		{
-			Member member = memberPath[a];
-			token[a] = member.getName();
-		}
-		return token;
+		return buildMemberPathToken(memberPath);
 	}
 
 	@Override

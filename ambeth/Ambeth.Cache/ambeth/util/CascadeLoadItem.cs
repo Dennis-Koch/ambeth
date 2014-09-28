@@ -22,9 +22,9 @@ namespace De.Osthus.Ambeth.Util
 
         public readonly Object valueHolder;
 
-        public readonly IList<CachePath> cachePaths;
+        public readonly CachePath[] cachePaths;
 
-        public CascadeLoadItem(Type realType, Object valueHolder, IList<CachePath> cachePaths)
+        public CascadeLoadItem(Type realType, Object valueHolder, CachePath[] cachePaths)
         {
             this.realType = realType;
             this.valueHolder = valueHolder;
