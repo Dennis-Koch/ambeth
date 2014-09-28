@@ -33,7 +33,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public static bool IsEmbeddedMember(IEntityMetaData metaData, String name)
         {
-            String[] nameSplit = name.Split('.');
+            String[] nameSplit = EmbeddedMember.Split(name);
             foreach (Member member in metaData.PrimitiveMembers)
             {
                 if (!(member is IEmbeddedMember))
@@ -72,7 +72,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             this.metaData = metaData;
             this.memberPath = memberPath;
-            this.memberPathSplit = memberPath != null ? memberPath.Split('.') : null;
+            this.memberPathSplit = memberPath != null ? EmbeddedMember.Split(memberPath) : null;
             this.propertyInfoProvider = propertyInfoProvider;
         }
 

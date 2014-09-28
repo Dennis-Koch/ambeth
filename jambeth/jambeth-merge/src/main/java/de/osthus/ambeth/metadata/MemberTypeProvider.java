@@ -58,7 +58,7 @@ public class MemberTypeProvider implements IMemberTypeProvider
 
 	public static IPropertyInfo[] buildPropertyPath(Class<?> entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
 	{
-		String[] memberPath = memberName.split(Pattern.quote("."));
+		String[] memberPath = EmbeddedMember.split(memberName);
 		Class<?> currType = entityType;
 		IPropertyInfo[] propertyPath = new IPropertyInfo[memberPath.length];
 		for (int a = 0, size = propertyPath.length; a < size; a++)
@@ -174,7 +174,7 @@ public class MemberTypeProvider implements IMemberTypeProvider
 
 	protected Member getMemberIntern(Class<?> type, String propertyName, Class<?> baseType)
 	{
-		String[] memberNameSplit = propertyName.split(Pattern.quote("."));
+		String[] memberNameSplit = EmbeddedMember.split(propertyName);
 		if (memberNameSplit.length > 1)
 		{
 			Member[] memberPath = new Member[memberNameSplit.length - 1];

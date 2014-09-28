@@ -44,7 +44,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public static IPropertyInfo[] BuildPropertyPath(Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
         {
-            String[] memberPath = memberName.Split('.');
+            String[] memberPath = EmbeddedMember.Split(memberName);
             Type currType = entityType;
             IPropertyInfo[] propertyPath = new IPropertyInfo[memberPath.Length];
             for (int a = 0, size = propertyPath.Length; a < size; a++)
@@ -146,7 +146,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected Member GetMemberIntern(Type type, String propertyName, Type baseType)
         {
-            String[] memberNameSplit = propertyName.Split('.');
+            String[] memberNameSplit = EmbeddedMember.Split(propertyName);
             if (memberNameSplit.Length > 1)
             {
                 Member[] memberPath = new Member[memberNameSplit.Length - 1];

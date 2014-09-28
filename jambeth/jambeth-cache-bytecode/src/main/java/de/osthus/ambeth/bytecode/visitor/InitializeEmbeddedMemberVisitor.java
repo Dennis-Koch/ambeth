@@ -3,7 +3,6 @@ package de.osthus.ambeth.bytecode.visitor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.ConstructorInstance;
@@ -16,6 +15,7 @@ import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -48,7 +48,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 
 	public static boolean isEmbeddedMember(IEntityMetaData metaData, String name)
 	{
-		String[] nameSplit = name.split(Pattern.quote("."));
+		String[] nameSplit = EmbeddedMember.split(name);
 		for (Member member : metaData.getPrimitiveMembers())
 		{
 			if (!(member instanceof IEmbeddedMember))
@@ -87,7 +87,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		super(cv);
 		this.metaData = metaData;
 		this.memberPath = memberPath;
-		this.memberPathSplit = memberPath != null ? memberPath.split(Pattern.quote(".")) : null;
+		this.memberPathSplit = memberPath != null ? EmbeddedMember.split(memberPath) : null;
 		this.propertyInfoProvider = propertyInfoProvider;
 	}
 

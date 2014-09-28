@@ -240,7 +240,7 @@ namespace De.Osthus.Ambeth.Merge.Config
             IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
             foreach (RelationMember relationMember in relationMembers)
             {
-                String[] memberPath = relationMember.Name.Split('.');
+                String[] memberPath = EmbeddedMember.Split(relationMember.Name);
                 foreach (RelationMember otherRelationMember in relationMembers)
                 {
                     if (Object.ReferenceEquals(relationMember, otherRelationMember) || toRemove.Contains(otherRelationMember))

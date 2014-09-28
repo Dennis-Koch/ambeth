@@ -23,6 +23,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
@@ -231,7 +232,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			}
 			primitiveMembers.add(member);
 		}
-		FilterWrongRelationMappings(relationMembers);
+		filterWrongRelationMappings(relationMembers);
 		// Order of setter calls is important
 		PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);
 		PrimitiveMember[] alternateIds = alternateIdMembers.toArray(PrimitiveMember.class);
@@ -253,13 +254,13 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		}
 	}
 
-	protected void FilterWrongRelationMappings(ISet<RelationMember> relationMembers)
+	protected void filterWrongRelationMappings(ISet<RelationMember> relationMembers)
 	{
 		// filter all relations which can not be a relation because of explicit embedded property mapping
 		IdentityHashSet<RelationMember> toRemove = new IdentityHashSet<RelationMember>();
 		for (RelationMember relationMember : relationMembers)
 		{
-			String[] memberPath = relationMember.getName().split(Pattern.quote("."));
+			String[] memberPath = EmbeddedMember.split(relationMember.getName());
 			for (RelationMember otherRelationMember : relationMembers)
 			{
 				if (relationMember == otherRelationMember || toRemove.contains(otherRelationMember))

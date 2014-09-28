@@ -1,7 +1,6 @@
 package de.osthus.ambeth.bytecode.behavior;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.bytecode.visitor.EntityMetaDataMemberVisitor;
@@ -12,6 +11,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
@@ -55,7 +55,7 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior
 		{
 			return visitor;
 		}
-		String[] memberNameSplit = memberHint.getMemberName().split(Pattern.quote("."));
+		String[] memberNameSplit = EmbeddedMember.split(memberHint.getMemberName());
 		if (memberNameSplit.length == 1)
 		{
 			RelationMemberEnhancementHint relationMemberHint = state.getContext(RelationMemberEnhancementHint.class);

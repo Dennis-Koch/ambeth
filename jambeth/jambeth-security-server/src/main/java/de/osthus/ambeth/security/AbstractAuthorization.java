@@ -23,8 +23,6 @@ import de.osthus.ambeth.privilege.model.impl.TypePropertyPrivilegeImpl;
 
 public abstract class AbstractAuthorization implements IAuthorization
 {
-	private static final Pattern anti_RegexPattern = Pattern.compile(Pattern.quote("\\."));
-
 	private final IEntityMetaDataProvider entityMetaDataProvider;
 
 	private final ISecurityScope[] securityScopes;

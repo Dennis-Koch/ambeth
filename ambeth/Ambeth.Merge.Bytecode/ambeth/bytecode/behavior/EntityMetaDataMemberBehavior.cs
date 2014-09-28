@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 			{
 				return visitor;
 			}
-            String[] memberNameSplit = memberHint.MemberName.Split('.');
+            String[] memberNameSplit = EmbeddedMember.Split(memberHint.MemberName);
 			if (memberNameSplit.Length == 1)
 			{
 				RelationMemberEnhancementHint relationMemberHint = state.GetContext<RelationMemberEnhancementHint>();
