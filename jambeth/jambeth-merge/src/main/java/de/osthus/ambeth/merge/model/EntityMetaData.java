@@ -12,6 +12,7 @@ import de.osthus.ambeth.collections.SmartCopySet;
 import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
@@ -671,5 +672,55 @@ public class EntityMetaData implements IEntityMetaData
 	public Object newInstance()
 	{
 		return entityFactory.createEntity(this);
+	}
+
+	@Override
+	public Member getWidenedMatchingMember(String memberPath)
+	{
+		Member member = getMemberByName(memberPath);
+		if (member != null)
+		{
+			// fast case
+			return member;
+		}
+		String[] memberPathSplit = EmbeddedMember.split(memberPath);
+		int length = memberPathSplit.length - 1; // the full length has already been tested in the fast case
+		StringBuilder sb = new StringBuilder();
+		member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
+		while (member == null && length > 0)
+		{
+			length--;
+			member = getMemberByName(buildMemberName(memberPathSplit, length, sb));
+		}
+		return member;
+	}
+
+	@Override
+	public Member getWidenedMatchingMember(String[] memberPath)
+	{
+		int length = memberPath.length;
+		StringBuilder sb = new StringBuilder();
+		Member member = getMemberByName(buildMemberName(memberPath, length, sb));
+		while (member == null && length > 0)
+		{
+			length--;
+			member = getMemberByName(buildMemberName(memberPath, length, sb));
+		}
+		return member;
+	}
+
+	protected String buildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
+	{
+		sb.setLength(0);
+		for (int a = 0, size = memberNameTokens.length; a < size; a++)
+		{
+			String memberNameToken = memberNameTokens[a];
+			if (a > 0)
+			{
+				sb.append('.');
+			}
+			sb.append(memberNameToken);
+		}
+		return sb.toString();
 	}
 }

@@ -14,7 +14,7 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
@@ -55,7 +55,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 			{
 				continue;
 			}
-			if (((IEmbeddedMember) member).getMemberPath()[0].getName().equals(nameSplit[0]))
+			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0]))
 			{
 				return true;
 			}
@@ -66,7 +66,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 			{
 				continue;
 			}
-			if (((IEmbeddedMember) member).getMemberPath()[0].getName().equals(nameSplit[0]))
+			if (((IEmbeddedMember) member).getMemberPathToken()[0].equals(nameSplit[0]))
 			{
 				return true;
 			}
@@ -102,7 +102,7 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 
 	protected void implementConstructor(PropertyInstance p_embeddedMemberTemplate)
 	{
-		IdentityHashSet<Member> alreadyHandledFirstMembers = new IdentityHashSet<Member>();
+		HashSet<Member> alreadyHandledFirstMembers = new HashSet<Member>();
 
 		final ArrayList<Script> scripts = new ArrayList<Script>();
 		for (Member member : metaData.getPrimitiveMembers())

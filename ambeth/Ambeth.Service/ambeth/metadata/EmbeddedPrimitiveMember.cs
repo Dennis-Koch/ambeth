@@ -158,7 +158,7 @@ namespace De.Osthus.Ambeth.Metadata
                 currentObj = memberPathItem.GetValue(currentObj, false);
                 if (currentObj == null)
                 {
-                    return null;
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
             }
             return childMember.GetValue(currentObj);
@@ -173,7 +173,7 @@ namespace De.Osthus.Ambeth.Metadata
                 currentObj = memberPathItem.GetValue(currentObj, false);
                 if (currentObj == null)
                 {
-                    return null;
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
             }
             return childMember.GetValue(currentObj, allowNullEquivalentValue);
@@ -188,8 +188,7 @@ namespace De.Osthus.Ambeth.Metadata
                 Object childObj = memberPathItem.GetValue(currentObj, false);
                 if (childObj == null)
                 {
-                    childObj = Activator.CreateInstance(memberPathItem.RealType);
-                    memberPathItem.SetValue(currentObj, childObj);
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
                 currentObj = childObj;
             }

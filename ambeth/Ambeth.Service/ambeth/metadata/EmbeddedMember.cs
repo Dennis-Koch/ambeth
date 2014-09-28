@@ -1,30 +1,19 @@
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace De.Osthus.Ambeth.Metadata
 {
     public class EmbeddedMember : Member, IEmbeddedMember
     {
-        private readonly Member childMember;
+        private static readonly Regex pattern = new Regex("\\.");
 
-        private readonly Member[] memberPath;
+	    public static String[] Split(String memberName)
+	    {
+		    return pattern.Split(memberName);
+	    }
 
-        private readonly String name;
-
-        public EmbeddedMember(String name, Member childMember, Member[] memberPath)
-            : base(null, null)
-        {
-            this.name = name;
-            this.childMember = childMember;
-            this.memberPath = memberPath;
-        }
-
-        public Member[] GetMemberPath()
-        {
-            return memberPath;
-        }
-
-        public String GetMemberPathString()
+        public static String BuildMemberPathString(Member[] memberPath)
         {
             StringBuilder sb = new StringBuilder();
             for (int a = 0, size = memberPath.Length; a < size; a++)
@@ -39,6 +28,47 @@ namespace De.Osthus.Ambeth.Metadata
             return sb.ToString();
         }
 
+        public static String[] BuildMemberPathToken(Member[] memberPath)
+        {
+            String[] token = new String[memberPath.Length];
+            for (int a = memberPath.Length; a-- > 0; )
+            {
+                Member member = memberPath[a];
+                token[a] = member.Name;
+            }
+            return token;
+        }
+
+        private readonly Member childMember;
+
+        private readonly Member[] memberPath;
+
+        private readonly String[] memberPathToken;
+
+        private readonly String name;
+
+        private readonly String memberPathString;
+
+        public EmbeddedMember(String name, Member childMember, Member[] memberPath)
+            : base(null, null)
+        {
+            this.name = name;
+            this.childMember = childMember;
+            this.memberPath = memberPath;
+            memberPathString = BuildMemberPathString(memberPath);
+            memberPathToken = BuildMemberPathToken(memberPath);
+        }
+
+        public Member[] GetMemberPath()
+        {
+            return memberPath;
+        }
+
+        public String GetMemberPathString()
+        {
+            return memberPathString;
+        }
+
         public override Object NullEquivalentValue
         {
             get
@@ -49,14 +79,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public String[] GetMemberPathToken()
         {
-            Member[] memberPath = GetMemberPath();
-            String[] token = new String[memberPath.Length];
-            for (int a = memberPath.Length; a-- > 0; )
-            {
-                Member member = memberPath[a];
-                token[a] = member.Name;
-            }
-            return token;
+            return memberPathToken;
         }
 
         public Member ChildMember
@@ -145,7 +168,7 @@ namespace De.Osthus.Ambeth.Metadata
                 currentObj = memberPathItem.GetValue(currentObj, false);
                 if (currentObj == null)
                 {
-                    return null;
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
             }
             return childMember.GetValue(currentObj);
@@ -160,7 +183,7 @@ namespace De.Osthus.Ambeth.Metadata
                 currentObj = memberPathItem.GetValue(currentObj, false);
                 if (currentObj == null)
                 {
-                    return null;
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
             }
             return childMember.GetValue(currentObj, allowNullEquivalentValue);
@@ -175,8 +198,7 @@ namespace De.Osthus.Ambeth.Metadata
                 Object childObj = memberPathItem.GetValue(currentObj, false);
                 if (childObj == null)
                 {
-                    childObj = Activator.CreateInstance(memberPathItem.RealType);
-                    memberPathItem.SetValue(currentObj, childObj);
+                    throw new Exception("Should never be null at this point: " + ToString());
                 }
                 currentObj = childObj;
             }

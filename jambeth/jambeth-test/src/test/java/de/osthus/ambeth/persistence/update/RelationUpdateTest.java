@@ -28,8 +28,8 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
-import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
+import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("RelationUpdate_data.sql")
@@ -234,8 +234,8 @@ public class RelationUpdateTest extends AbstractPersistenceTest
 		IQueryBuilder<EntityA> qb = queryBuilderFactory.create(EntityA.class);
 		IQuery<EntityA> query = qb.build();
 		IList<EntityA> resultA = query.retrieve();
-		ICacheHelper cacheHelper = beanContext.getService(ICacheHelper.class);
-		IPrefetchHandle prefetch = cacheHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
+		IPrefetchHelper prefetchHelper = beanContext.getService(IPrefetchHelper.class);
+		IPrefetchHandle prefetch = prefetchHelper.createPrefetch().add(EntityA.class, "EntityCs").build();
 		prefetch.prefetch(resultA);
 
 	}

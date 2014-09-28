@@ -59,6 +59,10 @@
     <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMemberType.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateEmbeddedPrimitiveMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediateRelationMember.cs" />
+    <Compile Include="ambeth\metadata\IntermediatePrimitiveMember.cs" />
     <Compile Include="ambeth\metadata\Embeddable.cs" />
     <Compile Include="ambeth\model\ILoadContainer.cs" />
     <Compile Include="ambeth\merge\model\IObjRef.cs" />

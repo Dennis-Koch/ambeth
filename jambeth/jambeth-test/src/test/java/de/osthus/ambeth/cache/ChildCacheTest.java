@@ -22,12 +22,10 @@ import org.junit.Test;
 import de.osthus.ambeth.ObjectMother;
 import de.osthus.ambeth.cache.AbstractCacheTest.AbstractCacheTestModule;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -43,10 +41,7 @@ import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestRebuildContext;
-import de.osthus.ambeth.util.CacheHelperFake;
-import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.ICacheHelper;
-import de.osthus.ambeth.util.ReflectUtil;
 
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/model/material-materialgroup-unit-orm.xml")
 @TestFrameworkModule(AbstractCacheTestModule.class)
@@ -145,53 +140,11 @@ public class ChildCacheTest extends AbstractInformationBusTest
 		assertTrue(material.equals(content.get().get(0)));
 	}
 
-	// TODO JH @DeK Ich verstehe die Aufgabe der Methode nicht.
-	@Test
-	public void testCascadeLoadPath()
-	{
-		assertNull(childCache.membersToInitialize);
-
-		CacheHelperFake fakeCacheHelper = new CacheHelperFake();
-		try
-		{
-			ReflectUtil.getDeclaredFieldInHierarchy(childCache.getClass(), "cacheHelper")[0].set(childCache, fakeCacheHelper);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-
-		Class<?> entityType = Material.class;
-		String cascadeLoadPath = "";
-		childCache.cascadeLoadPath(entityType, cascadeLoadPath);
-
-		assertSame(entityType, fakeCacheHelper.entityType);
-		assertSame(cascadeLoadPath, fakeCacheHelper.memberToInitialize);
-		assertNotNull(childCache.membersToInitialize);
-		List<CachePath> cachePaths = childCache.membersToInitialize.get(entityType);
-		assertNotNull(cachePaths);
-		assertSame(cachePaths, fakeCacheHelper.cachePaths);
-
-		childCache.cascadeLoadPath(entityType, cascadeLoadPath);
-	}
-
 	@Test
 	@Ignore
 	public void testGetCurrent()
 	{
 		fail("Not yet implemented"); // TODO
-	}
-
-	@Test
-	public void testGetMembersToInitialize()
-	{
-		assertNull(childCache.getMembersToInitialize());
-
-		HashMap<Class<?>, List<CachePath>> expected = new HashMap<Class<?>, List<CachePath>>();
-		childCache.membersToInitialize = expected;
-
-		assertNotNull(childCache.getMembersToInitialize());
-		assertSame(expected, childCache.getMembersToInitialize());
 	}
 
 	@Test

@@ -91,6 +91,7 @@
     <Compile Include="ambeth\util\CacheHelper.cs" />
     <Compile Include="ambeth\util\CachePath.cs" />
     <Compile Include="ambeth\util\CascadeLoadItem.cs" />
+    <Compile Include="ambeth\util\AppendableCachePath.cs" />
     <Compile Include="ambeth\util\ICachePathHelper.cs" />
     <Compile Include="ambeth\ValueHolderIEC.cs" />
     <Compile Include="ioc\CacheModule.cs" />

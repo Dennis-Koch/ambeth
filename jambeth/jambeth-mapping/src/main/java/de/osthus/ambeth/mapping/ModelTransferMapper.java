@@ -1175,25 +1175,26 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	{
 		String voMemberName = config.getValueObjectMemberName(boMemberName);
 		Member voMember = memberTypeProvider.getMember(config.getValueType(), voMemberName);
-		if (voMember != null)
+		if (voMember == null)
 		{
-			Class<?> elementType = config.getMemberType(voMemberName);
-			if (elementType != null)
-			{
-				((IMemberWrite) voMember).setElementType(elementType);
-			}
-			typeInfoMap.put(boMemberName, voMember);
-			if (sb != null)
+			return;
+		}
+		Class<?> elementType = config.getMemberType(voMemberName);
+		if (elementType != null)
+		{
+			((IMemberWrite) voMember).setElementType(elementType);
+		}
+		typeInfoMap.put(boMemberName, voMember);
+		if (sb != null)
+		{
+			sb.setLength(0);
+			String voSpecifiedName = sb.append(voMemberName).append("Specified").toString();
+			Member voSpecifiedMember = memberTypeProvider.getMember(config.getValueType(), voSpecifiedName);
+			if (voSpecifiedMember != null)
 			{
 				sb.setLength(0);
-				String voSpecifiedName = sb.append(voMemberName).append("Specified").toString();
-				Member voSpecifiedMember = memberTypeProvider.getPrimitiveMember(config.getValueType(), voSpecifiedName);
-				if (voSpecifiedMember != null)
-				{
-					sb.setLength(0);
-					String boSpecifiedName = sb.append(boMemberName).append("Specified").toString();
-					typeInfoMap.put(boSpecifiedName, voSpecifiedMember);
-				}
+				String boSpecifiedName = sb.append(boMemberName).append("Specified").toString();
+				typeInfoMap.put(boSpecifiedName, voSpecifiedMember);
 			}
 		}
 	}

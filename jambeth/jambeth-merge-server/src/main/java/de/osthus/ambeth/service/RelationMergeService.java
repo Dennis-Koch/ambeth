@@ -24,6 +24,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -93,6 +94,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	protected IQueryBuilderFactory queryBuilderFactory;
 
 	protected final SmartCopyMap<ParentChildQueryKey, IQuery<?>> keyToParentChildQuery = new SmartCopyMap<ParentChildQueryKey, IQuery<?>>();
+
+	protected final WeakSmartCopyMap<Class<?>, IPrefetchHandle> entityTypeToPrefetch = new WeakSmartCopyMap<Class<?>, IPrefetchHandle>();
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId) throws Exception
@@ -624,12 +627,17 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		alreadyPrefeched.addAll(toPrefetch);
 
 		Class<?> entityType = metadata.getEntityType();
-		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
-		for (RelationMember member : metadata.getRelationMembers())
+		IPrefetchHandle prefetchHandle = entityTypeToPrefetch.get(entityType);
+		if (prefetchHandle == null)
 		{
-			prefetchConfig.add(entityType, member.getName());
+			IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
+			for (RelationMember member : metadata.getRelationMembers())
+			{
+				prefetchConfig.add(entityType, member.getName());
+			}
+			prefetchHandle = prefetchConfig.build();
+			entityTypeToPrefetch.put(entityType, prefetchHandle);
 		}
-		IPrefetchHandle prefetchHandle = prefetchConfig.build();
 		prefetchHandle.prefetch(toPrefetch);
 	}
 

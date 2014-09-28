@@ -7,6 +7,7 @@ import javax.persistence.Embeddable;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
 public class RelationProvider implements IRelationProvider
@@ -17,8 +18,8 @@ public class RelationProvider implements IRelationProvider
 	{
 		ImmutableTypeSet.addImmutableTypesTo(primitiveTypes);
 
-		primitiveTypes.addAll(Arrays.asList(new Class<?>[] { Object.class, java.util.Date.class, java.sql.Date.class, java.sql.Timestamp.class }));
-		// Temporary for AgriLog testing (JH 2012-05-31)
+		primitiveTypes.addAll(Arrays.asList(new Class<?>[] { Object.class, java.util.Date.class, java.sql.Date.class, java.sql.Timestamp.class,
+				java.util.Calendar.class }));
 		primitiveTypes.add(XMLGregorianCalendar.class);
 	}
 
@@ -29,7 +30,7 @@ public class RelationProvider implements IRelationProvider
 		{
 			return false;
 		}
-		if (type.isAnnotationPresent(Embeddable.class))
+		if (type.isAnnotationPresent(Embeddable.class) || IImmutableType.class.isAssignableFrom(type))
 		{
 			return false;
 		}

@@ -333,10 +333,4 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 	{
 		this.fixture.getContent(null);
 	}
-
-	@Test(expected = UnsupportedOperationException.class)
-	public void testCascadeLoadPath()
-	{
-		this.fixture.cascadeLoadPath(null, null);
-	}
 }

@@ -35,6 +35,7 @@ public class RebuildSchema
 			{
 				super.extendProperties(frameworkMethod, props);
 
+				// intentionally refill with args a second time
 				props.fillWithCommandLineArgs(args);
 
 				String bootstrapPropertyFile = props.getString(UtilConfigurationConstants.BootstrapPropertyFile);
@@ -49,6 +50,8 @@ public class RebuildSchema
 					props.load(bootstrapPropertyFile, false);
 				}
 				props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
+				// intentionally refill with args a third time
+				props.fillWithCommandLineArgs(args);
 			}
 		};
 		try

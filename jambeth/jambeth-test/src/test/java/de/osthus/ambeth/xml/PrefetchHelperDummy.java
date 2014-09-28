@@ -3,7 +3,6 @@ package de.osthus.ambeth.xml;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.IPrefetchConfig;
@@ -24,12 +23,6 @@ public class PrefetchHelperDummy implements IPrefetchHelper
 
 	@Override
 	public IPrefetchState prefetch(Object objects)
-	{
-		return null;
-	}
-
-	@Override
-	public IPrefetchState prefetch(Object objects, IMap<Class<?>, List<String>> typeToMembersToInitialize)
 	{
 		return null;
 	}

@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.CascadeLoadMode;
@@ -16,10 +15,8 @@ import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventQueue;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -36,13 +33,11 @@ import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IDefaultCollection;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.util.CachePath;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ListUtil;
 import de.osthus.ambeth.util.Lock;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 
 public class ChildCache extends AbstractCache<Object> implements ICacheIntern, IWritableCache, IDisposableCache
@@ -52,8 +47,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	private ILogger log;
 
 	protected CacheHashMap keyToAlternateIdsMap;
-
-	protected IMap<Class<?>, List<CachePath>> membersToInitialize;
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -125,7 +118,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		entityFactory = null;
 		firstLevelCacheExtendable = null;
 		parent = null;
-		membersToInitialize = null;
 		keyToAlternateIdsMap = null;
 		super.dispose();
 	}
@@ -227,11 +219,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		versionMember.setValue(cacheValue, version);
 	}
 
-	public Map<Class<?>, List<CachePath>> getMembersToInitialize()
-	{
-		return membersToInitialize;
-	}
-
 	@Override
 	public Object getObject(IObjRef oriToGet, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
@@ -292,10 +279,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 					IList<Object> result = getObjectsRetry(orisToGet, cacheDirective, doAnotherRetry);
 					if (!Boolean.TRUE.equals(doAnotherRetry.getValue()))
 					{
-						if (!cacheDirective.contains(CacheDirective.FailEarly))
-						{
-							cachePathHelper.ensureInitializedRelations(result, membersToInitialize);
-						}
 						return result;
 					}
 				}
@@ -753,35 +736,6 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 					handleContentDelegate.invoke(entry.getEntityType(), idIndex, entry.getId(), entry.getValue());
 				}
 			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
-	}
-
-	@Override
-	public void cascadeLoadPath(Class<?> entityType, String cascadeLoadPath)
-	{
-		ParamChecker.assertParamNotNull(cascadeLoadPath, "cascadeLoadPath");
-
-		Lock writeLock = getWriteLock();
-		writeLock.lock();
-		try
-		{
-			if (membersToInitialize == null)
-			{
-				membersToInitialize = new HashMap<Class<?>, List<CachePath>>();
-			}
-
-			List<CachePath> cachePaths = membersToInitialize.get(entityType);
-			if (cachePaths == null)
-			{
-				cachePaths = new ArrayList<CachePath>();
-				membersToInitialize.put(entityType, cachePaths);
-			}
-
-			cachePathHelper.buildCachePath(entityType, cascadeLoadPath, cachePaths);
 		}
 		finally
 		{
