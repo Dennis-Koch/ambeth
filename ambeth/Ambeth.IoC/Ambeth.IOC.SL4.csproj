@@ -189,6 +189,7 @@
     <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupPreProcessor.cs" />
     <Compile Include="ambeth\log\ILoggerCache.cs" />
     <Compile Include="ambeth\log\LoggerHistory.cs" />
+    <Compile Include="ambeth\log\LoggerHistoryKey.cs" />
     <Compile Include="ambeth\log\LoggerInstancePreProcessor.cs" />
     <Compile Include="ambeth\threading\GuiThreadHelper.cs" />
     <Compile Include="ambeth\threading\ThreadPool.cs" />

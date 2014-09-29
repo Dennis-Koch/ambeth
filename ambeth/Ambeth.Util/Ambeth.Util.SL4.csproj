@@ -103,11 +103,13 @@
     <Compile Include="ambeth\collections\AbstractTuple2KeyHashMap.cs" />
     <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />
     <Compile Include="ambeth\collections\CHashSet.cs" />
+    <Compile Include="ambeth\collections\CleanupInvalidKeysSet.cs" />
     <Compile Include="ambeth\collections\EmptyIterator.cs" />
     <Compile Include="ambeth\collections\EmptyMap.cs" />
     <Compile Include="ambeth\collections\EmptySet.cs" />
     <Compile Include="ambeth\collections\IdentityWeakHashMap.cs" />
     <Compile Include="ambeth\collections\IdentityWeakSmartCopyMap.cs" />
+    <Compile Include="ambeth\collections\IInvalidKeyChecker.cs" />
     <Compile Include="ambeth\collections\specialized\INotifyCollectionChangedListener.cs" />
     <Compile Include="ambeth\collections\specialized\IPropertyChangedEventHandler.cs" />
     <Compile Include="ambeth\collections\specialized\PropertyChangeSupport.cs" />

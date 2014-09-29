@@ -130,6 +130,7 @@
     <Compile Include="ambeth\ioc\proxy\Self.cs" />
     <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
+    <Compile Include="ambeth\log\LoggerHistoryKey.cs" />
     <Compile Include="ambeth\log\ILoggerCache.cs" />
     <Compile Include="ambeth\log\LoggerInstancePreProcessor.cs" />
     <Compile Include="ambeth\threading\UIThreadWrapper.cs" />

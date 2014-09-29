@@ -111,6 +111,9 @@
     <Compile Include="ambeth\ioc\postprocessor\BeanPostProcessorTestModule.cs" />
     <Compile Include="ambeth\ioc\postprocessor\OrderedPostProcessor.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\collections\CleanupInvalidKeysSetTest.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
