@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -13,6 +14,9 @@ namespace De.Osthus.Ambeth.Xml
     {
         [LogInstance]
         public ILogger Log { private get; set; }
+
+        [Autowired]
+        public ILoggerHistory LoggerHistory { protected get; set; }
 
         protected Tuple2KeyHashMap<String, String, Type> xmlTypeToClassMap = new Tuple2KeyHashMap<String, String, Type>(0.5f);
 
@@ -83,7 +87,7 @@ namespace De.Osthus.Ambeth.Xml
                 {
                     if (Log.DebugEnabled)
                     {
-                        Log.Debug("XmlTypeNotFound: name=" + name + ", namespace=" + namespaceString);
+                        LoggerHistory.DebugOnce(Log, this, "XmlTypeNotFound: name=" + name + ", namespace=" + namespaceString);
                     }
                     return null;
                 }

@@ -11,7 +11,9 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -20,6 +22,9 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected ILoggerHistory loggerHistory;
 
 	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap = new Tuple2KeyHashMap<String, String, Class<?>>(0.5f);
 
@@ -86,7 +91,7 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 			{
 				if (log.isDebugEnabled())
 				{
-					log.debug("XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
+					loggerHistory.debugOnce(log, this, "XmlTypeNotFound: name=" + name + ", namespace=" + namespace);
 				}
 				return null;
 			}

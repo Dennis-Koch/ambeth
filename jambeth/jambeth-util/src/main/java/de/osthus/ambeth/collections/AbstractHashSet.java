@@ -201,6 +201,37 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 	{
 		final int newCapacityMinus1 = newTable.length - 1;
 		ISetEntry<K>[] table = this.table;
+		if (table == newTable)
+		{
+			// re-check entries on existing table
+			for (int a = table.length; a-- > 0;)
+			{
+				ISetEntry<K> entry = table[a], previous = null, next;
+				while (entry != null)
+				{
+					next = entry.getNextEntry();
+					if (isEntryValid(entry))
+					{
+						previous = entry;
+					}
+					else
+					{
+						if (entry == table[a])
+						{
+							// first entry in bucket
+							table[a] = next;
+						}
+						else
+						{
+							setNextEntry(previous, next);
+						}
+						entryRemoved(entry);
+					}
+					entry = next;
+				}
+			}
+			return;
+		}
 
 		for (int a = table.length; a-- > 0;)
 		{
@@ -208,12 +239,24 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 			while (entry != null)
 			{
 				next = entry.getNextEntry();
-				int i = entry.getHash() & newCapacityMinus1;
-				setNextEntry(entry, newTable[i]);
-				newTable[i] = entry;
+				if (isEntryValid(entry))
+				{
+					int i = entry.getHash() & newCapacityMinus1;
+					setNextEntry(entry, newTable[i]);
+					newTable[i] = entry;
+				}
+				else
+				{
+					entryRemoved(entry);
+				}
 				entry = next;
 			}
 		}
+	}
+
+	protected boolean isEntryValid(ISetEntry<K> entry)
+	{
+		return true;
 	}
 
 	/**

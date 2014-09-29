@@ -4,7 +4,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Collections
 {
-    public class SetIterator<E, K> : AbstractIterator<K>
+    public class SetIterator<E, K> : AbstractIterator<K> where E : class
     {
         protected E currEntry;
 
