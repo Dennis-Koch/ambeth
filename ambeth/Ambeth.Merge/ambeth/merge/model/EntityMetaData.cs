@@ -483,7 +483,7 @@ namespace De.Osthus.Ambeth.Merge.Model
 	    protected String BuildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
 	    {
 		    sb.Length = 0;
-		    for (int a = 0, size = memberNameTokens.Length; a < size; a++)
+            for (int a = 0; a < length; a++)
 		    {
 			    String memberNameToken = memberNameTokens[a];
 			    if (a > 0)
