@@ -712,7 +712,7 @@ public class EntityMetaData implements IEntityMetaData
 	protected String buildMemberName(String[] memberNameTokens, int length, StringBuilder sb)
 	{
 		sb.setLength(0);
-		for (int a = 0, size = memberNameTokens.length; a < size; a++)
+		for (int a = 0; a < length; a++)
 		{
 			String memberNameToken = memberNameTokens[a];
 			if (a > 0)
