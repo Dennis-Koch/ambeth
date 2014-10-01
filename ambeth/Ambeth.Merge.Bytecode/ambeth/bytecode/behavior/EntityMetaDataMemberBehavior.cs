@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Behavior
 {
@@ -39,35 +40,70 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 			{
 				return visitor;
 			}
-            String[] memberNameSplit = EmbeddedMember.Split(memberHint.MemberName);
-			if (memberNameSplit.Length == 1)
-			{
-				RelationMemberEnhancementHint relationMemberHint = state.GetContext<RelationMemberEnhancementHint>();
-				visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], BytecodeEnhancer, EntityMetaDataProvider,
-						PropertyInfoProvider);
-				if (relationMemberHint != null)
-				{
-					visitor = new InterfaceAdder(visitor, typeof(IRelationMemberWrite));
-                    visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], PropertyInfoProvider);
-				}
-				else
-				{
-					visitor = new InterfaceAdder(visitor, typeof(IPrimitiveMemberWrite));
-                    visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.EntityType, memberNameSplit[0], PropertyInfoProvider);
-				}
-			}
-			else
-			{
-				visitor = new InterfaceAdder(visitor, typeof(IEmbeddedMember));
-				Member[] member = new Member[memberNameSplit.Length];
-				Type currType = memberHint.EntityType;
-				for (int a = 0, size = memberNameSplit.Length; a < size; a++)
-				{
-					member[a] = MemberTypeProvider.GetMember(currType, memberNameSplit[a]);
-					currType = member[a].RealType;
-				}
-			}
-			return visitor;
+			RelationMemberEnhancementHint relationMemberHint = state.GetContext<RelationMemberEnhancementHint>();
+			String[] memberNameSplit = EmbeddedMember.Split(memberHint.MemberName);
+		    if (memberNameSplit.Length == 1)
+		    {
+			    IPropertyInfo[] sPropertyPath = new IPropertyInfo[1];
+                sPropertyPath[0] = PropertyInfoProvider.GetProperty(memberHint.DeclaringType, memberHint.MemberName);
+			    visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.DeclaringType, memberHint.DeclaringType, memberHint.MemberName,
+                        EntityMetaDataProvider, sPropertyPath);
+			    if (relationMemberHint != null)
+			    {
+                    visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.DeclaringType, memberHint.MemberName, sPropertyPath);
+			    }
+			    else
+			    {
+                    visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.DeclaringType, memberHint.MemberName, sPropertyPath);
+			    }
+			    return visitor;
+		    }
+		    Member[] members = new Member[memberNameSplit.Length];
+		    Type currType = memberHint.DeclaringType;
+		    IPropertyInfo[] propertyPath = new IPropertyInfo[members.Length];
+		    StringBuilder sb = new StringBuilder();
+		    for (int a = 0, size = memberNameSplit.Length; a < size; a++)
+		    {
+			    if (a + 1 < memberNameSplit.Length)
+			    {
+				    members[a] = MemberTypeProvider.GetMember(currType, memberNameSplit[a]);
+			    }
+			    else if (relationMemberHint != null)
+			    {
+                    members[a] = MemberTypeProvider.GetRelationMember(currType, memberNameSplit[a]);
+			    }
+			    else
+			    {
+                    members[a] = MemberTypeProvider.GetPrimitiveMember(currType, memberNameSplit[a]);
+			    }
+			    if (a > 0)
+			    {
+				    sb.Append('.');
+			    }
+			    sb.Append(members[a].Name);
+			    propertyPath[a] = PropertyInfoProvider.GetProperty(currType, memberNameSplit[a]);
+			    if (a + 1 < memberNameSplit.Length)
+			    {
+				    currType = BytecodeEnhancer.GetEnhancedType(members[a].RealType,
+						    new EmbeddedEnhancementHint(memberHint.DeclaringType, currType, sb.ToString()));
+			    }
+			    else
+			    {
+				    currType = members[a].RealType;
+			    }
+		    }
+		    visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.DeclaringType, memberHint.DeclaringType, memberHint.MemberName,
+				    EntityMetaDataProvider, propertyPath);
+		    if (relationMemberHint != null)
+		    {
+			    visitor = new EntityMetaDataRelationMemberVisitor(visitor, memberHint.DeclaringType, memberHint.MemberName, propertyPath);
+		    }
+		    else
+		    {
+			    visitor = new EntityMetaDataPrimitiveMemberVisitor(visitor, memberHint.DeclaringType, memberHint.MemberName, propertyPath);
+		    }
+		    visitor = new EntityMetaDataEmbeddedMemberVisitor(visitor, memberHint.DeclaringType, memberHint.MemberName, members);
+		    return visitor;
 		}
 	}
 }

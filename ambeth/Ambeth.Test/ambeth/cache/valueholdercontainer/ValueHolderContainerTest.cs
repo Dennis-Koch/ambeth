@@ -17,6 +17,7 @@ using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 {
@@ -32,22 +33,31 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
         [LogInstance]
         public new ILogger Log { private get; set; }
 
+        [Autowired]
         public ICacheFactory CacheFactory { protected get; set; }
 
+        [Autowired]
         public ICacheModification CacheModification { protected get; set; }
 
+        [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
 
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
+        [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
+        [Autowired]
         public IProxyHelper ProxyHelper { protected get; set; }
 
+        [Autowired]
         public IThreadPool ThreadPool { protected get; set; }
 
+        [Autowired]
         public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
 
         //static int count = 10000000;
@@ -767,8 +777,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(2, matCounter.Count);
             Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
             Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
-            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(5, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(5, matCounter.Get("HasPendingChanges"));
 
             Assert.AssertEquals(5, matTypeCounter.Count);
             Assert.AssertTrue(matTypeCounter.ContainsKey("Name"));
@@ -825,8 +835,8 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(2, matCounter.Count);
             Assert.AssertTrue(matCounter.ContainsKey("ToBeUpdated"));
             Assert.AssertTrue(matCounter.ContainsKey("HasPendingChanges"));
-            Assert.AssertEquals(1, matCounter.Get("ToBeUpdated"));
-            Assert.AssertEquals(1, matCounter.Get("HasPendingChanges"));
+            Assert.AssertEquals(10, matCounter.Get("ToBeUpdated"));
+            Assert.AssertEquals(10, matCounter.Get("HasPendingChanges"));
         }
 
         [TestMethod]

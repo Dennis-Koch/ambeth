@@ -13,14 +13,27 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected readonly String memberPathString;
 
-        public IntermediateEmbeddedRelationMember(Type type, Type realType, Type elementType, String propertyName, Member[] memberPath, Member childMember)
-            : base(type, realType, elementType, propertyName)
+        public IntermediateEmbeddedRelationMember(Type entityType, Type realType, Type elementType, String propertyName, Member[] memberPath, Member childMember)
+            : base(entityType, entityType, realType, elementType, propertyName, null)
         {
             this.memberPath = memberPath;
             this.childMember = childMember;
             this.memberPathToken = EmbeddedMember.BuildMemberPathToken(memberPath);
             this.memberPathString = EmbeddedMember.BuildMemberPathString(memberPath);
         }
+
+	    public override bool IsToMany
+	    {
+            get
+            {
+		        return childMember.IsToMany;
+            }
+	    }
+
+        public override Attribute GetAnnotation(Type annotationType)
+	    {
+		    return childMember.GetAnnotation(annotationType);
+	    }
 
         public Member[] GetMemberPath()
         {

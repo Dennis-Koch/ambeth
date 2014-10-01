@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -58,44 +59,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             PropertyInstance p_toBeCreated = ImplementToBeCreated(template_p_toBeCreated);
 
-            // ToBeUpdated
-            FieldInstance f_toBeUpdated = ImplementField(new FieldInstance(FieldAttributes.Private, "toBeUpdated", template_p_toBeUpdated.PropertyType));
-
-            PropertyInstance p_dataObjectTemplate = GetDataObjectTemplatePI(this);
-
-            PropertyInstance p_toBeUpdated = ImplementProperty(template_p_toBeUpdated, delegate(IMethodVisitor mv)
-            {
-                mv.GetThisField(f_toBeUpdated);
-                mv.ReturnValue();
-            }, delegate(IMethodVisitor mv)
-            {
-                LocalVariableInfo loc_existingValue = mv.NewLocal<bool>();
-                Label l_newValueIsTrue = mv.NewLabel();
-                mv.GetThisField(f_toBeUpdated);
-                mv.StoreLocal(loc_existingValue);
-
-                mv.PutThisField(f_toBeUpdated, delegate(IMethodVisitor mv2)
-                {
-                    mv2.LoadArg(0);
-                });
-
-                mv.LoadArg(0);
-                mv.IfZCmp(CompareOperator.NE, l_newValueIsTrue);
-
-                // call dataObjectTemplate
-                mv.CallThisGetter(p_dataObjectTemplate);
-                // "this" argument
-                mv.LoadThis();
-                // oldValue argument
-                mv.LoadLocal(loc_existingValue);
-                // newValue argument
-                mv.LoadArg(0);
-                mv.InvokeOnExactOwner(m_toBeUpdatedChanged);
-
-                mv.Mark(l_newValueIsTrue);
-                mv.ReturnValue();
-            });
-            p_toBeUpdated.AddAnnotation(c_ignoreToBeUpdated);
+            PropertyInstance p_toBeUpdated = ImplementToBeUpdated();
 
             // ToBeDeleted
             FieldInstance f_toBeDeleted = ImplementField(new FieldInstance(FieldAttributes.Private, "toBeDeleted", template_p_toBeDeleted.PropertyType));
@@ -118,6 +82,144 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             base.VisitEnd();
         }
 
+        protected PropertyInstance ImplementToBeUpdated()
+        {
+            PropertyInstance p_dataObjectTemplate = GetDataObjectTemplatePI(this);
+
+            FieldInstance f_toBeUpdated = ImplementField(new FieldInstance(FieldAttributes.Private, "$toBeUpdated", template_p_toBeUpdated.PropertyType));
+
+            bool atLeastOneToManyMember = false;
+            List<RelationMember> parentChildMembers = new List<RelationMember>();
+            foreach (RelationMember relationMember in metaData.RelationMembers)
+            {
+                if (relationMember.GetAnnotation(typeof(ParentChild)) != null)
+                {
+                    parentChildMembers.Add(relationMember);
+                    if (relationMember.IsToMany)
+                    {
+                        atLeastOneToManyMember = true;
+                    }
+                }
+            }
+            bool fAtLeastOneToManyMember = atLeastOneToManyMember;
+            PropertyInstance p_toBeUpdated = ImplementProperty(template_p_toBeUpdated, delegate(IMethodVisitor mg)
+                {
+                    if (parentChildMembers.Count == 0)
+                    {
+                        mg.GetThisField(f_toBeUpdated);
+                        mg.ReturnValue();
+                    }
+                    else
+                    {
+                        LocalVariableInfo loc_iterator = null;
+                        if (fAtLeastOneToManyMember)
+                        {
+                            loc_iterator = mg.NewLocal(typeof(IEnumerator));
+                        }
+                        // we have to check the toBeUpdated-State for our "parentChild" members to decide our own toBeUpdate-State by OR-concatenation
+                        LocalVariableInfo loc_parentChildValue = mg.NewLocal(typeof(Object));
+                        Label trueLabel = mg.NewLabel();
+
+                        mg.GetThisField(f_toBeUpdated);
+                        mg.IfZCmp(CompareOperator.NE, trueLabel);
+
+                        foreach (RelationMember parentChildMember in parentChildMembers)
+                        {
+                            int relationIndex = metaData.GetIndexByRelationName(parentChildMember.Name);
+                            Label l_valueIsNull = mg.NewLabel();
+                            // load this RelationMember at runtime to be able to call its "getValue(Object obj)"
+
+                            mg.LoadThis();
+                            mg.Push(relationIndex);
+
+                            mg.InvokeVirtual(MethodInstance.FindByTemplate(RelationsGetterVisitor.m_template_isInitialized_Member, false));
+
+                            mg.IfZCmp(CompareOperator.EQ, l_valueIsNull); // skip this member if it is not initialized
+
+                            mg.LoadThis();
+                            mg.Push(relationIndex);
+                            mg.InvokeVirtual(MethodInstance.FindByTemplate(RelationsGetterVisitor.m_template_getValueDirect_Member, false));
+
+                            mg.StoreLocal(loc_parentChildValue);
+
+                            mg.LoadLocal(loc_parentChildValue);
+                            mg.IfNull(l_valueIsNull);
+
+                            mg.LoadLocal(loc_parentChildValue);
+
+                            if (parentChildMember.IsToMany)
+                            {
+                                Label l_startLoop = mg.NewLabel();
+                                Label l_endLoop = mg.NewLabel();
+
+                                mg.CheckCast(typeof(IEnumerable));
+                                mg.InvokeInterface(new MethodInstance(null, typeof(IEnumerable), typeof(IEnumerator), "GetEnumerator"));
+                                mg.StoreLocal(loc_iterator);
+
+                                mg.Mark(l_startLoop);
+                                mg.LoadLocal(loc_iterator);
+                                mg.InvokeInterface(new MethodInstance(null, typeof(IEnumerator), typeof(bool), "MoveNext"));
+
+                                mg.IfZCmp(CompareOperator.EQ, l_endLoop);
+                                mg.LoadLocal(loc_iterator);
+                                mg.InvokeInterface(new MethodInstance(null, typeof(IEnumerator), typeof(Object), "get_Current"));
+
+                                mg.CheckCast(typeof(IDataObject));
+                                mg.InvokeInterface(template_p_toBeUpdated.Getter);
+                                mg.IfZCmp(CompareOperator.NE, trueLabel);
+
+                                mg.GoTo(l_startLoop);
+                                mg.Mark(l_endLoop);
+                            }
+                            else
+                            {
+                                mg.CheckCast(typeof(IDataObject));
+                                mg.InvokeInterface(template_p_toBeUpdated.Getter);
+                                mg.IfZCmp(CompareOperator.NE, trueLabel);
+                            }
+                            mg.Mark(l_valueIsNull);
+                        }
+
+                        mg.Push(false);
+                        mg.ReturnValue();
+
+                        mg.Mark(trueLabel);
+                        mg.Push(true);
+                        mg.ReturnValue();
+                    }
+                }, delegate(IMethodVisitor mv)
+                {
+                    LocalVariableInfo loc_existingValue = mv.NewLocal(typeof(bool));
+                    Label l_finish = mv.NewLabel();
+                    mv.GetThisField(f_toBeUpdated);
+                    mv.StoreLocal(loc_existingValue);
+
+                    mv.LoadLocal(loc_existingValue);
+                    mv.LoadArg(0);
+                    mv.IfCmp(typeof(bool), CompareOperator.EQ, l_finish);
+
+                    mv.PutThisField(f_toBeUpdated, delegate(IMethodVisitor mg2)
+                        {
+                            mg2.LoadArg(0);
+                        });
+
+                    // call dataObjectTemplate
+                    mv.CallThisGetter(p_dataObjectTemplate);
+                    // "this" argument
+                    mv.LoadThis();
+                    // oldValue argument
+                    mv.LoadLocal(loc_existingValue);
+                    // newValue argument
+                    mv.LoadArg(0);
+                    mv.InvokeVirtual(m_toBeUpdatedChanged);
+
+                    mv.Mark(l_finish);
+                    mv.ReturnValue();
+                });
+            p_toBeUpdated.AddAnnotation(c_ignoreToBeUpdated);
+            return p_toBeUpdated;
+        }
+
         /**
          * public boolean isToBeCreated() { return get__Id() == null; }
          * 
@@ -133,9 +235,9 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 List<String> names = new List<String>();
                 foreach (Member itemMember in ((CompositeIdMember)idMember).Members)
                 {
-                    names.Add(itemMember.Name);   
+                    names.Add(itemMember.Name);
                 }
-                p_toBeCreated.AddAnnotation(c_fireThisOPC, new Object[] { names.ToArray() } );
+                p_toBeCreated.AddAnnotation(c_fireThisOPC, new Object[] { names.ToArray() });
             }
             else
             {

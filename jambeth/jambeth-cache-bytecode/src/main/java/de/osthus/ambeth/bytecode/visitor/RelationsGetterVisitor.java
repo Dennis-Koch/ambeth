@@ -20,7 +20,6 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.metadata.EmbeddedPrimitiveMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -101,7 +100,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_template_setInitPending_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
 			"set__InitPending", int.class);
 
-	private static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
+	public static final MethodInstance m_template_isInitialized_Member = new MethodInstance(null, IObjRefContainer.class, boolean.class, "is__Initialized",
 			int.class);
 
 	private static final MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, IObjRef[].class, "get__ObjRefs",
@@ -110,7 +109,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 	private static final MethodInstance m_template_setObjRefs_Member = new MethodInstance(null, IObjRefContainer.class, void.class, "set__ObjRefs", int.class,
 			IObjRef[].class);
 
-	private static final MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, Object.class,
+	public static final MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, Object.class,
 			"get__ValueDirect", int.class);
 
 	private static final MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, IValueHolderContainer.class, void.class,
@@ -484,10 +483,19 @@ public class RelationsGetterVisitor extends ClassGenerator
 			if (f_objRefs_existing == null)
 			{
 				f_objRefs_existing = implementField(f_objRefs);
+				implementGetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, f_objRefs_existing.getType(), "get" + f_objRefs_existing.getName(), null),
+						f_objRefs_existing);
+				implementSetter(
+						new MethodInstance(null, Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + f_objRefs_existing.getName(), null, f_objRefs_existing.getType()),
+						f_objRefs_existing);
 			}
 			if (f_initialized_existing == null)
 			{
 				f_initialized_existing = implementField(f_initialized);
+				implementGetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, f_initialized_existing.getType(), "get" + f_initialized_existing.getName(), null),
+						f_initialized_existing);
+				implementSetter(new MethodInstance(null, Opcodes.ACC_PUBLIC, Type.VOID_TYPE, "set" + f_initialized_existing.getName(), null,
+						f_initialized_existing.getType()), f_initialized_existing);
 			}
 
 			implementRelationGetter(propertyName, m_get, m_set, relationIndex, p_valueHolderContainerTemplate, p_targetCache, p_relationMembers,
@@ -518,10 +526,6 @@ public class RelationsGetterVisitor extends ClassGenerator
 				if (relationMember instanceof IEmbeddedMember)
 				{
 					relationMember = ((IEmbeddedMember) relationMember).getChildMember();
-				}
-				else
-				{
-					relationMember = ((EmbeddedPrimitiveMember) relationMember).getChildMember();
 				}
 			}
 			else if (propertyName.contains("."))

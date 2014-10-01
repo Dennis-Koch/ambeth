@@ -29,6 +29,6 @@ public class RelationMemberEnhancementHint extends MemberEnhancementHint
 	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
-		return Type.getInternalName(entityType) + "$" + RelationMember.class.getSimpleName() + "$" + memberName;
+		return Type.getInternalName(declaringType) + "$" + RelationMember.class.getSimpleName() + "$" + memberName;
 	}
 }

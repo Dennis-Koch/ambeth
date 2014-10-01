@@ -264,12 +264,12 @@ public class ValueHolderIEC extends SmartCopyMap<Class<?>, Class<?>> implements 
 
 	public static final String getObjRefsFieldName(String propertyName)
 	{
-		return propertyName + "$objRefs";
+		return propertyName + "$ObjRefs";
 	}
 
 	public static final String getInitializedFieldName(String propertyName)
 	{
-		return propertyName + "$state";
+		return propertyName + "$State";
 	}
 
 	public static final String getSetterNameOfRelationPropertyWithNoInit(String propertyName)

@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
         public IEntityFactory EntityFactory { protected get; set; }
 
         [Autowired]
-        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+        public IIntermediateMemberTypeProvider IntermediateMemberTypeProvider { protected get; set; }
         
         [Autowired]
         public IProxyHelper ProxyHelper { protected get; set; }
@@ -140,30 +140,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
             {
                 return member;
             }
-            String[] memberNameSplit = EmbeddedMember.Split(memberName);
-            Type currentType = entityType;
-            Member[] memberSplit = new Member[memberNameSplit.Length];
-            for (int a = 0, size = memberNameSplit.Length; a < size; a++)
-            {
-                IPropertyInfo property = PropertyInfoProvider.GetProperty(currentType, memberNameSplit[a]);
-                if (property == null)
-                {
-                    throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
-                }
-                memberSplit[a] = new IntermediatePrimitiveMember(currentType, property.PropertyType, property.ElementType, memberNameSplit[a]);
-                currentType = property.PropertyType;
-            }
-            if (memberSplit.Length == 1)
-            {
-                member = (IntermediatePrimitiveMember) memberSplit[0];
-            }
-            else
-            {
-                Member[] memberPath = new Member[memberSplit.Length - 1];
-                Array.Copy(memberSplit, 0, memberPath, 0, memberPath.Length);
-                Member childMember = memberSplit[memberPath.Length];
-                member = new IntermediateEmbeddedPrimitiveMember(entityType, childMember.RealType, childMember.ElementType, memberName, memberPath, childMember);
-            }
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, memberName);
             if (member == null)
             {
                 throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
@@ -179,30 +156,7 @@ namespace De.Osthus.Ambeth.Converter.Merge
 		    {
 			    return member;
 		    }
-            String[] memberNameSplit = EmbeddedMember.Split(memberName);
-            Type currentType = entityType;
-            Member[] memberSplit = new Member[memberNameSplit.Length];
-            for (int a = 0, size = memberNameSplit.Length; a < size; a++)
-            {
-                IPropertyInfo property = PropertyInfoProvider.GetProperty(currentType, memberNameSplit[a]);
-                if (property == null)
-                {
-                    throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");
-                }
-                memberSplit[a] = new IntermediateRelationMember(currentType, property.PropertyType, property.ElementType, memberNameSplit[a]);
-                currentType = property.PropertyType;
-            }
-            if (memberSplit.Length == 1)
-            {
-                member = (IntermediateRelationMember)memberSplit[0];
-            }
-            else
-            {
-                Member[] memberPath = new Member[memberSplit.Length - 1];
-                Array.Copy(memberSplit, 0, memberPath, 0, memberPath.Length);
-                Member childMember = memberSplit[memberPath.Length];
-                member = new IntermediateEmbeddedRelationMember(entityType, childMember.RealType, childMember.ElementType, memberName, memberPath, childMember);
-            }
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(entityType, memberName);
 		    if (member == null)
 		    {
 			    throw new Exception("No member with name '" + memberName + "' found on entity type '" + entityType.FullName + "'");

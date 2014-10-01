@@ -71,7 +71,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__InitPending", typeof(int));
 
-        private static readonly MethodInstance m_template_isInitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(bool), "Is__Initialized", typeof(int));
+        public static readonly MethodInstance m_template_isInitialized_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(bool), "Is__Initialized", typeof(int));
 
         private static readonly MethodInstance m_template_getObjRefs_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(IObjRef[]), "Get__ObjRefs",
             typeof(int));
@@ -79,7 +79,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
        	private static readonly MethodInstance m_template_setObjRefs_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(void), "Set__ObjRefs",
 			typeof(int), typeof(IObjRef[]));
 
-        private static readonly MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(Object), "Get__ValueDirect",
+        public static readonly MethodInstance m_template_getValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(Object), "Get__ValueDirect",
             typeof(int));
 
         private static readonly MethodInstance m_template_setValueDirect_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__ValueDirect",
@@ -423,10 +423,18 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 if (f_objRefs_existing == null)
                 {
                     f_objRefs_existing = ImplementField(f_objRefs);
+                    ImplementGetter(new MethodInstance(null, MethodAttributes.Public, f_objRefs_existing.Type, "get_" + f_objRefs_existing.Name),
+                        f_objRefs_existing);
+                    ImplementSetter(
+                            new MethodInstance(null, MethodAttributes.Public, NewType.VOID_TYPE, "set_" + f_objRefs_existing.Name, f_objRefs_existing.Type),
+                            f_objRefs_existing);
                 }
                 if (f_initialized_existing == null)
                 {
                     f_initialized_existing = ImplementField(f_initialized);
+                    ImplementGetter(new MethodInstance(null, MethodAttributes.Public, f_initialized_existing.Type, "get_" + f_initialized_existing.Name),
+                        f_initialized_existing);
+                    ImplementSetter(new MethodInstance(null, MethodAttributes.Public, NewType.VOID_TYPE, "set_" + f_initialized_existing.Name, f_initialized_existing.Type), f_initialized_existing);
                 }
 
                 ImplementRelationGetter(propertyName, m_get, m_set, relationIndex, p_valueHolderContainerTemplate, p_targetCache, p_relationMembers, f_initialized_existing, f_objRefs_existing);
@@ -456,10 +464,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     if (relationMember is IEmbeddedMember)
 				    {
 					    relationMember = ((IEmbeddedMember) relationMember).ChildMember;
-				    }
-				    else
-				    {
-					    relationMember = ((EmbeddedPrimitiveMember) relationMember).ChildMember;
 				    }
                 }
                 else if (propertyName.Contains("."))

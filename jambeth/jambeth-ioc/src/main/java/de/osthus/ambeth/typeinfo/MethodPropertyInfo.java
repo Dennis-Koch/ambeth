@@ -139,8 +139,33 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 			elementType = TypeInfoItemUtil.getElementTypeUsingReflection(propertyType, paramTypes[0]);
 			putAnnotations(setter);
 		}
-		declaringType = backingField != null ? backingField.getDeclaringClass() : getter != null ? getter.getDeclaringClass() : setter.getDeclaringClass();
+		refreshDeclaringType();
 		super.init(objectCollector);
+	}
+
+	protected void refreshDeclaringType()
+	{
+		Class<?> fieldDC = backingField != null ? backingField.getDeclaringClass() : null;
+		Class<?> getterDC = getter != null ? getter.getDeclaringClass() : null;
+		Class<?> setterDC = setter != null ? setter.getDeclaringClass() : null;
+		Class<?> mostSpecificDC = fieldDC;
+		if (mostSpecificDC == null)
+		{
+			mostSpecificDC = getterDC;
+		}
+		else if (getterDC != null)
+		{
+			mostSpecificDC = getterDC.isAssignableFrom(mostSpecificDC) ? mostSpecificDC : getterDC;
+		}
+		if (mostSpecificDC == null)
+		{
+			mostSpecificDC = setterDC;
+		}
+		else if (setterDC != null)
+		{
+			mostSpecificDC = setterDC.isAssignableFrom(mostSpecificDC) ? mostSpecificDC : setterDC;
+		}
+		declaringType = mostSpecificDC;
 	}
 
 	@Override
@@ -155,6 +180,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 		setter = ReflectUtil.getDeclaredMethod(true, realType, null, "set" + getName(), getPropertyType());
 		writable = this.setter != null && (Modifier.isPublic(this.setter.getModifiers()) || Modifier.isProtected(this.setter.getModifiers()));
 		readable = this.getter != null && (Modifier.isPublic(this.getter.getModifiers()) || Modifier.isProtected(this.getter.getModifiers()));
+		refreshDeclaringType();
 	}
 
 	@Override

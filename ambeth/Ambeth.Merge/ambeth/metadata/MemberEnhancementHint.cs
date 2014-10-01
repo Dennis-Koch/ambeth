@@ -6,21 +6,21 @@ namespace De.Osthus.Ambeth.Metadata
 {
     public class MemberEnhancementHint : IEnhancementHint, ITargetNameEnhancementHint
     {
-        protected readonly Type entityType;
+        protected readonly Type declaringType;
 
         protected readonly String memberName;
 
-        public MemberEnhancementHint(Type entityType, String memberName)
+        public MemberEnhancementHint(Type declaringType, String memberName)
         {
-            this.entityType = entityType;
+            this.declaringType = declaringType;
             this.memberName = memberName;
         }
 
-        public Type EntityType
+        public Type DeclaringType
         {
             get
             {
-                return entityType;
+                return declaringType;
             }
         }
 
@@ -43,12 +43,12 @@ namespace De.Osthus.Ambeth.Metadata
                 return false;
             }
             MemberEnhancementHint other = (MemberEnhancementHint)obj;
-            return EntityType.Equals(other.EntityType) && MemberName.Equals(other.MemberName);
+            return DeclaringType.Equals(other.DeclaringType) && MemberName.Equals(other.MemberName);
         }
 
         public override int GetHashCode()
         {
-            return GetType().GetHashCode() ^ EntityType.GetHashCode() ^ MemberName.GetHashCode();
+            return GetType().GetHashCode() ^ DeclaringType.GetHashCode() ^ MemberName.GetHashCode();
         }
 
         public T Unwrap<T>() where T : IEnhancementHint
@@ -67,7 +67,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public virtual String GetTargetName(Type typeToEnhance)
         {
-            return entityType.FullName + "$" + typeof(Member).Name + "$" + memberName;
+            return declaringType.FullName + "$" + typeof(Member).Name + "$" + memberName;
         }
     }
 }

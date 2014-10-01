@@ -1,25 +1,47 @@
 package de.osthus.ambeth.metadata;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 
-public class IntermediatePrimitiveMember extends PrimitiveMember
+import de.osthus.ambeth.collections.HashMap;
+
+public class IntermediatePrimitiveMember extends PrimitiveMember implements IPrimitiveMemberWrite
 {
 	protected final String propertyName;
 
-	protected final Class<?> type;
+	protected final Class<?> entityType;
+
+	protected final Class<?> declaringType;
 
 	protected final Class<?> realType;
 
 	protected final Class<?> elementType;
 
-	public IntermediatePrimitiveMember(Class<?> type, Class<?> realType, Class<?> elementType, String propertyName)
+	protected final HashMap<Class<?>, Annotation> annotationMap;
 
+	protected boolean technicalMember;
+
+	public IntermediatePrimitiveMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
+			Annotation[] annotations)
 	{
-		super(type, null);
-		this.type = type;
+		super(declaringType, null);
+		this.declaringType = declaringType;
+		this.entityType = entityType;
 		this.realType = realType;
 		this.elementType = elementType;
 		this.propertyName = propertyName;
+		if (annotations != null)
+		{
+			annotationMap = new HashMap<Class<?>, Annotation>();
+			for (Annotation annotation : annotations)
+			{
+				annotationMap.put(annotation.annotationType(), annotation);
+			}
+		}
+		else
+		{
+			annotationMap = null;
+		}
 	}
 
 	@Override
@@ -35,7 +57,7 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 	}
 
 	@Override
-	public java.lang.String getName()
+	public String getName()
 	{
 		return propertyName;
 	}
@@ -43,7 +65,7 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 	@Override
 	public Class<?> getDeclaringType()
 	{
-		return type;
+		return declaringType;
 	}
 
 	@Override
@@ -52,10 +74,11 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 		return realType;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
 	{
-		throw createException();
+		return (V) annotationMap.get(annotationType);
 	}
 
 	protected RuntimeException createException()
@@ -66,7 +89,13 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 	@Override
 	public boolean isTechnicalMember()
 	{
-		throw createException();
+		return technicalMember;
+	}
+
+	@Override
+	public void setTechnicalMember(boolean technicalMember)
+	{
+		this.technicalMember = technicalMember;
 	}
 
 	@Override
@@ -78,7 +107,7 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 	@Override
 	public boolean isToMany()
 	{
-		throw createException();
+		return Collection.class.isAssignableFrom(getRealType());
 	}
 
 	@Override
@@ -90,7 +119,7 @@ public class IntermediatePrimitiveMember extends PrimitiveMember
 	@Override
 	public Class<?> getEntityType()
 	{
-		return type;
+		return entityType;
 	}
 
 	@Override

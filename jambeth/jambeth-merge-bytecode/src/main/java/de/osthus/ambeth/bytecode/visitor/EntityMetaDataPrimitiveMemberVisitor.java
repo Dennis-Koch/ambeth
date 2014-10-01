@@ -4,12 +4,10 @@ import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.FieldInstance;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.metadata.IPrimitiveMemberWrite;
-import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
 public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator
 {
@@ -22,25 +20,24 @@ public class EntityMetaDataPrimitiveMemberVisitor extends ClassGenerator
 
 	protected final String memberName;
 
-	protected IPropertyInfoProvider propertyInfoProvider;
+	protected IPropertyInfo[] propertyPath;
 
-	public EntityMetaDataPrimitiveMemberVisitor(ClassVisitor cv, Class<?> entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
+	public EntityMetaDataPrimitiveMemberVisitor(ClassVisitor cv, Class<?> entityType, String memberName, IPropertyInfo[] propertyPath)
 	{
-		super(cv);
+		super(new InterfaceAdder(cv, IPrimitiveMemberWrite.class));
 		this.entityType = entityType;
 		this.memberName = memberName;
-		this.propertyInfoProvider = propertyInfoProvider;
+		this.propertyPath = propertyPath;
 	}
 
 	@Override
 	public void visitEnd()
 	{
-		IPropertyInfo[] propertyPath = MemberTypeProvider.buildPropertyPath(entityType, memberName, propertyInfoProvider);
-		implementIsTechnicalMember(propertyPath);
+		implementIsTechnicalMember();
 		super.visitEnd();
 	}
 
-	protected void implementIsTechnicalMember(IPropertyInfo[] propertyPath)
+	protected void implementIsTechnicalMember()
 	{
 		FieldInstance f_technicalMember = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__technicalMember", null, boolean.class));
 

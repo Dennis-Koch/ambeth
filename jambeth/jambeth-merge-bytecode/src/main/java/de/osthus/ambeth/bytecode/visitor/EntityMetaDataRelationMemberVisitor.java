@@ -11,12 +11,10 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.metadata.IRelationMemberWrite;
-import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
 public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 {
@@ -32,26 +30,25 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 
 	protected final String memberName;
 
-	protected IPropertyInfoProvider propertyInfoProvider;
+	protected final IPropertyInfo[] propertyPath;
 
-	public EntityMetaDataRelationMemberVisitor(ClassVisitor cv, Class<?> entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
+	public EntityMetaDataRelationMemberVisitor(ClassVisitor cv, Class<?> entityType, String memberName, IPropertyInfo[] propertyPath)
 	{
-		super(cv);
+		super(new InterfaceAdder(cv, IRelationMemberWrite.class));
 		this.entityType = entityType;
 		this.memberName = memberName;
-		this.propertyInfoProvider = propertyInfoProvider;
+		this.propertyPath = propertyPath;
 	}
 
 	@Override
 	public void visitEnd()
 	{
-		IPropertyInfo[] propertyPath = MemberTypeProvider.buildPropertyPath(entityType, memberName, propertyInfoProvider);
-		implementCascadeLoadMode(propertyPath);
-		implementIsManyTo(propertyPath);
+		implementCascadeLoadMode();
+		implementIsManyTo();
 		super.visitEnd();
 	}
 
-	protected void implementCascadeLoadMode(IPropertyInfo[] propertyPath)
+	protected void implementCascadeLoadMode()
 	{
 		FieldInstance f_cascadeLoadMode = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__cascadeLoadMode", null, CascadeLoadMode.class));
 
@@ -81,7 +78,7 @@ public class EntityMetaDataRelationMemberVisitor extends ClassGenerator
 		}
 	}
 
-	protected void implementIsManyTo(IPropertyInfo[] propertyPath)
+	protected void implementIsManyTo()
 	{
 		FieldInstance f_isManyTo = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__isManyTo", null, boolean.class));
 

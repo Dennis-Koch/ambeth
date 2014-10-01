@@ -239,14 +239,37 @@ namespace De.Osthus.Ambeth.Cache
             ISet<Object> hardRefChildren, ISet<Type> directRelatingTypes, ISet<IObjRef> hardRefOrisToLoad, IDataChange dataChange,
             IList<CacheChangeItem> cciList, ISet<IObjRef> orisToLoad, ISet<IObjRef> deletedSet, IRootCache rootCache)
         {
-            ObjRef tempORI = new ObjRef();
-            List<IObjRef> tempList = new List<IObjRef>(1);
-
-            ISet<Object> alreadyScannedObjects = new IdentityHashSet<Object>();
             List<IDataChangeEntry> insertsAndUpdates = new List<IDataChangeEntry>();
+            IList<IDataChangeEntry> deletes = dataChange.Deletes;
 
-            IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-            HashSet<IObjRef> orisMarkedForDeletionSet = new HashSet<IObjRef>();
+            insertsAndUpdates.AddRange(dataChange.Updates);
+            insertsAndUpdates.AddRange(dataChange.Inserts);
+            List<IObjRef> changesToSearchInCache = new List<IObjRef>(insertsAndUpdates.Count);
+            List<IObjRef> changesWithVersion = new List<IObjRef>(insertsAndUpdates.Count);
+            List<IObjRef> deletesToSearchInCache = new List<IObjRef>(deletes.Count);
+            for (int a = deletes.Count; a-- > 0; )
+            {
+                IDataChangeEntry deleteEntry = deletes[a];
+                Object id = deleteEntry.Id;
+                if (id == null)
+                {
+                    deletesToSearchInCache.Add(null);
+                    continue;
+                }
+                deletesToSearchInCache.Add(new ObjRef(deleteEntry.EntityType, deleteEntry.IdNameIndex, id, null));
+            }
+            for (int a = insertsAndUpdates.Count; a-- > 0; )
+            {
+                IDataChangeEntry updateEntry = insertsAndUpdates[a];
+                Object id = updateEntry.Id;
+                if (id == null)
+                {
+                    changesToSearchInCache.Add(null);
+                    continue;
+                }
+                changesToSearchInCache.Add(new ObjRef(updateEntry.EntityType, updateEntry.IdNameIndex, id, null));
+                changesWithVersion.Add(new ObjRef(updateEntry.EntityType, updateEntry.IdNameIndex, id, updateEntry.Version));
+            }
 
             for (int flcIndex = firstLevelCaches.Count; flcIndex-- > 0; )
             {
@@ -284,54 +307,28 @@ namespace De.Osthus.Ambeth.Cache
                 readLock.Lock();
                 try
                 {
-                    IList<IDataChangeEntry> deletes = dataChange.Deletes;
-
-                    for (int a = deletes.Count; a-- > 0; )
+                    IList<Object> deletesInCache = childCache.GetObjects(deletesToSearchInCache, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                    for (int a = deletesToSearchInCache.Count; a-- > 0; )
                     {
-                        IDataChangeEntry deleteEntry = deletes[a];
-                        Object id = deleteEntry.Id;
-                        if (id == null)
-                        {
-                            continue;
-                        }
-                        tempORI.Init(deleteEntry.EntityType, deleteEntry.IdNameIndex, id, null);
-
-                        tempList.Clear();
-                        tempList.Add(tempORI);
-                        Object result = childCache.GetObjects(tempList, CacheDirective.FailEarly | CacheDirective.ReturnMisses)[0];
+                        Object result = deletesInCache[a];
                         if (result == null)
                         {
+                            // not in this cache
                             continue;
                         }
-                        objectRefsToDelete.Add(tempORI);
-                        tempORI = new ObjRef();
+                        objectRefsToDelete.Add(deletesToSearchInCache[a]);
                     }
-                    insertsAndUpdates.AddRange(dataChange.Updates);
-                    insertsAndUpdates.AddRange(dataChange.Inserts);
-                    for (int a = insertsAndUpdates.Count; a-- > 0; )
+                    IList<Object> changesInCache = childCache.GetObjects(changesToSearchInCache, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                    for (int a = changesToSearchInCache.Count; a-- > 0; )
                     {
-                        IDataChangeEntry updateEntry = insertsAndUpdates[a];
-                        Object id = updateEntry.Id;
-                        if (id == null)
-                        {
-                            continue;
-                        }
-                        tempORI.Init(updateEntry.EntityType, updateEntry.IdNameIndex, id, null);
-
-                        tempList.Clear();
-                        tempList.Add(tempORI);
-                        Object result = childCache.GetObjects(tempList, CacheDirective.FailEarly | CacheDirective.ReturnMisses)[0];
+                        Object result = changesInCache[a];
                         if (result == null)
                         {
+                            // not in this cache
                             continue;
                         }
-                        Object versionInDCE = updateEntry.Version;
-
-                        // Attach version to ORI. We can not do this before because then we would have had a
-                        // cache miss in the childCache above. We need the version now because our second level cache
-                        // has to refresh its entries
-                        tempORI.Version = versionInDCE;
-                        hardRefOrisToLoad.Add(tempORI);
+                        IObjRef objRefWithVersion = changesWithVersion[a];
+                        hardRefOrisToLoad.Add(objRefWithVersion);
 
                         if (result is IDataObject)
                         {
@@ -341,20 +338,19 @@ namespace De.Osthus.Ambeth.Cache
                                 continue;
                             }
                         }
-                        if (versionInDCE != null)
+                        if (objRefWithVersion.Version != null)
                         {
                             IEntityMetaData metaData = ((IEntityMetaDataHolder)result).Get__EntityMetaData();
                             Object versionInCache = metaData.VersionMember != null ? metaData.VersionMember.GetValue(result, false) : null;
-                            if (versionInCache != null && ((IComparable)versionInDCE).CompareTo(versionInCache) <= 0)
+                            if (versionInCache != null && ((IComparable)objRefWithVersion.Version).CompareTo(versionInCache) <= 0)
                             {
                                 continue;
                             }
                         }
                         objectsToUpdate.Add(result);
-                        orisToLoad.Add(tempORI);
+                        orisToLoad.Add(objRefWithVersion);
                         // scanForInitializedObjects(result, alreadyScannedObjects, hardRefOrisToLoad);
-                        objectRefsToUpdate.Add(tempORI);
-                        tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
+                        objectRefsToUpdate.Add(objRefWithVersion);
                     }
                 }
                 finally

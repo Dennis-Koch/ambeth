@@ -21,25 +21,24 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected readonly String memberName;
 
-        protected IPropertyInfoProvider propertyInfoProvider;
+        protected readonly IPropertyInfo[] propertyPath;
 
-        public EntityMetaDataRelationMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
-            : base(cv)
+        public EntityMetaDataRelationMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfo[] propertyPath)
+            : base(new InterfaceAdder(cv, typeof(IRelationMemberWrite)))
         {
             this.entityType = entityType;
             this.memberName = memberName;
-            this.propertyInfoProvider = propertyInfoProvider;
+            this.propertyPath = propertyPath;
         }
 
         public override void VisitEnd()
         {
-            IPropertyInfo[] propertyPath = MemberTypeProvider.BuildPropertyPath(entityType, memberName, propertyInfoProvider);
-            ImplementCascadeLoadMode(propertyPath);
-            ImplementIsManyTo(propertyPath);
+            ImplementCascadeLoadMode();
+            ImplementIsManyTo();
             base.VisitEnd();
         }
 
-        protected void ImplementCascadeLoadMode(IPropertyInfo[] propertyPath)
+        protected void ImplementCascadeLoadMode()
         {
             FieldInstance f_cascadeLoadMode = ImplementField(new FieldInstance(FieldAttributes.Private, "__cascadeLoadMode", typeof(CascadeLoadMode)));
 
@@ -65,7 +64,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        protected void ImplementIsManyTo(IPropertyInfo[] propertyPath)
+        protected void ImplementIsManyTo()
         {
             FieldInstance f_isManyTo = ImplementField(new FieldInstance(FieldAttributes.Private, "__isManyTo", typeof(bool)));
 

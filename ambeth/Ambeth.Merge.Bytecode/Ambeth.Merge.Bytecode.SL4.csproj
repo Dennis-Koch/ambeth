@@ -75,6 +75,7 @@
     <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectFactory.cs" />
     <Compile Include="ambeth\bytecode\behavior\EntityMetaDataMemberBehavior.cs" />
     <Compile Include="ambeth\bytecode\visitor\CompositeIdCreator.cs" />
+    <Compile Include="ambeth\bytecode\visitor\EntityMetaDataEmbeddedMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataPrimitiveMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataRelationMemberVisitor.cs" />

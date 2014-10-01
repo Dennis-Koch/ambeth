@@ -96,7 +96,7 @@ namespace De.Osthus.Ambeth.Ioc
             }
             beanContextFactory.RegisterAnonymousBean<RelationProvider>().Autowireable<IRelationProvider>();
 
-            beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>();
+            beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
 		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberTemplate>().Autowireable<EmbeddedMemberTemplate>();
 
             Type entityFactoryType = this.EntityFactoryType;

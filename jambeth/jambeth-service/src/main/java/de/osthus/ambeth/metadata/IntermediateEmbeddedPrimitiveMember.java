@@ -1,23 +1,49 @@
 package de.osthus.ambeth.metadata;
 
+import java.lang.annotation.Annotation;
+
 public class IntermediateEmbeddedPrimitiveMember extends IntermediatePrimitiveMember implements IEmbeddedMember
 {
 	protected final Member[] memberPath;
 
-	protected final Member childMember;
+	protected final PrimitiveMember childMember;
 
 	protected final String[] memberPathToken;
 
 	protected final String memberPathString;
 
-	public IntermediateEmbeddedPrimitiveMember(Class<?> type, Class<?> realType, Class<?> elementType, String propertyName, Member[] memberPath,
-			Member childMember)
+	public IntermediateEmbeddedPrimitiveMember(Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName, Member[] memberPath,
+			PrimitiveMember childMember)
 	{
-		super(type, realType, elementType, propertyName);
+		super(entityType, entityType, realType, elementType, propertyName, null);
 		this.memberPath = memberPath;
 		this.childMember = childMember;
 		this.memberPathToken = EmbeddedMember.buildMemberPathToken(memberPath);
 		this.memberPathString = EmbeddedMember.buildMemberPathString(memberPath);
+	}
+
+	@Override
+	public boolean isToMany()
+	{
+		return childMember.isToMany();
+	}
+
+	@Override
+	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
+	{
+		return childMember.getAnnotation(annotationType);
+	}
+
+	@Override
+	public boolean isTechnicalMember()
+	{
+		return childMember.isTechnicalMember();
+	}
+
+	@Override
+	public void setTechnicalMember(boolean technicalMember)
+	{
+		((IPrimitiveMemberWrite) childMember).setTechnicalMember(technicalMember);
 	}
 
 	@Override

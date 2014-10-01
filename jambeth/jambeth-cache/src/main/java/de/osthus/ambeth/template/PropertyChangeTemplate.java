@@ -211,7 +211,7 @@ public class PropertyChangeTemplate implements IPropertyChangeExtensionExtendabl
 		{
 			return;
 		}
-		setToBeUpdated(obj, true);
+		obj.onPropertyChanged("ToBeUpdated");
 	}
 
 	public void handleCollectionChange(INotifyPropertyChangedSource obj, NotifyCollectionChangedEvent evnt)
@@ -395,7 +395,6 @@ public class PropertyChangeTemplate implements IPropertyChangeExtensionExtendabl
 		ICacheModification cacheModification = this.cacheModification;
 		if (cacheModification.isActive())
 		{
-			int a = 5;
 			cacheModification.queuePropertyChangeEvent(new IBackgroundWorkerDelegate()
 			{
 				@Override

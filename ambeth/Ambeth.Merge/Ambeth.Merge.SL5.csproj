@@ -159,6 +159,7 @@
     <Compile Include="ambeth\merge\ProceedWithMergeHook.cs" />
     <Compile Include="ambeth\merge\ValueObjectConfig.cs" />
     <Compile Include="ambeth\merge\ValueObjectMap.cs" />
+    <Compile Include="ambeth\metadata\IIntermediateMemberTypeProvider.cs" />
     <Compile Include="ambeth\metadata\IMemberTypeProvider.cs" />
     <Compile Include="ambeth\metadata\MemberEnhancementHint.cs" />
     <Compile Include="ambeth\metadata\MemberTypeProvider.cs" />

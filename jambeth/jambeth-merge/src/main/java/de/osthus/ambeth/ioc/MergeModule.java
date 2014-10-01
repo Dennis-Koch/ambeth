@@ -36,6 +36,7 @@ import de.osthus.ambeth.merge.converter.EntityMetaDataConverter;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
+import de.osthus.ambeth.metadata.IIntermediateMemberTypeProvider;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -121,7 +122,7 @@ public class MergeModule implements IInitializingModule
 		}
 		beanContextFactory.registerAnonymousBean(RelationProvider.class).autowireable(IRelationProvider.class);
 
-		beanContextFactory.registerAnonymousBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class);
+		beanContextFactory.registerAnonymousBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class, IIntermediateMemberTypeProvider.class);
 		beanContextFactory.registerAnonymousBean(EmbeddedMemberTemplate.class).autowireable(EmbeddedMemberTemplate.class);
 
 		Class<?> entityFactoryType = this.entityFactoryType;

@@ -14,16 +14,11 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
-import de.osthus.ambeth.metadata.EmbeddedMember;
-import de.osthus.ambeth.metadata.IntermediateEmbeddedPrimitiveMember;
-import de.osthus.ambeth.metadata.IntermediateEmbeddedRelationMember;
+import de.osthus.ambeth.metadata.IIntermediateMemberTypeProvider;
 import de.osthus.ambeth.metadata.IntermediatePrimitiveMember;
-import de.osthus.ambeth.metadata.IntermediateRelationMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.IDedicatedConverter;
 import de.osthus.ambeth.util.ListUtil;
 
@@ -44,7 +39,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 	protected IEntityFactory entityFactory;
 
 	@Autowired
-	protected IPropertyInfoProvider propertyInfoProvider;
+	protected IIntermediateMemberTypeProvider intermediateMemberTypeProvider;
 
 	@Autowired
 	protected IProxyHelper proxyHelper;
@@ -157,31 +152,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		{
 			return member;
 		}
-		String[] memberNameSplit = EmbeddedMember.split(memberName);
-		Class<?> currentType = entityType;
-		Member[] memberSplit = new Member[memberNameSplit.length];
-		for (int a = 0, size = memberNameSplit.length; a < size; a++)
-		{
-			IPropertyInfo property = propertyInfoProvider.getProperty(currentType, memberNameSplit[a]);
-			if (property == null)
-			{
-				throw new IllegalStateException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
-			}
-			memberSplit[a] = new IntermediatePrimitiveMember(currentType, property.getPropertyType(), property.getElementType(), memberNameSplit[a]);
-			currentType = property.getPropertyType();
-		}
-		if (memberSplit.length == 1)
-		{
-			member = (IntermediatePrimitiveMember) memberSplit[0];
-		}
-		else
-		{
-			Member[] memberPath = new Member[memberSplit.length - 1];
-			System.arraycopy(memberSplit, 0, memberPath, 0, memberPath.length);
-			Member childMember = memberSplit[memberPath.length];
-			member = new IntermediateEmbeddedPrimitiveMember(entityType, childMember.getRealType(), childMember.getElementType(), memberName, memberPath,
-					childMember);
-		}
+		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, memberName);
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
@@ -197,31 +168,7 @@ public class EntityMetaDataConverter implements IDedicatedConverter
 		{
 			return member;
 		}
-		String[] memberNameSplit = EmbeddedMember.split(memberName);
-		Class<?> currentType = entityType;
-		Member[] memberSplit = new Member[memberNameSplit.length];
-		for (int a = 0, size = memberNameSplit.length; a < size; a++)
-		{
-			IPropertyInfo property = propertyInfoProvider.getProperty(currentType, memberNameSplit[a]);
-			if (property == null)
-			{
-				throw new IllegalStateException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");
-			}
-			memberSplit[a] = new IntermediateRelationMember(currentType, property.getPropertyType(), property.getElementType(), memberNameSplit[a]);
-			currentType = property.getPropertyType();
-		}
-		if (memberSplit.length == 1)
-		{
-			member = (IntermediateRelationMember) memberSplit[0];
-		}
-		else
-		{
-			Member[] memberPath = new Member[memberSplit.length - 1];
-			System.arraycopy(memberSplit, 0, memberPath, 0, memberPath.length);
-			Member childMember = memberSplit[memberPath.length];
-			member = new IntermediateEmbeddedRelationMember(entityType, childMember.getRealType(), childMember.getElementType(), memberName, memberPath,
-					childMember);
-		}
+		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType, memberName);
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + memberName + "' found on entity type '" + entityType.getName() + "'");

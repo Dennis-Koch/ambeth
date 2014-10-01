@@ -157,8 +157,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\metadata\EmbeddedMember.cs" />
-    <Compile Include="ambeth\metadata\EmbeddedPrimitiveMember.cs" />
-    <Compile Include="ambeth\metadata\EmbeddedRelationMember.cs" />
     <Compile Include="ambeth\metadata\IEmbeddedMember.cs" />
     <Compile Include="ambeth\metadata\IPrimitiveMemberWrite.cs" />
     <Compile Include="ambeth\metadata\IRelationMemberWrite.cs" />

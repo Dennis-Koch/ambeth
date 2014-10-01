@@ -508,8 +508,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mv.LoadArg(0);
                 mv.InvokeVirtual(m_getMethodHandle);
 
-                mv.LoadArg(0);
                 mv.LoadArg(1);
+                mv.LoadArg(2);
                 // firePropertyChange(sender, propertyChangeSupport, property, oldValue, newValue)
                 mv.InvokeVirtual(m_firePropertyChange);
                 mv.PopIfReturnValue(m_firePropertyChange);
@@ -646,7 +646,21 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected void ImplementPropertyChangeConfigurable()
 	    {
-		    FieldInstance f_propertyChangeActive = ImplementField(new FieldInstance(FieldAttributes.Private, "__propertyChangeActive", typeof(bool)));
+		    String fieldName = "__propertyChangeActive";
+		    if (State.GetAlreadyImplementedField(fieldName) != null)
+		    {
+			    if (properties == null)
+			    {
+				    throw new Exception("It seems that this visitor has been executing twice");
+			    }
+			    return;
+		    }
+		    else if (properties != null)
+		    {
+			    // do not apply in this case
+			    return;
+		    }
+		    FieldInstance f_propertyChangeActive = ImplementField(new FieldInstance(FieldAttributes.Private, fieldName, typeof(bool)));
 
             ConstructorInfo[] constructors = State.CurrentType.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
 		    for (int a = constructors.Length; a-- > 0;)

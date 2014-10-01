@@ -562,7 +562,7 @@ public class EntityMetaData implements IEntityMetaData
 		}
 		if (getVersionMember() != null)
 		{
-			nameToMemberDict.put(versionMember.getName(), getVersionMember());
+			nameToMemberDict.put(getVersionMember().getName(), getVersionMember());
 		}
 		for (int a = primitiveMembers.length; a-- > 0;)
 		{

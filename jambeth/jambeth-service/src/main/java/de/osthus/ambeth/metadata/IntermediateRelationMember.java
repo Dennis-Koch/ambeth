@@ -1,24 +1,45 @@
 package de.osthus.ambeth.metadata;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+
+import de.osthus.ambeth.collections.HashMap;
 
 public class IntermediateRelationMember extends RelationMember
 {
 	protected final String propertyName;
 
-	protected final Class<?> type;
+	protected final Class<?> declaringType;
+
+	protected final Class<?> entityType;
 
 	protected final Class<?> realType;
 
 	protected final Class<?> elementType;
 
-	public IntermediateRelationMember(Class<?> type, Class<?> realType, Class<?> elementType, String propertyName)
+	protected final HashMap<Class<?>, Annotation> annotationMap;
+
+	public IntermediateRelationMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
+			Annotation[] annotations)
 	{
-		super(type, null);
-		this.type = type;
+		super(declaringType, null);
+		this.declaringType = declaringType;
+		this.entityType = entityType;
 		this.realType = realType;
 		this.elementType = elementType;
 		this.propertyName = propertyName;
+		if (annotations != null)
+		{
+			annotationMap = new HashMap<Class<?>, Annotation>();
+			for (Annotation annotation : annotations)
+			{
+				annotationMap.put(annotation.annotationType(), annotation);
+			}
+		}
+		else
+		{
+			annotationMap = null;
+		}
 	}
 
 	@Override
@@ -42,7 +63,7 @@ public class IntermediateRelationMember extends RelationMember
 	@Override
 	public Class<?> getDeclaringType()
 	{
-		return type;
+		return declaringType;
 	}
 
 	@Override
@@ -51,10 +72,11 @@ public class IntermediateRelationMember extends RelationMember
 		return realType;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <V extends Annotation> V getAnnotation(Class<V> annotationType)
 	{
-		throw createException();
+		return (V) annotationMap.get(annotationType);
 	}
 
 	protected RuntimeException createException()
@@ -83,7 +105,7 @@ public class IntermediateRelationMember extends RelationMember
 	@Override
 	public boolean isToMany()
 	{
-		throw createException();
+		return Collection.class.isAssignableFrom(getRealType());
 	}
 
 	@Override
@@ -95,7 +117,7 @@ public class IntermediateRelationMember extends RelationMember
 	@Override
 	public Class<?> getEntityType()
 	{
-		return type;
+		return entityType;
 	}
 
 	@Override
