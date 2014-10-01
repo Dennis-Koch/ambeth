@@ -1,4 +1,5 @@
 using De.Osthus.Ambeth.Annotation;
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -9,19 +10,36 @@ namespace De.Osthus.Ambeth.Metadata
     {
         protected readonly String propertyName;
 
-        protected readonly Type type;
+        protected readonly Type declaringType;
+
+        protected readonly Type entityType;
 
         protected readonly Type realType;
 
         protected readonly Type elementType;
 
-        public IntermediateRelationMember(Type type, Type realType, Type elementType, String propertyName)
-            : base(type, null)
+        protected readonly HashMap<Type, Attribute> annotationMap;
+
+        public IntermediateRelationMember(Type declaringType, Type entityType, Type realType, Type elementType, String propertyName, Attribute[] annotations)
+            : base(declaringType, null)
         {
-            this.type = type;
+            this.declaringType = declaringType;
+            this.entityType = entityType;
             this.realType = realType;
             this.elementType = elementType;
             this.propertyName = propertyName;
+            if (annotations != null)
+		    {
+			    annotationMap = new HashMap<Type, Attribute>();
+                foreach (Attribute annotation in annotations)
+			    {
+				    annotationMap.Put(annotation.GetType(), annotation);
+			    }
+		    }
+		    else
+		    {
+			    annotationMap = null;
+		    }
         }
 
         public override bool CanRead
@@ -52,7 +70,7 @@ namespace De.Osthus.Ambeth.Metadata
         {
             get
             {
-                return type;
+                return declaringType;
             }
         }
 
@@ -66,7 +84,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public override Attribute GetAnnotation(Type annotationType)
         {
-            throw CreateException();
+            return annotationMap.Get(annotationType);
         }
 
         protected Exception CreateException()
@@ -102,7 +120,7 @@ namespace De.Osthus.Ambeth.Metadata
         {
             get
             {
-                throw CreateException();
+                return ListUtil.IsCollection(RealType);
             }
         }
 
@@ -118,7 +136,7 @@ namespace De.Osthus.Ambeth.Metadata
         {
             get
             {
-                return type;
+                return entityType;
             }
         }
 

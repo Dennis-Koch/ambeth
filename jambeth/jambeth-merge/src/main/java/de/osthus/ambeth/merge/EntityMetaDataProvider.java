@@ -168,6 +168,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	{
 		if (metaData.getEnhancedType() == null)
 		{
+			((EntityMetaData) metaData).initialize(cacheModification, entityFactory);
 			IEntityInstantiationExtension eie = entityInstantiationExtensions.getExtension(metaData.getEntityType());
 			Class<?> baseType = eie != null ? eie.getMappedEntityType(metaData.getEntityType()) : metaData.getEntityType();
 			((EntityMetaData) metaData).setEnhancedType(bytecodeEnhancer.getEnhancedType(baseType, EntityEnhancementHint.Instance));

@@ -25,7 +25,7 @@ import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
-import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.IIntermediateMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -52,7 +52,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
+	protected IIntermediateMemberTypeProvider intermediateMemberTypeProvider;
 
 	@Autowired
 	protected IPropertyInfoProvider propertyInfoProvider;
@@ -204,8 +204,9 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			{
 				continue;
 			}
-			if (metaData.getIdMember() == member || metaData.getVersionMember() == member || metaData.getCreatedByMember() == member
-					|| metaData.getCreatedOnMember() == member || metaData.getUpdatedByMember() == member || metaData.getUpdatedOnMember() == member)
+			if (member.equals(metaData.getIdMember()) || member.equals(metaData.getVersionMember()) || member.equals(metaData.getCreatedByMember())
+					|| member.equals(metaData.getCreatedOnMember()) || member.equals(metaData.getUpdatedByMember())
+					|| member.equals(metaData.getUpdatedOnMember()))
 			{
 				continue;
 			}
@@ -303,7 +304,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			return member;
 		}
-		member = memberTypeProvider.getPrimitiveMember(entityType, property.getName());
+		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, property.getName());
 		nameToMemberMap.put(property.getName(), member);
 		return member;
 	}
@@ -315,7 +316,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			return member;
 		}
-		member = memberTypeProvider.getRelationMember(entityType, property.getName());
+		member = intermediateMemberTypeProvider.getIntermediateRelationMember(entityType, property.getName());
 		nameToMemberMap.put(property.getName(), member);
 		return member;
 	}
@@ -327,7 +328,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			return member;
 		}
-		member = memberTypeProvider.getPrimitiveMember(entityType, itemConfig.getName());
+		member = intermediateMemberTypeProvider.getIntermediatePrimitiveMember(entityType, itemConfig.getName());
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + itemConfig.getName() + "' found on entity type '" + entityType.getName() + "'");
@@ -371,7 +372,7 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 		{
 			return member;
 		}
-		member = memberTypeProvider.getRelationMember(realType, relationConfig.getName());
+		member = intermediateMemberTypeProvider.getIntermediateRelationMember(realType, relationConfig.getName());
 		if (member == null)
 		{
 			throw new RuntimeException("No member with name '" + relationConfig.getName() + "' found on entity type '" + realType.getName() + "'");

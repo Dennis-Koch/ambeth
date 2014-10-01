@@ -13,7 +13,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Metadata
 {
-    public class MemberTypeProvider : IMemberTypeProvider
+    public class MemberTypeProvider : IMemberTypeProvider, IIntermediateMemberTypeProvider
     {
         public class TypeAndStringWeakMap<T> : Tuple2KeyHashMap<Type, String, WeakReference>
         {
@@ -146,44 +146,6 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected Member GetMemberIntern(Type type, String propertyName, Type baseType)
         {
-            String[] memberNameSplit = EmbeddedMember.Split(propertyName);
-            if (memberNameSplit.Length > 1)
-            {
-                Member[] memberPath = new Member[memberNameSplit.Length - 1];
-                StringBuilder memberPathString = new StringBuilder();
-                Type currType = type;
-                for (int a = 0, size = memberPath.Length; a < size; a++)
-                {
-                    memberPath[a] = GetMember(currType, memberNameSplit[a]);
-                    Type parentObjectType = currType;
-                    currType = memberPath[a].RealType;
-                    if (a > 0)
-                    {
-                        memberPathString.Append('.');
-                    }
-                    memberPathString.Append(memberPath[a].Name);
-                    if (BytecodeEnhancer.IsEnhancedType(type))
-                    {
-                        currType = BytecodeEnhancer.GetEnhancedType(currType, new EmbeddedEnhancementHint(type, parentObjectType, memberPathString.ToString()));
-                    }
-                }
-                if (baseType == typeof(RelationMember))
-                {
-                    RelationMember lastRelationMember = GetRelationMember(currType, memberNameSplit[memberNameSplit.Length - 1]);
-                    return new EmbeddedRelationMember(propertyName, lastRelationMember, memberPath);
-                }
-                else if (baseType == typeof(PrimitiveMember))
-                {
-                    PrimitiveMember lastMember = GetPrimitiveMember(currType, memberNameSplit[memberNameSplit.Length - 1]);
-                    return new EmbeddedPrimitiveMember(propertyName, lastMember, memberPath);
-                }
-                else if (baseType == typeof(Member))
-                {
-                    Member lastMember = GetMember(currType, memberNameSplit[memberNameSplit.Length - 1]);
-                    return new EmbeddedMember(propertyName, lastMember, memberPath);
-                }
-                throw new Exception("Must never happen");
-            }
             Type enhancedType = GetMemberTypeIntern(type, propertyName, baseType);
             if (enhancedType == baseType)
             {
@@ -206,5 +168,59 @@ namespace De.Osthus.Ambeth.Metadata
             }
             return BytecodeEnhancer.GetEnhancedType(baseType, new MemberEnhancementHint(targetType, propertyName));
         }
+
+	    public IntermediatePrimitiveMember GetIntermediatePrimitiveMember(Type entityType, String propertyName)
+	    {
+		    String[] memberNamePath = EmbeddedMember.Split(propertyName);
+		    Type currDeclaringType = entityType;
+		    Member[] members = new Member[memberNamePath.Length];
+		    for (int a = 0, size = memberNamePath.Length; a < size; a++)
+		    {
+			    IPropertyInfo property = PropertyInfoProvider.GetProperty(currDeclaringType, memberNamePath[a]);
+			    if (property == null)
+			    {
+				    return null;
+			    }
+			    members[a] = new IntermediatePrimitiveMember(currDeclaringType, entityType, property.PropertyType, property.ElementType,
+					    property.Name, property.GetAnnotations());
+			    currDeclaringType = property.PropertyType;
+		    }
+		    if (members.Length > 1)
+		    {
+			    Member[] memberPath = new Member[members.Length - 1];
+			    Array.Copy(members, 0, memberPath, 0, memberPath.Length);
+                PrimitiveMember lastMember = (PrimitiveMember)members[memberPath.Length];
+			    return new IntermediateEmbeddedPrimitiveMember(entityType, lastMember.RealType, lastMember.ElementType, propertyName, memberPath,
+					    lastMember);
+		    }
+		    return (IntermediatePrimitiveMember) members[0];
+	    }
+
+	    public IntermediateRelationMember GetIntermediateRelationMember(Type entityType, String propertyName)
+	    {
+		    String[] memberNamePath = EmbeddedMember.Split(propertyName);
+            Type currDeclaringType = entityType;
+		    Member[] members = new Member[memberNamePath.Length];
+		    for (int a = 0, size = memberNamePath.Length; a < size; a++)
+		    {
+			    IPropertyInfo property = PropertyInfoProvider.GetProperty(currDeclaringType, memberNamePath[a]);
+			    if (property == null)
+			    {
+				    return null;
+			    }
+			    members[a] = new IntermediateRelationMember(currDeclaringType, entityType, property.PropertyType, property.ElementType,
+					    property.Name, property.GetAnnotations());
+			    currDeclaringType = property.PropertyType;
+		    }
+		    if (members.Length > 1)
+		    {
+			    Member[] memberPath = new Member[members.Length - 1];
+                Array.Copy(members, 0, memberPath, 0, memberPath.Length);
+			    Member lastMember = members[memberPath.Length];
+			    return new IntermediateEmbeddedRelationMember(entityType, lastMember.RealType, lastMember.ElementType, propertyName, memberPath,
+					    lastMember);
+		    }
+		    return (IntermediateRelationMember) members[0];
+	    }
     }
 }

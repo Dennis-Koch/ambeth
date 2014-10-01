@@ -193,12 +193,12 @@ namespace De.Osthus.Ambeth.Cache
     {
         public static String GetObjRefsFieldName(String propertyName)
         {
-            return propertyName + "_ObjRefs";
+            return propertyName + "$ObjRefs";
         }
 
         public static String GetInitializedFieldName(String propertyName)
         {
-            return propertyName + "_State";
+            return propertyName + "$State";
         }
 
         public static String GetSetterNameOfRelationPropertyWithNoInit(String propertyName)

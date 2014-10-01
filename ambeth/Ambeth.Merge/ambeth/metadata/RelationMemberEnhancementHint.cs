@@ -26,7 +26,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public override String GetTargetName(Type typeToEnhance)
         {
-            return entityType.FullName + "$" + typeof(RelationMember).Name + "$" + memberName;
+            return declaringType.FullName + "$" + typeof(RelationMember).Name + "$" + memberName;
         }
     }
 }

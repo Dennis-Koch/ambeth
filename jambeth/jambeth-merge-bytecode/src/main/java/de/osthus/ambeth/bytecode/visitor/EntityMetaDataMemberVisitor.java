@@ -7,21 +7,18 @@ import java.util.Collection;
 
 import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.FieldInstance;
-import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
-import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.typeinfo.FieldPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 
 public class EntityMetaDataMemberVisitor extends ClassGenerator
@@ -46,37 +43,37 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 
 	protected static final MethodInstance template_m_isToMany = new MethodInstance(null, Member.class, boolean.class, "isToMany");
 
-	protected static final MethodInstance template_m_getValue = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class);
+	public static final MethodInstance template_m_getValue = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class);
 
 	public static final MethodInstance template_m_getValueWithFlag = new MethodInstance(null, Member.class, Object.class, "getValue", Object.class,
 			boolean.class);
 
 	protected static final MethodInstance template_m_setValue = new MethodInstance(null, Member.class, void.class, "setValue", Object.class, Object.class);
 
+	protected final Class<?> declaringType;
+
 	protected final Class<?> entityType;
 
 	protected final String memberName;
 
-	protected IBytecodeEnhancer bytecodeEnhancer;
+	protected final IEntityMetaDataProvider entityMetaDataProvider;
 
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+	protected final IPropertyInfo[] propertyPath;
 
-	protected IPropertyInfoProvider propertyInfoProvider;
-
-	public EntityMetaDataMemberVisitor(ClassVisitor cv, Class<?> entityType, String memberName, IBytecodeEnhancer bytecodeEnhancer,
-			IEntityMetaDataProvider entityMetaDataProvider, IPropertyInfoProvider propertyInfoProvider)
+	public EntityMetaDataMemberVisitor(ClassVisitor cv, Class<?> declaringType, Class<?> entityType, String memberName,
+			IEntityMetaDataProvider entityMetaDataProvider, IPropertyInfo[] propertyPath)
 	{
 		super(cv);
+		this.declaringType = declaringType;
 		this.entityType = entityType;
 		this.memberName = memberName;
 		this.entityMetaDataProvider = entityMetaDataProvider;
-		this.propertyInfoProvider = propertyInfoProvider;
+		this.propertyPath = propertyPath;
 	}
 
 	@Override
 	public void visitEnd()
 	{
-		IPropertyInfo[] propertyPath = MemberTypeProvider.buildPropertyPath(entityType, memberName, propertyInfoProvider);
 		implementCanRead(propertyPath);
 		implementCanWrite(propertyPath);
 		implementGetAnnotation(propertyPath);
@@ -172,7 +169,7 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 	protected void implementGetDeclaringType(IPropertyInfo[] property)
 	{
 		MethodGenerator mv = visitMethod(template_m_getDeclaringType);
-		mv.push(entityType);
+		mv.push(declaringType);
 		mv.returnValue();
 		mv.endMethod();
 	}
@@ -196,76 +193,64 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 
 	protected void implementGetValue(IPropertyInfo[] propertyPath)
 	{
+		for (int a = 0, size = propertyPath.length; a < size; a++)
 		{
-			MethodGenerator mv = visitMethod(template_m_getValue);
-			mv.loadThis();
-			mv.loadArg(0);
-			mv.push(false);
-			mv.invokeVirtual(template_m_getValueWithFlag);
-			mv.returnValue();
-			mv.endMethod();
+			IPropertyInfo property = propertyPath[a];
+			if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
+			{
+				throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
+			}
 		}
+		implementGetValueIntern(template_m_getValue, propertyPath);
+		implementGetValueIntern(template_m_getValueWithFlag, propertyPath);
+	}
+
+	protected void implementGetValueIntern(MethodInstance mi, IPropertyInfo[] propertyPath)
+	{
+		MethodGenerator mv = visitMethod(mi);
+
+		Label l_finish = mv.newLabel();
+		mv.loadArg(0);
+		Type typeOfArgumentOnStack = Type.getType(Object.class);
+		for (int a = 0, size = propertyPath.length - 1; a < size; a++)
 		{
-			MethodGenerator mv = visitMethod(template_m_getValueWithFlag);
+			typeOfArgumentOnStack = invokeGetProperty(mv, propertyPath[a], typeOfArgumentOnStack);
+			mv.dup();
+			mv.ifNull(l_finish);
+		}
+		IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
+		typeOfArgumentOnStack = invokeGetProperty(mv, lastProperty, typeOfArgumentOnStack);
+		if (lastProperty.getPropertyType().isPrimitive())
+		{
+			Type pType = Type.getType(lastProperty.getPropertyType());
+			int loc_value = mv.newLocal(pType);
+			mv.storeLocal(loc_value);
+			mv.loadLocal(loc_value);
+			Label l_valueIsNonZero = mv.newLabel();
 
-			for (int a = 0, size = propertyPath.length; a < size; a++)
+			mv.ifZCmp(pType, GeneratorAdapter.NE, l_valueIsNonZero);
+
+			if (mv.getMethod().getParameters().length == 2)
 			{
-				IPropertyInfo property = propertyPath[a];
-				if (property instanceof MethodPropertyInfo && ((MethodPropertyInfo) property).getGetter() == null)
-				{
-					throw new IllegalStateException("Property not readable: " + property.getEntityType().getName() + "." + property.getName());
-				}
-			}
-			// IEntityMetaData metaDataOfProperty = entityMetaDataProvider.getMetaData(propertyPath[0].getEntityType(), true);
-			// if (metaDataOfProperty != null)
-			// {
-			// if (metaDataOfProperty.getEnhancedType() == null)
-			// {
-			// }
-			// }
-			// Class<?> declaringType = metaDataOfProperty != null ? metaDataOfProperty.getEnhancedType() : propertyPath[0].getEntityType();
-			Class<?> declaringType = propertyPath[0].getEntityType();
-			Label l_finish = mv.newLabel();
-			mv.loadArg(0);
-			mv.checkCast(declaringType);
-			for (int a = 0, size = propertyPath.length - 1; a < size; a++)
-			{
-				invokeGetProperty(mv, propertyPath[a]);
-				mv.dup();
-				mv.ifNull(l_finish);
-			}
-			IPropertyInfo lastProperty = propertyPath[propertyPath.length - 1];
-			invokeGetProperty(mv, lastProperty);
-			if (lastProperty.getPropertyType().isPrimitive())
-			{
-				Type pType = Type.getType(lastProperty.getPropertyType());
-				int loc_value = mv.newLocal(pType);
-				mv.storeLocal(loc_value);
-				mv.loadLocal(loc_value);
-				Label l_valueIsNonZero = mv.newLabel();
 				Label l_nullAllowed = mv.newLabel();
-
-				mv.ifZCmp(pType, GeneratorAdapter.NE, l_valueIsNonZero);
-
 				// check null-equi flag
 				mv.loadArg(1);
 				mv.ifZCmp(GeneratorAdapter.EQ, l_nullAllowed);
 				mv.pushNullOrZero(pType);
 				mv.box(pType);
 				mv.returnValue();
-
 				mv.mark(l_nullAllowed);
-				mv.pushNull();
-				mv.returnValue();
-
-				mv.mark(l_valueIsNonZero);
-				mv.loadLocal(loc_value);
-				mv.valueOf(pType);
 			}
-			mv.mark(l_finish);
+			mv.pushNullOrZero(mv.getMethod().getReturnType());
 			mv.returnValue();
-			mv.endMethod();
+
+			mv.mark(l_valueIsNonZero);
+			mv.loadLocal(loc_value);
+			mv.valueOf(pType);
 		}
+		mv.mark(l_finish);
+		mv.returnValue();
+		mv.endMethod();
 	}
 
 	protected void implementSetValue(IPropertyInfo[] propertyPath)
@@ -290,28 +275,16 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 			return;
 		}
 		mv.loadArg(0);
-		mv.checkCast(propertyPath[0].getEntityType());
+		Type typeOfArgumentOnStack = Type.getType(Object.class);
 
 		for (int a = 0, size = propertyPath.length - 1; a < size; a++)
 		{
-			invokeGetProperty(mv, propertyPath[a]);
-			// mv.dup();
-			// Label l_pathIsNonNull = mv.newLabel();
-			// mv.ifNonNull(l_pathIsNonNull);
-			//
-			// mv.pop(); // remove remaining null of embedded object from stack, now the cached parent object is on the stack
-			// mv.dup(); // cache parent object again
-			//
-			// mv.callThisGetter(p_embeddedMemberTemplate);
-			// mv.push(propertyPath[a].getPropertyType()); // embeddedType
-			// mv.push(entityType); // entityType
-			// mv.// parentObject
-			// mv.push(sb.toString()); // memberPath
-			// mv.invokeVirtual(template_m_createEmbeddedObject);
-			//
-			// mv.mark(l_pathIsNonNull);
+			typeOfArgumentOnStack = invokeGetProperty(mv, propertyPath[a], typeOfArgumentOnStack);
 		}
-
+		if (!lastProperty.getDeclaringType().equals(typeOfArgumentOnStack))
+		{
+			mv.checkCast(lastProperty.getDeclaringType());
+		}
 		mv.loadArg(1);
 		Type lastPropertyType = Type.getType(lastProperty.getPropertyType());
 		if (lastProperty.getPropertyType().isPrimitive())
@@ -339,25 +312,38 @@ public class EntityMetaDataMemberVisitor extends ClassGenerator
 		mv.endMethod();
 	}
 
-	protected void invokeGetProperty(MethodGenerator mv, IPropertyInfo property)
+	protected Type invokeGetProperty(MethodGenerator mv, IPropertyInfo property, Type typeOfArgumentOnStack)
 	{
 		if (property instanceof MethodPropertyInfo)
 		{
 			Method method = ((MethodPropertyInfo) property).getGetter();
+			MethodInstance mi = new MethodInstance(method);
 			if (method.getDeclaringClass().isInterface())
 			{
-				mv.invokeInterface(new MethodInstance(method));
+				mv.invokeInterface(mi);
 			}
 			else
 			{
-				mv.invokeVirtual(new MethodInstance(method));
+				if (!mi.getOwner().equals(typeOfArgumentOnStack))
+				{
+					mv.checkCast(mi.getOwner());
+				}
+				mv.invokeVirtual(mi);
+				typeOfArgumentOnStack = mi.getReturnType();
 			}
 		}
 		else
 		{
 			Field field = ((FieldPropertyInfo) property).getBackingField();
-			mv.getField(new FieldInstance(field));
+			FieldInstance fi = new FieldInstance(field);
+			if (!fi.getOwner().equals(typeOfArgumentOnStack))
+			{
+				mv.checkCast(fi.getOwner());
+			}
+			mv.getField(fi);
+			typeOfArgumentOnStack = fi.getType();
 		}
+		return typeOfArgumentOnStack;
 	}
 
 	protected void invokeSetProperty(MethodGenerator mv, IPropertyInfo property)

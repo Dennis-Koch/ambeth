@@ -37,9 +37,9 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
         public void Save()
         {
-            Type[] t = assemblyBuilder.GetTypes();
+            //Type[] t = assemblyBuilder.GetTypes();
 #if !SILVERLIGHT
-            assemblyBuilder.Save(moduleName);
+            //assemblyBuilder.Save(moduleName);
 #endif
         }
 

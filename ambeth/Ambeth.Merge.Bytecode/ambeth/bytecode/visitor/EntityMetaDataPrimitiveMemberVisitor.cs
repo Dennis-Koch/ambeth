@@ -21,24 +21,22 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected readonly String memberName;
 
-        protected IPropertyInfoProvider propertyInfoProvider;
+        protected readonly IPropertyInfo[] propertyPath;
 
-        public EntityMetaDataPrimitiveMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfoProvider propertyInfoProvider)
-            : base(cv)
+        public EntityMetaDataPrimitiveMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IPropertyInfo[] propertyPath) : base(new InterfaceAdder(cv, typeof(IPrimitiveMemberWrite)))
         {
             this.entityType = entityType;
             this.memberName = memberName;
-            this.propertyInfoProvider = propertyInfoProvider;
+            this.propertyPath = propertyPath;
         }
 
         public override void VisitEnd()
         {
-            IPropertyInfo[] propertyPath = MemberTypeProvider.BuildPropertyPath(entityType, memberName, propertyInfoProvider);
-            ImplementIsTechnicalMember(propertyPath);
+            ImplementIsTechnicalMember();
             base.VisitEnd();
         }
 
-        protected void ImplementIsTechnicalMember(IPropertyInfo[] propertyPath)
+        protected void ImplementIsTechnicalMember()
         {
             FieldInstance f_technicalMember = ImplementField(new FieldInstance(FieldAttributes.Private, "__technicalMember", typeof(bool)));
 

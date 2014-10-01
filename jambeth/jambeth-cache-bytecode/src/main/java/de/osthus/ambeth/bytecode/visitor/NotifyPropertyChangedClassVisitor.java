@@ -479,8 +479,8 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 			mv.loadArg(0);
 			mv.invokeVirtual(m_getMethodHandle);
 
-			mv.loadArg(0);
 			mv.loadArg(1);
+			mv.loadArg(2);
 			// firePropertyChange(sender, propertyChangeSupport, property, oldValue, newValue)
 			mv.invokeVirtual(m_firePropertyChange);
 			mv.popIfReturnValue(m_firePropertyChange);
@@ -592,7 +592,21 @@ public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 
 	protected void implementPropertyChangeConfigurable()
 	{
-		FieldInstance f_propertyChangeActive = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__propertyChangeActive", null, boolean.class));
+		String fieldName = "__propertyChangeActive";
+		if (getState().getAlreadyImplementedField(fieldName) != null)
+		{
+			if (properties == null)
+			{
+				throw new IllegalStateException("It seems that this visitor has been executing twice");
+			}
+			return;
+		}
+		else if (properties != null)
+		{
+			// do not apply in this case
+			return;
+		}
+		FieldInstance f_propertyChangeActive = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, fieldName, null, boolean.class));
 
 		Constructor<?>[] constructors = BytecodeBehaviorState.getState().getCurrentType().getDeclaredConstructors();
 		for (int a = constructors.length; a-- > 0;)

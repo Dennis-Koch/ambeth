@@ -30,7 +30,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 	    public ICompositeIdFactory CompositeIdFactory { protected get; set; }
 
         [Autowired]
-        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
+        public IIntermediateMemberTypeProvider IntermediateMemberTypeProvider { protected get; set; }
 
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
@@ -184,8 +184,8 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    {
 				    continue;
 			    }
-                if (metaData.IdMember == member2 || metaData.VersionMember == member2 || metaData.CreatedByMember == member2
-                    || metaData.CreatedOnMember == member2 || metaData.UpdatedByMember == member2 || metaData.UpdatedOnMember == member2)
+                if (member2.Equals(metaData.IdMember) || member2.Equals(metaData.VersionMember) || member2.Equals(metaData.CreatedByMember)
+                    || member2.Equals(metaData.CreatedOnMember) || member2.Equals(metaData.UpdatedByMember) || member2.Equals(metaData.UpdatedOnMember))
                 {
                     continue;
                 }
@@ -283,7 +283,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    {
 			    return member;
 		    }
-            member = MemberTypeProvider.GetPrimitiveMember(entityType, property.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, property.Name);
 		    nameToMemberMap.Put(property.Name, member);
 		    return member;
 	    }
@@ -295,7 +295,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    {
 			    return member;
 		    }
-            member = MemberTypeProvider.GetRelationMember(entityType, property.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(entityType, property.Name);
 		    nameToMemberMap.Put(property.Name, member);
 		    return member;
 	    }
@@ -307,7 +307,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    {
 			    return member;
 		    }
-            member = MemberTypeProvider.GetPrimitiveMember(entityType, itemConfig.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediatePrimitiveMember(entityType, itemConfig.Name);
 		    if (member == null)
 		    {
 			    throw new Exception("No member with name '" + itemConfig.Name + "' found on entity type '" + entityType.Name + "'");
@@ -351,7 +351,7 @@ namespace De.Osthus.Ambeth.Merge.Config
 		    {
 			    return member;
 		    }
-            member = MemberTypeProvider.GetRelationMember(realType, relationConfig.Name);
+            member = IntermediateMemberTypeProvider.GetIntermediateRelationMember(realType, relationConfig.Name);
 		    if (member == null)
 		    {
                 throw new Exception("No member with name '" + relationConfig.Name + "' found on entity type '" + realType.Name + "'");

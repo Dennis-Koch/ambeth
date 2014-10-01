@@ -1,5 +1,6 @@
 package de.osthus.ambeth.metadata;
 
+import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -11,7 +12,6 @@ import java.util.regex.Pattern;
 
 import de.osthus.ambeth.annotation.Cascade;
 import de.osthus.ambeth.annotation.CascadeLoadMode;
-import de.osthus.ambeth.bytecode.EmbeddedEnhancementHint;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
@@ -26,7 +26,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class MemberTypeProvider implements IMemberTypeProvider
+public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMemberTypeProvider
 {
 	public class TypeAndStringWeakMap<T> extends Tuple2KeyHashMap<Class<?>, String, Reference<T>>
 	{
@@ -174,44 +174,6 @@ public class MemberTypeProvider implements IMemberTypeProvider
 
 	protected Member getMemberIntern(Class<?> type, String propertyName, Class<?> baseType)
 	{
-		String[] memberNameSplit = EmbeddedMember.split(propertyName);
-		if (memberNameSplit.length > 1)
-		{
-			Member[] memberPath = new Member[memberNameSplit.length - 1];
-			StringBuilder memberPathString = new StringBuilder();
-			Class<?> currType = type;
-			for (int a = 0, size = memberPath.length; a < size; a++)
-			{
-				memberPath[a] = getMember(currType, memberNameSplit[a]);
-				Class<?> parentObjectType = currType;
-				currType = memberPath[a].getRealType();
-				if (a > 0)
-				{
-					memberPathString.append('.');
-				}
-				memberPathString.append(memberPath[a].getName());
-				if (bytecodeEnhancer.isEnhancedType(type))
-				{
-					currType = bytecodeEnhancer.getEnhancedType(currType, new EmbeddedEnhancementHint(type, parentObjectType, memberPathString.toString()));
-				}
-			}
-			if (baseType == RelationMember.class)
-			{
-				RelationMember lastRelationMember = getRelationMember(currType, memberNameSplit[memberNameSplit.length - 1]);
-				return new EmbeddedRelationMember(propertyName, lastRelationMember, memberPath);
-			}
-			else if (baseType == PrimitiveMember.class)
-			{
-				PrimitiveMember lastMember = getPrimitiveMember(currType, memberNameSplit[memberNameSplit.length - 1]);
-				return new EmbeddedPrimitiveMember(propertyName, lastMember, memberPath);
-			}
-			else if (baseType == Member.class)
-			{
-				Member lastMember = getMember(currType, memberNameSplit[memberNameSplit.length - 1]);
-				return new EmbeddedMember(propertyName, lastMember, memberPath);
-			}
-			throw new IllegalStateException("Must never happen");
-		}
 		Class<?> enhancedType = getMemberTypeIntern(type, propertyName, baseType);
 		if (enhancedType == baseType)
 		{
@@ -241,5 +203,62 @@ public class MemberTypeProvider implements IMemberTypeProvider
 			return bytecodeEnhancer.getEnhancedType(baseType, new RelationMemberEnhancementHint(targetType, propertyName));
 		}
 		return bytecodeEnhancer.getEnhancedType(baseType, new MemberEnhancementHint(targetType, propertyName));
+	}
+
+	@Override
+	public IntermediatePrimitiveMember getIntermediatePrimitiveMember(Class<?> entityType, String propertyName)
+	{
+		String[] memberNamePath = EmbeddedMember.split(propertyName);
+		Class<?> currDeclaringType = entityType;
+		Member[] members = new Member[memberNamePath.length];
+		for (int a = 0, size = memberNamePath.length; a < size; a++)
+		{
+			IPropertyInfo property = propertyInfoProvider.getProperty(currDeclaringType, memberNamePath[a]);
+			if (property == null)
+			{
+				return null;
+			}
+			members[a] = new IntermediatePrimitiveMember(currDeclaringType, entityType, property.getPropertyType(), property.getElementType(),
+					property.getName(), property.getAnnotations());
+			currDeclaringType = property.getPropertyType();
+		}
+		if (members.length > 1)
+		{
+			Member[] memberPath = new Member[members.length - 1];
+			System.arraycopy(members, 0, memberPath, 0, memberPath.length);
+			PrimitiveMember lastMember = (PrimitiveMember) members[memberPath.length];
+			return new IntermediateEmbeddedPrimitiveMember(entityType, lastMember.getRealType(), lastMember.getElementType(), propertyName, memberPath,
+					lastMember);
+		}
+		return (IntermediatePrimitiveMember) members[0];
+	}
+
+	@Override
+	public IntermediateRelationMember getIntermediateRelationMember(Class<?> entityType, String propertyName)
+	{
+		String[] memberNamePath = EmbeddedMember.split(propertyName);
+		Class<?> currDeclaringType = entityType;
+		Member[] members = new Member[memberNamePath.length];
+		Annotation[] lastMemberAnnotations = null;
+		for (int a = 0, size = memberNamePath.length; a < size; a++)
+		{
+			IPropertyInfo property = propertyInfoProvider.getProperty(currDeclaringType, memberNamePath[a]);
+			if (property == null)
+			{
+				return null;
+			}
+			members[a] = new IntermediateRelationMember(currDeclaringType, entityType, property.getPropertyType(), property.getElementType(),
+					property.getName(), property.getAnnotations());
+			currDeclaringType = property.getPropertyType();
+		}
+		if (members.length > 1)
+		{
+			Member[] memberPath = new Member[members.length - 1];
+			System.arraycopy(members, 0, memberPath, 0, memberPath.length);
+			Member lastMember = members[memberPath.length];
+			return new IntermediateEmbeddedRelationMember(entityType, lastMember.getRealType(), lastMember.getElementType(), propertyName, memberPath,
+					lastMember);
+		}
+		return (IntermediateRelationMember) members[0];
 	}
 }

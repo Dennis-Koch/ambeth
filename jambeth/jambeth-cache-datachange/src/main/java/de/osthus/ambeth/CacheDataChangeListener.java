@@ -292,17 +292,41 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			Set<IObjRef> hardRefOrisToLoad, IDataChange dataChange, List<CacheChangeItem> cciList, Set<IObjRef> orisToLoad, Set<IObjRef> deletedSet,
 			IRootCache rootCache)
 	{
-		ObjRef tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
-		ArrayList<IObjRef> tempList = new ArrayList<IObjRef>(1);
-
-		EnumSet<CacheDirective> failEarlyReturnMisses = EnumSet.of(CacheDirective.FailEarly, CacheDirective.ReturnMisses);
-
 		ArrayList<IDataChangeEntry> insertsAndUpdates = new ArrayList<IDataChangeEntry>();
+		List<IDataChangeEntry> deletes = dataChange.getDeletes();
+
+		insertsAndUpdates.addAll(dataChange.getUpdates());
+		insertsAndUpdates.addAll(dataChange.getInserts());
+		ArrayList<IObjRef> changesToSearchInCache = new ArrayList<IObjRef>(insertsAndUpdates.size());
+		ArrayList<IObjRef> changesWithVersion = new ArrayList<IObjRef>(insertsAndUpdates.size());
+		ArrayList<IObjRef> deletesToSearchInCache = new ArrayList<IObjRef>(deletes.size());
+		for (int a = deletes.size(); a-- > 0;)
+		{
+			IDataChangeEntry deleteEntry = deletes.get(a);
+			Object id = deleteEntry.getId();
+			if (id == null)
+			{
+				deletesToSearchInCache.add(null);
+				continue;
+			}
+			deletesToSearchInCache.add(new ObjRef(deleteEntry.getEntityType(), deleteEntry.getIdNameIndex(), id, null));
+		}
+		for (int a = insertsAndUpdates.size(); a-- > 0;)
+		{
+			IDataChangeEntry updateEntry = insertsAndUpdates.get(a);
+			Object id = updateEntry.getId();
+			if (id == null)
+			{
+				changesToSearchInCache.add(null);
+				continue;
+			}
+			changesToSearchInCache.add(new ObjRef(updateEntry.getEntityType(), updateEntry.getIdNameIndex(), id, null));
+			changesWithVersion.add(new ObjRef(updateEntry.getEntityType(), updateEntry.getIdNameIndex(), id, updateEntry.getVersion()));
+		}
 
 		for (int flcIndex = firstLevelCaches.size(); flcIndex-- > 0;)
 		{
 			IWritableCache childCache = firstLevelCaches.get(flcIndex);
-			insertsAndUpdates.clear();
 			// childCache.getContent(new HandleContentDelegate()
 			// {
 			//
@@ -336,53 +360,31 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			readLock.lock();
 			try
 			{
-				List<IDataChangeEntry> deletes = dataChange.getDeletes();
-				for (int a = deletes.size(); a-- > 0;)
+				List<Object> deletesInCache = childCache.getObjects(deletesToSearchInCache, CacheDirective.failEarlyAndReturnMisses());
+				for (int a = deletesToSearchInCache.size(); a-- > 0;)
 				{
-					IDataChangeEntry deleteEntry = deletes.get(a);
-					Object id = deleteEntry.getId();
-					if (id == null)
-					{
-						continue;
-					}
-					tempORI.init(deleteEntry.getEntityType(), deleteEntry.getIdNameIndex(), id, null);
-
-					tempList.clear();
-					tempList.add(tempORI);
-					Object result = childCache.getObjects(tempList, failEarlyReturnMisses).get(0);
+					Object result = deletesInCache.get(a);
 					if (result == null)
 					{
+						// not in this cache
 						continue;
 					}
-					objectRefsToDelete.add(tempORI);
-					tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
+					objectRefsToDelete.add(deletesToSearchInCache.get(a));
 				}
-				insertsAndUpdates.addAll(dataChange.getUpdates());
-				insertsAndUpdates.addAll(dataChange.getInserts());
-				for (int a = insertsAndUpdates.size(); a-- > 0;)
+				List<Object> changesInCache = childCache.getObjects(changesToSearchInCache, CacheDirective.failEarlyAndReturnMisses());
+				for (int a = changesToSearchInCache.size(); a-- > 0;)
 				{
-					IDataChangeEntry updateEntry = insertsAndUpdates.get(a);
-					Object id = updateEntry.getId();
-					if (id == null)
-					{
-						continue;
-					}
-					tempORI.init(updateEntry.getEntityType(), updateEntry.getIdNameIndex(), id, null);
-
-					tempList.clear();
-					tempList.add(tempORI);
-					Object result = childCache.getObjects(tempList, failEarlyReturnMisses).get(0);
+					Object result = changesInCache.get(a);
 					if (result == null)
 					{
+						// not in this cache
 						continue;
 					}
-					Object versionInDCE = updateEntry.getVersion();
-
 					// Attach version to ORI. We can not do this before because then we would have had a
 					// cache miss in the childCache above. We need the version now because our second level cache
 					// has to refresh its entries
-					tempORI.setVersion(versionInDCE);
-					hardRefOrisToLoad.add(tempORI);
+					IObjRef objRefWithVersion = changesWithVersion.get(a);
+					hardRefOrisToLoad.add(objRefWithVersion);
 
 					if (result instanceof IDataObject)
 					{
@@ -392,20 +394,19 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							continue;
 						}
 					}
-					if (versionInDCE != null)
+					if (objRefWithVersion.getVersion() != null)
 					{
 						IEntityMetaData metaData = ((IEntityMetaDataHolder) result).get__EntityMetaData();
 						Object versionInCache = metaData.getVersionMember() != null ? metaData.getVersionMember().getValue(result, false) : null;
-						if (versionInCache != null && ((Comparable<Object>) versionInDCE).compareTo(versionInCache) <= 0)
+						if (versionInCache != null && ((Comparable<Object>) objRefWithVersion.getVersion()).compareTo(versionInCache) <= 0)
 						{
 							continue;
 						}
 					}
 					objectsToUpdate.add(result);
-					orisToLoad.add(tempORI);
+					orisToLoad.add(objRefWithVersion);
 					// scanForInitializedObjects(result, alreadyScannedObjects, hardRefOrisToLoad);
-					objectRefsToUpdate.add(tempORI);
-					tempORI = new ObjRef(null, ObjRef.PRIMARY_KEY_INDEX, null, null);
+					objectRefsToUpdate.add(objRefWithVersion);
 				}
 			}
 			finally

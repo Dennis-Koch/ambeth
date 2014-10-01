@@ -136,6 +136,7 @@ namespace De.Osthus.Ambeth.Merge
         {
             if (metaData.EnhancedType == null)
 		    {
+                ((EntityMetaData)metaData).Initialize(CacheModification, EntityFactory);
 			    IEntityInstantiationExtension eie = entityInstantiationExtensions.GetExtension(metaData.EntityType);
                 Type baseType = eie != null ? eie.GetMappedEntityType(metaData.EntityType) : metaData.EntityType;
 			    ((EntityMetaData) metaData).EnhancedType = BytecodeEnhancer.GetEnhancedType(baseType, EntityEnhancementHint.Instance);

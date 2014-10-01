@@ -43,29 +43,28 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected static readonly MethodInstance template_m_setValue = new MethodInstance(null, typeof(Member), typeof(void), "SetValue", typeof(Object), typeof(Object));
 
+        protected readonly Type declaringType;
+
         protected readonly Type entityType;
 
         protected readonly String memberName;
+        
+        protected readonly IEntityMetaDataProvider entityMetaDataProvider;
 
-        protected IBytecodeEnhancer bytecodeEnhancer;
+        protected readonly IPropertyInfo[] propertyPath;
 
-        protected IEntityMetaDataProvider entityMetaDataProvider;
-
-        protected IPropertyInfoProvider propertyInfoProvider;
-
-        public EntityMetaDataMemberVisitor(IClassVisitor cv, Type entityType, String memberName, IBytecodeEnhancer bytecodeEnhancer,
-                IEntityMetaDataProvider entityMetaDataProvider, IPropertyInfoProvider propertyInfoProvider)
+        public EntityMetaDataMemberVisitor(IClassVisitor cv, Type declaringType, Type entityType, String memberName, IEntityMetaDataProvider entityMetaDataProvider, IPropertyInfo[] propertyPath)
             : base(cv)
         {
+            this.declaringType = declaringType;
             this.entityType = entityType;
             this.memberName = memberName;
             this.entityMetaDataProvider = entityMetaDataProvider;
-            this.propertyInfoProvider = propertyInfoProvider;
+            this.propertyPath = propertyPath;
         }
 
         public override void VisitEnd()
         {
-            IPropertyInfo[] propertyPath = MemberTypeProvider.BuildPropertyPath(entityType, memberName, propertyInfoProvider);
             ImplementCanRead(propertyPath);
             ImplementCanWrite(propertyPath);
             ImplementGetAttribute(propertyPath);
@@ -161,7 +160,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected void ImplementGetDeclaringType(IPropertyInfo[] property)
         {
             IMethodVisitor mv = VisitMethod(template_m_getDeclaringType);
-            mv.Push(entityType);
+            mv.Push(declaringType);
             mv.ReturnValue();
             mv.EndMethod();
         }
@@ -204,15 +203,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             Type declaringType = propertyPath[0].EntityType;
             Label l_finish = mv.NewLabel();
             mv.LoadArg(0);
-            mv.CheckCast(declaringType);
+            Type typeOfArgumentOnStack = typeof(Object);
             for (int a = 0, size = propertyPath.Length - 1; a < size; a++)
             {
-                InvokeGetProperty(mv, propertyPath[a]);
+                typeOfArgumentOnStack = InvokeGetProperty(mv, propertyPath[a], typeOfArgumentOnStack);
                 mv.Dup();
                 mv.IfNull(l_finish);
             }
             IPropertyInfo lastProperty = propertyPath[propertyPath.Length - 1];
-            InvokeGetProperty(mv, lastProperty);
+            typeOfArgumentOnStack = InvokeGetProperty(mv, lastProperty, typeOfArgumentOnStack);
             if (lastProperty.PropertyType.IsPrimitive)
             {
                 Type pType = lastProperty.PropertyType;
@@ -225,10 +224,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
                 if (mv.Method.Parameters.Length == 2)
                 {
-                    // check null-equi flag
-
                     Label l_nullAllowed = mv.NewLabel();
-
+                    // check null-equi flag
                     mv.LoadArg(1);
                     mv.IfZCmp(CompareOperator.EQ, l_nullAllowed);
                     mv.PushNullOrZero(pType);
@@ -354,28 +351,16 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 throw new Exception("Property not writable: " + lastProperty.EntityType.FullName + "." + lastProperty.Name);
             }
             mv.LoadArg(0);
-            mv.CheckCast(propertyPath[0].EntityType);
+           Type typeOfArgumentOnStack = typeof(Object);
 
             for (int a = 0, size = propertyPath.Length - 1; a < size; a++)
             {
-                InvokeGetProperty(mv, propertyPath[a]);
-                // mv.Dup();
-                // Label l_pathIsNonNull = mv.NewLabel();
-                // mv.ifNonNull(l_pathIsNonNull);
-                //
-                // mv.pop(); // remove remaining null of embedded object from stack, now the cached parent object is on the stack
-                // mv.Dup(); // cache parent object again
-                //
-                // mv.callThisGetter(p_embeddedMemberTemplate);
-                // mv.Push(propertyPath[a]..PropertyType); // embeddedType
-                // mv.Push(entityType); // entityType
-                // mv.// parentObject
-                // mv.Push(sb.toString()); // memberPath
-                // mv.InvokeVirtual(template_m_createEmbeddedObject);
-                //
-                // mv.mark(l_pathIsNonNull);
+                typeOfArgumentOnStack = InvokeGetProperty(mv, propertyPath[a], typeOfArgumentOnStack);
             }
-
+            if (!lastProperty.DeclaringType.Equals(typeOfArgumentOnStack))
+            {
+                mv.CheckCast(lastProperty.DeclaringType);
+            }
             mv.LoadArg(1);
             Type lastPropertyType = lastProperty.PropertyType;
             if (lastProperty.PropertyType.IsPrimitive)
@@ -403,25 +388,34 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             mv.EndMethod();
         }
 
-        protected void InvokeGetProperty(IMethodVisitor mv, IPropertyInfo property)
+        protected Type InvokeGetProperty(IMethodVisitor mv, IPropertyInfo property, Type typeOfArgumentOnStack)
         {
             if (property is MethodPropertyInfo)
             {
                 MethodInfo method = ((MethodPropertyInfo)property).Getter;
+                MethodInstance mi = new MethodInstance(method);
                 if (method.DeclaringType.IsInterface)
                 {
-                    mv.InvokeInterface(new MethodInstance(method));
+                    mv.InvokeInterface(mi);
                 }
                 else
                 {
-                    mv.InvokeVirtual(new MethodInstance(method));
+                    if (!mi.Owner.Equals(typeOfArgumentOnStack))
+                    {
+                        mv.CheckCast(mi.Owner);
+                    }
+                    mv.InvokeVirtual(mi);
+                    typeOfArgumentOnStack = mi.ReturnType.Type;
                 }
             }
             else
             {
                 FieldInfo field = ((FieldPropertyInfo)property).BackingField;
-                mv.GetField(new FieldInstance(field));
+                FieldInstance fi = new FieldInstance(field);
+                mv.GetField(fi);
+                typeOfArgumentOnStack = fi.Type.Type;
             }
+            return typeOfArgumentOnStack;
         }
 
         protected void InvokeSetProperty(IMethodVisitor mv, IPropertyInfo property)

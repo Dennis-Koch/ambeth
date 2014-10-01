@@ -6,19 +6,19 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
 public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
 {
-	protected final Class<?> entityType;
+	protected final Class<?> declaringType;
 
 	protected final String memberName;
 
-	public MemberEnhancementHint(Class<?> entityType, String memberName)
+	public MemberEnhancementHint(Class<?> declaringType, String memberName)
 	{
-		this.entityType = entityType;
+		this.declaringType = declaringType;
 		this.memberName = memberName;
 	}
 
-	public Class<?> getEntityType()
+	public Class<?> getDeclaringType()
 	{
-		return entityType;
+		return declaringType;
 	}
 
 	public String getMemberName()
@@ -38,13 +38,13 @@ public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhan
 			return false;
 		}
 		MemberEnhancementHint other = (MemberEnhancementHint) obj;
-		return getEntityType().equals(other.getEntityType()) && getMemberName().equals(other.getMemberName());
+		return getDeclaringType().equals(other.getDeclaringType()) && getMemberName().equals(other.getMemberName());
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return getClass().hashCode() ^ getEntityType().hashCode() ^ getMemberName().hashCode();
+		return getClass().hashCode() ^ getDeclaringType().hashCode() ^ getMemberName().hashCode();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -61,6 +61,6 @@ public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhan
 	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
-		return Type.getInternalName(entityType) + "$" + Member.class.getSimpleName() + "$" + memberName;
+		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$" + memberName;
 	}
 }
