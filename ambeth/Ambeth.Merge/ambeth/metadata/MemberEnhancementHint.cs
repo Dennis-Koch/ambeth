@@ -69,5 +69,10 @@ namespace De.Osthus.Ambeth.Metadata
         {
             return declaringType.FullName + "$" + typeof(Member).Name + "$" + memberName;
         }
+
+        public override string ToString()
+        {
+            return GetType().Name + ": Path=" + declaringType.Name + "." + memberName;
+        }
     }
 }
