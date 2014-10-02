@@ -63,4 +63,10 @@ public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhan
 	{
 		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$" + memberName;
 	}
+
+	@Override
+	public String toString()
+	{
+		return getClass().getSimpleName() + ": Path=" + declaringType.getSimpleName() + "." + memberName;
+	}
 }

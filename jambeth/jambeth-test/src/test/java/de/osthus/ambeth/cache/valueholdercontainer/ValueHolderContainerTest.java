@@ -850,8 +850,8 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		Assert.assertEquals(2, matCounter.size());
 		Assert.assertTrue(matCounter.containsKey("ToBeUpdated"));
 		Assert.assertTrue(matCounter.containsKey("HasPendingChanges"));
-		Assert.assertEquals(1, matCounter.get("ToBeUpdated").intValue());
-		Assert.assertEquals(1, matCounter.get("HasPendingChanges").intValue());
+		Assert.assertEquals(10, matCounter.get("ToBeUpdated").intValue());
+		Assert.assertEquals(10, matCounter.get("HasPendingChanges").intValue());
 	}
 
 	@Test
