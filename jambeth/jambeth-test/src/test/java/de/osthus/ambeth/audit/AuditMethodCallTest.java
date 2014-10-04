@@ -1,7 +1,6 @@
 package de.osthus.ambeth.audit;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
@@ -32,7 +31,7 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/audit/AuditMethodCall_orm.xml"),
-		@TestProperties(name = AuditConfigurationConstants.AuditMethodActive, value = "true") })
+		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true") })
 @SQLStructure("AuditMethodCall_structure.sql")
 public class AuditMethodCallTest extends AbstractPersistenceTest
 {
@@ -50,7 +49,7 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		public void evaluatePermissionOnInstance(IObjRef objRef, User entity, IAuthorization currentUser, ISecurityScope[] securityScopes,
 				IEntityPermissionEvaluation pe)
 		{
-			service.funnyMethod(new Integer(6));
+			service.auditedServiceCall(new Integer(6));
 		}
 	}
 
@@ -82,9 +81,8 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 	@Autowired
 	protected ITestAuditService testAuditService;
 
-	@Test
 	public void myTest()
 	{
-		Assert.assertEquals("5", testAuditService.funnyMethod(new Integer(5)));
+		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));
 	}
 }

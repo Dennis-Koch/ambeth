@@ -2,5 +2,7 @@ package de.osthus.ambeth.audit;
 
 public interface ITestAuditService
 {
-	String funnyMethod(Integer myArg);
+	String auditedServiceCall(Integer myArg);
+
+	String notAuditedServiceCall(Integer myArg);
 }

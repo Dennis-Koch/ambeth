@@ -226,7 +226,7 @@ public class TableChange extends AbstractTableChange
 	}
 
 	@Override
-	public void execute(IChangeAggregator changeAggreagator)
+	public void execute(IChangeAggregator changeAggregator)
 	{
 		IField versionField = table.getVersionField();
 		Class<?> versionTypeOfObject = versionField != null ? versionField.getMember().getElementType() : null;
@@ -260,7 +260,7 @@ public class TableChange extends AbstractTableChange
 						reference.setVersion(null);
 					}
 					reference.setId(newId.getValue());
-					changeAggreagator.dataChangeInsert(reference);
+					changeAggregator.dataChangeInsert(reference);
 				}
 				else if (changeCommand instanceof IUpdateCommand)
 				{
@@ -276,12 +276,12 @@ public class TableChange extends AbstractTableChange
 					{
 						reference.setVersion(null);
 					}
-					changeAggreagator.dataChangeUpdate(reference);
+					changeAggregator.dataChangeUpdate(reference);
 				}
 				else if (changeCommand instanceof IDeleteCommand)
 				{
 					toDelete.add(reference);
-					changeAggreagator.dataChangeDelete(reference);
+					changeAggregator.dataChangeDelete(reference);
 				}
 				else
 				{
@@ -299,7 +299,7 @@ public class TableChange extends AbstractTableChange
 						IList<IObjRef> allOris = oriHelper.entityToAllObjRefs(objects.get(i), metaData);
 						for (int j = allOris.size(); j-- > 0;)
 						{
-							changeAggreagator.dataChangeDelete(allOris.get(j));
+							changeAggregator.dataChangeDelete(allOris.get(j));
 						}
 					}
 				}

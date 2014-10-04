@@ -17,9 +17,12 @@ import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.IPasswordUtilIntern;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
+import de.osthus.ambeth.security.ISignatureUtil;
 import de.osthus.ambeth.security.PasswordUtil;
+import de.osthus.ambeth.security.SignatureUtil;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
@@ -37,7 +40,8 @@ public class SecurityServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class, IPasswordUtilIntern.class);
+		beanContextFactory.registerAnonymousBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
 
 		if (isSecurityActive)
 		{

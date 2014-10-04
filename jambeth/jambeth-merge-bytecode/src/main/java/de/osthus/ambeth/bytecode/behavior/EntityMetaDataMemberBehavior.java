@@ -64,6 +64,10 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior
 		{
 			IPropertyInfo[] propertyPath = new IPropertyInfo[1];
 			propertyPath[0] = propertyInfoProvider.getProperty(memberHint.getDeclaringType(), memberHint.getMemberName());
+			if (propertyPath[0] == null)
+			{
+				throw new IllegalArgumentException("Member not found: " + memberHint.getDeclaringType() + "." + memberHint.getMemberName());
+			}
 			visitor = new EntityMetaDataMemberVisitor(visitor, memberHint.getDeclaringType(), memberHint.getDeclaringType(), memberHint.getMemberName(),
 					entityMetaDataProvider, propertyPath);
 			if (relationMemberHint != null)
@@ -82,6 +86,11 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior
 		StringBuilder sb = new StringBuilder();
 		for (int a = 0, size = memberNameSplit.length; a < size; a++)
 		{
+			propertyPath[a] = propertyInfoProvider.getProperty(currType, memberNameSplit[a]);
+			if (propertyPath[a] == null)
+			{
+				throw new IllegalArgumentException("Member not found: " + currType + "." + memberNameSplit[a]);
+			}
 			if (a + 1 < memberNameSplit.length)
 			{
 				members[a] = memberTypeProvider.getMember(currType, memberNameSplit[a]);
@@ -99,7 +108,6 @@ public class EntityMetaDataMemberBehavior extends AbstractBehavior
 				sb.append('.');
 			}
 			sb.append(members[a].getName());
-			propertyPath[a] = propertyInfoProvider.getProperty(currType, memberNameSplit[a]);
 			if (a + 1 < memberNameSplit.length)
 			{
 				currType = bytecodeEnhancer.getEnhancedType(members[a].getRealType(),

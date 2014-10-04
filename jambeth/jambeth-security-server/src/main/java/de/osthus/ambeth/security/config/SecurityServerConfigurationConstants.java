@@ -94,6 +94,44 @@ public final class SecurityServerConfigurationConstants
 	@ConfigurationConstantDescription("Configures the byte-length of the generated random salt each time a password gets created or rehashed. Optional parameter. Must be >0. Default = 16")
 	public static final String LoginSaltLength = "security.login.salt.length";
 
+	public static final String SignatureAlgorithmName = "security.signature.algorithm.name";
+
+	public static final String SignatureKeyAlgorithmName = "security.signature.key.algorithm.name";
+
+	/**
+	 * Configures the bit-length of the generated public/private key pair. The security harness is related to the chosen SignatureAlgorithmName.<br>
+	 * For example for RSA keys above 3072 bits are considered safe - with EC comparable safety is achieved with numbers around 512.<br>
+	 * Optional parameter. Must be >=112.<br>
+	 * Default = 512
+	 */
+	@ConfigurationConstantDescription("Configures the bit-length of the generated public/private key pair. The security harness is related to the chosen SignatureAlgorithmName. For example for RSA keys above 3072 bits are considered safe - with EC comparable safety is achieved with numbers around 512. Optional parameter. Must be >=112. Default = 512")
+	public static final String SignatureKeySize = "security.signature.length";
+
+	/**
+	 * Configures the algorithm which is used to encrypt the private key of signatures.<br>
+	 * The password of the encryption is the password of the user itself. So only the user can read its own private key at any point of time<br>
+	 * Optional parameter.<br>
+	 * Default = AES/CBC/PKCS5Padding
+	 */
+	@ConfigurationConstantDescription("Configures the algorithm which is used to encrypt salts. Value itself is not considered unless a specific salt password is defined. Optional parameter. Default = AES/CBC/PKCS5Padding")
+	public static final String SignatureEncryptionAlgorithmName = "security.signature.encryption.algorithm.name";
+
+	public static final String SignaturePaddedKeySize = "security.signature.encryption.keypadding.length";
+
+	public static final String SignaturePaddedKeyAlgorithmName = "security.signature.padding.algorithm.name";
+
+	/**
+	 * Configures the keyspec name which is used to encrypt the private key of signatures. Must be compatible to the configured
+	 * 'security.signature.encryption.algorithm.name'.<br>
+	 * The password of the encryption is the password of the user itself. So only the user can read its own private key at any point of time<br>
+	 * Optional parameter.<br>
+	 * Default = AES
+	 */
+	@ConfigurationConstantDescription("Configures the keyspec name which is used to encrypt salts. Must be compatible to the configured 'security.login.salt.algorithm.name'. Value itself is not considered unless a specific salt password is defined. Optional parameter. Default = AES")
+	public static final String SignatureEncryptionKeySpecName = "security.signature.encryption.keyspec.name";
+
+	public static final String SignaturePaddedKeyIterationCount = "security.signature.encryption.algorithm.iterationcount";
+
 	private SecurityServerConfigurationConstants()
 	{
 		// Intended blank

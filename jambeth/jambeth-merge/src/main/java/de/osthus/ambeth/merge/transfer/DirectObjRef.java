@@ -41,6 +41,12 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef
 	}
 
 	@Override
+	public void setId(Object id)
+	{
+		super.setId(id);
+	}
+
+	@Override
 	public int getCreateContainerIndex()
 	{
 		return createContainerIndex;

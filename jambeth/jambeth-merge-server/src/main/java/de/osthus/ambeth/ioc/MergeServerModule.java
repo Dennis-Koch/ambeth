@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.DatabaseToEntityMetaData;
+import de.osthus.ambeth.merge.IMergeListenerExtendable;
 import de.osthus.ambeth.service.IRelationMergeService;
 import de.osthus.ambeth.service.PersistenceMergeServiceExtension;
 import de.osthus.ambeth.service.RelationMergeService;
@@ -38,7 +39,7 @@ public class MergeServerModule implements IInitializingModule
 		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
 		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class);
+		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class).autowireable(IMergeListenerExtendable.class);
 
 		IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerAnonymousBean(LocalToPublicDispatcher.class);
 

@@ -34,11 +34,14 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.IMergeListener;
+import de.osthus.ambeth.merge.IMergeListenerExtendable;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
 import de.osthus.ambeth.merge.IMergeServiceExtension;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -64,6 +67,7 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.ITable;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.PersistenceContext;
+import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
@@ -75,7 +79,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)
 @PersistenceContext
-public class PersistenceMergeServiceExtension implements IMergeServiceExtension
+public class PersistenceMergeServiceExtension implements IMergeServiceExtension, IMergeListenerExtendable
 {
 	@LogInstance
 	private ILogger log;
@@ -116,6 +120,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
+	protected final DefaultExtendableContainer<IMergeListener> mergeListeners = new DefaultExtendableContainer<IMergeListener>(IMergeListener.class,
+			"mergeListener");
+
 	@Override
 	public List<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
@@ -137,6 +144,10 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			if (mergeSecurityManager != null)
 			{
 				mergeSecurityManager.checkMergeAccess(cudResult, methodDescription);
+			}
+			for (IMergeListener mergeListener : mergeListeners.getExtensions())
+			{
+				mergeListener.preMerge(cudResult);
 			}
 			final List<IChangeContainer> allChanges = cudResult.getAllChanges();
 			final HashMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
@@ -190,6 +201,10 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			IChangeAggregator changeAggregator = persistTableChanges(database, tableChangeMap);
 			changeAggregator.createDataChange();
 
+			for (IMergeListener mergeListener : mergeListeners.getExtensions())
+			{
+				mergeListener.postMerge(cudResult);
+			}
 			OriCollection oriCollection = new OriCollection(oriList);
 			IContextProvider contextProvider = database.getContextProvider();
 			oriCollection.setChangedOn(contextProvider.getCurrentTime().longValue());
@@ -643,5 +658,21 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			ITableChange tableChange = tableChangeList.get(i);
 			tableChange.execute(changeAggregator);
 		}
+	}
+
+	@Override
+	@SecurityContext(SecurityContextType.NOT_REQUIRED)
+	@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
+	public void registerMergeListener(IMergeListener mergeListener)
+	{
+		mergeListeners.register(mergeListener);
+	}
+
+	@Override
+	@SecurityContext(SecurityContextType.NOT_REQUIRED)
+	@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
+	public void unregisterMergeListener(IMergeListener mergeListener)
+	{
+		mergeListeners.unregister(mergeListener);
 	}
 }
