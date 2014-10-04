@@ -6,6 +6,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
+import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.CUDResultHelper;
@@ -100,7 +101,7 @@ public class MergeModule implements IInitializingModule
 				.propertyRef("ValueObjectMap", valueObjectMap)
 				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
 						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
-		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
+		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class).precedence(PrecedenceType.HIGH);
 
 		if (!independentMetaData)
 		{

@@ -85,14 +85,14 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		ImmutableTypeSet.addImmutableTypesTo(primitiveSet);
 		primitiveSet.add(Object.class);
 
-		precedenceOrder.put(PrecedenceType.LOWEST, Integer.valueOf(0));
-		precedenceOrder.put(PrecedenceType.LOWER, Integer.valueOf(1));
-		precedenceOrder.put(PrecedenceType.LOW, Integer.valueOf(2));
+		precedenceOrder.put(PrecedenceType.LOWEST, Integer.valueOf(6));
+		precedenceOrder.put(PrecedenceType.LOWER, Integer.valueOf(5));
+		precedenceOrder.put(PrecedenceType.LOW, Integer.valueOf(4));
 		precedenceOrder.put(PrecedenceType.MEDIUM, Integer.valueOf(3));
 		precedenceOrder.put(PrecedenceType.DEFAULT, Integer.valueOf(3));
-		precedenceOrder.put(PrecedenceType.HIGH, Integer.valueOf(4));
-		precedenceOrder.put(PrecedenceType.HIGHER, Integer.valueOf(5));
-		precedenceOrder.put(PrecedenceType.HIGHEST, Integer.valueOf(6));
+		precedenceOrder.put(PrecedenceType.HIGH, Integer.valueOf(2));
+		precedenceOrder.put(PrecedenceType.HIGHER, Integer.valueOf(1));
+		precedenceOrder.put(PrecedenceType.HIGHEST, Integer.valueOf(0));
 	}
 
 	public static IBeanContextFactory getCurrentBeanContextFactory()
