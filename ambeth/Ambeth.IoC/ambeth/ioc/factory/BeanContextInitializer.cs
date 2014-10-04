@@ -35,14 +35,14 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             ImmutableTypeSet.AddImmutableTypesTo(primitiveSet);
             primitiveSet.Add(typeof(Object));
 
-            precedenceOrder.Put(PrecedenceType.LOWEST, 0);
-            precedenceOrder.Put(PrecedenceType.LOWER, 1);
-            precedenceOrder.Put(PrecedenceType.LOW, 2);
+            precedenceOrder.Put(PrecedenceType.LOWEST, 6);
+            precedenceOrder.Put(PrecedenceType.LOWER, 5);
+            precedenceOrder.Put(PrecedenceType.LOW, 4);
             precedenceOrder.Put(PrecedenceType.MEDIUM, 3);
             precedenceOrder.Put(PrecedenceType.DEFAULT, 3);
-            precedenceOrder.Put(PrecedenceType.HIGH, 4);
-            precedenceOrder.Put(PrecedenceType.HIGHER, 5);
-            precedenceOrder.Put(PrecedenceType.HIGHEST, 6);
+            precedenceOrder.Put(PrecedenceType.HIGH, 2);
+            precedenceOrder.Put(PrecedenceType.HIGHER, 1);
+            precedenceOrder.Put(PrecedenceType.HIGHEST, 0);
         }
 
         static void AddPrimitive(Type type)

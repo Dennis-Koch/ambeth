@@ -11,6 +11,7 @@ import de.osthus.ambeth.database.ITransactionListenerProvider;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
+import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -92,7 +93,7 @@ public class PersistenceModule implements IInitializingModule
 		beanContextFactory.registerBean("databaseSessionIdController", DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
 		beanContextFactory.registerAnonymousBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-		beanContextFactory.registerAnonymousBean(XmlDatabaseMapper.class);
+		beanContextFactory.registerAnonymousBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH);
 
 		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerAnonymousBean(OrmXmlReaderLegathy.class);
 
