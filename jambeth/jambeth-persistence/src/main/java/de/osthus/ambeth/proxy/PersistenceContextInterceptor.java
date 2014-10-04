@@ -13,6 +13,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.util.IDisposable;
@@ -28,6 +29,9 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 
 	@Autowired
 	protected ITransaction transaction;
+
+	@Autowired
+	protected ITransactionState transactionState;
 
 	@Autowired
 	protected IMethodLevelBehavior<PersistenceContextType> methodLevelBehaviour;
@@ -58,6 +62,10 @@ public class PersistenceContextInterceptor extends CascadedInterceptor
 		if (!PersistenceContextType.REQUIRED.equals(behaviourOfMethod) && !PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod))
 		{
 			// Do nothing if there is no transaction explicitly required for this method
+			return invokeTarget(obj, method, args, proxy);
+		}
+		if (transactionState.isTransactionActive())
+		{
 			return invokeTarget(obj, method, args, proxy);
 		}
 		boolean readOnly = PersistenceContextType.REQUIRED_READ_ONLY.equals(behaviourOfMethod);

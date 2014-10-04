@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -36,10 +37,11 @@ import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class PasswordUtil implements IInitializingBean, IPasswordUtil
+public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPasswordUtilIntern
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -50,6 +52,9 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	@Autowired
 	protected IPrivilegeProvider privilegeProvider;
+
+	@Autowired
+	protected ISignatureUtil signatureUtil;
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
@@ -106,7 +111,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 		if (loginSaltPassword != null)
 		{
-			decodedLoginSaltPassword = createSaltKeyFromPassword(loginSaltPassword);
+			decodedLoginSaltPassword = createKeySpecFromPassword(loginSaltPassword);
 			if (log.isInfoEnabled())
 			{
 				log.info("ACTIVATED: password-based security for password salt");
@@ -181,15 +186,16 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			throw new IllegalArgumentException("Given clearTextPassword does not match for " + existingPassword);
 		}
 		// password should be rehashed, but it is the same clearTextPassword so we do NOT recalculate its changeAfter date
-		fillPassword(clearTextPassword, existingPassword, false);
+		fillPassword(clearTextPassword, existingPassword, null, false);
 		mergeProcess.process(existingPassword, null, null, null);
 	}
 
-	protected SecretKeySpec createSaltKeyFromPassword(char[] newSaltPassword)
+	@Override
+	public SecretKeySpec createKeySpecFromPassword(char[] encodedClearTextPassword)
 	{
 		try
 		{
-			return createSaltKeyFromPassword(Base64.decode(newSaltPassword));
+			return createSaltKeyFromPassword(Base64.decode(encodedClearTextPassword));
 		}
 		catch (IOException e)
 		{
@@ -338,7 +344,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw createIllegalPasswordException();
 		}
-		fillPassword(clearTextPassword, newEmptyPassword);
+		fillPassword(clearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
 	}
 
@@ -363,7 +369,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				break;
 			}
 		}
-		fillPassword(clearTextPassword, newEmptyPassword);
+		fillPassword(clearTextPassword, newEmptyPassword, user, true);
 		setNewPasswordIntern(user, newEmptyPassword);
 		return new String(clearTextPassword);
 	}
@@ -460,12 +466,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		}
 	}
 
-	protected void fillPassword(char[] clearTextPassword, IPassword password)
-	{
-		fillPassword(clearTextPassword, password, true);
-	}
-
-	protected void fillPassword(char[] clearTextPassword, IPassword password, boolean assignNewChangeAfter)
+	protected void fillPassword(char[] clearTextPassword, IPassword password, IUser user, boolean assignNewChangeAfter)
 	{
 		if (assignNewChangeAfter)
 		{
@@ -487,6 +488,15 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+		if (user == null)
+		{
+			return;
+		}
+		ISignature signature = user.getSignature();
+		if (signature != null)
+		{
+			signatureUtil.updateSignature(signature, clearTextPassword, user);
+		}
 	}
 
 	protected byte[] decryptSalt(IPassword password)
@@ -506,7 +516,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 						+ "' specified but reading an encrypted salt from " + password);
 			}
 			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword);
+			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
 			return cipher.doFinal(encryptedSalt);
 		}
 		catch (Throwable e)
@@ -527,7 +537,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			}
 			String saltAlgorithm = this.saltAlgorithm;
 			Cipher cipher = Cipher.getInstance(saltAlgorithm);
-			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword);
+			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
 			byte[] encryptedSalt = cipher.doFinal(salt);
 			password.setSaltAlgorithm(saltAlgorithm);
 			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());

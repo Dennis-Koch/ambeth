@@ -2,7 +2,27 @@
 <or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
 
 	<entity-mappings>
-		<entity class="de.osthus.ambeth.audit.AuditEntry" />
+		<entity class="de.osthus.dbf.model.audit.AuditEntry" />
+		
+		<entity class="de.osthus.dbf.model.audit.AuditedEntity" />
+		
+		<entity class="de.osthus.dbf.model.audit.AuditedEntityPrimitiveProperty">
+			<table name="AE_PRIMITIVE"/>
+		</entity>
+
+		<entity class="de.osthus.dbf.model.audit.AuditedEntityRelationProperty">
+			<table name="AE_RELATION"/>
+		</entity>
+
+		<entity class="de.osthus.dbf.model.audit.AuditedEntityRelationPropertyItem">
+			<table name="AE_RELATION_ITEM"/>
+		</entity>
+		
+		<entity class="de.osthus.dbf.model.audit.AuditedService" />
+		
+		<entity class="de.osthus.dbf.model.audit.User"/>
+		
+		<entity class="de.osthus.dbf.model.audit.Signature"/>
 	</entity-mappings>
 	
 </or-mappings>

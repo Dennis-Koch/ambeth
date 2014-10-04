@@ -20,7 +20,7 @@ public class HelloworldUserResolver implements IUserResolver
 	@Override
 	public IUser resolveUserBySID(String sid)
 	{
-		PojoUser user = new PojoUser();
+		PojoUser user = new PojoUser(sid);
 		user.setPassword(createInMemoryPasswordBySID(user, sid));
 		return user;
 	}
