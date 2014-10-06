@@ -71,8 +71,6 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	@Override
 	public PostProcessorOrder getOrder()
 	{
-		// A security filter interceptor has to be one of the OUTERMOST proxies of all potential postprocessor-created proxies
-		// The proxy order is the inverse order of their creating postprocessors
-		return PostProcessorOrder.LOW;
+		return PostProcessorOrder.HIGH;
 	}
 }
