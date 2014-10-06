@@ -2,6 +2,7 @@ package de.osthus.ambeth.merge.config;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.w3c.dom.Document;
@@ -9,6 +10,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
@@ -17,6 +19,8 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.IEventListener;
 import de.osthus.ambeth.ioc.IDisposableBean;
+import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -32,7 +36,7 @@ import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.xml.IXmlConfigUtil;
 import de.osthus.ambeth.util.xml.XmlConstants;
 
-public class ValueObjectConfigReader implements IEventListener, IDisposableBean
+public class ValueObjectConfigReader implements IEventListener, IDisposableBean, IInitializingBean, IStartingBean
 {
 	private static final String[] memberTagNames = { XmlConstants.BASIC, XmlConstants.RELATION };
 
@@ -53,9 +57,44 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 	@Autowired
 	protected IXmlConfigUtil xmlConfigUtil;
 
+	@Property(name = MergeConfigurationConstants.ValueObjectConfigValidationActive, defaultValue = "false")
 	protected boolean runtimeValidationActive;
 
 	protected String xmlFileName = null;
+
+	protected HashMap<Class<?>, List<Element>> configsToConsume;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		if (xmlFileName != null)
+		{
+			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
+			ParamChecker.assertNotNull(docs, "docs");
+			configsToConsume = readConfig(docs);
+		}
+	}
+
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		if (configsToConsume == null)
+		{
+			return;
+		}
+		for (Entry<Class<?>, List<Element>> entry : configsToConsume)
+		{
+			Class<?> entityType = entry.getKey();
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
+			if (metaData == null)
+			{
+				if (log.isInfoEnabled())
+				{
+					log.info("Could not resolve entity meta data for '" + entityType.getName() + "'");
+				}
+			}
+		}
+	}
 
 	@Override
 	public void destroy()
@@ -64,12 +103,6 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 		{
 			valueObjectConfigExtendable.unregisterValueObjectConfig(valueObjectConfig);
 		}
-	}
-
-	@Property(name = MergeConfigurationConstants.ValueObjectConfigValidationActive, defaultValue = "false")
-	public void setRuntimeValidationActive(boolean runtimeValidationActive)
-	{
-		this.runtimeValidationActive = runtimeValidationActive;
 	}
 
 	@Property(name = ServiceConfigurationConstants.valueObjectFile, mandatory = false)
@@ -105,49 +138,69 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 		{
 			return;
 		}
-		if (xmlFileName != null)
+		if (configsToConsume == null)
 		{
-			Document[] docs = xmlConfigUtil.readXmlFiles(xmlFileName);
-			ParamChecker.assertNotNull(docs, "docs");
-			readConfig(docs);
+			return;
+		}
+		for (Class<?> entityType : ((EntityMetaDataAddedEvent) eventObject).getEntityTypes())
+		{
+			List<Element> configs = configsToConsume.get(entityType);
+			if (configs == null)
+			{
+				continue;
+			}
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			consumeConfigs(metaData, configs);
 		}
 	}
 
-	protected void readConfig(Document[] docs)
+	protected HashMap<Class<?>, List<Element>> readConfig(Document[] docs)
 	{
-		List<Element> entities = new ArrayList<Element>();
+		HashMap<Class<?>, List<Element>> entities = new HashMap<Class<?>, List<Element>>();
 		for (Document doc : docs)
 		{
 			doc.normalizeDocument();
 			NodeList docEntityNodes = doc.getElementsByTagName(XmlConstants.ENTITY);
 			List<Element> docEntities = xmlConfigUtil.nodesToElements(docEntityNodes);
-			entities.addAll(docEntities);
+			for (int a = docEntities.size(); a-- > 0;)
+			{
+				Element docEntity = docEntities.get(a);
+				Class<?> entityType = resolveEntityType(docEntity);
+				if (entityType == null)
+				{
+					// ignore all entries without a valid entity type mapping
+					continue;
+				}
+				List<Element> list = entities.get(entityType);
+				if (list == null)
+				{
+					list = new ArrayList<Element>();
+					entities.put(entityType, list);
+				}
+				list.add(docEntity);
+			}
 		}
+		return entities;
+	}
 
+	protected Class<?> resolveEntityType(Element item)
+	{
+		Map<String, IList<Element>> configs = xmlConfigUtil.childrenToElementMap(item);
+		if (!configs.containsKey(XmlConstants.VALUE_OBJECT))
+		{
+			return null;
+		}
+		String entityTypeName = xmlConfigUtil.getRequiredAttribute(item, XmlConstants.CLASS);
+		return xmlConfigUtil.getTypeForName(entityTypeName);
+	}
+
+	protected void consumeConfigs(IEntityMetaData metaData, List<Element> entities)
+	{
 		for (int i = entities.size(); i-- > 0;)
 		{
 			Element item = entities.get(i);
 
-			String entityTypeName = xmlConfigUtil.getRequiredAttribute(item, XmlConstants.CLASS);
-			Class<?> entityType = xmlConfigUtil.getTypeForName(entityTypeName);
-
 			Map<String, IList<Element>> configs = xmlConfigUtil.childrenToElementMap(item);
-			if (!configs.containsKey(XmlConstants.VALUE_OBJECT))
-			{
-				continue;
-			}
-
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType, true);
-			if (metaData == null)
-			{
-				// may be possible if the metadata is not yet loaded
-				if (log.isInfoEnabled())
-				{
-					log.info("Could not resolve entity meta data for '" + entityType.getName() + "'");
-				}
-				continue;
-			}
-
 			IList<Element> voConfigs = configs.get(XmlConstants.VALUE_OBJECT);
 			for (int j = voConfigs.size(); j-- > 0;)
 			{
@@ -159,7 +212,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 				boolean exists = false;
 				for (IValueObjectConfig conf : managedValueObjectConfigs)
 				{
-					if (conf.getValueType().equals(valueType) && conf.getEntityType().equals(entityType))
+					if (conf.getValueType().equals(valueType) && conf.getEntityType().equals(metaData.getEntityType()))
 					{
 						exists = true;
 						break;
@@ -171,7 +224,7 @@ public class ValueObjectConfigReader implements IEventListener, IDisposableBean
 				}
 
 				ValueObjectConfig config = new ValueObjectConfig();
-				config.setEntityType(entityType);
+				config.setEntityType(metaData.getEntityType());
 				config.setValueType(valueType);
 
 				handleMembers(config, voConfig, metaData);
