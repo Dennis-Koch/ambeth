@@ -255,23 +255,26 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					IList<IObjRef> cascadeRefreshObjRefsSetList = cascadeRefreshObjRefsSet.toList();
 					refreshResult = rootCache.getObjects(cascadeRefreshObjRefsSetList, CacheDirective.loadContainerResult());
 				}
-				guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
+				if (cacheChangeItems.size() > 0)
 				{
-					@Override
-					public void invoke() throws Throwable
+					guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
 					{
-						boolean oldFailEarlyModeActive = AbstractCache.isFailEarlyModeActive();
-						AbstractCache.setFailEarlyModeActive(true);
-						try
+						@Override
+						public void invoke() throws Throwable
 						{
-							changeFirstLevelCaches(rootCache, occuringTypes, directRelatingTypes, cacheChangeItems, intermediateDeletes);
+							boolean oldFailEarlyModeActive = AbstractCache.isFailEarlyModeActive();
+							AbstractCache.setFailEarlyModeActive(true);
+							try
+							{
+								changeFirstLevelCaches(rootCache, occuringTypes, directRelatingTypes, cacheChangeItems, intermediateDeletes);
+							}
+							finally
+							{
+								AbstractCache.setFailEarlyModeActive(oldFailEarlyModeActive);
+							}
 						}
-						finally
-						{
-							AbstractCache.setFailEarlyModeActive(oldFailEarlyModeActive);
-						}
-					}
-				});
+					});
+				}
 			}
 			finally
 			{
@@ -578,17 +581,16 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	protected void changeFirstLevelCaches(final IRootCache rootCache, ISet<Class<?>> occuringTypes, final ISet<Class<?>> directRelatingTypes,
 			List<CacheChangeItem> cacheChangeItems, ISet<IObjRef> intermediateDeletes)
 	{
-		if (cacheChangeItems.size() == 0)
-		{
-			return;
-		}
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		ArrayList<IDataChangeEntry> deletes = new ArrayList<IDataChangeEntry>();
 		ICacheModification cacheModification = this.cacheModification;
 
 		de.osthus.ambeth.util.Lock rootCacheReadLock = rootCache.getReadLock();
 		boolean oldCacheModificationValue = cacheModification.isActive();
-		cacheModification.setActive(true);
+		if (!oldCacheModificationValue)
+		{
+			cacheModification.setActive(true);
+		}
 		// RootCache readlock must be acquired before individual writelock to the child caches due to deadlock reasons
 		rootCacheReadLock.lock();
 		try
@@ -598,7 +600,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				CacheChangeItem cci = cacheChangeItems.get(a);
 				ChildCache childCache = (ChildCache) cci.cache;
 
-				IRootCache parent = (IRootCache) childCache.getParent();
+				IRootCache parent = ((IRootCache) childCache.getParent()).getCurrentRootCache();
 
 				IList<IObjRef> deletedObjRefs = cci.deletedObjRefs;
 				IList<Object> objectsToUpdate = cci.updatedObjects;
@@ -659,7 +661,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		finally
 		{
 			rootCacheReadLock.unlock();
-			cacheModification.setActive(oldCacheModificationValue);
+			if (!oldCacheModificationValue)
+			{
+				cacheModification.setActive(oldCacheModificationValue);
+			}
 		}
 		if (deletes.size() > 0)
 		{

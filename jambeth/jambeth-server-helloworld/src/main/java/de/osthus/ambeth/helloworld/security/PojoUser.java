@@ -17,11 +17,9 @@ public class PojoUser implements IUser
 	public PojoUser(String name)
 	{
 		this.name = name;
-
 	}
 
-	@Override
-	public String getAuditedIdentifier()
+	public String getName()
 	{
 		return name;
 	}

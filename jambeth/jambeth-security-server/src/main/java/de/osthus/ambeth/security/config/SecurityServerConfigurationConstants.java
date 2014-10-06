@@ -132,6 +132,18 @@ public final class SecurityServerConfigurationConstants
 
 	public static final String SignaturePaddedKeyIterationCount = "security.signature.encryption.algorithm.iterationcount";
 
+	public static final String EncryptionKeySpecName = "security.crypto.keyspec.name";
+
+	public static final String EncryptionAlgorithmName = "security.crypto.algorithm.name";
+
+	public static final String EncryptionPaddedKeyAlgorithmName = "security.crypto.paddedkey.algorithm.name";
+
+	public static final String EncryptionPaddedKeyIterationCount = "security.crypto.paddedkey.iterationcount";
+
+	public static final String EncryptionPaddedKeySize = "security.crypto.paddedkey.size";
+
+	public static final String EncryptionPaddedKeySaltSize = "security.crypto.paddedkey.saltsize";
+
 	private SecurityServerConfigurationConstants()
 	{
 		// Intended blank

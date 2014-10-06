@@ -4,8 +4,10 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.IPasswordUtil;
+import de.osthus.ambeth.security.ISignatureUtil;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 
 public class HelloworldUserResolver implements IUserResolver
@@ -16,6 +18,9 @@ public class HelloworldUserResolver implements IUserResolver
 
 	@Autowired
 	protected IPasswordUtil passwordUtil;
+
+	@Autowired
+	protected ISignatureUtil signatureUtil;
 
 	@Override
 	public IUser resolveUserBySID(String sid)
@@ -28,7 +33,10 @@ public class HelloworldUserResolver implements IUserResolver
 	protected IPassword createInMemoryPasswordBySID(IUser user, String sid)
 	{
 		IPassword password = new PojoPassword();
-		passwordUtil.fillNewPassword(sid.toCharArray(), password, user);
+		ISignature signature = new PojoSignature();
+		char[] clearTextPassword = sid.toCharArray();
+		passwordUtil.assignNewPassword(clearTextPassword, password, user);
+		signatureUtil.generateNewSignature(signature, clearTextPassword);
 		return password;
 	}
 }

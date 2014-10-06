@@ -2,14 +2,14 @@ package de.osthus.ambeth.security;
 
 import java.security.Signature;
 
+import de.osthus.ambeth.security.model.ISignAndVerify;
 import de.osthus.ambeth.security.model.ISignature;
-import de.osthus.ambeth.security.model.IUser;
 
 public interface ISignatureUtil
 {
-	void updateSignature(ISignature newEmptySignature, char[] clearTextPassword, IUser user);
+	void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword);
 
-	Signature createSignatureHandle(ISignature signature, char[] clearTextPassword);
+	Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey);
 
-	Signature createVerifyHandle(ISignature signature);
+	Signature createVerifyHandle(ISignAndVerify signAndVerify, byte[] publicKey);
 }

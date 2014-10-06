@@ -6,11 +6,6 @@ import de.osthus.ambeth.annotation.ConfigurationConstants;
 @ConfigurationConstants
 public final class AuditConfigurationConstants
 {
-	private AuditConfigurationConstants()
-	{
-		// intended blank
-	}
-
 	@ConfigurationConstantDescription("TODO")
 	public static final String AuditActive = "audit.active";
 
@@ -25,4 +20,12 @@ public final class AuditConfigurationConstants
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String AuditedInformationHashAlgorithm = "audit.hashalgorithm.name";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String ProtocolVersion = "audit.protocol.version";
+
+	private AuditConfigurationConstants()
+	{
+		// intended blank
+	}
 }

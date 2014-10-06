@@ -41,7 +41,7 @@ import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPasswordUtilIntern
+public class PasswordUtil implements IInitializingBean, IPasswordUtil
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -190,7 +190,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		mergeProcess.process(existingPassword, null, null, null);
 	}
 
-	@Override
 	public SecretKeySpec createKeySpecFromPassword(char[] encodedClearTextPassword)
 	{
 		try
@@ -293,6 +292,16 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 			// recommended algorithm configuration changed
 			return true;
 		}
+		if (!saltAlgorithm.equals(password.getSaltAlgorithm()))
+		{
+			// recommended algorithm configuration changed
+			return true;
+		}
+		if (!saltKeySpec.equals(password.getSaltKeySpec()))
+		{
+			// recommended algorithm configuration changed
+			return true;
+		}
 		Integer saltLength = password.getSaltLength();
 		if (saltLength == null || this.saltLength != saltLength.intValue())
 		{
@@ -330,7 +339,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 	}
 
 	@Override
-	public void fillNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user)
+	public void assignNewPassword(char[] clearTextPassword, IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(clearTextPassword, "clearTextPassword");
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
@@ -349,7 +358,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 	}
 
 	@Override
-	public String generateNewPassword(IPassword newEmptyPassword, IUser user)
+	public String assignNewRandomPassword(IPassword newEmptyPassword, IUser user)
 	{
 		ParamChecker.assertParamNotNull(newEmptyPassword, "newEmptyPassword");
 		ParamChecker.assertParamNotNull(user, "user");
@@ -495,7 +504,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil, IPassword
 		ISignature signature = user.getSignature();
 		if (signature != null)
 		{
-			signatureUtil.updateSignature(signature, clearTextPassword, user);
+			signatureUtil.generateNewSignature(signature, clearTextPassword);
 		}
 	}
 

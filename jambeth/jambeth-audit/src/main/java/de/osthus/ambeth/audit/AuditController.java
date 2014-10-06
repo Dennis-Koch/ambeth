@@ -2,13 +2,10 @@ package de.osthus.ambeth.audit;
 
 import java.io.DataOutputStream;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import de.osthus.ambeth.audit.model.AuditedEntityChangeType;
@@ -31,9 +28,9 @@ import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransactionListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -52,8 +49,8 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.security.IAuthentication;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IPrivateKeyProvider;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
@@ -67,10 +64,8 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamHolder;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, IAuditEntryVerifier, ITransactionListener, IStartingBean,
-		IInitializingBean
+		IAuditEntryWriterExtendable
 {
-	private static final Charset utf8 = Charset.forName("UTF-8");
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -93,7 +88,13 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
-	@Autowired(optional = true)
+	@Autowired
+	protected IPrivateKeyProvider privateKeyProvider;
+
+	@Autowired
+	protected IUserIdentifierProvider userIdentifierProvider;
+
+	@Autowired
 	protected IUserResolver userResolver;
 
 	@Autowired
@@ -104,6 +105,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@Autowired
 	protected ISignatureUtil signatureUtil;
+
+	@Property(name = AuditConfigurationConstants.ProtocolVersion, defaultValue = "1")
+	protected int protocol;
 
 	@Property(name = AuditConfigurationConstants.AuditedInformationHashAlgorithm, defaultValue = "SHA-256")
 	protected String hashAlgorithm;
@@ -117,17 +121,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityPropertyDefaultModeActive;
 
+	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters = new MapExtendableContainer<Integer, IAuditEntryWriter>(
+			"auditEntryWriter", "auditEntryProtocol");
+
 	protected final ThreadLocal<IAuditEntry> auditEntryTL = new ThreadLocal<IAuditEntry>();
 
 	protected final ThreadLocal<Boolean> ownAuditMergeActiveTL = new ThreadLocal<Boolean>();
 
 	protected IPrefetchHandle prefetchAuditEntries;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		System.out.println("DFDF");
-	}
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -162,24 +163,22 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 			Long currentTime = database.getContextProvider().getCurrentTime();
 			auditEntry.setTimestamp(currentTime.longValue());
+			auditEntry.setProtocol(protocol);
 
-			if (userResolver != null)
+			ISecurityContext context = securityContextHolder.getContext();
+			IAuthorization authorization = context != null ? context.getAuthorization() : null;
+			if (authorization != null)
 			{
-				ISecurityContext context = securityContextHolder.getContext();
-				IAuthorization authorization = context != null ? context.getAuthorization() : null;
-				if (authorization != null)
+				final String currentSID = authorization.getSID();
+				IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
 				{
-					final String currentSID = authorization.getSID();
-					IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
+					@Override
+					public IUser invoke() throws Throwable
 					{
-						@Override
-						public IUser invoke() throws Throwable
-						{
-							return userResolver.resolveUserBySID(currentSID);
-						}
-					});
-					auditEntry.setUser(currentUser);
-				}
+						return userResolver.resolveUserBySID(currentSID);
+					}
+				});
+				auditEntry.setUser(currentUser);
 			}
 			auditEntryTL.set(auditEntry);
 			return auditEntry;
@@ -384,28 +383,21 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	protected void signAuditEntry(IAuditEntry auditEntry)
 	{
-		ISecurityContext context = securityContextHolder.getContext();
-		IAuthorization authorization = context != null ? context.getAuthorization() : null;
-		if (authorization == null)
-		{
-			return;
-		}
-		IAuthentication authentication = context.getAuthentication();
-		char[] clearTextPassword = authentication.getPassword();
-		// the signatureUtil expects the "clearTextPassword" base64-encoded
-		clearTextPassword = Base64.encodeBytes(new String(clearTextPassword).getBytes(utf8)).toCharArray();
 		IUser user = auditEntry.getUser();
-		ISignature signature = user.getSignature();
-		if (signature == null)
+		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user);
+		auditEntry.setUserIdentifier(userIdentifierProvider.getUserIdentifier(user));
+		auditEntry.setSignatureOfUser(user != null ? user.getSignature() : null);
+		if (signatureHandle == null)
 		{
-			signature = auditEntryFactory.createSignature();
-			signatureUtil.updateSignature(signature, clearTextPassword, user);
+			auditEntry.setSignature(null);
+			auditEntry.setHashAlgorithm(null);
+			return;
 		}
 		try
 		{
 			auditEntry.setHashAlgorithm(hashAlgorithm);
+			auditEntry.setProtocol(protocol);
 
-			java.security.Signature signatureHandle = signatureUtil.createSignatureHandle(signature, clearTextPassword);
 			updateSignatureHandle(signatureHandle, auditEntry);
 
 			byte[] sign = signatureHandle.sign();
@@ -426,17 +418,26 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	{
 		prefetchAuditEntries.prefetch(auditEntries);
 		boolean allEntriesValid = true;
-		HashMap<IUser, java.security.Signature> userToSignatureMap = new HashMap<IUser, java.security.Signature>();
+		HashMap<ISignature, java.security.Signature> signatureToSignatureHandleMap = new HashMap<ISignature, java.security.Signature>();
 		for (IAuditEntry auditEntry : auditEntries)
 		{
-			IUser user = auditEntry.getUser();
+			ISignature signature = auditEntry.getSignatureOfUser();
+			if (signature == null)
+			{
+				if (auditEntry.getSignature() == null)
+				{
+					// audit entries without a signature can not be verified but are intentionally treated as "valid"
+					continue;
+				}
+				throw new IllegalArgumentException(IAuditEntry.class.getSimpleName() + " has no signature to verify: " + auditEntry);
+			}
 			try
 			{
-				java.security.Signature signatureHandle = userToSignatureMap.get(user);
+				java.security.Signature signatureHandle = signatureToSignatureHandleMap.get(signature);
 				if (signatureHandle == null)
 				{
-					signatureHandle = signatureUtil.createVerifyHandle(user.getSignature());
-					userToSignatureMap.put(user, signatureHandle);
+					signatureHandle = signatureUtil.createVerifyHandle(signature.getSignAndVerify(), Base64.decode(signature.getPublicKey()));
+					signatureToSignatureHandleMap.put(signature, signatureHandle);
 				}
 				updateSignatureHandle(signatureHandle, auditEntry);
 				allEntriesValid |= signatureHandle.verify(Base64.decode(auditEntry.getSignature()));
@@ -453,17 +454,24 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	{
 		try
 		{
+			IAuditEntryWriter auditEntryWriter = auditEntryWriters.getExtension(Integer.valueOf(auditEntry.getProtocol()));
+			if (auditEntryWriter == null)
+			{
+				throw new IllegalArgumentException("Not instance of " + IAuditEntryWriter.class.getSimpleName() + " found for protocol '"
+						+ auditEntry.getProtocol() + "' of " + auditEntry);
+			}
 			String hashAlgorithm = auditEntry.getHashAlgorithm();
 			if (hashAlgorithm != null && hashAlgorithm.length() > 0)
 			{
-				// build a good hash from the audited information: to sign the hash later is faster than to sign the audited information itself
-				// the clue is to choose a good hash algorithm with is fast enough to make sense but much stronger than e.g. MD5...
+				// build a good hash from the audited information: to sign its hash is faster than to sign the audited information itself
+				// the clue is to choose a good hash algorithm which is fast enough to make sense but much stronger than e.g. MD5 as well...
 
 				MessageDigest md = MessageDigest.getInstance(hashAlgorithm);
 
 				DigestOutputStream digestOS = new DigestOutputStream(new NullOutputStream(), md);
 				DataOutputStream dos = new DataOutputStream(digestOS);
-				writeAuditEntry(auditEntry, dos);
+
+				auditEntryWriter.writeAuditEntry(auditEntry, dos);
 				dos.close();
 
 				byte[] digestToSign = md.digest();
@@ -474,7 +482,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				// we have no hashAlgorithm: so we sign the whole audited information
 				SignatureOutputStream sos = new SignatureOutputStream(new NullOutputStream(), signatureHandle);
 				DataOutputStream dos = new DataOutputStream(sos);
-				writeAuditEntry(auditEntry, dos);
+				auditEntryWriter.writeAuditEntry(auditEntry, dos);
 				dos.close();
 			}
 		}
@@ -482,168 +490,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-	}
-
-	protected void writeAuditEntry(IAuditEntry auditEntry, DataOutputStream os)
-	{
-		writeProperty(IAuditEntry.User, auditEntry.getUser().getAuditedIdentifier(), os);
-		for (IAuditedService auditedService : sortAuditServices(auditEntry))
-		{
-			writeProperty(IAuditedService.ServiceType, auditedService.getServiceType(), os);
-			writeProperty(IAuditedService.MethodName, auditedService.getMethodName(), os);
-			writeProperty(IAuditedService.SpentTime, auditedService.getSpentTime(), os);
-		}
-		for (IAuditedEntity auditedEntity : sortAuditEntities(auditEntry))
-		{
-			writeProperty(IAuditedEntity.EntityType, auditedEntity.getEntityType(), os);
-			writeProperty(IAuditedEntity.EntityId, auditedEntity.getEntityId(), os);
-			writeProperty(IAuditedEntity.EntityVersion, auditedEntity.getEntityVersion(), os);
-			writeProperty(IAuditedEntity.ChangeType, auditedEntity.getChangeType(), os);
-
-			for (IAuditedEntityPrimitiveProperty property : sortAuditedEntityPrimitives(auditedEntity))
-			{
-				writeProperty(IAuditedEntityPrimitiveProperty.Name, property.getName(), os);
-				writeProperty(IAuditedEntityPrimitiveProperty.NewValue, property.getNewValue(), os);
-			}
-			for (IAuditedEntityRelationProperty property : sortAuditedEntityRelations(auditedEntity))
-			{
-				writeProperty(IAuditedEntityRelationProperty.Name, property.getName(), os);
-
-				for (IAuditedEntityRelationPropertyItem item : sortAuditedEntityRelationItems(property))
-				{
-					writeProperty(IAuditedEntityRelationPropertyItem.EntityType, item.getEntityType(), os);
-					writeProperty(IAuditedEntityRelationPropertyItem.EntityId, item.getEntityId(), os);
-					writeProperty(IAuditedEntityRelationPropertyItem.EntityVersion, item.getEntityVersion(), os);
-					writeProperty(IAuditedEntityRelationPropertyItem.ChangeType, item.getChangeType(), os);
-				}
-			}
-		}
-	}
-
-	protected void writeProperty(String name, Object value, DataOutputStream os)
-	{
-		try
-		{
-			os.writeUTF(name);
-			if (value == null)
-			{
-				os.writeBoolean(false);
-			}
-			else
-			{
-				os.writeBoolean(true);
-				os.writeUTF(value.toString());
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected List<IAuditedEntity> sortAuditEntities(IAuditEntry auditEntry)
-	{
-		ArrayList<IAuditedEntity> entities = new ArrayList<IAuditedEntity>(auditEntry.getEntities());
-
-		Collections.sort(entities, new Comparator<IAuditedEntity>()
-		{
-			@Override
-			public int compare(IAuditedEntity o1, IAuditedEntity o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return entities;
-	}
-
-	protected List<IAuditedService> sortAuditServices(IAuditEntry auditEntry)
-	{
-		ArrayList<IAuditedService> services = new ArrayList<IAuditedService>(auditEntry.getServices());
-
-		Collections.sort(services, new Comparator<IAuditedService>()
-		{
-			@Override
-			public int compare(IAuditedService o1, IAuditedService o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return services;
-	}
-
-	protected List<IAuditedEntityPrimitiveProperty> sortAuditedEntityPrimitives(IAuditedEntity auditedEntity)
-	{
-		ArrayList<IAuditedEntityPrimitiveProperty> properties = new ArrayList<IAuditedEntityPrimitiveProperty>(auditedEntity.getPrimitives());
-
-		Collections.sort(properties, new Comparator<IAuditedEntityPrimitiveProperty>()
-		{
-			@Override
-			public int compare(IAuditedEntityPrimitiveProperty o1, IAuditedEntityPrimitiveProperty o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return properties;
-	}
-
-	protected List<IAuditedEntityRelationProperty> sortAuditedEntityRelations(IAuditedEntity auditedEntity)
-	{
-		ArrayList<IAuditedEntityRelationProperty> properties = new ArrayList<IAuditedEntityRelationProperty>(auditedEntity.getRelations());
-
-		Collections.sort(properties, new Comparator<IAuditedEntityRelationProperty>()
-		{
-			@Override
-			public int compare(IAuditedEntityRelationProperty o1, IAuditedEntityRelationProperty o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return properties;
-	}
-
-	protected List<IAuditedEntityRelationPropertyItem> sortAuditedEntityRelationItems(IAuditedEntityRelationProperty property)
-	{
-		ArrayList<IAuditedEntityRelationPropertyItem> items = new ArrayList<IAuditedEntityRelationPropertyItem>(property.getItems());
-
-		Collections.sort(items, new Comparator<IAuditedEntityRelationPropertyItem>()
-		{
-			@Override
-			public int compare(IAuditedEntityRelationPropertyItem o1, IAuditedEntityRelationPropertyItem o2)
-			{
-				int order1 = o1.getOrder();
-				int order2 = o2.getOrder();
-				if (order1 == order2)
-				{
-					return 0;
-				}
-				return order1 < order2 ? -1 : 1;
-			}
-		});
-		return items;
 	}
 
 	@Override
@@ -716,5 +562,17 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			ownAuditMergeActiveTL.remove();
 		}
+	}
+
+	@Override
+	public void registerAuditEntryWriter(IAuditEntryWriter auditEntryWriter, int protocolVersion)
+	{
+		auditEntryWriters.register(auditEntryWriter, Integer.valueOf(protocolVersion));
+	}
+
+	@Override
+	public void unregisterAuditEntryWriter(IAuditEntryWriter auditEntryWriter, int protocolVersion)
+	{
+		auditEntryWriters.unregister(auditEntryWriter, Integer.valueOf(protocolVersion));
 	}
 }

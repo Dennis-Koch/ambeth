@@ -185,6 +185,12 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
+	public IRootCache getCurrentRootCache()
+	{
+		return this;
+	}
+
+	@Override
 	public int getCacheId()
 	{
 		return -1;
@@ -1920,25 +1926,15 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			return false;
 		}
-		ICacheModification cacheModification = this.cacheModification;
-		boolean oldCacheModificationValue = cacheModification.isActive();
-		cacheModification.setActive(true);
-		try
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) targetObject).get__EntityMetaData();
+		Object id = metaData.getIdMember().getValue(targetObject, false);
+		RootCacheValue cacheValue = getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+		if (cacheValue == null) // Cache miss
 		{
-			IEntityMetaData metaData = ((IEntityMetaDataHolder) targetObject).get__EntityMetaData();
-			Object id = metaData.getIdMember().getValue(targetObject, false);
-			RootCacheValue cacheValue = getCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
-			if (cacheValue == null) // Cache miss
-			{
-				return false;
-			}
-			updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), null);
-			return true;
+			return false;
 		}
-		finally
-		{
-			cacheModification.setActive(oldCacheModificationValue);
-		}
+		updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), null);
+		return true;
 	}
 
 	@Override

@@ -1,8 +1,10 @@
 package de.osthus.ambeth.ioc;
 
 import de.osthus.ambeth.audit.AuditController;
+import de.osthus.ambeth.audit.AuditEntryWriterV1;
 import de.osthus.ambeth.audit.AuditMethodCallPostProcessor;
 import de.osthus.ambeth.audit.IAuditEntryVerifier;
+import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
 import de.osthus.ambeth.audit.IMethodCallLogger;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -33,8 +35,11 @@ public class AuditModule implements IInitializingModule
 		}
 		beanContextFactory.registerAnonymousBean(AuditMethodCallPostProcessor.class);
 
+		IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerAnonymousBean(AuditEntryWriterV1.class);
+		beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
+
 		IBeanConfiguration auditEntryController = beanContextFactory.registerAnonymousBean(AuditController.class).autowireable(IMethodCallLogger.class,
-				IAuditEntryVerifier.class);
+				IAuditEntryVerifier.class, IAuditEntryWriterExtendable.class);
 		beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
 		beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
 	}

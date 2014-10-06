@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security.model;
 
+import de.osthus.ambeth.security.IPBEConfiguration;
+
 public interface ISignature
 {
 	public static final String Algorithm = "Algorithm";
@@ -20,41 +22,9 @@ public interface ISignature
 
 	char[] getPublicKey();
 
-	void setPublicKey(char[] privateKey);
+	void setPublicKey(char[] publicKey);
 
-	String getAlgorithm();
+	IPBEConfiguration getPBEConfiguration();
 
-	void setAlgorithm(String algorithm);
-
-	String getKeyFactoryAlgorithm();
-
-	void setKeyFactoryAlgorithm(String keyFactoryAlgorithm);
-
-	String getEncryptionAlgorithm();
-
-	void setEncryptionAlgorithm(String encryptionAlgorithm);
-
-	String getEncryptionKeySpec();
-
-	void setEncryptionKeySpec(String encryptionKeySpec);
-
-	char[] getEncryptionKeyIV();
-
-	void setEncryptionKeyIV(char[] encryptionKeyIV);
-
-	String getPaddedKeyAlgorithm();
-
-	void setPaddedKeyAlgorithm(String paddedKeyAlgorithm);
-
-	int getPaddedKeySize();
-
-	void setPaddedKeySize(int paddedKeySize);
-
-	int getPaddedKeyIterations();
-
-	void setPaddedKeyIterations(int paddedKeyIterations);
-
-	char[] getPaddedKeySalt();
-
-	void setPaddedKeySalt(char[] paddedKeySalt);
+	ISignAndVerify getSignAndVerify();
 }

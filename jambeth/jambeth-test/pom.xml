@@ -25,7 +25,17 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-audit</artifactId>
+			<artifactId>jambeth-server-with-persistence-test</artifactId>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-audit-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-audit-server-test</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
