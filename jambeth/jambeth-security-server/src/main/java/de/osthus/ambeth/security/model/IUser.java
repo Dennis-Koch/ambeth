@@ -4,15 +4,11 @@ import java.util.Collection;
 
 public interface IUser
 {
-	public static final String AuditedIdentifier = "AuditedIdentifier";
-
 	public static final String Password = "Password";
 
 	public static final String PasswordHistory = "PasswordHistory";
 
 	public static final String Signature = "Signature";
-
-	String getAuditedIdentifier();
 
 	IPassword getPassword();
 

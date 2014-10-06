@@ -13,6 +13,7 @@ public class PojoPassword implements IPassword
 	private int keySize;
 	private char[] salt;
 	private String saltAlgorithm;
+	private String saltKeySpec;
 	private Integer saltLength;
 
 	@Override
@@ -49,6 +50,18 @@ public class PojoPassword implements IPassword
 	public void setAlgorithm(String algorithm)
 	{
 		this.algorithm = algorithm;
+	}
+
+	@Override
+	public String getSaltKeySpec()
+	{
+		return saltKeySpec;
+	}
+
+	@Override
+	public void setSaltKeySpec(String saltKeySpec)
+	{
+		this.saltKeySpec = saltKeySpec;
 	}
 
 	@Override

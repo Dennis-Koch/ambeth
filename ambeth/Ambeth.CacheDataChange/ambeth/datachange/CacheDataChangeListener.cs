@@ -207,19 +207,22 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         refreshResult = rootCache.GetObjects(cascadeRefreshObjRefsSet.ToList(), CacheDirective.LoadContainerResult);
                     }
-                    GuiThreadHelper.InvokeInGuiAndWait(delegate()
+                    if (cacheChangeItems.Count > 0)
                     {
-                        bool oldFailEarlyModeActive = AbstractCache<Object>.FailEarlyModeActive;
-                        try
+                        GuiThreadHelper.InvokeInGuiAndWait(delegate()
                         {
-                            AbstractCache<Object>.FailEarlyModeActive = true;
-                            ChangeFirstLevelCaches(rootCache, occuringTypes, directRelatingTypes, cacheChangeItems, intermediateDeletes);
-                        }
-                        finally
-                        {
-                            AbstractCache<Object>.FailEarlyModeActive = oldFailEarlyModeActive;
-                        }
-                    });
+                            bool oldFailEarlyModeActive = AbstractCache<Object>.FailEarlyModeActive;
+                            try
+                            {
+                                AbstractCache<Object>.FailEarlyModeActive = true;
+                                ChangeFirstLevelCaches(rootCache, occuringTypes, directRelatingTypes, cacheChangeItems, intermediateDeletes);
+                            }
+                            finally
+                            {
+                                AbstractCache<Object>.FailEarlyModeActive = oldFailEarlyModeActive;
+                            }
+                        });
+                    }
                 }
                 finally
                 {
@@ -526,13 +529,12 @@ namespace De.Osthus.Ambeth.Cache
         protected virtual void ChangeFirstLevelCaches(IRootCache rootCache, ISet<Type> occuringTypes, ISet<Type> directRelatingTypes, IList<CacheChangeItem> cacheChangeItems,
             ISet<IObjRef> intermediateDeletes)
         {
-            if (cacheChangeItems.Count == 0)
-            {
-                return;
-            }
             Lock rootCacheReadLock = rootCache.ReadLock;
             bool oldCacheModificationValue = CacheModification.Active;
-            CacheModification.Active = true;
+            if (!oldCacheModificationValue)
+            {
+                CacheModification.Active = true;
+            }
             // RootCache readlock must be acquired before individual writelock to the child caches due to deadlock reasons
             rootCacheReadLock.Lock();
             try
@@ -545,7 +547,7 @@ namespace De.Osthus.Ambeth.Cache
                     IList<IObjRef> deletedObjRefs = cci.DeletedObjRefs;
                     IList<Object> objectsToUpdate = cci.UpdatedObjects;
 
-                    IRootCache parent = (IRootCache)childCache.Parent;
+                    IRootCache parent = ((IRootCache)childCache.Parent).CurrentRootCache;
 
                     Lock writeLock = childCache.WriteLock;
                     writeLock.Lock();
@@ -590,7 +592,10 @@ namespace De.Osthus.Ambeth.Cache
             finally
             {
                 rootCacheReadLock.Unlock();
-                CacheModification.Active = oldCacheModificationValue;
+                if (!oldCacheModificationValue)
+                {
+                    CacheModification.Active = oldCacheModificationValue;
+                }
             }
         }
     }

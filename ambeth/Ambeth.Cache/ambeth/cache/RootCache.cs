@@ -130,6 +130,8 @@ namespace De.Osthus.Ambeth.Cache
 
         public override int CacheId { get { return -1; } set { throw new NotSupportedException(); } }
 
+        public IRootCache CurrentRootCache { get { return this; } }
+
         public RootCache()
         {
             ReadWriteLock pendingKeysRwLock = new ReadWriteLock();
@@ -1817,24 +1819,15 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return false;
             }
-            bool oldCacheModificationValue = CacheModification.Active;
-            CacheModification.Active = true;
-            try
+            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(targetObject.GetType());
+            Object id = metaData.IdMember.GetValue(targetObject, false);
+            RootCacheValue cacheValue = GetCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
+            if (cacheValue == null) // Cache miss
             {
-                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(targetObject.GetType());
-                Object id = metaData.IdMember.GetValue(targetObject, false);
-                RootCacheValue cacheValue = GetCacheValue(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
-                if (cacheValue == null) // Cache miss
-                {
-                    return false;
-                }
-                UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), null);
-                return true;
+                return false;
             }
-            finally
-            {
-                CacheModification.Active = oldCacheModificationValue;
-            }
+            UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), null);
+            return true;
         }
 
         public override void GetContent(HandleContentDelegate handleContentDelegate)

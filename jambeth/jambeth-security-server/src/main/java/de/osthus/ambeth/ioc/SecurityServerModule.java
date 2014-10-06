@@ -16,12 +16,15 @@ import de.osthus.ambeth.security.AuthenticationManager;
 import de.osthus.ambeth.security.DefaultServiceFilter;
 import de.osthus.ambeth.security.IActionPermission;
 import de.osthus.ambeth.security.IAuthenticationManager;
+import de.osthus.ambeth.security.IPBEncryptor;
 import de.osthus.ambeth.security.IPasswordUtil;
-import de.osthus.ambeth.security.IPasswordUtilIntern;
+import de.osthus.ambeth.security.IPrivateKeyProvider;
 import de.osthus.ambeth.security.ISecurityManager;
 import de.osthus.ambeth.security.IServiceFilterExtendable;
 import de.osthus.ambeth.security.ISignatureUtil;
+import de.osthus.ambeth.security.PBEncryptor;
 import de.osthus.ambeth.security.PasswordUtil;
+import de.osthus.ambeth.security.PersistedPrivateKeyProvider;
 import de.osthus.ambeth.security.SignatureUtil;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
@@ -40,8 +43,10 @@ public class SecurityServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class, IPasswordUtilIntern.class);
+		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerAnonymousBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
 		beanContextFactory.registerAnonymousBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
+		beanContextFactory.registerAnonymousBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);
 
 		if (isSecurityActive)
 		{

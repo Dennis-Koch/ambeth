@@ -19,6 +19,7 @@
 			<scope>provided</scope>
 			<type>pom</type>
 		</dependency>
+		
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>

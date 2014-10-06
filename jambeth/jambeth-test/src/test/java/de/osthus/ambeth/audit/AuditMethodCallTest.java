@@ -1,6 +1,7 @@
 package de.osthus.ambeth.audit;
 
 import org.junit.Assert;
+import org.junit.Test;
 
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestFrameworkModule;
 import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
@@ -81,6 +82,7 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 	@Autowired
 	protected ITestAuditService testAuditService;
 
+	@Test
 	public void myTest()
 	{
 		Assert.assertEquals("5", testAuditService.auditedServiceCall(new Integer(5)));

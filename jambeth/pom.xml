@@ -123,12 +123,12 @@
 			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-audit</artifactId>
+				<artifactId>jambeth-audit-server</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-audit-test</artifactId>
+				<artifactId>jambeth-audit-server-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>
@@ -618,9 +618,21 @@
 			<!-- BUNDLES -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-information-bus-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+				<version>${project.version}</version>
+				<type>pom</type>
 			</dependency>
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>

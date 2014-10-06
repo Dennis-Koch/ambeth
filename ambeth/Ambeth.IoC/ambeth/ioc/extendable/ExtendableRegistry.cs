@@ -228,7 +228,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                         {
                             ParameterInfo paramInfo = paramInfos[a];
                             Type argumentType = argumentTypes[a - 1];
-                            if (argumentType != null && !paramInfo.ParameterType.IsAssignableFrom(argumentType))
+                            if (argumentType != null && !UnboxType(paramInfo.ParameterType).IsAssignableFrom(UnboxType(argumentType)))
                             {
                                 match = false;
                                 break;
@@ -246,7 +246,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                         {
                             ParameterInfo paramInfo = paramInfos[a];
                             Type argumentType = argumentTypes[a - 1];
-                            if (argumentType != null && !paramInfo.ParameterType.IsAssignableFrom(argumentType))
+                            if (argumentType != null && !UnboxType(paramInfo.ParameterType).IsAssignableFrom(UnboxType(argumentType)))
                             {
                                 match = false;
                                 break;
@@ -267,6 +267,16 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                 Put(keyItem, addRemoveMethods);
                 return addRemoveMethods;
             }
+        }
+
+        protected Type UnboxType(Type type)
+        {
+            Type unwrappedType = ImmutableTypeSet.GetUnwrappedType(type);
+		    if (unwrappedType != null)
+		    {
+			    return unwrappedType;
+		    }
+		    return type;
         }
 
         public MethodInfo[] GetAddRemoveMethods(Type extendableInterface)
