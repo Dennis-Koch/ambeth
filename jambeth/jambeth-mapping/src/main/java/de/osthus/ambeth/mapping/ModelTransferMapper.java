@@ -1262,7 +1262,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 					{
 						// Copy primitive from business object to value object
 						// TODO: Copy by value instead of copy by reference
-						Object value = boMember.getValue(businessObject, false);
+						Object value = boMember.getValue(businessObject, true);
 						isSpecified = value != null;
 						if (voSpecifiedMember != null)
 						{
