@@ -1,4 +1,4 @@
-package de.osthus.ambeth.testutil.setup.data;
+package de.osthus.ambeth.util.setup;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.BootstrapModule;

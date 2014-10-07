@@ -1,4 +1,4 @@
-package de.osthus.ambeth.testutil.setup.data;
+package de.osthus.ambeth.util.setup;
 
 public interface IDatasetBuilderExtensionExtendable
 {
