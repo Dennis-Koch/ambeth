@@ -1,4 +1,4 @@
-package de.osthus.ambeth.testutil.setup.data;
+package de.osthus.ambeth.util.setup;
 
 import java.util.Collection;
 
@@ -9,7 +9,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeProcess;
-import de.osthus.ambeth.security.ISecurityActivation;
 
 public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 {
@@ -24,9 +23,6 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 
 	@Autowired
 	protected IMergeProcess mergeProcess;
-
-	@Autowired
-	protected ISecurityActivation securityActivation;
 
 	protected final ThreadLocal<Collection<Object>> initialTestDatasetTL = new ThreadLocal<Collection<Object>>();
 

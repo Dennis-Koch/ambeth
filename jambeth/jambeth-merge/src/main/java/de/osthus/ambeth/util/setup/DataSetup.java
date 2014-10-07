@@ -1,4 +1,4 @@
-package de.osthus.ambeth.testutil.setup.data;
+package de.osthus.ambeth.util.setup;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,9 +37,6 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 		if (datasetBuilderContainer != null && datasetBuilderContainer.getExtensions() != null)
 		{
 			Collection<Object> initialDataset = new HashSet<Object>();
-			// Collection<Class<? extends IDatasetBuilder>> processedBuilders = new HashSet<Class<? extends IDatasetBuilder>>();
-			// IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
-
 			List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
 			for (IDatasetBuilder datasetBuilder : sortedBuilders)
 			{
@@ -49,30 +46,6 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 					initialDataset.addAll(dataset);
 				}
 			}
-
-			// outer: while (processedBuilders.size() < datasetBuilders.length)
-			// {
-			// inner: for (IDatasetBuilder datasetBuilder : datasetBuilders)
-			// {
-			// if (processedBuilders.contains(datasetBuilder.getClass()))
-			// {
-			// continue inner;
-			// }
-			// else if (datasetBuilder.getDependsOn() == null || processedBuilders.containsAll(datasetBuilder.getDependsOn()))
-			// {
-			// Collection<Object> dataset = datasetBuilder.buildDataset();
-			// if (dataset != null)
-			// {
-			// initialDataset.addAll(dataset);
-			// }
-			// processedBuilders.add(datasetBuilder.getClass());
-			// continue outer;
-			// }
-			// }
-			// log.error("All Dataset Builders: " + Arrays.asList(datasetBuilders));
-			// log.error("Processed Dataset Builders: " + processedBuilders);
-			// throw new RuntimeException("Unable to fullfil DatasetBuilder dependencies!");
-			// }
 			return initialDataset;
 		}
 		return null;
@@ -86,18 +59,26 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
 		outer: while (processedBuilders.size() < datasetBuilders.length)
 		{
-			inner: for (IDatasetBuilder datasetBuilder : datasetBuilders)
+			for (IDatasetBuilder datasetBuilder : datasetBuilders)
 			{
-				if (processedBuilders.contains(datasetBuilder.getClass()))
-				{
-					continue inner;
-				}
-				else if (datasetBuilder.getDependsOn() == null || processedBuilders.containsAll(datasetBuilder.getDependsOn()))
+				if (!processedBuilders.contains(datasetBuilder.getClass())
+						&& (datasetBuilder.getDependsOn() == null || processedBuilders.containsAll(datasetBuilder.getDependsOn())))
 				{
 					processedBuilders.add(datasetBuilder.getClass());
 					sortedBuilders.add(datasetBuilder);
 					continue outer;
 				}
+
+				// if (processedBuilders.contains(datasetBuilder.getClass()))
+				// {
+				// continue inner;
+				// }
+				// else if (datasetBuilder.getDependsOn() == null || processedBuilders.containsAll(datasetBuilder.getDependsOn()))
+				// {
+				// processedBuilders.add(datasetBuilder.getClass());
+				// sortedBuilders.add(datasetBuilder);
+				// continue outer;
+				// }
 			}
 			log.error("All Dataset Builders: " + Arrays.asList(datasetBuilders));
 			log.error("Dataset Builders: " + processedBuilders);
