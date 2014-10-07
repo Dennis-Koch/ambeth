@@ -68,17 +68,6 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 					sortedBuilders.add(datasetBuilder);
 					continue outer;
 				}
-
-				// if (processedBuilders.contains(datasetBuilder.getClass()))
-				// {
-				// continue inner;
-				// }
-				// else if (datasetBuilder.getDependsOn() == null || processedBuilders.containsAll(datasetBuilder.getDependsOn()))
-				// {
-				// processedBuilders.add(datasetBuilder.getClass());
-				// sortedBuilders.add(datasetBuilder);
-				// continue outer;
-				// }
 			}
 			log.error("All Dataset Builders: " + Arrays.asList(datasetBuilders));
 			log.error("Dataset Builders: " + processedBuilders);
