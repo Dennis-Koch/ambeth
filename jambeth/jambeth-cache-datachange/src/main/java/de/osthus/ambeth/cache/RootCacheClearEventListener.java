@@ -50,10 +50,16 @@ public class RootCacheClearEventListener implements IEventListener, IInitializin
 			return;
 		}
 		committedRootCache.clear();
-		IRootCache secondLevelCache = secondLevelCacheManager.selectSecondLevelCache();
-		if (committedRootCache != secondLevelCache)
+		IRootCache privilegedSecondLevelCache = secondLevelCacheManager.selectPrivilegedSecondLevelCache(false);
+		if (privilegedSecondLevelCache != null && privilegedSecondLevelCache != committedRootCache)
 		{
-			secondLevelCache.clear();
+			privilegedSecondLevelCache.clear();
+		}
+		IRootCache nonPrivilegedSecondLevelCache = secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
+		if (nonPrivilegedSecondLevelCache != null && nonPrivilegedSecondLevelCache != committedRootCache
+				&& nonPrivilegedSecondLevelCache != privilegedSecondLevelCache)
+		{
+			nonPrivilegedSecondLevelCache.clear();
 		}
 		IList<IWritableCache> firstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
 		for (int a = firstLevelCaches.size(); a-- > 0;)

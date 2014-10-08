@@ -1,9 +1,8 @@
-package de.osthus.ambeth;
+package de.osthus.ambeth.cache;
 
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.cache.AbstractCache;
@@ -23,9 +22,8 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
-import de.osthus.ambeth.collections.LinkedHashSet;
-import de.osthus.ambeth.datachange.CacheChangeItem;
 import de.osthus.ambeth.datachange.model.DirectDataChangeEntry;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
@@ -51,7 +49,6 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.util.Lock;
-import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class CacheDataChangeListener implements IEventListener, IEventTargetEventListener
 {
@@ -59,6 +56,12 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	private ILogger log;
 
 	protected static final Set<CacheDirective> cacheValueResultAndReturnMissesSet = EnumSet.of(CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
+
+	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet = EnumSet.of(CacheDirective.FailInCacheHierarchy,
+			CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
+
+	protected static final Set<CacheDirective> failInCacheHierarchyAndLoadContainerResultSet = EnumSet.of(CacheDirective.FailInCacheHierarchy,
+			CacheDirective.LoadContainerResult);
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -99,38 +102,83 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	protected void dataChanged(final IDataChange dataChange, Object resumedEventTarget, final List<Object> pausedEventTargets, long dispatchTime,
 			long sequenceId)
 	{
-		final IRootCache rootCache = secondLevelCacheManager.selectSecondLevelCache();
-		final IList<IWritableCache> selectedFirstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
+		final CacheDependencyNode rootNode = buildCacheDependency();
 
 		if (pausedEventTargets != null && pausedEventTargets.size() > 0)
 		{
-			IdentityHashSet<Object> collisionSet = new IdentityHashSet<Object>();
-			collisionSet.add(rootCache);
-			collisionSet.addAll(selectedFirstLevelCaches);
-			collisionSet.retainAll(pausedEventTargets);
-			if (collisionSet.size() > 0)
+			IdentityHashSet<Object> collisionSet = buildCollisionSet(rootNode);
+			if (collisionSet.containsAny(pausedEventTargets))
 			{
-				// Restore ALL necessary items to handle this DCE
-				collisionSet.clear();
-				collisionSet.add(rootCache);
-				collisionSet.addAll(selectedFirstLevelCaches);
 				// Without the current rootcache we can not handle the event now. We have to block till the rootCache and all childCaches get valid
 				eventDispatcher.waitEventToResume(collisionSet, -1, new IBackgroundWorkerParamDelegate<IProcessResumeItem>()
 				{
 					@Override
 					public void invoke(IProcessResumeItem processResumeItem) throws Throwable
 					{
-						dataChangedIntern(dataChange, pausedEventTargets, processResumeItem, rootCache, selectedFirstLevelCaches);
+						dataChangedIntern(dataChange, pausedEventTargets, processResumeItem, rootNode);
 					}
 				}, null);
 				return;
 			}
 		}
-		dataChangedIntern(dataChange, pausedEventTargets, null, rootCache, selectedFirstLevelCaches);
+		dataChangedIntern(dataChange, pausedEventTargets, null, rootNode);
 	}
 
-	protected void dataChangedIntern(IDataChange dataChange, List<Object> pausedEventTargets, IProcessResumeItem processResumeItem, final IRootCache rootCache,
-			IList<IWritableCache> selectedFirstLevelCaches)
+	protected IdentityHashSet<Object> buildCollisionSet(CacheDependencyNode node)
+	{
+		IdentityHashSet<Object> collisionSet = new IdentityHashSet<Object>();
+		buildCollisionSetIntern(node, collisionSet);
+		return collisionSet;
+	}
+
+	protected void buildCollisionSetIntern(CacheDependencyNode node, IdentityHashSet<Object> collisionSet)
+	{
+		collisionSet.add(node.rootCache);
+		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+		for (int a = childNodes.size(); a-- > 0;)
+		{
+			buildCollisionSetIntern(childNodes.get(a), collisionSet);
+		}
+		collisionSet.addAll(node.directChildCaches);
+	}
+
+	protected void cleanupSecondLevelCaches(CacheDependencyNode node, IList<IObjRef> deletesList, List<IDataChangeEntry> updates,
+			HashSet<Class<?>> occuringTypes)
+	{
+		ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<IObjRef>(updates.size());
+		for (int a = updates.size(); a-- > 0;)
+		{
+			IDataChangeEntry updateEntry = updates.get(a);
+			Class<?> entityType = updateEntry.getEntityType();
+			occuringTypes.add(entityType);
+			objRefsRemovePriorVersions.add(new ObjRef(entityType, updateEntry.getIdNameIndex(), updateEntry.getId(), updateEntry.getVersion()));
+		}
+		cleanupSecondLevelCachesIntern(node, deletesList, objRefsRemovePriorVersions);
+	}
+
+	protected void cleanupSecondLevelCachesIntern(CacheDependencyNode node, IList<IObjRef> deletesList, ArrayList<IObjRef> objRefsRemovePriorVersions)
+	{
+		IRootCache rootCache = node.rootCache;
+		Lock writeLock = rootCache.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			rootCache.remove(deletesList);
+			rootCache.removePriorVersions(objRefsRemovePriorVersions);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+		for (int a = childNodes.size(); a-- > 0;)
+		{
+			cleanupSecondLevelCachesIntern(childNodes.get(a), deletesList, objRefsRemovePriorVersions);
+		}
+	}
+
+	protected void dataChangedIntern(IDataChange dataChange, List<Object> pausedEventTargets, IProcessResumeItem processResumeItem,
+			final CacheDependencyNode rootNode)
 	{
 		try
 		{
@@ -140,12 +188,9 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			List<IDataChangeEntry> inserts = dataChange.getInserts();
 
 			final HashSet<Class<?>> occuringTypes = new HashSet<Class<?>>();
-			final HashSet<IObjRef> intermediateDeletes = new HashSet<IObjRef>();
-			LinkedHashSet<IObjRef> deletesSet = new LinkedHashSet<IObjRef>();
-			HashMap<IObjRef, ILoadContainer> objRefToLoadContainerDict = new HashMap<IObjRef, ILoadContainer>();
+			HashSet<IObjRef> deletesSet = new HashSet<IObjRef>();
 			final HashSet<Class<?>> directRelatingTypes = new HashSet<Class<?>>();
-			final ArrayList<CacheChangeItem> cacheChangeItems = new ArrayList<CacheChangeItem>();
-			boolean acquirementSuccessful = rootCache.acquireHardRefTLIfNotAlready();
+			boolean acquirementSuccessful = rootNode.rootCache.acquireHardRefTLIfNotAlready();
 			try
 			{
 				for (int a = deletes.size(); a-- > 0;)
@@ -163,29 +208,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				}
 				// Remove items from the cache only if they are really deleted/updates by a remote event
 				// And not 'simulated' by a local source
+				boolean cleanupSecondLevelCaches = false;
 				if (pausedEventTargets != null && (deletes.size() > 0 || updates.size() > 0) && !isLocalSource)
 				{
-					de.osthus.ambeth.util.Lock rootCacheWriteLock = rootCache.getWriteLock();
-
-					IList<IObjRef> deletesList = deletesSet.toList();
-					ArrayList<IObjRef> objRefsRemovePriorVersions = new ArrayList<IObjRef>(updates.size());
-					for (int a = updates.size(); a-- > 0;)
-					{
-						IDataChangeEntry updateEntry = updates.get(a);
-						Class<?> entityType = updateEntry.getEntityType();
-						occuringTypes.add(entityType);
-						objRefsRemovePriorVersions.add(new ObjRef(entityType, updateEntry.getIdNameIndex(), updateEntry.getId(), updateEntry.getVersion()));
-					}
-					rootCacheWriteLock.lock();
-					try
-					{
-						rootCache.remove(deletesList);
-						rootCache.removePriorVersions(objRefsRemovePriorVersions);
-					}
-					finally
-					{
-						rootCacheWriteLock.unlock();
-					}
+					cleanupSecondLevelCaches = true;
 				}
 				else if (updates.size() > 0)
 				{
@@ -204,73 +230,35 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				}
 				ensureMetaDataIsLoaded(occuringTypes, directRelatingTypes);
 
-				HashSet<IObjRef> orisToLoad = new HashSet<IObjRef>();
-				HashSet<IObjRef> hardRefOrisToLoad = new HashSet<IObjRef>();
-				IdentityHashSet<Object> hardRefChildren = new IdentityHashSet<Object>();
+				if (cleanupSecondLevelCaches)
+				{
+					cleanupSecondLevelCaches(rootNode, deletesSet.toList(), updates, occuringTypes);
+				}
 
-				selectFirstLevelChanges(selectedFirstLevelCaches, hardRefChildren, directRelatingTypes, hardRefOrisToLoad, dataChange, cacheChangeItems,
-						orisToLoad, deletesSet, rootCache);
+				buildCacheChangeItems(rootNode, dataChange);
 
-				IList<IObjRef> hardRefOrisToLoadList = hardRefOrisToLoad.toList();
+				rootNode.aggregateAllCascadedObjRefs();
 
-				// Hold cache values as hard ref to prohibit cache loss due to GC
-				IList<Object> hardRefResult = rootCache.getObjects(hardRefOrisToLoadList, cacheValueResultAndReturnMissesSet);
-				for (int a = hardRefResult.size(); a-- > 0;)
-				{
-					Object hardRef = hardRefResult.get(a);
-					if (hardRef != null)
-					{
-						continue;
-					}
-					// Objects are marked as UPDATED in the DCE, but could not be newly retrieved from the server
-					// This occurs if a fast DELETE event on the server happened but has not been processed, yet
-					IObjRef hardRefOriToLoad = hardRefOrisToLoadList.get(a);
-					intermediateDeletes.add(hardRefOriToLoad);
-					orisToLoad.remove(hardRefOriToLoad);
-				}
-				IList<IObjRef> orisToLoadList = orisToLoad.toList();
-				IList<Object> refreshResult = rootCache.getObjects(orisToLoadList, CacheDirective.loadContainerResult());
-				for (int a = refreshResult.size(); a-- > 0;)
-				{
-					ILoadContainer loadContainer = (ILoadContainer) refreshResult.get(a);
-					objRefToLoadContainerDict.put(loadContainer.getReference(), loadContainer);
-				}
-				HashSet<IObjRef> cascadeRefreshObjRefsSet = new HashSet<IObjRef>();
-				HashSet<IObjRelation> cascadeRefreshObjRelationsSet = new HashSet<IObjRelation>();
-				checkCascadeRefreshNeeded(cacheChangeItems, objRefToLoadContainerDict, cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
-				if (cascadeRefreshObjRelationsSet.size() > 0)
-				{
-					IList<IObjRelationResult> relationsResult = rootCache.getObjRelations(cascadeRefreshObjRelationsSet.toList(),
-							CacheDirective.loadContainerResult());
-					for (int a = relationsResult.size(); a-- > 0;)
-					{
-						IObjRelationResult relationResult = relationsResult.get(a);
-						cascadeRefreshObjRefsSet.addAll(relationResult.getRelations());
-					}
-					// apply gathered information of unknown relations to the rootCache
-					rootCache.put(relationsResult);
-				}
-				if (cascadeRefreshObjRefsSet.size() > 0)
-				{
-					IList<IObjRef> cascadeRefreshObjRefsSetList = cascadeRefreshObjRefsSet.toList();
-					refreshResult = rootCache.getObjects(cascadeRefreshObjRefsSetList, CacheDirective.loadContainerResult());
-				}
-				if (cacheChangeItems.size() > 0)
+				final ISet<IObjRef> intermediateDeletes = rootNode.lookForIntermediateDeletes();
+
+				changeSecondLevelCache(rootNode);
+
+				if (rootNode.isPendingChangeOnAnyChildCache())
 				{
 					guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
 					{
 						@Override
 						public void invoke() throws Throwable
 						{
-							boolean oldFailEarlyModeActive = AbstractCache.isFailEarlyModeActive();
-							AbstractCache.setFailEarlyModeActive(true);
+							boolean oldFailEarlyModeActive = AbstractCache.isFailInCacheHierarchyModeActive();
+							AbstractCache.setFailInCacheHierarchyModeActive(true);
 							try
 							{
-								changeFirstLevelCaches(rootCache, occuringTypes, directRelatingTypes, cacheChangeItems, intermediateDeletes);
+								changeFirstLevelCaches(rootNode, intermediateDeletes);
 							}
 							finally
 							{
-								AbstractCache.setFailEarlyModeActive(oldFailEarlyModeActive);
+								AbstractCache.setFailInCacheHierarchyModeActive(oldFailEarlyModeActive);
 							}
 						}
 					});
@@ -278,7 +266,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			}
 			finally
 			{
-				rootCache.clearHardRefs(acquirementSuccessful);
+				rootNode.rootCache.clearHardRefs(acquirementSuccessful);
 			}
 		}
 		finally
@@ -290,10 +278,76 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	protected void selectFirstLevelChanges(List<IWritableCache> firstLevelCaches, Set<Object> hardRefChildren, Set<Class<?>> directRelatingTypes,
-			Set<IObjRef> hardRefOrisToLoad, IDataChange dataChange, List<CacheChangeItem> cciList, Set<IObjRef> orisToLoad, Set<IObjRef> deletedSet,
-			IRootCache rootCache)
+	protected void changeSecondLevelCache(CacheDependencyNode node)
+	{
+		changeSecondLevelCacheIntern(node, CacheDirective.loadContainerResult());
+	}
+
+	protected void changeSecondLevelCacheIntern(CacheDependencyNode node, Set<CacheDirective> cacheDirective)
+	{
+		IRootCache rootCache = node.rootCache;
+		HashMap<IObjRef, ILoadContainer> objRefToLoadContainerDict = node.objRefToLoadContainerMap;
+		IList<Object> refreshResult = rootCache.getObjects(node.objRefsToLoad.toList(), cacheDirective);
+		for (int a = refreshResult.size(); a-- > 0;)
+		{
+			ILoadContainer loadContainer = (ILoadContainer) refreshResult.get(a);
+			objRefToLoadContainerDict.put(loadContainer.getReference(), loadContainer);
+		}
+		checkCascadeRefreshNeeded(node);
+
+		HashSet<IObjRef> cascadeRefreshObjRefsSet = node.cascadeRefreshObjRefsSet;
+		HashSet<IObjRelation> cascadeRefreshObjRelationsSet = node.cascadeRefreshObjRelationsSet;
+		if (cascadeRefreshObjRelationsSet.size() > 0)
+		{
+			IList<IObjRelationResult> relationsResult = rootCache.getObjRelations(cascadeRefreshObjRelationsSet.toList(), cacheDirective);
+			for (int a = relationsResult.size(); a-- > 0;)
+			{
+				IObjRelationResult relationResult = relationsResult.get(a);
+				cascadeRefreshObjRefsSet.addAll(relationResult.getRelations());
+			}
+			// apply gathered information of unknown relations to the rootCache
+			rootCache.put(relationsResult);
+		}
+		if (cascadeRefreshObjRefsSet.size() > 0)
+		{
+			IList<IObjRef> cascadeRefreshObjRefsSetList = cascadeRefreshObjRefsSet.toList();
+			refreshResult = rootCache.getObjects(cascadeRefreshObjRefsSetList, cacheDirective);
+		}
+		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+		for (int a = childNodes.size(); a-- > 0;)
+		{
+			changeSecondLevelCacheIntern(childNodes.get(a), failInCacheHierarchyAndLoadContainerResultSet);
+		}
+	}
+
+	protected CacheDependencyNode buildCacheDependency()
+	{
+		IRootCache privilegedSecondLevelCache = secondLevelCacheManager.selectPrivilegedSecondLevelCache(true);
+		IRootCache nonPrivilegedSecondLevelCache = secondLevelCacheManager.selectNonPrivilegedSecondLevelCache(false);
+		IList<IWritableCache> selectedFirstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
+
+		IdentityHashMap<IRootCache, CacheDependencyNode> secondLevelCacheToNodeMap = new IdentityHashMap<IRootCache, CacheDependencyNode>();
+		if (privilegedSecondLevelCache != null)
+		{
+			CacheDependencyNodeFactory.addRootCache(privilegedSecondLevelCache.getCurrentRootCache(), secondLevelCacheToNodeMap);
+		}
+		if (nonPrivilegedSecondLevelCache != null)
+		{
+			CacheDependencyNodeFactory.addRootCache(nonPrivilegedSecondLevelCache.getCurrentRootCache(), secondLevelCacheToNodeMap);
+		}
+		for (int a = selectedFirstLevelCaches.size(); a-- > 0;)
+		{
+			ChildCache childCache = (ChildCache) selectedFirstLevelCaches.get(a);
+
+			IRootCache parent = ((IRootCache) childCache.getParent()).getCurrentRootCache();
+
+			CacheDependencyNode node = CacheDependencyNodeFactory.addRootCache(parent, secondLevelCacheToNodeMap);
+			node.directChildCaches.add(childCache);
+		}
+		return CacheDependencyNodeFactory.buildRootNode(secondLevelCacheToNodeMap);
+	}
+
+	protected void buildCacheChangeItems(CacheDependencyNode rootNode, IDataChange dataChange)
 	{
 		ArrayList<IDataChangeEntry> insertsAndUpdates = new ArrayList<IDataChangeEntry>();
 		List<IDataChangeEntry> deletes = dataChange.getDeletes();
@@ -326,34 +380,17 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			changesToSearchInCache.add(new ObjRef(updateEntry.getEntityType(), updateEntry.getIdNameIndex(), id, null));
 			changesWithVersion.add(new ObjRef(updateEntry.getEntityType(), updateEntry.getIdNameIndex(), id, updateEntry.getVersion()));
 		}
+		buildCacheChangeItems(rootNode, deletesToSearchInCache, changesToSearchInCache, changesWithVersion);
+	}
 
-		for (int flcIndex = firstLevelCaches.size(); flcIndex-- > 0;)
+	@SuppressWarnings("unchecked")
+	protected void buildCacheChangeItems(CacheDependencyNode node, ArrayList<IObjRef> deletesToSearchInCache, ArrayList<IObjRef> changesToSearchInCache,
+			ArrayList<IObjRef> changesWithVersion)
+	{
+		ArrayList<ChildCache> directChildCaches = node.directChildCaches;
+		for (int flcIndex = directChildCaches.size(); flcIndex-- > 0;)
 		{
-			IWritableCache childCache = firstLevelCaches.get(flcIndex);
-			// childCache.getContent(new HandleContentDelegate()
-			// {
-			//
-			// @Override
-			// public void invoke(Class<?> entityType, byte idIndex, Object id, Object value)
-			// {
-			// // This entity will be refreshed with (potential) new information about the objects which
-			// // have been specified as changed in the DCE
-			// // This is a robustness feature because normally a DCE contains ALL information about object
-			// // changes. And if object relations have been changed they are (supposed to) always been changed
-			// // for both sides of the relation and therefore imply a change on both entities
-			// // We store a hard ref to this object to ensure that the GC does not cut the reference in between
-			// hardRefChildren.add(value);
-			// if (!directRelatingTypes.contains(entityType))
-			// {
-			// return;
-			// }
-			// ObjRef hardRefOri = ObjRef.create(tlObjectCollector, entityType, idIndex, id, null);
-			// if (deletedSet.contains(hardRefOri) || !hardRefOrisToLoad.add(hardRefOri))
-			// {
-			// tlObjectCollector.dispose(hardRefOri);
-			// }
-			// }
-			// });
+			ChildCache childCache = directChildCaches.get(flcIndex);
 
 			ArrayList<IObjRef> objectRefsToDelete = new ArrayList<IObjRef>();
 			ArrayList<IObjRef> objectRefsToUpdate = new ArrayList<IObjRef>();
@@ -387,7 +424,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					// cache miss in the childCache above. We need the version now because our second level cache
 					// has to refresh its entries
 					IObjRef objRefWithVersion = changesWithVersion.get(a);
-					hardRefOrisToLoad.add(objRefWithVersion);
+
+					node.hardRefObjRefsToLoad.add(objRefWithVersion);
 
 					if (result instanceof IDataObject)
 					{
@@ -407,8 +445,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 						}
 					}
 					objectsToUpdate.add(result);
-					orisToLoad.add(objRefWithVersion);
-					// scanForInitializedObjects(result, alreadyScannedObjects, hardRefOrisToLoad);
+
+					node.objRefsToLoad.add(objRefWithVersion);
 					objectRefsToUpdate.add(objRefWithVersion);
 				}
 			}
@@ -425,7 +463,12 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			cci.deletedObjRefs = objectRefsToDelete;
 			cci.updatedObjRefs = objectRefsToUpdate;
 			cci.updatedObjects = objectsToUpdate;
-			cciList.add(cci);
+			node.pushPendingChangeOnAnyChildCache(flcIndex, cci);
+		}
+		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
+		for (int a = childNodes.size(); a-- > 0;)
+		{
+			buildCacheChangeItems(childNodes.get(a), deletesToSearchInCache, changesToSearchInCache, changesWithVersion);
 		}
 	}
 
@@ -521,12 +564,21 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 	}
 
-	protected void checkCascadeRefreshNeeded(List<CacheChangeItem> cacheChangeItems, Map<IObjRef, ILoadContainer> objRefToLoadContainerDict,
-			ISet<IObjRef> cascadeRefreshObjRefsSet, ISet<IObjRelation> cascadeRefreshObjRelationsSet)
+	protected void checkCascadeRefreshNeeded(CacheDependencyNode node)
 	{
-		for (int c = cacheChangeItems.size(); c-- > 0;)
+		CacheChangeItem[] cacheChangeItems = node.cacheChangeItems;
+		if (cacheChangeItems == null)
 		{
-			CacheChangeItem cci = cacheChangeItems.get(c);
+			return;
+		}
+		HashMap<IObjRef, ILoadContainer> objRefToLoadContainerMap = node.objRefToLoadContainerMap;
+		for (int c = cacheChangeItems.length; c-- > 0;)
+		{
+			CacheChangeItem cci = cacheChangeItems[c];
+			if (cci == null)
+			{
+				continue;
+			}
 			IList<IObjRef> objectRefsToUpdate = cci.updatedObjRefs;
 			IList<Object> objectsToUpdate = cci.updatedObjects;
 
@@ -534,7 +586,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				IObjRef objRefToUpdate = objectRefsToUpdate.get(a);
 				Object objectToUpdate = objectsToUpdate.get(a);
-				ILoadContainer loadContainer = objRefToLoadContainerDict.get(objRefToUpdate);
+				ILoadContainer loadContainer = objRefToLoadContainerMap.get(objRefToUpdate);
 				if (loadContainer == null)
 				{
 					// Current value in childCache is not in our interest here
@@ -548,7 +600,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					continue;
 				}
 				IObjRefContainer vhc = (IObjRefContainer) objectToUpdate;
-				for (int b = relationMembers.length; b-- > 0;)
+				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 				{
 					if (ValueHolderState.INIT != vhc.get__State(b))
 					{
@@ -557,50 +609,84 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					// the object which has to be updated has initialized relations. So we have to ensure
 					// that these relations are in the RootCache at the time the target object will be updated.
 					// This is because initialized relations have to remain initialized after update but the relations
-					// may have updated, too
-					batchPendingRelations(vhc, relationMembers[b], relations[b], cascadeRefreshObjRefsSet, cascadeRefreshObjRelationsSet);
+					// may have been updated, too
+					batchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex], node);
 				}
 			}
 		}
 	}
 
-	protected void batchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, ISet<IObjRef> cascadeRefreshObjRefsSet,
-			ISet<IObjRelation> cascadeRefreshObjRelationsSet)
+	protected void batchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
 	{
 		if (relationsOfMember == null)
 		{
 			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(entity, member.getName());
-			cascadeRefreshObjRelationsSet.add(objRelation);
+			node.cascadeRefreshObjRelationsSet.add(objRelation);
 		}
 		else
 		{
-			cascadeRefreshObjRefsSet.addAll(relationsOfMember);
+			node.cascadeRefreshObjRefsSet.addAll(relationsOfMember);
 		}
 	}
 
-	protected void changeFirstLevelCaches(final IRootCache rootCache, ISet<Class<?>> occuringTypes, final ISet<Class<?>> directRelatingTypes,
-			List<CacheChangeItem> cacheChangeItems, ISet<IObjRef> intermediateDeletes)
+	protected void changeFirstLevelCaches(CacheDependencyNode node, ISet<IObjRef> intermediateDeletes)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		ArrayList<IDataChangeEntry> deletes = new ArrayList<IDataChangeEntry>();
 		ICacheModification cacheModification = this.cacheModification;
 
-		de.osthus.ambeth.util.Lock rootCacheReadLock = rootCache.getReadLock();
 		boolean oldCacheModificationValue = cacheModification.isActive();
 		if (!oldCacheModificationValue)
 		{
 			cacheModification.setActive(true);
 		}
-		// RootCache readlock must be acquired before individual writelock to the child caches due to deadlock reasons
-		rootCacheReadLock.lock();
 		try
 		{
-			for (int a = cacheChangeItems.size(); a-- > 0;)
+			changeFirstLevelCachesIntern(node, intermediateDeletes);
+		}
+		finally
+		{
+			if (!oldCacheModificationValue)
 			{
-				CacheChangeItem cci = cacheChangeItems.get(a);
-				ChildCache childCache = (ChildCache) cci.cache;
+				cacheModification.setActive(oldCacheModificationValue);
+			}
+		}
+		if (deletes.size() > 0)
+		{
+			final IDataChange dce = DataChangeEvent.create(0, 0, deletes.size());
+			dce.getDeletes().addAll(deletes);
+			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					eventDispatcher.dispatchEvent(dce);
+				}
+			});
+		}
+	}
 
-				IRootCache parent = ((IRootCache) childCache.getParent()).getCurrentRootCache();
+	protected void changeFirstLevelCachesIntern(CacheDependencyNode node, ISet<IObjRef> intermediateDeletes)
+	{
+		CacheChangeItem[] cacheChangeItems = node.cacheChangeItems;
+		if (cacheChangeItems == null)
+		{
+			return;
+		}
+		IRootCache parentCache = node.rootCache;
+		// RootCache readlock must be acquired before individual writelock to the child caches due to deadlock reasons
+		Lock parentCacheReadLock = parentCache.getReadLock();
+
+		parentCacheReadLock.lock();
+		try
+		{
+			for (int a = cacheChangeItems.length; a-- > 0;)
+			{
+				CacheChangeItem cci = cacheChangeItems[a];
+				if (cci == null)
+				{
+					continue;
+				}
+				ChildCache childCache = node.directChildCaches.get(a);
 
 				IList<IObjRef> deletedObjRefs = cci.deletedObjRefs;
 				IList<Object> objectsToUpdate = cci.updatedObjects;
@@ -641,12 +727,11 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							{
 								continue;
 							}
-							if (!parent.applyValues(objectInCache, childCache))
+							if (!parentCache.applyValues(objectInCache, childCache))
 							{
 								if (log.isWarnEnabled())
 								{
-									log.warn(StringBuilderUtil.concat(tlObjectCollector, "No entry for object '", objectInCache,
-											"' found in second level cache"));
+									log.warn("No entry for object '" + objectInCache + "' found in second level cache");
 								}
 							}
 						}
@@ -660,24 +745,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		}
 		finally
 		{
-			rootCacheReadLock.unlock();
-			if (!oldCacheModificationValue)
-			{
-				cacheModification.setActive(oldCacheModificationValue);
-			}
-		}
-		if (deletes.size() > 0)
-		{
-			final IDataChange dce = DataChangeEvent.create(0, 0, deletes.size());
-			dce.getDeletes().addAll(deletes);
-			guiThreadHelper.invokeOutOfGui(new IBackgroundWorkerDelegate()
-			{
-				@Override
-				public void invoke() throws Throwable
-				{
-					eventDispatcher.dispatchEvent(dce);
-				}
-			});
+			parentCacheReadLock.unlock();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-package de.osthus.ambeth.datachange;
+package de.osthus.ambeth.cache;
 
 import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.collections.IList;

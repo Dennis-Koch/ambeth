@@ -23,7 +23,5 @@ public interface ICacheIntern extends ICache
 
 	boolean acquireHardRefTLIfNotAlready();
 
-	boolean isPrivileged();
-
 	void clearHardRefs(boolean acquirementSuccessful);
 }

@@ -71,7 +71,6 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(AuditEntryFactory.class).autowireable(IAuditEntryFactory.class);
 		}
 	}
 

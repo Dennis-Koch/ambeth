@@ -1,7 +1,6 @@
 package de.osthus.ambeth.database;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,7 +12,7 @@ import de.osthus.ambeth.log.LogInstance;
 public class DatabaseSessionIdController implements IInitializingBean, IDatabaseSessionIdController
 {
 	@SuppressWarnings("unused")
-	@LogInstance(DatabaseSessionIdController.class)
+	@LogInstance
 	private ILogger log;
 
 	protected final Set<Long> sessionIdsInUse = new HashSet<Long>();
@@ -26,22 +25,25 @@ public class DatabaseSessionIdController implements IInitializingBean, IDatabase
 		// Intended blank
 	}
 
+	private static long id2;
+
 	@Override
 	public long acquireSessionId()
 	{
 		writeLock.lock();
 		try
 		{
-			Random random = new Random();
-
-			while (true)
-			{
-				long randomSessionId = (long) (random.nextDouble() * Long.MAX_VALUE);
-				if (sessionIdsInUse.add(randomSessionId))
-				{
-					return randomSessionId;
-				}
-			}
+			return ++id2;
+			// Random random = new Random();
+			//
+			// while (true)
+			// {
+			// long randomSessionId = (long) (random.nextDouble() * Long.MAX_VALUE);
+			// if (sessionIdsInUse.add(randomSessionId))
+			// {
+			// return randomSessionId;
+			// }
+			// }
 		}
 		finally
 		{
@@ -55,10 +57,10 @@ public class DatabaseSessionIdController implements IInitializingBean, IDatabase
 		writeLock.lock();
 		try
 		{
-			if (!sessionIdsInUse.remove(sessionId))
-			{
-				throw new IllegalArgumentException("No session with id '" + sessionId + "' currently acquired to release");
-			}
+			// if (!sessionIdsInUse.remove(sessionId))
+			// {
+			// throw new IllegalArgumentException("No session with id '" + sessionId + "' currently acquired to release");
+			// }
 		}
 		finally
 		{

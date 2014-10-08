@@ -76,6 +76,22 @@ public class SignatureUtil implements IInitializingBean, ISignatureUtil
 	}
 
 	@Override
+	public void reencryptSignature(ISignature signature, char[] oldClearTextPassword, char[] newClearTextPassword)
+	{
+		try
+		{
+			byte[] encryptedPrivateKey = Base64.decode(signature.getPrivateKey());
+			byte[] decryptedPrivateKey = pbEncryptor.decrypt(signature.getPBEConfiguration(), oldClearTextPassword, encryptedPrivateKey);
+			encryptedPrivateKey = pbEncryptor.encrypt(signature.getPBEConfiguration(), newClearTextPassword, decryptedPrivateKey);
+			signature.setPrivateKey(Base64.encodeBytes(encryptedPrivateKey).toCharArray());
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
 	public Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey)
 	{
 		try

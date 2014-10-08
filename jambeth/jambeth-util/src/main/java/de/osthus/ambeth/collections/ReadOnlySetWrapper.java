@@ -86,6 +86,12 @@ public class ReadOnlySetWrapper<K> implements ISet<K>
 	}
 
 	@Override
+	public <S extends K> boolean removeAll(S[] array)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public boolean remove(Object o)
 	{
 		throw new UnsupportedOperationException();
@@ -95,6 +101,12 @@ public class ReadOnlySetWrapper<K> implements ISet<K>
 	public boolean containsAll(Collection<?> c)
 	{
 		return hashSet.containsAll(c);
+	}
+
+	@Override
+	public boolean containsAny(Collection<?> coll)
+	{
+		return hashSet.containsAny(coll);
 	}
 
 	@Override

@@ -20,6 +20,8 @@ public enum CacheDirective
 
 	private static Set<CacheDirective> failEarlyAndReturnMissesSet = EnumSet.of(FailEarly, ReturnMisses);
 
+	private static Set<CacheDirective> failInCacheHierarchySet = EnumSet.of(FailInCacheHierarchy);
+
 	public static Set<CacheDirective> cacheValueResult()
 	{
 		return cacheValueResultSet;
@@ -33,6 +35,11 @@ public enum CacheDirective
 	public static Set<CacheDirective> failEarlyAndReturnMisses()
 	{
 		return failEarlyAndReturnMissesSet;
+	}
+
+	public static Set<CacheDirective> failInCacheHierarchy()
+	{
+		return failInCacheHierarchySet;
 	}
 
 	public static Set<CacheDirective> loadContainerResult()

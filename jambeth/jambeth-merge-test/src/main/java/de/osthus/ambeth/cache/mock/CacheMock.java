@@ -18,6 +18,18 @@ import de.osthus.ambeth.util.Lock;
 public class CacheMock implements ICache
 {
 	@Override
+	public ICache getCurrentCache()
+	{
+		return this;
+	}
+
+	@Override
+	public boolean isPrivileged()
+	{
+		return true;
+	}
+
+	@Override
 	public <E> E getObject(Class<E> type, Object... compositeIdParts)
 	{
 		return null;

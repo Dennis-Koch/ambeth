@@ -21,27 +21,28 @@ using System.Threading;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public abstract class AbstractCache<V> : ICache, IInitializingBean, IDisposable
+    public abstract class AbstractCache
     {
-        protected static readonly CacheKey[] emptyCacheKeyArray = new CacheKey[0];
+        protected static readonly ThreadLocal<bool> failInCacheHierarchyModeActiveTL = new ThreadLocal<bool>();
 
-        private static readonly ILogger LOG = LoggerFactory.GetLogger<AbstractCache<Object>>();
-
-        protected static readonly ThreadLocal<bool> failEarlyModeActiveTL = new ThreadLocal<bool>();
-
-        private static readonly ThreadLocal<IdentityHashSet<Object>> hardRefTL = new ThreadLocal<IdentityHashSet<Object>>();
-
-        public static bool FailEarlyModeActive
+        public static bool FailInCacheHierarchyModeActive
         {
             get
             {
-                return failEarlyModeActiveTL.Value;
+                return failInCacheHierarchyModeActiveTL.Value;
             }
             set
             {
-                failEarlyModeActiveTL.Value = value;
+                failInCacheHierarchyModeActiveTL.Value = value;
             }
         }
+    }
+
+    public abstract class AbstractCache<V> : AbstractCache, ICache, IInitializingBean, IDisposable
+    {
+        protected static readonly CacheKey[] emptyCacheKeyArray = new CacheKey[0];
+
+        private static readonly ThreadLocal<IdentityHashSet<Object>> hardRefTL = new ThreadLocal<IdentityHashSet<Object>>();
 
         protected CacheHashMap keyToCacheValueDict;
 
@@ -71,6 +72,8 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual bool WeakEntries { protected get; set; }
 
+        public abstract bool Privileged { get; set; }
+    
         protected DateTime lastCleanupTime = DateTime.Now;
 
         protected int changeVersion = 1;
@@ -102,25 +105,9 @@ namespace De.Osthus.Ambeth.Cache
             ProxyHelper = null;
             keyToCacheValueDict = null;
         }
-
-        protected void PrepareCacheKeyss(IEntityMetaData metaData, CacheKey cacheKey, IObjRef objRef)
-        {
-            sbyte idNameIndex = objRef.IdNameIndex;
-            cacheKey.EntityType = metaData.EntityType;
-            cacheKey.IdNameIndex = idNameIndex;
-            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
-            cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, objRef.Id);
-        }
-
-        protected void PrepareCacheKeyss(IEntityMetaData metaData, CacheKey cacheKey, sbyte idNameIndex, Object id)
-        {
-            ParamChecker.AssertParamNotNull(id, "id");
-            cacheKey.EntityType = metaData.EntityType;
-            cacheKey.IdNameIndex = idNameIndex;
-            PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(idNameIndex);
-            cacheKey.Id = ConversionHelper.ConvertValueToType(idMember.RealType, id);
-        }
-
+        
+        public ICache CurrentCache { get { return this; } }
+        
         [Property(Mandatory = false)]
         public Lock ReadLock
         {

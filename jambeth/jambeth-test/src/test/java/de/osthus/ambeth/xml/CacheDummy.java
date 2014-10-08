@@ -20,6 +20,18 @@ public class CacheDummy implements ICache
 	private ILogger log;
 
 	@Override
+	public ICache getCurrentCache()
+	{
+		return this;
+	}
+
+	@Override
+	public boolean isPrivileged()
+	{
+		return true;
+	}
+
+	@Override
 	public <E> E getObject(Class<E> type, Object... compositeIdParts)
 	{
 		return null;

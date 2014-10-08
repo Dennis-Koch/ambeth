@@ -153,6 +153,11 @@ namespace De.Osthus.Ambeth.Collections
                 throw new NotSupportedException("Set is read-only");
             }
 
+            public bool ContainsAny(IEnumerable c)
+            {
+                throw new NotSupportedException("Set is read-only");
+            }
+
             public bool RemoveAll(IEnumerable c)
             {
                 throw new NotSupportedException("Set is read-only");

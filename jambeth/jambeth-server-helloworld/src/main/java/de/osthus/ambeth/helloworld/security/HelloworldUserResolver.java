@@ -7,7 +7,6 @@ import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.ISignatureUtil;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.model.IPassword;
-import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 
 public class HelloworldUserResolver implements IUserResolver
@@ -32,8 +31,10 @@ public class HelloworldUserResolver implements IUserResolver
 
 	protected IPassword createInMemoryPasswordBySID(IUser user, String sid)
 	{
-		IPassword password = new PojoPassword();
-		ISignature signature = new PojoSignature();
+		PojoPassword password = new PojoPassword();
+		password.setUser(user);
+		PojoSignature signature = new PojoSignature();
+		signature.setUser(user);
 		char[] clearTextPassword = sid.toCharArray();
 		passwordUtil.assignNewPassword(clearTextPassword, password, user);
 		signatureUtil.generateNewSignature(signature, clearTextPassword);

@@ -506,8 +506,8 @@ namespace De.Osthus.Ambeth.Cache
                                 {
                                     bool oldCacheModificationValue = CacheModification.Active;
                                     CacheModification.Active = true;
-                                    bool oldFailEarlyModeActive = AbstractCache<Object>.FailEarlyModeActive;
-                                    AbstractCache<Object>.FailEarlyModeActive = true;
+                                    bool oldFailEarlyModeActive = AbstractCache.FailInCacheHierarchyModeActive;
+                                    AbstractCache.FailInCacheHierarchyModeActive = true;
                                     try
                                     {
                                         IList<IWritableCache> firstLevelCaches = FirstLevelCacheManager.SelectFirstLevelCaches();
@@ -544,7 +544,7 @@ namespace De.Osthus.Ambeth.Cache
                                     }
                                     finally
                                     {
-                                        AbstractCache<Object>.FailEarlyModeActive = oldFailEarlyModeActive;
+                                        AbstractCache.FailInCacheHierarchyModeActive = oldFailEarlyModeActive;
                                         CacheModification.Active = oldCacheModificationValue;
                                     }
                                 }

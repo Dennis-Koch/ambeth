@@ -73,14 +73,16 @@
     <Reference Include="System.Windows.Browser" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ambeth\cache\CacheChangeItem.cs" />
+    <Compile Include="ambeth\cache\CacheDataChangeListener.cs" />
+    <Compile Include="ambeth\cache\CacheDependencyNode.cs" />
+    <Compile Include="ambeth\cache\CacheDependencyNodeFactory.cs" />
     <Compile Include="ambeth\cache\RootCacheClearEventListener.cs" />
-    <Compile Include="ambeth\cache\DataChangeEventBatcher.cs" />
     <Compile Include="ambeth\cache\RevertChangesSavepoint.cs" />
     <Compile Include="ambeth\cache\RevertChangesHelper.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheClearEventListener.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheDCL.cs" />
-    <Compile Include="ambeth\datachange\CacheChangeItem.cs" />
-    <Compile Include="ambeth\datachange\CacheDataChangeListener.cs" />
+    <Compile Include="ambeth\datachange\DataChangeEventBatcher.cs" />
     <Compile Include="ioc\CacheDataChangeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

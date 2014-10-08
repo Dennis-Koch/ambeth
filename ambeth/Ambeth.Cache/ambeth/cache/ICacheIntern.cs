@@ -18,9 +18,7 @@ namespace De.Osthus.Ambeth.Cache
         IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective);
         
         bool AcquireHardRefTLIfNotAlready();
-
-        bool Privileged { get; }
-
+        
         void ClearHardRefs(bool acquirementSuccessful);
     }
 }
