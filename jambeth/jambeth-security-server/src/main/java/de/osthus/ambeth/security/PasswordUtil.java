@@ -64,7 +64,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	@Autowired
 	protected ISignatureUtil signatureUtil;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IUserIdentifierProvider userIdentifierProvider;
 
 	@Autowired
@@ -515,6 +515,10 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		ISignature signature = user.getSignature();
 		if (signature != null)
 		{
+			if (userIdentifierProvider == null)
+			{
+				throw new IllegalStateException("No instanceof of " + IUserIdentifierProvider.class + " found to create a new signature due to password change");
+			}
 			// create a NEW signature because we can not decrypt the now invalid private key of the signature
 			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
 			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
