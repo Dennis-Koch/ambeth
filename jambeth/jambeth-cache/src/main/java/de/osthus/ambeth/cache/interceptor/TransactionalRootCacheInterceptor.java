@@ -53,6 +53,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 
 	protected IRootCache getCurrentRootCache(boolean privileged)
 	{
+		return getCurrentRootCache(privileged, true);
+	}
+
+	protected IRootCache getCurrentRootCache(boolean privileged, boolean forceInstantiation)
+	{
 		IRootCache rootCache = privileged ? privilegedRootCacheTL.get() : rootCacheTL.get();
 		if (rootCache != null)
 		{
@@ -68,6 +73,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		IRootCache privilegedRootCache = privilegedRootCacheTL.get();
 		if (privilegedRootCache == null)
 		{
+			if (!forceInstantiation)
+			{
+				// do not create an instance of anything in this case
+				return null;
+			}
 			// here we know that the non-privileged one could not have existed before, so we simply create the privileged one
 			privilegedRootCache = acquireRootCache(true, privilegedRootCacheTL);
 		}
@@ -79,6 +89,11 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 		IRootCache nonPrivilegedRootCache = rootCacheTL.get();
 		if (nonPrivilegedRootCache == null)
 		{
+			if (!forceInstantiation)
+			{
+				// do not create an instance of anything in this case
+				return null;
+			}
 			// share the locks from the privileged rootCache
 			nonPrivilegedRootCache = acquireRootCache(privileged, rootCacheTL, (ICacheRetriever) privilegedRootCache, privilegedRootCache.getReadLock(),
 					privilegedRootCache.getWriteLock());
@@ -90,6 +105,18 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	public IRootCache selectSecondLevelCache()
 	{
 		return getCurrentRootCache(isCurrentPrivileged());
+	}
+
+	@Override
+	public IRootCache selectPrivilegedSecondLevelCache(boolean forceInstantiation)
+	{
+		return getCurrentRootCache(!securityActive || true, forceInstantiation);
+	}
+
+	@Override
+	public IRootCache selectNonPrivilegedSecondLevelCache(boolean forceInstantiation)
+	{
+		return getCurrentRootCache(!securityActive || false, forceInstantiation);
 	}
 
 	protected boolean isCurrentPrivileged()

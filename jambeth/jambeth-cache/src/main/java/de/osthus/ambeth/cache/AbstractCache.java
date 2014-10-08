@@ -41,18 +41,18 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 {
 	protected static final CacheKey[] emptyCacheKeyArray = new CacheKey[0];
 
-	protected static final ThreadLocal<Boolean> failEarlyModeActiveTL = new SensitiveThreadLocal<Boolean>();
+	protected static final ThreadLocal<Boolean> failInCacheHierarchyModeActiveTL = new SensitiveThreadLocal<Boolean>();
 
 	private static final ThreadLocal<IdentityHashSet<Object>> hardRefTL = new SensitiveThreadLocal<IdentityHashSet<Object>>();
 
-	public static boolean isFailEarlyModeActive()
+	public static boolean isFailInCacheHierarchyModeActive()
 	{
-		return Boolean.TRUE.equals(failEarlyModeActiveTL.get());
+		return Boolean.TRUE.equals(failInCacheHierarchyModeActiveTL.get());
 	}
 
-	public static void setFailEarlyModeActive(boolean failEarlyModeActive)
+	public static void setFailInCacheHierarchyModeActive(boolean failInCacheHierarchyModeActive)
 	{
-		failEarlyModeActiveTL.set(Boolean.valueOf(failEarlyModeActive));
+		failInCacheHierarchyModeActiveTL.set(Boolean.valueOf(failInCacheHierarchyModeActive));
 	}
 
 	@SuppressWarnings("unused")
@@ -123,6 +123,12 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 	public void setWeakEntries(boolean weakEntries)
 	{
 		this.weakEntries = weakEntries;
+	}
+
+	@Override
+	public ICache getCurrentCache()
+	{
+		return this;
 	}
 
 	@Override

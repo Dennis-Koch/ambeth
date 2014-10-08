@@ -9,6 +9,8 @@ public interface ISignatureUtil
 {
 	void generateNewSignature(ISignature newEmptySignature, char[] clearTextPassword);
 
+	void reencryptSignature(ISignature signature, char[] oldClearTextPassword, char[] newClearTextPassword);
+
 	Signature createSignatureHandle(ISignAndVerify signAndVerify, byte[] privateKey);
 
 	Signature createVerifyHandle(ISignAndVerify signAndVerify, byte[] publicKey);

@@ -75,6 +75,18 @@ public class AbstractCacheTest extends AbstractInformationBusTest
 		this.fixture = new AbstractCache<AbstractCacheValue>()
 		{
 			@Override
+			public ICache getCurrentCache()
+			{
+				return this;
+			}
+
+			@Override
+			public boolean isPrivileged()
+			{
+				return true;
+			}
+
+			@Override
 			public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective)
 			{
 				IList<Object> results = new ArrayList<Object>(fakeResults);

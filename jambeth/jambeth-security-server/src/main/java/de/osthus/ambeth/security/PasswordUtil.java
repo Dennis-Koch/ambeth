@@ -30,11 +30,13 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.MergeFinishedCallback;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
@@ -48,13 +50,22 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 	private ILogger log;
 
 	@Autowired
+	protected IEntityFactory entityFactory;
+
+	@Autowired
 	protected IMergeProcess mergeProcess;
 
 	@Autowired
 	protected IPrivilegeProvider privilegeProvider;
 
 	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
 	protected ISignatureUtil signatureUtil;
+
+	@Autowired
+	protected IUserIdentifierProvider userIdentifierProvider;
 
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
@@ -504,7 +515,25 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 		ISignature signature = user.getSignature();
 		if (signature != null)
 		{
+			// create a NEW signature because we can not decrypt the now invalid private key of the signature
+			// without knowing the previous password in clear-text. As a result we need a new instance for a signature
+			// because of a potential audit-trail functionality we can NOT reuse the existing signature entity
+			signature = entityFactory.createEntity(ISignature.class);
 			signatureUtil.generateNewSignature(signature, clearTextPassword);
+			user.setSignature(signature);
+			ISecurityContext context = securityContextHolder.getContext();
+			IAuthorization authorization = context != null ? context.getAuthorization() : null;
+			if (authorization != null)
+			{
+				// check whether we changed our own current authentication and refresh this information
+				// this is due to the fact that the usage of the newly generated signature with the newly assigned password
+				// can only be decrypted if the current authentication contains this newly assigned password from now on
+				String sid = userIdentifierProvider.getSID(user);
+				if (authorization.getSID().equals(sid))
+				{
+					context.setAuthentication(new DefaultAuthentication(context.getAuthentication().getUserName(), clearTextPassword, PasswordType.PLAIN));
+				}
+			}
 		}
 	}
 

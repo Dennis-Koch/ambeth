@@ -77,6 +77,12 @@ public final class EmptySet<K> implements ISet<K>
 	}
 
 	@Override
+	public boolean containsAny(Collection<?> coll)
+	{
+		return false;
+	}
+
+	@Override
 	public boolean addAll(Collection<? extends K> c)
 	{
 		throw new UnsupportedOperationException("Set is read-only");
@@ -133,6 +139,12 @@ public final class EmptySet<K> implements ISet<K>
 
 	@Override
 	public <S extends K> boolean addAll(S[] array)
+	{
+		throw new UnsupportedOperationException("Set is read-only");
+	}
+
+	@Override
+	public <S extends K> boolean removeAll(S[] array)
 	{
 		throw new UnsupportedOperationException("Set is read-only");
 	}

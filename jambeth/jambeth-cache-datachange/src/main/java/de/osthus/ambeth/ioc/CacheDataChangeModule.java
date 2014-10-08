@@ -1,6 +1,6 @@
 package de.osthus.ambeth.ioc;
 
-import de.osthus.ambeth.CacheDataChangeListener;
+import de.osthus.ambeth.cache.CacheDataChangeListener;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.RevertChangesHelper;
 import de.osthus.ambeth.cache.RootCacheClearEventListener;

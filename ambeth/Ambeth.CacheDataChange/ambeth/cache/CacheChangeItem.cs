@@ -15,7 +15,7 @@ using De.Osthus.Ambeth.Merge;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public struct CacheChangeItem
+    public class CacheChangeItem
     {
         public IWritableCache Cache;
 

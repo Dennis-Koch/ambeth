@@ -390,17 +390,27 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 					}
 					database.release(fatalError);
 				}
-				if (userTransaction != null)
+			}
+			else if (readOnly)
+			{
+				for (Entry<Object, IDatabase> entry : databaseMap)
 				{
-					tli.alreadyOnStack = Boolean.TRUE;
-					try
-					{
-						userTransaction.rollback();
-					}
-					finally
-					{
-						tli.alreadyOnStack = null;
-					}
+					IDatabase database = entry.getValue();
+
+					database.revert();
+					database.setSessionId(-1);
+				}
+			}
+			if (userTransaction != null)
+			{
+				tli.alreadyOnStack = Boolean.TRUE;
+				try
+				{
+					userTransaction.rollback();
+				}
+				finally
+				{
+					tli.alreadyOnStack = null;
 				}
 			}
 			ITransactionListener[] transactionListeners = transactionListenerProvider.getTransactionListeners();

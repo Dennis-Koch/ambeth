@@ -12,6 +12,25 @@ import de.osthus.ambeth.util.Lock;
 public interface ICache
 {
 	/**
+	 * Checks whether this cache instance provides security-filtered or unfiltered content
+	 * 
+	 * @return true if this cache instance provides unfiltered content
+	 */
+	boolean isPrivileged();
+
+	/**
+	 * If the given cache instance is some kind of proxy or thread-local implementation this method retrieves the internally bound real cache instance. This
+	 * method is intended to be used for performance critical algorithms where multiple calls through the proxy implementation can be skipped.<br/>
+	 * <br/>
+	 * CAUTION: The resulting instance is not intended to be used solely within the method which did this call. To be precise: Do NOT pass the resulting
+	 * instance to any other method or bean as an argument and do NOT store the resulting instance on an object field. Leave it solely as a method stack
+	 * variable
+	 * 
+	 * @return The proxied or thread-local target instance of a cache.
+	 */
+	ICache getCurrentCache();
+
+	/**
 	 * Alternative interface for
 	 * 
 	 * IList<Object> getObjects(List<IObjRef>, Set<CacheDirective>)

@@ -191,6 +191,12 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
+	public IRootCache getParent()
+	{
+		return cacheRetriever instanceof IRootCache ? (IRootCache) cacheRetriever : null;
+	}
+
+	@Override
 	public int getCacheId()
 	{
 		return -1;
@@ -267,6 +273,27 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		cacheValue.setRelations(relations);
 	}
 
+	protected boolean isCacheRetrieverCallAllowed(Set<CacheDirective> cacheDirective)
+	{
+		if (cacheRetriever == null)
+		{
+			// without a valid cacheRetriever a call is never allowed
+			return false;
+		}
+		if (cacheDirective.contains(CacheDirective.FailEarly))
+		{
+			// with FailEarly a cascading call is never allowed
+			return false;
+		}
+		if (cacheDirective.contains(CacheDirective.FailInCacheHierarchy) && !(cacheRetriever instanceof IRootCache))
+		{
+			// with FailInCacheHierarchy a cascading call is only allowed if the cacheRetriever is itself an instance of IRootCache
+			return false;
+		}
+		// in the end a call is only allowed if it is not forbidden for the current thread
+		return !AbstractCache.isFailInCacheHierarchyModeActive();
+	}
+
 	@Override
 	public IList<Object> getObjects(List<IObjRef> orisToGet, Set<CacheDirective> cacheDirective)
 	{
@@ -322,6 +349,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			cacheDirective = Collections.<CacheDirective> emptySet();
 		}
+		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
 		{
@@ -334,12 +362,16 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
 			boolean acquireSuccess = acquireHardRefTLIfNotAlready(orisToGet.size());
-			cacheModification.setActive(true);
+			if (!oldCacheModificationValue)
+			{
+				cacheModification.setActive(true);
+			}
 			try
 			{
-				if (cacheDirective.contains(CacheDirective.FailEarly) || cacheDirective.contains(CacheDirective.FailInCacheHierarchy) || cacheRetriever == null
-						|| AbstractCache.isFailEarlyModeActive())
+				if (!isCacheRetrieverCallAllowed)
 				{
+					// if the cascading call is not allowed we need no pre-scanning for cache-misses
+					// we have to do our best while we create the result directly
 					readLock.lock();
 					try
 					{
@@ -386,7 +418,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			finally
 			{
-				cacheModification.setActive(oldCacheModificationValue);
+				if (!oldCacheModificationValue)
+				{
+					cacheModification.setActive(oldCacheModificationValue);
+				}
 				clearHardRefs(acquireSuccess);
 			}
 		}
@@ -411,7 +446,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		if (orisToLoad.size() == 0)
 		{
 			// Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-			// We already even checked the version. So we do not bother version anymore here
+			// We already even checked the version. So we do not bother with versions anymore here
 			try
 			{
 				return createResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
@@ -517,7 +552,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
-		boolean failEarly = cacheDirective.contains(CacheDirective.FailEarly) || cacheDirective.contains(CacheDirective.FailInCacheHierarchy);
+		boolean isCacheRetrieverCallAllowed = isCacheRetrieverCallAllowed(cacheDirective);
 		boolean returnMisses = cacheDirective.contains(CacheDirective.ReturnMisses);
 		IEventQueue eventQueue = this.eventQueue;
 		if (eventQueue != null)
@@ -558,7 +593,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 							}
 						}
 						IObjRelationResult selfResult = getObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
-						if (selfResult == null && !failEarly)
+						if (selfResult == null && isCacheRetrieverCallAllowed)
 						{
 							objRelMisses.add(objRel);
 						}

@@ -33,8 +33,17 @@ namespace De.Osthus.Ambeth.Cache
 			    return;
 		    }
             CommittedRootCache.Clear();
-            IRootCache secondLevelCache = SecondLevelCacheManager.SelectSecondLevelCache();
-            secondLevelCache.Clear();
+            IRootCache privilegedSecondLevelCache = SecondLevelCacheManager.SelectPrivilegedSecondLevelCache(false);
+            if (privilegedSecondLevelCache != null && !Object.ReferenceEquals(privilegedSecondLevelCache, CommittedRootCache))
+            {
+                privilegedSecondLevelCache.Clear();
+            }
+            IRootCache nonPrivilegedSecondLevelCache = SecondLevelCacheManager.SelectNonPrivilegedSecondLevelCache(false);
+            if (nonPrivilegedSecondLevelCache != null && !Object.ReferenceEquals(nonPrivilegedSecondLevelCache, CommittedRootCache)
+                    && !Object.ReferenceEquals(nonPrivilegedSecondLevelCache, privilegedSecondLevelCache))
+            {
+                nonPrivilegedSecondLevelCache.Clear();
+            }
             IList<IWritableCache> firstLevelCaches = FirstLevelCacheManager.SelectFirstLevelCaches();
             for (int a = firstLevelCaches.Count; a-- > 0; )
             {

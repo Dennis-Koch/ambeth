@@ -466,6 +466,21 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 		return true;
 	}
 
+	@Override
+	public boolean containsAny(Collection<?> coll)
+	{
+		Iterator<?> iter = coll.iterator();
+		while (iter.hasNext())
+		{
+			Object key = iter.next();
+			if (contains(key))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @see java.util.Set#removeAll(java.util.Collection)
 	 */
@@ -489,6 +504,17 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 				Object key = iter.next();
 				changed |= remove(key);
 			}
+		}
+		return changed;
+	}
+
+	@Override
+	public <S extends K> boolean removeAll(S[] array)
+	{
+		boolean changed = false;
+		for (int a = 0, size = array.length; a < size; a++)
+		{
+			changed |= remove(array[a]);
 		}
 		return changed;
 	}

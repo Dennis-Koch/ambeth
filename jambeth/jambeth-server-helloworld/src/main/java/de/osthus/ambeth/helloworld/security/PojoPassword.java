@@ -3,6 +3,7 @@ package de.osthus.ambeth.helloworld.security;
 import java.util.Calendar;
 
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.IUser;
 
 public class PojoPassword implements IPassword
 {
@@ -15,6 +16,25 @@ public class PojoPassword implements IPassword
 	private String saltAlgorithm;
 	private String saltKeySpec;
 	private Integer saltLength;
+
+	private IUser user;
+
+	@Override
+	public IUser getHistoryUser()
+	{
+		return null;
+	}
+
+	@Override
+	public IUser getUser()
+	{
+		return user;
+	}
+
+	public void setUser(IUser user)
+	{
+		this.user = user;
+	}
 
 	@Override
 	public char[] getValue()

@@ -4,7 +4,7 @@ import de.osthus.ambeth.security.model.IUser;
 
 public interface IPrivateKeyProvider
 {
-	java.security.Signature getSigningHandle(IUser user);
+	java.security.Signature getSigningHandle(IUser user, char[] clearTextPassword);
 
 	java.security.Signature getVerifyingHandle(IUser user);
 }

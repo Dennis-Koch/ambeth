@@ -10,11 +10,19 @@ public interface IPassword
 
 	public static final String IterationCount = "IterationCount";
 
+	public static final String HistoryUser = "HistoryUser";
+
 	public static final String KeySize = "KeySize";
 
 	public static final String Salt = "Salt";
 
+	public static final String User = "User";
+
 	public static final String Value = "Value";
+
+	IUser getUser();
+
+	IUser getHistoryUser();
 
 	char[] getValue();
 

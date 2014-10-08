@@ -2,7 +2,6 @@ package de.osthus.ambeth.cache;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
@@ -624,8 +623,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			// Now we have to refresh the current content eagerly
 
 			// load entities as if we were an "eager valueholder" here
-			IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this,
-					isFailEarlyModeActive() ? EnumSet.of(CacheDirective.FailEarly) : CacheDirective.none());
+			IList<Object> potentialNewItems = parent.getObjects(new ArrayList<IObjRef>(relationsOfMember), this, CacheDirective.none());
 			if (overwriteToManyRelations)
 			{
 				Object newRelationValue = cacheHelper.convertResultListToExpectedType(potentialNewItems, relationMember.getRealType(),

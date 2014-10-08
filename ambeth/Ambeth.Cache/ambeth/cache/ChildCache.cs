@@ -53,7 +53,7 @@ namespace De.Osthus.Ambeth.Cache
         public bool OverwriteToManyRelations { protected get; set; }
 
         [Property]
-        public bool Privileged { get; set; }
+        public override bool Privileged { get; set; }
 
         protected int cacheId;
 
@@ -578,8 +578,7 @@ namespace De.Osthus.Ambeth.Cache
                 // Now we have to refresh the current content eagerly
 
                 // load entities as if we were an "eager valueholder" here
-                IList<Object> potentialNewItems = parent.GetObjects(new List<IObjRef>(relationsOfMember), this,
-                    FailEarlyModeActive ? CacheDirective.FailEarly : CacheDirective.None);
+                IList<Object> potentialNewItems = parent.GetObjects(new List<IObjRef>(relationsOfMember), this, CacheDirective.None);
                 if (OverwriteToManyRelations)
                 {
                     Object newRelationValue = cacheHelper.ConvertResultListToExpectedType(potentialNewItems, relationMember.RealType,

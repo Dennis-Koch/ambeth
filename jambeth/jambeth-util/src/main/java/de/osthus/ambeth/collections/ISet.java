@@ -10,6 +10,8 @@ public interface ISet<K> extends Set<K>
 
 	K get(K key);
 
+	boolean containsAny(Collection<?> coll);
+
 	IList<K> toList();
 
 	<T> T[] toArray(Class<T> componentType);
@@ -17,6 +19,8 @@ public interface ISet<K> extends Set<K>
 	void toList(Collection<K> targetList);
 
 	<S extends K> boolean addAll(S[] array);
+
+	<S extends K> boolean removeAll(S[] array);
 
 	K removeAndGet(K key);
 }

@@ -34,6 +34,7 @@ import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.IMergeProcess;
@@ -47,7 +48,6 @@ import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
-import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IPrivateKeyProvider;
@@ -55,6 +55,7 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISignatureUtil;
+import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
@@ -71,10 +72,13 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	private ILogger log;
 
 	@Autowired
-	protected IAuditEntryFactory auditEntryFactory;
+	protected IAuditConfigurationProvider auditConfigurationProvider;
 
 	@Autowired
 	protected IDatabase database;
+
+	@Autowired
+	protected IEntityFactory entityFactory;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -115,18 +119,14 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
-	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive, defaultValue = "true")
-	protected boolean auditedEntityDefaultModeActive;
-
-	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
-	protected boolean auditedEntityPropertyDefaultModeActive;
-
 	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters = new MapExtendableContainer<Integer, IAuditEntryWriter>(
 			"auditEntryWriter", "auditEntryProtocol");
 
 	protected final ThreadLocal<IAuditEntry> auditEntryTL = new ThreadLocal<IAuditEntry>();
 
 	protected final ThreadLocal<Boolean> ownAuditMergeActiveTL = new ThreadLocal<Boolean>();
+
+	protected final ThreadLocal<char[]> clearTextPasswordTL = new ThreadLocal<char[]>();
 
 	protected IPrefetchHandle prefetchAuditEntries;
 
@@ -157,9 +157,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			return auditEntry;
 		}
+
 		try
 		{
-			auditEntry = auditEntryFactory.createAuditEntry();
+			auditEntry = entityFactory.createEntity(IAuditEntry.class);
 
 			Long currentTime = database.getContextProvider().getCurrentTime();
 			auditEntry.setTimestamp(currentTime.longValue());
@@ -169,6 +170,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			IAuthorization authorization = context != null ? context.getAuthorization() : null;
 			if (authorization != null)
 			{
+				clearTextPasswordTL.set(context.getAuthentication().getPassword());
 				final String currentSID = authorization.getSID();
 				IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
 				{
@@ -207,7 +209,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		IAuditEntry auditEntry = ensureAuditEntry();
 
 		List<IAuditedService> services = (List<IAuditedService>) auditEntry.getServices();
-		IAuditedService auditedService = auditEntryFactory.createAuditedService();
+		IAuditedService auditedService = entityFactory.createEntity(IAuditedService.class);
 		auditedService.setOrder(services.size() + 1);
 
 		services.add(auditedService);
@@ -249,55 +251,69 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			// ignore this dataChange because it is our own Audit merge
 			return;
 		}
-		IAuditEntry auditEntry = null;
-		List<IAuditedEntity> entities = null;
+		ArrayList<IAuditedEntity> entities = new ArrayList<IAuditedEntity>(cudResult.getAllChanges().size());
 
 		for (IChangeContainer changeContainer : cudResult.getAllChanges())
 		{
-			IObjRef objRef = changeContainer.getReference();
-			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
-			Audited audited = metaData.getEnhancedType().getAnnotation(Audited.class);
-			boolean auditEntity = audited != null ? audited.value() : auditedEntityDefaultModeActive;
+			auditChangeContainer(changeContainer, entities);
 
-			if (!auditEntity)
+			// IObjRef objRef = changeContainer.getReference();
+			// IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+			// Audited audited = metaData.getEnhancedType().getAnnotation(Audited.class);
+			// boolean auditEntity = audited != null ? audited.value() : auditedEntityDefaultModeActive;
+			//
+			// if (!auditEntity)
+			// {
+			// continue;
+			// }
+		}
+		if (entities.size() > 0)
+		{
+			for (int a = entities.size(); a-- > 0;)
 			{
-				continue;
+				entities.get(a).setOrder(a + 1);
 			}
-			IAuditedEntity auditedEntity = auditEntryFactory.createAuditedEntity();
-
-			if (changeContainer instanceof CreateContainer)
-			{
-				auditedEntity.setChangeType(AuditedEntityChangeType.INSERT);
-				auditPUIs(((CreateContainer) changeContainer).getPrimitives(), auditedEntity, metaData);
-				auditRUIs(((CreateContainer) changeContainer).getRelations(), auditedEntity, metaData);
-			}
-			else if (changeContainer instanceof UpdateContainer)
-			{
-				auditedEntity.setChangeType(AuditedEntityChangeType.UPDATE);
-				auditPUIs(((UpdateContainer) changeContainer).getPrimitives(), auditedEntity, metaData);
-				auditRUIs(((UpdateContainer) changeContainer).getRelations(), auditedEntity, metaData);
-			}
-			else if (changeContainer instanceof DeleteContainer)
-			{
-				auditedEntity.setChangeType(AuditedEntityChangeType.DELETE);
-			}
-			auditedEntity.setEntityType(objRef.getRealType());
-			auditedEntity.setEntityId(objRef.getId());
-			auditedEntity.setEntityVersion(objRef.getVersion());
-
-			if (auditEntry == null)
-			{
-				auditEntry = ensureAuditEntry();
-				entities = (List<IAuditedEntity>) auditEntry.getEntities();
-			}
-			auditedEntity.setOrder(entities.size() + 1);
-
-			entities.add(auditedEntity);
+			IAuditEntry auditEntry = ensureAuditEntry();
+			((Collection<IAuditedEntity>) auditEntry.getEntities()).addAll(entities);
 		}
 	}
 
+	protected void auditChangeContainer(IChangeContainer changeContainer, List<IAuditedEntity> auditedEntities)
+	{
+		IObjRef objRef = changeContainer.getReference();
+		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+		IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
+		if (auditConfiguration == null)
+		{
+			return;
+		}
+		IAuditedEntity auditedEntity = entityFactory.createEntity(IAuditedEntity.class);
+
+		if (changeContainer instanceof CreateContainer)
+		{
+			auditedEntity.setChangeType(AuditedEntityChangeType.INSERT);
+			auditPUIs(((CreateContainer) changeContainer).getPrimitives(), auditedEntity, metaData, auditConfiguration);
+			auditRUIs(((CreateContainer) changeContainer).getRelations(), auditedEntity, metaData, auditConfiguration);
+		}
+		else if (changeContainer instanceof UpdateContainer)
+		{
+			auditedEntity.setChangeType(AuditedEntityChangeType.UPDATE);
+			auditPUIs(((UpdateContainer) changeContainer).getPrimitives(), auditedEntity, metaData, auditConfiguration);
+			auditRUIs(((UpdateContainer) changeContainer).getRelations(), auditedEntity, metaData, auditConfiguration);
+		}
+		else if (changeContainer instanceof DeleteContainer)
+		{
+			auditedEntity.setChangeType(AuditedEntityChangeType.DELETE);
+		}
+		auditedEntity.setEntityType(objRef.getRealType());
+		auditedEntity.setEntityId(objRef.getId());
+		auditedEntity.setEntityVersion(objRef.getVersion());
+
+		auditedEntities.add(auditedEntity);
+	}
+
 	@SuppressWarnings("unchecked")
-	protected void auditPUIs(IPrimitiveUpdateItem[] puis, IAuditedEntity auditedEntity, IEntityMetaData metaData)
+	protected void auditPUIs(IPrimitiveUpdateItem[] puis, IAuditedEntity auditedEntity, IEntityMetaData metaData, IAuditConfiguration auditConfiguration)
 	{
 		if (puis == null)
 		{
@@ -306,15 +322,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		List<IAuditedEntityPrimitiveProperty> properties = (List<IAuditedEntityPrimitiveProperty>) auditedEntity.getPrimitives();
 		for (IPrimitiveUpdateItem pui : puis)
 		{
-			Member member = metaData.getMemberByName(pui.getMemberName());
-			Audited audited = member.getAnnotation(Audited.class);
-			boolean auditMember = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
-
-			if (!auditMember)
+			if (!auditConfiguration.getMemberConfiguration(pui.getMemberName()).isAuditActive())
 			{
 				continue;
 			}
-			IAuditedEntityPrimitiveProperty property = auditEntryFactory.createAuditedEntityPrimitiveProperty();
+			IAuditedEntityPrimitiveProperty property = entityFactory.createEntity(IAuditedEntityPrimitiveProperty.class);
 			property.setName(pui.getMemberName());
 			property.setNewValue(pui.getNewValue());
 			property.setOrder(properties.size() + 1);
@@ -324,7 +336,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void auditRUIs(IRelationUpdateItem[] ruis, IAuditedEntity auditedEntity, IEntityMetaData metaData)
+	protected void auditRUIs(IRelationUpdateItem[] ruis, IAuditedEntity auditedEntity, IEntityMetaData metaData, IAuditConfiguration auditConfiguration)
 	{
 		if (ruis == null)
 		{
@@ -333,15 +345,12 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		List<IAuditedEntityRelationProperty> properties = (List<IAuditedEntityRelationProperty>) auditedEntity.getRelations();
 		for (IRelationUpdateItem rui : ruis)
 		{
-			Member member = metaData.getMemberByName(rui.getMemberName());
-			Audited audited = member.getAnnotation(Audited.class);
-			boolean auditMember = audited != null ? audited.value() : auditedEntityPropertyDefaultModeActive;
-
-			if (!auditMember)
+			if (!auditConfiguration.getMemberConfiguration(rui.getMemberName()).isAuditActive())
 			{
 				continue;
 			}
-			IAuditedEntityRelationProperty property = auditEntryFactory.createAuditedEntityRelationProperty();
+
+			IAuditedEntityRelationProperty property = entityFactory.createEntity(IAuditedEntityRelationProperty.class);
 			property.setName(rui.getMemberName());
 
 			List<IAuditedEntityRelationPropertyItem> items = (List<IAuditedEntityRelationPropertyItem>) property.getItems();
@@ -370,7 +379,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	protected void auditPropertyItem(IObjRef objRef, List<IAuditedEntityRelationPropertyItem> propertyItems, AuditedEntityPropertyItemChangeType changeType)
 	{
-		IAuditedEntityRelationPropertyItem propertyItem = auditEntryFactory.createAuditedEntityRelationPropertyItem();
+		IAuditedEntityRelationPropertyItem propertyItem = entityFactory.createEntity(IAuditedEntityRelationPropertyItem.class);
 
 		propertyItem.setEntityId(objRef.getId());
 		propertyItem.setEntityType(objRef.getRealType());
@@ -384,8 +393,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected void signAuditEntry(IAuditEntry auditEntry)
 	{
 		IUser user = auditEntry.getUser();
-		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user);
-		auditEntry.setUserIdentifier(userIdentifierProvider.getUserIdentifier(user));
+		char[] clearTextPassword = clearTextPasswordTL.get();
+
+		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user, clearTextPassword);
+		auditEntry.setUserIdentifier(userIdentifierProvider.getSID(user));
 		auditEntry.setSignatureOfUser(user != null ? user.getSignature() : null);
 		if (signatureHandle == null)
 		{
@@ -502,6 +513,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void handlePostRollback(long sessionId) throws Throwable
 	{
 		auditEntryTL.remove();
+		clearTextPasswordTL.remove();
 	}
 
 	@Override
@@ -514,8 +526,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 		auditEntryTL.remove();
 
-		signAuditEntry(auditEntry);
-
 		ownAuditMergeActiveTL.set(Boolean.TRUE);
 		try
 		{
@@ -525,6 +535,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 				@Override
 				public Object invoke() throws Throwable
 				{
+					signAuditEntry(auditEntry);
 					mergeProcess.process(auditEntry, null, new ProceedWithMergeHook()
 					{
 						@Override
@@ -561,6 +572,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		finally
 		{
 			ownAuditMergeActiveTL.remove();
+			clearTextPasswordTL.remove();
 		}
 	}
 

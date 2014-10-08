@@ -115,7 +115,7 @@ namespace De.Osthus.Ambeth.Cache
 	    public IPrivilegeProvider PrivilegeProvider { protected get; set; }
         
         [Property(Mandatory = false)]
-        public bool Privileged { get; set; }
+        public override bool Privileged { get; set; }
 
         protected readonly Lock pendingKeysReadLock, pendingKeysWriteLock;
 
@@ -127,6 +127,14 @@ namespace De.Osthus.Ambeth.Cache
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
         public bool IsClientMode { protected get; set; }
+
+	    public IRootCache Parent
+	    {
+            get
+            {
+		        return CacheRetriever is IRootCache ? (IRootCache) CacheRetriever : null;
+            }
+	    }
 
         public override int CacheId { get { return -1; } set { throw new NotSupportedException(); } }
 
@@ -209,6 +217,27 @@ namespace De.Osthus.Ambeth.Cache
             cacheValue.SetRelations(relations);
         }
 
+        protected bool IsCacheRetrieverCallAllowed(CacheDirective cacheDirective)
+	    {
+		    if (CacheRetriever == null)
+		    {
+			    // without a valid cacheRetriever a call is never allowed
+			    return false;
+		    }
+		    if (cacheDirective.HasFlag(CacheDirective.FailEarly))
+		    {
+			    // with FailEarly a cascading call is never allowed
+			    return false;
+		    }
+		    if (cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy) && !(CacheRetriever is IRootCache))
+		    {
+			    // with FailInCacheHierarchy a cascading call is only allowed if the cacheRetriever is itself an instance of IRootCache
+			    return false;
+		    }
+		    // in the end a call is only allowed if it is not forbidden for the current thread
+		    return !AbstractCache.FailInCacheHierarchyModeActive;
+	    }
+
         public Object GetObject(IObjRef oriToGet, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
             CheckNotDisposed();
@@ -258,6 +287,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return new List<Object>(0);
             }
+            bool isCacheRetrieverCallAllowed = IsCacheRetrieverCallAllowed(cacheDirective);
             IEventQueue eventQueue = EventQueue;
             if (eventQueue != null)
             {
@@ -267,14 +297,19 @@ namespace De.Osthus.Ambeth.Cache
             {
                 Lock readLock = ReadLock;
                 Lock writeLock = WriteLock;
-                bool oldCacheModificationValue = CacheModification.Active;
+                ICacheModification cacheModification = this.CacheModification;
+                bool oldCacheModificationValue = cacheModification.Active;
                 bool acquireSuccess = AcquireHardRefTLIfNotAlready(orisToGet.Count);
-                CacheModification.Active = true;
+                if (!oldCacheModificationValue)
+                {
+                    cacheModification.Active = true;
+                }
                 try
                 {
-                    if (cacheDirective.HasFlag(CacheDirective.FailEarly) || cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy)
-                        || CacheRetriever == null || AbstractCache<Object>.FailEarlyModeActive)
+                    if (!isCacheRetrieverCallAllowed)
                     {
+                        // if the cascading call is not allowed we need no pre-scanning for cache-misses
+                        // we have to do our best while we create the result directly
                         readLock.Lock();
                         try
                         {
@@ -319,7 +354,10 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 finally
                 {
-                    CacheModification.Active = oldCacheModificationValue;
+                    if (!oldCacheModificationValue)
+                    {
+                        cacheModification.Active = oldCacheModificationValue;
+                    }
                     ClearHardRefs(acquireSuccess);
                 }
             }
@@ -346,7 +384,7 @@ namespace De.Osthus.Ambeth.Cache
             if (orisToLoad.Count == 0)
             {
                 // Everything found in the cache. We STILL hold the readlock so we can immediately create the result
-                // We already even checked the version. So we do not bother version anymore here
+                // We already even checked the version. So we do not bother with versions anymore here
                 try
                 {
                     return CreateResult(orisToGet, rootCacheValuesToGet, cacheDirective, targetCache, false);
@@ -439,7 +477,7 @@ namespace De.Osthus.Ambeth.Cache
         public IList<IObjRelationResult> GetObjRelations(IList<IObjRelation> objRels, ICacheIntern targetCache, CacheDirective cacheDirective)
         {
             CheckNotDisposed();
-            bool failEarly = cacheDirective.HasFlag(CacheDirective.FailEarly) || cacheDirective.HasFlag(CacheDirective.FailInCacheHierarchy);
+            bool isCacheRetrieverCallAllowed = IsCacheRetrieverCallAllowed(cacheDirective);
             bool returnMisses = cacheDirective.HasFlag(CacheDirective.ReturnMisses);
             IList<IObjRelationResult> objRelResults = new List<IObjRelationResult>(objRels.Count);
 
@@ -483,7 +521,7 @@ namespace De.Osthus.Ambeth.Cache
                                 }
                             }
                             IObjRelationResult selfResult = GetObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
-                            if (selfResult == null && !failEarly)
+                            if (selfResult == null && isCacheRetrieverCallAllowed)
                             {
                                 objRelMisses.Add(objRel);
                             }

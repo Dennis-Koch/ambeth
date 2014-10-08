@@ -7,5 +7,7 @@ namespace De.Osthus.Ambeth.Cache
         bool ApplyValues(Object targetObject, ICacheIntern targetCache);
 
         IRootCache CurrentRootCache { get; }
+
+        IRootCache Parent { get; }
     }
 }

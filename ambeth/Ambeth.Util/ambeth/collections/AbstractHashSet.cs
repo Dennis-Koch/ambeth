@@ -393,6 +393,18 @@ namespace De.Osthus.Ambeth.Collections
             return true;
         }
 
+        public bool ContainsAny(IEnumerable c)
+        {
+            foreach (Object key in c)
+            {
+                if (Contains((K)key))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public virtual bool RemoveAll(IEnumerable c)
         {
             bool changed = false;
