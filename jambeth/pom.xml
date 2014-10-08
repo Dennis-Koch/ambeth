@@ -19,7 +19,7 @@
 	</properties>
 
 	<modules>
-		<module>jambeth-audit</module>
+		<module>jambeth-audit-server</module>
 		<module>jambeth-bytecode</module>
 		<module>jambeth-cache</module>
 		<module>jambeth-cache-bytecode</module>

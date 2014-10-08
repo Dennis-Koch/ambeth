@@ -5,15 +5,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.cache.AbstractCache;
-import de.osthus.ambeth.cache.CacheDirective;
-import de.osthus.ambeth.cache.ChildCache;
-import de.osthus.ambeth.cache.ICacheModification;
-import de.osthus.ambeth.cache.IFirstLevelCacheManager;
-import de.osthus.ambeth.cache.IRootCache;
-import de.osthus.ambeth.cache.ISecondLevelCacheManager;
-import de.osthus.ambeth.cache.IWritableCache;
-import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
@@ -602,7 +593,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				IObjRefContainer vhc = (IObjRefContainer) objectToUpdate;
 				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 				{
-					if (ValueHolderState.INIT != vhc.get__State(b))
+					if (ValueHolderState.INIT != vhc.get__State(relationIndex))
 					{
 						continue;
 					}
