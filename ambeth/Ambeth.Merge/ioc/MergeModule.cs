@@ -20,6 +20,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Xml;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Objrefstore;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -53,6 +54,7 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>();
 
             beanContextFactory.RegisterAutowireableBean<CompositeIdTemplate, CompositeIdTemplate>();
+            beanContextFactory.RegisterAutowireableBean<ObjRefTemplate, ObjRefTemplate>();
 
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
@@ -98,6 +100,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
 		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberTemplate>().Autowireable<EmbeddedMemberTemplate>();
+            
+            beanContextFactory.RegisterAnonymousBean<ObjRefFactory>().Autowireable<IObjRefFactory>();
 
             Type entityFactoryType = this.EntityFactoryType;
             if (entityFactoryType == null)
@@ -109,6 +113,8 @@ namespace De.Osthus.Ambeth.Ioc
             {
                 entityFactoryBC.Autowireable<IEntityInstantiationExtensionExtendable>();
             }
+
+            beanContextFactory.RegisterAnonymousBean<ObjRefStoreEntryProvider>().Autowireable<IObjRefStoreEntryProvider>();
 
             if (IsNetworkClientMode && IsMergeServiceBeanActive)
             {

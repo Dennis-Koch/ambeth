@@ -20,6 +20,7 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.User;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -60,6 +61,8 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
 			beanContextFactory.registerAnonymousBean(TestAuditService.class).autowireable(ITestAuditService.class);
+
+			beanContextFactory.registerAnonymousBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
 
 			IBeanConfiguration bc = beanContextFactory.registerAnonymousBean(ABC.class);
 			SecurityServerModule.linkPermissionRule(beanContextFactory, bc, User.class);

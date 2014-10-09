@@ -97,6 +97,9 @@ namespace De.Osthus.Ambeth.Cache
         public IObjectCopier ObjectCopier { protected get; set; }
 
         [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
+
+        [Autowired]
         public IObjRefHelper OriHelper { protected get; set; }
 
         [Autowired]
@@ -491,7 +494,7 @@ namespace De.Osthus.Ambeth.Cache
                 Lock readLock = ReadLock;
                 IList<IObjRelation> objRelMisses = new List<IObjRelation>();
                 Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap = new Dictionary<IObjRelation, IObjRelationResult>();
-                IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityDictionary<IObjRef, ObjRef>();
+                IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
 
                 ICacheModification cacheModification = this.CacheModification;
                 IProxyHelper proxyHelper = this.ProxyHelper;
@@ -593,7 +596,7 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         protected IObjRelationResult GetObjRelationIfValid(IObjRelation objRel, Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap,
-            IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs)
+            IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs)
         {
             IList<Object> cacheValues = GetObjects(objRel.ObjRefs, failEarlyCacheValueResultSet);
             if (cacheValues.Count == 0)
@@ -620,7 +623,7 @@ namespace De.Osthus.Ambeth.Cache
         }
 
         protected IList<IObjRelationResult> CreateResult(IList<IObjRelation> objRels, ICacheIntern targetCache,
-                Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs, bool returnMisses)
+                Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs, bool returnMisses)
         {
             IObjRefHelper oriHelper = this.OriHelper;
             IList<IObjRelationResult> objRelResults = new List<IObjRelationResult>(objRels.Count);
@@ -808,7 +811,7 @@ namespace De.Osthus.Ambeth.Cache
 		    return objRelResults;
 	    }
 
-        protected IObjRef[] CloneObjectRefArray(IObjRef[] objRefs, IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs)
+        protected IObjRef[] CloneObjectRefArray(IObjRef[] objRefs, IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs)
         {
             if (objRefs == null || objRefs.Length == 0)
             {
@@ -824,10 +827,10 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     continue;
                 }
-                ObjRef objRefClone = DictionaryExtension.ValueOrDefault(alreadyClonedObjRefs, objRef);
+                IObjRef objRefClone = DictionaryExtension.ValueOrDefault(alreadyClonedObjRefs, objRef);
                 if (objRefClone == null)
                 {
-                    objRefClone = new ObjRef(objRef.RealType, objRef.IdNameIndex, objRef.Id, objRef.Version);
+                    objRefClone = ObjRefFactory.Dup(objRef);
                     alreadyClonedObjRefs.Add(objRef, objRefClone);
                 }
                 objRefsClone[b] = objRefClone;
@@ -1076,7 +1079,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 List<Object> result = new List<Object>(objRefsToGet.Count);
                 List<IObjRef> tempObjRefList = null;
-                IdentityDictionary<IObjRef, ObjRef> alreadyClonedObjRefs = null;
+                IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs = null;
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                 {
                     IObjRef objRefToGet = objRefsToGet[a];
@@ -1105,14 +1108,14 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         IObjRef[][] relations = cacheValue.GetRelations();
                         LoadContainer loadContainer = new LoadContainer();
-                        loadContainer.Reference = new ObjRef(cacheValue.EntityType, ObjRef.PRIMARY_KEY_INDEX, cacheValue.Id, cacheValue.Version);
+                        loadContainer.Reference = ObjRefFactory.CreateObjRef(cacheValue);
                         loadContainer.Primitives = cacheValue.GetPrimitives();
                         relations = FilterRelations(relations, targetCache, filteringNecessary);
                         if (relations != null && relations.Length > 0)
                         {
                             if (alreadyClonedObjRefs == null)
                             {
-                                alreadyClonedObjRefs = new IdentityDictionary<IObjRef, ObjRef>();
+                                alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
                             }
                             IObjRef[][] objRefsClone = new IObjRef[relations.Length][];
                             for (int b = relations.Length; b-- > 0; )

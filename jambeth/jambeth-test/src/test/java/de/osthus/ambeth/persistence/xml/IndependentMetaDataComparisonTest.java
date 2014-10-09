@@ -19,7 +19,7 @@ import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.BytecodeModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
+import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -137,7 +137,7 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 		Properties.loadBootstrapPropertyFile();
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(baseProps);
-		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, ClientTestModule.class, CompositeIdModule.class, EventModule.class,
+		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, ClientTestModule.class, MergeBytecodeModule.class, EventModule.class,
 				IocBootstrapModule.class);
 
 		return beanContext;

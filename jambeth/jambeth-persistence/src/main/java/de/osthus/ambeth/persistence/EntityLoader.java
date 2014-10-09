@@ -32,6 +32,8 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
+import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.persistence.parallel.IEntityLoaderParallelInvoker;
@@ -77,6 +79,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IPersistenceHelper persistenceHelper;
@@ -237,6 +242,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				Class<?> idType = toIdIndex == ObjRef.PRIMARY_KEY_INDEX ? requestedTable.getIdField().getFieldType()
 						: requestedTable.getAlternateIdFields()[toIdIndex].getFieldType();
 				Member toIdMember = requestedMetaData.getIdMemberByIdIndex(toIdIndex);
+				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(requestedType, toIdIndex);
 				Class<?> toIdTypeOfObject = toIdMember.getRealType();
 				while (cursor.moveNext())
 				{
@@ -246,7 +252,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 					Object toId = conversionHelper.convertValueToType(idType, item.getToId());
 					toId = conversionHelper.convertValueToType(toIdTypeOfObject, toId);
 
-					ObjRef targetObjRef = new ObjRef(requestedType, toIdIndex, toId, null);
+					IObjRef targetObjRef = preparedObjRefFactory.createObjRef(toId, null);
 
 					Object[] objects = targetingIdsMap.get(fromId);
 
@@ -358,7 +364,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		values.add(givenOri.getId());
 
-		IObjRef objRef = new ObjRef(targetingRequestType, idIndex, null, null);
+		IObjRef objRef = objRefFactory.createObjRef(targetingRequestType, idIndex, null, null);
 		CacheKey cacheKey = new CacheKey();
 		cacheKey.setEntityType(givenOri.getRealType());
 		cacheKey.setIdNameIndex(givenOri.getIdNameIndex());
@@ -547,7 +553,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			IObjRef objRef = alreadyLoadedCache.getRef(idIndex, persistentId, type);
 			if (objRef == null)
 			{
-				objRef = new ObjRef(type, idIndex, objectId, null);
+				objRef = objRefFactory.createObjRef(type, idIndex, objectId, null);
 				alreadyLoadedCache.add(idIndex, persistentId, type, objRef);
 				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idIndex);
 				pendingInit.add(persistentId);
@@ -564,7 +570,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				IObjRef objRef = alreadyLoadedCache.getRef(idIndex, persistentId, type);
 				if (objRef == null)
 				{
-					objRef = new ObjRef(type, idIndex, objectId, null);
+					objRef = objRefFactory.createObjRef(type, idIndex, objectId, null);
 					alreadyLoadedCache.add(idIndex, persistentId, type, objRef, loadContainer);
 				}
 				else
@@ -690,7 +696,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			IObjRef ori = alreadyLoadedCache.getRef(idIndex, id, entityType);
 			if (ori == null)
 			{
-				ori = new ObjRef(entityType, idIndex, id, null);
+				ori = objRefFactory.createObjRef(entityType, idIndex, id, null);
 				alreadyLoadedCache.add(idIndex, id, entityType, ori);
 			}
 			if (ori.getVersion() == null)
@@ -946,7 +952,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 							Class<?> expectedType = toMember.getRealType();
 
 							Object idOfObject = conversionHelper.convertValueToType(expectedType, dbValue);
-							toOri = new ObjRef(toEntityType, toIdIndex, idOfObject, null);
+							toOri = objRefFactory.createObjRef(toEntityType, toIdIndex, idOfObject, null);
 							alreadyLoadedCache.add(toIdIndex, dbValue, toEntityType, toOri);
 						}
 						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
@@ -1218,6 +1224,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			{
 				return;
 			}
+			IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(linkedEntityType, toIdIndex);
 			IConversionHelper conversionHelper = this.conversionHelper;
 			IInterningFeature interningFeature = this.interningFeature;
 			while (linkCursor.moveNext())
@@ -1240,7 +1247,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				}
 				else
 				{
-					objRef = new ObjRef(linkedEntityType, toIdIndex, toId, null);
+					objRef = preparedObjRefFactory.createObjRef(toId, null);
 				}
 
 				List<IObjRef>[] relationBuilds = loadContainer.getRelationBuilds();
@@ -1272,7 +1279,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			{
 				Class<?> idTypeOfObject = table.getIdField().getMember().getRealType();
 				Object idOfObject = conversionHelper.convertValueToType(idTypeOfObject, id);
-				primaryIdObjRef = new ObjRef(type, ObjRef.PRIMARY_KEY_INDEX, idOfObject, version);
+				primaryIdObjRef = objRefFactory.createObjRef(type, ObjRef.PRIMARY_KEY_INDEX, idOfObject, version);
 			}
 			loadContainer.setReference(primaryIdObjRef);
 			alreadyLoadedCache.add(key, primaryIdObjRef, loadContainer);

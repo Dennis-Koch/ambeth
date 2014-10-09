@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Merge.Model;
 
 namespace De.Osthus.Ambeth.Xml
 {
@@ -21,6 +22,8 @@ namespace De.Osthus.Ambeth.Xml
         protected Tuple2KeyHashMap<String, String, Type> xmlTypeToClassMap = new Tuple2KeyHashMap<String, String, Type>(0.5f);
 
         protected Dictionary<Type, IList<XmlTypeKey>> classToXmlTypeMap = new Dictionary<Type, IList<XmlTypeKey>>();
+
+        protected Dictionary<Type, IList<XmlTypeKey>> weakClassToXmlTypeMap = new Dictionary<Type, IList<XmlTypeKey>>();
 
         protected readonly Lock readLock, writeLock;
 
@@ -111,7 +114,38 @@ namespace De.Osthus.Ambeth.Xml
             readLock.Lock();
             try
             {
-                IList<XmlTypeKey> xmlTypeKeys = DictionaryExtension.ValueOrDefault(classToXmlTypeMap, type);
+                IList<XmlTypeKey> xmlTypeKeys = DictionaryExtension.ValueOrDefault(weakClassToXmlTypeMap, type);
+			    if (xmlTypeKeys == null)
+			    {
+				    xmlTypeKeys = DictionaryExtension.ValueOrDefault(classToXmlTypeMap, type);
+				    if (xmlTypeKeys == null)
+				    {
+					    Type realType = type;
+					    if (typeof(IObjRef).IsAssignableFrom(type))
+					    {
+						    realType = typeof(IObjRef);
+					    }
+					    xmlTypeKeys = DictionaryExtension.ValueOrDefault(classToXmlTypeMap, realType);
+				    }
+				    if (xmlTypeKeys != null)
+				    {
+					    readLock.Unlock();
+					    writeLock.Lock();
+					    try
+					    {
+                            if (!weakClassToXmlTypeMap.ContainsKey(type))
+                            {
+                                weakClassToXmlTypeMap.Add(type, xmlTypeKeys);
+                            }
+					    }
+					    finally
+					    {
+						    writeLock.Unlock();
+						    readLock.Lock();
+					    }
+				    }
+			    }
+
                 if ((xmlTypeKeys == null || xmlTypeKeys.Count == 0) && expectExisting)
                 {
                     throw new Exception("No xml type found: Type=" + type);

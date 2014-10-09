@@ -15,6 +15,8 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.IProxyHelper;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, IXmlTypeRegistry
@@ -25,6 +27,11 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 
 	@Autowired
 	protected ILoggerHistory loggerHistory;
+
+	@Autowired
+	protected IProxyHelper proxyHelper;
+
+	protected final HashMap<Class<?>, List<XmlTypeKey>> weakClassToXmlTypeMap = new HashMap<Class<?>, List<XmlTypeKey>>(0.5f);
 
 	protected final Tuple2KeyHashMap<String, String, Class<?>> xmlTypeToClassMap = new Tuple2KeyHashMap<String, String, Class<?>>(0.5f);
 
@@ -117,7 +124,34 @@ public class XmlTypeRegistry implements IXmlTypeExtendable, IInitializingBean, I
 		readLock.lock();
 		try
 		{
-			List<XmlTypeKey> xmlTypeKeys = classToXmlTypeMap.get(type);
+			List<XmlTypeKey> xmlTypeKeys = weakClassToXmlTypeMap.get(type);
+			if (xmlTypeKeys == null)
+			{
+				xmlTypeKeys = classToXmlTypeMap.get(type);
+				if (xmlTypeKeys == null)
+				{
+					Class<?> realType = type;
+					if (IObjRef.class.isAssignableFrom(type))
+					{
+						realType = IObjRef.class;
+					}
+					xmlTypeKeys = classToXmlTypeMap.get(realType);
+				}
+				if (xmlTypeKeys != null)
+				{
+					readLock.unlock();
+					writeLock.lock();
+					try
+					{
+						weakClassToXmlTypeMap.put(type, xmlTypeKeys);
+					}
+					finally
+					{
+						writeLock.unlock();
+						readLock.lock();
+					}
+				}
+			}
 			if (expectExisting && xmlTypeKeys == null)
 			{
 				throw new IllegalArgumentException("No xml type found: Type=" + type);

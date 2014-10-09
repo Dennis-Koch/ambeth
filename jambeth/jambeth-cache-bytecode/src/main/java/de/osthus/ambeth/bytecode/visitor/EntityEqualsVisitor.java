@@ -96,7 +96,7 @@ public class EntityEqualsVisitor extends ClassGenerator
 		{
 			MethodInstance methodTemplate = new MethodInstance(null, Object.class, String.class, "toString");
 			MethodInstance method = MethodInstance.findByTemplate(methodTemplate, true);
-			if (Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
+			if (method == null || Type.getType(Object.class).equals(method.getOwner()) || (method.getAccess() & Opcodes.ACC_ABSTRACT) != 0)
 			{
 				MethodGenerator mg = visitMethod(methodTemplate);
 				mg.callThisGetter(p_entityEqualsTemplate);

@@ -15,9 +15,15 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-
 public class CacheMapEntryVisitor extends ClassGenerator
 {
+	private static final MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
+	private static final MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
+	private static final MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
+	private static final MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
+	private static final MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class,
+			byte.class, Object.class);
+
 	protected final IEntityMetaData metaData;
 
 	protected final byte idIndex;
@@ -32,12 +38,6 @@ public class CacheMapEntryVisitor extends ClassGenerator
 	@Override
 	public void visitEnd()
 	{
-		MethodInstance template_m_getEntityType = new MethodInstance(null, CacheMapEntry.class, Class.class, "getEntityType");
-		MethodInstance template_m_getIdIndex = new MethodInstance(null, CacheMapEntry.class, byte.class, "getIdIndex");
-		MethodInstance template_m_getId = new MethodInstance(null, CacheMapEntry.class, Object.class, "getId");
-		MethodInstance template_m_setId = new MethodInstance(null, CacheMapEntry.class, void.class, "setId", Object.class);
-		MethodInstance template_m_isEqualTo = new MethodInstance(null, CacheMapEntry.class, boolean.class, "isEqualTo", Class.class, byte.class, Object.class);
-
 		Type entityType = Type.getType(metaData.getEntityType());
 		{
 			MethodGenerator mv = visitMethod(template_m_getEntityType);

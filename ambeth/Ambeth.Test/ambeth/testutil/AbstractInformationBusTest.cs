@@ -23,7 +23,7 @@ namespace De.Osthus.Ambeth.Testutil
     [DeploymentItem(@"Ambeth.Service.dll")]
     //[DeploymentItem(@"Ambeth.Stream.dll")]
     [TestFrameworkModule(typeof(BytecodeModule), typeof(CacheModule), typeof(CacheBytecodeModule), typeof(CacheDataChangeModule), /*typeof(CacheStreamModule), */typeof(DataChangeModule),
-            typeof(EventModule), typeof(EventDataChangeModule), typeof(MappingModule), typeof(MergeModule), typeof(CompositeIdModule), typeof(ObjectCopierModule), typeof(SecurityModule), typeof(PrivilegeModule),
+            typeof(EventModule), typeof(EventDataChangeModule), typeof(MappingModule), typeof(MergeModule), typeof(MergeBytecodeModule), typeof(ObjectCopierModule), typeof(SecurityModule), typeof(PrivilegeModule),
         /*typeof(SensorModule), */typeof(ServiceModule)/*, typeof(StreamModule)*/)]
     [TestProperties(Name = ServiceConfigurationConstants.IndependentMetaData, Value = "true")]
     public abstract class AbstractInformationBusTest : AbstractIocTest

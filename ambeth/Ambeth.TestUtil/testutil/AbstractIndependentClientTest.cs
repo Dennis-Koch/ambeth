@@ -21,7 +21,7 @@ namespace De.Osthus.Ambeth.Testutil
     [TestProperties(Name = ServiceConfigurationConstants.NetworkClientMode, Value = "false")]
     [TestProperties(Name = CacheConfigurationConstants.CacheServiceBeanActive, Value = "true")]
     [TestFrameworkModule(typeof(TestUtilModule), typeof(BytecodeModule), typeof(CacheModule), typeof(CacheBytecodeModule),
-        typeof(CacheDataChangeModule), typeof(CompositeIdModule), typeof(EventModule), typeof(MergeModule),
+        typeof(CacheDataChangeModule), typeof(MergeBytecodeModule), typeof(EventModule), typeof(MergeModule),
         typeof(MappingModule), typeof(ObjectCopierModule), typeof(ServiceModule))]
     public abstract class AbstractIndependentClientTest : AbstractIocTest
     {
@@ -36,7 +36,7 @@ namespace De.Osthus.Ambeth.Testutil
             IInitializingModule cacheBytecode = new CacheBytecodeModule();
             IInitializingModule cacheDataChange = new CacheDataChangeModule();
             IInitializingModule mapping = new MappingModule();
-            IInitializingModule mergeBytecode = new CompositeIdModule();
+            IInitializingModule mergeBytecode = new MergeBytecodeModule();
         }
     }
 }

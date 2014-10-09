@@ -1,6 +1,5 @@
 package de.osthus.ambeth.metadata;
 
-import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
@@ -239,7 +238,6 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		String[] memberNamePath = EmbeddedMember.split(propertyName);
 		Class<?> currDeclaringType = entityType;
 		Member[] members = new Member[memberNamePath.length];
-		Annotation[] lastMemberAnnotations = null;
 		for (int a = 0, size = memberNamePath.length; a < size; a++)
 		{
 			IPropertyInfo property = propertyInfoProvider.getProperty(currDeclaringType, memberNamePath[a]);

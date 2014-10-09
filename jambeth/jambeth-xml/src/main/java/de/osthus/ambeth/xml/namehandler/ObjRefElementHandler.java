@@ -4,8 +4,11 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.xml.INameBasedHandler;
 import de.osthus.ambeth.xml.IReader;
@@ -22,14 +25,17 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IObjRefFactory objRefFactory;
+
 	@Override
 	public boolean writesCustom(Object obj, Class<?> type, IWriter writer)
 	{
-		if (!ObjRef.class.equals(type))
+		if (!IObjRef.class.isAssignableFrom(type) || IDirectObjRef.class.isAssignableFrom(type))
 		{
 			return false;
 		}
-		ObjRef ori = (ObjRef) obj;
+		IObjRef ori = (IObjRef) obj;
 		writeOpenElement(ori, writer);
 		writer.writeObject(ori.getRealType());
 		writer.writeObject(ori.getId());
@@ -80,12 +86,12 @@ public class ObjRefElementHandler extends AbstractHandler implements INameBasedH
 			}
 		}
 
-		ObjRef obj = new ObjRef(realType, idIndex, objId, version);
+		IObjRef obj = objRefFactory.createObjRef(realType, idIndex, objId, version);
 
 		return obj;
 	}
 
-	protected void writeOpenElement(ObjRef ori, IWriter writer)
+	protected void writeOpenElement(IObjRef ori, IWriter writer)
 	{
 		writer.writeStartElement(xmlDictionary.getEntityRefElement());
 		int id = writer.acquireIdForObject(ori);

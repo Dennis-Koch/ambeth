@@ -75,11 +75,11 @@ import de.osthus.ambeth.util.ParamHolder;
 @SQLStructure("QueryMassdata_structure.sql")
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
 		@TestProperties(name = IocConfigurationConstants.MonitorBeansActive, value = "false"),
-		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "300"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "200"),
+		@TestProperties(name = QueryMassdataTest.DURATION_PER_TEST, value = "300"), @TestProperties(name = QueryMassdataTest.QUERY_PAGE_SIZE, value = "500"),
 		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
-		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "50000"),
+		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "500000"),
 		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassdataTest.ROW_COUNT + "}"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),

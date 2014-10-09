@@ -107,6 +107,12 @@
     <Compile Include="ambeth\merge\model\IDirectObjRef.cs" />
     <Compile Include="ambeth\merge\model\IPrimitiveUpdateItem.cs" />
     <Compile Include="ambeth\merge\model\IRelationUpdateItem.cs" />
+    <Compile Include="ambeth\objrefstore\IObjRefStoreEntryProvider.cs" />
+    <Compile Include="ambeth\objrefstore\IObjRefStoreFactory.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStore.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreEnhancementHint.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreEntryProvider.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreSet.cs" />
     <Compile Include="ambeth\orm\EntityConfig.cs" />
     <Compile Include="ambeth\orm\ExternalLinkConfig.cs" />
     <Compile Include="ambeth\orm\ILinkConfig.cs" />
@@ -263,6 +269,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\metadata\IIntermediateMemberTypeProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\metadata\IObjRefFactory.cs" />
+    <Compile Include="ambeth\metadata\IPreparedObjRefFactory.cs" />
+    <Compile Include="ambeth\metadata\ObjRefEnhancementHint.cs" />
+    <Compile Include="ambeth\metadata\ObjRefFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\template\ObjRefTemplate.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

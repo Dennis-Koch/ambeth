@@ -160,7 +160,7 @@ public class ObjRef implements IObjRef, IPrintable
 	@Override
 	public int hashCode()
 	{
-		return getId().hashCode() ^ getRealType().hashCode();
+		return getId().hashCode() ^ getRealType().hashCode() ^ getIdNameIndex();
 	}
 
 	@Override
@@ -171,15 +171,19 @@ public class ObjRef implements IObjRef, IPrintable
 		return sb.toString();
 	}
 
-	protected String getClassName()
-	{
-		return "ObjRef";
-	}
-
 	@Override
 	public void toString(StringBuilder sb)
 	{
-		sb.append(getClassName()).append(" id=").append(idNameIndex).append(",");
+		sb.append("ObjRef ");
+		byte idIndex = getIdNameIndex();
+		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+		{
+			sb.append("PK=");
+		}
+		else
+		{
+			sb.append("AK").append(idIndex).append('=');
+		}
 		StringBuilderUtil.appendPrintable(sb, getId());
 		sb.append(" version=").append(getVersion()).append(" type=").append(getRealType().getName());
 	}

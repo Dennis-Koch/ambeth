@@ -12,7 +12,7 @@
 	</parent>
 
 	<modules>
-		<module>../jambeth-audit-test</module>
+		<module>../jambeth-audit-server-test</module>
 		<module>../jambeth-bytecode-test</module>
 		<module>../jambeth-cache-test</module>
 		<module>../jambeth-cache-bytecode-test</module>

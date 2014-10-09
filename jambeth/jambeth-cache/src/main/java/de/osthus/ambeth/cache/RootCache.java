@@ -49,6 +49,7 @@ import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
@@ -132,6 +133,9 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 	@Autowired(optional = true)
 	protected IObjectCopier objectCopier;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
@@ -564,7 +568,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			Lock readLock = getReadLock();
 			final ArrayList<IObjRelation> objRelMisses = new ArrayList<IObjRelation>();
 			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap = new HashMap<IObjRelation, IObjRelationResult>();
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
 
 			ICacheModification cacheModification = this.cacheModification;
 			boolean oldCacheModificationValue = cacheModification.isActive();
@@ -675,7 +679,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	protected IObjRelationResult getObjRelationIfValid(IObjRelation objRel, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs)
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
 	{
 		IList<Object> cacheValues = getObjects(objRel.getObjRefs(), failEarlyCacheValueResultSet);
 		if (cacheValues.size() == 0)
@@ -702,7 +706,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	protected IList<IObjRelationResult> createResult(List<IObjRelation> objRels, ICacheIntern targetCache,
-			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs, boolean returnMisses)
+			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs, boolean returnMisses)
 	{
 		IObjRefHelper oriHelper = this.oriHelper;
 		ArrayList<IObjRelationResult> objRelResults = new ArrayList<IObjRelationResult>(objRels.size());
@@ -890,7 +894,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		return objRelResults;
 	}
 
-	protected IObjRef[] cloneObjectRefArray(IObjRef[] objRefs, IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs)
+	protected IObjRef[] cloneObjectRefArray(IObjRef[] objRefs, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
 	{
 		if (objRefs == null || objRefs.length == 0)
 		{
@@ -905,10 +909,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			{
 				continue;
 			}
-			ObjRef objRefClone = alreadyClonedObjRefs.get(objRef);
+			IObjRef objRefClone = alreadyClonedObjRefs.get(objRef);
 			if (objRefClone == null)
 			{
-				objRefClone = new ObjRef(objRef.getRealType(), objRef.getIdNameIndex(), objRef.getId(), objRef.getVersion());
+				objRefClone = objRefFactory.dup(objRef);
 				alreadyClonedObjRefs.put(objRef, objRefClone);
 			}
 			objRefsClone[b] = objRefClone;
@@ -1171,7 +1175,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			ArrayList<Object> result = new ArrayList<Object>(objRefsToGet.size());
 			ArrayList<IObjRef> tempObjRefList = null;
-			IdentityHashMap<IObjRef, ObjRef> alreadyClonedObjRefs = null;
+			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs = null;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
 				IObjRef objRefToGet = objRefsToGet.get(a);
@@ -1208,14 +1212,14 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				{
 					IObjRef[][] relations = cacheValue.getRelations();
 					LoadContainer loadContainer = new LoadContainer();
-					loadContainer.setReference(new ObjRef(cacheValue.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, cacheValue.getId(), cacheValue.getVersion()));
+					loadContainer.setReference(objRefFactory.createObjRef(cacheValue));
 					loadContainer.setPrimitives(cacheValue.getPrimitives());
 					relations = filterRelations(relations, filteringNecessary);
 					if (relations != null && relations.length > 0)
 					{
 						if (alreadyClonedObjRefs == null)
 						{
-							alreadyClonedObjRefs = new IdentityHashMap<IObjRef, ObjRef>();
+							alreadyClonedObjRefs = new IdentityHashMap<IObjRef, IObjRef>();
 						}
 						IObjRef[][] objRefsClone = new IObjRef[relations.length][];
 						for (int b = relations.length; b-- > 0;)

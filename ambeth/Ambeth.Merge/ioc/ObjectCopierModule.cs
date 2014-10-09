@@ -20,7 +20,7 @@ namespace De.Osthus.Ambeth.Ioc
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
             // Default ObjectCopier implementation
-            IBeanConfiguration objectCopier = beanContextFactory.RegisterAnonymousBean<ObjectCopier>().Autowireable(typeof(IObjectCopier), typeof(IObjectCopierExtendable));
+            beanContextFactory.RegisterAnonymousBean<ObjectCopier>().Autowireable(typeof(IObjectCopier), typeof(IObjectCopierExtendable));
 
             // Default ObjectCopier extensions
             IBeanConfiguration stringBuilderOCE = beanContextFactory.RegisterAnonymousBean<StringBuilderOCE>();

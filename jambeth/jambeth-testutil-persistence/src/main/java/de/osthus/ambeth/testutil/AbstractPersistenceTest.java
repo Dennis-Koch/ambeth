@@ -13,7 +13,7 @@ import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.CacheServerModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
+import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.EventDataChangeModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.EventServerModule;
@@ -40,7 +40,7 @@ import de.osthus.ambeth.query.ioc.SQLQueryModule;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest.PersistencePropertiesProvider;
 import de.osthus.ambeth.util.IConversionHelper;
 
-@TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, CompositeIdModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
+@TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, MergeBytecodeModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
 		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, SQLQueryModule.class,

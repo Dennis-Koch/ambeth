@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.Pending;
 using De.Osthus.Ambeth.Xml.Typehandler;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Xml.Namehandler
 {
@@ -20,6 +21,9 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
 
         [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
+        [Autowired]
+        public IObjRefFactory ObjRefFactory { protected get; set; }
 
         [Autowired]
         public IObjRefHelper ObjRefHelper { protected get; set; }
@@ -72,7 +76,7 @@ namespace De.Osthus.Ambeth.Xml.Namehandler
             Object objId = reader.ReadObject();
             Object version = reader.ReadObject();
 
-            ObjRef ori = new ObjRef(realType, idIndex, objId, version);
+            IObjRef ori = ObjRefFactory.CreateObjRef(realType, idIndex, objId, version);
 
             Object obj = new ObjRefFuture(ori);
 

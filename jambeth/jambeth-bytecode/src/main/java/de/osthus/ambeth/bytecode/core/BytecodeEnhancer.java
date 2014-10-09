@@ -267,13 +267,13 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 			{
 				checkEnhancedTypeConsistency(enhancedType);
 			}
-			catch (RuntimeException e)
+			catch (Throwable e)
 			{
 				if (log.isErrorEnabled())
 				{
 					log.error(bytecodeClassLoader.toPrintableBytecode(enhancedType), e);
 				}
-				throw e;
+				throw RuntimeExceptionUtil.mask(e);
 			}
 
 			WeakReference<Class<?>> enhancedTypeR = new WeakReference<Class<?>>(enhancedType);

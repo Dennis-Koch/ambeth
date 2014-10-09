@@ -105,7 +105,7 @@ namespace De.Osthus.Ambeth.Merge.Transfer
 
         public override int GetHashCode()
         {
-            return (Id.GetHashCode() ^ RealType.GetHashCode());
+            return Id.GetHashCode() ^ RealType.GetHashCode() ^ IdNameIndex;
         }
 
 	    public override String ToString()
