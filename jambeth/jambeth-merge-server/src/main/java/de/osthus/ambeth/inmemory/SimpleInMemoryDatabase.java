@@ -50,6 +50,7 @@ import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.OriCollection;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IMethodDescription;
@@ -87,6 +88,9 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	@Autowired
 	protected IObjectCopier objectCopier;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected ITransactionState transactionState;
@@ -535,7 +539,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 			IObjRef newObjRef = givenObjRefToCopyMap.get(objRef);
 			if (newObjRef == null)
 			{
-				newObjRef = new ObjRef(objRef.getRealType(), ObjRef.PRIMARY_KEY_INDEX, Long.valueOf(++this.sequenceValue), null);
+				newObjRef = objRefFactory.createObjRef(objRef.getRealType(), ObjRef.PRIMARY_KEY_INDEX, Long.valueOf(++this.sequenceValue), null);
 				givenObjRefToCopyMap.put(objRef, newObjRef);
 				givenObjRefToCopyMap.put(newObjRef, newObjRef);
 			}
@@ -598,7 +602,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 
 	protected IObjRef dupObjRef(IObjRef objRef)
 	{
-		return new ObjRef(objRef.getRealType(), objRef.getIdNameIndex(), objRef.getId(), objRef.getVersion());
+		return objRefFactory.dup(objRef);
 	}
 
 	protected void doChanges(ILoadContainer[] newLCs, List<IChangeContainer> changes, List<IObjRef> objRefList, Map<IObjRef, IObjRef> givenToInternalObjRefMap,

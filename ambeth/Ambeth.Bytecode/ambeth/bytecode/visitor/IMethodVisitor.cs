@@ -91,6 +91,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         void NewArray(Type componentType);
 
+        void NewInstance(ConstructorInstance constructor, Script argumentsScript);
+
         Label NewLabel();
 
         LocalVariableInfo NewLocal<T>();

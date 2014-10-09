@@ -35,6 +35,11 @@ namespace De.Osthus.Ambeth.Rest
     {
         public const String DEFLATE_MIME_TYPE = "application/octet-stream";
 
+        static RESTClientInterceptor()
+        {
+            System.Net.ServicePointManager.DefaultConnectionLimit = 10;
+        }
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -104,6 +109,7 @@ namespace De.Osthus.Ambeth.Rest
                     Monitor.Wait(clientLock);
                 }
             }
+            DateTime m1 = DateTime.Now;
             MethodInfo method = invocation.Method;
             String url = ServiceBaseUrl + "/" + ServiceName + "/" + method.Name;
 
@@ -120,12 +126,16 @@ namespace De.Osthus.Ambeth.Rest
 #else
             webRequest = (HttpWebRequest)WebRequest.Create(url);
 #endif
+            webRequest.Proxy = null;
+            webRequest.KeepAlive = true;
+            DateTime m2 = DateTime.Now;
             Object result = null;
             bool hasResult = false;
             Exception ex = null;
 
             lock (webRequest)
             {
+                DateTime m3 = DateTime.Now;
                 webRequest.Accept = "text/plain";
                 if (HttpAcceptEncodingZipped)
                 {
@@ -139,9 +149,11 @@ namespace De.Osthus.Ambeth.Rest
                     webRequest.Method = "GET";
                     webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult2)
                     {
+                        DateTime m4 = DateTime.Now;
                         try
                         {
                             HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asyncResult2);
+                            DateTime m5 = DateTime.Now;
                             using (Stream responseStream = response.GetResponseStream())
                             using (Stream memoryStream = new MemoryStream())
                             {
@@ -167,6 +179,8 @@ namespace De.Osthus.Ambeth.Rest
                                 }
                             }
                             hasResult = true;
+                            DateTime m6 = DateTime.Now;
+                            Log.Warn(url + " 6:" + (m6 - m5).TotalMilliseconds + ",5:" + (m5 - m4).TotalMilliseconds + ",4:" + (m4 - m3).TotalMilliseconds + ",3:" + (m3 - m2).TotalMilliseconds + ",2:" + (m2 - m1).TotalMilliseconds);
                         }
                         catch (WebException e)
                         {
@@ -199,10 +213,13 @@ namespace De.Osthus.Ambeth.Rest
                         TryToSetHeader(HttpRequestHeader.ContentEncoding, webRequest, "gzip");
                         webRequest.Headers["Content-Encoding-Workaround"] = "gzip";
                     }
+                    DateTime m3_4 = DateTime.Now;
                     webRequest.BeginGetRequestStream(delegate(IAsyncResult asyncResult)
                     {
+                        DateTime m3_5 = DateTime.Now;
                         try
                         {
+                            DateTime m3_6, m3_7;
                             using (Stream stream = webRequest.EndGetRequestStream(asyncResult))
 #if SILVERLIGHT
                             using (Stream deflateStream = HttpContentEncodingZipped ? new GZipStream(stream, CompressionMode.Compress, CompressionLevel.BestCompression, false) : stream)
@@ -210,13 +227,17 @@ namespace De.Osthus.Ambeth.Rest
                             using (Stream deflateStream = HttpContentEncodingZipped ? new GZipStream(stream, CompressionMode.Compress, false) : stream)
 #endif
                             {
+                                m3_6 = DateTime.Now;
                                 CyclicXmlHandler.WriteToStream(deflateStream, invocation.Arguments);
+                                m3_7 = DateTime.Now;
                             }
                             webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult2)
                             {
+                                DateTime m4 = DateTime.Now;
                                 try
                                 {
                                     HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asyncResult2);
+                                    DateTime m5 = DateTime.Now;
                                     using (Stream responseStream = response.GetResponseStream())
                                     using (Stream memoryStream = new MemoryStream())
                                     {
@@ -242,6 +263,8 @@ namespace De.Osthus.Ambeth.Rest
                                         }
                                     }
                                     hasResult = true;
+                                    DateTime m6 = DateTime.Now;
+                                    Log.Warn(url + " 7:" + (m3_7 - m3_6).TotalMilliseconds + ",6:" + (m3_6 - m3_5).TotalMilliseconds + ",5:" + (m3_5 - m3_4).TotalMilliseconds + ",4:" + (m3_4 - m3).TotalMilliseconds);
                                 }
                                 catch (WebException e)
                                 {

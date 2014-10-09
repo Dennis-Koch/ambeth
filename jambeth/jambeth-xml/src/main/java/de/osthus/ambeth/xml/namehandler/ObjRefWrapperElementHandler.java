@@ -8,6 +8,7 @@ import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.xml.INameBasedHandler;
 import de.osthus.ambeth.xml.IReader;
@@ -24,6 +25,9 @@ public class ObjRefWrapperElementHandler extends AbstractHandler implements INam
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
@@ -100,7 +104,7 @@ public class ObjRefWrapperElementHandler extends AbstractHandler implements INam
 			}
 		}
 
-		ObjRef ori = new ObjRef(realType, idIndex, objId, version);
+		IObjRef ori = objRefFactory.createObjRef(realType, idIndex, objId, version);
 
 		Object obj = new ObjRefFuture(ori);
 

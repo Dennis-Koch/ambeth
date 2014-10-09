@@ -6,7 +6,7 @@ import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.CacheStreamModule;
-import de.osthus.ambeth.ioc.CompositeIdModule;
+import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.DataChangeModule;
 import de.osthus.ambeth.ioc.EventDataChangeModule;
 import de.osthus.ambeth.ioc.EventModule;
@@ -21,7 +21,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
 @TestFrameworkModule({ BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class, CacheDataChangeModule.class, CacheStreamModule.class,
-		DataChangeModule.class, EventModule.class, EventDataChangeModule.class, MappingModule.class, MergeModule.class, CompositeIdModule.class,
+		DataChangeModule.class, EventModule.class, EventDataChangeModule.class, MappingModule.class, MergeModule.class, MergeBytecodeModule.class,
 		ObjectCopierModule.class, SecurityModule.class, SensorModule.class, ServiceModule.class, StreamModule.class })
 @TestProperties(name = ServiceConfigurationConstants.IndependentMetaData, value = "true")
 public abstract class AbstractInformationBusTest extends AbstractIocTest

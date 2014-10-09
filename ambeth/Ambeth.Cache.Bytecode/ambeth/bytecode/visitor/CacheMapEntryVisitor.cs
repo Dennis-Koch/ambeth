@@ -15,6 +15,12 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class CacheMapEntryVisitor : ClassVisitor
     {
+        private static readonly MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(CacheMapEntry), typeof(Type), "get_EntityType");
+        private static readonly MethodInstance template_m_getIdIndex = new MethodInstance(null, typeof(CacheMapEntry), typeof(sbyte), "get_IdIndex");
+        private static readonly MethodInstance template_m_getId = new MethodInstance(null, typeof(CacheMapEntry), typeof(Object), "get_Id");
+        private static readonly MethodInstance template_m_setId = new MethodInstance(null, typeof(CacheMapEntry), typeof(void), "set_Id", typeof(Object));
+        private static readonly MethodInstance template_m_isEqualTo = new MethodInstance(null, typeof(CacheMapEntry), typeof(bool), "IsEqualTo", typeof(Type), typeof(sbyte), typeof(Object));
+
         protected readonly IEntityMetaData metaData;
 
         protected readonly sbyte idIndex;
@@ -28,12 +34,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public override void VisitEnd()
         {
-            MethodInstance template_m_getEntityType = new MethodInstance(null, typeof(CacheMapEntry), typeof(Type), "get_EntityType");
-            MethodInstance template_m_getIdIndex = new MethodInstance(null, typeof(CacheMapEntry), typeof(sbyte), "get_IdIndex");
-            MethodInstance template_m_getId = new MethodInstance(null, typeof(CacheMapEntry), typeof(Object), "get_Id");
-            MethodInstance template_m_setId = new MethodInstance(null, typeof(CacheMapEntry), typeof(void), "set_Id", typeof(Object));
-            MethodInstance template_m_isEqualTo = new MethodInstance(null, typeof(CacheMapEntry), typeof(bool), "IsEqualTo", typeof(Type), typeof(sbyte), typeof(Object));
-
             Type entityType = metaData.EntityType;
             {
                 IMethodVisitor mv = VisitMethod(template_m_getEntityType);

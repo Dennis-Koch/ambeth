@@ -6,15 +6,19 @@ import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
-import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 
 public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBean, IDisposableBean
 {
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	protected final LinkedHashMap<IdTypeTuple, ILoadContainer> keyToObjectMap = new LinkedHashMap<IdTypeTuple, ILoadContainer>();
 
@@ -141,7 +145,7 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void replace(IdTypeTuple idTypeTuple, ILoadContainer loadContainer)
 	{
-		this.keyToRefMap.putIfNotExists(idTypeTuple, new ObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null));
+		this.keyToRefMap.putIfNotExists(idTypeTuple, objRefFactory.createObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null));
 		this.keyToObjectMap.put(idTypeTuple, loadContainer);
 	}
 }

@@ -8,6 +8,20 @@ public class ConstructorInstance extends MethodInstance
 {
 	public static final String CONSTRUCTOR_NAME = "<init>";
 
+	public static final ConstructorInstance defaultConstructor;
+
+	static
+	{
+		try
+		{
+			defaultConstructor = new ConstructorInstance(Object.class.getDeclaredConstructor());
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
 	public static final String getSignature(java.lang.reflect.Constructor<?> method)
 	{
 		try

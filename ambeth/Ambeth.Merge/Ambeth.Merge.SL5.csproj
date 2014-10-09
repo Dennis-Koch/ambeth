@@ -161,8 +161,12 @@
     <Compile Include="ambeth\merge\ValueObjectMap.cs" />
     <Compile Include="ambeth\metadata\IIntermediateMemberTypeProvider.cs" />
     <Compile Include="ambeth\metadata\IMemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\IObjRefFactory.cs" />
+    <Compile Include="ambeth\metadata\IPreparedObjRefFactory.cs" />
     <Compile Include="ambeth\metadata\MemberEnhancementHint.cs" />
     <Compile Include="ambeth\metadata\MemberTypeProvider.cs" />
+    <Compile Include="ambeth\metadata\ObjRefEnhancementHint.cs" />
+    <Compile Include="ambeth\metadata\ObjRefFactory.cs" />
     <Compile Include="ambeth\metadata\RelationMemberEnhancementHint.cs" />
     <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
     <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
@@ -199,6 +203,7 @@
     <Compile Include="ambeth\service\IMergeService.cs" />
     <Compile Include="ambeth\template\CompositeIdTemplate.cs" />
     <Compile Include="ambeth\template\EmbeddedMemberTemplate.cs" />
+    <Compile Include="ambeth\template\ObjRefTemplate.cs" />
     <Compile Include="ambeth\transfer\AbstractChangeContainer.cs" />
     <Compile Include="ambeth\transfer\CreateContainer.cs" />
     <Compile Include="ambeth\transfer\CUDResult.cs" />
@@ -261,6 +266,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\compositeid\ICompositeIdFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\objrefstore\IObjRefStoreEntryProvider.cs" />
+    <Compile Include="ambeth\objrefstore\IObjRefStoreFactory.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStore.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreEnhancementHint.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreEntryProvider.cs" />
+    <Compile Include="ambeth\objrefstore\ObjRefStoreSet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>

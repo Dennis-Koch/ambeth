@@ -74,15 +74,19 @@
   <ItemGroup>
     <Compile Include="ambeth\bytecode\abstractobject\ImplementAbstractObjectFactory.cs" />
     <Compile Include="ambeth\bytecode\behavior\EntityMetaDataMemberBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ObjRefBehavior.cs" />
+    <Compile Include="ambeth\bytecode\behavior\ObjRefStoreBehavior.cs" />
     <Compile Include="ambeth\bytecode\visitor\CompositeIdCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataEmbeddedMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataPrimitiveMemberVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataRelationMemberVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ObjRefStoreVisitor.cs" />
+    <Compile Include="ambeth\bytecode\visitor\ObjRefVisitor.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdBehavior.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdEnhancementHint.cs" />
     <Compile Include="ambeth\compositeid\CompositeIdFactory.cs" />
-    <Compile Include="ambeth\ioc\CompositeIdModule.cs" />
+    <Compile Include="ambeth\ioc\MergeBytecodeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

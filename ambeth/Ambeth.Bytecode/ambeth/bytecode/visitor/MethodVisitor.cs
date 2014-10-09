@@ -345,6 +345,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
+        public virtual void NewInstance(ConstructorInstance constructor, Script argumentsScript)
+        {
+            if (mv != null)
+            {
+                mv.NewInstance(constructor, argumentsScript);
+            }
+        }
+
         public virtual Label NewLabel()
         {
             if (mv != null)
