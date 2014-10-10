@@ -55,19 +55,23 @@ public class LinkTableChange extends AbstractTableChange
 	@Override
 	public void execute(IChangeAggregator changeAggreagator)
 	{
-		ArrayList<Object> ids = new ArrayList<Object>();
-		for (Entry<IObjRef, ILinkChangeCommand> entry : rowCommands)
+		ILink link = null;
+		try
 		{
-			ILinkChangeCommand command = entry.getValue();
-			if (!command.isReadyToExecute())
+			ArrayList<Object> ids = new ArrayList<Object>();
+			for (Entry<IObjRef, ILinkChangeCommand> entry : rowCommands)
 			{
-				throw new IllegalCommandException("LinkChangeCommand is not ready to be executed!");
-			}
-			IDirectedLink directedLink = command.getDirectedLink();
-			ILink link = directedLink.getLink();
-			link.startBatch();
-			try
-			{
+				ILinkChangeCommand command = entry.getValue();
+				if (!command.isReadyToExecute())
+				{
+					throw new IllegalCommandException("LinkChangeCommand is not ready to be executed!");
+				}
+				IDirectedLink directedLink = command.getDirectedLink();
+				if (link == null)
+				{
+					link = directedLink.getLink();
+					link.startBatch();
+				}
 				Object id = command.getReference().getId();
 				{
 					List<IObjRef> refs = command.getRefsToLink();
@@ -93,9 +97,15 @@ public class LinkTableChange extends AbstractTableChange
 						ids.clear();
 					}
 				}
+			}
+			if (link != null)
+			{
 				link.finishBatch();
 			}
-			finally
+		}
+		finally
+		{
+			if (link != null)
 			{
 				link.clearBatch();
 			}

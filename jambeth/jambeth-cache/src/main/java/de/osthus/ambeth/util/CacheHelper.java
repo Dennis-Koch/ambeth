@@ -805,7 +805,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	public <T, S> IList<T> extractTargetEntities(List<S> sourceEntities, String sourceToTargetEntityPropertyPath, Class<S> sourceEntityType)
 	{
 		// Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath ('A.B.C') selbststaendig traversiert
-		RelationMember member = memberTypeProvider.getRelationMember(sourceEntityType, sourceToTargetEntityPropertyPath);
+		Member member = memberTypeProvider.getMember(sourceEntityType, sourceToTargetEntityPropertyPath);
 
 		// MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein DISTINCT-Behavior durch
 		// eine Map als Zwischenstruktur zu

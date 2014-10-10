@@ -800,7 +800,7 @@ namespace De.Osthus.Ambeth.Util
         public ICollection<T> ExtractTargetEntities<T, S>(IEnumerable<S> sourceEntities, String sourceToTargetEntityPropertyPath)
         {
             // Einen Accessor ermitteln, der die gesamte Hierachie aus dem propertyPath („A.B.C“) selbstständig traversiert
-            RelationMember member = MemberTypeProvider.GetRelationMember(typeof(S), sourceToTargetEntityPropertyPath);
+            Member member = MemberTypeProvider.GetMember(typeof(S), sourceToTargetEntityPropertyPath);
 
             // MetaDaten der Ziel-Entity ermitteln, da wir (generisch) den PK brauchen, um damit ein DISTINCT-Behavior durch eine Map als Zwischenstruktur zu
             // erreichen
