@@ -211,6 +211,10 @@ public class MergeController implements IMergeController, IMergeExtendable
 
 	protected void putInstancesToCurrentCache(List<Object> validObjects)
 	{
+		if (!MergeProcess.isAddNewlyPersistedEntities())
+		{
+			return;
+		}
 		if (validObjects.size() == 0 || cacheProvider.isNewInstanceOnCall())
 		{
 			// Following code only necessary if cache instance is singleton or threadlocal

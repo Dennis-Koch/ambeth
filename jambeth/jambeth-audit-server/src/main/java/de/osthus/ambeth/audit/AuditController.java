@@ -19,11 +19,9 @@ import de.osthus.ambeth.audit.model.IAuditedService;
 import de.osthus.ambeth.audit.util.NullOutputStream;
 import de.osthus.ambeth.audit.util.SignatureOutputStream;
 import de.osthus.ambeth.cache.IFirstLevelCacheManager;
-import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransactionListener;
@@ -544,26 +542,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 							cudResultHolder.setValue(result);
 							return true;
 						}
-					}, null);
+					}, null, false);
 					return null;
 				}
 			});
-
-			// remove our newly added items immediately from the cache to suppress being reloaded from the DB via the cache hierarchy
-			// for performance reasons. This is due to the fact that we almost never need the created audit information later in cache
-			IList<IWritableCache> selectFirstLevelCaches = firstLevelCacheManager.selectFirstLevelCaches();
-			List<IChangeContainer> changes = cudResultHolder.getValue().getAllChanges();
-			ArrayList<IObjRef> objRefList = new ArrayList<IObjRef>(changes.size());
-			for (int a = changes.size(); a-- > 0;)
-			{
-				IObjRef objRef = changes.get(a).getReference();
-				objRefList.add(objRef);
-			}
-			for (int a = selectFirstLevelCaches.size(); a-- > 0;)
-			{
-				IWritableCache firstLevelCache = selectFirstLevelCaches.get(a);
-				firstLevelCache.remove(objRefList);
-			}
 		}
 		catch (Throwable e)
 		{
