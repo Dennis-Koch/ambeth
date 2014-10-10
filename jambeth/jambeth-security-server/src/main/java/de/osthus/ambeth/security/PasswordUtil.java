@@ -303,16 +303,6 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			// recommended algorithm configuration changed
 			return true;
 		}
-		if (!saltAlgorithm.equals(password.getSaltAlgorithm()))
-		{
-			// recommended algorithm configuration changed
-			return true;
-		}
-		if (!saltKeySpec.equals(password.getSaltKeySpec()))
-		{
-			// recommended algorithm configuration changed
-			return true;
-		}
 		Integer saltLength = password.getSaltLength();
 		if (saltLength == null || this.saltLength != saltLength.intValue())
 		{
@@ -324,7 +314,12 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 
 	protected boolean isReencryptSaltRecommended(IPassword password)
 	{
-		if (!saltAlgorithm.equals(password.getSaltAlgorithm()))
+		if (decodedLoginSaltPassword != null && !saltAlgorithm.equals(password.getSaltAlgorithm()))
+		{
+			// recommended algorithm configuration changed
+			return true;
+		}
+		if (decodedLoginSaltPassword != null && !saltKeySpec.equals(password.getSaltKeySpec()))
 		{
 			// recommended algorithm configuration changed
 			return true;
@@ -582,6 +577,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			cipher.init(Cipher.ENCRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));
 			byte[] encryptedSalt = cipher.doFinal(salt);
 			password.setSaltAlgorithm(saltAlgorithm);
+			password.setSaltKeySpec(saltKeySpec);
 			password.setSalt(Base64.encodeBytes(encryptedSalt).toCharArray());
 		}
 		catch (Throwable e)
