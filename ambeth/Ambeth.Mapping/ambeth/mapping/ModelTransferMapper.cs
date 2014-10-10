@@ -1146,7 +1146,7 @@ namespace De.Osthus.Ambeth.Mapping
                         {
                             // Copy primitive from business object to value object
                             // TODO: Copy by value instead of copy by reference
-                            Object value = boMember.GetValue(businessObject, false);
+                            Object value = boMember.GetValue(businessObject, true);
                             isSpecified = value != null;
                             if (voSpecifiedMember != null)
                             {

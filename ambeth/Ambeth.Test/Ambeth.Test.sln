@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Test", "Ambeth.Test.csproj", "{481E695B-9076-454F-87B7-CA3F5E193790}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Util", "..\Ambeth.Util\Ambeth.Util.csproj", "{271E6992-6B52-41EE-9D4C-5A56FD173C2E}"
@@ -169,6 +169,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Query.SL5", "..\Ambeth.Query\Ambeth.Query.SL5.csproj", "{53617AE6-A099-474D-9E1F-375DE025ACD5}"
 EndProject
 Global
+	GlobalSection(PowerDesigner) = preSolution
+		HasSWS = 1
+	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Ambeth.Test.vsmdi
 	EndGlobalSection
@@ -984,8 +987,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(PowerDesigner) = preSolution
-		HasSWS = 1
 	EndGlobalSection
 EndGlobal
