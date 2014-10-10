@@ -156,6 +156,12 @@
     <Compile Include="ambeth\util\IPrefetchHandle.cs" />
     <Compile Include="ambeth\util\IPrefetchHelper.cs" />
     <Compile Include="ambeth\util\IPrefetchState.cs" />
+    <Compile Include="ambeth\util\setup\AbstractDatasetBuilder.cs" />
+    <Compile Include="ambeth\util\setup\DataSetup.cs" />
+    <Compile Include="ambeth\util\setup\IDataSetup.cs" />
+    <Compile Include="ambeth\util\setup\IDatasetBuilder.cs" />
+    <Compile Include="ambeth\util\setup\IDatasetBuilderExtensionExtendable.cs" />
+    <Compile Include="ambeth\util\setup\SetupModule.cs" />
     <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
     <Compile Include="ambeth\util\ValueHolderRef.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
@@ -248,6 +254,7 @@
   <ItemGroup>
     <Compile Include="ambeth\merge\ITechnicalEntityTypeExtendable.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

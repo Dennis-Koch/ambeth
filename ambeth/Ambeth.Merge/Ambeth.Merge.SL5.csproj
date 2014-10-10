@@ -209,6 +209,12 @@
     <Compile Include="ambeth\util\IPrefetchHelper.cs" />
     <Compile Include="ambeth\util\IPrefetchState.cs" />
     <Compile Include="ambeth\util\OptimisticLockUtil.cs" />
+    <Compile Include="ambeth\util\setup\AbstractDatasetBuilder.cs" />
+    <Compile Include="ambeth\util\setup\DataSetup.cs" />
+    <Compile Include="ambeth\util\setup\IDatasetBuilder.cs" />
+    <Compile Include="ambeth\util\setup\IDatasetBuilderExtensionExtendable.cs" />
+    <Compile Include="ambeth\util\setup\IDataSetup.cs" />
+    <Compile Include="ambeth\util\setup\SetupModule.cs" />
     <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
     <Compile Include="ioc\MergeModule.cs" />
