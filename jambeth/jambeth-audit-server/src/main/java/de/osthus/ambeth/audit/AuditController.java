@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.lang.reflect.Method;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -412,9 +411,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			byte[] sign = signatureHandle.sign();
 
 			auditEntry.setSignature(Base64.encodeBytes(sign).toCharArray());
-
-			boolean result = verifyAuditEntries(Arrays.asList(auditEntry));
-			System.out.println(result);
 		}
 		catch (Throwable e)
 		{

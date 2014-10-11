@@ -36,7 +36,6 @@ import de.osthus.ambeth.merge.MergeFinishedCallback;
 import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
@@ -252,12 +251,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			ArrayList<IPassword> changedPasswords = new ArrayList<IPassword>(allPasswords.size());
 			for (IPassword password : allPasswords)
 			{
-				if (!isReencryptSaltRecommended(password))
-				{
-					continue;
-				}
 				byte[] decryptedSalt = decryptSalt(password);
-				password.setSaltAlgorithm(saltAlgorithm);
 				encryptSalt(password, decryptedSalt, newDecodedLoginSaltPassword);
 				changedPasswords.add(password);
 			}
@@ -266,10 +260,17 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 				@Override
 				public void invoke(boolean success)
 				{
-					decodedLoginSaltPassword = newDecodedLoginSaltPassword;
-					if (log.isInfoEnabled())
+					if (success)
 					{
-						log.info("Reencryption of all salts finished successfully!");
+						decodedLoginSaltPassword = newDecodedLoginSaltPassword;
+						if (log.isInfoEnabled())
+						{
+							log.info("Reencryption of all salts finished successfully!");
+						}
+					}
+					else
+					{
+						log.error("Reencryption of all salts failed");
 					}
 				}
 			});
@@ -550,7 +551,7 @@ public class PasswordUtil implements IInitializingBean, IPasswordUtil
 			if (decodedLoginSaltPassword == null)
 			{
 				throw new IllegalStateException("Property '" + SecurityServerConfigurationConstants.LoginSaltPassword
-						+ "' specified but reading an encrypted salt from " + password);
+						+ "' is not specified but reading an encrypted salt from " + password);
 			}
 			Cipher cipher = Cipher.getInstance(saltAlgorithm);
 			cipher.init(Cipher.DECRYPT_MODE, decodedLoginSaltPassword, new IvParameterSpec(new byte[cipher.getBlockSize()]));

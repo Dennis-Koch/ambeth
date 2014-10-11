@@ -39,7 +39,6 @@ import de.osthus.ambeth.privilege.IPrivilegeProviderIntern;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.model.ReadPermission;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 

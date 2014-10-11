@@ -70,7 +70,7 @@ import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;

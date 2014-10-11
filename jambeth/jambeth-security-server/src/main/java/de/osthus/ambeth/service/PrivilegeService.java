@@ -50,7 +50,7 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IInterningFeature;

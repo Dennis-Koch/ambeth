@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.Ignore;
-import org.junit.runner.Description;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -18,7 +16,6 @@ import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Properties;
-import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -31,6 +28,9 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
 {
+	protected boolean hasContextBeenRebuildForThisTest;
+
+	protected boolean isRebuildContextForThisTestRecommended;
 
 	protected IServiceContext testClassLevelContext;
 
@@ -231,9 +231,9 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	}
 
 	@Override
-	protected final Statement withAfterClasses(Statement statement)
+	protected Statement withAfterClasses(Statement statement)
 	{
-		final Statement withAfterClasses = withAfterClassesWithinContext(statement);
+		final Statement withAfterClasses = super.withAfterClasses(statement);
 
 		return new Statement()
 		{
@@ -247,9 +247,27 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		};
 	}
 
-	protected Statement withAfterClassesWithinContext(Statement statement)
+	@SuppressWarnings("deprecation")
+	@Override
+	protected Statement withAfters(FrameworkMethod method, final Object target, Statement statement)
 	{
-		return super.withAfterClasses(statement);
+		final Statement returningStatement = super.withAfters(method, target, statement);
+		return new Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
+				{
+					beanContext.registerWithLifecycle(target).propertyValue("Runner", this).finish();
+				}
+				else
+				{
+					beanContext.registerWithLifecycle(target).finish();
+				}
+				returningStatement.evaluate();
+			}
+		};
 	}
 
 	@Override
@@ -260,69 +278,71 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	}
 
 	@Override
-	protected Statement methodInvoker(FrameworkMethod method, Object test)
+	protected Statement methodInvoker(final FrameworkMethod method, final Object test)
 	{
-		if (beanContext == null)
+		final Statement statement = super.methodInvoker(method, test);
+		return new Statement()
 		{
-			rebuildContext(method);
-		}
-		if (IRunnerAware.class.isAssignableFrom(test.getClass()))
-		{
-			test = beanContext.registerWithLifecycle(test).propertyValue("Runner", this).finish();
-		}
-		else
-		{
-			test = beanContext.registerWithLifecycle(test).finish();
-		}
-		return super.methodInvoker(method, test);
+			@Override
+			public void evaluate() throws Throwable
+			{
+				statement.evaluate();
+			}
+		};
 	}
 
 	@Override
-	protected final void runChild(FrameworkMethod method, RunNotifier notifier)
+	protected Statement methodBlock(final FrameworkMethod method)
 	{
-		runChildWithContext(method, notifier, false);
+		final Statement statement = super.methodBlock(method);
+		return new Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				if (!hasContextBeenRebuildForThisTest)
+				{
+					if (method == null || method.getAnnotation(Ignore.class) == null)
+					{
+						List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
+						if (rebuildContextList.size() > 0)
+						{
+							boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
+							if (rebuildContext)
+							{
+								rebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+							}
+						}
+						if (method != null)
+						{
+							Method targetMethod = method.getMethod();
+
+							if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class)
+									|| targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class))
+							{
+								rebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+							}
+						}
+					}
+				}
+				if (beanContext == null || isRebuildContextForThisTestRecommended)
+				{
+					rebuildContext(method);
+				}
+				statement.evaluate();
+			}
+		};
 	}
 
-	protected void runChildWithContext(FrameworkMethod method, RunNotifier notifier, boolean hasContextBeenRebuild)
+	@Override
+	protected void runChild(FrameworkMethod method, RunNotifier notifier)
 	{
-		try
-		{
-			if (!hasContextBeenRebuild && (method == null || method.getAnnotation(Ignore.class) == null))
-			{
-				List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
-				if (rebuildContextList.size() > 0)
-				{
-					boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
-					if (rebuildContext)
-					{
-						rebuildContext(method);
-						hasContextBeenRebuild = true;
-					}
-				}
-				if (!hasContextBeenRebuild && method != null)
-				{
-					Method targetMethod = method.getMethod();
-
-					if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class)
-							|| targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class))
-					{
-						rebuildContext(method);
-						hasContextBeenRebuild = true;
-					}
-				}
-			}
-		}
-		catch (MaskingRuntimeException e)
-		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e.getMessage() == null ? e
-					.getCause() : e));
-			return;
-		}
-		catch (Throwable e)
-		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e));
-			return;
-		}
+		hasContextBeenRebuildForThisTest = false;
+		isRebuildContextForThisTestRecommended = false;
 		super.runChild(method, notifier);
 	}
 

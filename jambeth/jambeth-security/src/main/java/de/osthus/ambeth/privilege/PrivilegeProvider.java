@@ -41,6 +41,7 @@ import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePrivilegeOfService;
 import de.osthus.ambeth.privilege.transfer.ITypePropertyPrivilegeOfService;
 import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IPrivilegeService;
@@ -411,7 +412,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<ITypePrivilege> getPrivilegesByType(Collection<Class<?>> entityTypes, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null)
 		{
 			throw new SecurityException("User must be authorized to be able to check for privileges");

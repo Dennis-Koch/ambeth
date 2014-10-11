@@ -1,5 +1,7 @@
 package de.osthus.ambeth.privilege.factory;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.privilege.model.impl.AbstractPrivilege;
@@ -7,8 +9,10 @@ import de.osthus.ambeth.privilege.model.impl.AbstractTypePrivilege;
 import de.osthus.ambeth.privilege.model.impl.TypePropertyPrivilegeImpl;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
-public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
+public class EntityTypePrivilegeEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
 {
+	private static final long serialVersionUID = -6647489741758504317L;
+
 	protected final Class<?> entityType;
 
 	protected final Boolean create, read, update, delete, execute;

@@ -9,38 +9,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
-	private class SecurityContextImpl implements ISecurityContext
-	{
-		protected IAuthentication authentication;
-
-		protected IAuthorization authorization;
-
-		@Override
-		public void setAuthentication(IAuthentication authentication)
-		{
-			this.authentication = authentication;
-		}
-
-		@Override
-		public IAuthentication getAuthentication()
-		{
-			return authentication;
-		}
-
-		@Override
-		public void setAuthorization(IAuthorization authorization)
-		{
-			this.authorization = authorization;
-			notifyAuthorizationChangeListeners(authorization);
-		}
-
-		@Override
-		public IAuthorization getAuthorization()
-		{
-			return authorization;
-		}
-
-	}
+	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)
 	{
@@ -61,8 +30,6 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	{
 		authorizationChangeListeners.unregister(authorizationChangeListener);
 	}
-
-	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	/*
 	 * (non-Javadoc)
@@ -86,7 +53,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		ISecurityContext securityContext = getContext();
 		if (securityContext == null)
 		{
-			securityContext = new SecurityContextImpl();
+			securityContext = new SecurityContextImpl(this);
 			contextTL.set(securityContext);
 		}
 		return securityContext;
@@ -104,6 +71,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		if (securityContext != null)
 		{
 			securityContext.setAuthentication(null);
+			securityContext.setAuthorization(null);
 			contextTL.remove();
 		}
 	}
@@ -121,8 +89,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		boolean created = false;
 		if (securityContext == null)
 		{
-			securityContext = new SecurityContextImpl();
-			contextTL.set(securityContext);
+			securityContext = getCreateContext();
 			created = true;
 		}
 		IAuthorization oldAuthorization = securityContext.getAuthorization();
@@ -149,7 +116,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		{
 			if (created)
 			{
-				contextTL.remove();
+				clearContext();
 			}
 		}
 	}

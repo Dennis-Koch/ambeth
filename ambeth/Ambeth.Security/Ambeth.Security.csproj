@@ -160,6 +160,28 @@
     <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeEnhancementHint.cs" />
     <Compile Include="ambeth\privilege\factory\EntityTypePrivilegeFactoryProvider.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\ISecurityContext.cs" />
+    <Compile Include="ambeth\security\ISecurityContextHolder.cs" />
+    <Compile Include="ambeth\security\SecurityContext.cs" />
+    <Compile Include="ambeth\security\SecurityContextHolder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthorizationChangeListener.cs" />
+    <Compile Include="ambeth\security\IAuthorizationChangeListenerExtendable.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\SecurityContextImpl.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\IAuthentication.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\security\PasswordType.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

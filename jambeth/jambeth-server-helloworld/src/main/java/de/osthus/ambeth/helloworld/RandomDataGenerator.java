@@ -18,7 +18,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.util.ParamChecker;
 
 @SecurityContext(SecurityContextType.AUTHENTICATED)

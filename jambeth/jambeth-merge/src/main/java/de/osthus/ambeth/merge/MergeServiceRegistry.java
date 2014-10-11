@@ -317,7 +317,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 
 			if (mergeServiceExtension == null)
 			{
-				continue;
+				throw new IllegalStateException("No extension found to merge entities of type '" + type.getName() + "'");
 			}
 			boolean cont = false;
 			for (MergeOperation existingMergeOperation : mergeOperations)

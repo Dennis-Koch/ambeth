@@ -66,6 +66,7 @@
     <Compile Include="ioc\ChildContextHandleTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="testutil\AbstractIocTest.cs" />
+    <Compile Include="testutil\BlockJUnit4ClassRunner.cs" />
     <Compile Include="testutil\Statement.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +114,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\collections\CleanupInvalidKeysSetTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="testutil\IRunnerAware.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="testutil\ITestContext.cs" />
+    <Compile Include="testutil\TestContext.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

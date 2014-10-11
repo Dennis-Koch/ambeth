@@ -17,7 +17,7 @@ import de.osthus.ambeth.proxy.ICascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.MethodLevelBehavior;
 import de.osthus.ambeth.security.SecurityContext;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.util.EqualsUtil;
 

@@ -25,8 +25,6 @@ import java.util.regex.Pattern;
 
 import javax.persistence.PersistenceException;
 
-import org.junit.runner.Description;
-import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
@@ -46,7 +44,6 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -65,13 +62,14 @@ import de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
+import de.osthus.ambeth.security.PasswordType;
+import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.setup.SetupModule;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
 
@@ -82,12 +80,11 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 {
 	protected static final String MEASUREMENT_BEAN = "measurementBean";
 
+	protected boolean isRebuildDataForThisTestRecommended;
+
 	private Connection connection;
 
 	private IServiceContext schemaContext;
-
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
 
 	protected boolean doExecuteStrict = false;
 
@@ -142,6 +139,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	{
 		List<Class<? extends IInitializingModule>> frameworkTestModuleList = super.buildFrameworkTestModuleList(frameworkMethod);
 		frameworkTestModuleList.add(DialectSelectorModule.class);
+		frameworkTestModuleList.add(DataSetupExecutorModule.class);
+		frameworkTestModuleList.add(SetupModule.class);
 		return frameworkTestModuleList;
 	}
 
@@ -179,21 +178,29 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	}
 
 	@Override
-	protected void rebuildContext(final FrameworkMethod frameworkMethod)
+	protected void rebuildContext(FrameworkMethod frameworkMethod)
 	{
 		if (frameworkMethod == null)
 		{
-			// This is the case if the runner is the parent runner or if rebuildContext is called explicitly
-			// (AmbethIocRunner.rebuildContext(null)).
-			// Because the parent runner shouldn't create a context unit it is needed by the tests (e.g. to allow
-			// "beforeClass" tasks without a context) we exit
-			// here.
-			// TODO: This is a problem for AGRILOG integration tests where the test runner is abused as a context
-			// creator. Maybe we need the possibility to
-			// configure this behavior.
 			return;
 		}
-		super.rebuildContext(frameworkMethod);
+		if (isRebuildDataForThisTestRecommended)
+		{
+			DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
+			try
+			{
+				super.rebuildContext(frameworkMethod);
+			}
+			finally
+			{
+				DataSetupExecutor.setAutoRebuildData(null);
+				isRebuildDataForThisTestRecommended = false;
+			}
+		}
+		else
+		{
+			super.rebuildContext(frameworkMethod);
+		}
 		try
 		{
 			if (connection != null)
@@ -227,6 +234,13 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	}
 
 	@Override
+	protected void runChild(FrameworkMethod method, RunNotifier notifier)
+	{
+		isRebuildDataForThisTestRecommended = false;
+		super.runChild(method, notifier);
+	}
+
+	@Override
 	protected org.junit.runners.model.Statement withBeforeClasses(org.junit.runners.model.Statement statement)
 	{
 		checkOS();
@@ -234,9 +248,9 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	}
 
 	@Override
-	protected org.junit.runners.model.Statement withAfterClassesWithinContext(final org.junit.runners.model.Statement statement)
+	protected org.junit.runners.model.Statement withAfterClasses(final org.junit.runners.model.Statement statement)
 	{
-		final org.junit.runners.model.Statement resultStatement = super.withAfterClassesWithinContext(statement);
+		final org.junit.runners.model.Statement resultStatement = super.withAfterClasses(statement);
 		return new org.junit.runners.model.Statement()
 		{
 
@@ -337,82 +351,147 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 	}
 
+	// @Override
+	// protected void runChildWithContext(FrameworkMethod frameworkMethod, RunNotifier notifier, boolean hasContextBeenRebuild, boolean doDataRebuild)
+	// {
+	// boolean doContextRebuild = false;
+	// Method method = frameworkMethod.getMethod();
+	// try
+	// {
+	// boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
+	// boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class) || method.isAnnotationPresent(TestProperties.class)
+	// || method.isAnnotationPresent(TestPropertiesList.class);
+	// doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild || methodTriggersContextRebuild
+	// || lastMethodTriggersContextRebuild;
+	// lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
+	// doDataRebuild |= isDataRebuildDemanded();
+	// if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
+	// {
+	// // If SQL data on class level -> run data SQL before the first test method
+	// if (!isFirstTestMethodAlreadyExecuted)
+	// {
+	// doDataRebuild = !findAnnotations(getTestClass().getJavaClass(), SQLDataList.class, SQLData.class).isEmpty();
+	// }
+	// }
+	// boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be inserted (without deleting
+	// // existing database entries)
+	// if (!doDataRebuild) // included in data rebuild -> only check if data rebuild isn't done
+	// {
+	// doAddAdditionalMethodData = method.isAnnotationPresent(SQLData.class) || method.isAnnotationPresent(SQLDataList.class);
+	// }
+	//
+	// if (doStructureRebuild)
+	// {
+	// rebuildStructure();
+	// }
+	// if (doDataRebuild)
+	// {
+	// rebuildData(frameworkMethod);
+	// }
+	// if (doAddAdditionalMethodData)
+	// {
+	// executeAdditionalDataRunnables(frameworkMethod);
+	// }
+	// // Do context rebuild after the database changes have been made because the beans may access the data e.g.
+	// // in their afterStarted method
+	// if (doContextRebuild)
+	// {
+	// rebuildContext(frameworkMethod, doDataRebuild);
+	// doDataRebuild = false;
+	// }
+	// // Trigger clearing of other maps and caches (QueryResultCache,...)
+	// beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+	//
+	// isFirstTestMethodAlreadyExecuted = true;
+	// }
+	// catch (MaskingRuntimeException e)
+	// {
+	// notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e.getMessage() == null ? e
+	// .getCause() : e));
+	// return;
+	// }
+	// catch (Throwable e)
+	// {
+	// notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e));
+	// return;
+	// }
+	// super.runChildWithContext(frameworkMethod, notifier, doContextRebuild, doDataRebuild);
+	// }
+
 	@Override
-	protected void runChildWithContext(final FrameworkMethod frameworkMethod, final RunNotifier notifier, final boolean hasContextBeenRebuild)
+	protected org.junit.runners.model.Statement methodBlock(final FrameworkMethod frameworkMethod)
 	{
-		boolean doContextRebuild = false;
-		Method method = frameworkMethod.getMethod();
-		try
-		{
-			boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
-			boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class) || method.isAnnotationPresent(TestProperties.class)
-					|| method.isAnnotationPresent(TestPropertiesList.class);
-			doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild || methodTriggersContextRebuild
-					|| lastMethodTriggersContextRebuild;
-			lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
-			boolean doDataRebuild = isDataRebuildDemanded();
-			if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
-			{
-				// If SQL data on class level -> run data SQL before the first test method
-				if (!isFirstTestMethodAlreadyExecuted)
-				{
-					doDataRebuild = !findAnnotations(getTestClass().getJavaClass(), SQLDataList.class, SQLData.class).isEmpty();
-				}
-			}
-			boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be inserted (without deleting
-														// existing database entries)
-			if (!doDataRebuild) // included in data rebuild -> only check if data rebuild isn't done
-			{
-				doAddAdditionalMethodData = method.isAnnotationPresent(SQLData.class) || method.isAnnotationPresent(SQLDataList.class);
-			}
-
-			if (doStructureRebuild)
-			{
-				rebuildStructure();
-			}
-			if (doDataRebuild)
-			{
-				rebuildData(frameworkMethod);
-			}
-			if (doAddAdditionalMethodData)
-			{
-				executeAdditionalDataRunnables(frameworkMethod);
-			}
-			// Do context rebuild after the database changes have been made because the beans may access the data e.g.
-			// in their afterStarted method
-			if (doContextRebuild)
-			{
-				rebuildContext(frameworkMethod);
-			}
-
-			// Trigger clearing of other maps and caches (QueryResultCache,...)
-			beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
-
-			isFirstTestMethodAlreadyExecuted = true;
-		}
-		catch (MaskingRuntimeException e)
-		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e.getMessage() == null ? e
-					.getCause() : e));
-			return;
-		}
-		catch (Throwable e)
-		{
-			notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e));
-			return;
-		}
-		super.runChildWithContext(frameworkMethod, notifier, doContextRebuild);
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	protected org.junit.runners.model.Statement withBefores(final FrameworkMethod method, Object target, final org.junit.runners.model.Statement statement)
-	{
-		return AmbethPersistenceRunner.super.withBefores(method, target, new org.junit.runners.model.Statement()
+		final org.junit.runners.model.Statement statement = super.methodBlock(frameworkMethod);
+		return new org.junit.runners.model.Statement()
 		{
 			@Override
 			public void evaluate() throws Throwable
 			{
+				boolean doContextRebuild = false;
+				Method method = frameworkMethod.getMethod();
+				boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
+				boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class) || method.isAnnotationPresent(TestProperties.class)
+						|| method.isAnnotationPresent(TestPropertiesList.class);
+				doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild || methodTriggersContextRebuild
+						|| lastMethodTriggersContextRebuild;
+				lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
+				boolean doDataRebuild = isDataRebuildDemanded();
+				if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
+				{
+					// If SQL data on class level -> run data SQL before the first test method
+					if (!isFirstTestMethodAlreadyExecuted)
+					{
+						doDataRebuild = !findAnnotations(getTestClass().getJavaClass(), SQLDataList.class, SQLData.class).isEmpty();
+					}
+				}
+				boolean doAddAdditionalMethodData = false; // Flag if SQL method data should be inserted (without deleting
+															// existing database entries)
+				if (!doDataRebuild) // included in data rebuild -> only check if data rebuild isn't done
+				{
+					doAddAdditionalMethodData = method.isAnnotationPresent(SQLData.class) || method.isAnnotationPresent(SQLDataList.class);
+				}
+
+				if (doStructureRebuild)
+				{
+					rebuildStructure();
+				}
+				if (doDataRebuild)
+				{
+					rebuildData(frameworkMethod);
+				}
+				if (doAddAdditionalMethodData)
+				{
+					executeAdditionalDataRunnables(frameworkMethod);
+				}
+				// Do context rebuild after the database changes have been made because the beans may access the data e.g.
+				// in their afterStarted method
+				isRebuildContextForThisTestRecommended = doContextRebuild;
+				isFirstTestMethodAlreadyExecuted = true;
+				isRebuildDataForThisTestRecommended = doDataRebuild;
+
+				statement.evaluate();
+			}
+		};
+	}
+
+	@Override
+	protected org.junit.runners.model.Statement methodInvoker(final FrameworkMethod method, Object test)
+	{
+		final org.junit.runners.model.Statement statement = AmbethPersistenceRunner.super.methodInvoker(method, test);
+		return new org.junit.runners.model.Statement()
+		{
+			@Override
+			public void evaluate() throws Throwable
+			{
+				if (isRebuildDataForThisTestRecommended)
+				{
+					beanContext.getService(DataSetupExecutor.class).rebuildData();
+					isRebuildDataForThisTestRecommended = false;
+				}
+
+				// Trigger clearing of other maps and caches (QueryResultCache,...)
+				beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
+
 				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
 				if (authentication == null)
 				{
@@ -467,7 +546,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 					}
 				});
 			}
-		});
+		};
 	}
 
 	/**

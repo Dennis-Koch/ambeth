@@ -36,7 +36,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         /// </summary>
         /// <param name="context"></param>
         [AssemblyInitialize]
-        public static new void RegisterAssemblies(TestContext context)
+        public static new void RegisterAssemblies(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext context)
         {
             AbstractIocTest.RegisterAssemblies(context);
 

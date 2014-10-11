@@ -225,7 +225,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "create procedure", "create sequence", "create session", "create table", "create trigger",
 				"create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL",
 				"EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY", "EXECUTE ON CTXSYS.CTX_REPORT",
-				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA" };
+				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA", "SYS.CON$", "SYS.CDEF$", "SYS.CCOL$", "SYS.COL$",
+				"SYS._CURRENT_EDITION_OBJ", "SYS.ATTRCOL$" };
 
 		String createdUserName = null;
 		Statement stm = connection.createStatement();

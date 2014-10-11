@@ -1,13 +1,13 @@
 package de.osthus.ambeth.util.setup;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
-import de.osthus.ambeth.ioc.annotation.BootstrapModule;
+import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-@BootstrapModule
+@FrameworkModule
 public class SetupModule implements IInitializingModule
 {
 	@LogInstance
