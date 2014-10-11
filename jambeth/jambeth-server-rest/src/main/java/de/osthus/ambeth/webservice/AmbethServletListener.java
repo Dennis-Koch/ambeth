@@ -29,9 +29,9 @@ import de.osthus.ambeth.platform.IPlatformContextConfiguration;
 import de.osthus.ambeth.platform.PlatformContextConfiguration;
 import de.osthus.ambeth.security.DefaultAuthentication;
 import de.osthus.ambeth.security.IAuthentication;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.util.ClassLoaderUtil;
 
 @Provider

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
@@ -34,21 +35,17 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 	@Override
 	public Collection<Object> executeDatasetBuilders()
 	{
-		if (datasetBuilderContainer != null && datasetBuilderContainer.getExtensions() != null)
+		IdentityHashSet<Object> initialDataset = new IdentityHashSet<Object>();
+		List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
+		for (IDatasetBuilder datasetBuilder : sortedBuilders)
 		{
-			Collection<Object> initialDataset = new HashSet<Object>();
-			List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
-			for (IDatasetBuilder datasetBuilder : sortedBuilders)
+			Collection<Object> dataset = datasetBuilder.buildDataset();
+			if (dataset != null)
 			{
-				Collection<Object> dataset = datasetBuilder.buildDataset();
-				if (dataset != null)
-				{
-					initialDataset.addAll(dataset);
-				}
+				initialDataset.addAll(dataset);
 			}
-			return initialDataset;
 		}
-		return null;
+		return initialDataset;
 	}
 
 	private List<IDatasetBuilder> determineExecutionOrder(IExtendableContainer<IDatasetBuilder> datasetBuilderContainer)

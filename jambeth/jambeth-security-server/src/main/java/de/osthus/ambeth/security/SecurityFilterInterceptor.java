@@ -10,7 +10,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public class SecurityFilterInterceptor extends CascadedInterceptor
 {

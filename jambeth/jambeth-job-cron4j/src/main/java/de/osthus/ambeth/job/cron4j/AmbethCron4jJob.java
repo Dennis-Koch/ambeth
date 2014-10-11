@@ -15,8 +15,8 @@ import de.osthus.ambeth.job.IJob;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.DefaultAuthentication;
-import de.osthus.ambeth.security.IAuthentication.PasswordType;
 import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 

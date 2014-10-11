@@ -3,7 +3,6 @@ package de.osthus.ambeth.security;
 import java.lang.reflect.Method;
 
 import de.osthus.ambeth.model.ISecurityScope;
-import de.osthus.ambeth.security.SecurityContext.SecurityContextType;
 
 public interface IServiceFilter
 {

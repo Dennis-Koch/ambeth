@@ -1,14 +1,12 @@
 package de.osthus.ambeth.proxy;
 
 import java.util.Collection;
-import java.util.Map;
 
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.bytecode.IBytecodePrinter;
 import de.osthus.ambeth.cache.ICacheModification;
-import de.osthus.ambeth.collections.IdentityWeakSmartCopyMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanContextAware;
@@ -26,7 +24,23 @@ import de.osthus.ambeth.util.ListUtil;
 
 public class EntityFactory extends AbstractEntityFactory
 {
+	public static class ConstructorEntry
+	{
+		public final FastConstructor constructor;
+
+		public final Object[] args;
+
+		public ConstructorEntry(FastConstructor constructor, Object[] args)
+		{
+			super();
+			this.constructor = constructor;
+			this.args = args;
+		}
+	}
+
 	private static final Class<?>[][] CONSTRUCTOR_SERIES = { { IEntityFactory.class }, {} };
+
+	private static final Object[] EMPTY_ARGS = new Object[0];
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -56,9 +70,7 @@ public class EntityFactory extends AbstractEntityFactory
 	@Self
 	protected IEntityFactory self;
 
-	protected final SmartCopyMap<Class<?>, FastConstructor> typeToConstructorMap = new SmartCopyMap<Class<?>, FastConstructor>(0.5f);
-
-	protected final IdentityWeakSmartCopyMap<FastConstructor, Object[]> constructorToBeanArgsMap = new IdentityWeakSmartCopyMap<FastConstructor, Object[]>(0.5f);
+	protected final SmartCopyMap<Class<?>, ConstructorEntry> typeToConstructorMap = new SmartCopyMap<Class<?>, ConstructorEntry>(0.5f);
 
 	@Override
 	public boolean supportsEnhancement(Class<?> enhancementType)
@@ -66,13 +78,14 @@ public class EntityFactory extends AbstractEntityFactory
 		return bytecodeEnhancer.supportsEnhancement(enhancementType);
 	}
 
-	protected <T> FastConstructor getConstructor(Map<Class<?>, FastConstructor> map, Class<T> entityType)
+	protected ConstructorEntry getConstructorEntry(Class<?> entityType)
 	{
-		FastConstructor constructor = map.get(entityType);
-		if (constructor == null)
+		ConstructorEntry constructorEntry = typeToConstructorMap.get(entityType);
+		if (constructorEntry == null)
 		{
 			FastClass fastClass = FastClass.create(entityType);
 			Throwable lastThrowable = null;
+			FastConstructor constructor = null;
 			for (int a = 0, size = CONSTRUCTOR_SERIES.length; a < size; a++)
 			{
 				Class<?>[] parameters = CONSTRUCTOR_SERIES[a];
@@ -91,20 +104,20 @@ public class EntityFactory extends AbstractEntityFactory
 			{
 				throw RuntimeExceptionUtil.mask(lastThrowable);
 			}
-			map.put(entityType, constructor);
+			constructorEntry = new ConstructorEntry(constructor, getConstructorArguments(constructor));
+			typeToConstructorMap.put(entityType, constructorEntry);
 		}
-		return constructor;
+		return constructorEntry;
 	}
 
 	protected Object[] getConstructorArguments(FastConstructor constructor)
 	{
-		Object[] beanArgs = constructorToBeanArgsMap.get(constructor);
-		if (beanArgs != null)
-		{
-			return beanArgs;
-		}
 		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		beanArgs = new Object[parameterTypes.length];
+		if (parameterTypes.length == 0)
+		{
+			return EMPTY_ARGS;
+		}
+		Object[] beanArgs = new Object[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			Class<?> parameterType = parameterTypes[a];
@@ -117,7 +130,6 @@ public class EntityFactory extends AbstractEntityFactory
 				beanArgs[a] = beanContext.getService(parameterType);
 			}
 		}
-		constructorToBeanArgsMap.put(constructor, beanArgs);
 		return beanArgs;
 	}
 
@@ -149,9 +161,8 @@ public class EntityFactory extends AbstractEntityFactory
 			{
 				entityMetaDataRefresher.refreshMembers(metaData);
 			}
-			FastConstructor constructor = getConstructor(typeToConstructorMap, metaData.getEnhancedType());
-			Object[] args = getConstructorArguments(constructor);
-			Object entity = constructor.newInstance(args);
+			ConstructorEntry constructorEntry = getConstructorEntry(metaData.getEnhancedType());
+			Object entity = constructorEntry.constructor.newInstance(constructorEntry.args);
 			postProcessEntity(entity, metaData, doEmptyInit);
 			return entity;
 		}

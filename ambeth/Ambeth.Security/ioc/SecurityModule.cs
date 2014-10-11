@@ -24,6 +24,8 @@ namespace De.Osthus.Ambeth.Ioc
 
     		beanContextFactory.RegisterAnonymousBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
 
+            beanContextFactory.RegisterAnonymousBean<SecurityContextHolder>().Autowireable(typeof(ISecurityContextHolder), typeof(IAuthorizationChangeListenerExtendable));
+
             if (IsNetworkClientMode && IsSecurityBeanActive)
             {
                 beanContextFactory.RegisterBean<ClientServiceBean>("securityServiceWCF")

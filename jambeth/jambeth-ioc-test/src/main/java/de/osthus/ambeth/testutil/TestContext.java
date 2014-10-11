@@ -12,7 +12,7 @@ public class TestContext implements ITestContext
 {
 	private static final String nl = System.getProperty("line.separator");
 
-	private static final Pattern pathSeparator = Pattern.compile(File.pathSeparator);
+	private static final Pattern pathSeparator = Pattern.compile(Pattern.quote(File.pathSeparator));
 
 	protected final AmbethIocRunner runner;
 

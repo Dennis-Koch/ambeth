@@ -275,6 +275,10 @@ namespace De.Osthus.Ambeth.Cache
             {
                 IMergeServiceExtension mergeServiceExtension = GetServiceForType(type);
 
+                if (mergeServiceExtension == null)
+                {
+                    throw new Exception("No extension found to merge entities of type '" + type.FullName + "'");
+                }
                 foreach (MergeOperation existingMergeOperation in mergeOperations)
                 {
                     if (Object.ReferenceEquals(existingMergeOperation.MergeServiceExtension, mergeServiceExtension))

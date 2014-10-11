@@ -193,7 +193,7 @@ namespace De.Osthus.Ambeth.Testutil
             }
         }
 
-        public TestContext TestContext { get; set; }
+        public Microsoft.VisualStudio.TestTools.UnitTesting.TestContext TestContext { get; set; }
 
         public AbstractIocTest()
         {
@@ -205,7 +205,7 @@ namespace De.Osthus.Ambeth.Testutil
         /// </summary>
         /// <param name="context"></param>
         [AssemblyInitialize]
-        public static void RegisterAssemblies(TestContext context)
+        public static void RegisterAssemblies(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext context)
         {
             assemblyInitRan = true;
             AssemblyHelper.RegisterAssemblyFromType(typeof(IProperties)); // for xsd files from Ambeth.Util
@@ -264,7 +264,7 @@ namespace De.Osthus.Ambeth.Testutil
             String methodName = TestContext.TestName;
             AssemblyHelper.RegisterAssemblyFromType(testType);
             MethodInfo method = testType.GetMethod(methodName);
-            runner.RebuildContext(method);
+            runner.RunChild(method);
             BeanContext = runner.GetBeanContext();
         }
 

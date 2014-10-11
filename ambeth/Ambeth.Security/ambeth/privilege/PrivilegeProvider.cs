@@ -161,6 +161,9 @@ namespace De.Osthus.Ambeth.Privilege
         public IPrivilegeService PrivilegeService { protected get; set; }
 
         [Autowired]
+        public ISecurityContextHolder SecurityContextHolder { protected get; set; }
+
+        [Autowired]
         public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
 
         protected readonly Object writeLock = new Object();
@@ -374,10 +377,11 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<ITypePrivilege> GetPrivilegesByType(IEnumerable<Type> entityTypes, params ISecurityScope[] securityScopes)
         {
-            IAuthorization authorization = SecurityScopeProvider.Authorization;
+            ISecurityContext context = SecurityContextHolder.Context;
+            IAuthorization authorization = context != null ? context.Authorization : null;
             if (authorization == null)
             {
-                throw new SecurityException("User must be authenticated to be able to check for privileges");
+                throw new SecurityException("User must be authorized to be able to check for privileges");
             }
             if (securityScopes.Length == 0)
             {

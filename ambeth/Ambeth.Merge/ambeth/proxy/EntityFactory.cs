@@ -21,9 +21,24 @@ using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Proxy
 {
+    public class ConstructorEntry
+	{
+		public readonly ConstructorInfo constructor;
+
+        public readonly Object[] args;
+
+        public ConstructorEntry(ConstructorInfo constructor, Object[] args)
+		{
+			this.constructor = constructor;
+			this.args = args;
+		}
+	}
+
     public class EntityFactory : AbstractEntityFactory
     {
         private static readonly Type[][] CONSTRUCTOR_SERIES = new Type[][] { new Type[] { typeof(IEntityFactory) }, new Type[] {} };
+
+        private static readonly Object[] EMPTY_ARGS = new Object[0];
 
         [LogInstance]
         public ILogger log;
@@ -49,21 +64,20 @@ namespace De.Osthus.Ambeth.Proxy
         [Self]
         public IEntityFactory Self { protected get; set; }
 
-        protected readonly SmartCopyMap<Type, ConstructorInfo> typeToConstructorMap = new SmartCopyMap<Type, ConstructorInfo>(0.5f);
+        protected readonly SmartCopyMap<Type, ConstructorEntry> typeToConstructorMap = new SmartCopyMap<Type, ConstructorEntry>(0.5f);
         
-        protected readonly IdentityWeakSmartCopyMap<ConstructorInfo, Object[]> constructorToBeanArgsMap = new IdentityWeakSmartCopyMap<ConstructorInfo, Object[]>();
-
         public override bool SupportsEnhancement(Type enhancementType)
 	    {
 		    return BytecodeEnhancer.SupportsEnhancement(enhancementType);
 	    }
 
-	    protected ConstructorInfo GetConstructor(IMap<Type, ConstructorInfo> map, Type entityType)
+        protected ConstructorEntry GetConstructorEntry(Type entityType)
 	    {
-		    ConstructorInfo constructor = map.Get(entityType);
-		    if (constructor == null)
+            ConstructorEntry constructorEntry = typeToConstructorMap.Get(entityType);
+            if (constructorEntry == null)
 		    {
 			    Exception lastThrowable = null;
+                ConstructorInfo constructor = null;
 			    for (int a = 0, size = CONSTRUCTOR_SERIES.Length; a < size; a++)
 			    {
 				    Type[] parameters = CONSTRUCTOR_SERIES[a];
@@ -85,20 +99,16 @@ namespace De.Osthus.Ambeth.Proxy
 			    {
 				    throw lastThrowable;
 			    }
-			    map.Put(entityType, constructor);
+                constructorEntry = new ConstructorEntry(constructor, GetConstructorArguments(constructor));
+                typeToConstructorMap.Put(entityType, constructorEntry);
 		    }
-		    return constructor;
+            return constructorEntry;
 	    }
 
 	    protected Object[] GetConstructorArguments(ConstructorInfo constructor)
 	    {
-            Object[] beanArgs = constructorToBeanArgsMap.Get(constructor);
-            if (beanArgs != null)
-            {
-                return beanArgs;
-            }
 		    ParameterInfo[] parameterTypes = constructor.GetParameters();
-			beanArgs = new Object[parameterTypes.Length];
+			Object[] beanArgs = new Object[parameterTypes.Length];
 			for (int a = parameterTypes.Length; a-- > 0;)
 			{
 				Type parameterType = parameterTypes[a].ParameterType;
@@ -111,7 +121,6 @@ namespace De.Osthus.Ambeth.Proxy
 					beanArgs[a] = BeanContext.GetService(parameterType);
 				}
 			}
-			constructorToBeanArgsMap.Put(constructor, beanArgs);
 		    return beanArgs;
 	    }
         
@@ -134,9 +143,8 @@ namespace De.Osthus.Ambeth.Proxy
                 {
                     EntityMetaDataRefresher.RefreshMembers(metaData);
                 }
-                ConstructorInfo constructor = GetConstructor(typeToConstructorMap, metaData.EnhancedType);
-				Object[] args = GetConstructorArguments(constructor);
-				Object entity = constructor.Invoke(args);
+                ConstructorEntry constructorEntry = GetConstructorEntry(metaData.EnhancedType);
+                Object entity = constructorEntry.constructor.Invoke(constructorEntry.args);
 				PostProcessEntity(entity, metaData);
 				return entity;
 		    }

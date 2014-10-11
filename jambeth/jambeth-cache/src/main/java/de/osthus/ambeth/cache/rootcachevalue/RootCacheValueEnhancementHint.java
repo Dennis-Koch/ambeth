@@ -1,11 +1,15 @@
 package de.osthus.ambeth.cache.rootcachevalue;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
-public class RootCacheValueEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
+public class RootCacheValueEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
 {
+	private static final long serialVersionUID = 5722369699026975653L;
+
 	protected final Class<?> entityType;
 
 	public RootCacheValueEnhancementHint(Class<?> entityType)

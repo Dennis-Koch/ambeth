@@ -22,6 +22,8 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 	@LogInstance
 	private ILogger log;
 
+	protected int maxDebugItems = 50;
+
 	@Autowired
 	protected ILoadContainerProvider loadContainerProvider;
 
@@ -67,7 +69,7 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 			}
 			sb.append(" [");
 
-			int printBorder = 3, skipped = count >= 50 ? Math.max(0, count - printBorder * 2) : 0;
+			int printBorder = 3, skipped = count >= maxDebugItems ? Math.max(0, count - printBorder * 2) : 0;
 			for (int a = count; a-- > 0;)
 			{
 				if (skipped > 1)
@@ -113,7 +115,7 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 			}
 			sb.append(" [");
 
-			int printBorder = 3, skipped = count >= 50 ? Math.max(0, count - printBorder * 2) : 0;
+			int printBorder = 3, skipped = count >= maxDebugItems ? Math.max(0, count - printBorder * 2) : 0;
 			for (int a = count; a-- > 0;)
 			{
 				if (skipped > 1)

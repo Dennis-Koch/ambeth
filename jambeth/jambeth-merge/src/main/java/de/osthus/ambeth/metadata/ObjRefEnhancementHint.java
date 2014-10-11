@@ -1,12 +1,16 @@
 package de.osthus.ambeth.metadata;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 
-public class ObjRefEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint
+public class ObjRefEnhancementHint implements IEnhancementHint, ITargetNameEnhancementHint, Serializable
 {
+	private static final long serialVersionUID = 4547369981492803630L;
+
 	protected final Class<?> entityType;
 
 	protected final int idIndex;

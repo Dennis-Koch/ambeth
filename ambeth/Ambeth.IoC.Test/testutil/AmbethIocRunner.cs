@@ -9,11 +9,16 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
+using System.Collections;
 
 namespace De.Osthus.Ambeth.Testutil
 {
-    public class AmbethIocRunner
+    public class AmbethIocRunner : BlockJUnit4ClassRunner
     {
+        protected bool hasContextBeenRebuildForThisTest;
+
+        protected bool isRebuildContextForThisTestRecommended;
+
         protected IServiceContext testClassLevelContext;
 
         protected IServiceContext beanContext;
@@ -26,6 +31,11 @@ namespace De.Osthus.Ambeth.Testutil
         {
             this.testClass = testClass;
             originalTestInstance = test;
+        }
+
+        public Type GetTestType()
+        {
+            return testClass;
         }
 
         public IServiceContext GetBeanContext()
@@ -42,9 +52,11 @@ namespace De.Osthus.Ambeth.Testutil
         {
             if (testClassLevelContext != null)
             {
+    			IThreadLocalCleanupController tlCleanupController = testClassLevelContext.GetService<IThreadLocalCleanupController>();
                 testClassLevelContext.Dispose();
                 testClassLevelContext = null;
                 beanContext = null;
+                tlCleanupController.CleanupThreadLocal();
             }
         }
 
@@ -112,6 +124,7 @@ namespace De.Osthus.Ambeth.Testutil
                 }
                 currentBeanContext.RegisterWithLifecycle(originalTestInstance).Finish();
                 beanContext = currentBeanContext;
+                success = true;
             }
             finally
             {
@@ -122,7 +135,22 @@ namespace De.Osthus.Ambeth.Testutil
             }
         }
 
-        protected void ExtendProperties(MethodInfo frameworkMethod, Properties props)
+        protected virtual IList<TestProperties> GetAllTestProperties(MethodInfo frameworkMethod)
+	    {
+            IList<IAnnotationInfo<TestProperties>> testPropertiesList = FindAnnotations<TestProperties>(testClass, frameworkMethod);
+
+		    List<TestProperties> allTestProperties = new List<TestProperties>();
+
+		    for (int a = 0, size = testPropertiesList.Count; a < size; a++)
+		    {
+			    TestProperties testPropertiesItem = testPropertiesList[a].Annotation;
+
+    		    allTestProperties.Add(testPropertiesItem);
+		    }
+		    return allTestProperties;
+	    }
+
+        protected virtual void ExtendProperties(MethodInfo frameworkMethod, Properties props)
         {
             IList<IAnnotationInfo<TestProperties>> testPropertiesList = FindAnnotations<TestProperties>(testClass, frameworkMethod);
 
@@ -155,12 +183,12 @@ namespace De.Osthus.Ambeth.Testutil
 
         protected virtual void RebuildContextDetails(IBeanContextFactory childContextFactory)
         {
-            // Intended blank
+            childContextFactory.RegisterExternalBean(new TestContext(this)).Autowireable<ITestContext>();
         }
 
-        protected Statement WithAfterClasses(Statement statement)
+        protected override Statement WithAfterClasses(Statement statement)
         {
-            Statement withAfterClasses = WithAfterClasses(statement);
+            Statement withAfterClasses = base.WithAfterClasses(statement);
 
             return new Statement(delegate()
             {
@@ -169,50 +197,78 @@ namespace De.Osthus.Ambeth.Testutil
             });
         }
 
-        protected virtual Statement WithAfterClassesWithinContext(Statement statement)
+        protected override Statement WithAfters(MethodInfo method, Object target, Statement statement)
         {
-            //		return super.withAfterClasses(statement);
-            return statement;
+            Statement returningStatement = base.WithAfters(method, target, statement);
+		    return new Statement(delegate()
+			    {
+				    if (typeof(IRunnerAware).IsAssignableFrom(target.GetType()))
+				    {
+					    beanContext.RegisterWithLifecycle(target).PropertyValue("Runner", this).Finish();
+				    }
+				    else
+				    {
+                        beanContext.RegisterWithLifecycle(target).Finish();
+				    }
+				    returningStatement();
+			    });
         }
 
-        protected void RunChild(MethodInfo method, Object notifier)
-        {
-            RunChildWithContext(method, notifier, false);
-        }
+        protected override Object CreateTest()
+	    {
+            return originalTestInstance;
+	    }
 
-        protected void RunChildWithContext(MethodInfo method, Object/*RunNotifier*/ notifier, bool hasContextBeenRebuild)
-        {
-            try
-            {
-                if (!hasContextBeenRebuild && (method == null || !AnnotationUtil.IsAnnotationPresent<IgnoreAttribute>(method, false)))
-                {
-                    IList<IAnnotationInfo<TestRebuildContext>> rebuildContextList = FindAnnotations<TestRebuildContext>(testClass);
-                    if (rebuildContextList.Count > 0)
-                    {
-                        bool rebuildContext = ((TestRebuildContext)rebuildContextList[rebuildContextList.Count].Annotation).Value;
-                        if (rebuildContext)
+        protected override Statement MethodBlock(MethodInfo method)
+	    {
+		    Statement statement = base.MethodBlock(method);
+		    return new Statement(delegate()
+		    {
+				if (!hasContextBeenRebuildForThisTest)
+				{
+					if (method == null || !AnnotationUtil.IsAnnotationPresent<IgnoreAttribute>(method, false))
+					{
+                        IList<IAnnotationInfo<TestRebuildContext>> rebuildContextList = FindAnnotations<TestRebuildContext>(testClass);
+                        if (rebuildContextList.Count > 0)
                         {
-                            RebuildContext(method);
+                            bool rebuildContext = ((TestRebuildContext)rebuildContextList[rebuildContextList.Count - 1].Annotation).Value;
+                            if (rebuildContext)
+                            {
+                                RebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+                            }
                         }
-                    }
-                }
-            }
-            //catch (MaskingRuntimeException e)
-            //{
-            //    notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e.getMessage() == null ? e
-            //            .getCause() : e));
-            //    return;
-            //}
-            //catch (Throwable e)
-            //{
-            //    notifier.fireTestFailure(new Failure(Description.createTestDescription(getTestClass().getJavaClass(), method.getName()), e));
-            //    return;
-            //}
-            finally
-            {
-            }
-            method.Invoke(originalTestInstance, null);
-            //super.runChild(method, notifier);
+						if (method != null)
+						{
+							if (AnnotationUtil.IsAnnotationPresent<TestModule>(method, false) || AnnotationUtil.IsAnnotationPresent<TestFrameworkModule>(method, false)
+									|| AnnotationUtil.IsAnnotationPresent<TestProperties>(method, false))
+							{
+								RebuildContext(method);
+								hasContextBeenRebuildForThisTest = true;
+								isRebuildContextForThisTestRecommended = false;
+							}
+						}
+					}
+				}
+				if (beanContext == null || isRebuildContextForThisTestRecommended)
+				{
+					RebuildContext(method);
+				}
+				statement();
+		    });
+        }
+
+        protected override void RunChild(MethodInfo method, Object notifier)
+        {
+            hasContextBeenRebuildForThisTest = false;
+            isRebuildContextForThisTestRecommended = false;
+            base.RunChild(method, notifier);
+        }
+
+        public void RunChild(MethodInfo method)
+        {
+            RunChild(method, null);
         }
 
         protected IList<IAnnotationInfo<V>> FindAnnotations<V>(Type type) where V : Attribute
