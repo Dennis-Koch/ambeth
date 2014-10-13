@@ -202,23 +202,6 @@ namespace De.Osthus.Ambeth.Testutil
             return originalTestInstance;
 	    }
 
-        protected override Statement MethodInvoker(MethodInfo method, Object test)
-        {
-            Statement returningStatement = base.MethodInvoker(method, test);
-            return new Statement(delegate()
-            {
-                if (typeof(IRunnerAware).IsAssignableFrom(test.GetType()))
-                {
-                    beanContext.RegisterWithLifecycle(test).PropertyValue("Runner", this).Finish();
-                }
-                else
-                {
-                    beanContext.RegisterWithLifecycle(test).Finish();
-                }
-                returningStatement();
-            });
-        }
-
         protected override Statement MethodBlock(MethodInfo method)
 	    {
 		    Statement statement = base.MethodBlock(method);

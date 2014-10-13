@@ -121,6 +121,12 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		return 20800;
 	}
 
+	public static int getPessimisticLockErrorCode()
+	{
+		// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
+		return 54;
+	}
+
 	@LogInstance
 	private ILogger log;
 
@@ -534,8 +540,7 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 	{
 		int errorCode = e.getErrorCode();
 
-		// 54 = RESOURCE BUSY acquiring with NOWAIT (pessimistic lock)
-		if (errorCode == 54)
+		if (errorCode == getPessimisticLockErrorCode())
 		{
 			PessimisticLockException ex = new PessimisticLockException(relatedSql, e);
 			ex.setStackTrace(RuntimeExceptionUtil.EMPTY_STACK_TRACE);

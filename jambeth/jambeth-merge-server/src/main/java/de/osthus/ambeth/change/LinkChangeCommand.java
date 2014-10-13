@@ -10,9 +10,9 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 {
 	protected IDirectedLink link;
 
-	protected List<IObjRef> refsToLink = new ArrayList<IObjRef>();
+	protected final ArrayList<IObjRef> refsToLink = new ArrayList<IObjRef>();
 
-	protected List<IObjRef> refsToUnlink = new ArrayList<IObjRef>();
+	protected final ArrayList<IObjRef> refsToUnlink = new ArrayList<IObjRef>();
 
 	@Override
 	public IDirectedLink getDirectedLink()
