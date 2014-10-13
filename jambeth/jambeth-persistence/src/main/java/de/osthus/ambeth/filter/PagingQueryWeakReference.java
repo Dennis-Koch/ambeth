@@ -21,7 +21,7 @@ public class PagingQueryWeakReference<T> implements IPagingQuery<T>
 		if (pagingQuery != null)
 		{
 			pagingQuery.dispose();
-			pagingQuery = null;
+			pagingQuery = PagingQueryDisposed.getInstance();
 		}
 	}
 
@@ -31,7 +31,7 @@ public class PagingQueryWeakReference<T> implements IPagingQuery<T>
 		if (pagingQuery != null)
 		{
 			pagingQuery.dispose();
-			pagingQuery = null;
+			pagingQuery = PagingQueryDisposed.getInstance();
 		}
 	}
 

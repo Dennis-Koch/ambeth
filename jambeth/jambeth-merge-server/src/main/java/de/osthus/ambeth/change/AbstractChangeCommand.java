@@ -74,6 +74,7 @@ public abstract class AbstractChangeCommand implements IChangeCommand
 
 	protected void repackPuis(IPrimitiveUpdateItem[] puis, Map<String, Object> target)
 	{
+		ITable table = this.table;
 		for (int i = puis.length; i-- > 0;)
 		{
 			IPrimitiveUpdateItem pui = puis[i];

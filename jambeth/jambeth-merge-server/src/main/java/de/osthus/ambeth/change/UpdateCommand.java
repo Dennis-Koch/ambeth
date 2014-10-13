@@ -12,16 +12,16 @@ import de.osthus.ambeth.persistence.ITable;
 
 public class UpdateCommand extends AbstractChangeCommand implements IUpdateCommand
 {
-	private static final ILinkedMap<String, Object> emtpyItems = new ReadOnlyMapWrapper<String, Object>(new LinkedHashMap<String, Object>());
+	private static final ILinkedMap<String, Object> emptyItems = new ReadOnlyMapWrapper<String, Object>(new LinkedHashMap<String, Object>());
 
-	protected ILinkedMap<String, Object> items = emtpyItems;
-	protected ILinkedMap<String, Object> roItems = emtpyItems;
+	protected ILinkedMap<String, Object> items = emptyItems;
+	protected ILinkedMap<String, Object> roItems = emptyItems;
 
 	@Override
 	public void dispose()
 	{
 		super.dispose();
-		if (items != emtpyItems)
+		if (items != emptyItems)
 		{
 			items.clear();
 			items = null;
@@ -52,7 +52,7 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 	public IChangeCommand addCommand(IUpdateCommand other)
 	{
 		IMap<String, Object> otherItems = other.getItems();
-		if (otherItems != emtpyItems)
+		if (otherItems != emptyItems)
 		{
 			for (Entry<String, Object> entry : otherItems)
 			{
@@ -93,7 +93,7 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 
 	protected void ensureWritableMap()
 	{
-		if (items == emtpyItems)
+		if (items == emptyItems)
 		{
 			items = new LinkedHashMap<String, Object>();
 			roItems = new ReadOnlyMapWrapper<String, Object>(items);
