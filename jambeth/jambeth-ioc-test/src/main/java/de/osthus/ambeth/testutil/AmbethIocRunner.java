@@ -247,29 +247,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		};
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected Statement withAfters(FrameworkMethod method, final Object target, Statement statement)
-	{
-		final Statement returningStatement = super.withAfters(method, target, statement);
-		return new Statement()
-		{
-			@Override
-			public void evaluate() throws Throwable
-			{
-				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
-				{
-					beanContext.registerWithLifecycle(target).propertyValue("Runner", this).finish();
-				}
-				else
-				{
-					beanContext.registerWithLifecycle(target).finish();
-				}
-				returningStatement.evaluate();
-			}
-		};
-	}
-
 	@Override
 	protected Object createTest() throws Exception
 	{
@@ -286,6 +263,14 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			@Override
 			public void evaluate() throws Throwable
 			{
+				if (IRunnerAware.class.isAssignableFrom(test.getClass()))
+				{
+					beanContext.registerWithLifecycle(test).propertyValue("Runner", this).finish();
+				}
+				else
+				{
+					beanContext.registerWithLifecycle(test).finish();
+				}
 				statement.evaluate();
 			}
 		};

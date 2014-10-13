@@ -84,7 +84,10 @@ public class DataSetupExecutor implements IStartingBean
 							public Object invoke() throws Throwable
 							{
 								Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
-								mergeProcess.process(dataSet, null, null, null, false);
+								if (dataSet.size() > 0)
+								{
+									mergeProcess.process(dataSet, null, null, null, false);
+								}
 								return null;
 							}
 						});

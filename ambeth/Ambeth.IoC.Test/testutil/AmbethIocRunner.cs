@@ -197,27 +197,27 @@ namespace De.Osthus.Ambeth.Testutil
             });
         }
 
-        protected override Statement WithAfters(MethodInfo method, Object target, Statement statement)
-        {
-            Statement returningStatement = base.WithAfters(method, target, statement);
-		    return new Statement(delegate()
-			    {
-				    if (typeof(IRunnerAware).IsAssignableFrom(target.GetType()))
-				    {
-					    beanContext.RegisterWithLifecycle(target).PropertyValue("Runner", this).Finish();
-				    }
-				    else
-				    {
-                        beanContext.RegisterWithLifecycle(target).Finish();
-				    }
-				    returningStatement();
-			    });
-        }
-
         protected override Object CreateTest()
 	    {
             return originalTestInstance;
 	    }
+
+        protected override Statement MethodInvoker(MethodInfo method, Object test)
+        {
+            Statement returningStatement = base.MethodInvoker(method, test);
+            return new Statement(delegate()
+            {
+                if (typeof(IRunnerAware).IsAssignableFrom(test.GetType()))
+                {
+                    beanContext.RegisterWithLifecycle(test).PropertyValue("Runner", this).Finish();
+                }
+                else
+                {
+                    beanContext.RegisterWithLifecycle(test).Finish();
+                }
+                returningStatement();
+            });
+        }
 
         protected override Statement MethodBlock(MethodInfo method)
 	    {
