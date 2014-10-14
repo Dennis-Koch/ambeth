@@ -259,7 +259,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			{
 				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
 				{
-					beanContext.registerWithLifecycle(target).propertyValue("Runner", this).finish();
+					beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
 				}
 				else
 				{

@@ -197,6 +197,23 @@ namespace De.Osthus.Ambeth.Testutil
             });
         }
 
+        protected Statement WithAfters(MethodInfo method, Object target, Statement statement)
+	    {
+		    Statement returningStatement = base.WithAfters(method, target, statement);
+		    return new Statement(delegate()
+		    {
+				if (typeof(IRunnerAware).IsAssignableFrom(target.GetType()))
+				{
+					beanContext.RegisterWithLifecycle(target).PropertyValue("Runner", this).Finish();
+				}
+				else
+				{
+					beanContext.RegisterWithLifecycle(target).Finish();
+				}
+				returningStatement();
+		    };
+	    }
+
         protected override Object CreateTest()
 	    {
             return originalTestInstance;
