@@ -5,14 +5,20 @@ using System.Text;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Merge;
-using System.Threading;
 
-namespace De.Osthus.Ambeth.ambeth.util.setup
+#if SILVERLIGHT
+using De.Osthus.Ambeth.Util;
+#else
+using System.Threading;
+#endif
+
+
+namespace De.Osthus.Ambeth.Util.Setup
 {
     public abstract class AbstractDatasetBuilder : IDatasetBuilder
     {
         [LogInstance]
-        private ILogger Log;
+        public ILogger Log { private get; set; }
 
 	    [Autowired]
 	    protected IEntityFactory EntityFactory;
@@ -23,7 +29,7 @@ namespace De.Osthus.Ambeth.ambeth.util.setup
 	    [Autowired]
 	    protected IMergeProcess MergeProcess;
 
-        protected ThreadLocal<IList<Object>> InitialTestDatasetTL = new ThreadLocal<IList<Object>>();
+        private static readonly ThreadLocal<IList<Object>> InitialTestDatasetTL = new ThreadLocal<IList<Object>>();
 
         protected abstract void BuildDatasetInternal();
         

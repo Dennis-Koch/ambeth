@@ -7,7 +7,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Config;
 
-namespace De.Osthus.Ambeth.ambeth.util.setup
+namespace De.Osthus.Ambeth.Util.Setup
 {
     public class SetupModule : IInitializingModule
     {

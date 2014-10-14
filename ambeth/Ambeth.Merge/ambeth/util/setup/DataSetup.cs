@@ -7,12 +7,12 @@ using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Collections;
 
-namespace De.Osthus.Ambeth.ambeth.util.setup
+namespace De.Osthus.Ambeth.Util.Setup
 {
     public class DataSetup : IDataSetup, IDatasetBuilderExtensionExtendable
     {
         [LogInstance]
-	    private ILogger log;
+        public ILogger Log { private get; set; }
 
 	    protected IExtendableContainer<IDatasetBuilder> DatasetBuilderContainer = new DefaultExtendableContainer<IDatasetBuilder>("TestBedBuilders");
 
@@ -44,7 +44,7 @@ namespace De.Osthus.Ambeth.ambeth.util.setup
 			    foreach (IDatasetBuilder datasetBuilder in datasetBuilders)
 			    {
 				    if (!processedBuilders.Contains(datasetBuilder.GetType())
-						    && (datasetBuilder.getDependsOn() == null || processedBuilders.ContainsAll(datasetBuilder.getDependsOn())))
+						    && (datasetBuilder.GetDependsOn() == null || processedBuilders.ContainsAll(datasetBuilder.GetDependsOn())))
 				    {
                         processedBuilders.Add(datasetBuilder.GetType());
                         sortedBuilders.Add(datasetBuilder);
@@ -54,8 +54,8 @@ namespace De.Osthus.Ambeth.ambeth.util.setup
 			    }
                 if (!dependencyFound)
                 {
-                    log.Error("All Dataset Builders: " + datasetBuilders);
-                    log.Error("Dataset Builders: " + processedBuilders);
+                    Log.Error("All Dataset Builders: " + datasetBuilders);
+                    Log.Error("Dataset Builders: " + processedBuilders);
                     throw new SystemException("Unable to fullfil DatasetBuilder dependencies!");
                 }
 		    }
