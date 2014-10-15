@@ -7,7 +7,7 @@ namespace De.Osthus.Ambeth.Util.Setup
 {
     public interface IDatasetBuilder
     {
-        IList<Object> BuildDataset();
+        void BuildDataset(IList<Object> initialTestDataset);
     	IList<IDatasetBuilder> GetDependsOn();
     }
 }

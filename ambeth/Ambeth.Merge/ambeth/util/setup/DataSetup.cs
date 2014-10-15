@@ -16,11 +16,6 @@ namespace De.Osthus.Ambeth.Util.Setup
 
 	    protected IExtendableContainer<IDatasetBuilder> DatasetBuilderContainer = new DefaultExtendableContainer<IDatasetBuilder>("TestBedBuilders");
 
-        public IList<object> ExecuteDatasetBuilders()
-        {
-            throw new NotImplementedException();
-        }
-
         public void RegisterTestBedBuilderExtension(IDatasetBuilder testBedBuilder)
         {
             DatasetBuilderContainer.Register(testBedBuilder);
@@ -31,7 +26,18 @@ namespace De.Osthus.Ambeth.Util.Setup
             DatasetBuilderContainer.Unregister(testBedBuilder);
         }
 
-	    private IList<IDatasetBuilder> determineExecutionOrder(IExtendableContainer<IDatasetBuilder> datasetBuilderContainer)
+        public IList<object> ExecuteDatasetBuilders()
+        {
+            IdentityHashSet<Object> initialDataset = new IdentityHashSet<Object>();
+            IList<IDatasetBuilder> sortedBuilders = DetermineExecutionOrder(DatasetBuilderContainer);
+		    foreach (IDatasetBuilder datasetBuilder in sortedBuilders)
+		    {
+			    datasetBuilder.BuildDataset(initialDataset.ToList());
+		    }
+		    return initialDataset.ToList();
+        }
+
+	    private IList<IDatasetBuilder> DetermineExecutionOrder(IExtendableContainer<IDatasetBuilder> datasetBuilderContainer)
 	    {
 		    IList<IDatasetBuilder> sortedBuilders = new List<IDatasetBuilder>();
 		    CHashSet<Object> processedBuilders = new CHashSet<Object>();

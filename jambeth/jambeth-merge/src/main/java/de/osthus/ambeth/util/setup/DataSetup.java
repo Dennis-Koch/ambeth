@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.persistence.PersistenceException;
+
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
@@ -34,21 +37,13 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 	@Override
 	public Collection<Object> executeDatasetBuilders()
 	{
-		if (datasetBuilderContainer != null && datasetBuilderContainer.getExtensions() != null)
+		IdentityHashSet<Object> initialDataset = new IdentityHashSet<Object>();
+		List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
+		for (IDatasetBuilder datasetBuilder : sortedBuilders)
 		{
-			Collection<Object> initialDataset = new HashSet<Object>();
-			List<IDatasetBuilder> sortedBuilders = determineExecutionOrder(datasetBuilderContainer);
-			for (IDatasetBuilder datasetBuilder : sortedBuilders)
-			{
-				Collection<Object> dataset = datasetBuilder.buildDataset();
-				if (dataset != null)
-				{
-					initialDataset.addAll(dataset);
-				}
-			}
-			return initialDataset;
+			datasetBuilder.buildDataset(initialDataset);
 		}
-		return null;
+		return initialDataset;
 	}
 
 	private List<IDatasetBuilder> determineExecutionOrder(IExtendableContainer<IDatasetBuilder> datasetBuilderContainer)
@@ -57,8 +52,10 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 		Collection<Class<? extends IDatasetBuilder>> processedBuilders = new HashSet<Class<? extends IDatasetBuilder>>();
 
 		IDatasetBuilder[] datasetBuilders = datasetBuilderContainer.getExtensions();
-		outer: while (processedBuilders.size() < datasetBuilders.length)
+		boolean dependencyFound;
+		while (processedBuilders.size() < datasetBuilders.length)
 		{
+			dependencyFound = false;
 			for (IDatasetBuilder datasetBuilder : datasetBuilders)
 			{
 				if (!processedBuilders.contains(datasetBuilder.getClass())
@@ -66,12 +63,16 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 				{
 					processedBuilders.add(datasetBuilder.getClass());
 					sortedBuilders.add(datasetBuilder);
-					continue outer;
+					dependencyFound = true;
+					break;
 				}
 			}
-			log.error("All Dataset Builders: " + Arrays.asList(datasetBuilders));
-			log.error("Dataset Builders: " + processedBuilders);
-			throw new RuntimeException("Unable to fullfil DatasetBuilder dependencies!");
+			if (!dependencyFound)
+			{
+				log.error("All Dataset Builders: " + Arrays.asList(datasetBuilders));
+				log.error("Dataset Builders: " + processedBuilders);
+				throw new PersistenceException("Unable to fullfil DatasetBuilder dependencies!");
+			}
 		}
 
 		return sortedBuilders;

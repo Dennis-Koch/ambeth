@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public interface IDatasetBuilder
 {
-	Collection<Object> buildDataset();
+	void buildDataset(Collection<Object> initialTestDataset);
 
 	Collection<Class<? extends IDatasetBuilder>> getDependsOn();
 }
