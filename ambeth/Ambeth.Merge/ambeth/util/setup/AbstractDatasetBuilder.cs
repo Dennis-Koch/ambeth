@@ -17,6 +17,8 @@ namespace De.Osthus.Ambeth.Util.Setup
 {
     public abstract class AbstractDatasetBuilder : IDatasetBuilder
     {
+        private static readonly ThreadLocal<IList<Object>> INITIAL_TEST_DATASET_TL = new ThreadLocal<IList<Object>>();
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -26,48 +28,40 @@ namespace De.Osthus.Ambeth.Util.Setup
 	    [Autowired]
 	    protected IEntityMetaDataProvider EntityMetaDataProvider;
 
-	    [Autowired]
-	    protected IMergeProcess MergeProcess;
-
-        private static readonly ThreadLocal<IList<Object>> InitialTestDatasetTL = new ThreadLocal<IList<Object>>();
-
         protected abstract void BuildDatasetInternal();
         
         
         public IList<IDatasetBuilder> GetDependsOn()
         {
-            throw new NotImplementedException();
+            return null;
         }
 
-        public IList<object> BuildDataset()
+        public void BuildDataset(IList<Object> initialTestDataset)
         {
-            BeforeBuildDataset();
+            IList<Object> oldSet = INITIAL_TEST_DATASET_TL.Value;
+            INITIAL_TEST_DATASET_TL.Value = initialTestDataset;
             try
             {
                 BuildDatasetInternal();
-                return InitialTestDatasetTL.Value;
             }
             finally
             {
-                AfterBuildDataset();
+                if (oldSet != null)
+                {
+                    INITIAL_TEST_DATASET_TL.Value = oldSet;
+                }
+                else
+                {
+                    INITIAL_TEST_DATASET_TL.Value = null;
+                }
             }
         }
 
-        private void BeforeBuildDataset()
-        {
-            IList<Object> initialTestDataset = new List<Object>();
-            InitialTestDatasetTL.Value = initialTestDataset;
-        }
-
-        private void AfterBuildDataset()
-        {
-            InitialTestDatasetTL.Value = null;
-        }
 
         protected T CreateEntity<T>()
 	    {
 		    T entity = EntityFactory.CreateEntity<T>();
-            InitialTestDatasetTL.Value.Add(entity);
+            INITIAL_TEST_DATASET_TL.Value.Add(entity);
 		    return entity;
 	    }
     }
