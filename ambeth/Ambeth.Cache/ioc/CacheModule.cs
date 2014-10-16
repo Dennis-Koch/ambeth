@@ -22,25 +22,26 @@ using De.Osthus.Ambeth.Merge.Config;
 using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Ioc.Config;
+using De.Osthus.Ambeth.Walker;
 
 namespace De.Osthus.Ambeth.Ioc
 {
     [FrameworkModule]
     public class CacheModule : IInitializingModule
     {
-        public static readonly String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
+        public const String CACHE_DATA_CHANGE_LISTENER = "cache.dcl";
 
-        public static readonly String COMMITTED_ROOT_CACHE = "committedRootCache";
+        public const String COMMITTED_ROOT_CACHE = "committedRootCache";
 
-        public static readonly String INTERNAL_CACHE_SERVICE = "cacheService.internal";
+        public const String INTERNAL_CACHE_SERVICE = "cacheService.internal";
 
-        public static readonly String EXTERNAL_CACHE_SERVICE = "cacheService.external";
+        public const String EXTERNAL_CACHE_SERVICE = "cacheService.external";
 
-        public static readonly String DEFAULT_CACHE_RETRIEVER = "cacheRetriever.default";
+        public const String DEFAULT_CACHE_RETRIEVER = "cacheRetriever.default";
 
-        public static readonly String ROOT_CACHE_RETRIEVER = "cacheRetriever.rootCache";
+        public const String ROOT_CACHE_RETRIEVER = "cacheRetriever.rootCache";
 
-        public static readonly String ROOT_CACHE = "rootCache";
+        public const String ROOT_CACHE = "rootCache";
 
         public IProxyFactory ProxyFactory { get; set; }
 
@@ -60,11 +61,14 @@ namespace De.Osthus.Ambeth.Ioc
         {
             ParamChecker.AssertNotNull(ProxyFactory, "ProxyFactory");
 
-            beanContextFactory.RegisterBean<ServiceResultCache>("serviceResultCache").Autowireable<IServiceResultCache>();
+            IBeanConfiguration serviceResultcache = beanContextFactory.RegisterAnonymousBean<ServiceResultCache>().Autowireable<IServiceResultCache>();
+            beanContextFactory.Link(serviceResultcache, "HandleClearAllCaches").To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
             beanContextFactory.RegisterAnonymousBean<ValueHolderIEC>().Autowireable(typeof(ValueHolderIEC), typeof(IProxyHelper));
 
-            beanContextFactory.RegisterBean<CacheHelper>("cacheHelper").Autowireable(typeof(ICacheHelper), typeof(ICachePathHelper), typeof(IPrefetchHelper));
+            beanContextFactory.RegisterAnonymousBean<CacheHelper>().Autowireable(typeof(ICacheHelper), typeof(ICachePathHelper), typeof(IPrefetchHelper));
+
+            beanContextFactory.RegisterAnonymousBean<CacheWalker>().Autowireable<ICacheWalker>();
 
             beanContextFactory.RegisterAutowireableBean<ICacheMapEntryTypeProvider, CacheMapEntryTypeProvider>();
 

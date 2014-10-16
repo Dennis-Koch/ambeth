@@ -17,6 +17,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
@@ -131,23 +132,31 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				Logger.objectCollector = testClassLevelContext.getService(IThreadLocalObjectCollector.class);
 				objectCollectorOfLoggerSet = true;
 			}
-			IServiceContext currentBeanContext = testClassLevelContext;
-			if (frameworkModules.length > 0)
+			Class<?> oldTypeScope = FileUtil.setCurrentTypeScope(getTestClass().getJavaClass());
+			try
 			{
-				currentBeanContext = currentBeanContext.createService("framework", new RegisterPhaseDelegate()
+				IServiceContext currentBeanContext = testClassLevelContext;
+				if (frameworkModules.length > 0)
 				{
-					@Override
-					public void invoke(IBeanContextFactory childContextFactory)
+					currentBeanContext = currentBeanContext.createService("framework", new RegisterPhaseDelegate()
 					{
-						rebuildContextDetails(childContextFactory);
-					}
-				}, frameworkModules);
+						@Override
+						public void invoke(IBeanContextFactory childContextFactory)
+						{
+							rebuildContextDetails(childContextFactory);
+						}
+					}, frameworkModules);
+				}
+				if (applicationModules.length > 0)
+				{
+					currentBeanContext = currentBeanContext.createService("application", applicationModules);
+				}
+				beanContext = currentBeanContext;
 			}
-			if (applicationModules.length > 0)
+			finally
 			{
-				currentBeanContext = currentBeanContext.createService("application", applicationModules);
+				FileUtil.setCurrentTypeScope(oldTypeScope);
 			}
-			beanContext = currentBeanContext;
 			success = true;
 		}
 		finally
@@ -341,9 +350,17 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	@Override
 	protected void runChild(FrameworkMethod method, RunNotifier notifier)
 	{
-		hasContextBeenRebuildForThisTest = false;
-		isRebuildContextForThisTestRecommended = false;
-		super.runChild(method, notifier);
+		Class<?> oldTypeScope = FileUtil.setCurrentTypeScope(getTestClass().getJavaClass());
+		try
+		{
+			hasContextBeenRebuildForThisTest = false;
+			isRebuildContextForThisTestRecommended = false;
+			super.runChild(method, notifier);
+		}
+		finally
+		{
+			FileUtil.setCurrentTypeScope(oldTypeScope);
+		}
 	}
 
 	protected List<IAnnotationInfo<?>> findAnnotations(Class<?> type, Class<?>... annotationTypes)

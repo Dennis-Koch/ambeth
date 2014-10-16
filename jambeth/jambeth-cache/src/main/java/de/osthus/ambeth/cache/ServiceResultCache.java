@@ -145,8 +145,9 @@ public class ServiceResultCache implements IServiceResultCache
 	{
 		// Important to clone the ori list, because potential (user-dependent)
 		// security logic may truncate this list (original must remain unmodified)
-		ArrayList<IObjRef> list = new ArrayList<IObjRef>();
-		list.addAll(cachedServiceResult.getObjRefs());
+		List<IObjRef> objRefs = cachedServiceResult.getObjRefs();
+		ArrayList<IObjRef> list = new ArrayList<IObjRef>(objRefs.size());
+		list.addAll(objRefs);
 
 		List<IObjRef> filteredList;
 		if (securityManager != null)
@@ -157,12 +158,6 @@ public class ServiceResultCache implements IServiceResultCache
 		{
 			filteredList = list;
 		}
-
-		if (list != filteredList)
-		{
-			list = null;
-		}
-
 		ServiceResult serviceResult = new ServiceResult();
 		serviceResult.setAdditionalInformation(cachedServiceResult.getAdditionalInformation());
 		serviceResult.setObjRefs(filteredList);

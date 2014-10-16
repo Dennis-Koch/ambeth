@@ -36,6 +36,8 @@ import de.osthus.ambeth.cache.interceptor.ThreadLocalRootCacheInterceptor;
 import de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor;
 import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
+import de.osthus.ambeth.cache.walker.CacheWalker;
+import de.osthus.ambeth.cache.walker.ICacheWalker;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.event.IEventListenerExtendable;
@@ -109,9 +111,11 @@ public class CacheModule implements IInitializingModule
 		IBeanConfiguration serviceResultcache = beanContextFactory.registerAnonymousBean(ServiceResultCache.class).autowireable(IServiceResultCache.class);
 		beanContextFactory.link(serviceResultcache, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		beanContextFactory.registerBean("proxyHelper", ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
+		beanContextFactory.registerAnonymousBean(ValueHolderIEC.class).autowireable(ValueHolderIEC.class, IProxyHelper.class);
 
 		beanContextFactory.registerAnonymousBean(CacheHelper.class).autowireable(ICacheHelper.class, ICachePathHelper.class, IPrefetchHelper.class);
+
+		beanContextFactory.registerAnonymousBean(CacheWalker.class).autowireable(ICacheWalker.class);
 
 		beanContextFactory.registerAutowireableBean(ICacheMapEntryTypeProvider.class, CacheMapEntryTypeProvider.class);
 

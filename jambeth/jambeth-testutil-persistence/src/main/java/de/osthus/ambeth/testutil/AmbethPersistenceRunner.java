@@ -940,10 +940,11 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		BufferedReader br = null;
 		try
 		{
-			InputStream sqlStream = FileUtil.openFileStream(fileName);
+			InputStream sqlStream = FileUtil.openFileStream(fileName, log);
 			if (sqlStream != null)
 			{
 				br = new BufferedReader(new InputStreamReader(sqlStream));
+				log = null;
 			}
 		}
 		catch (IllegalArgumentException e)
@@ -952,7 +953,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			br = openSqlAsFile(fileName, callingClass, log);
 		}
 
-		if (log.isDebugEnabled())
+		if (log != null && log.isDebugEnabled())
 		{
 			if (br != null)
 			{

@@ -245,6 +245,8 @@
     <Compile Include="ambeth\util\ParamChecker.cs" />
     <Compile Include="ambeth\util\IdentityEqualityComparer.cs" />
     <Compile Include="ambeth\util\ParamHolder.cs" />
+    <Compile Include="ambeth\util\PrintableDelegate.cs" />
+    <Compile Include="ambeth\util\PrintableDelegateWrapper.cs" />
     <Compile Include="ambeth\util\ReadWriteLock.cs" />
     <Compile Include="ambeth\util\ReflectUtil.cs" />
     <Compile Include="ambeth\util\StreamUtil.cs" />

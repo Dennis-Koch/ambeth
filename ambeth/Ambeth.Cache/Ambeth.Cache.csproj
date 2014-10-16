@@ -210,6 +210,14 @@
   <ItemGroup>
     <Compile Include="ambeth\proxy\IPropertyChangeConfigurable.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\walker\CacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\ICacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\CacheWalkerResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\walker\ICacheWalkerResult.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

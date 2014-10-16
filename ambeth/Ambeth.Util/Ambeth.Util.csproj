@@ -169,6 +169,8 @@
     <Compile Include="ambeth\util\converter\SByteArrayConverter.cs" />
     <Compile Include="ambeth\util\Arrays.cs" />
     <Compile Include="ambeth\collections\WeakHashSet.cs" />
+    <Compile Include="ambeth\util\PrintableDelegateWrapper.cs" />
+    <Compile Include="ambeth\util\PrintableDelegate.cs" />
     <Compile Include="ambeth\util\MethodKey.cs" />
     <Compile Include="ambeth\util\NewType.cs" />
     <Compile Include="ambeth\util\ReflectUtil.cs" />
