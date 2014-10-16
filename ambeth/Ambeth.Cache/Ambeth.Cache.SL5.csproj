@@ -124,6 +124,10 @@
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
     <Compile Include="ambeth\cache\ServiceResultCache.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
+    <Compile Include="ambeth\cache\walker\CacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\CacheWalkerResult.cs" />
+    <Compile Include="ambeth\cache\walker\ICacheWalker.cs" />
+    <Compile Include="ambeth\cache\walker\ICacheWalkerResult.cs" />
     <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
     <Compile Include="ambeth\config\CacheNamedBeans.cs" />
     <Compile Include="ambeth\databinding\ICollectionChangeExtension.cs" />

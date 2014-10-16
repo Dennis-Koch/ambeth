@@ -19,6 +19,6 @@ public class HelloWorld
 		String helloWorldString = conversionHelper.convertValueToType(String.class, new HelloWorldToken());
 		System.out.println(helloWorldString);
 
-		beanContext.dispose();
+		beanContext.getRoot().dispose();
 	}
 }

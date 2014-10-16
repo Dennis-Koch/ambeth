@@ -14,7 +14,15 @@
 	<dependencies>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-ioc</artifactId>
+			<artifactId>jambeth-information-bus-with-persistence</artifactId>
+			<type>pom</type>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+			<type>pom</type>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 
