@@ -1,0 +1,50 @@
+\newcommand{\type}[1]{\textit{#1}}
+
+\newcommand{\typea}[2]{\textit{#1}}
+
+\newcommand{\prettyref}[1]
+{
+	\nameref{#1} (chapter \ref{#1} on page \pageref{#1})
+}
+
+\newcommand{\inputjava}[2]
+{
+	\lstinputlisting[caption={#1},style=Java]
+		{../jambeth/#2}
+}
+
+\newcommand{\console}[2]
+{
+	#1
+	%\begin{lstlisting}[caption={#1},style=Java]
+		#2
+	%\end{lstlisting}
+}
+
+\newcommand{\propconfig}[1]
+{
+	%\begin{lstlisting}[caption={abc},style=Bash,captionpos=t]
+		%abc
+	%\end{lstlisting}
+	#1
+}
+
+%\tl_new:N \javadocshort
+
+\newcommand{\feature}[7]
+{
+	%\tl_set:Nn \javadocshort { #1 }
+	%\regex_extract_once:nnN { .+([^\.]+)} { #1 } \javadocshort
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \begin{tabular}{ c | p{5cm}}
+    \hline
+    JavaDoc & \href{http://www.osthus.com/ambeth/javadoc/#1}{#1} \\ \hline
+		Example & \href{http://www.osthus.com/ambeth/javadoc/#7}{#7} \\ \hline
+		Environment & #2 \\ \hline
+    Since & #3 \\ \hline
+		Ticket & #4 \\ \hline
+		Config & #5 \\ \hline
+		Module & \prettyref{#6} \\ \hline
+    \end{tabular}
+\end{wrapfigure}
+}
