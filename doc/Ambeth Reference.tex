@@ -1,10 +1,14 @@
-\documentclass{book}
+\documentclass[a4paper]{book}
 
 \usepackage[USenglish]{babel} %francais, polish, spanish, ...
 \usepackage[T1]{fontenc}
 \usepackage[ansinew]{inputenc}
 \usepackage{import}
 \usepackage{lmodern} %Type1-font for non-english texts and characters
+%\usepackage{expl3}
+%\usepackage{l3regex}
+
+\usepackage{wrapfig} %Wrap text around figures
 
 \usepackage{graphicx} %%For loading graphic files
 %\usepackage{subfig} %%Subfigures inside a figure
@@ -25,45 +29,18 @@
 \usepackage{color}
 \usepackage{hyperref}
 
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
-\definecolor{violet}{rgb}{0.58,0,0.33}
+\textwidth440pt
+\oddsidemargin0pt
+\evensidemargin40pt
 
-\lstdefinestyle{Java}
-{
-	language=Java,
-	frame=tb,
-  %aboveskip=3mm,
-  %belowskip=3mm,
-  showstringspaces=false,
-  %columns=flexible,
-  basicstyle={\small\ttfamily},
-  %numbers=none,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{violet},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{blue},
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3
-}
+\input{listings}
+\input{commands}
 
-\lstdefinestyle{Bash}
-{language=bash,
-	keywordstyle=\color{blue},
-	basicstyle=\ttfamily,
-	morekeywords={peter@kbpet},
-	alsoletter={:~$},
-	morekeywords=[2]{peter@kbpet:},
-	keywordstyle=[2]{\color{red}},
-	literate={\$}{{\textcolor{red}{\$}}}1 
-					 {:}{{\textcolor{red}{:}}}1
-					 {~}{{\textcolor{red}{\textasciitilde}}}1,
-}
-
+\listfiles
 
 \begin{document}
+
 \tableofcontents
-\input{feature/feature}
+\input{all-modules}
+\input{all-features}
 \end{document}
