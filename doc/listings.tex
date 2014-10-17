@@ -1,19 +1,24 @@
 
 \definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{yellow}{rgb}{0.95,0.95,0}
+\definecolor{darkyellow}{rgb}{0.8,0.8,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{violet}{rgb}{0.58,0,0.33}
+\definecolor{lightgrey}{rgb}{0.9,0.9,0.9}
 
 \lstdefinestyle{Java}
 {
 	language=Java,
-	frame=tb,
+	frame=single,
   %aboveskip=3mm,
   %belowskip=3mm,
   showstringspaces=false,
-  %columns=flexible,
+  columns=flexible,
   basicstyle={\small\ttfamily},
-  %numbers=none,
+	extendedchars=true,
+	morekeywords={@Autowired,@LogInstance,@SecurityContext},
+	numbers=left,
   numberstyle=\tiny\color{gray},
   keywordstyle=\color{violet},
   commentstyle=\color{dkgreen},
@@ -23,11 +28,49 @@
   tabsize=3
 }
 
-\lstdefinestyle{Bash}
-{language=bash,
+\lstdefinestyle{Csharp}
+{
+	language=C++,
+	frame=single,
+  %aboveskip=3mm,
+  %belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+	extendedchars=true,
+	morekeywords={\[Autowired\],\[LogInstance\],\[SecurityContext\]},
+	numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{violet},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{blue},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\lstdefinestyle{Console}
+{	language=bash,
+	frame=single,
+	backgroundcolor=\color{lightgrey},
 	keywordstyle=\color{blue},
 	basicstyle=\ttfamily,
 	morekeywords={peter@kbpet},
+	alsoletter={:~$},
+	morekeywords=[2]{peter@kbpet:},
+	keywordstyle=[2]{\color{red}},
+	literate={\$}{{\textcolor{red}{\$}}}1 
+					 {:}{{\textcolor{red}{:}}}1
+					 {~}{{\textcolor{red}{\textasciitilde}}}1,
+}
+
+\lstdefinestyle{Props}
+{	language=bash,
+	frame=single,
+	backgroundcolor=\color{white},
+	keywordstyle=\color{blue},
+	basicstyle=\ttfamily,
+	morekeywords={=},
 	alsoletter={:~$},
 	morekeywords=[2]{peter@kbpet:},
 	keywordstyle=[2]{\color{red}},

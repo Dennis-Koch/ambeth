@@ -9,16 +9,14 @@
 
 \newcommand{\inputjava}[2]
 {
-	\lstinputlisting[caption={#1},style=Java]
+	\lstinputlisting[caption={#1 (Java)},style=Java]
 		{../jambeth/#2}
 }
 
-\newcommand{\console}[2]
+\newcommand{\inputcsharp}[2]
 {
-	#1
-	%\begin{lstlisting}[caption={#1},style=Java]
-		#2
-	%\end{lstlisting}
+	\lstinputlisting[caption={#1 (C\#)},style=Csharp]
+		{../ambeth/#2}
 }
 
 \newcommand{\propconfig}[1]
@@ -48,3 +46,35 @@
     \end{tabular}
 \end{wrapfigure}
 }
+
+\newcommand{\tip}[1]
+{
+	\mdfdefinestyle{mystyle}
+	{
+		%shadow=true,
+		%shadowsize=5pt,
+		%shadowcolor=darkyellow,
+		linewidth=5pt,
+		%leftmargin=1cm,
+		linecolor=yellow,
+		roundcorner=10pt
+		frametitlerule=true,
+		frametitle={Did you know?}
+	}
+	\begin{mdframed}[style=mystyle]
+		#1
+	\end{mdframed}
+}
+
+\newcommand{\showimg}[1]
+{
+	\begin{figure}[ht]
+		\centering
+		\edef\tmp{\noexpand\includegraphics[width=0.75\linewidth]{\showimgref}}\tmp
+		%\includegraphics[width=0.33\textwidth, angle=30]{#2}
+		\caption{#1}
+		\label{img:\showimgref}
+	\end{figure}
+}
+
+
