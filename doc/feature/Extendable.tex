@@ -16,7 +16,7 @@ The extendable pattern is a design pattern used in software development to encap
 \showimg{Extensions extend Extendables}
 
 \subsubsection{Existing problems}
-The \textit{Extendable Pattern} describes how extensions can be registered, unregistered and looked-up on an extensible registry. The programmer has to work directly with the registry. This may be a problem in an IoC based application if the registration should happen during startup when the registry bean may not have bean instantiated yet. Also since referenced objects can not be removed by garbage collection every extension has to be unregistered when no longer needed. Otherwise the registry may become a memory leak.
+The \textit{Extendable Pattern} describes how extensions can be registered, unregistered and looked-up on an extendable registry. Normally the programmer has to work directly with the registry. This may be a problem in an IoC based application if the registration should happen during startup when the registry bean may not have bean instantiated yet. Also since referenced objects can not be removed by garbage collection each extension has to be unregistered at the right time. Otherwise the registry may become a memory leak.
 
 \subsubsection{Description}
 With the extendable pattern extension registrations may be done at the startup of the IoC container or at run-time. The defined link between the extension and the registry is managed by the container as a bean with live cycle. Every link bean is responsible to unregister its extension when the container shuts down. Notice that the container may be a child of another container that continues to run, in server environments for a very long time.\newline
