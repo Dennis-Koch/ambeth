@@ -10,7 +10,10 @@
 	{module:IoC}
 	{de.osthus.ambeth.ioc.link.LinkContainerTest}
 
-The extendable pattern is a design pattern used in software development to encapsulate the processes of registering and unregistering container managed extensions.\newline
+The extendable pattern is a design pattern used in software development to encapsulate the processes of registering and unregistering container managed extensions. The container links all extensions to the corresponding extendables after each bean has been initialized in its \type{AfterPropertiesSet} phase and before any bean gets initialized in its \type{AfterStarted} phase (\prettyref{feature:IoCLifecycle}). They are consequently unlinked before any bean starts its \type{Destroy} phase during the shutdown sequence of the container.\newline
+
+\def\showimgref{img/Feature_Extendable}
+\showimg{Extensions extend Extendables}
 
 \subsubsection{Existing problems}
 The \textit{Extendable Pattern} describes how extensions can be registered, unregistered and looked-up on an extensible registry. The programmer has to work directly with the registry. This may be a problem in an IoC based application if the registration should happen during startup when the registry bean may not have bean instantiated yet. Also since referenced objects can not be removed by garbage collection every extension has to be unregistered when no longer needed. Otherwise the registry may become a memory leak.
