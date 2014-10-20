@@ -14,7 +14,7 @@ Implement the following interface to provide instances of \type{IUser} for the A
 Implement the following interface to encapsulate your custom authorization process:
 \inputjava{IAuthorizationManager}{jambeth-security/src/main/java/de/osthus/ambeth/security/IAuthorizationManager.java}
 
-After a successful authentication \& authorization the information gets stored in a thread-local security handle. To be of any use your beans have to be secured declaratively with the \typea{@SecurityContext}{jambeth-security/src/main/java/de/osthus/ambeth/security/SecurityContext.java} annotation:
+After a successful authentication \& authorization the information gets stored in a thread-local security handle. To be of any use your beans have to be secured declaratively with the \type{@SecurityContext} annotation:
 
 \begin{lstlisting}[style=Java]
 @SecurityContext(SecurityContextType.NOT_REQUIRED)

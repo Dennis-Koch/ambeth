@@ -130,12 +130,13 @@ namespace OfficeToImages
                 MsoTriState.msoTrue, MsoTriState.msoFalse);
             try
             {
+                FileInfo baseFileInfo = new FileInfo(file);
                 foreach (Microsoft.Office.Interop.PowerPoint.Slide slide in ppt.Slides)
                 {
                     DoExport(name, targetDir, index, delegate(String fileName)
                     {
                         slide.Export(fileName, "png", 1024, 768);
-                    });
+                    }, baseFileInfo);
                     index++;
                 }
                 return true;
@@ -163,12 +164,13 @@ namespace OfficeToImages
             Microsoft.Office.Interop.Visio.Document vsd = visio.Documents.Open(file);
             try
             {
+                FileInfo baseFileInfo = new FileInfo(file);
                 foreach (Microsoft.Office.Interop.Visio.Page page in vsd.Pages)
                 {
                     DoExport(name, targetDir, index, delegate(String fileName)
                     {
                         page.Export(fileName);
-                    });
+                    }, baseFileInfo);
                     index++;
                 }
                 return true;
@@ -180,12 +182,13 @@ namespace OfficeToImages
             }
         }
 
-        protected static bool DoExport(String name, String targetDir, int index, ExportDelegate exportDelegate)
+        protected static bool DoExport(String name, String targetDir, int index, ExportDelegate exportDelegate, FileInfo baseFileInfo)
         {
             String targetFile = BuildTargetFileName(name, targetDir, index);
             if (!File.Exists(targetFile))
             {
                 exportDelegate(targetFile);
+                UpdateFileInfo(targetFile, baseFileInfo);
                 Console.WriteLine("\tCreated '" + targetFile + "'");
                 return true;
             }
@@ -195,11 +198,21 @@ namespace OfficeToImages
             if (AreFilesEqual(tempTargetFile, targetFile))
             {
                 Console.WriteLine("\tSkipped '" + targetFile + "' (still current)");
+                UpdateFileInfo(targetFile, baseFileInfo);
                 return false;
             }
-            File.Copy(tempTargetFile, targetFile, true);
+            File.Delete(targetFile);
+            File.Move(tempTargetFile, targetFile);
+            UpdateFileInfo(targetFile, baseFileInfo);
             Console.WriteLine("\tUpdated '" + targetFile + "'");
             return true;
+        }
+
+        protected static void UpdateFileInfo(String targetFile, FileInfo baseFileInfo)
+        {
+            File.SetCreationTimeUtc(targetFile, baseFileInfo.CreationTimeUtc);
+            File.SetLastAccessTimeUtc(targetFile, baseFileInfo.LastAccessTimeUtc);
+            File.SetLastWriteTimeUtc(targetFile, baseFileInfo.LastWriteTimeUtc);
         }
 
         protected static bool AreFilesEqual(String leftFile, String rightFile)
