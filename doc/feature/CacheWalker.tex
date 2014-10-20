@@ -14,9 +14,9 @@ Scans the cache hierarchy for the cache-individual occurrence of given entity in
 
 The walking algorithm is thread-safe and does not change or load anything into the analyzed cache instances by itself - however: after any of its operation terminates there is no guarantee that the cache instances are still in the same state as they were during the "dump" because of potential concurrent operations - e.g. DataChangeEvents (see \prettyref{feature:DataChange}).\newline
 
-CAUTION: Use this functionality ONLY for debugging purpose. Do NEVER transfer or safe information gained from the Walker to anywhere than in a debugger view (e.g. "variable introspection" or "expression view" in an IDE). In some cases it MAY be intentional to store the dump in an INTERNAL log-file. Do NOT "work" with the referred cache instances - keep in mind that even read-accesses may return an inconsistent result compared to the time the walker did its job.\newline
+\emph{Caution}: Use this functionality only for debugging purpose. Do \emph{never} transfer or safe information gained from the Walker to anywhere than in a debugger view (e.g. "variable introspection" or "expression view" in an IDE). In some cases it \emph{may} be intentional to store the dump in an \emph{internal} log-file. Do \emph{not} use referred cache instances or their content in productional code - keep in mind that even read-accesses may return an inconsistent result compared to the time the walker did its job.\newline
 
-In addition the walking algorithm UNDERGOES intentionally a potential Ambeth Security Layer: The response contains information about cache states which would never be available (filtered) for a thread-bound authenticated user.
+In addition the walking algorithm \emph{undergoes} intentionally a potential Ambeth Security Layer: The response contains information about cache states which would never be available (filtered) for a thread-bound authenticated user. See \prettyref{module:Security} for details regarding Security with \type{Ambeth}.
 
 \inputjava{Usage example for the \type{ICacheWalker}-Bean}
 	{jambeth-examples/src/main/java/de/osthus/ambeth/example/cache/CacheWalkerExample.java}
@@ -28,39 +28,30 @@ Generated output:
 	 Cache-G--#0xe5a0fc1
 		  1. Version=1
 		 Cache--#0x414e786e
-			   1. Version=1 (m)
+			  1. Version=1 (m)
 \end{lstlisting}
-
-%\consol
-%{
-	%1. Type=MyEntity Id(PK)=10000
-	 %Cache-G--\#0xe5a0fc1
-		  %1. Version=1
-		 %Cache--\#0x414e786e
-			   %1. Version=1 (m)
-%}
 
 The example walks the cache hierarchy for a given entity - here an instance of MyEntity with primary key ``10000''.
 \begin{itemize}
-	\item ``Cache-G'': The committed \type{RootCache} which reflects all cached information from the database without any uncommitted change in a potentially open transaction.
+	\item ``Cache-G'': The committed (global) \type{RootCache} which reflects all cached information from the database without any uncommitted change in a potentially open transaction. This corresponds to \emph{Mode A} mentioned in \figureref{img:img/gen/2013-01-02-DeK-RootCache-Request-Processing-1}.
 	\item 1. Version=1: The cache holds information of this entity in version 1.
 	\item 1. Version=1 (m): The cache holds information of this entity based of version 1 but with locally made changes.
 \end{itemize}
 
-What we see here that the entity has already been persisted in the database \& committed - otherwise the committed \type{RootCache} would not have an entry. In addition we see that the entity has been instantiated in the leaf cache. That is the thread-bound 1st level cache (ChildCache). And we that this instance has been modified by this cache. Last but not least we can see that the current thread is not working within a database transaction like it does in the following example:\newline
+What we see here that the entity has already been persisted in the database \& committed - otherwise the committed \type{RootCache} would not have an entry. In addition we see that the entity has been instantiated in the leaf cache. That is the thread-bound 1st level cache (ChildCache). And we see that this instance has been modified by this cache. Last but not least we can see that the current thread is not working within a database transaction like it does in the following example:\newline
 
 Running \textbf{CacheWalkerExampleTest} with an open transaction shows:
 
-%\console{a}
-%{
-%? 1. Type=MyEntity Id(PK)=10001
-	%? Cache-G--\#0x6209ae8f
-		%|  1. n/a
-		%? Cache-TX-L--\#0x24a519a2
-			%|  1. Version=1
-			%? Cache--\#0x130caadb
-				   %1. Version=1 (m)
-%}
+\begin{lstlisting}[style=Console]
+	1. Type=MyEntity Id(PK)=10000
+	 Cache-G--#0xe5a0fc1
+		  1. n/a
+		 Cache-TX-L--\#0x24a519a2
+				1. Version=1
+			 Cache--#0x414e786e
+					1. Version=1 (m)
+\end{lstlisting}
+
 Cache-TX-L: The transactional RootCache which reflects all cached information from the database with all uncommitted changes in the open transaction.\newline
 
-Now we see that the committed RootCache has no information about the entity (``n/a'') which lets us assume that the transactional RootCache did load the entity directly from the open transaction. This makes sense because the open transaction might contain uncommitted changes - if the transactional RootCache would ask the committed RootCache for data it would be forced to load data from the open transaction. If that happens another concurrent access to the committed RootCache would immediately ``see'' this information and might work with it. But it is data from an uncommitted concurrent transaction which might result in any inconsistent behavior or application failure.
+Now we see that the committed RootCache has no information about the entity (``n/a'') which lets us assume that the transactional RootCache did load the entity directly from the open transaction. This makes sense because the open transaction might contain uncommitted changes - if the transactional RootCache would ask the committed RootCache for data it would be forced to load data from the open transaction. If that happens another concurrent access to the committed RootCache would immediately ``see'' this information and might work with it. But the cache hit in that case is based on data from an uncommitted concurrent transaction which might result in any inconsistent behavior or application failure.
