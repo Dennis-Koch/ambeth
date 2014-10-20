@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.CompositeId;
+using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Template;
 using De.Osthus.Ambeth.Typeinfo;
@@ -77,7 +78,10 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 			    String fieldName = CompositeIdMember.FilterEmbeddedFieldName(member.Name);
 			    constructorTypes[a] = member.RealType;
                 fields[a] = new FieldInstance(FieldAttributes.Public | FieldAttributes.InitOnly, fieldName, constructorTypes[a]);
-                ImplementField(fields[a]);
+                ImplementField(fields[a], delegate(IFieldVisitor fv)
+                {
+                    fv.VisitAnnotation(typeof(PropertyAttribute).GetConstructor(Type.EmptyTypes));
+                });
 		    }
 
 		    {

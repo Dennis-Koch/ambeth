@@ -390,7 +390,7 @@ namespace De.Osthus.Ambeth.Merge.Model
                     Member memberItem = memberItems[compositePosition];
                     for (int primitiveIndex = PrimitiveMembers.Length; primitiveIndex-- > 0; )
                     {
-                        if (Object.ReferenceEquals(memberItem, PrimitiveMembers[primitiveIndex]))
+                        if (memberItem.Equals(PrimitiveMembers[primitiveIndex]))
                         {
                             compositeIndex[compositePosition] = primitiveIndex;
                             break;

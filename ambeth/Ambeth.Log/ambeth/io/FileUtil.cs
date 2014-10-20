@@ -165,7 +165,7 @@ namespace De.Osthus.Ambeth.Io
             return fileStream;
         }
 
-        protected static String Combine(String[] strings)
+        private static String Combine(String[] strings)
         {
             if (strings == null || strings.Length == 0)
             {

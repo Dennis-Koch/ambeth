@@ -619,7 +619,7 @@ public class EntityMetaData implements IEntityMetaData
 				Member memberItem = memberItems[compositePosition];
 				for (int primitiveIndex = primitiveMembers.length; primitiveIndex-- > 0;)
 				{
-					if (memberItem == primitiveMembers[primitiveIndex])
+					if (memberItem.equals(primitiveMembers[primitiveIndex]))
 					{
 						compositeIndex[compositePosition] = primitiveIndex;
 						break;

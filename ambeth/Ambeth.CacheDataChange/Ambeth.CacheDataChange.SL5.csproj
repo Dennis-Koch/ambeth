@@ -80,7 +80,6 @@
     <Compile Include="ambeth\cache\RootCacheClearEventListener.cs" />
     <Compile Include="ambeth\cache\RevertChangesSavepoint.cs" />
     <Compile Include="ambeth\cache\RevertChangesHelper.cs" />
-    <Compile Include="ambeth\cache\ServiceResultCacheClearEventListener.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheDCL.cs" />
     <Compile Include="ambeth\datachange\DataChangeEventBatcher.cs" />
     <Compile Include="ioc\CacheDataChangeModule.cs" />
