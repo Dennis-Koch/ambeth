@@ -27,9 +27,10 @@ namespace OfficeToImages
             String sourceArg = args[0];
 
             String target = args.Length > 1 ? args[1] : ".";
-            target = new DirectoryInfo(target).FullName;
-            
-            Console.WriteLine("Saving all generated images to '" + target + "'");
+            DirectoryInfo targetInfo = new DirectoryInfo(target);
+            targetInfo.Create();
+
+            Console.WriteLine("Saving all generated images to '" + targetInfo.FullName + "'");
             
             try
             {
@@ -40,21 +41,18 @@ namespace OfficeToImages
                     DirectoryInfo di = new DirectoryInfo(source);
                     FileInfo[] directories = di.GetFiles("*", SearchOption.AllDirectories);
 
-                    foreach (FileInfo fileSource in directories)
+                    foreach (FileInfo sourceFile in directories)
                     {
-                        String file = fileSource.FullName;
-                        if (file.Contains('~') || !File.Exists(file))
+                        if (sourceFile.Name.Contains('~') || !sourceFile.Exists)
                         {
                             continue;
                         }
+                        String lowercaseName = sourceFile.Extension.ToLowerInvariant();
 
-                        String name = namePattern.Match(file).Groups[1].Value;
-                        String lowercaseName = name.ToLowerInvariant();
-
-                        if (name.EndsWith("ppt") || name.EndsWith("pptx"))
+                        if (lowercaseName.EndsWith("ppt") || lowercaseName.EndsWith("pptx"))
                         {
-                            Console.WriteLine("Handling '" + name + "'...");
-                            if (ParsePowerPoint(file, name, target))
+                            Console.WriteLine("Handling '" + sourceFile.Name + "'...");
+                            if (ParsePowerPoint(sourceFile, targetInfo))
                             {
                                 Console.WriteLine("Done");
                             }
@@ -63,10 +61,10 @@ namespace OfficeToImages
                                 Console.WriteLine("Skipped (unchanged)");
                             }
                         }
-                        else if (name.EndsWith("vsd"))
+                        else if (lowercaseName.EndsWith("vsd"))
                         {
-                            Console.WriteLine("Handling '" + name + "'...");
-                            if (ParseVisio(file, name, target))
+                            Console.WriteLine("Handling '" + sourceFile.Name + "'...");
+                            if (ParseVisio(sourceFile, targetInfo))
                             {
                                 Console.WriteLine("Done");
                             }
@@ -93,31 +91,43 @@ namespace OfficeToImages
             }
         }
 
-        protected static bool IsTargetFileOutdated(String sourceFile, String targetFile)
+        protected static bool IsTargetFileOutdated(FileInfo sourceFile, FileInfo targetFile)
         {
-            if (!File.Exists(targetFile))
+            if (!targetFile.Exists)
             {
                 return true;
             }
-            DateTime sourceTime = File.GetLastWriteTimeUtc(sourceFile);
-            DateTime targetTime = File.GetLastWriteTimeUtc(targetFile);
+            DateTime sourceTime = sourceFile.LastWriteTimeUtc;
+            DateTime targetTime = targetFile.LastWriteTimeUtc;
             return targetTime < sourceTime;
         }
 
-        protected static String BuildTargetFileName(String sourceFileName, String targetDir, int index)
+        protected static FileInfo BuildTargetFileName(FileInfo sourceFile, DirectoryInfo targetDir, int index)
         {
-            return targetDir + "/" + sourceFileName + "-" + index + ".png";
+            String simpleName = sourceFile.Name.Substring(0, sourceFile.Name.Length - sourceFile.Extension.Length );
+            simpleName = simpleName.Replace(' ', '-').Replace('.','-').Replace('_','-');
+            while (simpleName.Contains("--"))
+            {
+                simpleName = simpleName.Replace("--", "-");
+            }
+            return new FileInfo(targetDir.FullName + "\\" + simpleName + "-" + index + ".png");
         }
 
-        protected static String BuildTargetTempFileName(String sourceFileName, String targetDir, int index)
+        protected static FileInfo BuildTargetTempFileName(FileInfo sourceFile, DirectoryInfo targetDir, int index)
         {
-            return targetDir + "/" + sourceFileName + "-" + index + "-temp.png";
+            String simpleName = sourceFile.Name.Substring(1, sourceFile.Name.Length - sourceFile.Extension.Length);
+            simpleName = simpleName.Replace(' ', '-').Replace('.', '-').Replace('_', '-');
+            while (simpleName.Contains("--"))
+            {
+                simpleName = simpleName.Replace("--", "-");
+            }
+            return new FileInfo(targetDir.FullName + "\\" + simpleName + "-" + index + "-temp.png");
         }
 
-        protected static bool ParsePowerPoint(String file, String name, String targetDir)
+        protected static bool ParsePowerPoint(FileInfo sourceFile, DirectoryInfo targetDir)
         {
             int index = 1;
-            if (!IsTargetFileOutdated(file, BuildTargetFileName(name, targetDir, index)))
+            if (!IsTargetFileOutdated(sourceFile, BuildTargetFileName(sourceFile, targetDir, index)))
             {
                 // if the first slide of a file is not invalid all other slides are still valid, too
                 return false;
@@ -126,17 +136,16 @@ namespace OfficeToImages
             {
                 powerpoint = new Microsoft.Office.Interop.PowerPoint.Application();
             }
-            Microsoft.Office.Interop.PowerPoint.Presentation ppt = powerpoint.Presentations.Open(file, MsoTriState.msoTrue,
+            Microsoft.Office.Interop.PowerPoint.Presentation ppt = powerpoint.Presentations.Open(sourceFile.FullName, MsoTriState.msoTrue,
                 MsoTriState.msoTrue, MsoTriState.msoFalse);
             try
             {
-                FileInfo baseFileInfo = new FileInfo(file);
                 foreach (Microsoft.Office.Interop.PowerPoint.Slide slide in ppt.Slides)
                 {
-                    DoExport(name, targetDir, index, delegate(String fileName)
+                    DoExport(sourceFile, targetDir, index, delegate(FileInfo targetFile)
                     {
-                        slide.Export(fileName, "png", 1024, 768);
-                    }, baseFileInfo);
+                        slide.Export(targetFile.FullName, "png", 1024, 768);
+                    });
                     index++;
                 }
                 return true;
@@ -148,10 +157,10 @@ namespace OfficeToImages
             }
         }
 
-        protected static bool ParseVisio(String file, String name, String targetDir)
+        protected static bool ParseVisio(FileInfo sourceFile, DirectoryInfo targetDir)
         {
             int index = 1;
-            if (!IsTargetFileOutdated(file, BuildTargetFileName(name, targetDir, index)))
+            if (!IsTargetFileOutdated(sourceFile, BuildTargetFileName(sourceFile, targetDir, index)))
             {
                 // if the first slide of a file is not invalid all other slides are still valid, too
                 return false;
@@ -161,16 +170,15 @@ namespace OfficeToImages
                 visio = new Microsoft.Office.Interop.Visio.Application();
                 visio.Visible = false;
             }
-            Microsoft.Office.Interop.Visio.Document vsd = visio.Documents.Open(file);
+            Microsoft.Office.Interop.Visio.Document vsd = visio.Documents.Open(sourceFile.FullName);
             try
             {
-                FileInfo baseFileInfo = new FileInfo(file);
                 foreach (Microsoft.Office.Interop.Visio.Page page in vsd.Pages)
                 {
-                    DoExport(name, targetDir, index, delegate(String fileName)
+                    DoExport(sourceFile, targetDir, index, delegate(FileInfo targetFile)
                     {
-                        page.Export(fileName);
-                    }, baseFileInfo);
+                        page.Export(targetFile.FullName);
+                    });
                     index++;
                 }
                 return true;
@@ -182,43 +190,43 @@ namespace OfficeToImages
             }
         }
 
-        protected static bool DoExport(String name, String targetDir, int index, ExportDelegate exportDelegate, FileInfo baseFileInfo)
+        protected static bool DoExport(FileInfo sourceFile, DirectoryInfo targetDir, int index, ExportDelegate exportDelegate)
         {
-            String targetFile = BuildTargetFileName(name, targetDir, index);
-            if (!File.Exists(targetFile))
+            FileInfo targetFile = BuildTargetFileName(sourceFile, targetDir, index);
+            if (!targetFile.Exists)
             {
                 exportDelegate(targetFile);
-                UpdateFileInfo(targetFile, baseFileInfo);
+                UpdateFileInfo(targetFile, sourceFile);
                 Console.WriteLine("\tCreated '" + targetFile + "'");
                 return true;
             }
-            String tempTargetFile = BuildTargetFileName(name, targetDir, index);
+            FileInfo tempTargetFile = BuildTargetFileName(sourceFile, targetDir, index);
             exportDelegate(tempTargetFile);
 
             if (AreFilesEqual(tempTargetFile, targetFile))
             {
                 Console.WriteLine("\tSkipped '" + targetFile + "' (still current)");
-                UpdateFileInfo(targetFile, baseFileInfo);
+                UpdateFileInfo(targetFile, sourceFile);
                 return false;
             }
-            File.Delete(targetFile);
-            File.Move(tempTargetFile, targetFile);
-            UpdateFileInfo(targetFile, baseFileInfo);
+            targetFile.Delete();
+            tempTargetFile.MoveTo(targetFile.FullName);
+            UpdateFileInfo(targetFile, sourceFile);
             Console.WriteLine("\tUpdated '" + targetFile + "'");
             return true;
         }
 
-        protected static void UpdateFileInfo(String targetFile, FileInfo baseFileInfo)
+        protected static void UpdateFileInfo(FileInfo targetFile, FileInfo baseFileInfo)
         {
-            File.SetCreationTimeUtc(targetFile, baseFileInfo.CreationTimeUtc);
-            File.SetLastAccessTimeUtc(targetFile, baseFileInfo.LastAccessTimeUtc);
-            File.SetLastWriteTimeUtc(targetFile, baseFileInfo.LastWriteTimeUtc);
+            targetFile.CreationTimeUtc = baseFileInfo.CreationTimeUtc;
+            targetFile.LastWriteTimeUtc = baseFileInfo.LastWriteTimeUtc;
+            targetFile.LastAccessTimeUtc = baseFileInfo.LastAccessTimeUtc;
         }
 
-        protected static bool AreFilesEqual(String leftFile, String rightFile)
+        protected static bool AreFilesEqual(FileInfo leftFile, FileInfo rightFile)
         {
             // first check size
-            if (new FileInfo(leftFile).Length != new FileInfo(rightFile).Length)
+            if (leftFile.Length != rightFile.Length)
             {
                 return false;
             }
@@ -240,9 +248,9 @@ namespace OfficeToImages
             return true;
         }
 
-        protected static byte[] Checksum(String file)
+        protected static byte[] Checksum(FileInfo file)
         {
-            using (FileStream stream = File.OpenRead(file))
+            using (FileStream stream = File.OpenRead(file.FullName))
             {
                 HashAlgorithm sha = new SHA256Managed();
                 return sha.ComputeHash(stream);

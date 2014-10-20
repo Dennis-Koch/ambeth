@@ -6,3 +6,27 @@
 	\item \prettyref{feature:CacheWalker}
 \end{itemize}
 
+\subsection{2nd level cache hierarchy}
+
+\def\showimgref{img/gen/2013-01-02-DeK-RootCache-Request-Processing-1}
+\showimg{A single autowired bean \type{IRootCache} represents the entry point to the whole 2nd level cache hierarchy (\textit{SLC})}
+
+\begin{itemize}
+	\item Without a current (thread-bound) transaction
+		\begin{enumerate}
+			\item Any call to the ``public'' \type{IRootCache} will be intercepted by the \type{ThreadLocalRootCacheInterceptor}.
+			\item If no transaction is open the call is forwarded ``as-is'' to the committed RootCache instance (depending on the environmental configuration there will be a single shared instance (Mode A) or a thread-bound instance to represent the committed state of the database (Mode B).
+			\item Any cache miss of the committed RootCache instance will be forwarded to the \type{CacheRetrieverRegistry} which respresents some kind of gateway where any type of information source can be connected to. \prettyref{feature:CacheRetrieverExtendable} shows how to use the corresponding extension points.
+			\item For locally persisted entities (e.g. directly connected JDBC database) the \type{CacheRetrieverRegistry} forwards the request to the \type{DefaultPersistenceCacheRetriever} which is responsible to execute the necessary \emph{JDBC}-calls in a short-running, read-only, ad-hoc transaction.
+			\item The result of the \emph{JDBC}-calls is stored in the committed RootCache for later use by any future thread (Mode A) or in the current thread only (Mode B).
+		\end{enumerate}
+	\item With an uncommitted (thread-bound) transaction
+		\begin{enumerate}
+			\item Any call to the ``public'' \type{IRootCache} will be intercepted by the \type{ThreadLocalRootCacheInterceptor}.
+			\item If a transaction is open the call is forwarded ``as-is'' to the thread-bound transactional RootCache instance respresenting uncommitted data in the pending transaction
+			\item Any cache miss of the transactional RootCache instance will be forwarded to the committed RootCache instance where the call itself is marked with \type{FailEarly} which prohibits the committed RootCache to populate any own cache misses by itself. This is important to prevent to ``pollute'' unintentionally the shared committed RootCache with uncommitted data of the thread-bound transaction.
+			\item Any remaining cache miss will be forwarded to the \type{CacheRetrieverRegistry} which respresents some kind of gateway where any type of information source can be connected to. \prettyref{feature:CacheRetrieverExtendable} shows how to use the corresponding extension points.
+			\item For locally persisted entities (e.g. directly connected JDBC database) the \type{CacheRetrieverRegistry} forwards the request to the \type{DefaultPersistenceCacheRetriever} which is responsible to execute the necessary \emph{JDBC}-calls in a short-running, read-only, ad-hoc transaction.
+			\item The result of the \emph{JDBC}-calls is stored in the thread-bound transactional RootCache for later use in the current thread.
+		\end{enumerate}
+\end{itemize}
