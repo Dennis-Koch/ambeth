@@ -1,2 +1,42 @@
 \section{Audit}
 \label{module:Audit}
+
+\subsection{Features}
+\begin{itemize}
+	\item \prettyref{feature:AuditedEntity}
+	\item \prettyref{feature:AuditedService}
+\end{itemize}
+
+\subsection{Activate Audit}
+\textit{Ambeth Audit} is deactivated by default. To activate it set the following environmental flag:
+\begin{lstlisting}[style=Props]
+audit.active=true
+\end{lstlisting}
+
+Without any further customization step with activated \textit{Ambeth Audit} the following will happen at runtime:
+\begin{itemize}
+	\item All beans annotated with \type{\@Audited} on their class definition will have \emph{all} their public methods/services audited unless further customized - See \prettyref{feature:AuditedService}
+	\item \emph{All} entities - even without a \type{@Audited} annotation on their class definition - will have \emph{all} their properties audited unless further customized. ``All properties'' does include all technical properties (PK,Version,...) as well - See \prettyref{feature:AuditedEntity}
+\end{itemize}
+
+This ``default-all-behavior'' can be changed by setting one or more of the following environmental flags:
+\begin{lstlisting}[style=Props]
+audit.entity.defaultmode.active=false
+audit.entity.property.defaultmode.active=false
+audit.service.defaultmode.active"=false
+\end{lstlisting}
+
+\subsection{Customize Entity Audit}
+Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize which changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \type{IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).
+
+\inputjava{For custom audit configurations an extension point is provided}
+	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditConfigurationExtendable.java}
+
+\subsection{Customize audit serialization protocol}
+During evolvement of an application it may be necessary to even change the serialization approach of the audit process of \type{Ambeth}. With a naive approach all existing \type{AuditEntry} instances in the persistence layer could not be verified any more if another protocol is used. So the chosen approach is to define a protocol version and link your custom serialiation protocol with your newly defined protocol version. The default shipped protocol version is ``1'' and is implemented in \type{AuditEntryWriterV1}. It is recommended to start your custom versioning with at least number ``10'' to be compatible with future evolvement of Ambeth.
+
+\inputjava{For custom audit serialization protocols an extension point is provided}
+	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryWriterExtendable.java}
+
+\inputjava{Custom serialization protocols is provided the to-be-signed \type{AuditEntry} an the target \type{DataOutputStream} from which the signature will be built}
+	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryWriter.java}
