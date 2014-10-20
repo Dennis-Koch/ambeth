@@ -113,7 +113,7 @@ public class PublicConstructorVisitorTest extends AbstractInformationBusTest
 			Assert.assertEquals(1, declaredConstructors.length);
 
 			Constructor<?> defaultConstructor = declaredConstructors[0];
-			Assert.assertEquals(1, defaultConstructor.getParameterTypes().length);
+			Assert.assertEquals(0, defaultConstructor.getParameterTypes().length);
 		}
 		catch (Throwable t)
 		{

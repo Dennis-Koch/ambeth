@@ -1,6 +1,7 @@
 package de.osthus.ambeth.metadata;
 
 import java.io.Serializable;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.ITargetNameEnhancementHint;
@@ -65,7 +66,7 @@ public class MemberEnhancementHint implements IEnhancementHint, ITargetNameEnhan
 	@Override
 	public String getTargetName(Class<?> typeToEnhance)
 	{
-		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$" + memberName;
+		return Type.getInternalName(declaringType) + "$" + Member.class.getSimpleName() + "$" + memberName.replaceAll(Pattern.quote("."), "_");
 	}
 
 	@Override

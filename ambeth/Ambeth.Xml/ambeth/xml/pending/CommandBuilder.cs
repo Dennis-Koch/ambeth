@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Xml.Pending
             }
             else
             {
-                    command = BuildIntern<ObjectSetterCommand>(commandTypeRegistry, objectFuture, parent).PropertyValue("Member", optionals[0]).Finish();
+                command = BuildIntern<ObjectSetterCommand>(commandTypeRegistry, objectFuture, parent).PropertyValue("Member", optionals[0]).Finish();
             }
 
             return command;

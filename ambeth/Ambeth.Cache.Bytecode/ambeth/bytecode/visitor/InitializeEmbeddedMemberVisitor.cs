@@ -1,4 +1,5 @@
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Template;
@@ -89,6 +90,14 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             HashSet<Member> alreadyHandledFirstMembers = new HashSet<Member>();
 
             List<Script> scripts = new List<Script>();
+
+            {
+                Script script = HandleMember(p_embeddedMemberTemplate, metaData.IdMember, alreadyHandledFirstMembers);
+                if (script != null)
+                {
+                    scripts.Add(script);
+                }
+            }
             foreach (Member member in metaData.PrimitiveMembers)
             {
                 Script script = HandleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
@@ -127,6 +136,31 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         protected Script HandleMember(PropertyInstance p_embeddedMemberTemplate, Member member, ISet<Member> alreadyHandledFirstMembers)
         {
+            if (member is CompositeIdMember)
+		    {
+			    PrimitiveMember[] members = ((CompositeIdMember) member).Members;
+			    Script aggregatedScript = null;
+			    for (int a = 0, size = members.Length; a < size; a++)
+			    {
+				    Script script = HandleMember(p_embeddedMemberTemplate, members[a], alreadyHandledFirstMembers);
+				    if (script == null)
+				    {
+					    continue;
+				    }
+				    if (aggregatedScript == null)
+				    {
+					    aggregatedScript = script;
+					    continue;
+				    }
+				    Script oldAggregatedScript = aggregatedScript;
+				    aggregatedScript = new Script(delegate(IMethodVisitor mg)
+					    {
+						    oldAggregatedScript(mg);
+						    script(mg);
+					    });
+			    }
+			    return aggregatedScript;
+		    }
             if (!(member is IEmbeddedMember))
             {
                 return null;

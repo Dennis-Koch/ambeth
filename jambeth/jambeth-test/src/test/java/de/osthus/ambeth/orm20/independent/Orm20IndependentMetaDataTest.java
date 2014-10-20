@@ -73,7 +73,8 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		PrimitiveMember alternateIdMember = alternateIdMembers[0];
 		assertEquals("Name", alternateIdMember.getName());
 		assertEquals(String.class, alternateIdMember.getRealType());
-		assertEquals(EntityA.class, alternateIdMember.getDeclaringType());
+		assertTrue(EntityA.class.isAssignableFrom(metaDataA.getEnhancedType()));
+		assertEquals(metaDataA.getEnhancedType(), alternateIdMember.getDeclaringType());
 		assertTrue(metaDataA.isAlternateId(alternateIdMember));
 		assertEquals((byte) 0, metaDataA.getIdIndexByMemberName(alternateIdMember.getName()));
 		assertEquals(alternateIdMember, metaDataA.getIdMemberByIdIndex((byte) 0));
@@ -132,7 +133,8 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertNotNull(nameMember);
 		assertEquals("Name", nameMember.getName());
 		assertEquals(String.class, nameMember.getRealType());
-		assertEquals(EntityA.class, nameMember.getDeclaringType());
+		assertTrue(EntityA.class.isAssignableFrom(metaDataA.getEnhancedType()));
+		assertEquals(metaDataA.getEnhancedType(), nameMember.getDeclaringType());
 		assertTrue(metaDataA.isAlternateId(nameMember));
 		int nameIndex = metaDataA.getIndexByPrimitive(nameMember);
 		assertEquals(nameMember, primitiveMembers[nameIndex]);
@@ -142,7 +144,7 @@ public class Orm20IndependentMetaDataTest extends AbstractIndependentOrm20Test
 		assertEquals("Values", valuesMember.getName());
 		assertEquals(List.class, valuesMember.getRealType());
 		assertEquals(Integer.class, valuesMember.getElementType());
-		assertEquals(EntityA.class, valuesMember.getDeclaringType());
+		assertEquals(metaDataA.getEnhancedType(), valuesMember.getDeclaringType());
 		assertFalse(metaDataA.isAlternateId(valuesMember));
 		int valuesIndex = metaDataA.getIndexByPrimitive(valuesMember);
 		assertEquals(valuesMember, primitiveMembers[valuesIndex]);

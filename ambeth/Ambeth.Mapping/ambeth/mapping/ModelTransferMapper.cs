@@ -648,7 +648,7 @@ namespace De.Osthus.Ambeth.Mapping
                 else
                 {
                     IObjRef[] objRefs = pendingRelations.Count > 0 ? pendingRelations.ToArray() : ObjRef.EMPTY_ARRAY;
-                    businessObject.Set__ObjRefs(relationIndex, objRefs);
+                    businessObject.Set__Uninitialized(relationIndex, objRefs);
 				    businessObject.__TargetCache = cache;
                     referencedBOsSet.AddAll(objRefs);
                     boToPendingRelationsList.Add(new DirectValueHolderRef(businessObject, boMember));

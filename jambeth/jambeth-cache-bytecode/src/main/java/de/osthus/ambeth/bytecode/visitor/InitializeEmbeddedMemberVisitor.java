@@ -14,10 +14,12 @@ import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.EmbeddedMember;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.template.EmbeddedMemberTemplate;
@@ -105,6 +107,14 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 		HashSet<Member> alreadyHandledFirstMembers = new HashSet<Member>();
 
 		final ArrayList<Script> scripts = new ArrayList<Script>();
+
+		{
+			Script script = handleMember(p_embeddedMemberTemplate, metaData.getIdMember(), alreadyHandledFirstMembers);
+			if (script != null)
+			{
+				scripts.add(script);
+			}
+		}
 		for (Member member : metaData.getPrimitiveMembers())
 		{
 			Script script = handleMember(p_embeddedMemberTemplate, member, alreadyHandledFirstMembers);
@@ -147,6 +157,35 @@ public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 
 	protected Script handleMember(PropertyInstance p_embeddedMemberTemplate, Member member, Set<Member> alreadyHandledFirstMembers)
 	{
+		if (member instanceof CompositeIdMember)
+		{
+			PrimitiveMember[] members = ((CompositeIdMember) member).getMembers();
+			Script aggregatedScript = null;
+			for (int a = 0, size = members.length; a < size; a++)
+			{
+				final Script script = handleMember(p_embeddedMemberTemplate, members[a], alreadyHandledFirstMembers);
+				if (script == null)
+				{
+					continue;
+				}
+				if (aggregatedScript == null)
+				{
+					aggregatedScript = script;
+					continue;
+				}
+				final Script oldAggregatedScript = aggregatedScript;
+				aggregatedScript = new Script()
+				{
+					@Override
+					public void execute(MethodGenerator mg)
+					{
+						oldAggregatedScript.execute(mg);
+						script.execute(mg);
+					}
+				};
+			}
+			return aggregatedScript;
+		}
 		if (!(member instanceof IEmbeddedMember))
 		{
 			return null;

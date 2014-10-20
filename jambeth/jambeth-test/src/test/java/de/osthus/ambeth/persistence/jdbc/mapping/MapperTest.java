@@ -99,6 +99,7 @@ public class MapperTest extends AbstractPersistenceTest
 	@After
 	public void tearDown() throws Exception
 	{
+		fixture.dispose();
 		fixture = null;
 	}
 

@@ -311,18 +311,21 @@ namespace De.Osthus.Ambeth.Cache
 
         public void Remove(Type type, Object id)
         {
+            CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(type);
             RemoveCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
         }
 
         public void Remove(IObjRef ori)
         {
+            CheckNotDisposed();
             IEntityMetaData metaData = this.EntityMetaDataProvider.GetMetaData(ori.RealType);
             RemoveCacheValueFromCacheCascade(metaData, ori.IdNameIndex, ori.Id);
         }
 
         public void Remove(IList<IObjRef> oris)
         {
+            CheckNotDisposed();
             for (int a = oris.Count; a-- > 0; )
             {
                 IObjRef ori = oris[a];
@@ -332,6 +335,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual void RemovePriorVersions(IObjRef ori)
         {
+            CheckNotDisposed();
             if (ori.Version != null)
             {
                 CacheKey cacheKey = new CacheKey();
@@ -347,6 +351,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public virtual void RemovePriorVersions(IList<IObjRef> oris)
         {
+            CheckNotDisposed();
             for (int a = oris.Count; a-- > 0; )
             {
                 IObjRef ori = oris[a];

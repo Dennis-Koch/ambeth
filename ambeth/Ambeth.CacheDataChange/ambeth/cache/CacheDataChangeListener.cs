@@ -1,4 +1,5 @@
 ﻿using De.Osthus.Ambeth.Cache.Model;
+using De.Osthus.Ambeth.Cache.Transfer;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Datachange.Model;
 using De.Osthus.Ambeth.Datachange.Transfer;
@@ -580,6 +581,12 @@ namespace De.Osthus.Ambeth.Cache
 		    {
 			    IObjRelation objRelation = ValueHolderContainerTemplate.GetSelf(entity, member.Name);
 			    node.cascadeRefreshObjRelationsSet.Add(objRelation);
+                IObjRef[] objRefs = objRelation.ObjRefs;
+                for (int a = objRefs.Length; a-- > 0; )
+                {
+                    objRefs[a].Version = null;
+                }
+                ((ObjRelation)objRelation).Version = null;
 		    }
 		    else
 		    {

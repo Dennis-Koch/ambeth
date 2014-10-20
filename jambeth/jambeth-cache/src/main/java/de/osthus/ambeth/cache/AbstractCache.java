@@ -324,18 +324,21 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	public void remove(Class<?> type, Object id)
 	{
+		checkNotDisposed();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(type);
 		removeCacheValueFromCacheCascade(metaData, ObjRef.PRIMARY_KEY_INDEX, id);
 	}
 
 	public void remove(IObjRef ori)
 	{
+		checkNotDisposed();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
 		removeCacheValueFromCacheCascade(metaData, ori.getIdNameIndex(), ori.getId());
 	}
 
 	public void remove(List<IObjRef> oris)
 	{
+		checkNotDisposed();
 		for (int a = oris.size(); a-- > 0;)
 		{
 			IObjRef ori = oris.get(a);
@@ -345,6 +348,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	public void removePriorVersions(IObjRef ori)
 	{
+		checkNotDisposed();
 		if (ori.getVersion() != null)
 		{
 			if (existsValue(ori) != null)
@@ -360,6 +364,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 
 	public void removePriorVersions(List<IObjRef> oris)
 	{
+		checkNotDisposed();
 		for (int a = oris.size(); a-- > 0;)
 		{
 			IObjRef ori = oris.get(a);
