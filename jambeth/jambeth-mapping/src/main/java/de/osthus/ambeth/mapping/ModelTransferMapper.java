@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import de.osthus.ambeth.cache.CacheDirective;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.IWritableCache;
@@ -40,8 +41,6 @@ import de.osthus.ambeth.merge.ValueObjectMemberType;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.metadata.IMemberTypeProvider;
-import de.osthus.ambeth.metadata.IMemberWrite;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
@@ -53,6 +52,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.typeinfo.NullEquivalentValueUtil;
+import de.osthus.ambeth.typeinfo.TypeInfoItem;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -78,10 +78,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
-	protected ICacheIntern childCache;
-
-	@Autowired
-	protected IWritableCache writableCache;
+	protected ICache cache;
 
 	@Autowired
 	protected IEntityFactory entityFactory;
@@ -94,9 +91,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 
 	@Autowired
 	protected IDedicatedMapperRegistry mapperExtensionRegistry;
-
-	@Autowired
-	protected IMemberTypeProvider memberTypeProvider;
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
@@ -139,10 +133,9 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	{
 		conversionHelper = null;
 		entityMetaDataProvider = null;
-		memberTypeProvider = null;
 		objectCollector = null;
 		oriHelper = null;
-		childCache = null;
+		cache = null;
 	}
 
 	@Override
@@ -180,22 +173,22 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		{
 			return (T) Collections.emptyList();
 		}
-		ICacheIntern childCache = this.childCache;
+		ICacheIntern cache = (ICacheIntern) this.cache.getCurrentCache();
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
 		ArrayList<Object> allValueObjects = new ArrayList<Object>(valueObjectList.size());
-		boolean acquiredHardRefs = childCache.acquireHardRefTLIfNotAlready();
+		boolean acquiredHardRefs = cache.acquireHardRefTLIfNotAlready();
 		boolean oldActive = cacheModification.isActive();
 		cacheModification.setActive(true);
 		try
 		{
 			resolveAllValueObjectsDirectly(valueObjectList, allValueObjects, IdentityHashSet.create(valueObjectList.size()), null);
 
-			mapBosByVos(allValueObjects);
+			mapBosByVos(allValueObjects, cache);
 
 			for (int i = allValueObjects.size(); i-- > 0;)
 			{
-				resolvePrimitiveProperties(allValueObjects.get(i));
+				resolvePrimitiveProperties(allValueObjects.get(i), cache);
 			}
 
 			ArrayList<DirectValueHolderRef> boToPendingRelationsList = new ArrayList<DirectValueHolderRef>();
@@ -205,7 +198,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			{
 				for (int i = allValueObjects.size(); i-- > 0;)
 				{
-					collectReferencedBusinessObjects(allValueObjects.get(i), referencedBOsSet, boToPendingRelationsList, alreadyCreatedObjRefMap);
+					collectReferencedBusinessObjects(allValueObjects.get(i), referencedBOsSet, boToPendingRelationsList, alreadyCreatedObjRefMap, cache);
 				}
 				IList<IObjRef> referencedBOsList = referencedBOsSet.toList();
 
@@ -215,7 +208,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 					// Store retrieved BOs to hard ref to suppress Weak GC handling of cache
 					allBOsToKeepInCache.add(prefetchState);
 
-					IList<Object> referencedBOs = childCache.getObjects(referencedBOsList, CacheDirective.failEarlyAndReturnMisses());
+					IList<Object> referencedBOs = cache.getObjects(referencedBOsList, CacheDirective.failEarlyAndReturnMisses());
 
 					for (int a = referencedBOs.size(); a-- > 0;)
 					{
@@ -299,8 +292,8 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				ObjRef objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
 				orisToGet.add(objRef);
 			}
-			List<Object> businessObjectList = childCache.getObjects(orisToGet, CacheDirective.failEarlyAndReturnMisses());
-			clearObjectsWithTempIds();
+			List<Object> businessObjectList = cache.getObjects(orisToGet, CacheDirective.failEarlyAndReturnMisses());
+			clearObjectsWithTempIds((IWritableCache) cache);
 
 			for (int a = allBusinessObjects.size(); a-- > 0;)
 			{
@@ -319,7 +312,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		finally
 		{
 			cacheModification.setActive(oldActive);
-			childCache.clearHardRefs(acquiredHardRefs);
+			cache.clearHardRefs(acquiredHardRefs);
 		}
 	}
 
@@ -371,6 +364,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		{
 			return (T) Collections.emptyList();
 		}
+		ICache cache = this.cache.getCurrentCache();
 		IPrefetchHelper prefetchHelper = this.prefetchHelper;
 		// Ensure all potential value-holders of To-One BOs are initialized in a batch
 		prefetchHelper.prefetch(businessObjectList);
@@ -412,7 +406,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			// PendingValueHolders might be (re-)filled after the runnables. So we need a while loop
 		}
 
-		clearObjectsWithTempIds();
+		clearObjectsWithTempIds((IWritableCache) cache);
 
 		return (T) valueObjectList;
 	}
@@ -497,7 +491,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		}
 	}
 
-	protected void mapBosByVos(final List<Object> valueObjects) throws Exception
+	protected void mapBosByVos(final List<Object> valueObjects, ICacheIntern cache) throws Exception
 	{
 		ArrayList<IObjRef> toLoad = new ArrayList<IObjRef>();
 		ArrayList<Object> waitingVOs = new ArrayList<Object>();
@@ -542,7 +536,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 
 		if (!toLoad.isEmpty())
 		{
-			List<Object> businessObjects = childCache.getObjects(toLoad, CacheDirective.returnMisses());
+			List<Object> businessObjects = cache.getObjects(toLoad, CacheDirective.returnMisses());
 			for (int i = businessObjects.size(); i-- > 0;)
 			{
 				Object businessObject = businessObjects.get(i);
@@ -558,7 +552,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		}
 	}
 
-	protected void resolvePrimitiveProperties(Object valueObject) throws Exception
+	protected void resolvePrimitiveProperties(Object valueObject, ICacheIntern cache) throws Exception
 	{
 		IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
 
@@ -575,11 +569,11 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 
 		Object id = boMetaData.getIdMember().getValue(businessObject, false);
 		Object version = boMetaData.getVersionMember().getValue(businessObject, false);
-		childCache.addDirect(boMetaData, id, version, businessObject, primitives, null);// relationValues);
+		cache.addDirect(boMetaData, id, version, businessObject, primitives, null);// relationValues);
 	}
 
 	protected void collectReferencedBusinessObjects(Object valueObject, ISet<IObjRef> referencedBOsSet, List<DirectValueHolderRef> boToPendingRelationsList,
-			Map<IObjRef, IObjRef> alreadyCreatedObjRefMap)
+			Map<IObjRef, IObjRef> alreadyCreatedObjRefMap, ICacheIntern cache)
 	{
 		IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
 
@@ -743,7 +737,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			{
 				IObjRef[] objRefs = pendingRelations.size() > 0 ? pendingRelations.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 				businessObject.set__ObjRefs(relationIndex, objRefs);
-				businessObject.set__TargetCache(childCache);
+				businessObject.set__TargetCache(cache);
 				referencedBOsSet.addAll(objRefs);
 				boToPendingRelationsList.add(new DirectValueHolderRef(businessObject, boMember));
 			}
@@ -1066,14 +1060,14 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		bosToRemoveTempIdFrom.add(businessObject);
 	}
 
-	protected void removeTempIdFromBusinessObject(Object businessObject, IEntityMetaData metaData, ObjRef tempObjRef)
+	protected void removeTempIdFromBusinessObject(Object businessObject, IEntityMetaData metaData, ObjRef tempObjRef, IWritableCache cache)
 	{
 		Member idMember = metaData.getIdMember();
 		Object id = idMember.getValue(businessObject);
 		tempObjRef.setRealType(metaData.getEntityType());
 		tempObjRef.setIdNameIndex(ObjRef.PRIMARY_KEY_INDEX);
 		tempObjRef.setId(id);
-		writableCache.remove(tempObjRef);
+		cache.remove(tempObjRef);
 		idMember.setValue(businessObject, null);
 	}
 
@@ -1083,7 +1077,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		return boNameToVoMember.get(boIdMemberName);
 	}
 
-	protected void clearObjectsWithTempIds()
+	protected void clearObjectsWithTempIds(IWritableCache cache)
 	{
 		ISet<Object> bosToRemoveTempIdFrom = this.bosToRemoveTempIdFrom;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
@@ -1105,7 +1099,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			for (Object bo : bosToRemoveTempIdFrom)
 			{
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(bo.getClass());
-				removeTempIdFromBusinessObject(bo, metaData, objRef);
+				removeTempIdFromBusinessObject(bo, metaData, objRef, cache);
 			}
 			bosToRemoveTempIdFrom.clear();
 		}
@@ -1184,7 +1178,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	{
 		String voMemberName = config.getValueObjectMemberName(boMemberName);
 		ITypeInfoItem voMember = typeInfoProvider.getHierarchicMember(config.getValueType(), voMemberName);
-		// Member voMember = memberTypeProvider.getMember(config.getValueType(), voMemberName);
 		if (voMember == null)
 		{
 			return;
@@ -1192,7 +1185,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		Class<?> elementType = config.getMemberType(voMemberName);
 		if (elementType != null)
 		{
-			((IMemberWrite) voMember).setElementType(elementType);
+			TypeInfoItem.setEntityType(elementType, voMember, null);
 		}
 		typeInfoMap.put(boMemberName, voMember);
 		if (sb != null)
@@ -1200,7 +1193,6 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			sb.setLength(0);
 			String voSpecifiedName = sb.append(voMemberName).append("Specified").toString();
 			ITypeInfoItem voSpecifiedMember = typeInfoProvider.getHierarchicMember(config.getValueType(), voSpecifiedName);
-			// Member voSpecifiedMember = memberTypeProvider.getMember(config.getValueType(), voSpecifiedName);
 			if (voSpecifiedMember != null)
 			{
 				sb.setLength(0);
@@ -1397,7 +1389,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	@Override
 	public Object getMappedBusinessObject(IObjRef objRef)
 	{
-		return childCache.getObject(objRef, CacheDirective.failEarly());
+		return cache.getObject(objRef, CacheDirective.failEarly());
 	}
 
 	@Override

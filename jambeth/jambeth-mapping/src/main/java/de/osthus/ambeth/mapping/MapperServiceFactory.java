@@ -1,7 +1,5 @@
 package de.osthus.ambeth.mapping;
 
-import de.osthus.ambeth.cache.ICache;
-import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -16,15 +14,10 @@ public class MapperServiceFactory implements IMapperServiceFactory
 	@Autowired
 	protected IServiceContext beanContext;
 
-	@Autowired
-	protected ICacheProvider cacheProvider;
-
 	@Override
 	public IMapperService create()
 	{
-		ICache cache = cacheProvider.getCurrentCache();
-		IMapperService mapperService = beanContext.registerAnonymousBean(ModelTransferMapper.class).propertyValue("ChildCache", cache)
-				.propertyValue("WritableCache", cache).finish();
+		IMapperService mapperService = beanContext.registerAnonymousBean(ModelTransferMapper.class).finish();
 		IMapperService mapperServiceReference = new MapperServiceWeakReference(mapperService);
 		return mapperServiceReference;
 	}
