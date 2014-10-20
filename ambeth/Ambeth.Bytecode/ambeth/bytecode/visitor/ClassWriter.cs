@@ -335,7 +335,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             IFieldVisitor fv = VisitField(field);
             if (script != null)
             {
-                script.Invoke(fv);
+                script(fv);
             }
             fv.VisitEnd();
             return State.GetAlreadyImplementedField(field.Name);

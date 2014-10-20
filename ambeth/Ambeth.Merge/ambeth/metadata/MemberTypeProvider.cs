@@ -1,6 +1,7 @@
 using De.Osthus.Ambeth.Annotation;
 using De.Osthus.Ambeth.Bytecode;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
@@ -80,6 +81,9 @@ namespace De.Osthus.Ambeth.Metadata
         public IBytecodeEnhancer BytecodeEnhancer { protected get; set; }
 
         [Autowired]
+        public ICompositeIdFactory CompositeIdFactory { protected get; set; }
+
+        [Autowired]
         public IProperties Properties { protected get; set; }
 
         [Autowired]
@@ -146,6 +150,16 @@ namespace De.Osthus.Ambeth.Metadata
 
         protected Member GetMemberIntern(Type type, String propertyName, Type baseType)
         {
+            if (propertyName.Contains("&"))
+            {
+                String[] compositePropertyNames = propertyName.Split('&');
+                PrimitiveMember[] members = new PrimitiveMember[compositePropertyNames.Length];
+                for (int a = compositePropertyNames.Length; a-- > 0; )
+                {
+                    members[a] = (PrimitiveMember)GetMemberIntern(type, compositePropertyNames[a], baseType);
+                }
+                return CompositeIdFactory.CreateCompositeIdMember(type, members);
+            }
             Type enhancedType = GetMemberTypeIntern(type, propertyName, baseType);
             if (enhancedType == baseType)
             {

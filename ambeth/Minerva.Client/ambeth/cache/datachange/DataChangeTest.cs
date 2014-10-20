@@ -19,7 +19,7 @@ namespace De.Osthus.Ambeth.Cache.DataChange
     public class DataChangeTest : AbstractHelloWorldTest
     {
         [LogInstance]
-        public ILogger Log { private get; set; }
+        public new ILogger Log { private get; set; }
 
         [Autowired]
         public ICacheWalker CacheWalker { protected get; set; }

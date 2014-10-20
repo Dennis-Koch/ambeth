@@ -14,6 +14,7 @@ import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.collections.Tuple2KeyEntry;
 import de.osthus.ambeth.collections.Tuple2KeyHashMap;
+import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -92,6 +93,9 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 
 	@Autowired
 	protected IBytecodeEnhancer bytecodeEnhancer;
+
+	@Autowired
+	protected ICompositeIdFactory compositeIdFactory;
 
 	@Autowired
 	protected IProperties properties;
@@ -173,6 +177,17 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 
 	protected Member getMemberIntern(Class<?> type, String propertyName, Class<?> baseType)
 	{
+		if (propertyName.contains("&"))
+		{
+			String[] compositePropertyNames = propertyName.split("&");
+			PrimitiveMember[] members = new PrimitiveMember[compositePropertyNames.length];
+			for (int a = compositePropertyNames.length; a-- > 0;)
+			{
+				members[a] = (PrimitiveMember) getMemberIntern(type, compositePropertyNames[a], baseType);
+			}
+			return compositeIdFactory.createCompositeIdMember(type, members);
+		}
+
 		Class<?> enhancedType = getMemberTypeIntern(type, propertyName, baseType);
 		if (enhancedType == baseType)
 		{
