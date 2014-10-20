@@ -10,41 +10,40 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.Pending;
+using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Xml.PostProcess
 {
-    public class MergeXmlPostProcessor : IXmlPostProcessor, IInitializingBean, IStartingBean
+    public class MergeXmlPostProcessor : IXmlPostProcessor, IStartingBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Autowired]
         public IServiceContext BeanContext { protected get; set; }
 
+        [Autowired]
         public ICacheFactory CacheFactory { protected get; set; }
 
+        [Autowired]
         public ICommandBuilder CommandBuilder { protected get; set; }
 
+        [Autowired]
+        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
+
+        [Autowired]
         public IMergeController MergeController { protected get; set; }
 
-        public IObjRefHelper OriHelper { protected get; set; }
+        [Autowired]
+        public IObjRefHelper ObjRefHelper { protected get; set; }
 
-        public ITypeInfoProvider TypeInfoProvider { protected get; set; }
-
-        protected ITypeInfoItem DirectObjRefDirectMember { get; set; }
-
-        public void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(BeanContext, "beanContext");
-            ParamChecker.AssertNotNull(CacheFactory, "cacheFactory");
-            ParamChecker.AssertNotNull(CommandBuilder, "commandBuilder");
-            ParamChecker.AssertNotNull(MergeController, "mergeController");
-            ParamChecker.AssertNotNull(OriHelper, "oriHelper");
-            ParamChecker.AssertNotNull(TypeInfoProvider, "typeInfoProvider");
-        }
-
+        [Autowired]
+        protected Member DirectObjRefDirectMember { get; set; }
+        
         public void AfterStarted()
         {
-            DirectObjRefDirectMember = TypeInfoProvider.GetHierarchicMember(typeof(IDirectObjRef), "Direct");
+            DirectObjRefDirectMember = MemberTypeProvider.GetMember(typeof(DirectObjRef), "Direct");
         }
 
         public Object ProcessWrite(IPostProcessWriter writer)
@@ -63,13 +62,13 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
             try
             {
                 IDictionary<Object, Int32> mutableToIdMap = writer.MutableToIdMap;
-                IObjRefHelper oriHelper = OriHelper;
+                IObjRefHelper objRefHelper = ObjRefHelper;
                 MergeHandle mergeHandle = mergeContext.GetService<MergeHandle>();
                 IList<Object> toMerge = new List<Object>(substitutedEntities.Count);
                 foreach (Object entity in substitutedEntities)
                 {
                     toMerge.Add(entity);
-                    IObjRef ori = oriHelper.EntityToObjRef(entity);
+                    IObjRef ori = objRefHelper.EntityToObjRef(entity);
                     mergeHandle.objToOriDict.Add(entity, ori);
                     Int32 id = mutableToIdMap[entity];
                     mutableToIdMap.Add(ori, id);
@@ -107,7 +106,7 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
             }
 
             ICommandBuilder commandBuilder = CommandBuilder;
-            ITypeInfoItem directObjRefDirectMember = DirectObjRefDirectMember;
+            Member directObjRefDirectMember = DirectObjRefDirectMember;
             CUDResult cudResult = (CUDResult)result;
             IList<IChangeContainer> changes = cudResult.AllChanges;
             for (int i = 0, size = changes.Count; i < size; i++)

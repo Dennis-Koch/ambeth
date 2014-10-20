@@ -74,7 +74,8 @@ namespace De.Osthus.Ambeth.Ioc
                 .Autowireable<IValueObjectConfigExtendable>()
                 .Autowireable<IEntityLifecycleExtendable>()
                 .Autowireable<ITechnicalEntityTypeExtendable>()
-                .Autowireable<IEntityMetaDataExtendable>();
+                .Autowireable<IEntityMetaDataExtendable>()
+                .Autowireable<IEntityInstantiationExtensionExtendable>();
 
             if (!IndependentMetaData)
             {
@@ -108,11 +109,7 @@ namespace De.Osthus.Ambeth.Ioc
             {
                 entityFactoryType = typeof(EntityFactory);
             }
-            IBeanConfiguration entityFactoryBC = beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
-            if (typeof(IEntityInstantiationExtensionExtendable).IsAssignableFrom(entityFactoryType))
-            {
-                entityFactoryBC.Autowireable<IEntityInstantiationExtensionExtendable>();
-            }
+            beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
 
             beanContextFactory.RegisterAnonymousBean<ObjRefStoreEntryProvider>().Autowireable<IObjRefStoreEntryProvider>();
 

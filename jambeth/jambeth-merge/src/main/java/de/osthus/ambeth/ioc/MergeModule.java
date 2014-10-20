@@ -106,7 +106,8 @@ public class MergeModule implements IInitializingModule
 				.registerAnonymousBean(EntityMetaDataProvider.class)
 				.propertyRef("ValueObjectMap", valueObjectMap)
 				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
-						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class);
+						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class,
+						IEntityInstantiationExtensionExtendable.class);
 		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class).precedence(PrecedenceType.HIGH);
 
 		if (!independentMetaData)
@@ -139,11 +140,7 @@ public class MergeModule implements IInitializingModule
 		{
 			entityFactoryType = EntityFactory.class;
 		}
-		IBeanConfiguration entityFactoryBC = beanContextFactory.registerBean("entityFactory", entityFactoryType).autowireable(IEntityFactory.class);
-		if (IEntityInstantiationExtensionExtendable.class.isAssignableFrom(entityFactoryType))
-		{
-			entityFactoryBC.autowireable(IEntityInstantiationExtensionExtendable.class);
-		}
+		beanContextFactory.registerBean("entityFactory", entityFactoryType).autowireable(IEntityFactory.class);
 
 		beanContextFactory.registerAnonymousBean(ObjRefStoreEntryProvider.class).autowireable(IObjRefStoreEntryProvider.class);
 

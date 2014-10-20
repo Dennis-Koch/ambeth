@@ -67,7 +67,7 @@ namespace De.Osthus.Ambeth.Metadata
 
         public virtual String GetTargetName(Type typeToEnhance)
         {
-            return declaringType.FullName + "$" + typeof(Member).Name + "$" + memberName;
+            return declaringType.FullName + "$" + typeof(Member).Name + "$" + memberName.Replace('.','_');
         }
 
         public override string ToString()

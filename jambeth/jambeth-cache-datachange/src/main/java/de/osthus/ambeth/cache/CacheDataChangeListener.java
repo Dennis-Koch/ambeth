@@ -8,6 +8,7 @@ import java.util.Set;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
+import de.osthus.ambeth.cache.transfer.ObjRelation;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -612,6 +613,12 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		if (relationsOfMember == null)
 		{
 			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(entity, member.getName());
+			IObjRef[] objRefs = objRelation.getObjRefs();
+			for (int a = objRefs.length; a-- > 0;)
+			{
+				objRefs[a].setVersion(null);
+			}
+			((ObjRelation) objRelation).setVersion(null);
 			node.cascadeRefreshObjRelationsSet.add(objRelation);
 		}
 		else

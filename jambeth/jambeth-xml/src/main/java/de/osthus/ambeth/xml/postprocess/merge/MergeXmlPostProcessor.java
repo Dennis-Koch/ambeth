@@ -9,10 +9,10 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -25,9 +25,10 @@ import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.merge.transfer.DirectObjRef;
+import de.osthus.ambeth.metadata.IMemberTypeProvider;
+import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.pending.ArraySetterCommand;
 import de.osthus.ambeth.xml.pending.ICommandBuilder;
 import de.osthus.ambeth.xml.pending.ICommandTypeExtendable;
@@ -39,71 +40,39 @@ import de.osthus.ambeth.xml.postprocess.IPostProcessReader;
 import de.osthus.ambeth.xml.postprocess.IPostProcessWriter;
 import de.osthus.ambeth.xml.postprocess.IXmlPostProcessor;
 
-public class MergeXmlPostProcessor implements IXmlPostProcessor, IInitializingBean, IStartingBean
+public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected ICacheFactory cacheFactory;
 
+	@Autowired
 	protected ICommandBuilder commandBuilder;
 
+	@Autowired
 	protected IMergeController mergeController;
 
-	protected IObjRefHelper oriHelper;
+	@Autowired
+	protected IMemberTypeProvider memberTypeProvider;
 
+	@Autowired
+	protected IObjRefHelper objRefHelper;
+
+	@Autowired
 	protected ITypeInfoProvider typeInfoProvider;
 
-	protected ITypeInfoItem directObjRefDirectMember;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(cacheFactory, "cacheFactory");
-		ParamChecker.assertNotNull(commandBuilder, "commandBuilder");
-		ParamChecker.assertNotNull(mergeController, "mergeController");
-		ParamChecker.assertNotNull(oriHelper, "oriHelper");
-		ParamChecker.assertNotNull(typeInfoProvider, "typeInfoProvider");
-	}
+	protected Member directObjRefDirectMember;
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		directObjRefDirectMember = typeInfoProvider.getHierarchicMember(IDirectObjRef.class, "Direct");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setCommandBuilder(ICommandBuilder commandBuilder)
-	{
-		this.commandBuilder = commandBuilder;
-	}
-
-	public void setMergeController(IMergeController mergeController)
-	{
-		this.mergeController = mergeController;
-	}
-
-	public void setOriHelper(IObjRefHelper oriHelper)
-	{
-		this.oriHelper = oriHelper;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
+		directObjRefDirectMember = memberTypeProvider.getMember(DirectObjRef.class, "Direct");
 	}
 
 	@Override
@@ -127,13 +96,13 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IInitializingBe
 		try
 		{
 			IMap<Object, Integer> mutableToIdMap = writer.getMutableToIdMap();
-			IObjRefHelper oriHelper = this.oriHelper;
+			IObjRefHelper objRefHelper = this.objRefHelper;
 			MergeHandle mergeHandle = mergeContext.getService(MergeHandle.class);
 			IList<Object> toMerge = new ArrayList<Object>(substitutedEntities.size());
 			for (Object entity : substitutedEntities)
 			{
 				toMerge.add(entity);
-				IObjRef ori = oriHelper.entityToObjRef(entity);
+				IObjRef ori = objRefHelper.entityToObjRef(entity);
 				mergeHandle.getObjToOriDict().put(entity, ori);
 				Integer id = mutableToIdMap.get(entity);
 				mutableToIdMap.put(ori, id);

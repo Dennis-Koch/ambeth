@@ -736,7 +736,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			else
 			{
 				IObjRef[] objRefs = pendingRelations.size() > 0 ? pendingRelations.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
-				businessObject.set__ObjRefs(relationIndex, objRefs);
+				businessObject.set__Uninitialized(relationIndex, objRefs);
 				businessObject.set__TargetCache(cache);
 				referencedBOsSet.addAll(objRefs);
 				boToPendingRelationsList.add(new DirectValueHolderRef(businessObject, boMember));

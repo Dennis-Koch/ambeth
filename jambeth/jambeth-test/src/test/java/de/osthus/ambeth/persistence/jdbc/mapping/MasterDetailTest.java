@@ -6,10 +6,12 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.mapping.IMapperService;
 import de.osthus.ambeth.mapping.IMapperServiceFactory;
 import de.osthus.ambeth.merge.IMergeProcess;
@@ -22,7 +24,6 @@ import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLStructure("Master_Detail_structure.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
@@ -32,35 +33,25 @@ public class MasterDetailTest extends AbstractPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/jdbc/mapping/";
 
-	private IMapperServiceFactory mapperServiceFactory;
+	@Autowired
+	protected IMapperServiceFactory mapperServiceFactory;
+
+	@Autowired
+	protected IMergeProcess mergeProcess;
 
 	private IMapperService mapperService;
-
-	private IMergeProcess mergeProcess;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(mapperServiceFactory, "mapperServiceFactory");
-		ParamChecker.assertNotNull(mergeProcess, "mergeProcess");
-	}
-
-	public void setMapperServiceFactory(IMapperServiceFactory mapperServiceFactory)
-	{
-		this.mapperServiceFactory = mapperServiceFactory;
-	}
-
-	public void setProcess(IMergeProcess mergeProcess)
-	{
-		this.mergeProcess = mergeProcess;
-	}
 
 	@Before
 	public void setUp() throws Exception
 	{
 		mapperService = mapperServiceFactory.create();
+	}
+
+	@After
+	public void tearDown() throws Exception
+	{
+		mapperService.dispose();
+		mapperService = null;
 	}
 
 	@Test

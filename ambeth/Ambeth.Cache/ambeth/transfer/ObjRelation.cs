@@ -128,16 +128,8 @@ namespace De.Osthus.Ambeth.Cache.Transfer
 
 	    public void ToString(StringBuilder sb)
 	    {
-		    sb.Append("ObjRel: memberName=").Append(MemberName).Append(", ref=[");
-            for (int a = 0, size = ObjRefs.Length; a < size; a++)
-            {
-                if (a > 0)
-                {
-                    sb.Append(',');
-                }
-                ObjRefs[a].ToString(sb);
-            }
-            sb.Append(']');
+		    sb.Append("ObjRel: memberName=").Append(MemberName).Append(", ref=");
+            StringBuilderUtil.AppendPrintable(sb, objRefs);
 	    }
     }
 }
