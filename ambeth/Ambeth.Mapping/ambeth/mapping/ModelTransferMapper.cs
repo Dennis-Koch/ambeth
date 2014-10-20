@@ -39,10 +39,7 @@ namespace De.Osthus.Ambeth.Mapping
         public IConversionHelper ConversionHelper { protected get; set; }
 
         [Autowired]
-        public ICacheIntern ChildCache { protected get; set; }
-
-        [Autowired]
-        public IWritableCache WritableCache { protected get; set; }
+        public ICache Cache { protected get; set; }
 
         [Autowired]
         public IEntityFactory EntityFactory { protected get; set; }
@@ -57,9 +54,6 @@ namespace De.Osthus.Ambeth.Mapping
         public IDedicatedMapperRegistry MapperExtensionRegistry { protected get; set; }
 
         [Autowired]
-        public IMemberTypeProvider MemberTypeProvider { protected get; set; }
-
-        [Autowired]
         public IPrefetchHelper PrefetchHelper { protected get; set; }
         
         [Autowired]
@@ -68,7 +62,10 @@ namespace De.Osthus.Ambeth.Mapping
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
 
-        protected readonly HashMap<Type, IMap<String, Member>> typeToTypeInfoMap = new HashMap<Type, IMap<String, Member>>();
+        [Autowired]
+        public ITypeInfoProvider TypeInfoProvider { protected get; set; }
+
+        protected readonly HashMap<Type, IMap<String, ITypeInfoItem>> typeToTypeInfoMap = new HashMap<Type, IMap<String, ITypeInfoItem>>();
 
         protected readonly HashMap<IObjRef, IObjRef> alreadyCreatedObjRefsMap = new HashMap<IObjRef, IObjRef>();
 
@@ -93,9 +90,9 @@ namespace De.Osthus.Ambeth.Mapping
         {
             ConversionHelper = null;
             EntityMetaDataProvider = null;
-            MemberTypeProvider = null;
+            TypeInfoProvider = null;
             OriHelper = null;
-            ChildCache = null;
+            Cache = null;
         }
 
         public Object MapToBusinessObject(Object valueObject)
@@ -121,22 +118,22 @@ namespace De.Osthus.Ambeth.Mapping
             {
                 return EmptyList.Empty<Object>();
             }
-            ICacheIntern childCache = this.ChildCache;
+            ICacheIntern cache = (ICacheIntern) this.Cache.CurrentCache;
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
             List<Object> allValueObjects = new List<Object>(valueObjectList.Count);
-            bool acquiredHardRefs = childCache.AcquireHardRefTLIfNotAlready();
+            bool acquiredHardRefs = cache.AcquireHardRefTLIfNotAlready();
             bool oldActive = CacheModification.Active;
             CacheModification.Active = true;
             try
             {
                 ResolveAllValueObjectsDirectly(valueObjectList, allValueObjects, IdentityHashSet<Object>.Create(valueObjectList.Count), null);
 
-                MapBosByVos(allValueObjects);
+                MapBosByVos(allValueObjects, cache);
 
                 for (int i = allValueObjects.Count; i-- > 0; )
                 {
-                    ResolvePrimitiveProperties(allValueObjects[i]);
+                    ResolvePrimitiveProperties(allValueObjects[i], cache);
                 }
 
                 List<DirectValueHolderRef> boToPendingRelationsList = new List<DirectValueHolderRef>();
@@ -146,7 +143,7 @@ namespace De.Osthus.Ambeth.Mapping
                 {
                     for (int i = allValueObjects.Count; i-- > 0; )
                     {
-                        CollectReferencedBusinessObjects(allValueObjects[i], referencedBOsSet, boToPendingRelationsList, alreadyCreatedObjRefMap);
+                        CollectReferencedBusinessObjects(allValueObjects[i], referencedBOsSet, boToPendingRelationsList, alreadyCreatedObjRefMap, cache);
                     }
                     IList<IObjRef> referencedBOsList = referencedBOsSet.ToList();
 
@@ -156,7 +153,7 @@ namespace De.Osthus.Ambeth.Mapping
                         // Store retrieved BOs to hard ref to suppress Weak GC handling of cache
                         allBOsToKeepInCache.Add(prefetchState);
 
-                        IList<Object> referencedBOs = childCache.GetObjects(referencedBOsList, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                        IList<Object> referencedBOs = cache.GetObjects(referencedBOsList, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
 
                         for (int a = referencedBOs.Count; a-- > 0; )
                         {
@@ -235,14 +232,14 @@ namespace De.Osthus.Ambeth.Mapping
                     Object rootValueObject = valueObjectList[i];
                     IValueObjectConfig config = GetValueObjectConfig(rootValueObject.GetType());
                     IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-                    IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+                    IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
                     Object id = GetIdFromValueObject(rootValueObject, metaData, boNameToVoMember, config);
 
                     ObjRef objRef = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, id, null);
                     orisToGet.Add(objRef);
                 }
-                IList<Object> businessObjectList = childCache.GetObjects(orisToGet, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
-                ClearObjectsWithTempIds();
+                IList<Object> businessObjectList = cache.GetObjects(orisToGet, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                ClearObjectsWithTempIds((IWritableCache)cache);
 
                 for (int a = allBusinessObjects.Count; a-- > 0;)
 			    {
@@ -257,7 +254,7 @@ namespace De.Osthus.Ambeth.Mapping
             finally
             {
                 CacheModification.Active = oldActive;
-                childCache.ClearHardRefs(acquiredHardRefs);
+                cache.ClearHardRefs(acquiredHardRefs);
             }
         }
 
@@ -290,6 +287,7 @@ namespace De.Osthus.Ambeth.Mapping
             {
                 return EmptyList.Empty<Object>();
             }
+            ICache cache = this.Cache.CurrentCache;
             IPrefetchHelper prefetchHelper = this.PrefetchHelper;
             // Ensure all potential value-holders of To-One BOs are initialized in a batch
             prefetchHelper.Prefetch(businessObjectList);
@@ -331,7 +329,7 @@ namespace De.Osthus.Ambeth.Mapping
                 // PendingValueHolders might be (re-)filled after the runnables. So we need a while loop
             }
 
-            ClearObjectsWithTempIds();
+            ClearObjectsWithTempIds((IWritableCache)cache);
 
             return valueObjectList;
         }
@@ -367,7 +365,7 @@ namespace De.Osthus.Ambeth.Mapping
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IEntityMetaData businessObjectMetaData = ((IEntityMetaDataHolder)businessObject).Get__EntityMetaData();
             IValueObjectConfig config = entityMetaDataProvider.GetValueObjectConfig(valueObject.GetType());
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
             CopyPrimitives(businessObject, valueObject, config, CopyDirection.BO_TO_VO, businessObjectMetaData, boNameToVoMember);
 
@@ -383,7 +381,7 @@ namespace De.Osthus.Ambeth.Mapping
                 RelationMember boMember = relationMembers[relationIndex];
                 String boMemberName = boMember.Name;
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
-                Member voMember = boNameToVoMember.Get(boMemberName);
+                ITypeInfoItem voMember = boNameToVoMember.Get(boMemberName);
                 if (config.IsIgnoredMember(voMemberName) || voMember == null)
                 {
                     continue;
@@ -408,7 +406,7 @@ namespace De.Osthus.Ambeth.Mapping
             }
         }
 
-        protected void MapBosByVos(IList<Object> valueObjects)
+        protected void MapBosByVos(IList<Object> valueObjects, ICacheIntern cache)
         {
             List<IObjRef> toLoad = new List<IObjRef>();
             List<Object> waitingVOs = new List<Object>();
@@ -423,7 +421,7 @@ namespace De.Osthus.Ambeth.Mapping
                 }
                 IValueObjectConfig config = GetValueObjectConfig(valueObject.GetType());
                 IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-                IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+                IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
                 Object businessObject = null;
                 Object id = GetIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
@@ -453,7 +451,7 @@ namespace De.Osthus.Ambeth.Mapping
 
             if (toLoad.Count > 0)
             {
-                IList<Object> businessObjects = ChildCache.GetObjects(toLoad, CacheDirective.ReturnMisses);
+                IList<Object> businessObjects = cache.GetObjects(toLoad, CacheDirective.ReturnMisses);
                 for (int i = businessObjects.Count; i-- > 0; )
                 {
                     Object businessObject = businessObjects[i];
@@ -469,12 +467,12 @@ namespace De.Osthus.Ambeth.Mapping
             }
         }
 
-        protected void ResolvePrimitiveProperties(Object valueObject)
+        protected void ResolvePrimitiveProperties(Object valueObject, ICacheIntern cache)
         {
             IValueObjectConfig config = GetValueObjectConfig(valueObject.GetType());
 
             IEntityMetaData boMetaData = EntityMetaDataProvider.GetMetaData(config.EntityType);
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
             Object businessObject = voToBoMap.Get(valueObject);
             if (businessObject == null)
@@ -486,17 +484,17 @@ namespace De.Osthus.Ambeth.Mapping
 
             Object id = boMetaData.IdMember.GetValue(businessObject, false);
             Object version = boMetaData.VersionMember.GetValue(businessObject, false);
-            ChildCache.AddDirect(boMetaData, id, version, businessObject, primitives, null);// relationValues);
+            cache.AddDirect(boMetaData, id, version, businessObject, primitives, null);// relationValues);
         }
 
         protected void CollectReferencedBusinessObjects(Object valueObject, IISet<IObjRef> referencedBOsSet, IList<DirectValueHolderRef> boToPendingRelationsList,
-                IMap<IObjRef, IObjRef> alreadyCreatedObjRefMap)
+                IMap<IObjRef, IObjRef> alreadyCreatedObjRefMap, ICacheIntern cache)
         {
             IValueObjectConfig config = GetValueObjectConfig(valueObject.GetType());
 
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
 
             IdentityHashMap<Object, Object> voToBoMap = this.voToBoMap;
 
@@ -521,7 +519,7 @@ namespace De.Osthus.Ambeth.Mapping
                 String boMemberName = boMember.Name;
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
 
-                Member voMember = boNameToVoMember.Get(boMemberName);
+                ITypeInfoItem voMember = boNameToVoMember.Get(boMemberName);
                 Object voValue = null;
                 if (voMember != null)
                 {
@@ -651,7 +649,7 @@ namespace De.Osthus.Ambeth.Mapping
                 {
                     IObjRef[] objRefs = pendingRelations.Count > 0 ? pendingRelations.ToArray() : ObjRef.EMPTY_ARRAY;
                     businessObject.Set__ObjRefs(relationIndex, objRefs);
-				    businessObject.__TargetCache = ChildCache;
+				    businessObject.__TargetCache = cache;
                     referencedBOsSet.AddAll(objRefs);
                     boToPendingRelationsList.Add(new DirectValueHolderRef(businessObject, boMember));
                 }
@@ -670,7 +668,7 @@ namespace De.Osthus.Ambeth.Mapping
             return usingObjRef;
         }
 
-        protected Object CreateVOMemberValue(IObjRefContainer businessObject, int relationIndex, RelationMember boMember, IValueObjectConfig config, Member voMember,
+        protected Object CreateVOMemberValue(IObjRefContainer businessObject, int relationIndex, RelationMember boMember, IValueObjectConfig config, ITypeInfoItem voMember,
                 ICollection<Object> pendingValueHolders, ICollection<IBackgroundWorkerDelegate> runnables)
         {
             Object voMemberValue = null;
@@ -822,14 +820,14 @@ namespace De.Osthus.Ambeth.Mapping
             {
                 return;
             }
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(config.EntityType);
             foreach (ITypeInfoItem boMember in metaData.RelationMembers)
             {
                 String boMemberName = boMember.Name;
                 String voMemberName = config.GetValueObjectMemberName(boMemberName);
                 ValueObjectMemberType valueObjectMemberType = config.GetValueObjectMemberType(voMemberName);
-                Member voMember = boNameToVoMember.Get(boMemberName);
+                ITypeInfoItem voMember = boNameToVoMember.Get(boMemberName);
                 if (voMember == null || config.IsIgnoredMember(voMemberName) || valueObjectMemberType == ValueObjectMemberType.BASIC)
                 {
                     // ValueObjectMemberType.BASIC members of entityType VO are special case mappings via conversionHelper
@@ -903,7 +901,7 @@ namespace De.Osthus.Ambeth.Mapping
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IValueObjectConfig config = entityMetaDataProvider.GetValueObjectConfig(valueObject.GetType());
             IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
             return GetIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
         }
 
@@ -912,30 +910,30 @@ namespace De.Osthus.Ambeth.Mapping
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
             IValueObjectConfig config = entityMetaDataProvider.GetValueObjectConfig(valueObject.GetType());
             IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-            IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+            IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
             String boVersionMemberName = boMetaData.VersionMember.Name;
-            Member voVersionMember = boNameToVoMember.Get(boVersionMemberName);
+            ITypeInfoItem voVersionMember = boNameToVoMember.Get(boVersionMemberName);
             return voVersionMember.GetValue(valueObject, false);
         }
 
-        protected Object GetIdFromValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, Member> boNameToVoMember, IValueObjectConfig config)
+        protected Object GetIdFromValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, ITypeInfoItem> boNameToVoMember, IValueObjectConfig config)
         {
-            Member voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
+            ITypeInfoItem voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
             return voIdMember.GetValue(valueObject, false);
         }
 
-        protected void SetTempIdToValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, Member> boNameToVoMember, IValueObjectConfig config)
+        protected void SetTempIdToValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, ITypeInfoItem> boNameToVoMember, IValueObjectConfig config)
         {
-            Member voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
+            ITypeInfoItem voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
             Object tempId = GetNextTempIdAs(voIdMember.ElementType);
             voIdMember.SetValue(valueObject, tempId);
             vosToRemoveTempIdFrom.Add(valueObject);
         }
 
-        protected void RemoveTempIdFromValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, Member> boNameToVoMember,
+        protected void RemoveTempIdFromValueObject(Object valueObject, IEntityMetaData boMetaData, IMap<String, ITypeInfoItem> boNameToVoMember,
                 IValueObjectConfig config)
         {
-            Member voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
+            ITypeInfoItem voIdMember = getVoIdMember(config, boMetaData, boNameToVoMember);
             Object nullEquivalentValue = NullEquivalentValueUtil.GetNullEquivalentValue(voIdMember.ElementType);
             voIdMember.SetValue(valueObject, nullEquivalentValue);
         }
@@ -953,24 +951,24 @@ namespace De.Osthus.Ambeth.Mapping
             bosToRemoveTempIdFrom.Add(businessObject);
         }
 
-        protected void RemoveTempIdFromBusinessObject(Object businessObject, IEntityMetaData metaData, ObjRef tempObjRef)
+        protected void RemoveTempIdFromBusinessObject(Object businessObject, IEntityMetaData metaData, ObjRef tempObjRef, IWritableCache cache)
         {
             PrimitiveMember idMember = metaData.IdMember;
             Object id = idMember.GetValue(businessObject);
             tempObjRef.RealType = metaData.EntityType;
             tempObjRef.IdNameIndex = ObjRef.PRIMARY_KEY_INDEX;
             tempObjRef.Id = id;
-            WritableCache.Remove(tempObjRef);
+            cache.Remove(tempObjRef);
             idMember.SetValue(businessObject, null);
         }
 
-        protected Member getVoIdMember(IValueObjectConfig config, IEntityMetaData boMetaData, IMap<String, Member> boNameToVoMember)
+        protected ITypeInfoItem getVoIdMember(IValueObjectConfig config, IEntityMetaData boMetaData, IMap<String, ITypeInfoItem> boNameToVoMember)
         {
             String boIdMemberName = boMetaData.IdMember.Name;
             return boNameToVoMember.Get(boIdMemberName);
         }
 
-        protected void ClearObjectsWithTempIds()
+        protected void ClearObjectsWithTempIds(IWritableCache cache)
         {
             ISet<Object> bosToRemoveTempIdFrom = this.bosToRemoveTempIdFrom;
             IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
@@ -980,7 +978,7 @@ namespace De.Osthus.Ambeth.Mapping
                 foreach (Object vo in vosToRemoveTempIdFrom)
                 {
                     IValueObjectConfig config = entityMetaDataProvider.GetValueObjectConfig(vo.GetType());
-                    IMap<String, Member> boNameToVoMember = GetTypeInfoMapForVo(config);
+                    IMap<String, ITypeInfoItem> boNameToVoMember = GetTypeInfoMapForVo(config);
                     IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
                     RemoveTempIdFromValueObject(vo, boMetaData, boNameToVoMember, config);
                 }
@@ -992,7 +990,7 @@ namespace De.Osthus.Ambeth.Mapping
                 foreach (Object bo in bosToRemoveTempIdFrom)
                 {
                     IEntityMetaData metaData = ((IEntityMetaDataHolder)bo).Get__EntityMetaData();
-                    RemoveTempIdFromBusinessObject(bo, metaData, objRef);
+                    RemoveTempIdFromBusinessObject(bo, metaData, objRef, cache);
                 }
                 bosToRemoveTempIdFrom.Clear();
             }
@@ -1033,13 +1031,13 @@ namespace De.Osthus.Ambeth.Mapping
             return idMember;
         }
 
-        protected IMap<String, Member> GetTypeInfoMapForVo(IValueObjectConfig config)
+        protected IMap<String, ITypeInfoItem> GetTypeInfoMapForVo(IValueObjectConfig config)
         {
-            IMap<String, Member> typeInfoMap = typeToTypeInfoMap.Get(config.ValueType);
+            IMap<String, ITypeInfoItem> typeInfoMap = typeToTypeInfoMap.Get(config.ValueType);
             if (typeInfoMap == null)
             {
                 StringBuilder sb = new StringBuilder();
-                typeInfoMap = new HashMap<String, Member>();
+                typeInfoMap = new HashMap<String, ITypeInfoItem>();
                 IEntityMetaData boMetaData = EntityMetaDataProvider.GetMetaData(config.EntityType);
                 AddTypeInfoMapping(typeInfoMap, config, boMetaData.IdMember.Name, sb);
                 if (boMetaData.VersionMember != null)
@@ -1059,29 +1057,25 @@ namespace De.Osthus.Ambeth.Mapping
             return typeInfoMap;
         }
 
-        protected void AddTypeInfoMapping(IMap<String, Member> typeInfoMap, IValueObjectConfig config, String boMemberName, StringBuilder sb)
+        protected void AddTypeInfoMapping(IMap<String, ITypeInfoItem> typeInfoMap, IValueObjectConfig config, String boMemberName, StringBuilder sb)
         {
             String voMemberName = config.GetValueObjectMemberName(boMemberName);
-            Member voMember = MemberTypeProvider.GetMember(config.ValueType, voMemberName);
+            ITypeInfoItem voMember = TypeInfoProvider.GetHierarchicMember(config.ValueType, voMemberName);
             if (voMember == null)
             {
                 return;
-        }
+            }
             Type elementType = config.GetMemberType(voMemberName);
             if (elementType != null)
             {
-                //TODO
-                //FIXME
-                //TBD
-                throw new NotSupportedException("Fix this code path");
-                //((Member)voMember).ElementType = elementType;
+                TypeInfoItem.SetEntityType(elementType, voMember, null);
             }
             typeInfoMap.Put(boMemberName, voMember);
             if (sb != null)
             {
                 sb.Length = 0;
                 String voSpecifiedName = sb.Append(voMemberName).Append("Specified").ToString();
-                Member voSpecifiedMember = MemberTypeProvider.GetMember(config.ValueType, voSpecifiedName);
+                ITypeInfoItem voSpecifiedMember = TypeInfoProvider.GetHierarchicMember(config.ValueType, voSpecifiedName);
                 if (voSpecifiedMember != null)
                 {
                     sb.Length = 0;
@@ -1092,7 +1086,7 @@ namespace De.Osthus.Ambeth.Mapping
         }
 
         protected Object[] CopyPrimitives(Object businessObject, Object valueObject, IValueObjectConfig config, CopyDirection direction,
-                IEntityMetaData businessObjectMetaData, IMap<String, Member> boNameToVoMember)
+                IEntityMetaData businessObjectMetaData, IMap<String, ITypeInfoItem> boNameToVoMember)
         {
             PrimitiveMember[] primitiveMembers = AllPrimitiveMembers(businessObjectMetaData);
             Object[] primitives = new Object[businessObjectMetaData.PrimitiveMembers.Length];
@@ -1105,7 +1099,7 @@ namespace De.Osthus.Ambeth.Mapping
                 sb.Length = 0;
                 String boSpecifiedMemberName = sb.Append(boMemberName).Append("Specified").ToString();
                 PrimitiveMember voMember = (PrimitiveMember) boNameToVoMember.Get(boMemberName);
-                Member voSpecifiedMember = boNameToVoMember.Get(boSpecifiedMemberName);
+                ITypeInfoItem voSpecifiedMember = boNameToVoMember.Get(boSpecifiedMemberName);
                 bool isSpecified = true;
                 if (config.IsIgnoredMember(voMemberName) || voMember == null)
                 {
@@ -1279,7 +1273,7 @@ namespace De.Osthus.Ambeth.Mapping
 
         public Object GetMappedBusinessObject(IObjRef objRef)
         {
-            return ChildCache.GetObject(objRef, CacheDirective.FailEarly);
+            return Cache.GetObject(objRef, CacheDirective.FailEarly);
         }
 
         public IList<Object> GetAllActiveBusinessObjects()

@@ -30,6 +30,7 @@ import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.mapping.IDedicatedMapperExtendable;
 import de.osthus.ambeth.mapping.IMapperService;
@@ -57,7 +58,6 @@ import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.transfer.MaterialSmallVO;
 import de.osthus.ambeth.transfer.MaterialVO;
-import de.osthus.ambeth.util.ParamChecker;
 
 @SQLData("Mapper_data.sql")
 @SQLStructure("Mapper_structure.sql")
@@ -85,22 +85,10 @@ public class MapperTest extends AbstractPersistenceTest
 		}
 	}
 
-	private IMapperServiceFactory mapperServiceFactory;
+	@Autowired
+	protected IMapperServiceFactory mapperServiceFactory;
 
 	private IMapperService fixture;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(mapperServiceFactory, "MapperServiceFactory");
-	}
-
-	public void setMapperServiceFactory(IMapperServiceFactory mapperServiceFactory)
-	{
-		this.mapperServiceFactory = mapperServiceFactory;
-	}
 
 	@Before
 	public void setUp() throws Exception
