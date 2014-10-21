@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>extendables-scanner</artifactId>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.23</version>
+	</parent>
+
+	<properties>
+		<ambeth.version>2.1.X-SNAPSHOT</ambeth.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.16.1-GA</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc</artifactId>
+			<version>${ambeth.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
+			<version>${ambeth.version}</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<!-- Location of the osthus-pom -->
+		<repository>
+			<id>osthus-releases</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
+		</repository>
+		<repository>
+			<id>osthus-snapshots</id>
+			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
+		</repository>
+	</repositories>
+</project>
