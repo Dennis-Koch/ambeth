@@ -1,9 +1,11 @@
 *.aux
-/*.log
-/*.out
-/*.pdf
-/*.toc
-/*.tps
+*.bbl
+*.blg
+*.log
 *.lol
+*.out
+*.pdf
+*.toc
+*.tps
 /all-configurations.tex
 /all-extendables.tex
