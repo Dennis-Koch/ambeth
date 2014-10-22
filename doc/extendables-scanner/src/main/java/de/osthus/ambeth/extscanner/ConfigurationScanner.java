@@ -191,6 +191,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			fw.append("% Any changes have to be done to the java class " + ConfigurationScanner.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
+			fw.append("\\begin{landscape}\n");
 			fw.append("\\begin{longtable}{| l | l | c | c | c |} \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
@@ -221,6 +222,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 				}
 			}
 			fw.append("\\end{longtable}\n");
+			fw.append("\\end{landscape}\n");
 			for (int a = 0, size = includes.size(); a < size; a++)
 			{
 				// now write all chapter includes which are referenced from the table
