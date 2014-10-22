@@ -128,7 +128,10 @@ public class AmbethServletListener implements ServletContextListener, ServletReq
 	@Override
 	public void contextDestroyed(ServletContextEvent event)
 	{
-		log.info("Shutting down...");
+		if (log != null)
+		{
+			log.info("Shutting down...");
+		}
 		// remove the instance of IServiceContext in servlet context
 		event.getServletContext().removeAttribute(ATTRIBUTE_I_SERVICE_CONTEXT);
 
