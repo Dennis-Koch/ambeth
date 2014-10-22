@@ -26,6 +26,28 @@ audit.entity.property.defaultmode.active=false
 audit.service.defaultmode.active"=false
 \end{lstlisting}
 
+\subsection{Audit Information Model}
+
+\def\showimgref{img/gen/2014-10-04-DeK-Ambeth-Audit-3}
+\showimg{Audit Information Model}
+
+The \type{AuditEntry}.\typeprop{UserIdentifier} is retrieved from the current \type{User} entity while processing an audited operation. The sign algorithm itself is fully configured by the signature specification which may be specific for each user.
+
+\tip{The \type{Audit Information Model} is able to contain not only changes to primitive properties but also relational changes in any possible scenario as well. An additional sophisticated behavior can be seen in the fact that if you configure \type{Ambeth Audit} to cover all properties of all entities invariably you are incidentally blessed with a gapless history of the whole information model of your application: Considering the necessary \type{AuditEntry} instances it is conceptionally possible to ``recover'' the state of your full information model to any point of time in history - not only of a single property of a specific entity instance.}
+
+\def\showimgref{img/gen/2014-10-04-DeK-Ambeth-Audit-4}
+\showimg{User Information Model}
+
+For more information about the signature configuration \& algorithms please take a look at \prettyref{feature:Cryptography}.
+
+\subsection{Verify existing AuditEntry}
+Any number of instances of an \type{AuditEntry} can be verified using the \type{IAuditEntryVerifier}-Bean:
+
+\inputjava{The \type{IAuditEntryVerifier}-Bean}
+	{jambeth-audit-server/src/main/java/de/osthus/ambeth/audit/IAuditEntryVerifier.java}
+
+The internal verifying algorithm uses the signature configuration and the public key of the signature own by the user which did the signing of each \type{AuditEntry}.
+
 \subsection{Customize Entity Audit}
 Despite this annotation-based approach to configure the audited information mentioned in \prettyref{feature:AuditedEntity} it is possible to fully customize which changes on an entity should be audited by any kind of business rule at runtime. Just link your configuration to the \type{IAuditConfigurationExtendable} during container start. If you intend to register your configuration after the container start be aware that your configuration needs to be registered before this configuration is needed for the first time (e.g. when the corresponding entity gets changed \& persisted).
 

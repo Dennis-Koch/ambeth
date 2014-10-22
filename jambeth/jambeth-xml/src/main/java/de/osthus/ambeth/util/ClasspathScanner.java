@@ -23,13 +23,13 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.XmlConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IObjectCollector;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 
-public class ClasspathScanner implements IInitializingBean, IClasspathScanner
+public class ClasspathScanner implements IClasspathScanner
 {
 	@LogInstance
 	private ILogger log;
@@ -40,38 +40,18 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 
 	public static final Pattern subPathPattern = Pattern.compile("(/[^/]+)?(/.+)");
 
+	@Autowired
 	protected IObjectCollector objectCollector;
 
+	@Autowired(optional = true)
 	protected ServletContext servletContext;
 
+	@Property(name = XmlConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*")
 	protected String packageFilterPatterns;
 
 	protected Pattern[] packageScanPatterns;
 
 	protected Pattern[] preceedingPackageScanPatterns;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(packageFilterPatterns, "packageFilterPatterns");
-	}
-
-	public void setObjectCollector(IObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setServletContext(ServletContext servletContext)
-	{
-		this.servletContext = servletContext;
-	}
-
-	@Property(name = XmlConfigurationConstants.PackageScanPatterns, defaultValue = "de/osthus.*")
-	public void setPackageFilterPatterns(String packageFilterPatterns)
-	{
-		this.packageFilterPatterns = packageFilterPatterns;
-	}
 
 	// Has to be used by getter since it might be needed before afterPropertiesSet() was called.
 	protected Pattern[] getPackageScanPatterns()
@@ -195,13 +175,12 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 		return list;
 	}
 
-	protected IList<String> scanForClasses(ClassPool pool)
+	protected IList<URL> buildUrlsFromClasspath(ClassPool pool)
 	{
-		List<URL> urls = new ArrayList<URL>();
+		ArrayList<URL> urls = new ArrayList<URL>();
 
 		if (servletContext != null)
 		{
-			@SuppressWarnings("unchecked")
 			Set<String> libJars = servletContext.getResourcePaths("/WEB-INF/lib");
 			for (String jar : libJars)
 			{
@@ -216,7 +195,6 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 			}
 
 			String classes = "/WEB-INF/classes";
-			@SuppressWarnings("unchecked")
 			Set<String> classesSet = servletContext.getResourcePaths(classes);
 			for (String jar : classesSet)
 			{
@@ -253,9 +231,15 @@ public class ClasspathScanner implements IInitializingBean, IClasspathScanner
 				}
 			}
 		}
+		return urls;
+	}
 
-		List<String> namespacePatterns = new ArrayList<String>();
-		IList<String> targetClassNames = new ArrayList<String>();
+	protected IList<String> scanForClasses(ClassPool pool)
+	{
+		IList<URL> urls = buildUrlsFromClasspath(pool);
+
+		ArrayList<String> namespacePatterns = new ArrayList<String>();
+		ArrayList<String> targetClassNames = new ArrayList<String>();
 
 		try
 		{

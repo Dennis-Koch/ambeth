@@ -170,7 +170,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
 
 			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-			loggerInstancePreProcessor.afterPropertiesSet();
 
 			ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
 			threadLocalCleanupPreProcessor.setThreadLocalCleanupBeanExtendable(threadLocalCleanupController);
@@ -232,7 +231,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			parentContextFactory.registerWithLifecycle(accessorTypeProvider).autowireable(IAccessorTypeProvider.class);
 
-			parentContextFactory.registerWithLifecycle(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
+			parentContextFactory.registerExternalBean(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
 
 			parentContextFactory.registerWithLifecycle(extendableRegistry).autowireable(IExtendableRegistry.class);
 
