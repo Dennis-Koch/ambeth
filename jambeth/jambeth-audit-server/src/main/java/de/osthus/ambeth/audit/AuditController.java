@@ -406,7 +406,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			auditEntry.setHashAlgorithm(hashAlgorithm);
 			auditEntry.setProtocol(protocol);
 
-			updateSignatureHandle(signatureHandle, auditEntry);
+			writeToSignatureHandle(signatureHandle, auditEntry);
 
 			byte[] sign = signatureHandle.sign();
 
@@ -444,7 +444,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 					signatureHandle = signatureUtil.createVerifyHandle(signature.getSignAndVerify(), Base64.decode(signature.getPublicKey()));
 					signatureToSignatureHandleMap.put(signature, signatureHandle);
 				}
-				updateSignatureHandle(signatureHandle, auditEntry);
+				writeToSignatureHandle(signatureHandle, auditEntry);
 				allEntriesValid |= signatureHandle.verify(Base64.decode(auditEntry.getSignature()));
 			}
 			catch (Throwable e)
@@ -455,7 +455,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		return allEntriesValid;
 	}
 
-	protected void updateSignatureHandle(java.security.Signature signatureHandle, IAuditEntry auditEntry)
+	protected void writeToSignatureHandle(java.security.Signature signatureHandle, IAuditEntry auditEntry)
 	{
 		try
 		{
