@@ -20,18 +20,13 @@ namespace De.Osthus.Ambeth.Log
         }
     }
 
-    public class LoggerInstancePreProcessor : SmartCopyMap<Type, ILogger>, IBeanPreProcessor, IInitializingBean, ILoggerCache
+    public class LoggerInstancePreProcessor : SmartCopyMap<Type, ILogger>, IBeanPreProcessor, ILoggerCache
     {
         protected readonly AnnotationCache<LogInstanceAttribute> logInstanceCache = new LogInstanceAnnotationCache();
 
         protected readonly CHashSet<String> logHistory = new CHashSet<String>();
 
         protected readonly Object lockHandle = new Object();
-
-        public void AfterPropertiesSet()
-        {
-            // Intended blank
-        }
 
         public void PreProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
         {
