@@ -15,6 +15,6 @@ public class ExtScannerModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		beanContextFactory.registerAnonymousBean(ExtendableTypeScanner.class);
-		beanContextFactory.registerAnonymousBean(PropertiesScanner.class);
+		beanContextFactory.registerAnonymousBean(ConfigurationScanner.class);
 	}
 }

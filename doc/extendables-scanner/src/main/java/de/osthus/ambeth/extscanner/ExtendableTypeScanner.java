@@ -142,18 +142,6 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		FileWriter fw = new FileWriter(targetFile);
 		try
 		{
-			// \section{CacheRetrieverExtendable}
-			// \label{feature:CacheRetrieverExtendable}
-
-			// String visibleName = extendableName;
-			// if (visibleName.startsWith("I"))
-			// {
-			// visibleName = visibleName.substring(1);
-			// }
-			// if (visibleName.endsWith("Extendable"))
-			// {
-			// visibleName = visibleName.substring(0, visibleName.length() - "Extendable".length());
-			// }
 			fw.append("\\section{").append(extendableType.getSimpleName()).append("}\n");
 			fw.append("\\label{").append(labelName).append("}\n");
 			writeJavadoc(extendableType, fw);
