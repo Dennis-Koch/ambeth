@@ -24,7 +24,7 @@ import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class PropertiesScanner extends AbstractLatexScanner implements IStartingBean
+public class ConfigurationScanner extends AbstractLatexScanner implements IStartingBean
 {
 	public static final Pattern csharpConstantPattern = Pattern.compile(" *public *const *String *[^ =]+ *= *\"(.+)\" *; *");
 
@@ -188,7 +188,7 @@ public class PropertiesScanner extends AbstractLatexScanner implements IStarting
 		{
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
-			fw.append("% Any changes have to be done to the java class " + PropertiesScanner.class.getName() + "\n");
+			fw.append("% Any changes have to be done to the java class " + ConfigurationScanner.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
 			fw.append("\\begin{longtable}{| l | l | c | c | c |} \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
@@ -285,18 +285,6 @@ public class PropertiesScanner extends AbstractLatexScanner implements IStarting
 		FileWriter fw = new FileWriter(targetFile);
 		try
 		{
-			// \section{CacheRetrieverExtendable}
-			// \label{feature:CacheRetrieverExtendable}
-
-			// String visibleName = extendableName;
-			// if (visibleName.startsWith("I"))
-			// {
-			// visibleName = visibleName.substring(1);
-			// }
-			// if (visibleName.endsWith("Extendable"))
-			// {
-			// visibleName = visibleName.substring(0, visibleName.length() - "Extendable".length());
-			// }
 			fw.append("\\section{").append(propertyEntry.propertyName).append("}\n");
 			fw.append("\\label{").append(labelName).append("}\n");
 			fw.append("\\TODO\n");
@@ -313,18 +301,18 @@ public class PropertiesScanner extends AbstractLatexScanner implements IStarting
 
 		// property name
 		fw.append("\\nameref{").append(labelName).append('}');
-		fw.append(" &\n\t\t");
+		fw.append(" & ");
 
 		// default Value
 		fw.append(propertyEntry.isDefaultValueSpecified() ? propertyEntry.getDefaultValue() : "");
-		fw.append(" &\n\t\t");
+		fw.append(" & ");
 
 		// mandatory
 		fw.append(propertyEntry.isMandatory ? "X" : "");
-		fw.append(" &\n\t\t");
+		fw.append(" & ");
 
 		// Java
-		fw.append(propertyEntry.inJava ? "X" : " ").append(" &\n\t\t");
+		fw.append(propertyEntry.inJava ? "X" : " ").append(" & ");
 
 		// C#
 		fw.append(propertyEntry.inCSharp ? "X" : " ");

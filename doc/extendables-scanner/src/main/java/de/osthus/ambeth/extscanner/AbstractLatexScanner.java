@@ -52,6 +52,11 @@ public class AbstractLatexScanner extends ClasspathScanner
 		{
 			try
 			{
+				if (file.getName().endsWith("-test"))
+				{
+					log.debug("Skipping (test) " + srcPath.getCanonicalPath());
+					return;
+				}
 				log.debug("Searching in " + srcPath.getCanonicalPath());
 				urls.add(new URL("file://" + srcPath.getCanonicalPath()));
 			}
@@ -117,6 +122,15 @@ public class AbstractLatexScanner extends ClasspathScanner
 		for (File csprojFile : csprojFiles)
 		{
 			File projectDir = csprojFile.getParentFile();
+			if (projectDir.getName().endsWith(".Test"))
+			{
+				log.debug("Skipping (test) " + projectDir.getPath());
+				continue;
+			}
+			else
+			{
+				log.debug("Searching in " + projectDir.getPath());
+			}
 			findExpectedFile(projectDir, fileFilter);
 		}
 	}
@@ -142,23 +156,24 @@ public class AbstractLatexScanner extends ClasspathScanner
 
 	protected void findCsProjFiles(File file, List<File> csprojFiles)
 	{
-		if (file.isDirectory())
+		if (!file.isDirectory())
 		{
-			File[] children = file.listFiles();
-			for (File child : children)
-			{
-				if (child.getName().endsWith(".csproj"))
-				{
-					// within the same directory there is only 1 csproj expected and no embedded project file either
-					csprojFiles.add(child);
-					return;
-				}
-			}
-			for (File child : children)
-			{
-				findCsProjFiles(child, csprojFiles);
-			}
 			return;
 		}
+		File[] children = file.listFiles();
+		for (File child : children)
+		{
+			if (child.getName().endsWith(".csproj"))
+			{
+				// within the same directory there is only 1 csproj expected and no embedded project file either
+				csprojFiles.add(child);
+				return;
+			}
+		}
+		for (File child : children)
+		{
+			findCsProjFiles(child, csprojFiles);
+		}
+		return;
 	}
 }
