@@ -7,6 +7,7 @@
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{violet}{rgb}{0.58,0,0.33}
 \definecolor{lightgrey}{rgb}{0.9,0.9,0.9}
+\definecolor{lightblue}{rgb}{0.97,0.97,1.0}
 
 \lstdefinestyle{Java}
 {
@@ -68,6 +69,32 @@
 	literate={\$}{{\textcolor{red}{\$}}}1 
 					 {:}{{\textcolor{red}{:}}}1
 					 {~}{{\textcolor{red}{\textasciitilde}}}1,
+}
+
+\lstdefinestyle{SQL-Oracle}
+{
+	language={SQL},
+	frame={single},
+	backgroundcolor=\color{lightblue},
+  %aboveskip=3mm,
+  %belowskip=3mm,
+	%emph=square,
+	%emphstyle=\color{blue}\texttt
+  showstringspaces={true},
+  columns={flexible},
+  basicstyle={\small\ttfamily},
+	emph={square},
+	emphstyle={\color{blue}},
+	extendedchars={true},
+	numbers={left},
+  numberstyle={\tiny\color{gray}},
+	numberblanklines={false},
+  keywordstyle={\color{violet}},
+  commentstyle={\color{dkgreen}},
+  stringstyle={\color{blue}},
+  breaklines={true},
+  breakatwhitespace={true},
+  tabsize={3}
 }
 
 \lstdefinestyle{Props}

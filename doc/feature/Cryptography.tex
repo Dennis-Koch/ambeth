@@ -41,5 +41,41 @@
 
 \tip{As with all mentioned cryptographic configurations in \AMBETH{} the server admin is able to set/update the global salt password without server restart. Of course all managed salts of all secrets will be transparently decrypted with the old password and encrypted with the new password on-the-fly in a transactional scope - blocking concurrent cryptographic process steps for a short time according to ACID constraints.}
 
+\inputjava{A \type{ISignature} entity holds all information regarding public/private key functionality}
+	{jambeth-security-server/src/main/java/de/osthus/ambeth/security/model/ISignature.java}
+
+Of course the property \type{ISignature}.\typeprop{PrivateKey} holds \emph{encrypted} information at runtime: Only the signature-owning user can decrypt with his own password the private key of his signature (e.g. to sign an audited operation). Please refer to \prettyref{module:Audit} regarding handling of signatures to ease audit trails.
+
 \inputjava{Maintainable cryptographic security with \type{IPBEConfiguration}}
 	{jambeth-security-server/src/main/java/de/osthus/ambeth/security/IPBEConfiguration.java}
+
+\begin{lstlisting}[style=SQL-Oracle,caption={Example schema definition to persist the \AMBETH{} \type{ISignature}-entity (Oracle SQL)}]
+CREATE TABLE "SIGNATURE"
+(	
+	"ID"         			NUMBER(9,0) NOT NULL,
+	"CREATED_ON" 			TIMESTAMP,
+	"UPDATED_ON" 			TIMESTAMP,
+	"UPDATED_BY" 			VARCHAR2(64 CHAR),
+	"CREATED_BY" 			VARCHAR2(64 CHAR),
+	"VERSION"    			NUMBER(9,0) NOT NULL,
+	"USER_ID"				NUMBER(9,0),
+	"SIGNATURE_ALGORITHM"	VARCHAR2(64 CHAR) NOT NULL,
+	"KEY_FACTORY_ALGORITHM"	VARCHAR2(64 CHAR) NOT NULL,
+	"ENCRYPTION_ALGORITHM"	VARCHAR2(64 CHAR) NOT NULL,
+	"ENCRYPTION_KEY_SPEC"	VARCHAR2(64 CHAR) NOT NULL,
+	"ENCRYPTION_KEY_IV"		VARCHAR2(173 CHAR) NOT NULL,
+	"PADDED_KEY_ALGORITHM"	VARCHAR2(64 CHAR) NOT NULL,
+	"PADDED_KEY_SIZE"		NUMBER(9,0) NOT NULL,
+	"PADDED_KEY_ITERATIONS"	NUMBER(9,0) NOT NULL,
+	"PADDED_KEY_SALT_SIZE"	NUMBER(9,0) NOT NULL,
+	"PADDED_KEY_SALT"		VARCHAR2(64 CHAR) NOT NULL,
+	"PRIVATE_KEY"			VARCHAR2(700 CHAR) NOT NULL,
+	"PUBLIC_KEY"			VARCHAR2(700 CHAR) NOT NULL,
+	CONSTRAINT "SIGNATURE_PK" PRIMARY KEY ("ID") USING INDEX,
+	CONSTRAINT "SIGNATURE_FK_USER_ID" FOREIGN KEY ("USER_ID") REFERENCES "USER" ("ID") DEFERRABLE INITIALLY DEFERRED
+);
+\end{lstlisting}
+In the examples above the properties of \type{IPBEConfiguration} are mapped as embedded properties of \type{ISignature} to the table ``SIGNATURE''. Technically it is also possible to shape a one-to-one relationship and persist \type{IPBEConfiguration} in an own table. The above definition is the recommended approach.\footnote{Please note the specific maximum length of the corresponding varchar-columns:\newline
+
+As an example the length ``PUBLIC\_KEY'' it is intentionally defined to hold up to 700 characters. This is enough to store a binary array in base64-encoding up to a length of 523 bytes. 523 bytes are 4184 bits which are enough to hold e.g. an RSA key of 4096 bits. 4096 is at the current time of writing this (year 2014) considered a ``safe'' key length for RSA encryption for at least the next 30 years.\cite{nsa01}
+}
