@@ -64,15 +64,17 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		ArrayList<CtClass> clazzes = new ArrayList<CtClass>(targetClassNames.size());
 		HashMap<String, PropertyEntry> nameToPropertyMap = new HashMap<String, PropertyEntry>();
 
+		HashMap<String, CtClass> nameToConfigurationConstantsMap = new HashMap<String, CtClass>();
+
 		for (int a = 0, size = targetClassNames.size(); a < size; a++)
 		{
 			String className = targetClassNames.get(a);
-			CtClass cc = pool.get(className);
-			if (!cc.getSimpleName().endsWith("ConfigurationConstants"))
+			if (!className.endsWith("ConfigurationConstants"))
 			{
 				continue;
 			}
-			if (cc.isAnnotation())
+			CtClass cc = pool.get(className);
+			if (cc.isAnnotation() || cc.isEnum())
 			{
 				continue;
 			}
@@ -96,8 +98,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 					// only public fields can be constants
 					continue;
 				}
-				PropertyEntry propertyEntry = getEnsurePropertyEntry((String) field.getConstantValue(), nameToPropertyMap);
-				propertyEntry.inJava = true;
+				nameToConfigurationConstantsMap.put((String) field.getConstantValue(), cc);
 			}
 		}
 
@@ -180,6 +181,12 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 
 		log.info("Found " + nameToPropertyMap.size() + " properties");
 
+		for (String propertyName : nameToPropertyMap.keySet())
+		{
+			// remove all "used" properties
+			nameToConfigurationConstantsMap.remove(propertyName);
+		}
+
 		String[] propertyNames = nameToPropertyMap.keySet().toArray(String.class);
 		Arrays.sort(propertyNames);
 
@@ -233,6 +240,19 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		finally
 		{
 			fw.close();
+		}
+
+		if (nameToConfigurationConstantsMap.size() > 0)
+		{
+			String[] obsoletePropertyNames = nameToConfigurationConstantsMap.keySet().toArray(String.class);
+			Arrays.sort(obsoletePropertyNames);
+			StringBuilder sb = new StringBuilder();
+			sb.append("There are ").append(obsoletePropertyNames.length).append(" configurations without any usage and were therefore been skipped:");
+			for (String obsoletePropertyName : obsoletePropertyNames)
+			{
+				sb.append('\n').append(obsoletePropertyName).append(" ==> ").append(nameToConfigurationConstantsMap.get(obsoletePropertyName).getName());
+			}
+			log.warn(sb.toString());
 		}
 	}
 
