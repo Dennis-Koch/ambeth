@@ -1,0 +1,45 @@
+\section{Cryptography}
+\label{feature:Cryptography}
+\type{Ambeth} considers cryptographic security rigorously:
+
+\begin{itemize}
+	\item For password hashing \emph{intentionally slow} cryptographic hash algorithms are used (e.g. \emph{PBKDF2WithHmacSHA1} with several thousand iterations)
+		\begin{itemize}
+			\item As a result the single step during a user-login: check given password for correctness - may take 100ms or more. This is intentional and is nothing a user might complain in this scenario but essential to be practically immune to rainbow table or brute-force attacks.
+			\item Configure with
+				\begin{itemize}
+					\item \prettyref{configuration:SecurityCryptoPaddedkeyAlgorithmName}
+					\item \prettyref{configuration:SecurityCryptoKeyspecName}
+				\end{itemize}
+		\end{itemize}		
+	\item Each generated or user-defined password has a \textit{cryptographic secure} generated long salt
+		\begin{itemize}
+			\item Further robustness against rainbow table or brute-force attacks: An attacker is not able to attack more than one secret at once - instead of being able to attack all encrypted secrets in parallel without a salt, a poor salt or only a single global salt for all secrets.
+			\item Configure length of the salt with \prettyref{configuration:SecurityCryptoPaddedkeySaltsize}
+		\end{itemize}	
+	\item New salts are transparently generated whenever signatures or passwords are changed - for each changed secret individually.
+	\item \emph{Optional:} Salts can be globally encrypted by the server admin which then makes it impossible to crack a secret without knowing the ``clear-text'' salt even if an attacker might get full access to the underlying database system.
+		\begin{itemize}
+			\item Configure with \prettyref{configuration:SecurityLoginSaltPassword}
+		\end{itemize}
+	\item Each algorithm configuration (one for each maintained secret) uses a \textit{cryptographic secure} generated IV (initialization vector) - instead of a default-zero-filled IV.
+	\item During long-term productional usage of an \AMBETH{} installation the necessary security parameters can be adjusted according to potential cryptographic ``leak'' news or scientic breakthough in quantum computing
+		\begin{itemize}
+			\item Whenever a user logs in after a corresponding runtime-adjustment in the \AMBETH{} installation the provided cleartext password gets rehashed considering the new and more state-of-the-art security parameters.
+			\item If the embedded \type{Ambeth Signature} feature is used a new public/private key pair will be generated transparently, newly encrypted with the provided cleartext password the user considering the new and more state-of-the-art security parameters
+			\item Configure with
+				\begin{itemize}
+					\item \prettyref{configuration:SecurityLoginPasswordAutorehashActive}
+					\item \prettyref{configuration:SecurityLoginPasswordAlgorithmIterationcount}
+					\item \prettyref{configuration:SecurityLoginPasswordAlgorithmName}
+					\item \prettyref{configuration:SecurityLoginSaltAlgorithmName}
+					\item \prettyref{configuration:SecurityLoginSaltKeyspecName}
+					\item \prettyref{configuration:SecurityLoginSaltLength}
+				\end{itemize}	
+		\end{itemize}	
+\end{itemize}
+
+\tip{As with all mentioned cryptographic configurations in \AMBETH{} the server admin is able to set/update the global salt password without server restart. Of course all managed salts of all secrets will be transparently decrypted with the old password and encrypted with the new password on-the-fly in a transactional scope - blocking concurrent cryptographic process steps for a short time according to ACID constraints.}
+
+\inputjava{Maintainable cryptographic security with \type{IPBEConfiguration}}
+	{jambeth-security-server/src/main/java/de/osthus/ambeth/security/IPBEConfiguration.java}
