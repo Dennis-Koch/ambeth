@@ -10,7 +10,6 @@ import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IPropertyConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -18,7 +17,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, IInitializingBean, ILoggerCache
+public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogger> implements IBeanPreProcessor, ILoggerCache
 {
 	protected final AnnotationCache<LogInstance> logInstanceCache = new AnnotationCache<LogInstance>(LogInstance.class)
 	{
@@ -30,12 +29,6 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 	};
 
 	protected final HashSet<String> logHistory = new HashSet<String>();
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		// Intended blank
-	}
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Class<?> beanType,

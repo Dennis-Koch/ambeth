@@ -69,7 +69,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             propertyInfoProvider.AccessorTypeProvider = accessorTypeProvider;
 
             LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-            loggerInstancePreProcessor.AfterPropertiesSet();
 
             ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
             threadLocalCleanupPreProcessor.ThreadLocalCleanupBeanExtendable = threadLocalCleanupController;
@@ -117,7 +116,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
             parentContextFactory.RegisterWithLifecycle(accessorTypeProvider).Autowireable<IAccessorTypeProvider>();
 
-            parentContextFactory.RegisterWithLifecycle(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
+            parentContextFactory.RegisterExternalBean(loggerInstancePreProcessor).Autowireable<ILoggerCache>();
 
             parentContextFactory.RegisterWithLifecycle(extendableRegistry).Autowireable<IExtendableRegistry>();
 
