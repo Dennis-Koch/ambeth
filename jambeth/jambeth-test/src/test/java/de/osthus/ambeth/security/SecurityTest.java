@@ -33,6 +33,7 @@ import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestModule;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
@@ -50,7 +51,8 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 @TestProperties(name = SecurityConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml;de/osthus/ambeth/security/orm.xml"),
-		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
+		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
+		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestModule(TestServicesModule.class)
 @TestFrameworkModule(SecurityTestModule.class)
 public class SecurityTest extends AbstractPersistenceTest
