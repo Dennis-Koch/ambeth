@@ -2,39 +2,23 @@ package de.osthus.ambeth.service;
 
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class DefaultServiceUrlProvider implements IServiceUrlProvider, IInitializingBean, IOfflineListenerExtendable
+public class DefaultServiceUrlProvider implements IServiceUrlProvider, IOfflineListenerExtendable
 {
 	@SuppressWarnings("unused")
-	@LogInstance(DefaultServiceUrlProvider.class)
+	@LogInstance
 	private ILogger log;
 
-	protected String serviceBaseUrl;
-
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	@Property(name = ServiceConfigurationConstants.ServiceBaseUrl)
-	public void setServiceBaseUrl(String serviceBaseUrl)
-	{
-		this.serviceBaseUrl = serviceBaseUrl;
-	}
+	@Property(name = ServiceConfigurationConstants.ServiceBaseUrl, defaultValue = "http://localhost:8000")
+	protected String serviceBaseUrl;
 
 	@Override
 	public String getServiceURL(Class<?> serviceInterface, String serviceName)

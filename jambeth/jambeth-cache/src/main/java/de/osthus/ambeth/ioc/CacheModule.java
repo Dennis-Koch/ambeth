@@ -40,6 +40,8 @@ import de.osthus.ambeth.cache.walker.CacheWalker;
 import de.osthus.ambeth.cache.walker.ICacheWalker;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.databinding.ICollectionChangeExtensionExtendable;
+import de.osthus.ambeth.databinding.IPropertyChangeExtensionExtendable;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.event.IEventTargetExtractorExtendable;
 import de.osthus.ambeth.filter.model.IPagingResponse;
@@ -57,6 +59,11 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
+import de.osthus.ambeth.template.DataObjectTemplate;
+import de.osthus.ambeth.template.EmbeddedTypeTemplate;
+import de.osthus.ambeth.template.EntityEqualsTemplate;
+import de.osthus.ambeth.template.PropertyChangeTemplate;
+import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -218,5 +225,12 @@ public class CacheModule implements IInitializingModule
 		{
 
 		}
+
+		beanContextFactory.registerAnonymousBean(DataObjectTemplate.class).autowireable(DataObjectTemplate.class);
+		beanContextFactory.registerAnonymousBean(EntityEqualsTemplate.class).autowireable(EntityEqualsTemplate.class);
+		beanContextFactory.registerAnonymousBean(EmbeddedTypeTemplate.class).autowireable(EmbeddedTypeTemplate.class);
+		beanContextFactory.registerAnonymousBean(PropertyChangeTemplate.class).autowireable(PropertyChangeTemplate.class,
+				IPropertyChangeExtensionExtendable.class, ICollectionChangeExtensionExtendable.class);
+		beanContextFactory.registerAnonymousBean(ValueHolderContainerTemplate.class).autowireable(ValueHolderContainerTemplate.class);
 	}
 }
