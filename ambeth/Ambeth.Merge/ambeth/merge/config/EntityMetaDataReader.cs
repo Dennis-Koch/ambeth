@@ -212,6 +212,26 @@ namespace De.Osthus.Ambeth.Merge.Config
 			    }
 			    primitiveMembers.Add(member2);
 		    }
+            foreach (PrimitiveMember member in primitiveMembers)
+		    {
+			    String memberName = member.Name;
+                if (metaData.CreatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
+                {
+                    metaData.CreatedByMember = member;
+                }
+                else if (metaData.CreatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
+                {
+                    metaData.CreatedOnMember = member;
+                }
+                else if (metaData.UpdatedByMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
+                {
+                    metaData.UpdatedByMember = member;
+                }
+                else if (metaData.UpdatedOnMember == null && memberName.Equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
+                {
+                    metaData.UpdatedOnMember = member;
+                }
+		    }
             FilterWrongRelationMappings(relationMembers);
 		    // Order of setter calls is important
 		    PrimitiveMember[] primitives = primitiveMembers.ToArray();
