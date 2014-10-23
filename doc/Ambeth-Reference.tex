@@ -40,6 +40,12 @@
 \evensidemargin40pt
 \floatplacement{figure}{H}
 
+% The following options are for better float positioning:
+% CAVE: topfraction must always be a higher number than floatpagefraction!
+\renewcommand{\topfraction}{0.85}       % a page with text may contain at maximum 85% float environment (Latex default is 70%)
+\renewcommand{\textfraction}{0.1}          % at leat 10% of a page with a float environment must be text, else the float goes on the next page (Latex default is 20%)
+\renewcommand{\floatpagefraction}{0.75}      % allow pages with only a single float environment, if the float takes at least 75% (Latex default is 50%)
+
 \input{listings}
 \input{commands}
 \input{watermark}
