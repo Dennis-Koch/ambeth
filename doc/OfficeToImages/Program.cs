@@ -1,15 +1,19 @@
 ﻿using Microsoft.Office.Core;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace OfficeToImages
 {
     public class Program
     {
         public static readonly Regex namePattern = new Regex(".+(?:\\\\|/)([^\\\\/]+)");
+
+        private static readonly ThreadLocal<IList<FileInfoUpdateDelegate>> fileInfoUpdateDelegatesTL = new ThreadLocal<IList<FileInfoUpdateDelegate>>();
 
         protected static Microsoft.Office.Interop.Visio.Application visio;
 
@@ -49,29 +53,41 @@ namespace OfficeToImages
                         }
                         String lowercaseName = sourceFile.Extension.ToLowerInvariant();
 
-                        if (lowercaseName.EndsWith("ppt") || lowercaseName.EndsWith("pptx"))
+                        fileInfoUpdateDelegatesTL.Value = new List<FileInfoUpdateDelegate>();
+                        try
                         {
-                            Console.WriteLine("Handling '" + sourceFile.Name + "'...");
-                            if (ParsePowerPoint(sourceFile, targetInfo))
+                            if (lowercaseName.EndsWith("ppt") || lowercaseName.EndsWith("pptx"))
                             {
-                                Console.WriteLine("Done");
+                                Console.WriteLine("Handling '" + sourceFile.Name + "'...");
+                                if (ParsePowerPoint(sourceFile, targetInfo))
+                                {
+                                    Console.WriteLine("Done");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Skipped (unchanged)");
+                                }
                             }
-                            else
+                            else if (lowercaseName.EndsWith("vsd"))
                             {
-                                Console.WriteLine("Skipped (unchanged)");
+                                Console.WriteLine("Handling '" + sourceFile.Name + "'...");
+                                if (ParseVisio(sourceFile, targetInfo))
+                                {
+                                    Console.WriteLine("Done");
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Skipped (unchanged)");
+                                }
+                            }
+                            foreach (FileInfoUpdateDelegate fiuDelegate in fileInfoUpdateDelegatesTL.Value)
+                            {
+                                fiuDelegate();
                             }
                         }
-                        else if (lowercaseName.EndsWith("vsd"))
+                        finally
                         {
-                            Console.WriteLine("Handling '" + sourceFile.Name + "'...");
-                            if (ParseVisio(sourceFile, targetInfo))
-                            {
-                                Console.WriteLine("Done");
-                            }
-                            else
-                            {
-                                Console.WriteLine("Skipped (unchanged)");
-                            }
+                            fileInfoUpdateDelegatesTL.Value = null;
                         }
                     }
                 }
@@ -193,10 +209,13 @@ namespace OfficeToImages
         protected static bool DoExport(FileInfo sourceFile, DirectoryInfo targetDir, int index, ExportDelegate exportDelegate)
         {
             FileInfo targetFile = BuildTargetFileName(sourceFile, targetDir, index);
+            fileInfoUpdateDelegatesTL.Value.Add(delegate()
+            {
+                UpdateFileInfo(targetFile, sourceFile);
+            });
             if (!targetFile.Exists)
             {
                 exportDelegate(targetFile);
-                UpdateFileInfo(targetFile, sourceFile);
                 Console.WriteLine("\tCreated '" + targetFile + "'");
                 return true;
             }
@@ -206,12 +225,10 @@ namespace OfficeToImages
             if (AreFilesEqual(tempTargetFile, targetFile))
             {
                 Console.WriteLine("\tSkipped '" + targetFile + "' (still current)");
-                UpdateFileInfo(targetFile, sourceFile);
                 return false;
             }
             targetFile.Delete();
             tempTargetFile.MoveTo(targetFile.FullName);
-            UpdateFileInfo(targetFile, sourceFile);
             Console.WriteLine("\tUpdated '" + targetFile + "'");
             return true;
         }
