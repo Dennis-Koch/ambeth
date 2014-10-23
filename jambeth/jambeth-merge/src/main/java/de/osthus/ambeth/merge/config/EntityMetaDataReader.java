@@ -233,6 +233,26 @@ public class EntityMetaDataReader implements IEntityMetaDataReader
 			}
 			primitiveMembers.add(member);
 		}
+		for (PrimitiveMember member : primitiveMembers)
+		{
+			String memberName = member.getName();
+			if (metaData.getCreatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_BY))
+			{
+				metaData.setCreatedByMember(member);
+			}
+			else if (metaData.getCreatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_CREATED_ON))
+			{
+				metaData.setCreatedOnMember(member);
+			}
+			else if (metaData.getUpdatedByMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_BY))
+			{
+				metaData.setUpdatedByMember(member);
+			}
+			else if (metaData.getUpdatedOnMember() == null && memberName.equals(EntityMetaData.DEFAULT_NAME_UPDATED_ON))
+			{
+				metaData.setUpdatedOnMember(member);
+			}
+		}
 		filterWrongRelationMappings(relationMembers);
 		// Order of setter calls is important
 		PrimitiveMember[] primitives = primitiveMembers.toArray(PrimitiveMember.class);

@@ -4,7 +4,7 @@ using System;
 
 namespace De.Osthus.Ambeth.Service
 {
-    public class DefaultServiceUrlProvider : IServiceUrlProvider, IInitializingBean, IOfflineListenerExtendable
+    public class DefaultServiceUrlProvider : IServiceUrlProvider, IOfflineListenerExtendable
     {
         public bool IsOffline
         {
@@ -19,19 +19,14 @@ namespace De.Osthus.Ambeth.Service
         }
 
         [Property(ServiceConfigurationConstants.ServiceProtocol, DefaultValue = "http")]
-        public virtual String OnlineServiceProtocol { get; set; }
+        public String OnlineServiceProtocol { protected get; set; }
 
         [Property(ServiceConfigurationConstants.ServiceHostName, DefaultValue = "localhost")]
-        public virtual String OnlineServiceHostName { get; set; }
+        public String OnlineServiceHostName { protected get; set; }
 
         [Property(ServiceConfigurationConstants.ServiceHostPort, DefaultValue = "8000")]
-        public virtual uint OnlineServiceHostPort { get; set; }
-
-        public virtual void AfterPropertiesSet()
-        {
-            // Intended blank
-        }
-
+        public uint OnlineServiceHostPort { protected get; set; }
+        
         public void LockForRestart(bool offlineAfterRestart)
         {
             throw new NotSupportedException("This " + typeof(IServiceUrlProvider).Name + " does not support this operation");
