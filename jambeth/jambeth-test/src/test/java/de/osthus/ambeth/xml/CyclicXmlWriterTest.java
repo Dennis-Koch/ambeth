@@ -148,6 +148,7 @@ public class CyclicXmlWriterTest extends AbstractInformationBusTest
 		Assert.assertEquals("Wrong xml", XmlTestConstants.XmlOutput[6], xml);
 	}
 
+	// FIXME Fails due to new bytecode enhancement features. When constructing an ObjRef now the metadata for the entity are checked.
 	@Test
 	public void writeObjRefs()
 	{
