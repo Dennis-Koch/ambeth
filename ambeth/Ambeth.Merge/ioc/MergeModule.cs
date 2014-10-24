@@ -21,6 +21,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Xml;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Objrefstore;
+using De.Osthus.Ambeth.Copy;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -103,6 +104,8 @@ namespace De.Osthus.Ambeth.Ioc
 		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberTemplate>().Autowireable<EmbeddedMemberTemplate>();
             
             beanContextFactory.RegisterAnonymousBean<ObjRefFactory>().Autowireable<IObjRefFactory>();
+            IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.RegisterAnonymousBean<ObjRefObjectCopierExtension>();
+		    beanContextFactory.Link(objRefObjectCopierExtension).To<IObjectCopierExtendable>().With(typeof(IObjRef));
 
             Type entityFactoryType = this.EntityFactoryType;
             if (entityFactoryType == null)
