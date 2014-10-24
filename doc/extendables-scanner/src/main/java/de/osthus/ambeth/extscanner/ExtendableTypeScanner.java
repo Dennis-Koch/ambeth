@@ -92,7 +92,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 			fw.append("% Any changes have to be done to the java class " + ExtendableTypeScanner.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Extension Points}\n");
-			fw.append("\\begin{longtable}{| l | l | c | c |} \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} \\\n");
+			fw.append("\\begin{longtable}{ l l c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} \\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 

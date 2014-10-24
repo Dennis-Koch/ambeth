@@ -199,7 +199,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
 			fw.append("\\begin{landscape}\n");
-			fw.append("\\begin{longtable}{| l | l | c | c | c |} \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
+			fw.append("\\begin{longtable}{ l l c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 
@@ -309,7 +309,21 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		{
 			fw.append("\\section{").append(propertyEntry.propertyName).append("}\n");
 			fw.append("\\label{").append(labelName).append("}\n");
-			fw.append("\\TODO\n");
+			if (propertyEntry.inJava)
+			{
+				if (propertyEntry.inCSharp)
+				{
+					fw.append("\\AvailableInJavaAndCsharp{\\TODO}");
+				}
+				else
+				{
+					fw.append("\\AvailableInJavaOnly{\\TODO}");
+				}
+			}
+			else if (propertyEntry.inCSharp)
+			{
+				fw.append("\\AvailableInCsharpOnly{\\TODO}");
+			}
 		}
 		finally
 		{

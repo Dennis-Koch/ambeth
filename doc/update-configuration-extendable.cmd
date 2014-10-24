@@ -9,7 +9,7 @@
 @SET JAVASSIST=%MVN_PATH%\org\javassist\javassist\3.16.1-GA\javassist-3.16.1-GA.jar
 @SET SERVLET=%MVN_PATH%/javax/servlet/javax.servlet-api/3.0.1/javax.servlet-api-3.0.1.jar
 @cd extendables-scanner
-@mvn clean compile
+@call mvn clean compile
 @cd ..
 @java  -cp "%AMBETH_UTIL%;%AMBETH_LOG%;%AMBETH_IOC%;%AMBETH_XML%;%CGLIB%;%JAVASSIST%;%SERVLET%;extendables-scanner/target/classes" de.osthus.ambeth.extscanner.Main scan-path="../jambeth;../ambeth" target-tex-file="all-extendables.tex" target-extendable-tex-dir="extendable" properties-tex-file="all-configurations.tex" target-properties-tex-dir="configuration"
 @pause

@@ -39,6 +39,8 @@
 		\end{itemize}	
 \end{itemize}
 
+If you are interested in the basic assumptions regarding password hashing please refer to \cite{lka01}, 
+
 \tip{As with all mentioned cryptographic configurations in \AMBETH{} the server admin is able to set/update the global salt password without server restart. Of course all managed salts of all secrets will be transparently decrypted with the old password and encrypted with the new password on-the-fly in a transactional scope - blocking concurrent cryptographic process steps for a short time according to ACID constraints.}
 
 \inputjava{A \type{ISignature} entity holds all information regarding public/private key functionality}
@@ -77,5 +79,7 @@ CREATE TABLE "SIGNATURE"
 \end{lstlisting}
 In the examples above the properties of \type{IPBEConfiguration} are mapped as embedded properties of \type{ISignature} to the table ``SIGNATURE''. Technically it is also possible to shape a one-to-one relationship and persist \type{IPBEConfiguration} in an own table. The above definition is the recommended approach.\footnote{Please note the specific maximum length of the corresponding varchar-columns:\newline
 
-As an example the length ``PUBLIC\_KEY'' it is intentionally defined to hold up to 700 characters. This is enough to store a binary array in base64-encoding up to a length of 523 bytes. 523 bytes are 4184 bits which are enough to hold e.g. an RSA key of 4096 bits. 4096 is at the current time of writing this (year 2014) considered a ``safe'' key length for RSA encryption for at least the next 30 years.\cite{nsa01}
-}
+As an example the length ``PUBLIC\_KEY'' it is intentionally defined to hold up to 700 characters. This is enough to store a binary array in base64-encoding up to a length of 523 bytes (roughly 75\% -2 bytes). 523 bytes are 4184 bits which are enough to hold e.g. an RSA key of 4096 bits. 4096 is at the current time of writing this (year 2014) considered a ``safe'' key length for RSA encryption for at least the next 30 years if you trust the US NSA\cite{nsa01}.}\newline
+
+
+
