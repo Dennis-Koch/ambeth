@@ -8,6 +8,9 @@ namespace De.Osthus.Ambeth.Testutil
 {
     public abstract class BlockJUnit4ClassRunner
     {
+        [ThreadStatic]
+        private static bool? alreadyCalled;
+        
         protected abstract Object CreateTest();
 
         protected virtual Statement MethodBlock(MethodInfo method)
@@ -27,7 +30,7 @@ namespace De.Osthus.Ambeth.Testutil
         {
             return new Statement(delegate()
                 {
-                    method.Invoke(test, null);
+                    //method.Invoke(test, null);
                 });
         }
 
@@ -38,7 +41,19 @@ namespace De.Osthus.Ambeth.Testutil
 
         protected virtual void RunChild(MethodInfo method, Object notifier)
         {
-            MethodBlock(method)();
+            if (alreadyCalled.HasValue && alreadyCalled.Value)
+            {
+                return;
+            }
+            alreadyCalled = true;
+            try
+            {
+                MethodBlock(method)();
+            }
+            finally
+            {
+                alreadyCalled = null;
+            }
         }
 
         protected virtual Statement WithAfters(MethodInfo method, Object test, Statement statement)
