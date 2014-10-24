@@ -940,7 +940,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		BufferedReader br = null;
 		try
 		{
-			InputStream sqlStream = FileUtil.openFileStream(fileName, log);
+			String lookupName = fileName.startsWith("/")?fileName.substring(1):fileName;
+			InputStream sqlStream = FileUtil.openFileStream(lookupName, log);
 			if (sqlStream != null)
 			{
 				br = new BufferedReader(new InputStreamReader(sqlStream));
