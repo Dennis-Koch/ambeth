@@ -167,6 +167,7 @@
     <Compile Include="ambeth\metadata\MemberTypeProvider.cs" />
     <Compile Include="ambeth\metadata\ObjRefEnhancementHint.cs" />
     <Compile Include="ambeth\metadata\ObjRefFactory.cs" />
+    <Compile Include="ambeth\metadata\ObjRefObjectCopierExtension.cs" />
     <Compile Include="ambeth\metadata\RelationMemberEnhancementHint.cs" />
     <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
     <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />

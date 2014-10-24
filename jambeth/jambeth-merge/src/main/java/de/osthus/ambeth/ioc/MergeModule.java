@@ -4,6 +4,7 @@ import de.osthus.ambeth.cache.CacheModification;
 import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.copy.IObjectCopierExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.config.PrecedenceType;
@@ -36,12 +37,14 @@ import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.converter.EntityMetaDataConverter;
 import de.osthus.ambeth.merge.model.EntityMetaData;
 import de.osthus.ambeth.merge.model.IEntityLifecycleExtendable;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.EntityMetaDataTransfer;
 import de.osthus.ambeth.metadata.IIntermediateMemberTypeProvider;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.metadata.ObjRefFactory;
+import de.osthus.ambeth.metadata.ObjRefObjectCopierExtension;
 import de.osthus.ambeth.objrefstore.IObjRefStoreEntryProvider;
 import de.osthus.ambeth.objrefstore.ObjRefStoreEntryProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -134,6 +137,8 @@ public class MergeModule implements IInitializingModule
 		beanContextFactory.registerAnonymousBean(EmbeddedMemberTemplate.class).autowireable(EmbeddedMemberTemplate.class);
 
 		beanContextFactory.registerAnonymousBean(ObjRefFactory.class).autowireable(IObjRefFactory.class);
+		IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.registerAnonymousBean(ObjRefObjectCopierExtension.class);
+		beanContextFactory.link(objRefObjectCopierExtension).to(IObjectCopierExtendable.class).with(IObjRef.class);
 
 		Class<?> entityFactoryType = this.entityFactoryType;
 		if (entityFactoryType == null)
