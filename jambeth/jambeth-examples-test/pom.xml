@@ -23,6 +23,11 @@
 			<artifactId>jambeth-ioc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+						
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-test</artifactId>
+		</dependency>		
 	</dependencies>
 
 </project>
