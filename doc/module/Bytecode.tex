@@ -57,10 +57,10 @@ The assumed deep memory consumption in a common scenario may therefore be:
 
 \[72+2\times24+20=140\]
 
-Let us compare this with information from a runtime heap dump taken with \textit{VisualVM}:
+Let us compare this with information from a runtime heap dump:
 
 \def\showimgref{img/visualvm-queryentity}
-\showimg{Bytecode enhanced cache instance}
+\showimg{Bytecode enhanced cache instance (screenshot from \textit{VisualVM})}
 
 There may be some surprising differences:
 \begin{itemize}
@@ -80,4 +80,4 @@ There may be some surprising differences:
 
 Taking the previous 140 bytes as base we now can assume:
 
-\[140-24-6-2\times24=62\] bytes which results in 56\% - or rounded 50\% - less memory consumption and preventing the need of 4 objects helping against excessive Full-GC activity when handling thousands or millions of entities in memory with \AMBETH.
+\[140-24-6-2\times24=62\] bytes which results in 56\% - or rounded 50\% - less memory consumption (and preventing the need of 4 of 5 objects in that example) helping against GC pressure when managing thousands to several millions of entities in memory with \AMBETH.
