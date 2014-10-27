@@ -13,15 +13,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.EventModule;
-import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.MappingModule;
@@ -29,9 +28,7 @@ import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.MergeModule;
 import de.osthus.ambeth.ioc.ServiceModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IValueObjectConfig;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -64,62 +61,18 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/xml/";
 
-	@FrameworkModule
-	public static final class ClientTestModule implements IInitializingModule
+	private IServiceContext createClientBeanContext()
 	{
-		@Override
-		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
-		{
-			// IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
-			//
-			// beanContextFactory
-			// .registerBean("independentMetaDataProvider", EntityMetaDataProvider.class)
-			// .propertyRef("ValueObjectMap", valueObjectMap)
-			// .autowireable(IEntityMetaDataProvider.class, IValueObjectConfigExtendable.class, IEntityLifecycleExtendable.class,
-			// IEntityMetaDataExtendable.class);
-			// beanContextFactory.registerBean(MergeModule.INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class);
-			// beanContextFactory.registerBean("entityMetaDataReader", EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
-			// beanContextFactory.registerBean("proxyHelper", DefaultProxyHelper.class).autowireable(IProxyHelper.class);
-			// beanContextFactory.registerBean("relationProvider", RelationProvider.class).autowireable(IRelationProvider.class);
-			// beanContextFactory.registerBean("typeInfoProvider", TypeInfoProvider.class).autowireable(ITypeInfoProvider.class);
-			// beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
-			// beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
-			//
-			// beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-			// beanContextFactory.registerBean("xmlTypeHelper", XmlTypeHelper.class).autowireable(IXmlTypeHelper.class);
-			//
-			// beanContextFactory.registerBean("ormXmlReader", ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, IOrmXmlReaderRegistry.class)
-			// .propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class)
-			// .propertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
-			// beanContextFactory.registerBean("ormXmlReaderLegathy", OrmXmlReaderLegathy.class);
-			// IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
-			// beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
-			//
-			// beanContextFactory.registerAnonymousBean(CacheModification.class).autowireable(ICacheModification.class);
-		}
-	}
-
-	private static IServiceContext createClientBeanContext()
-	{
-		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.put(ServiceConfigurationConstants.mappingFile, IndependentMetaDataComparisonTest.basePath + "independent-orm.xml;"
-				+ IndependentMetaDataComparisonTest.basePath + "independent-orm2.xml");
-		baseProps.put(ServiceConfigurationConstants.valueObjectFile, IndependentMetaDataComparisonTest.basePath + "independent-value-object.xml;"
-				+ IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml");
+		IProperties serverProperties = beanContext.getService(IProperties.class);
+		Properties baseProps = new Properties(serverProperties);
 		baseProps.put(ServiceConfigurationConstants.GenericTransferMapping, "true");
 		baseProps.put(ServiceConfigurationConstants.NetworkClientMode, "true");
 		baseProps.put(ServiceConfigurationConstants.IndependentMetaData, "true");
-		String bootstrapPropertyFile = Properties.getSystem().getString(UtilConfigurationConstants.BootstrapPropertyFile);
-		if (bootstrapPropertyFile != null)
-		{
-			baseProps.load(bootstrapPropertyFile);
-		}
-		Properties.loadBootstrapPropertyFile();
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(baseProps);
 		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class,
-				CacheDataChangeModule.class, ClientTestModule.class, EventModule.class, IocBootstrapModule.class, MappingModule.class,
-				MergeBytecodeModule.class, MergeModule.class, ServiceModule.class);
+				CacheDataChangeModule.class, EventModule.class, IocBootstrapModule.class, MappingModule.class, MergeBytecodeModule.class, MergeModule.class,
+				ServiceModule.class);
 
 		return beanContext;
 	}
