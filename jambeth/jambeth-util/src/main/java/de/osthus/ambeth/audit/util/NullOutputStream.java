@@ -5,6 +5,8 @@ import java.io.OutputStream;
 
 public class NullOutputStream extends OutputStream
 {
+	public static final NullOutputStream INSTANCE = new NullOutputStream();
+
 	public NullOutputStream()
 	{
 		// Intended blank

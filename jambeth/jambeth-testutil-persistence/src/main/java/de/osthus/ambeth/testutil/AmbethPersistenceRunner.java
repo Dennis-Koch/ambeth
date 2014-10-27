@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -69,6 +70,7 @@ import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.NullPrintStream;
 import de.osthus.ambeth.util.setup.SetupModule;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
@@ -152,7 +154,17 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			schemaContext = null;
 		}
 		Properties.resetApplication();
-		Properties.loadBootstrapPropertyFile();
+
+		PrintStream oldPrintStream = System.out;
+		System.setOut(NullPrintStream.INSTANCE);
+		try
+		{
+			Properties.loadBootstrapPropertyFile();
+		}
+		finally
+		{
+			System.setOut(oldPrintStream);
+		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
 		baseProps.putString(LoggerFactory.logLevelProperty(LogPreparedStatementInterceptor.class), "INFO");
@@ -940,7 +952,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		BufferedReader br = null;
 		try
 		{
-			String lookupName = fileName.startsWith("/")?fileName.substring(1):fileName;
+			String lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
 			InputStream sqlStream = FileUtil.openFileStream(lookupName, log);
 			if (sqlStream != null)
 			{
