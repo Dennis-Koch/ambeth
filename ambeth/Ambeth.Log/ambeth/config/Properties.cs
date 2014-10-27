@@ -20,10 +20,16 @@ namespace De.Osthus.Ambeth.Config
         public static Properties System { get; private set; }
 
         public static Properties Application { get; private set; }
-        
+
         static Properties()
         {
             System = new Properties();
+#if !SILVERLIGHT
+            String userHome = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                        ? Environment.GetEnvironmentVariable("HOME")
+                        : Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%");
+            System.PutProperty("user.home", userHome);
+#endif
 
             Application = new Properties(System);
         }

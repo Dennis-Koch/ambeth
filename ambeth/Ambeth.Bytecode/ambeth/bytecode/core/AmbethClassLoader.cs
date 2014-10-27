@@ -32,7 +32,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
         public TypeBuilder CreateNewType(TypeAttributes access, String name, Type parentType, Type[] interfaces)
         {
-            return moduleBuilder.DefineType(name, access, parentType, interfaces);
+            return moduleBuilder.DefineType(name.Replace('/','.'), access, parentType, interfaces);
         }
 
         public void Save()

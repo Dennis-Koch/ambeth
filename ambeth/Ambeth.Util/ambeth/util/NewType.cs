@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Util
             this.type = type;
             if (internalName == null)
             {
-                internalName = type.FullName;
+                internalName = type.FullName.Replace('.', '/');
             }
             this.internalName = internalName;
         }
@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Util
         {
             get
             {
-                return internalName;
+                return internalName.Replace('/','.');
             }
         }
 
