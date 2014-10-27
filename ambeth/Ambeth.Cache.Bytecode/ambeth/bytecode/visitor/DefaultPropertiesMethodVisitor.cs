@@ -140,7 +140,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     f_backingField = new FieldInstance(FieldAttributes.Family, StringConversionHelper.LowerCaseFirst(propertyInfo.Name),
                             NewType.GetType(propertyInfo.PropertyType));
 
-                    ImplementField(f_backingField);
+                    f_backingField = ImplementField(f_backingField);
                 }
                 return f_backingField;
             }

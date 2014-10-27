@@ -152,10 +152,6 @@ namespace De.Osthus.Ambeth.Merge.Config
             for (int i = 0; i < properties.Length; i++)
 		    {
                 IPropertyInfo property = properties[i];
-                if (!property.IsWritable)
-                {
-                    continue;
-                }
                 String memberName = property.Name;
 			    if (memberNamesToIgnore.Contains(memberName))
 			    {
