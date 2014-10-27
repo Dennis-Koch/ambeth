@@ -112,6 +112,18 @@ namespace De.Osthus.Ambeth.Typeinfo
                     }
                 }
                 HashMap<String, IPropertyInfo> propertyMap = new HashMap<String, IPropertyInfo>(0.5f);
+                foreach (Entry<String, IMap<String, MethodInfo>> propertyData in sortedMethods)
+                {
+                    String propertyName = propertyData.Key;
+
+                    IMap<String, MethodInfo> propertyMethods = propertyData.Value;
+                    MethodInfo getter = propertyMethods.Get("get");
+                    MethodInfo setter = propertyMethods.Get("set");
+
+                    MethodPropertyInfo propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
+                    propertyMap.Put(propertyInfo.Name, propertyInfo);
+                }
+
                 Type[] interfaces = type.GetInterfaces();
                 List<Type> typesToSearch = new List<Type>(interfaces);
                 typesToSearch.Add(type);
@@ -124,27 +136,31 @@ namespace De.Osthus.Ambeth.Typeinfo
                         {
                             continue;
                         }
-                        AbstractPropertyInfo propertyInfo = new MethodPropertyInfo(type, property.Name, property.GetGetMethod(), property.GetSetMethod());
+                        if (property.GetSetMethod() != null && property.GetSetMethod().GetParameters().Length != 1)
+                        {
+                            continue;
+                        }
+                        MethodInfo getter = null;
+                        MethodInfo setter =null;
+
+                        MethodPropertyInfo propertyInfo = (MethodPropertyInfo) propertyMap.Get(property.Name);
+                        if (propertyInfo != null)
+                        {
+                            getter = propertyInfo.Getter;
+                            setter = propertyInfo.Setter;
+                        }
+                        if (getter == null)
+                        {
+                            getter = property.GetGetMethod();
+                        }
+                        if (setter == null)
+                        {
+                            setter = property.GetSetMethod();
+                        }
+                        propertyInfo = new MethodPropertyInfo(type, property.Name, getter, setter);
                         propertyInfo.PutAnnotations(property);
                         propertyMap.Put(propertyInfo.Name, propertyInfo);
                     }
-                }
-
-                foreach (Entry<String, IMap<String, MethodInfo>> propertyData in sortedMethods)
-                {
-                    String propertyName = propertyData.Key;
-
-                    if (propertyMap.ContainsKey(propertyName))
-                    {
-                        // already handled by properties directly
-                        continue;
-                    }
-                    IMap<String, MethodInfo> propertyMethods = propertyData.Value;
-                    MethodInfo getter = propertyMethods.Get("get");
-                    MethodInfo setter = propertyMethods.Get("set");
-
-                    IPropertyInfo propertyInfo = new MethodPropertyInfo(type, propertyName, getter, setter);
-                    propertyMap.Put(propertyInfo.Name, propertyInfo);
                 }
 
                 FieldInfo[] fields = ReflectUtil.GetDeclaredFieldsInHierarchy(type);
@@ -169,7 +185,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 return propertyEntry;
             }
         }
-
+        
         public String GetPropertyNameFor(FieldInfo field)
         {
             return StringBuilderUtil.UpperCaseFirst(field.Name);
