@@ -148,6 +148,29 @@ namespace De.Osthus.Ambeth.Bytecode.Core
             return GetEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
         }
 
+        protected void LogBytecodeOutput(String typeName, String bytecodeOutput)
+        {
+            DirectoryInfo outputFileDir = new DirectoryInfo(TraceDir + Path.DirectorySeparatorChar + GetType().FullName);
+            outputFileDir.Create();
+            FileStream outputFile = new FileStream(outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+            try
+            {
+                StreamWriter fw = new StreamWriter(outputFile);
+                try
+                {
+                    fw.Write(bytecodeOutput);
+                }
+                finally
+                {
+                    fw.Close();
+                }
+            }
+            finally
+            {
+                outputFile.Close();
+            }
+        }
+
         public Type GetEnhancedType(Type typeToEnhance, String newTypeNamePrefix, IEnhancementHint hint)
         {
             Type extendedType = GetEnhancedTypeIntern(typeToEnhance, hint);
@@ -203,26 +226,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 
                 if (TraceDir != null)
                 {
-                    String printableBytecode = BytecodeClassLoader.ToPrintableBytecode(enhancedType);
-
-                    String outputFileDir = TraceDir + "/" + GetType().FullName;
-                    FileStream outputFile = new FileStream(outputFileDir + "/" + enhancedType.FullName + ".txt", FileMode.Create, FileAccess.Write, FileShare.Read);
-                    try
-                    {
-                        StreamWriter fw = new StreamWriter(outputFile);
-                        try
-                        {
-                            fw.Write(printableBytecode);
-                        }
-                        finally
-                        {
-                            fw.Close();
-                        }
-                    }
-                    finally
-                    {
-                        outputFile.Close();
-                    }
+                    LogBytecodeOutput(enhancedType.FullName, BytecodeClassLoader.ToPrintableBytecode(enhancedType));
                 }
                 else if (Log.DebugEnabled)
                 {
@@ -318,6 +322,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
 		    {
 			    throw new Exception("Must never happen");
 		    }
+            String lastTypeHandleName = newTypeNamePrefix;
             newTypeNamePrefix = newTypeNamePrefix.Replace('.', '/');
             StringBuilder sw = new StringBuilder();
             try
@@ -344,6 +349,7 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                     iterationCount++;
 
                     NewType newTypeHandle = NewType.GetObjectType(newTypeNamePrefix + "$A" + iterationCount);
+                    lastTypeHandleName = newTypeHandle.ClassName;
 
                     IBytecodeBehavior[] currentPendingBehaviors = ListUtil.ToArray(pendingBehaviors);
                     pendingBehaviors.Clear();
@@ -390,7 +396,14 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 String classByteCode = sw.ToString();
                 if (classByteCode.Length > 0)
                 {
-                    throw RuntimeExceptionUtil.Mask(e, "Bytecode:\n" + classByteCode);
+                    if (TraceDir != null)
+                    {
+                        LogBytecodeOutput(lastTypeHandleName, classByteCode);
+                    }
+                    else
+                    {
+                        throw RuntimeExceptionUtil.Mask(e, "Bytecode:\n" + classByteCode);
+                    }
                 }
                 throw;
             }
