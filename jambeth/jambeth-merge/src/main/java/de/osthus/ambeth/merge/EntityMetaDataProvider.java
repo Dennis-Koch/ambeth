@@ -101,11 +101,12 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Autowired
 	protected ValueObjectMap valueObjectMap;
 
+	protected final ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL = new ThreadLocal<ClassExtendableContainer<IEntityMetaData>>();
+
 	protected IEntityMetaData alreadyHandled;
 
 	protected Class<?>[] businessObjectSaveOrder;
 
-	protected final ThreadLocal<ArrayList<Class<?>>> pendingToRefreshMetaDataTL = new ThreadLocal<ArrayList<Class<?>>>();
 	protected final ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<IEntityInstantiationExtension>(
 			"entityFactoryExtension", "entityType");
 
@@ -228,12 +229,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				{
 					continue;
 				}
-				if (existingMetaData == alreadyHandled)
-				{
-					unregister(alreadyHandled, entityType);
-				}
-				register(missingMetaDataItem, entityType);
-				pendingToRefreshMetaDataTL.get().add(entityType);
+				pendingToRefreshMetaDatasTL.get().register(missingMetaDataItem, entityType);
 			}
 			for (int a = loadedMetaData.size(); a-- > 0;)
 			{
@@ -258,7 +254,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				{
 					// add dummy items to ensure that this type does not
 					// get queried a second time
-					register(alreadyHandled, entityType);
+					pendingToRefreshMetaDatasTL.get().register(alreadyHandled, entityType);
 				}
 			}
 			return cascadeMissingEntityTypes != null ? cascadeMissingEntityTypes.toList() : null;
@@ -267,6 +263,64 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		{
 			writeLock.unlock();
 		}
+	}
+
+	@Override
+	public IEntityMetaData getExtensionHardKey(Class<?> key)
+	{
+		IEntityMetaData metaData = super.getExtensionHardKey(key);
+		if (metaData != null)
+		{
+			return metaData;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return null;
+		}
+		return pendingToRefreshMetaDatas.getExtensionHardKey(key);
+	}
+
+	public IEntityMetaData getExtensionHardKeyGlobalOnly(Class<?> key)
+	{
+		return super.getExtensionHardKey(key);
+	}
+
+	@Override
+	public IEntityMetaData getExtension(Class<?> key)
+	{
+		IEntityMetaData metaData = super.getExtension(key);
+		if (metaData != null)
+		{
+			return metaData;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return null;
+		}
+		return pendingToRefreshMetaDatas.getExtension(key);
+	}
+
+	@Override
+	public IList<IEntityMetaData> getExtensions(Class<?> key)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	public boolean containsKey(Class<?> key)
+	{
+		boolean contains = super.containsKey(key);
+		if (contains)
+		{
+			return true;
+		}
+		ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+		if (pendingToRefreshMetaDatas == null)
+		{
+			return contains;
+		}
+		return pendingToRefreshMetaDatas.containsKey(key);
 	}
 
 	@Override
@@ -353,15 +407,15 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		boolean handlePendingMetaData = false;
 		try
 		{
+			ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.get();
+			if (pendingToRefreshMetaDatas == null)
+			{
+				pendingToRefreshMetaDatas = new ClassExtendableContainer<IEntityMetaData>("metaData", "entityType");
+				pendingToRefreshMetaDatasTL.set(pendingToRefreshMetaDatas);
+				handlePendingMetaData = true;
+			}
 			while (missingEntityTypes != null && missingEntityTypes.size() > 0)
 			{
-				ArrayList<Class<?>> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.get();
-				if (pendingToRefreshMetaData == null)
-				{
-					pendingToRefreshMetaData = new ArrayList<Class<?>>();
-					pendingToRefreshMetaDataTL.set(pendingToRefreshMetaData);
-					handlePendingMetaData = true;
-				}
 				IList<IEntityMetaData> loadedMetaData = remoteEntityMetaDataProvider.getMetaData(missingEntityTypes);
 
 				IList<Class<?>> cascadeMissingEntityTypes = addLoadedMetaData(missingEntityTypes, loadedMetaData);
@@ -375,17 +429,55 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					missingEntityTypes.clear();
 				}
 			}
+			if (handlePendingMetaData)
+			{
+				ILinkedMap<Class<?>, IEntityMetaData> extensions = pendingToRefreshMetaDatas.getExtensions();
+				for (Entry<Class<?>, IEntityMetaData> entry : extensions)
+				{
+					IEntityMetaData metaData = entry.getValue();
+					if (metaData == alreadyHandled)
+					{
+						continue;
+					}
+					refreshMembers(metaData);
+				}
+				Lock writeLock = getWriteLock();
+				writeLock.lock();
+				try
+				{
+					for (Entry<Class<?>, IEntityMetaData> entry : pendingToRefreshMetaDatas.getExtensions())
+					{
+						Class<?> entityType = entry.getKey();
+						IEntityMetaData existingMetaData = getExtensionHardKeyGlobalOnly(entityType);
+						if (existingMetaData != null && existingMetaData != alreadyHandled)
+						{
+							// existing entry is already a valid non-null entry
+							continue;
+						}
+						IEntityMetaData ownMetaData = entry.getValue();
+						if (existingMetaData == ownMetaData)
+						{
+							// existing entry is already a null-entry and our entry is a null-entry, too - so nothing to do
+							continue;
+						}
+						if (existingMetaData == alreadyHandled)
+						{
+							unregister(alreadyHandled, entityType);
+						}
+						register(ownMetaData, entityType);
+					}
+				}
+				finally
+				{
+					writeLock.unlock();
+				}
+			}
 		}
 		finally
 		{
 			if (handlePendingMetaData)
 			{
-				ArrayList<Class<?>> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.get();
-				pendingToRefreshMetaDataTL.remove();
-				for (Class<?> pendingToRefreshType : pendingToRefreshMetaData)
-				{
-					refreshMembers(getMetaData(pendingToRefreshType));
-				}
+				pendingToRefreshMetaDatasTL.remove();
 			}
 		}
 		return getMetaData(entityTypes);
@@ -669,7 +761,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		writeLock.lock();
 		try
 		{
-			this.businessObjectSaveOrder = null;
+			businessObjectSaveOrder = null;
 
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToBeforeBoTypes = new HashMap<Class<?>, ISet<Class<?>>>();
 			HashMap<Class<?>, ISet<Class<?>>> boTypeToAfterBoTypes = new HashMap<Class<?>, ISet<Class<?>>>();
