@@ -138,7 +138,7 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerAnonymousBean(ObjRefFactory.class).autowireable(IObjRefFactory.class);
 		IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.registerAnonymousBean(ObjRefObjectCopierExtension.class);
-		beanContextFactory.link(objRefObjectCopierExtension).to(IObjectCopierExtendable.class).with(IObjRef.class);
+		beanContextFactory.link(objRefObjectCopierExtension).to(IObjectCopierExtendable.class).with(IObjRef.class).optional();
 
 		Class<?> entityFactoryType = this.entityFactoryType;
 		if (entityFactoryType == null)

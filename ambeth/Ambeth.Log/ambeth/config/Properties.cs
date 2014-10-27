@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using De.Osthus.Ambeth.Io;
 using De.Osthus.Ambeth.Util;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Config
 {
@@ -36,11 +37,15 @@ namespace De.Osthus.Ambeth.Config
 	    {
 		    Console.WriteLine("Looking for environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "'...");
 		    String bootstrapPropertyFile = Application.GetString(UtilConfigurationConstants.BootstrapPropertyFile);
+            if (bootstrapPropertyFile == null)
+            {
+                bootstrapPropertyFile = Application.GetString(UtilConfigurationConstants.BootstrapPropertyFile.ToUpperInvariant());
+            }
 		    if (bootstrapPropertyFile != null)
 		    {
 			    Console.WriteLine("Environment property '" + UtilConfigurationConstants.BootstrapPropertyFile + "' found with value '" + bootstrapPropertyFile
 					    + "'");
-			    Application.Load(bootstrapPropertyFile);
+			    Application.Load(bootstrapPropertyFile, false);
 			    Console.WriteLine("External property file '" + bootstrapPropertyFile + "' successfully loaded");
 		    }
 		    else
@@ -88,7 +93,7 @@ namespace De.Osthus.Ambeth.Config
             Load(dictionary);
         }
 
-        public virtual IEnumerator<KeyValuePair<String, Object>> Iterator()
+        public IEnumerator<KeyValuePair<String, Object>> Iterator()
         {
             return dictionary.GetEnumerator();
         }
@@ -139,17 +144,32 @@ namespace De.Osthus.Ambeth.Config
             }
         }
 
-        public virtual Object Get(String key)
+        public void FillWithCommandLineArgs(String[] args)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int a = args.Length; a-- > 0; )
+            {
+                String arg = args[a];
+                if (sb.Length > 0)
+                {
+                    sb.Append('\n');
+                }
+                sb.Append(arg);
+            }
+            HandleContent(sb.ToString(), true);
+        }
+
+        public Object Get(String key)
         {
             return Get<Object>(key);
         }
 
-        public virtual String GetString(String key)
+        public String GetString(String key)
         {
             return Get<String>(key);
         }
 
-        public virtual Object this[String key]
+        public Object this[String key]
         {
             get {
 
@@ -170,7 +190,7 @@ namespace De.Osthus.Ambeth.Config
             }
         }
 
-        public virtual String GetString(String key, String defaultValue)
+        public String GetString(String key, String defaultValue)
         {
             String value = GetString(key);
             if (value is String)
@@ -180,12 +200,12 @@ namespace De.Osthus.Ambeth.Config
             return defaultValue;
         }
 
-        public virtual void Set(String key, String value)
+        public void Set(String key, String value)
         {
             PutProperty(key, value);
         }
 
-        public virtual T Get<T>(String key)
+        public T Get<T>(String key)
         {
             Object value = this[key];
             if (value is T)
@@ -199,24 +219,24 @@ namespace De.Osthus.Ambeth.Config
             return (T)value; //force CCE
         }
 
-        public virtual void Set<T>(String key, T value)
+        public void Set<T>(String key, T value)
         {
             this[key] = value;
         }
 
-        public virtual IEnumerator<KeyValuePair<String, Object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<String, Object>> GetEnumerator()
         {
             return dictionary.GetEnumerator();
         }
 
-        public virtual ISet<String> CollectAllPropertyKeys()
+        public ISet<String> CollectAllPropertyKeys()
         {
             ISet<String> allPropertiesSet = new HashSet<String>();
             CollectAllPropertyKeys(allPropertiesSet);
             return allPropertiesSet;
         }
 
-        public virtual void CollectAllPropertyKeys(ISet<String> allPropertiesSet)
+        public void CollectAllPropertyKeys(ISet<String> allPropertiesSet)
         {
             if (Parent != null)
             {
@@ -228,7 +248,7 @@ namespace De.Osthus.Ambeth.Config
             });
         }
 
-        public virtual void Load(IProperties sourceProperties)
+        public void Load(IProperties sourceProperties)
         {
             foreach (String key in sourceProperties.CollectAllPropertyKeys())
             {
@@ -238,26 +258,31 @@ namespace De.Osthus.Ambeth.Config
             }
         }
 
-        public virtual void Load(Stream stream)
+        public void Load(Stream stream, bool overwriteParentExisting)
         {
             using (stream)
             using (StreamReader reader = new StreamReader(stream))
             {
                 String content = reader.ReadToEnd();
-                HandleContent(content);
+                HandleContent(content, overwriteParentExisting);
             }
         }
 
-        public virtual void Load(String filepathSrc)
+        public void Load(String filepathSrc)
+        {
+            Load(filepathSrc, true);
+        }
+
+        public void Load(String filepathSrc, bool overwriteParentExisting)
         {
             Stream[] fileStreams = FileUtil.OpenFileStreams(filepathSrc);
             foreach (Stream fileStream in fileStreams)
             {
-                Load(fileStream);
+                Load(fileStream, overwriteParentExisting);
             }
         }
 
-        protected virtual void HandleContent(String content)
+        protected void HandleContent(String content, bool overwriteParentExisting)
         {
             content = content.Replace("\r", "");
             String[] records = content.Split('\n');
@@ -273,23 +298,33 @@ namespace De.Osthus.Ambeth.Config
                     continue;
                 }
                 String key = match.Groups[1].Value;
+                Object value = null;
                 if (match.Groups.Count > 2)
                 {
-                    String value = match.Groups[2].Value;
-                    if (value == null || value.Length == 0)
+                    String stringValue = match.Groups[2].Value;
+                    if (stringValue == null || stringValue.Length == 0)
                     {
-                        value = match.Groups[3].Value;
+                        stringValue = match.Groups[3].Value;
                     }
-                    if (value == null || value.Length == 0)
+                    if (stringValue == null || stringValue.Length == 0)
                     {
-                        value = match.Groups[4].Value;
+                        stringValue = match.Groups[4].Value;
                     }
-                    PutProperty(key, value);
+                    value = stringValue;
                 }
+                else
+                {
+                    value = match.Groups[2].Value;
+                }
+                if (!overwriteParentExisting && Get(key) != null)
+                {
+                    continue;
+                }
+                PutProperty(key, value);
             }
         }
 
-        protected virtual void PutProperty(String key, Object value)
+        protected void PutProperty(String key, Object value)
         {
             dictionary[key] = value;
         }
