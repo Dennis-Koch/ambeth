@@ -1,6 +1,6 @@
 @ECHO OFF
-@SET MVN_PATH=C:\Users\dennis.koch\.m2\repository
-@SET AMBETH_VERSION=2.1.X-SNAPSHOT
+@SET MVN_PATH=%USERPROFILE%\.m2\repository
+@SET AMBETH_VERSION=2.2.47
 @SET AMBETH_UTIL=%MVN_PATH%\de\osthus\ambeth\jambeth-util\%AMBETH_VERSION%\jambeth-util-%AMBETH_VERSION%.jar
 @SET AMBETH_LOG=%MVN_PATH%\de\osthus\ambeth\jambeth-log\%AMBETH_VERSION%\jambeth-log-%AMBETH_VERSION%.jar
 @SET AMBETH_IOC=%MVN_PATH%\de\osthus\ambeth\jambeth-ioc\%AMBETH_VERSION%\jambeth-ioc-%AMBETH_VERSION%.jar
