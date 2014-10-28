@@ -230,7 +230,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 		ICache cache = handle.getCache();
 		if (cache == null && cacheFactory != null)
 		{
-			cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+			cache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
 			handle.setCache(cache);
 		}
 		LinkedHashMap<Class<?>, IList<Object>> typeToObjectsToMerge = null;

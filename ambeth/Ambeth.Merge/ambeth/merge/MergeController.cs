@@ -176,7 +176,7 @@ namespace De.Osthus.Ambeth.Merge
             ICache cache = handle.Cache;
             if (cache == null && CacheFactory != null)
             {
-                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
+                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false);
                 handle.Cache = cache;
             }
             IMap<Type, IList<Object>> typeToObjectsToMerge = null;
