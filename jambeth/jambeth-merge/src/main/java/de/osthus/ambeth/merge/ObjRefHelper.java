@@ -190,7 +190,15 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
-		Object keyValue = metaData.getIdMember().getValue(obj, false);
+		Object keyValue;
+		if (obj instanceof AbstractCacheValue)
+		{
+			keyValue = ((AbstractCacheValue) obj).getId();
+		}
+		else
+		{
+			keyValue = metaData.getIdMember().getValue(obj, false);
+		}
 		if (keyValue == null || mergeHandle != null && mergeHandle.isHandleExistingIdAsNewId())
 		{
 			IDirectObjRef dirOri = new DirectObjRef(metaData.getEntityType(), obj);
@@ -202,8 +210,17 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		else
 		{
-			Member versionMember = metaData.getVersionMember();
-			ori = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.getValue(obj, true) : null);
+			Object version;
+			if (obj instanceof AbstractCacheValue)
+			{
+				version = ((AbstractCacheValue) obj).getVersion();
+			}
+			else
+			{
+				Member versionMember = metaData.getVersionMember();
+				version = versionMember != null ? versionMember.getValue(obj, true) : null;
+			}
+			ori = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
 		}
 		if (objToOriDict != null)
 		{
