@@ -243,42 +243,39 @@ public class MergeController implements IMergeController, IMergeExtendable
 		ArrayList<ValueHolderRef> valueHolderKeys = new ArrayList<ValueHolderRef>();
 		IList<Object> objectsToMerge = scanForInitializedObjects(obj, handle.isDeepMerge(), typeToObjectsToMerge, objRefs, valueHolderKeys);
 		IList<Object> eagerlyLoadedOriginals = null;
-		if (cache != null)
+		// Load all requested object originals in one roundtrip
+		if (objRefs.size() > 0)
 		{
-			// Load all requested object originals in one roundtrip
-			if (objRefs.size() > 0)
+			eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
+			for (int a = eagerlyLoadedOriginals.size(); a-- > 0;)
 			{
-				eagerlyLoadedOriginals = cache.getObjects(objRefs, CacheDirective.returnMisses());
-				for (int a = eagerlyLoadedOriginals.size(); a-- > 0;)
+				IObjRef existingOri = objRefs.get(a);
+				if (eagerlyLoadedOriginals.get(a) == null && existingOri != null && existingOri.getId() != null)
 				{
-					IObjRef existingOri = objRefs.get(a);
-					if (eagerlyLoadedOriginals.get(a) == null && existingOri != null && existingOri.getId() != null)
-					{
-						// Cache miss for an entity we want to merge. This is an OptimisticLock-State
-						throw OptimisticLockUtil.throwDeleted(existingOri);
-					}
+					// Cache miss for an entity we want to merge. This is an OptimisticLock-State
+					throw OptimisticLockUtil.throwDeleted(existingOri);
 				}
-				ArrayList<IObjRef> objRefsOfVhks = new ArrayList<IObjRef>(valueHolderKeys.size());
-				for (int a = 0, size = valueHolderKeys.size(); a < size; a++)
+			}
+			ArrayList<IObjRef> objRefsOfVhks = new ArrayList<IObjRef>(valueHolderKeys.size());
+			for (int a = 0, size = valueHolderKeys.size(); a < size; a++)
+			{
+				objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
+			}
+			IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
+			for (int a = valueHolderKeys.size(); a-- > 0;)
+			{
+				IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
+				if (objectOfVhk == null)
 				{
-					objRefsOfVhks.add(valueHolderKeys.get(a).getObjRef());
+					continue;
 				}
-				IList<Object> objectsOfVhks = cache.getObjects(objRefsOfVhks, failEarlyAndReturnMissesSet);
-				for (int a = valueHolderKeys.size(); a-- > 0;)
+				ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
+				if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex()))
 				{
-					IObjRefContainer objectOfVhk = (IObjRefContainer) objectsOfVhks.get(a);
-					if (objectOfVhk == null)
-					{
-						continue;
-					}
-					ValueHolderRef valueHolderRef = valueHolderKeys.get(a);
-					if (ValueHolderState.INIT == objectOfVhk.get__State(valueHolderRef.getRelationIndex()))
-					{
-						continue;
-					}
-					DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
-					handle.getPendingValueHolders().add(vhcKey);
+					continue;
 				}
+				DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, valueHolderRef.getMember());
+				handle.getPendingValueHolders().add(vhcKey);
 			}
 		}
 		if (typeToObjectsToMerge != null)
