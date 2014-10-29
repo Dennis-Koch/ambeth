@@ -49,7 +49,6 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
-import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
@@ -58,8 +57,6 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor;
-import de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -167,8 +164,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.putString(LoggerFactory.logLevelProperty(LogPreparedStatementInterceptor.class), "INFO");
-		baseProps.putString(LoggerFactory.logLevelProperty(LogStatementInterceptor.class), "INFO");
+		baseProps.putString("ambeth.log.level", "WARN");
 
 		extendProperties(null, baseProps);
 
