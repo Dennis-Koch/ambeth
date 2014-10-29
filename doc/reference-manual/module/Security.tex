@@ -1,0 +1,61 @@
+\section{Security}
+\label{module:Security}
+
+\subsection{Features}
+\begin{itemize}
+	\item \prettyref{feature:Cryptography}
+	\item \prettyref{feature:PasswordManagement}
+\end{itemize}
+
+Provides extension points for applications to customize the security behavior of Ambeth. There are hooks for authentication \& authorization.
+
+\textit{Ambeth Security} is deactivated by default. To activate it configure the following:
+\begin{lstlisting}[style=Props]
+ambeth.security.active=true
+\end{lstlisting}
+
+Implement the following interface to provide instances of \type{IUser} for the Ambeth Authentication Process:
+\inputjava{IUserResolver}{jambeth-security-server/src/main/java/de/osthus/ambeth/security/IUserResolver.java}
+
+Implement the following interface to encapsulate your custom authorization process:
+\inputjava{IAuthorizationManager}{jambeth-security/src/main/java/de/osthus/ambeth/security/IAuthorizationManager.java}
+
+After a successful authentication \& authorization the information gets stored in a thread-local security handle. To be of any use your beans have to be secured declaratively with the \type{@SecurityContext} annotation:
+
+\begin{lstlisting}[style=Java]
+@SecurityContext(SecurityContextType.NOT_REQUIRED)
+ public class HelloWorldService implements IHelloWorldService, IInitializingBean
+ {
+ 	@Override
+ 	public void afterPropertiesSet() throws Throwable
+ 	{
+ 	}
+ 
+ 	@Override
+ 	@SecurityContext(SecurityContextType.AUTHENTICATED)
+ 	public List<TestEntity> thisIsAUserAwareMethod()
+ 	{
+ 		...
+ 	}
+ 
+ 	@Override
+ 	@SecurityContext(SecurityContextType.AUTHORIZED)
+ 	public List<TestEntity> thisIsASecuredMethod()
+ 	{
+ 		...
+ 	}
+ }
+\end{lstlisting}
+As with most of the Ambeth aspects you have to declare the annotation at class level explicitly to be able customize the relevant behavior on method level. If all methods should be treated with the same behavior the class level configuration suffices.
+
+\begin{itemize}
+	\item AUTHORIZED The user will be authenticated before calling this method. The method can not be invoked at runtime without user-specific call permission.
+	\item AUTHENTICATED The user will be authenticated before calling this method. The existence of a call permission to the method will NOT be checked. The method can not be invoked at runtime if the user authentication failed by any reason.
+	\item NOT\_REQUIRED The method or class is not specifically secured. The user may already be authenticated because of another method call in the thread stack or thread-local process.
+\end{itemize}
+
+
+\tip{
+Performance-wise the ``outermost'' beans should already be annotated at least with \type{@SecurityContext(SecurityContextType.NOT\_REQUIRED)}:\newline This way necessary remote IO (e.g. LDAP requests) will only be necessary once. As an effect any complex server logic can make intensive use of security functionality with generating additional overhead in intermediate authentication and/or authorization logic without performance penalty.
+}
+
