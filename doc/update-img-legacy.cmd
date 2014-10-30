@@ -1,3 +1,3 @@
 @ECHO OFF
-@xcopy "I:\Technologie\Ambeth\Dokumentation\gen\*.png" "img\gen" /S /Y
+@xcopy "I:\Technologie\Ambeth\Dokumentation\gen\*.png" "img\gen" /S /Y /I
 @pause
