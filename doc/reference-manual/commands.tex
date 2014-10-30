@@ -93,12 +93,12 @@
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
-\def\javalogo{img/Java-Logo.pdf}
+\def\javalogo{img/Java-Logo}
 \def\csharplogo{img/csharpdotnet}
 
 \newcommand{\AvailableInJavaOnly}[1]
-{
-	\AvailableInJavaAndCsharpInternal{#1}{\includegraphics[width=\hsize]{\javalogo}}{}
+{	
+	\AvailableInJavaAndCsharpInternal{#1}{\includesvg[\hsize]{\javalogo}}{}
 }
 
 \newcommand{\AvailableInCsharpOnly}[1]
@@ -108,7 +108,7 @@
 
 \newcommand{\AvailableInJavaAndCsharp}[1]
 {
-	\AvailableInJavaAndCsharpInternal{#1}{\includegraphics[width=\hsize]{\javalogo}}{\includegraphics[width=\hsize]{\csharplogo}}
+	\AvailableInJavaAndCsharpInternal{#1}{\includesvg[\hsize]{\javalogo}}{\includegraphics[width=\hsize]{\csharplogo}}
 }
 
 \newcommand{\AvailableInJavaAndCsharpInternal}[3]
@@ -120,13 +120,21 @@
 %% Include SVG graphics
 %% see http://laclaro.wordpress.com/2011/07/30/svg-vektorgrafiken-in-latex-dokumente-einbinden/
 \newcommand{\executeiffilenewer}[3]{%
-\ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
-{\pdffilemoddate{#2}}>0%
-{\immediate\write18{#3}}\fi%
+  \ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
+  {\pdffilemoddate{#2}}>0%
+  {\immediate\write18{#3}}\fi%
 }
-% includesvg[scale]{file} command (linux-version)
+% set inkscape binary path according to operating-system
+\IfFileExists{/dev/null}{%
+  \newcommand{\Inkscape}{inkscape }%
+  }{%
+  \newcommand{\Inkscape}{"../../../../inkscape/App/Inkscape/inkscape.exe" }%
+}
+
+% includesvg[width]{file} command
 \newcommand{\includesvg}[2][1]{%
-  %\executeiffilenewer{#2.svg}{#2.pdf}{%
-  %"C:/Program Files (x86)/Inkscape/inkscape" -z -D --file="#2.svg" --export-pdf="#2.pdf" --export-latex}%
-  \scalebox{#1}{\input{#2.pdf_tex}}%
+  \executeiffilenewer{#2.svg}{#2.pdf}{%
+  \Inkscape -z -C --file="#2.svg" --export-pdf="#2.pdf" --export-latex
+	}
+	\resizebox{#1}{!}{\input{#2.pdf_tex}}%
 }
