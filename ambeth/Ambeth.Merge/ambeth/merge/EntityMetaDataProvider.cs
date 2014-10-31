@@ -67,14 +67,12 @@ namespace De.Osthus.Ambeth.Merge
         [Autowired]
         public ValueObjectMap ValueObjectMap { protected get; set; }
 
-        protected readonly HashSet<Type> currentlyRequestedTypes = new HashSet<Type>();
+        protected readonly ThreadLocal<ClassExtendableContainer<IEntityMetaData>> pendingToRefreshMetaDatasTL = new ThreadLocal<ClassExtendableContainer<IEntityMetaData>>();
 
         protected new IEntityMetaData alreadyHandled;
 
         protected Type[] businessObjectSaveOrder;
-
-        protected readonly ThreadLocal<List<Type>> pendingToRefreshMetaDataTL = new ThreadLocal<List<Type>>();
-
+        
         protected readonly ClassExtendableContainer<IEntityInstantiationExtension> entityInstantiationExtensions = new ClassExtendableContainer<IEntityInstantiationExtension>(
 			"entityInstantiationExtension", "entityType");
 
@@ -195,12 +193,7 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         continue;
                     }
-                    if (Object.ReferenceEquals(existingMetaData, alreadyHandled))
-                    {
-                        Unregister(alreadyHandled, entityType);
-                    }
-                    Register(missingMetaDataItem, entityType);
-                    pendingToRefreshMetaDataTL.Value.Add(entityType);
+                    pendingToRefreshMetaDatasTL.Value.Register(missingMetaDataItem, entityType);
                 }
                 for (int a = loadedMetaData.Count; a-- > 0; )
                 {
@@ -225,11 +218,66 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         // add dummy items to ensure that this type does not
                         // get queried a second time
-                        Register(alreadyHandled, entityType);
+                        pendingToRefreshMetaDatasTL.Value.Register(alreadyHandled, entityType);
                     }
                 }
                 return cascadeMissingEntityTypes != null ? ListUtil.ToList(cascadeMissingEntityTypes) : null;
             }
+        }
+
+        public override IEntityMetaData GetExtensionHardKey(Type key)
+        {
+            IEntityMetaData metaData = base.GetExtensionHardKey(key);
+            if (metaData != null)
+            {
+                return metaData;
+            }
+            ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.Value;
+            if (pendingToRefreshMetaDatas == null)
+            {
+                return null;
+            }
+            return pendingToRefreshMetaDatas.GetExtensionHardKey(key);
+        }
+
+        public IEntityMetaData GetExtensionHardKeyGlobalOnly(Type key)
+        {
+            return base.GetExtensionHardKey(key);
+        }
+
+        public override IEntityMetaData GetExtension(Type key)
+        {
+            IEntityMetaData metaData = base.GetExtension(key);
+            if (metaData != null)
+            {
+                return metaData;
+            }
+            ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.Value;
+            if (pendingToRefreshMetaDatas == null)
+            {
+                return null;
+            }
+            return pendingToRefreshMetaDatas.GetExtension(key);
+        }
+
+        public override IList<IEntityMetaData> GetExtensions(Type key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ContainsKey(Type key)
+        {
+            bool contains = base.ContainsKey(key);
+            if (contains)
+            {
+                return true;
+            }
+            ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.Value;
+            if (pendingToRefreshMetaDatas == null)
+            {
+                return contains;
+            }
+            return pendingToRefreshMetaDatas.ContainsKey(key);
         }
 
         public IEntityMetaData GetMetaData(Type entityType)
@@ -313,15 +361,15 @@ namespace De.Osthus.Ambeth.Merge
             bool handlePendingMetaData = false;
             try
             {
+                ClassExtendableContainer<IEntityMetaData> pendingToRefreshMetaDatas = pendingToRefreshMetaDatasTL.Value;
+                if (pendingToRefreshMetaDatas == null)
+                {
+                    pendingToRefreshMetaDatas = new ClassExtendableContainer<IEntityMetaData>("metaData", "entityType");
+                    pendingToRefreshMetaDatasTL.Value = pendingToRefreshMetaDatas;
+                    handlePendingMetaData = true;
+                }
                 while (missingEntityTypes != null && missingEntityTypes.Count > 0)
                 {
-                    List<Type> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.Value;
-                    if (pendingToRefreshMetaData == null)
-                    {
-                        pendingToRefreshMetaData = new List<Type>();
-                        pendingToRefreshMetaDataTL.Value = pendingToRefreshMetaData;
-                        handlePendingMetaData = true;
-                    }
                     IList<IEntityMetaData> loadedMetaData = RemoteEntityMetaDataProvider.GetMetaData(missingEntityTypes);
 
                     IList<Type> cascadeMissingEntityTypes = AddLoadedMetaData(missingEntityTypes, loadedMetaData);
@@ -335,17 +383,50 @@ namespace De.Osthus.Ambeth.Merge
                         missingEntityTypes.Clear();
                     }
                 }
+                if (handlePendingMetaData)
+                {
+                    ILinkedMap<Type, IEntityMetaData> extensions = pendingToRefreshMetaDatas.GetExtensions();
+                    foreach (Entry<Type, IEntityMetaData> entry in extensions)
+                    {
+                        IEntityMetaData metaData = entry.Value;
+                        if (Object.ReferenceEquals(metaData, alreadyHandled))
+                        {
+                            continue;
+                        }
+                        RefreshMembers(metaData);
+                    }
+                    Object writeLock = GetWriteLock();
+                    lock (writeLock)
+                    {
+                        foreach (Entry<Type, IEntityMetaData> entry in pendingToRefreshMetaDatas.GetExtensions())
+                        {
+                            Type entityType = entry.Key;
+                            IEntityMetaData existingMetaData = GetExtensionHardKeyGlobalOnly(entityType);
+                            if (existingMetaData != null && !Object.ReferenceEquals(existingMetaData, alreadyHandled))
+                            {
+                                // existing entry is already a valid non-null entry
+                                continue;
+                            }
+                            IEntityMetaData ownMetaData = entry.Value;
+                            if (Object.ReferenceEquals(existingMetaData, ownMetaData))
+                            {
+                                // existing entry is already a null-entry and our entry is a null-entry, too - so nothing to do
+                                continue;
+                            }
+                            if (Object.ReferenceEquals(existingMetaData, alreadyHandled))
+                            {
+                                Unregister(alreadyHandled, entityType);
+                            }
+                            Register(ownMetaData, entityType);
+                        }
+                    }
+                }
             }
             finally
             {
                 if (handlePendingMetaData)
                 {
-                    List<Type> pendingToRefreshMetaData = pendingToRefreshMetaDataTL.Value;
-                    pendingToRefreshMetaDataTL.Value = null;
-                    foreach (Type pendingToRefreshType in pendingToRefreshMetaData)
-                    {
-                        RefreshMembers(GetMetaData(pendingToRefreshType));
-                    }
+                    pendingToRefreshMetaDatasTL.Value = null;
                 }
             }
             return GetMetaData(entityTypes);

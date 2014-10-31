@@ -1,5 +1,6 @@
 package de.osthus.ambeth.testutil;
 
+import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -26,6 +27,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.Logger;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.util.NullPrintStream;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
 {
@@ -108,7 +110,17 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	{
 		disposeContext();
 		Properties.resetApplication();
-		Properties.loadBootstrapPropertyFile();
+
+		PrintStream oldPrintStream = System.out;
+		System.setOut(NullPrintStream.INSTANCE);
+		try
+		{
+			Properties.loadBootstrapPropertyFile();
+		}
+		finally
+		{
+			System.setOut(oldPrintStream);
+		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
 

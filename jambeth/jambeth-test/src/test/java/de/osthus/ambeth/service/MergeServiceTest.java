@@ -78,14 +78,14 @@ public class MergeServiceTest extends AbstractPersistenceTest
 	@Autowired
 	protected ICache cache;
 
+	@Autowired
+	protected IProxyHelper proxyHelper;
+
 	protected IMergeServiceExtension fixtureProxy;
 
 	protected PersistenceMergeServiceExtension fixture;
 
 	protected ChildCache childCache;
-
-	@Autowired
-	protected IProxyHelper proxyHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -98,21 +98,6 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
 		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
-	}
-
-	public void setCache(ICache cache)
-	{
-		this.cache = cache;
-	}
-
-	public void setCacheFactory(ICacheFactory cacheFactory)
-	{
-		this.cacheFactory = cacheFactory;
-	}
-
-	public void setProxyHelper(IProxyHelper proxyHelper)
-	{
-		this.proxyHelper = proxyHelper;
 	}
 
 	@Test

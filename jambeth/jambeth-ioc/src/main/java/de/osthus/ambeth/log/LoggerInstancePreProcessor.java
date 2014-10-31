@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.WeakSmartCopyMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -27,8 +26,6 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 			return EqualsUtil.equals(left.value(), right.value());
 		}
 	};
-
-	protected final HashSet<String> logHistory = new HashSet<String>();
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Class<?> beanType,

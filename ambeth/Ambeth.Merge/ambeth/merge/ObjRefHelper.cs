@@ -185,7 +185,15 @@ namespace De.Osthus.Ambeth.Merge
             }
             IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
 
-            Object keyValue = metaData.IdMember.GetValue(obj, false);
+            Object keyValue;
+		    if (obj is AbstractCacheValue)
+		    {
+			    keyValue = ((AbstractCacheValue) obj).Id;
+		    }
+		    else
+		    {
+			    keyValue = metaData.IdMember.GetValue(obj, false);
+		    }
             if (keyValue == null || mergeHandle != null && mergeHandle.HandleExistingIdAsNewId)
             {
                 IDirectObjRef dirOri = new DirectObjRef(metaData.EntityType, obj);
@@ -197,8 +205,17 @@ namespace De.Osthus.Ambeth.Merge
             }
             else
             {
-                Member versionMember = metaData.VersionMember;
-                ori = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, keyValue, versionMember != null ? versionMember.GetValue(obj, true) : null);
+                Object version;
+			    if (obj is AbstractCacheValue)
+			    {
+				    version = ((AbstractCacheValue) obj).Version;
+			    }
+			    else
+			    {
+                    Member versionMember = metaData.VersionMember;
+				    version = versionMember != null ? versionMember.GetValue(obj, true) : null;
+			    }
+			    ori = new ObjRef(metaData.EntityType, ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
             }
             if (objToOriDict != null)
             {

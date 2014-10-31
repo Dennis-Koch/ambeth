@@ -45,7 +45,14 @@ public class AbstractLatexScanner extends ClasspathScanner
 	{
 		if (!file.canRead())
 		{
-			throw new IllegalStateException("Can not access '" + file.getPath() + "'");
+			try
+			{
+				throw new IllegalStateException("Can not access '" + file.getCanonicalPath() + "'");
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		File srcPath = new File(file, "target/classes");
 		if (srcPath.exists())

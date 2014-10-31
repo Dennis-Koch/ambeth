@@ -198,7 +198,7 @@ namespace De.Osthus.Ambeth.Collections
             }
         }
 
-        public bool ContainsKey(K key)
+        public virtual bool ContainsKey(K key)
         {
             int hash = Hash(ExtractHash(key));
             int i = hash & tableLengthMinusOne;

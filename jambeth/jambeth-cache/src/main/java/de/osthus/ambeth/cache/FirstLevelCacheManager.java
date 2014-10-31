@@ -131,19 +131,29 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 				{
 					foreignThreadText = StringBuilderUtil.concat(objectCollector.getCurrent(), ", to thread ", thread.getId(), ":", thread.getName());
 				}
+				String privilegedText;
+				if (firstLevelCache.isPrivileged())
+				{
+					privilegedText = ", privileged";
+				}
+				else
+				{
+					privilegedText = ", non-privileged";
+				}
 				if (CacheFactoryDirective.SubscribeTransactionalDCE.equals(flcEntry.getCacheFactoryDirective()))
 				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(),
+					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
 							", transactional", foreignThreadText));
 				}
 				else if (CacheFactoryDirective.SubscribeGlobalDCE.equals(flcEntry.getCacheFactoryDirective()))
 				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(),
+					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
 							", non-transactional", foreignThreadText));
 				}
 				else
 				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), " traced"));
+					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
+							", traced"));
 				}
 			}
 		}

@@ -103,17 +103,26 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         foreignThreadText = ", to thread " + thread.ManagedThreadId + ":" + thread.Name;
                     }
-                    if (CacheFactoryDirective.SubscribeTransactionalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
+                    String privilegedText;
+                    if (firstLevelCache.Privileged)
                     {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + ", transactional" + foreignThreadText);
-                    }
-                    else if (CacheFactoryDirective.SubscribeGlobalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
-                    {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + ", non-transactional" + foreignThreadText);
+                        privilegedText = ", privileged";
                     }
                     else
                     {
-                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + " traced");
+                        privilegedText = ", non-privileged";
+                    }
+                    if (CacheFactoryDirective.SubscribeTransactionalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
+                    {
+                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + privilegedText + ", transactional" + foreignThreadText);
+                    }
+                    else if (CacheFactoryDirective.SubscribeGlobalDCE.Equals(flcEntry.GetCacheFactoryDirective()))
+                    {
+                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + privilegedText + ", non-transactional" + foreignThreadText);
+                    }
+                    else
+                    {
+                        Log.Debug("Registered FLC with id: " + firstLevelCache.CacheId + privilegedText + ", traced");
                     }
                 }
             }
