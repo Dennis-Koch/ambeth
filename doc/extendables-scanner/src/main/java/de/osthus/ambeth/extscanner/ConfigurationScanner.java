@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,7 +65,9 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		ArrayList<CtClass> clazzes = new ArrayList<CtClass>(targetClassNames.size());
 		HashMap<String, PropertyEntry> nameToPropertyMap = new HashMap<String, PropertyEntry>();
 
-		HashMap<String, CtClass> nameToConfigurationConstantsMap = new HashMap<String, CtClass>();
+		HashMap<String, CtField> nameToConfigurationConstantsMap = new HashMap<String, CtField>();
+
+		final HashMap<String, List<String>> constantUsedInTypesMap = new HashMap<String, List<String>>();
 
 		for (int a = 0, size = targetClassNames.size(); a < size; a++)
 		{
@@ -98,7 +101,8 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 					// only public fields can be constants
 					continue;
 				}
-				nameToConfigurationConstantsMap.put((String) field.getConstantValue(), cc);
+				nameToConfigurationConstantsMap.put((String) field.getConstantValue(), field);
+				constantUsedInTypesMap.put(field.getDeclaringClass().getName() + "." + field.getName(), new ArrayList<String>());
 			}
 		}
 
@@ -111,7 +115,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			{
 				continue;
 			}
-			CtField[] fields = cc.getFields();
+			CtField[] fields = cc.getDeclaredFields();
 			for (CtField field : fields)
 			{
 				if ((field.getModifiers() & Modifier.FINAL) != 0)
@@ -127,7 +131,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 				Property property = (Property) field.getAnnotation(Property.class);
 				handlePropertyAnnotation(cc, property, nameToPropertyMap);
 			}
-			CtMethod[] methods = cc.getMethods();
+			CtMethod[] methods = cc.getDeclaredMethods();
 			for (CtMethod method : methods)
 			{
 				if (!method.getName().startsWith("set") || method.getAvailableParameterAnnotations().length != 1)
@@ -181,12 +185,6 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 
 		log.info("Found " + nameToPropertyMap.size() + " properties");
 
-		for (String propertyName : nameToPropertyMap.keySet())
-		{
-			// remove all "used" properties
-			nameToConfigurationConstantsMap.remove(propertyName);
-		}
-
 		String[] propertyNames = nameToPropertyMap.keySet().toArray(String.class);
 		Arrays.sort(propertyNames);
 
@@ -225,7 +223,8 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 
 				if (!expectedConfigurationTexFile.exists())
 				{
-					writeEmptyConfigurationTexFile(propertyEntry, labelName, expectedConfigurationTexFile);
+					writeEmptyConfigurationTexFile(propertyEntry, labelName, expectedConfigurationTexFile,
+							nameToConfigurationConstantsMap.get(propertyEntry.propertyName));
 				}
 			}
 			fw.append("\\end{longtable}\n");
@@ -242,6 +241,11 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			fw.close();
 		}
 
+		for (String propertyName : nameToPropertyMap.keySet())
+		{
+			// remove all "used" properties
+			nameToConfigurationConstantsMap.remove(propertyName);
+		}
 		if (nameToConfigurationConstantsMap.size() > 0)
 		{
 			String[] obsoletePropertyNames = nameToConfigurationConstantsMap.keySet().toArray(String.class);
@@ -250,7 +254,9 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			sb.append("There are ").append(obsoletePropertyNames.length).append(" configurations without any usage and were therefore been skipped:");
 			for (String obsoletePropertyName : obsoletePropertyNames)
 			{
-				sb.append('\n').append(obsoletePropertyName).append(" ==> ").append(nameToConfigurationConstantsMap.get(obsoletePropertyName).getName());
+				CtField ctField = nameToConfigurationConstantsMap.get(obsoletePropertyName);
+				sb.append('\n').append(obsoletePropertyName).append(" ==> ").append(ctField.getDeclaringClass().getName()).append(".")
+						.append(ctField.getName());
 			}
 			log.warn(sb.toString());
 		}
@@ -302,7 +308,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		return propertyEntry;
 	}
 
-	protected void writeEmptyConfigurationTexFile(PropertyEntry propertyEntry, String labelName, File targetFile) throws Exception
+	protected void writeEmptyConfigurationTexFile(PropertyEntry propertyEntry, String labelName, File targetFile, CtField ctField) throws Exception
 	{
 		FileWriter fw = new FileWriter(targetFile);
 		try
@@ -324,6 +330,17 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			{
 				fw.append("\\AvailableInCsharpOnly{\\TODO}");
 			}
+			if (ctField != null)
+			{
+				fw.append("\n\\type{").append(ctField.getDeclaringClass().getName()).append(".").append(ctField.getName()).append("}");
+			}
+			fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(propertyEntry.propertyName).append("}}]");
+			fw.append("\n").append(propertyEntry.propertyName).append("=");
+			if (propertyEntry.defaultValueSpecified)
+			{
+				fw.append(propertyEntry.getDefaultValue());
+			}
+			fw.append("\n\\end{lstlisting}");
 		}
 		finally
 		{

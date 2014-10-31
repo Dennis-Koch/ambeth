@@ -176,7 +176,7 @@ namespace De.Osthus.Ambeth.Merge
             ICache cache = handle.Cache;
             if (cache == null && CacheFactory != null)
             {
-                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
+                cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false);
                 handle.Cache = cache;
             }
             IMap<Type, IList<Object>> typeToObjectsToMerge = null;
@@ -189,41 +189,38 @@ namespace De.Osthus.Ambeth.Merge
             List<ValueHolderRef> valueHolderKeys = new List<ValueHolderRef>();
             IList<Object> objectsToMerge = ScanForInitializedObjects(obj, handle.IsDeepMerge, typeToObjectsToMerge, objRefs, valueHolderKeys);
             IList<Object> eagerlyLoadedOriginals = null;
-            if (cache != null)
+            // Load all requested object originals in one roundtrip
+            if (objRefs.Count > 0)
             {
-                // Load all requested object originals in one roundtrip
-                if (objRefs.Count > 0)
+                eagerlyLoadedOriginals = cache.GetObjects(objRefs, CacheDirective.ReturnMisses);
+                for (int a = eagerlyLoadedOriginals.Count; a-- > 0; )
                 {
-                    eagerlyLoadedOriginals = cache.GetObjects(objRefs, CacheDirective.ReturnMisses);
-                    for (int a = eagerlyLoadedOriginals.Count; a-- > 0; )
+                    IObjRef existingOri = objRefs[a];
+                    if (eagerlyLoadedOriginals[a] == null && existingOri != null && existingOri.Id != null)
                     {
-                        IObjRef existingOri = objRefs[a];
-                        if (eagerlyLoadedOriginals[a] == null && existingOri != null && existingOri.Id != null)
-                        {
-                            // Cache miss for an entity we want to merge. This is an OptimisticLock-State
-                            throw new OptimisticLockException(null, null, existingOri);
-                        }
+                        // Cache miss for an entity we want to merge. This is an OptimisticLock-State
+                        throw new OptimisticLockException(null, null, existingOri);
                     }
-                    List<IObjRef> objRefsOfVhks = new List<IObjRef>(valueHolderKeys.Count);
-                    for (int a = 0, size = valueHolderKeys.Count; a < size; a++)
+                }
+                List<IObjRef> objRefsOfVhks = new List<IObjRef>(valueHolderKeys.Count);
+                for (int a = 0, size = valueHolderKeys.Count; a < size; a++)
+                {
+                    objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
+                }
+                IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
+                for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
+                {
+                    IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
+                    if (objectOfVhk == null)
                     {
-                        objRefsOfVhks.Add(valueHolderKeys[a].ObjRef);
+                        continue;
                     }
-                    IList<Object> objectsOfVhks = cache.GetObjects(objRefsOfVhks, CacheDirective.FailEarly | CacheDirective.ReturnMisses);
-                    for (int relationIndex = valueHolderKeys.Count; relationIndex-- > 0; )
+                    ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
+                    RelationMember member = valueHolderRef.Member;
+                    if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
                     {
-                        IObjRefContainer objectOfVhk = (IObjRefContainer)objectsOfVhks[relationIndex];
-                        if (objectOfVhk == null)
-                        {
-                            continue;
-                        }
-                        ValueHolderRef valueHolderRef = valueHolderKeys[relationIndex];
-                        RelationMember member = valueHolderRef.Member;
-                        if (ValueHolderState.INIT != objectOfVhk.Get__State(relationIndex))
-                        {
-                            DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
-                            handle.PendingValueHolders.Add(vhcKey);
-                        }
+                        DirectValueHolderRef vhcKey = new DirectValueHolderRef(objectOfVhk, member);
+                        handle.PendingValueHolders.Add(vhcKey);
                     }
                 }
             }
