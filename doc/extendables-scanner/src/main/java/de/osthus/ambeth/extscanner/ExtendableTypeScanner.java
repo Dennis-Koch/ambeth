@@ -3,20 +3,20 @@ package de.osthus.ambeth.extscanner;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.ILinkedMap;
-import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.classbrowser.java.MethodDescription;
+import de.osthus.classbrowser.java.TypeDescription;
 
 public class ExtendableTypeScanner extends AbstractLatexScanner implements IStartingBean
 {
@@ -30,8 +30,267 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 	@Property(name = "target-extendable-tex-dir")
 	protected String targetExtendableTexDirPath;
 
+	// protected void processNamespaceDefinition(File file, String namespace, ScopedSource source, HashMap<String, ExtendableEntry> nameToExtendableMap)
+	// {
+	// for (int a = 0, size = source.size(); a < size; a++)
+	// {
+	// Object obj = source.get(a);
+	// if (!(obj instanceof String))
+	// {
+	// continue;
+	// }
+	// Matcher matcher = csharpExtendableNamePattern.matcher(obj.toString());
+	// if (matcher.matches())
+	// {
+	// processExtendableDefinition(file, namespace, matcher.group(1), (ScopedSource) source.get(a + 1), nameToExtendableMap);
+	// }
+	// }
+	// }
+	//
+	// protected void processExtendableDefinition(File file, String namespace, String simpleExtendableName, ScopedSource source,
+	// HashMap<String, ExtendableEntry> nameToExtendableMap)
+	// {
+	// String extendableName = namespace + "." + simpleExtendableName;
+	//
+	// try
+	// {
+	// BufferedReader rd = new BufferedReader(new StringReader(source.toString()));
+	// String line;
+	// while ((line = rd.readLine()) != null)
+	// {
+	// Matcher matcher = methodPattern.matcher(line);
+	// if (!matcher.matches())
+	// {
+	// continue;
+	// }
+	// String visibility = matcher.group(1);
+	// String returnType = matcher.group(2);
+	// String methodName = matcher.group(3);
+	// String parameters = matcher.group(4);
+	//
+	// try
+	// {
+	// String[] parameterItems = parameterSplitPattern.split(parameters);
+	// String[] parameterTypes = new String[parameterItems.length];
+	// for (int a = 0, size = parameterItems.length; a < size; a++)
+	// {
+	// String parameterItem = parameterItems[a];
+	// Matcher parameterMatcher = parameterPattern.matcher(parameterItem);
+	// if (!parameterMatcher.matches())
+	// {
+	// throw new IllegalStateException("Could not parse parameter: '" + parameterItem + "'");
+	// }
+	// String parameterType = parameterMatcher.group(1);
+	// String parameterName = parameterMatcher.group(2);
+	// parameterTypes[a] = parameterType;
+	// }
+	//
+	// ExtendableEntry extendableEntry = nameToExtendableMap.get(extendableName);
+	// if (extendableEntry == null)
+	// {
+	// CtClass extensionType = null;
+	//
+	// CtMethod[] methods = extendableType.getMethods();
+	// for (int a = methods.length; a-- > 0;)
+	// {
+	// String methodName = methods[a].getName();
+	// if ((methodName.toLowerCase().startsWith("register") || methodName.toLowerCase().startsWith("add"))
+	// && methods[a].getParameterTypes().length >= 1)
+	// {
+	// extensionType = methods[a].getParameterTypes()[0];
+	// break;
+	// }
+	// }
+	// if (extensionType == null)
+	// {
+	// log.warn("Could not find extension in '" + extendableType.getName() + "'");
+	// return null;
+	// }
+	// extendableEntry = new ExtendableEntry(extendableName, extensionName);
+	// nameToExtendableMap.put(extendableName, extendableEntry);
+	// }
+	// extendableEntry.inJava = true;
+	// }
+	// catch (Throwable e)
+	// {
+	// throw RuntimeExceptionUtil
+	// .mask(e, "Exception occurred while processing method '" + returnType + " " + methodName + "(" + parameters + ")'");
+	// }
+	// }
+	// }
+	// catch (Throwable e)
+	// {
+	// throw RuntimeExceptionUtil.mask(e, "Exception occurred while processing extendable '" + namespace + "." + simpleExtendableName + "'");
+	// }
+	// }
+
+	protected void writeEmptyExtendableTexFile(ExtendableEntry extendableEntry, String labelName, File targetFile) throws Exception
+	{
+		FileWriter fw = new FileWriter(targetFile);
+		try
+		{
+			fw.append("\\section{").append(extendableEntry.simpleName).append("}\n");
+			fw.append("\\label{").append(labelName).append("}\n");
+			if (extendableEntry.inJava)
+			{
+				if (extendableEntry.inCSharp)
+				{
+					fw.append("\\AvailableInJavaAndCsharp{");
+				}
+				else
+				{
+					fw.append("\\AvailableInJavaOnly{");
+				}
+			}
+			else if (extendableEntry.inCSharp)
+			{
+				fw.append("\\AvailableInCsharpOnly{");
+			}
+			writeJavadoc(extendableEntry.fqName, extendableEntry.simpleName, fw);
+			fw.append("\n");
+			writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
+			fw.append("\n");
+			fw.append("\\TODO}");
+		}
+		finally
+		{
+			fw.close();
+		}
+	}
+
+	protected boolean writeTableRow(ExtendableEntry extendableEntry, String labelName, FileWriter fw) throws Exception
+	{
+		fw.append("\t\t");
+		fw.append("\\nameref{").append(labelName).append('}');
+		// writeJavadoc(extendableType, fw);
+		fw.append(" &\n\t\t");
+		writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
+		fw.append(" &\n\t\t");
+		if (extendableEntry.inJava)
+		{
+			fw.append("X &\n\t\t");
+		}
+		else
+		{
+			fw.append("  &\n\t\t");
+		}
+		if (extendableEntry.inCSharp)
+		{
+			fw.append("X ");
+		}
+		else
+		{
+			fw.append("  ");
+		}
+		// fw.append("\n\t\t");
+		// fw.append("\\shortprettyref{").append(labelName).append('}');
+		return true;
+	}
+
+	protected void writeJavadoc(String fqName, String simpleName, FileWriter fw) throws IOException
+	{
+		fw.append("\\javadoc{").append(fqName).append("}{").append(simpleName).append('}');
+	}
+
+	protected ExtendableEntry getEnsureExtendableEntry(CtClass extendableType, Map<String, ExtendableEntry> map) throws Exception
+	{
+		ExtendableEntry extendableEntry = map.get(extendableType.getName());
+		if (extendableEntry == null)
+		{
+			CtClass extensionType = null;
+
+			CtMethod[] methods = extendableType.getMethods();
+			for (int a = methods.length; a-- > 0;)
+			{
+				String methodName = methods[a].getName();
+				if ((methodName.toLowerCase().startsWith("register") || methodName.toLowerCase().startsWith("add"))
+						&& methods[a].getParameterTypes().length >= 1)
+				{
+					extensionType = methods[a].getParameterTypes()[0];
+					break;
+				}
+			}
+			if (extensionType == null)
+			{
+				log.warn("Could not find extension in '" + extendableType.getName() + "'");
+				return null;
+			}
+			extendableEntry = new ExtendableEntry(extendableType.getName(), extensionType.getName());
+			map.put(extendableType.getName(), extendableEntry);
+		}
+		extendableEntry.inJava = true;
+		return extendableEntry;
+	}
+
+	protected ExtendableEntry getEnsureExtendableEntry(TypeDescription typeDescr, Map<String, ExtendableEntry> map) throws Exception
+	{
+		ExtendableEntry extendableEntry = map.get(typeDescr.getFullTypeName());
+		if (extendableEntry == null)
+		{
+			String extensionType = null;
+
+			for (MethodDescription methodDesc : typeDescr.getMethodDescriptions())
+			{
+				String methodName = methodDesc.getName();
+				if ((methodName.toLowerCase().startsWith("register") || methodName.toLowerCase().startsWith("add"))
+						&& methodDesc.getParameterTypes().size() != 0)
+				{
+					extensionType = methodDesc.getParameterTypes().get(0);
+					break;
+				}
+			}
+			if (extensionType == null)
+			{
+				log.warn("Could not find extension in '" + typeDescr.getFullTypeName() + "'");
+				return null;
+			}
+			extendableEntry = new ExtendableEntry(typeDescr.getFullTypeName(), extensionType);
+			map.put(typeDescr.getFullTypeName(), extendableEntry);
+		}
+		return extendableEntry;
+	}
+
+	// protected ExtendableEntry getEnsureExtendableEntry(BufferedReader rd, String fqExtendableName, Map<String, ExtendableEntry> map) throws Exception
+	// {
+	// ExtendableEntry extendableEntry = map.get(fqExtendableName);
+	// if (extendableEntry == null)
+	// {
+	// String fqExtensionName = null;
+	//
+	// int bracketCounter = 0;
+	// String line;
+	// while ((line = rd.readLine()) != null)
+	// {
+	// if (bracketCounter == 0)
+	// {
+	// // look for first bracket
+	// if (line.contains("{"))
+	// {
+	// line
+	// }
+	// }
+	// }
+	//
+	// CtMethod[] methods = extendableType.getMethods();
+	// for (int a = methods.length; a-- > 0;)
+	// {
+	// String methodName = methods[a].getName();
+	// if ((methodName.toLowerCase().startsWith("register") || methodName.toLowerCase().startsWith("add"))
+	// && methods[a].getParameterTypes().length >= 1)
+	// {
+	// extensionType = methods[a].getParameterTypes()[0];
+	// break;
+	// }
+	// }
+	// extendableEntry = new ExtendableEntry(extendableType.getName(), extensionType.getName());
+	// map.put(fqExtendableName, extendableEntry);
+	// }
+	// extendableEntry.inCSharp = true;
+	// return extendableEntry;
+	// }
+
 	@Override
-	public void afterStarted() throws Throwable
+	protected void handle(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable
 	{
 		File allExtendablesTexFile = new File(allExtendablesTexFilePath).getCanonicalFile();
 		allExtendablesTexFile.getParentFile().mkdirs();
@@ -50,39 +309,40 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		ClassPool pool = ClassPool.getDefault();
-		IList<String> targetClassNames = scanForClasses(pool);
+		HashMap<String, ExtendableEntry> nameToExtendableMap = new HashMap<String, ExtendableEntry>();
 
-		Collections.sort(targetClassNames);
-
-		ArrayList<CtClass> clazzes = new ArrayList<CtClass>(targetClassNames.size());
-
-		for (int a = 0, size = targetClassNames.size(); a < size; a++)
+		for (Entry<String, TypeDescription> entry : javaTypes)
 		{
-			String className = targetClassNames.get(a);
-			if (!className.endsWith("Extendable"))
+			TypeDescription typeDescr = entry.getValue();
+			if (!typeDescr.getName().endsWith("Extendable"))
 			{
 				continue;
 			}
-			CtClass cc = pool.get(className);
-			if (!cc.isInterface())
+			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr, nameToExtendableMap);
+			if (extendableEntry == null)
 			{
 				continue;
 			}
-			clazzes.add(cc);
+			extendableEntry.inJava = true;
 		}
-		Collections.sort(clazzes, new Comparator<CtClass>()
+
+		for (Entry<String, TypeDescription> entry : csharpTypes)
 		{
-			@Override
-			public int compare(CtClass o1, CtClass o2)
+			TypeDescription typeDescr = entry.getValue();
+			if (!typeDescr.getName().endsWith("Extendable"))
 			{
-				return o1.getSimpleName().compareTo(o2.getSimpleName());
+				continue;
 			}
-		});
+			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr, nameToExtendableMap);
+			if (extendableEntry == null)
+			{
+				continue;
+			}
+			extendableEntry.inCSharp = true;
+		}
 
-		ILinkedMap<CtClass, File> hasPendantInCSharp = resolvePendantInCSharp(clazzes);
-
-		log.info("Found " + clazzes.size() + " files");
+		String[] extendableNames = nameToExtendableMap.keySet().toArray(String.class);
+		java.util.Arrays.sort(extendableNames);
 
 		FileWriter fw = new FileWriter(allExtendablesTexFile);
 		try
@@ -98,14 +358,14 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 
 			ArrayList<String> includes = new ArrayList<String>();
 
-			for (int a = 0, size = clazzes.size(); a < size; a++)
+			for (String extendableName : extendableNames)
 			{
-				CtClass cc = clazzes.get(a);
-				log.info("Handling " + cc.getName());
-				String texName = cc.getSimpleName();
+				ExtendableEntry extendableEntry = nameToExtendableMap.get(extendableName);
+				log.info("Handling " + extendableEntry.fqName);
+				String texName = extendableEntry.simpleName;
 
 				String labelName = "extendable:" + texName;
-				if (!writeTableRow(cc, labelName, fw, hasPendantInCSharp))
+				if (!writeTableRow(extendableEntry, labelName, fw))
 				{
 					continue;
 				}
@@ -120,7 +380,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 
 				if (!expectedExtendableTexFile.exists())
 				{
-					writeEmptyExtendableTexFile(cc, labelName, expectedExtendableTexFile);
+					writeEmptyExtendableTexFile(extendableEntry, labelName, expectedExtendableTexFile);
 				}
 			}
 			fw.append("\\end{longtable}\n");
@@ -135,65 +395,5 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		{
 			fw.close();
 		}
-	}
-
-	protected void writeEmptyExtendableTexFile(CtClass extendableType, String labelName, File targetFile) throws Exception
-	{
-		FileWriter fw = new FileWriter(targetFile);
-		try
-		{
-			fw.append("\\section{").append(extendableType.getSimpleName()).append("}\n");
-			fw.append("\\label{").append(labelName).append("}\n");
-			writeJavadoc(extendableType, fw);
-			fw.append("\n");
-			fw.append("\\TODO\n");
-		}
-		finally
-		{
-			fw.close();
-		}
-	}
-
-	protected boolean writeTableRow(CtClass extendableType, String labelName, FileWriter fw, Map<CtClass, File> hasPendantInCSharp) throws Exception
-	{
-		CtClass extensionType = null;
-		CtMethod[] methods = extendableType.getMethods();
-		for (int a = methods.length; a-- > 0;)
-		{
-			String methodName = methods[a].getName();
-			if ((methodName.toLowerCase().startsWith("register") || methodName.toLowerCase().startsWith("add")) && methods[a].getParameterTypes().length >= 1)
-			{
-				extensionType = methods[a].getParameterTypes()[0];
-				break;
-			}
-		}
-		if (extensionType == null)
-		{
-			log.debug("No extension type found on extendable '" + extendableType.getName() + "'");
-			return false;
-		}
-		fw.append("\t\t");
-		fw.append("\\nameref{").append(labelName).append('}');
-		// writeJavadoc(extendableType, fw);
-		fw.append(" &\n\t\t");
-		writeJavadoc(extensionType, fw);
-		fw.append(" &\n\t\t");
-		fw.append("X &\n\t\t");
-		if (hasPendantInCSharp.get(extendableType) != null)
-		{
-			fw.append("X ");
-		}
-		else
-		{
-			fw.append("  ");
-		}
-		// fw.append("\n\t\t");
-		// fw.append("\\shortprettyref{").append(labelName).append('}');
-		return true;
-	}
-
-	protected void writeJavadoc(CtClass type, FileWriter fw) throws IOException
-	{
-		fw.append("\\javadoc{").append(type.getName()).append("}{").append(type.getSimpleName()).append('}');
 	}
 }

@@ -11,10 +11,10 @@ public class Main
 	{
 		Properties props = Properties.getApplication();
 		props.fillWithCommandLineArgs(args);
-		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
+		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props, IocBootstrapModule.class);
 		try
 		{
-			bootstrapContext.createService(ExtScannerModule.class, IocBootstrapModule.class);
+			bootstrapContext.createService(ExtScannerModule.class);
 		}
 		finally
 		{
