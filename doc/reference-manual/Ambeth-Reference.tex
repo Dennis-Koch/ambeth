@@ -35,8 +35,15 @@
 %%   .eps  .ps  .bmp  .pict  .pntg
 
 \usepackage{listings}
-\usepackage{color}
+\usepackage{xcolor}
 \usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,	% false: boxed links; true: colored links
+    linkcolor={blue!50!black},	% color of internal links (change box color with linkbordercolor)
+    citecolor={blue!50!black},	% color of links to bibliography
+    filecolor={green!80!black},	% color of file links
+    urlcolor={red!80!black}	% color of external links
+}
 
 % import properties first at all
 \input{properties}
