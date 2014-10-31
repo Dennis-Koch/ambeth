@@ -28,6 +28,13 @@
 		<url>http://ci-master:8080/jenkins</url>
 	</ciManagement>
 
+	<scm>
+		<connection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</connection>
+		<developerConnection>scm:git:https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</developerConnection>
+		<url>https://framework.allotrope.org/osthus-extensions/osthus-ambeth.git</url>
+		<tag>HEAD</tag>
+	</scm>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -62,6 +69,11 @@
 					<source>1.6</source>
 					<target>1.6</target>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.1</version>
 			</plugin>
 		</plugins>
 	</build>
