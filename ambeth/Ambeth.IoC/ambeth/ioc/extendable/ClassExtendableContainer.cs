@@ -97,7 +97,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
             // Intended blank		
         }
 
-        public V GetExtensionHardKey(Type key)
+        public virtual V GetExtensionHardKey(Type key)
         {
             return base.GetExtension(key);
         }

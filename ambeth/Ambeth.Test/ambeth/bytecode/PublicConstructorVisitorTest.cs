@@ -111,7 +111,7 @@ namespace De.Osthus.Ambeth.Bytecode
                 Assert.AssertEquals(1, declaredConstructors.Length);
 
                 ConstructorInfo defaultConstructor = declaredConstructors[0];
-                Assert.AssertEquals(1, defaultConstructor.GetParameters().Length);
+                Assert.AssertEquals(0, defaultConstructor.GetParameters().Length);
             }
             catch (Exception t)
             {

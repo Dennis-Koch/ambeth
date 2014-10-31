@@ -337,14 +337,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         {
             IMethodVisitor mv = VisitMethod(template_m_setValue);
 
-            for (int a = 0, size = propertyPath.Length - 1; a < size; a++)
-            {
-                IPropertyInfo property = propertyPath[a];
-                if (property is MethodPropertyInfo && ((MethodPropertyInfo)property).Getter == null)
-                {
-                    throw new Exception("Property not readable: " + property.EntityType.FullName + "." + property.Name);
-                }
-            }
             IPropertyInfo lastProperty = propertyPath[propertyPath.Length - 1];
             if (lastProperty is MethodPropertyInfo && ((MethodPropertyInfo)lastProperty).Setter == null)
             {

@@ -833,7 +833,42 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 
         public virtual void Unbox(Type unboxedType)
         {
-            gen.Emit(OpCodes.Unbox_Any, unboxedType);
+            if (typeof(short) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt16", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(int) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt32", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(long) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToInt64", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(float) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToSingle", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(double) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToDouble", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(bool) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToBoolean", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(byte) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToByte", new Type[] { typeof(Object) }));
+            }
+            else if (typeof(char) == unboxedType)
+            {
+                InvokeStatic(typeof(Convert).GetMethod("ToChar", new Type[] { typeof(Object) }));
+            }
+            else
+            {
+                gen.Emit(OpCodes.Unbox_Any, unboxedType);
+            }
         }
 
         public virtual void ValueOf(Type type)

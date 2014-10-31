@@ -165,7 +165,7 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				f_backingField = new FieldInstance(Opcodes.ACC_PROTECTED, StringConversionHelper.lowerCaseFirst(objectCollector, propertyInfo.getName()),
 						fieldSignature, Type.getType(propertyInfo.getPropertyType()));
 
-				implementField(f_backingField);
+				f_backingField = implementField(f_backingField);
 			}
 			return f_backingField;
 		}

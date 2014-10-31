@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -48,7 +49,6 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
-import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
@@ -57,8 +57,6 @@ import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.persistence.jdbc.connection.LogPreparedStatementInterceptor;
-import de.osthus.ambeth.persistence.jdbc.connection.LogStatementInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -69,6 +67,7 @@ import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.NullPrintStream;
 import de.osthus.ambeth.util.setup.SetupModule;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
@@ -152,11 +151,20 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			schemaContext = null;
 		}
 		Properties.resetApplication();
-		Properties.loadBootstrapPropertyFile();
+
+		PrintStream oldPrintStream = System.out;
+		System.setOut(NullPrintStream.INSTANCE);
+		try
+		{
+			Properties.loadBootstrapPropertyFile();
+		}
+		finally
+		{
+			System.setOut(oldPrintStream);
+		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.putString(LoggerFactory.logLevelProperty(LogPreparedStatementInterceptor.class), "INFO");
-		baseProps.putString(LoggerFactory.logLevelProperty(LogStatementInterceptor.class), "INFO");
+		baseProps.putString("ambeth.log.level", "WARN");
 
 		extendProperties(null, baseProps);
 
@@ -940,7 +948,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		BufferedReader br = null;
 		try
 		{
-			String lookupName = fileName.startsWith("/")?fileName.substring(1):fileName;
+			String lookupName = fileName.startsWith("/") ? fileName.substring(1) : fileName;
 			InputStream sqlStream = FileUtil.openFileStream(lookupName, log);
 			if (sqlStream != null)
 			{
