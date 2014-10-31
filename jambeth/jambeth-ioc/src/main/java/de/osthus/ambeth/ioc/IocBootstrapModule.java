@@ -1,9 +1,11 @@
 package de.osthus.ambeth.ioc;
 
+import java.io.File;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.converter.StringToClassArrayConverter;
 import de.osthus.ambeth.converter.StringToDoubleArrayConverter;
+import de.osthus.ambeth.converter.StringToFileConverter;
 import de.osthus.ambeth.converter.StringToFloatArrayConverter;
 import de.osthus.ambeth.converter.StringToIntArrayConverter;
 import de.osthus.ambeth.converter.StringToLongArrayConverter;
@@ -43,6 +45,9 @@ public class IocBootstrapModule implements IInitializingModule
 
 		beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
+
+		IBeanConfiguration stringToFileConverter = beanContextFactory.registerAnonymousBean(StringToFileConverter.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File.class);
 
 		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerAnonymousBean(StringToClassArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class, Class[].class);

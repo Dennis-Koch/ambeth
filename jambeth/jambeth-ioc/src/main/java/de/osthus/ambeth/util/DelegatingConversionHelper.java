@@ -1,5 +1,6 @@
 package de.osthus.ambeth.util;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -51,38 +52,45 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 		{
 			return defaultConversionHelper.convertValueToType(expectedType, value);
 		}
-		Object targetValue = value;
-		while (true)
+		try
 		{
-			Class<?> targetClass = targetValue.getClass();
-			IDedicatedConverter dedicatedConverter = getExtension(targetClass, expectedType);
-			if (dedicatedConverter == null)
+			Object targetValue = value;
+			while (true)
 			{
-				break;
-			}
-			Object newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
-			if (newTargetValue == null)
-			{
-				if (expectedType.isPrimitive())
+				Class<?> targetClass = targetValue.getClass();
+				IDedicatedConverter dedicatedConverter = getExtension(targetClass, expectedType);
+				if (dedicatedConverter == null)
 				{
-					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
-							+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+					break;
 				}
-				return null;
+				Object newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
+				if (newTargetValue == null)
+				{
+					if (expectedType.isPrimitive())
+					{
+						throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
+								+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+					}
+					return null;
+				}
+				if (expectedType.isAssignableFrom(newTargetValue.getClass()))
+				{
+					return (T) newTargetValue;
+				}
+				if (newTargetValue.getClass().equals(targetValue.getClass()))
+				{
+					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName()
+							+ " returns a value of the same type (" + newTargetValue.getClass().getName() + ") after conversion like " + dedicatedConverter
+							+ " did");
+				}
+				targetValue = newTargetValue;
 			}
-			if (expectedType.isAssignableFrom(newTargetValue.getClass()))
-			{
-				return (T) newTargetValue;
-			}
-			if (newTargetValue.getClass().equals(targetValue.getClass()))
-			{
-				throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName()
-						+ " returns a value of the same type (" + newTargetValue.getClass().getName() + ") after conversion like " + dedicatedConverter
-						+ " did");
-			}
-			targetValue = newTargetValue;
+			return defaultConversionHelper.convertValueToType(expectedType, targetValue, additionalInformation);
 		}
-		return defaultConversionHelper.convertValueToType(expectedType, targetValue, additionalInformation);
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

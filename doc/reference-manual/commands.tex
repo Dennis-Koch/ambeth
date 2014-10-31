@@ -1,0 +1,140 @@
+\newcommand{\TODO}{{\textcolor[rgb]{1,0,0}{\Huge{TODO}}}}
+
+\newcommand{\AMBETH}{{\emph\LARGE{Ambeth}}}
+
+\newcommand{\type}[1]{\textit{#1}}
+
+\newcommand{\typea}[2]{\textit{#2}}
+
+\newcommand{\typeprop}[1]{\textit{#1}}
+
+\newcommand{\prettyref}[1]
+{\nameref{#1} (c.\ref{#1}, p.\pageref{#1})}
+
+\newcommand{\shortprettyref}[1]
+{c.\ref{#1}, p.\pageref{#1}}
+
+\newcommand{\figureref}[1]
+{f.\ref{#1}, p. \pageref{#1}}
+
+\newcommand{\inputjava}[2]
+{
+	\lstinputlisting[caption={#1 (Java)},style=Java]
+		{../../jambeth/#2}
+}
+
+\newcommand{\inputcsharp}[2]
+{
+	\lstinputlisting[caption={#1 (C\#)},style=Csharp]
+		{../../ambeth/#2}
+}
+
+\newcommand{\javadoc}[2]
+{\href{http://www.osthus.com/ambeth/javadoc/#1}{#2}}
+
+\newcommand{\feature}[7]
+{	
+%\begin{wrapfigure}{r}{0.5\textwidth}
+    %\begin{tabular}{ c | p{5cm}}
+    %\hline
+    %JavaDoc & \javadoc{#1}{#1} \\ \hline
+		%Example & \javadoc{#7}{#7} \\ \hline
+		%Environment & #2 \\ \hline
+    %Since & #3 \\ \hline
+		%Ticket & #4 \\ \hline
+		%Config & #5 \\ \hline
+		%Module & \prettyref{#6} \\ \hline
+    %\end{tabular}
+%\end{wrapfigure}
+}
+
+\newcommand{\tip}[1]
+{
+	\mdfdefinestyle{mystyle}
+	{
+		%shadow=true,
+		%shadowsize=5pt,
+		%shadowcolor=darkyellow,
+		linewidth=5pt,
+		%leftmargin=1cm,
+		linecolor=yellow,
+		roundcorner=10pt
+		frametitlerule=true,
+		frametitle={Did you know?}
+	}
+	\begin{mdframed}[style=mystyle]
+		#1
+	\end{mdframed}
+}
+
+\newcommand{\showimg}[1]
+{
+	\begin{figure}[!htbp]
+		\centering
+		\edef\tmp{\noexpand\includegraphics[width=0.75\linewidth]{\showimgref}}\tmp
+		%\includegraphics[width=0.33\textwidth, angle=30]{#2}
+		\caption{#1}
+		\label{img:\showimgref}
+	\end{figure}
+}
+
+\newcommand{\showimgfull}[1]
+{
+	\begin{figure}[!htbp]
+		\centering
+		\edef\tmp{\noexpand\includegraphics[width=\linewidth]{\showimgref}}\tmp
+		%\includegraphics[width=0.33\textwidth, angle=30]{#2}
+		\caption{#1}
+		\label{img:\showimgref}
+	\end{figure}
+}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\def\javalogo{img/Java-Logo}
+\def\csharplogo{img/csharpdotnet}
+
+\newcommand{\AvailableInJavaOnly}[1]
+{	
+	\AvailableInJavaAndCsharpInternal{#1}{\includesvg[\hsize]{\javalogo}}{}
+}
+
+\newcommand{\AvailableInCsharpOnly}[1]
+{
+	\AvailableInJavaAndCsharpInternal{#1}{}{\includegraphics[width=\hsize]{\csharplogo}}
+}
+
+\newcommand{\AvailableInJavaAndCsharp}[1]
+{
+	\AvailableInJavaAndCsharpInternal{#1}{\includesvg[\hsize]{\javalogo}}{\includegraphics[width=\hsize]{\csharplogo}}
+}
+
+\newcommand{\AvailableInJavaAndCsharpInternal}[3]
+{
+	\begin{tabular}{ L{0.77\linewidth} C{0.06\linewidth} C{0.15\linewidth} } #1 & #2 & #3 \\
+	\end{tabular}	
+}
+
+%% Include SVG graphics
+%% see http://laclaro.wordpress.com/2011/07/30/svg-vektorgrafiken-in-latex-dokumente-einbinden/
+\newcommand{\executeiffilenewer}[3]{%
+  \ifnum\pdfstrcmp{\pdffilemoddate{#1}}%
+  {\pdffilemoddate{#2}}>0%
+  {\immediate\write18{#3}}\fi%
+}
+% set inkscape binary path according to operating-system
+\IfFileExists{/dev/null}{%
+  \newcommand{\Inkscape}{inkscape }%
+  }{%
+  \newcommand{\Inkscape}{"../../../../inkscape/App/Inkscape/inkscape.exe" }%
+}
+
+% includesvg[width]{file} command
+\newcommand{\includesvg}[2][1]{%
+  \executeiffilenewer{#2.svg}{#2.pdf}{%
+  \Inkscape -z -C --file="#2.svg" --export-pdf="#2.pdf" --export-latex
+	}
+	\resizebox{#1}{!}{\input{#2.pdf_tex}}%
+}
