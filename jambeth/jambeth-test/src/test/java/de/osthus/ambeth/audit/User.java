@@ -8,4 +8,8 @@ public interface User extends IAbstractEntity, IUser
 	String getName();
 
 	void setName(String name);
+
+	boolean isActive();
+
+	void setActive(boolean active);
 }

@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="ambeth\config\PropertiesPreProcessor.cs" />
     <Compile Include="ambeth\config\PropertyAttribute.cs" />
+    <Compile Include="ambeth\converter\StringToFileConverter.cs" />
     <Compile Include="ambeth\debug\FlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\ioc\annotation\AutowiredAttribute.cs" />
     <Compile Include="ambeth\ioc\config\AbstractBeanConfiguration.cs" />

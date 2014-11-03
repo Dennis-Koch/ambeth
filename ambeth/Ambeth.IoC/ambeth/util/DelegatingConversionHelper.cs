@@ -2,6 +2,7 @@ using System;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Exceptions;
 
 namespace De.Osthus.Ambeth.Util
 {
@@ -70,7 +71,15 @@ namespace De.Osthus.Ambeth.Util
                 {
                     break;
                 }
-                Object newTargetValue = dedicatedConverter.ConvertValueToType(expectedType, targetClass, targetValue, additionalInformation);
+                Object newTargetValue;
+                try
+                {
+                    newTargetValue = dedicatedConverter.ConvertValueToType(expectedType, targetClass, targetValue, additionalInformation);
+                }
+                catch (Exception e)
+                {
+                    throw RuntimeExceptionUtil.Mask(e, "Error occured while converting value: " + targetValue);
+                }
                 if (newTargetValue == null)
                 {
                     if (expectedType.IsValueType)
