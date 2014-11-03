@@ -49,7 +49,7 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-xml</artifactId>
+			<artifactId>jambeth-ioc</artifactId>
 			<version>${ambeth.version}</version>
 		</dependency>
 	</dependencies>

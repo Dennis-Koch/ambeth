@@ -5,20 +5,35 @@ import java.util.regex.Pattern;
 
 import javassist.CtClass;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.classbrowser.java.TypeDescription;
 
 public class ExtendableEntry
 {
 	public static final Pattern pattern = Pattern.compile("(?:.*[/\\.])?([^/\\.]+)");
 
-	public CtClass javaType;
+	public boolean hasArguments;
 
-	public String fqExtensionName;
+	public TypeDescription javaSrc;
 
-	public String simpleExtensionName;
+	public TypeDescription csharpSrc;
 
-	public boolean inJava;
+	public String javaFile;
 
-	public boolean inCSharp;
+	public String csharpFile;
+
+	public final String fqExtensionName;
+
+	public final String simpleExtensionName;
+
+	public boolean inJava()
+	{
+		return javaSrc != null;
+	}
+
+	public boolean inCSharp()
+	{
+		return csharpSrc != null;
+	}
 
 	public final String simpleName;
 

@@ -1,4 +1,15 @@
 \section{IDatasetBuilderExtensionExtendable}
 \label{extendable:IDatasetBuilderExtensionExtendable}
-\javadoc{de.osthus.ambeth.util.setup.IDatasetBuilderExtensionExtendable}{IDatasetBuilderExtensionExtendable}
-\TODO
+\AvailableInJavaOnly{\javadoc{de.osthus.ambeth.util.setup.IDatasetBuilderExtensionExtendable}{IDatasetBuilderExtensionExtendable}
+\javadoc{de.osthus.ambeth.util.setup.IDatasetBuilder}{IDatasetBuilder}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IDatasetBuilder}}
+{jambeth-merge/src/main/java/de/osthus/ambeth/util/setup/IDatasetBuilderExtensionExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IDatasetBuilderExtensionExtendable.class);
+\end{lstlisting}
+%% GENERATED LISTINGS END

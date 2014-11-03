@@ -1,4 +1,22 @@
 \section{IImplementAbstractObjectFactoryExtendable}
 \label{extendable:IImplementAbstractObjectFactoryExtendable}
-\javadoc{de.osthus.ambeth.bytecode.abstractobject.IImplementAbstractObjectFactoryExtendable}{IImplementAbstractObjectFactoryExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.bytecode.abstractobject.IImplementAbstractObjectFactoryExtendable}{IImplementAbstractObjectFactoryExtendable}
+\javadoc{java.lang.Class<?>}{Class<?>}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{Class<?>}}
+{jambeth-bytecode/src/main/java/de/osthus/ambeth/bytecode/abstractobject/IImplementAbstractObjectFactoryExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IImplementAbstractObjectFactoryExtendable.class);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{Class<?>}}
+{Ambeth.Bytecode/ambeth/bytecode/abstractobject/IImplementAbstractObjectFactoryExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IImplementAbstractObjectFactoryExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

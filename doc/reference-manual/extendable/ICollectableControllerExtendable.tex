@@ -1,4 +1,15 @@
 \section{ICollectableControllerExtendable}
 \label{extendable:ICollectableControllerExtendable}
-\javadoc{de.osthus.ambeth.objectcollector.ICollectableControllerExtendable}{ICollectableControllerExtendable}
-\TODO
+\AvailableInJavaOnly{\javadoc{de.osthus.ambeth.objectcollector.ICollectableControllerExtendable}{ICollectableControllerExtendable}
+\javadoc{de.osthus.ambeth.objectcollector.ICollectableController}{ICollectableController}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{ICollectableController}}
+{jambeth-util/src/main/java/de/osthus/ambeth/objectcollector/ICollectableControllerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(ICollectableControllerExtendable.class).with(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

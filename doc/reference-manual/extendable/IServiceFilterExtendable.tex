@@ -1,4 +1,22 @@
 \section{IServiceFilterExtendable}
 \label{extendable:IServiceFilterExtendable}
-\javadoc{de.osthus.ambeth.security.IServiceFilterExtendable}{IServiceFilterExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.security.IServiceFilterExtendable}{IServiceFilterExtendable}
+\javadoc{de.osthus.ambeth.security.IServiceFilter}{IServiceFilter}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IServiceFilter}}
+{jambeth-security/src/main/java/de/osthus/ambeth/security/IServiceFilterExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IServiceFilterExtendable.class);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IServiceFilter}}
+{Ambeth.Security/ambeth/security/IServiceFilterExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IServiceFilterExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END
