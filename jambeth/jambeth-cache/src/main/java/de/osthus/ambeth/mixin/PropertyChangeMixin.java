@@ -1,4 +1,4 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -40,7 +40,7 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.typeinfo.PropertyInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
 
-public class PropertyChangeTemplate implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
+public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
 {
 	public static final Object UNKNOWN_VALUE = new Object();
 

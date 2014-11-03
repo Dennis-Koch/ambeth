@@ -30,6 +30,7 @@ import de.osthus.ambeth.merge.IProxyHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.model.IEmbeddedType;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
@@ -37,7 +38,6 @@ import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.testutil.AbstractInformationBusTest;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -80,7 +80,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 	protected IProxyHelper proxyHelper;
 
 	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	protected ValueHolderContainerMixin valueHolderContainerTemplate;
 
 	// static int count = 10000000;
 	//

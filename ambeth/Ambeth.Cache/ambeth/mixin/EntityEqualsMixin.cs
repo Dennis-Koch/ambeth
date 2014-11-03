@@ -4,9 +4,9 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class EntityEqualsTemplate
+    public class EntityEqualsMixin
     {
         public bool Equals(IEntityEquals left, Object right)
         {

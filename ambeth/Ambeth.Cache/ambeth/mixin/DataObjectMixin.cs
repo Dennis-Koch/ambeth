@@ -4,9 +4,9 @@ using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Model;
 using System;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class DataObjectTemplate
+    public class DataObjectMixin
     {
         [Autowired]
         public ICacheModification CacheModification { protected get; set; }

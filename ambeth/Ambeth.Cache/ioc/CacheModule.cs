@@ -23,7 +23,7 @@ using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Walker;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Databinding;
 
 namespace De.Osthus.Ambeth.Ioc
@@ -201,12 +201,12 @@ namespace De.Osthus.Ambeth.Ioc
                 //beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
                 //beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
             }
-            beanContextFactory.RegisterAnonymousBean<DataObjectTemplate>().Autowireable<DataObjectTemplate>();
-            beanContextFactory.RegisterAnonymousBean<EntityEqualsTemplate>().Autowireable<EntityEqualsTemplate>();
-            beanContextFactory.RegisterAnonymousBean<EmbeddedTypeTemplate>().Autowireable<EmbeddedTypeTemplate>();
-            beanContextFactory.RegisterAnonymousBean<PropertyChangeTemplate>().Autowireable(typeof(PropertyChangeTemplate),
+            beanContextFactory.RegisterAnonymousBean<DataObjectMixin>().Autowireable<DataObjectMixin>();
+            beanContextFactory.RegisterAnonymousBean<EntityEqualsMixin>().Autowireable<EntityEqualsMixin>();
+            beanContextFactory.RegisterAnonymousBean<EmbeddedTypeMixin>().Autowireable<EmbeddedTypeMixin>();
+            beanContextFactory.RegisterAnonymousBean<PropertyChangeMixin>().Autowireable(typeof(PropertyChangeMixin),
                 typeof(IPropertyChangeExtensionExtendable), typeof(ICollectionChangeExtensionExtendable));
-            beanContextFactory.RegisterAnonymousBean<ValueHolderContainerTemplate>().Autowireable<ValueHolderContainerTemplate>();
+            beanContextFactory.RegisterAnonymousBean<ValueHolderContainerMixin>().Autowireable<ValueHolderContainerMixin>();
         }
     }
 }

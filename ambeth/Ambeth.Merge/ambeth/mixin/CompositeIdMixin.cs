@@ -3,9 +3,9 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class CompositeIdTemplate
+    public class CompositeIdMixin
     {
         public bool EqualsCompositeId(ITypeInfoItem[] members, Object left, Object right)
         {

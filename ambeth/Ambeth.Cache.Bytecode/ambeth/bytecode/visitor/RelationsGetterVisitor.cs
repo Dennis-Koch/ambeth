@@ -5,7 +5,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -37,7 +37,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public static readonly Type templateType = typeof(ValueHolderContainerTemplate);
+        public static readonly Type templateType = typeof(ValueHolderContainerMixin);
 
         protected static readonly String templatePropertyName = "__" + templateType.Name;
 

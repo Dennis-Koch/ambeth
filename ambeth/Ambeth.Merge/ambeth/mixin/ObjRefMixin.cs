@@ -10,9 +10,9 @@ using System;
 using System.Reflection;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class ObjRefTemplate
+    public class ObjRefMixin
     {
         [LogInstance]
         public ILogger Log { private get; set; }

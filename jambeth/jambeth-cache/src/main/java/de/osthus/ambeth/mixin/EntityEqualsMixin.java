@@ -1,10 +1,10 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class EntityEqualsTemplate
+public class EntityEqualsMixin
 {
 	public boolean equals(IEntityEquals left, Object right)
 	{

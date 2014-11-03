@@ -1,9 +1,9 @@
 ﻿using De.Osthus.Ambeth.Model;
 using System;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class EmbeddedTypeTemplate
+    public class EmbeddedTypeMixin
     {
         public Object GetRoot(IEmbeddedType embeddedObject)
         {

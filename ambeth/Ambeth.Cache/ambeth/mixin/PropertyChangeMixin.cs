@@ -23,9 +23,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class PropertyChangeTemplate : IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
+    public class PropertyChangeMixin : IPropertyChangeExtensionExtendable, ICollectionChangeExtensionExtendable
     {
         public static readonly Object UNKNOWN_VALUE = new Object();
 

@@ -10,7 +10,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using System;
@@ -49,7 +49,7 @@ namespace De.Osthus.Ambeth.Util
         public IObjRefHelper ObjRefHelper { protected get; set; }
 
         [Autowired]
-        public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
+        public ValueHolderContainerMixin ValueHolderContainerMixin { protected get; set; }
 
         protected readonly ThreadLocal<HashSet<AlreadyHandledItem>> alreadyHandledSetTL = new ThreadLocal<HashSet<AlreadyHandledItem>>();
 
@@ -173,7 +173,7 @@ namespace De.Osthus.Ambeth.Util
                     setCreated = true;
                 }
                 IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
-                ValueHolderContainerTemplate valueHolderContainerTemplate = this.ValueHolderContainerTemplate;
+                ValueHolderContainerMixin valueHolderContainerMixin = this.ValueHolderContainerMixin;
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRef>>();
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>>();
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<ICacheIntern, IISet<IObjRef>>();
@@ -314,7 +314,7 @@ namespace De.Osthus.Ambeth.Util
                                 }
                                 int relationIndex = vhc.Get__EntityMetaData().GetIndexByRelation(member);
                                 IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex);
-                                obj = valueHolderContainerTemplate.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
+                                obj = valueHolderContainerMixin.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
                                 if (doSetValue && obj != null)
                                 {
                                     member.SetValue(vhc, obj);
@@ -550,7 +550,7 @@ namespace De.Osthus.Ambeth.Util
                 IObjRef[] rcvObjRefs = rcv.GetRelation(relationIndex);
                 if (rcvObjRefs == null)
                 {
-                    IObjRelation self = ValueHolderContainerTemplate.GetSelf(rcv, member.Name);
+                    IObjRelation self = ValueHolderContainerMixin.GetSelf(rcv, member.Name);
                     ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.Get(rootCache);
                     if (orelsLoadedHistory == null || !orelsLoadedHistory.Contains(self))
                     {

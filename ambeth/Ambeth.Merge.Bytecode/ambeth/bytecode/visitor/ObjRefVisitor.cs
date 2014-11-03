@@ -2,7 +2,7 @@ using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Metadata;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -14,7 +14,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class ObjRefVisitor : ClassVisitor
     {
-        public static readonly Type templateType = typeof(ObjRefTemplate);
+        public static readonly Type templateType = typeof(ObjRefMixin);
 
 	    protected static readonly String templatePropertyName = templateType.Name;
 

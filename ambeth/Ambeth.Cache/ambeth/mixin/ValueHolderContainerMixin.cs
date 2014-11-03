@@ -19,9 +19,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class ValueHolderContainerTemplate
+    public class ValueHolderContainerMixin
     {
         protected readonly QueueGroupKey<DirectValueHolderRef> loadAllPendingValueHoldersQGK;
 
@@ -53,7 +53,7 @@ namespace De.Osthus.Ambeth.Template
         [Autowired]
         public IThreadPool ThreadPool { protected get; set; }
 
-        public ValueHolderContainerTemplate()
+        public ValueHolderContainerMixin()
         {
             loadAllPendingValueHoldersQGK = new QueueGroupKey<DirectValueHolderRef>(100, false, LoadAllPendingValueHolders);
         }

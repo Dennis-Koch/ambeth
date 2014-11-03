@@ -4,16 +4,16 @@ import de.osthus.ambeth.bytecode.ClassGenerator;
 import de.osthus.ambeth.bytecode.MethodGenerator;
 import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
+import de.osthus.ambeth.mixin.EntityEqualsMixin;
 import de.osthus.ambeth.proxy.IEntityEquals;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.template.EntityEqualsTemplate;
 import de.osthus.ambeth.util.IPrintable;
 
 public class EntityEqualsVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = EntityEqualsTemplate.class;
+	public static final Class<?> templateType = EntityEqualsMixin.class;
 
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 

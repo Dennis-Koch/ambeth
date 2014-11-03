@@ -106,7 +106,6 @@
     <Compile Include="ambeth\bytecode\visitor\DataObjectVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\DefaultPropertiesMethodVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityEqualsVisitor.cs" />
-    <Compile Include="ambeth\bytecode\visitor\FieldAndSetterTemplate.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetBaseTypeMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetIdMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\NotifyPropertyChangedClassVisitor.cs" />

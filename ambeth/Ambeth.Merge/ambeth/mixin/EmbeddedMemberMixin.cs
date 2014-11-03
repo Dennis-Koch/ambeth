@@ -6,9 +6,9 @@ using De.Osthus.Ambeth.Log;
 using System;
 using System.Reflection;
 
-namespace De.Osthus.Ambeth.Template
+namespace De.Osthus.Ambeth.Mixin
 {
-    public class EmbeddedMemberTemplate
+    public class EmbeddedMemberMixin
     {
         [LogInstance]
         public ILogger Log { private get; set; }

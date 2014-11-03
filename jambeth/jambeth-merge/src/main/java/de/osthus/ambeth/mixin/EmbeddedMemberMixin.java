@@ -1,4 +1,4 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -13,7 +13,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class EmbeddedMemberTemplate
+public class EmbeddedMemberMixin
 {
 	@SuppressWarnings("unused")
 	@LogInstance

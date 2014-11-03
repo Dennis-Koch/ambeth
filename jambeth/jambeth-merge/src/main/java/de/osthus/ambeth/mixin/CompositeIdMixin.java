@@ -1,11 +1,11 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class CompositeIdTemplate
+public class CompositeIdMixin
 {
 	@SuppressWarnings("unused")
 	@LogInstance
