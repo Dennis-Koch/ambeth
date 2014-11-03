@@ -1,5 +1,5 @@
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
@@ -9,7 +9,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class EntityEqualsVisitor : ClassVisitor
     {
-        public static readonly Type templateType = typeof(EntityEqualsTemplate);
+        public static readonly Type templateType = typeof(EntityEqualsMixin);
 
         public static readonly String templatePropertyName = "__" + templateType.Name;
 

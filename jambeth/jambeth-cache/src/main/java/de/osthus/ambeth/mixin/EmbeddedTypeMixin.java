@@ -1,10 +1,10 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.model.IEmbeddedType;
 
-public class EmbeddedTypeTemplate
+public class EmbeddedTypeMixin
 {
 	@SuppressWarnings("unused")
 	@LogInstance

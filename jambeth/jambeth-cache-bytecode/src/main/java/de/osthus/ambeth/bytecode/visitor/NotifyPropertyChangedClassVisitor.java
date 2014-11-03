@@ -22,6 +22,7 @@ import de.osthus.ambeth.collections.specialized.NotifyCollectionChangedEvent;
 import de.osthus.ambeth.collections.specialized.PropertyChangeSupport;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.mixin.PropertyChangeMixin;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
 import de.osthus.ambeth.proxy.IPropertyChangeConfigurable;
@@ -30,7 +31,6 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.PropertyChangeTemplate;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
@@ -41,7 +41,7 @@ import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
  */
 public class NotifyPropertyChangedClassVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = PropertyChangeTemplate.class;
+	public static final Class<?> templateType = PropertyChangeMixin.class;
 
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 

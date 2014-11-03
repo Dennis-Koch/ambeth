@@ -1,7 +1,7 @@
 using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Metadata;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;

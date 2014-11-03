@@ -12,7 +12,7 @@ using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -54,7 +54,7 @@ namespace De.Osthus.Ambeth.Cache
         public ISecondLevelCacheManager SecondLevelCacheManager { protected get; set; }
 
         [Autowired]
-        public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
+        public ValueHolderContainerMixin ValueHolderContainerMixin { protected get; set; }
 
         public void HandleEvent(Object eventObject, DateTime dispatchTime, long sequenceId)
         {
@@ -579,7 +579,7 @@ namespace De.Osthus.Ambeth.Cache
 	    {
 		    if (relationsOfMember == null)
 		    {
-			    IObjRelation objRelation = ValueHolderContainerTemplate.GetSelf(entity, member.Name);
+			    IObjRelation objRelation = ValueHolderContainerMixin.GetSelf(entity, member.Name);
 			    node.cascadeRefreshObjRelationsSet.Add(objRelation);
                 IObjRef[] objRefs = objRelation.ObjRefs;
                 for (int a = objRefs.Length; a-- > 0; )

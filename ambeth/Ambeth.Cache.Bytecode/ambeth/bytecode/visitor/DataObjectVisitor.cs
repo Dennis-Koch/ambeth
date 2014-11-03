@@ -3,7 +3,7 @@ using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -16,11 +16,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class DataObjectVisitor : ClassVisitor
     {
-        public static readonly Type templateType = typeof(DataObjectTemplate);
+        public static readonly Type templateType = typeof(DataObjectMixin);
 
         protected static readonly String templatePropertyName = "__" + templateType.Name;
 
-        public static readonly MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, typeof(DataObjectTemplate), typeof(void), "ToBeUpdatedChanged",
+        public static readonly MethodInstance m_toBeUpdatedChanged = new MethodInstance(null, typeof(DataObjectMixin), typeof(void), "ToBeUpdatedChanged",
             typeof(IDataObject), typeof(bool), typeof(bool));
 
         public static readonly PropertyInstance p_hasPendingChanges = PropertyInstance.FindByTemplate(typeof(IDataObject), "HasPendingChanges", typeof(bool), false);

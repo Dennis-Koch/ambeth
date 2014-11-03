@@ -1,4 +1,4 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.util.ICacheHelper;
 
-public class ValueHolderContainerTemplate
+public class ValueHolderContainerMixin
 {
 	@SuppressWarnings("unused")
 	@LogInstance

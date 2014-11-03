@@ -15,7 +15,7 @@ using De.Osthus.Ambeth.Orm;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Remote;
 using De.Osthus.Ambeth.Service;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Xml;
@@ -54,8 +54,8 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterAutowireableBean<IMergeController, MergeController>();
             beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>();
 
-            beanContextFactory.RegisterAutowireableBean<CompositeIdTemplate, CompositeIdTemplate>();
-            beanContextFactory.RegisterAutowireableBean<ObjRefTemplate, ObjRefTemplate>();
+            beanContextFactory.RegisterAutowireableBean<CompositeIdMixin, CompositeIdMixin>();
+            beanContextFactory.RegisterAutowireableBean<ObjRefMixin, ObjRefMixin>();
 
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
@@ -101,7 +101,7 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterAnonymousBean<RelationProvider>().Autowireable<IRelationProvider>();
 
             beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
-		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberTemplate>().Autowireable<EmbeddedMemberTemplate>();
+		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberMixin>().Autowireable<EmbeddedMemberMixin>();
             
             beanContextFactory.RegisterAnonymousBean<ObjRefFactory>().Autowireable<IObjRefFactory>();
             IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.RegisterAnonymousBean<ObjRefObjectCopierExtension>();

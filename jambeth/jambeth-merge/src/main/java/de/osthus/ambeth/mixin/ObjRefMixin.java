@@ -1,4 +1,4 @@
-package de.osthus.ambeth.template;
+package de.osthus.ambeth.mixin;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -6,7 +6,7 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class ObjRefTemplate
+public class ObjRefMixin
 {
 	@SuppressWarnings("unused")
 	@LogInstance

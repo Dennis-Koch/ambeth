@@ -2,7 +2,7 @@ using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.CompositeId;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Metadata;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -65,7 +65,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 		    CompositeIdEnhancementHint context = State.GetContext<CompositeIdEnhancementHint>();
             Member[] idMembers = context.IdMembers;
 
-		    CompositeIdTemplate compositeIdTemplate = State.BeanContext.GetService<CompositeIdTemplate>();
+		    CompositeIdMixin compositeIdTemplate = State.BeanContext.GetService<CompositeIdMixin>();
 
 		    PropertyInstance p_compositeIdTemplate = ImplementAssignedReadonlyProperty("CompositeIdTemplate", compositeIdTemplate);
 
