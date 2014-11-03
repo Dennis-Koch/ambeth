@@ -3,6 +3,7 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CSharp;
+using System.Text.RegularExpressions;
 
 namespace CsharpClassbrowser
 {
@@ -32,6 +33,8 @@ namespace CsharpClassbrowser
         public const string MODIFIER_INTERNAL = "internal";
 
         public const string GENERIC_TYPE_PREFIX = "generic:";
+
+        public static readonly Regex backingFieldPattern = new Regex("<(.+)>k__BackingField");
 
         #endregion
 
@@ -300,12 +303,34 @@ namespace CsharpClassbrowser
                 foreach (var fieldInfo in fieldInfos)
                 {
                     IList<String> attributes = GetAnnotationNames(fieldInfo);
+
+                    Match match = backingFieldPattern.Match(fieldInfo.Name);
+                    if (match.Success)
+                    {
+                        // check for a .NET property of the field to map the annotations from there to the current field
+
+                        String propertyName = match.Groups[1].Value;
+                        PropertyInfo pi = givenType.GetProperty(propertyName);
+                        if (pi == null)
+                        {
+                            throw new Exception("Property not found: " + givenType.FullName + "." + propertyName);
+                        }
+                        IList<String> propertyAttributes = GetAnnotationNames(pi);
+                        foreach (String propertyAttribute in propertyAttributes)
+                        {
+                            attributes.Add(propertyAttribute);
+                        }
+                    }
+
                     bool isLoggerField = attributes.Contains("De.Osthus.Ambeth.Log.LogInstanceAttribute");
                     bool isAutowired = attributes.Contains("De.Osthus.Ambeth.Ioc.Annotation.AutowiredAttribute");
+
+                    bool isProperty = attributes.Contains("De.Osthus.Ambeth.Config.PropertyAttribute");
+
                     // on enums only "recognize" the enum values and not the internal field to save the integer value
                     bool isEnumAndEnumConstant = isEnum && fieldInfo.IsStatic;
 
-                    if (isAutowired || isLoggerField || isEnumAndEnumConstant)
+                    if (isAutowired || isLoggerField || isEnumAndEnumConstant || isProperty)
                     {
                         var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
                         IList<String> annotations = fieldDescription.Annotations;
