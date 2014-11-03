@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
@@ -457,6 +458,10 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 				{
 					return getISO_8601_DateFormat().format(value);
 				}
+			}
+			if (Calendar.class.isAssignableFrom(type))
+			{
+				return getISO_8601_DateFormat().format(((Calendar) value).getTime());
 			}
 			return value.toString();
 		}

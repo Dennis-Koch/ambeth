@@ -231,7 +231,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IList<IPrivilege> getPrivilegesByObjRef(Collection<? extends IObjRef> objRefs, ISecurityScope[] securityScopes)
 	{
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null)
 		{
 			throw new SecurityException("User must be authorized to be able to check for privileges");

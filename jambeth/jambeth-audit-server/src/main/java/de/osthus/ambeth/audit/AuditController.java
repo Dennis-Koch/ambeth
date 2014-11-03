@@ -393,7 +393,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		char[] clearTextPassword = clearTextPasswordTL.get();
 
 		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user, clearTextPassword);
-		auditEntry.setUserIdentifier(userIdentifierProvider.getSID(user));
+		auditEntry.setUserIdentifier(user != null ? userIdentifierProvider.getSID(user) : null);
 		auditEntry.setSignatureOfUser(user != null ? user.getSignature() : null);
 		if (signatureHandle == null)
 		{

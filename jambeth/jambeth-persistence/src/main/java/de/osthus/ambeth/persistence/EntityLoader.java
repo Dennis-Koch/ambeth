@@ -215,8 +215,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 
 			RelationMember relationMember = targetingRequestLink.getMember();
 			Class<?> requestedType = relationMember.getElementType();
-			ITable requestedTable = database.getTableByType(requestedType);
 			IEntityMetaData requestedMetaData = entityMetaDataProvider.getMetaData(requestedType);
+			requestedType = requestedMetaData.getEntityType();
+			ITable requestedTable = database.getTableByType(requestedType);
 			Member targetingIdMember = targetingRequestMetaData.getIdMemberByIdIndex(idIndex);
 
 			ArrayList<Object> fromIds = new ArrayList<Object>();

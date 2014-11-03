@@ -6,6 +6,7 @@ import java.lang.ref.WeakReference;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.IAuthorizationChangeListener;
+import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
@@ -39,7 +40,8 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	public void acquired()
 	{
 		boundThread = new WeakReference<Thread>(Thread.currentThread());
-		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		String user = authorization != null ? authorization.getSID() : null;
 		setCurrentUser(user);
 	}

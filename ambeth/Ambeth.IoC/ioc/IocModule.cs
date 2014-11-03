@@ -7,6 +7,7 @@ using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Util.Converter;
 using System;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace De.Osthus.Ambeth.Ioc
@@ -32,6 +33,10 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<CharArrayConverter>("charArrayConverter");
             DedicatedConverterUtil.BiLink(beanContextFactory, "charArrayConverter", typeof(String), typeof(char[]));
+
+            IBeanConfiguration stringToFileConverter = beanContextFactory.RegisterAnonymousBean<StringToFileConverter>();
+		    DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(FileInfo));
+            DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(DirectoryInfo));
 
             IBeanConfiguration stringToClassArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToClassArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToClassArrayConverter, typeof(String), typeof(Type[]));

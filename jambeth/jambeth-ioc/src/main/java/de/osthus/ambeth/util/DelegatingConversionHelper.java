@@ -52,45 +52,46 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 		{
 			return defaultConversionHelper.convertValueToType(expectedType, value);
 		}
-		try
+		Object targetValue = value;
+		while (true)
 		{
-			Object targetValue = value;
-			while (true)
+			Class<?> targetClass = targetValue.getClass();
+			IDedicatedConverter dedicatedConverter = getExtension(targetClass, expectedType);
+			if (dedicatedConverter == null)
 			{
-				Class<?> targetClass = targetValue.getClass();
-				IDedicatedConverter dedicatedConverter = getExtension(targetClass, expectedType);
-				if (dedicatedConverter == null)
-				{
-					break;
-				}
-				Object newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
-				if (newTargetValue == null)
-				{
-					if (expectedType.isPrimitive())
-					{
-						throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
-								+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
-					}
-					return null;
-				}
-				if (expectedType.isAssignableFrom(newTargetValue.getClass()))
-				{
-					return (T) newTargetValue;
-				}
-				if (newTargetValue.getClass().equals(targetValue.getClass()))
-				{
-					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName()
-							+ " returns a value of the same type (" + newTargetValue.getClass().getName() + ") after conversion like " + dedicatedConverter
-							+ " did");
-				}
-				targetValue = newTargetValue;
+				break;
 			}
-			return defaultConversionHelper.convertValueToType(expectedType, targetValue, additionalInformation);
+			Object newTargetValue;
+			try
+			{
+				newTargetValue = dedicatedConverter.convertValueToType(expectedType, targetClass, targetValue, additionalInformation);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occured while converting value: " + targetValue);
+			}
+			if (newTargetValue == null)
+			{
+				if (expectedType.isPrimitive())
+				{
+					throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName() + " returns null like "
+							+ dedicatedConverter + " did for conversion from '" + targetClass.getName() + "' to '" + expectedType + "'");
+				}
+				return null;
+			}
+			if (expectedType.isAssignableFrom(newTargetValue.getClass()))
+			{
+				return (T) newTargetValue;
+			}
+			if (newTargetValue.getClass().equals(targetValue.getClass()))
+			{
+				throw new IllegalStateException("It is not allowed that an instance of " + IDedicatedConverter.class.getName()
+						+ " returns a value of the same type (" + newTargetValue.getClass().getName() + ") after conversion like " + dedicatedConverter
+						+ " did");
+			}
+			targetValue = newTargetValue;
 		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return defaultConversionHelper.convertValueToType(expectedType, targetValue, additionalInformation);
 	}
 
 	@Override
