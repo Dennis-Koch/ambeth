@@ -1,4 +1,22 @@
 \section{IEventBatcherExtendable}
 \label{extendable:IEventBatcherExtendable}
-\javadoc{de.osthus.ambeth.event.IEventBatcherExtendable}{IEventBatcherExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.event.IEventBatcherExtendable}{IEventBatcherExtendable}
+\javadoc{de.osthus.ambeth.event.IEventBatcher}{IEventBatcher}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IEventBatcher}}
+{jambeth-event/src/main/java/de/osthus/ambeth/event/IEventBatcherExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IEventBatcherExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IEventBatcher}}
+{Ambeth.Event/ambeth/event/IEventBatcherExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IEventBatcherExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

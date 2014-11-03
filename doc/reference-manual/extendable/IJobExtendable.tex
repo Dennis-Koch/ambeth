@@ -1,4 +1,15 @@
 \section{IJobExtendable}
 \label{extendable:IJobExtendable}
-\javadoc{de.osthus.ambeth.job.IJobExtendable}{IJobExtendable}
-\TODO
+\AvailableInJavaOnly{\javadoc{de.osthus.ambeth.job.IJobExtendable}{IJobExtendable}
+\javadoc{de.osthus.ambeth.job.IJob}{IJob}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IJob}}
+{jambeth-job/src/main/java/de/osthus/ambeth/job/IJobExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IJobExtendable.class).with(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END
