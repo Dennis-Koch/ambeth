@@ -4,25 +4,29 @@ import java.util.Collection;
 
 public interface IDeprecation
 {
-
 	public interface IDeprecationInstance
 	{
-
-		boolean isDeprecated(Collection<String> annotationNames);
-
+		boolean isDeprecated(Collection<AnnotationInfo> annotationNames);
 	}
 
 	public static final IDeprecationInstance INSTANCE = new IDeprecationInstance()
 	{
 
 		@Override
-		public boolean isDeprecated(Collection<String> annotationNames)
+		public boolean isDeprecated(Collection<AnnotationInfo> annotationInfo)
 		{
-			return annotationNames.contains("java.lang.Deprecated") || annotationNames.contains("System.ObsoleteAttribute");
+			for (AnnotationInfo annotation : annotationInfo)
+			{
+				String type = annotation.getType();
+				if (type.equals("java.lang.Deprecated") || type.equals("System.ObsoleteAttribute"))
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 	};
 
 	boolean isDeprecated();
-
 }

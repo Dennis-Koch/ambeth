@@ -15,6 +15,8 @@ import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import de.osthus.classbrowser.java.AnnotationInfo;
+import de.osthus.classbrowser.java.AnnotationParamInfo;
 import de.osthus.classbrowser.java.FieldDescription;
 import de.osthus.classbrowser.java.MethodDescription;
 import de.osthus.classbrowser.java.ParserUtil;
@@ -440,7 +442,8 @@ public class CompareUtilTest
 		assertEquals(1, nameToJavaMethodDescriptionMap.size());
 
 		// Default case
-		validJavaSetter.getAnnotations().add(ParserUtil.JAVA_ANNOTATION_PROPERTY);
+		AnnotationInfo propertyAnnotationInfo = new AnnotationInfo(ParserUtil.JAVA_ANNOTATION_PROPERTY, Collections.<AnnotationParamInfo> emptyList());
+		validJavaSetter.getAnnotations().add(propertyAnnotationInfo);
 		CompareUtil.handleInjectionPoints(result, nameToCSharpMethodDescriptionMap, nameToJavaMethodDescriptionMap,
 				Collections.<String, FieldDescription> emptyMap());
 		assertTrue(result.getErrors().isEmpty());

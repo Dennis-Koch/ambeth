@@ -7,12 +7,17 @@ import de.osthus.ambeth.log.LogInstance;
 
 public class TestClass
 {
-
 	@LogInstance
 	private Object log;
 
 	@Autowired
 	protected Object service;
+
+	@Autowired(TestClass.class)
+	protected Object service2;
+
+	@Autowired(name = "test", optional = true)
+	protected Object service3;
 
 	protected Object internal;
 
@@ -21,5 +26,4 @@ public class TestClass
 	{
 		this.internal = internal;
 	}
-
 }

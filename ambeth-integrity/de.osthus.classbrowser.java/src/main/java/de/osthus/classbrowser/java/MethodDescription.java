@@ -14,7 +14,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  */
 public class MethodDescription implements INamed, IDeprecation
 {
-
 	// ---- VARIABLES ----------------------------------------------------------
 
 	private String methodName;
@@ -25,7 +24,7 @@ public class MethodDescription implements INamed, IDeprecation
 
 	private List<String> parameterTypes;
 
-	private List<String> annotations = new ArrayList<String>();
+	private List<AnnotationInfo> annotations = new ArrayList<>();
 
 	// ---- CONSTRUCTORS -------------------------------------------------------
 
@@ -81,7 +80,7 @@ public class MethodDescription implements INamed, IDeprecation
 		return parameterTypes;
 	}
 
-	public List<String> getAnnotations()
+	public List<AnnotationInfo> getAnnotations()
 	{
 		return annotations;
 	}
@@ -102,8 +101,8 @@ public class MethodDescription implements INamed, IDeprecation
 	@Override
 	public String toString()
 	{
-		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("method modifiers", this.modifiers).append("method name", this.methodName)
-				.append("param types", this.parameterTypes).append("return type", this.returnType).toString();
+		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("method modifiers", modifiers).append("method name", methodName)
+				.append("param types", parameterTypes).append("return type", returnType).toString();
 	}
 
 }

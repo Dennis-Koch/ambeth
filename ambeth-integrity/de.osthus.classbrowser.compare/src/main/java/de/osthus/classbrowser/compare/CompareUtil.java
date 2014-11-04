@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import de.osthus.classbrowser.java.AnnotationInfo;
 import de.osthus.classbrowser.java.FieldDescription;
 import de.osthus.classbrowser.java.INamed;
 import de.osthus.classbrowser.java.MethodDescription;
@@ -1495,7 +1496,8 @@ public class CompareUtil
 			String javaType;
 			if (javaSetter != null)
 			{
-				definingJavaAnnotations = javaSetter.getAnnotations();
+				List<AnnotationInfo> annotations = javaSetter.getAnnotations();
+				definingJavaAnnotations = toAnnotationTypeNames(annotations);
 				List<String> parameterTypes = javaSetter.getParameterTypes();
 				if (parameterTypes.size() == 1)
 				{
@@ -1515,7 +1517,8 @@ public class CompareUtil
 				{
 					continue;
 				}
-				definingJavaAnnotations = javaField.getAnnotations();
+				List<AnnotationInfo> annotations = javaField.getAnnotations();
+				definingJavaAnnotations = toAnnotationTypeNames(annotations);
 				javaType = javaField.getFieldType();
 			}
 
@@ -1608,6 +1611,18 @@ public class CompareUtil
 			removeIfNotNull(nameToJavaMethodDescriptionMap, javaGetter);
 			removeIfNotNull(nameToJavaFieldDescriptionMap, javaField);
 		}
+	}
+
+	private static List<String> toAnnotationTypeNames(List<AnnotationInfo> annotations)
+	{
+		List<String> definingJavaAnnotations;
+		definingJavaAnnotations = new ArrayList<>(annotations.size());
+		for (AnnotationInfo annotation : annotations)
+		{
+			String annotationType = annotation.getType();
+			definingJavaAnnotations.add(annotationType);
+		}
+		return definingJavaAnnotations;
 	}
 
 	protected static void handleObjectCollectorSetters(Map<String, List<MethodDescription>> nameToJavaMethodDescriptionMap)

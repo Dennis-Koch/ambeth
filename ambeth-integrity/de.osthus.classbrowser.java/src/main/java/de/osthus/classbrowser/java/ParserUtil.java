@@ -3,6 +3,7 @@ package de.osthus.classbrowser.java;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -21,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class ParserUtil
 {
-
 	// ---- INNER CLASSES ------------------------------------------------------
 
 	// ---- CONSTANTS ----------------------------------------------------------
@@ -241,8 +241,8 @@ public class ParserUtil
 	 */
 	protected static void addAnnotations(Class<?> classToBeAnalyzed, TypeDescription typeDescription)
 	{
-		List<String> annotationNames = getAnnotationNames(classToBeAnalyzed);
-		typeDescription.getAnnotations().addAll(annotationNames);
+		List<AnnotationInfo> annotationInfo = getAnnotationInfo(classToBeAnalyzed);
+		typeDescription.getAnnotations().addAll(annotationInfo);
 	}
 
 	/**
@@ -286,16 +286,16 @@ public class ParserUtil
 
 		for (Field fieldInfo : givenType.getDeclaredFields())
 		{
-			List<String> annotationNames = getAnnotationNames(fieldInfo);
-			boolean isLoggerField = annotationNames.contains(JAVA_ANNOTATION_LOG_INSTANCE);
-			boolean isAutowired = annotationNames.contains(JAVA_ANNOTATION_AUTOWIRED);
+			List<AnnotationInfo> annotationInfo = getAnnotationInfo(fieldInfo);
+			boolean isLoggerField = containsAnnotation(annotationInfo, JAVA_ANNOTATION_LOG_INSTANCE);
+			boolean isAutowired = containsAnnotation(annotationInfo, JAVA_ANNOTATION_AUTOWIRED);
 			// on enums only "recognize" the enum values and not the internal field to save the integer value
 			boolean isEnumAndEnumConstant = isEnum && fieldInfo.isEnumConstant();
 
 			if (isAutowired || isLoggerField || isEnumAndEnumConstant)
 			{
 				FieldDescription fieldDescription = createFieldDescriptionFrom(fieldInfo);
-				fieldDescription.getAnnotations().addAll(annotationNames);
+				fieldDescription.getAnnotations().addAll(annotationInfo);
 				typeDescription.getFieldDescriptions().add(fieldDescription);
 			}
 		}
@@ -320,8 +320,8 @@ public class ParserUtil
 		List<String> parameterTypes = getParameterTypesFrom(methodInfo);
 
 		MethodDescription methodDescription = new MethodDescription(methodInfo.getName(), returnType, modifiers, parameterTypes);
-		List<String> annotationNames = getAnnotationNames(methodInfo);
-		methodDescription.getAnnotations().addAll(annotationNames);
+		List<AnnotationInfo> annotationInfos = getAnnotationInfo(methodInfo);
+		methodDescription.getAnnotations().addAll(annotationInfos);
 
 		return methodDescription;
 	}
@@ -520,22 +520,64 @@ public class ParserUtil
 	}
 
 	/**
-	 * Extracts the full names of all annotations present on the annotated element.
+	 * Extracts the full info of all annotations present on the annotated element.
 	 * 
 	 * @param annotatedElement
-	 *            Object to be analysed
-	 * @return List of the full annotation names
+	 *            Object to be analyzed
+	 * @return List of the full annotation info
 	 */
-	protected static ArrayList<String> getAnnotationNames(AnnotatedElement annotatedElement)
+	protected static ArrayList<AnnotationInfo> getAnnotationInfo(AnnotatedElement annotatedElement)
 	{
-		ArrayList<String> annotationNames = new ArrayList<String>();
+		ArrayList<AnnotationInfo> annotationInfoList = new ArrayList<>();
 		Annotation[] annotations = annotatedElement.getAnnotations();
 		for (Annotation annotation : annotations)
 		{
-			String name = annotation.annotationType().getName();
-			annotationNames.add(name);
+			Class<? extends Annotation> annotationType = annotation.annotationType();
+			String annotationTypeName = annotationType.getName();
+
+			Method[] methods = annotationType.getMethods();
+			ArrayList<AnnotationParamInfo> params = new ArrayList<>();
+			for (Method method : methods)
+			{
+				Class<?> declaringClass = method.getDeclaringClass();
+				String declaringClassName = declaringClass.getName();
+				if (!annotationTypeName.equals(declaringClassName))
+				{
+					continue;
+				}
+
+				String paramName = method.getName();
+				String paramType = method.getReturnType().toString();
+				Object defaultValue = method.getDefaultValue();
+				Object currentValue = null;
+				try
+				{
+					currentValue = method.invoke(annotation);
+				}
+				catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
+				{
+					throw new RuntimeException(e);
+				}
+				AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
+				params.add(param);
+			}
+
+			AnnotationInfo info = new AnnotationInfo(annotationTypeName, params);
+			annotationInfoList.add(info);
 		}
-		return annotationNames;
+		return annotationInfoList;
 	}
 
+	private static boolean containsAnnotation(List<AnnotationInfo> annotationInfo, String annotationType)
+	{
+		for (AnnotationInfo annotation : annotationInfo)
+		{
+			String type = annotation.getType();
+			if (type.equals(annotationType))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
 }
