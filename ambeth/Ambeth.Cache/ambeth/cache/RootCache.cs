@@ -29,7 +29,7 @@ using De.Osthus.Ambeth.Copy;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Cache.Collections;
 using De.Osthus.Ambeth.Ioc.Annotation;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Privilege;
 using De.Osthus.Ambeth.Security;

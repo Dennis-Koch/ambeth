@@ -16,18 +16,18 @@ import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.DataObjectMixin;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.DataObjectTemplate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 
 public class DataObjectVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = DataObjectTemplate.class;
+	public static final Class<?> templateType = DataObjectMixin.class;
 
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 

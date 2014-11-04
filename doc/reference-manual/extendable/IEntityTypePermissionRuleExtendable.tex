@@ -1,4 +1,15 @@
 \section{IEntityTypePermissionRuleExtendable}
 \label{extendable:IEntityTypePermissionRuleExtendable}
-\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable}{IEntityTypePermissionRuleExtendable}
-\TODO
+\AvailableInJavaOnly{\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable}{IEntityTypePermissionRuleExtendable}
+\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRule<? super T>}{IEntityTypePermissionRule<? super T>}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IEntityTypePermissionRule<? super T>}}
+{jambeth-security-server/src/main/java/de/osthus/ambeth/privilege/IEntityTypePermissionRuleExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IEntityTypePermissionRuleExtendable.class).with(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

@@ -85,6 +85,7 @@
     </Compile>
     <Compile Include="ambeth\converter\StringToClassArrayConverter.cs" />
     <Compile Include="ambeth\converter\StringToDoubleArrayConverter.cs" />
+    <Compile Include="ambeth\converter\StringToFileConverter.cs" />
     <Compile Include="ambeth\converter\StringToFloatArrayConverter.cs" />
     <Compile Include="ambeth\converter\StringToIntArrayConverter.cs" />
     <Compile Include="ambeth\converter\StringToLongArrayConverter.cs" />

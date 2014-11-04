@@ -79,11 +79,11 @@
     <Compile Include="ambeth\service\ICacheService.cs" />
     <Compile Include="ambeth\service\ICacheServiceByNameExtendable.cs" />
     <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
-    <Compile Include="ambeth\template\EntityEqualsTemplate.cs" />
-    <Compile Include="ambeth\template\EmbeddedTypeTemplate.cs" />
-    <Compile Include="ambeth\template\PropertyChangeTemplate.cs" />
-    <Compile Include="ambeth\template\ValueHolderContainerTemplate.cs" />
-    <Compile Include="ambeth\template\DataObjectTemplate.cs" />
+    <Compile Include="ambeth\mixin\EntityEqualsMixin.cs" />
+    <Compile Include="ambeth\mixin\EmbeddedTypeMixin.cs" />
+    <Compile Include="ambeth\mixin\PropertyChangeMixin.cs" />
+    <Compile Include="ambeth\mixin\ValueHolderContainerMixin.cs" />
+    <Compile Include="ambeth\mixin\DataObjectMixin.cs" />
     <Compile Include="ambeth\transfer\ObjRelation.cs" />
     <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
     <Compile Include="ambeth\transfer\LoadContainer.cs" />

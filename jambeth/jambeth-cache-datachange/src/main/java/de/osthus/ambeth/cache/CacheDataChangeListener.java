@@ -32,11 +32,11 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
@@ -77,7 +77,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	protected ISecondLevelCacheManager secondLevelCacheManager;
 
 	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	protected ValueHolderContainerMixin valueHolderContainerTemplate;
 
 	@Override
 	public void handleEvent(Object eventObject, long dispatchTime, long sequenceId)

@@ -45,6 +45,9 @@ import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.MemberTypeProvider;
 import de.osthus.ambeth.metadata.ObjRefFactory;
 import de.osthus.ambeth.metadata.ObjRefObjectCopierExtension;
+import de.osthus.ambeth.mixin.CompositeIdMixin;
+import de.osthus.ambeth.mixin.EmbeddedMemberMixin;
+import de.osthus.ambeth.mixin.ObjRefMixin;
 import de.osthus.ambeth.objrefstore.IObjRefStoreEntryProvider;
 import de.osthus.ambeth.objrefstore.ObjRefStoreEntryProvider;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
@@ -53,9 +56,6 @@ import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
 import de.osthus.ambeth.service.IMergeService;
-import de.osthus.ambeth.template.CompositeIdTemplate;
-import de.osthus.ambeth.template.EmbeddedMemberTemplate;
-import de.osthus.ambeth.template.ObjRefTemplate;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
@@ -81,8 +81,8 @@ public class MergeModule implements IInitializingModule
 		beanContextFactory.registerAutowireableBean(IMergeController.class, MergeController.class);
 		beanContextFactory.registerAutowireableBean(IMergeProcess.class, MergeProcess.class);
 
-		beanContextFactory.registerAutowireableBean(CompositeIdTemplate.class, CompositeIdTemplate.class);
-		beanContextFactory.registerAutowireableBean(ObjRefTemplate.class, ObjRefTemplate.class);
+		beanContextFactory.registerAutowireableBean(CompositeIdMixin.class, CompositeIdMixin.class);
+		beanContextFactory.registerAutowireableBean(ObjRefMixin.class, ObjRefMixin.class);
 
 		// if (isNetworkClientMode)
 		// {
@@ -134,7 +134,7 @@ public class MergeModule implements IInitializingModule
 		beanContextFactory.registerAnonymousBean(RelationProvider.class).autowireable(IRelationProvider.class);
 
 		beanContextFactory.registerAnonymousBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class, IIntermediateMemberTypeProvider.class);
-		beanContextFactory.registerAnonymousBean(EmbeddedMemberTemplate.class).autowireable(EmbeddedMemberTemplate.class);
+		beanContextFactory.registerAnonymousBean(EmbeddedMemberMixin.class).autowireable(EmbeddedMemberMixin.class);
 
 		beanContextFactory.registerAnonymousBean(ObjRefFactory.class).autowireable(IObjRefFactory.class);
 		IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.registerAnonymousBean(ObjRefObjectCopierExtension.class);

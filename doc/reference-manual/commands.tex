@@ -138,3 +138,9 @@
 	}
 	\resizebox{#1}{!}{\input{#2.pdf_tex}}%
 }
+
+\newcommand{\mixinTip}[2]
+{
+	Responsible for this functionality is the \javadoc{#1}{#2}.
+	\tip{Most mixins applied at runtime via the \AMBETH{} Bytecode Pipeline can be fully debugged. Here for example by inserting break-points in the source of the #2-mixin if you are interested in details at runtime. This does work for C\# as well as Java in exactly the same way.}
+}

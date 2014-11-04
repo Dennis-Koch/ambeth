@@ -1,4 +1,22 @@
 \section{IFirstLevelCacheExtendable}
 \label{extendable:IFirstLevelCacheExtendable}
-\javadoc{de.osthus.ambeth.cache.IFirstLevelCacheExtendable}{IFirstLevelCacheExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.cache.IFirstLevelCacheExtendable}{IFirstLevelCacheExtendable}
+\javadoc{de.osthus.ambeth.cache.IWritableCache}{IWritableCache}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IWritableCache}}
+{jambeth-cache/src/main/java/de/osthus/ambeth/cache/IFirstLevelCacheExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IFirstLevelCacheExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IWritableCache}}
+{Ambeth.Cache/ambeth/cache/IFirstLevelCacheExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IFirstLevelCacheExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

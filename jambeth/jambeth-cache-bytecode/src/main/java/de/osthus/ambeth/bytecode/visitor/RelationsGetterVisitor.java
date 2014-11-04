@@ -23,6 +23,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
@@ -30,7 +31,6 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
@@ -59,7 +59,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		}
 	}
 
-	public static final Class<?> templateType = ValueHolderContainerTemplate.class;
+	public static final Class<?> templateType = ValueHolderContainerMixin.class;
 
 	protected static final String templatePropertyName = "__" + templateType.getSimpleName();
 

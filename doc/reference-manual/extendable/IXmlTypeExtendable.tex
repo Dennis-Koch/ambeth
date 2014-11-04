@@ -1,4 +1,22 @@
 \section{IXmlTypeExtendable}
 \label{extendable:IXmlTypeExtendable}
-\javadoc{de.osthus.ambeth.xml.IXmlTypeExtendable}{IXmlTypeExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.xml.IXmlTypeExtendable}{IXmlTypeExtendable}
+\javadoc{java.lang.Class<?>}{Class<?>}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{Class<?>}}
+{jambeth-xml/src/main/java/de/osthus/ambeth/xml/IXmlTypeExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IXmlTypeExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{Class<?>}}
+{Ambeth.Xml/ambeth/xml/IXmlTypeExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IXmlTypeExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

@@ -7,7 +7,7 @@ using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
@@ -48,7 +48,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             }
         }
 
-        public static readonly Type templateType = typeof(PropertyChangeTemplate);
+        public static readonly Type templateType = typeof(PropertyChangeMixin);
 
         protected static readonly String templatePropertyName = "__" + templateType.Name;
 

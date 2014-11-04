@@ -17,13 +17,13 @@ import de.osthus.ambeth.compositeid.CompositeIdMember;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.mixin.CompositeIdMixin;
 import de.osthus.ambeth.repackaged.com.esotericsoftware.reflectasm.FieldAccess;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.AnnotationVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.FieldVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
-import de.osthus.ambeth.template.CompositeIdTemplate;
 import de.osthus.ambeth.typeinfo.FieldInfoItemASM;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IPrintable;
@@ -60,7 +60,7 @@ public class CompositeIdCreator extends ClassGenerator
 		}
 	}
 
-	public static final Class<?> templateType = CompositeIdTemplate.class;
+	public static final Class<?> templateType = CompositeIdMixin.class;
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 
