@@ -22,9 +22,9 @@ import de.osthus.classbrowser.java.TypeDescription;
 
 public class ExtendableTypeScanner extends AbstractLatexScanner implements IStartingBean
 {
-	public static final String LISTING_START = "%% GENERATED LISTINGS - DO NOT EDIT\n";
+	public static final String LISTING_START = "%% GENERATED LISTINGS - DO NOT EDIT";
 
-	public static final String LISTING_END = "%% GENERATED LISTINGS END\n";
+	public static final String LISTING_END = "%% GENERATED LISTINGS END";
 
 	public static final Pattern replaceListingsPattern = Pattern.compile("(.*" + Pattern.quote(LISTING_START) + ").*(" + Pattern.quote(LISTING_END) + ".*)",
 			Pattern.DOTALL);
@@ -78,7 +78,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 				fw.append("\n");
 				fw.append("\\TODO}\n\n");
 
-				fw.append(LISTING_START);
+				fw.append(LISTING_START).append('\n');
 				fw.append(listingsString(extendableEntry));
 				fw.append(LISTING_END);
 			}
@@ -102,7 +102,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 			Matcher matcher = replaceListingsPattern.matcher(newContent);
 			if (matcher.matches())
 			{
-				newContent = matcher.group(1) + listingsString(extendableEntry) + matcher.group(2);
+				newContent = matcher.group(1) + "\n" + listingsString(extendableEntry) + matcher.group(2);
 			}
 			else
 			{
