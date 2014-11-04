@@ -92,7 +92,6 @@
     <Compile Include="ambeth\bytecode\visitor\EmbeddedTypeVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityEqualsVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\EntityMetaDataHolderVisitor.cs" />
-    <Compile Include="ambeth\bytecode\visitor\FieldAndSetterTemplate.cs" />
     <Compile Include="ambeth\bytecode\visitor\FlattenDebugHierarchyVisitor.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetBaseTypeMethodCreator.cs" />
     <Compile Include="ambeth\bytecode\visitor\GetIdMethodCreator.cs" />

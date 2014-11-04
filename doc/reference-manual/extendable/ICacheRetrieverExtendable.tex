@@ -1,4 +1,22 @@
 \section{ICacheRetrieverExtendable}
 \label{extendable:ICacheRetrieverExtendable}
-\javadoc{de.osthus.ambeth.service.ICacheRetrieverExtendable}{ICacheRetrieverExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.service.ICacheRetrieverExtendable}{ICacheRetrieverExtendable}
+\javadoc{de.osthus.ambeth.service.ICacheRetriever}{ICacheRetriever}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{ICacheRetriever}}
+{jambeth-cache/src/main/java/de/osthus/ambeth/service/ICacheRetrieverExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(ICacheRetrieverExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{ICacheRetriever}}
+{Ambeth.Cache/ambeth/service/ICacheRetrieverExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ICacheRetrieverExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

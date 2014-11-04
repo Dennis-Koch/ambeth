@@ -1,4 +1,22 @@
 \section{IAuthorizationChangeListenerExtendable}
 \label{extendable:IAuthorizationChangeListenerExtendable}
-\javadoc{de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable}{IAuthorizationChangeListenerExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable}{IAuthorizationChangeListenerExtendable}
+\javadoc{de.osthus.ambeth.security.IAuthorizationChangeListener}{IAuthorizationChangeListener}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{IAuthorizationChangeListener}}
+{jambeth-security/src/main/java/de/osthus/ambeth/security/IAuthorizationChangeListenerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IAuthorizationChangeListenerExtendable.class);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IAuthorizationChangeListener}}
+{Ambeth.Security/ambeth/security/IAuthorizationChangeListenerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IAuthorizationChangeListenerExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

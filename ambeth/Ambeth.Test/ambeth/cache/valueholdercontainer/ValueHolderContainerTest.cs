@@ -11,7 +11,7 @@ using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Model;
 using De.Osthus.Ambeth.Proxy;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Testutil;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
@@ -58,7 +58,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
         public IThreadPool ThreadPool { protected get; set; }
 
         [Autowired]
-        public ValueHolderContainerTemplate ValueHolderContainerTemplate { protected get; set; }
+        public ValueHolderContainerMixin ValueHolderContainerMixin { protected get; set; }
 
         //static int count = 10000000;
 
@@ -737,7 +737,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             Assert.AssertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).Get__State(relationIndex));
             Assert.AssertEquals(1, ((IObjRefContainer) parentEntity).Get__ObjRefs(relationIndex).Length);
 
-            Object value = ValueHolderContainerTemplate.GetValue((IValueHolderContainer) parentEntity, relationIndex);
+            Object value = ValueHolderContainerMixin.GetValue((IValueHolderContainer) parentEntity, relationIndex);
         }
 
         [TestMethod]

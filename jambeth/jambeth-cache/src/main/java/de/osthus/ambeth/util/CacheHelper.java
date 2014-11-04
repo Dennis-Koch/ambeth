@@ -39,10 +39,10 @@ import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 
 public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHelper
 {
@@ -72,7 +72,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	protected IObjRefHelper oriHelper;
 
 	@Autowired
-	protected ValueHolderContainerTemplate valueHolderContainerTemplate;
+	protected ValueHolderContainerMixin valueHolderContainerTemplate;
 
 	@Override
 	public void buildCachePath(Class<?> entityType, String memberToInitialize, ISet<AppendableCachePath> cachePaths)
@@ -207,7 +207,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				}
 
 				IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
-				ValueHolderContainerTemplate valueHolderContainerTemplate = this.valueHolderContainerTemplate;
+				ValueHolderContainerMixin valueHolderContainerTemplate = this.valueHolderContainerTemplate;
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<ICacheIntern, ISet<IObjRelation>>();
 				IdentityLinkedMap<ICacheIntern, ISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<ICacheIntern, ISet<IObjRef>>();

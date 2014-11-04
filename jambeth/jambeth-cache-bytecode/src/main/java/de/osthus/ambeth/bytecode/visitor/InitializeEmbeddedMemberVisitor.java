@@ -21,8 +21,8 @@ import de.osthus.ambeth.metadata.IEmbeddedMember;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
+import de.osthus.ambeth.mixin.EmbeddedMemberMixin;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.template.EmbeddedMemberTemplate;
 import de.osthus.ambeth.typeinfo.FieldPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -30,7 +30,7 @@ import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 
 public class InitializeEmbeddedMemberVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = EmbeddedMemberTemplate.class;
+	public static final Class<?> templateType = EmbeddedMemberMixin.class;
 
 	public static final String templatePropertyName = "__" + templateType.getSimpleName();
 

@@ -33,86 +33,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ambeth.Bytecode">
-      <HintPath>libs\Ambeth.Bytecode.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Cache">
-      <HintPath>libs\Ambeth.Cache.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Cache.Bytecode">
-      <HintPath>libs\Ambeth.Cache.Bytecode.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.CacheDataChange">
-      <HintPath>libs\Ambeth.CacheDataChange.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.DataChange">
-      <HintPath>libs\Ambeth.DataChange.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Event">
-      <HintPath>libs\Ambeth.Event.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Event.DataChange">
-      <HintPath>libs\Ambeth.Event.DataChange.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Filter">
-      <HintPath>libs\Ambeth.Filter.dll</HintPath>
-    </Reference>
     <Reference Include="Ambeth.IoC">
       <HintPath>libs\Ambeth.IoC.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.IoC.Test">
-      <HintPath>libs\Ambeth.IoC.Test.dll</HintPath>
     </Reference>
     <Reference Include="Ambeth.Log">
       <HintPath>libs\Ambeth.Log.dll</HintPath>
     </Reference>
-    <Reference Include="Ambeth.Log.Service">
-      <HintPath>libs\Ambeth.Log.Service.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Mapping">
-      <HintPath>libs\Ambeth.Mapping.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Merge">
-      <HintPath>libs\Ambeth.Merge.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Merge.Bytecode">
-      <HintPath>libs\Ambeth.Merge.Bytecode.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Persistence.API">
-      <HintPath>libs\Ambeth.Persistence.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Platform">
-      <HintPath>libs\Ambeth.Platform.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Query">
-      <HintPath>libs\Ambeth.Query.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Security">
-      <HintPath>libs\Ambeth.Security.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Security.Bytecode">
-      <HintPath>libs\Ambeth.Security.Bytecode.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Service">
-      <HintPath>libs\Ambeth.Service.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Test">
-      <HintPath>libs\Ambeth.Test.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.TestUtil">
-      <HintPath>libs\Ambeth.TestUtil.dll</HintPath>
-    </Reference>
     <Reference Include="Ambeth.Util">
       <HintPath>libs\Ambeth.Util.dll</HintPath>
-    </Reference>
-    <Reference Include="Ambeth.Xml">
-      <HintPath>libs\Ambeth.Xml.dll</HintPath>
     </Reference>
     <Reference Include="Castle.Core">
       <HintPath>libs\Castle.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -121,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractFileParser.cs" />
+    <Compile Include="PowerpointParser.cs" />
     <Compile Include="IFileParser.cs" />
     <Compile Include="IFileParserExtendable.cs" />
     <Compile Include="ParserModule.cs" />
@@ -185,6 +121,10 @@
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>xcopy $(ProjectDir)..\..\ambeth\Ambeth.IoC\Bin\Debug_NET4\*.dll $(TargetDir) /Y
+xcopy $(ProjectDir)..\..\ambeth\Ambeth.IoC\Bin\Debug_NET4\*.pdb $(TargetDir) /Y</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

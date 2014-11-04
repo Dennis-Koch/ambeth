@@ -1,4 +1,22 @@
 \section{IServiceExtendable}
 \label{extendable:IServiceExtendable}
-\javadoc{de.osthus.ambeth.service.IServiceExtendable}{IServiceExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.service.IServiceExtendable}{IServiceExtendable}
+\javadoc{java.lang.Object}{Object}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{Object}}
+{jambeth-service/src/main/java/de/osthus/ambeth/service/IServiceExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(IServiceExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{Object}}
+{Ambeth.Service/ambeth/service/IServiceExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IServiceExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

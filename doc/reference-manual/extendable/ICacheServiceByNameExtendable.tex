@@ -1,4 +1,22 @@
 \section{ICacheServiceByNameExtendable}
 \label{extendable:ICacheServiceByNameExtendable}
-\javadoc{de.osthus.ambeth.service.ICacheServiceByNameExtendable}{ICacheServiceByNameExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.service.ICacheServiceByNameExtendable}{ICacheServiceByNameExtendable}
+\javadoc{de.osthus.ambeth.service.ICacheService}{ICacheService}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{ICacheService}}
+{jambeth-cache/src/main/java/de/osthus/ambeth/service/ICacheServiceByNameExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(ICacheServiceByNameExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{ICacheService}}
+{Ambeth.Cache/ambeth/service/ICacheServiceByNameExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ICacheServiceByNameExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

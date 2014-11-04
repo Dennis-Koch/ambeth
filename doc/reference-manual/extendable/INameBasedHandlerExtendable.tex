@@ -1,4 +1,22 @@
 \section{INameBasedHandlerExtendable}
 \label{extendable:INameBasedHandlerExtendable}
-\javadoc{de.osthus.ambeth.xml.INameBasedHandlerExtendable}{INameBasedHandlerExtendable}
-\TODO
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.xml.INameBasedHandlerExtendable}{INameBasedHandlerExtendable}
+\javadoc{de.osthus.ambeth.xml.INameBasedHandler}{INameBasedHandler}
+\TODO}
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputjava{Extension point for instances of \type{INameBasedHandler}}
+{jambeth-xml/src/main/java/de/osthus/ambeth/xml/INameBasedHandlerExtendable.java}
+\begin{lstlisting}[style=Java,caption={Example to register to the extension point (Java)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.registerAnonymousBean...
+bcf.link(myExtension).to(INameBasedHandlerExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{INameBasedHandler}}
+{Ambeth.Xml/ambeth/xml/INameBasedHandlerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<INameBasedHandlerExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

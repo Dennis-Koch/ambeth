@@ -21,10 +21,10 @@ namespace OfficeToImages
 
             Properties props = Properties.Application;
             
-            IServiceContext bootstrapContext = BeanContextFactory.CreateBootstrap(props);
+            IServiceContext bootstrapContext = BeanContextFactory.CreateBootstrap(props, typeof(IocModule));
 		    try
 		    {
-                bootstrapContext.CreateService(typeof(IocModule));
+                bootstrapContext.CreateService(typeof(ParserModule));
 		    }
 		    finally
 		    {

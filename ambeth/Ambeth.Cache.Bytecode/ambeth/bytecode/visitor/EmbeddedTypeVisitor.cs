@@ -1,5 +1,5 @@
 using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Template;
+using De.Osthus.Ambeth.Mixin;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Reflection;
@@ -8,7 +8,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
 {
     public class EmbeddedTypeVisitor : ClassVisitor
     {
-        public static readonly Type templateType = typeof(EmbeddedTypeTemplate);
+        public static readonly Type templateType = typeof(EmbeddedTypeMixin);
 
         public static readonly String templatePropertyName = "__" + templateType.Name;
 

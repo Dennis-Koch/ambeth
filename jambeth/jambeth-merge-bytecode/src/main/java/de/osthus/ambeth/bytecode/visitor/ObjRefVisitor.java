@@ -13,17 +13,17 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.mixin.ObjRefMixin;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
-import de.osthus.ambeth.template.ObjRefTemplate;
 import de.osthus.ambeth.util.IPrintable;
 
 public class ObjRefVisitor extends ClassGenerator
 {
-	public static final Class<?> templateType = ObjRefTemplate.class;
+	public static final Class<?> templateType = ObjRefMixin.class;
 
 	protected static final String templatePropertyName = templateType.getSimpleName();
 

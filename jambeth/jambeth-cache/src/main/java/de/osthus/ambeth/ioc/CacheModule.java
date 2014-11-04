@@ -52,6 +52,11 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IProxyHelper;
+import de.osthus.ambeth.mixin.DataObjectMixin;
+import de.osthus.ambeth.mixin.EmbeddedTypeMixin;
+import de.osthus.ambeth.mixin.EntityEqualsMixin;
+import de.osthus.ambeth.mixin.PropertyChangeMixin;
+import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.proxy.CacheContextPostProcessor;
 import de.osthus.ambeth.proxy.CachePostProcessor;
 import de.osthus.ambeth.proxy.IProxyFactory;
@@ -59,11 +64,6 @@ import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
 import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
-import de.osthus.ambeth.template.DataObjectTemplate;
-import de.osthus.ambeth.template.EmbeddedTypeTemplate;
-import de.osthus.ambeth.template.EntityEqualsTemplate;
-import de.osthus.ambeth.template.PropertyChangeTemplate;
-import de.osthus.ambeth.template.ValueHolderContainerTemplate;
 import de.osthus.ambeth.util.CacheHelper;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
@@ -226,11 +226,11 @@ public class CacheModule implements IInitializingModule
 
 		}
 
-		beanContextFactory.registerAnonymousBean(DataObjectTemplate.class).autowireable(DataObjectTemplate.class);
-		beanContextFactory.registerAnonymousBean(EntityEqualsTemplate.class).autowireable(EntityEqualsTemplate.class);
-		beanContextFactory.registerAnonymousBean(EmbeddedTypeTemplate.class).autowireable(EmbeddedTypeTemplate.class);
-		beanContextFactory.registerAnonymousBean(PropertyChangeTemplate.class).autowireable(PropertyChangeTemplate.class,
+		beanContextFactory.registerAnonymousBean(DataObjectMixin.class).autowireable(DataObjectMixin.class);
+		beanContextFactory.registerAnonymousBean(EntityEqualsMixin.class).autowireable(EntityEqualsMixin.class);
+		beanContextFactory.registerAnonymousBean(EmbeddedTypeMixin.class).autowireable(EmbeddedTypeMixin.class);
+		beanContextFactory.registerAnonymousBean(PropertyChangeMixin.class).autowireable(PropertyChangeMixin.class,
 				IPropertyChangeExtensionExtendable.class, ICollectionChangeExtensionExtendable.class);
-		beanContextFactory.registerAnonymousBean(ValueHolderContainerTemplate.class).autowireable(ValueHolderContainerTemplate.class);
+		beanContextFactory.registerAnonymousBean(ValueHolderContainerMixin.class).autowireable(ValueHolderContainerMixin.class);
 	}
 }

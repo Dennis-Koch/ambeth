@@ -169,6 +169,9 @@
     <Compile Include="ambeth\metadata\ObjRefFactory.cs" />
     <Compile Include="ambeth\metadata\ObjRefObjectCopierExtension.cs" />
     <Compile Include="ambeth\metadata\RelationMemberEnhancementHint.cs" />
+    <Compile Include="ambeth\mixin\CompositeIdMixin.cs" />
+    <Compile Include="ambeth\mixin\EmbeddedMemberMixin.cs" />
+    <Compile Include="ambeth\mixin\ObjRefMixin.cs" />
     <Compile Include="ambeth\orm\AbstractMemberConfig.cs" />
     <Compile Include="ambeth\orm\CompositeMemberConfig.cs" />
     <Compile Include="ambeth\orm\EntityConfig.cs" />
@@ -202,9 +205,6 @@
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />
     <Compile Include="ambeth\service\MergeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
-    <Compile Include="ambeth\template\CompositeIdTemplate.cs" />
-    <Compile Include="ambeth\template\EmbeddedMemberTemplate.cs" />
-    <Compile Include="ambeth\template\ObjRefTemplate.cs" />
     <Compile Include="ambeth\transfer\AbstractChangeContainer.cs" />
     <Compile Include="ambeth\transfer\CreateContainer.cs" />
     <Compile Include="ambeth\transfer\CUDResult.cs" />
