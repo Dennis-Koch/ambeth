@@ -32,6 +32,8 @@ namespace CsharpClassbrowser
         public const string MODIFIER_ABSTRACT = "abstract";
         public const string MODIFIER_INTERNAL = "internal";
 
+        public const List<String> MODIFIERS_CONSTANT = new List<String>(new String[] { MODIFIER_STATIC, MODIFIER_FINAL });
+
         public const string GENERIC_TYPE_PREFIX = "generic:";
 
         public static readonly Regex backingFieldPattern = new Regex("<(.+)>k__BackingField");
