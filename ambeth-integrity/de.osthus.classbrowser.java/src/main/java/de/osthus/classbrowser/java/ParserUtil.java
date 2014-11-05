@@ -547,7 +547,7 @@ public class ParserUtil
 				}
 
 				String paramName = method.getName();
-				String paramType = method.getReturnType().toString();
+				String paramType = method.getReturnType().getName();
 				Object defaultValue = method.getDefaultValue();
 				Object currentValue = null;
 				try
