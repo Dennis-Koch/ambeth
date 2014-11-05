@@ -9,8 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 
-public class CacheWalkerExample
-{
+public class CacheWalkerExample {
 	@LogInstance
 	private ILogger log;
 
@@ -20,12 +19,10 @@ public class CacheWalkerExample
 	@Autowired
 	protected ICache cache;
 
-	public Object loadEntity(IObjRef objRef)
-	{
+	public Object loadEntity(IObjRef objRef) {
 		Object entity = cache.getObject(objRef, CacheDirective.none());
 		ICacheWalkerResult walkerResult = cacheWalker.walk(objRef);
-		if (log.isInfoEnabled())
-		{
+		if (log.isInfoEnabled()) {
 			log.info(walkerResult.toString());
 		}
 		return entity;

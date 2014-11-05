@@ -22,7 +22,6 @@ public class IntermediateRelationMember extends RelationMember
 	public IntermediateRelationMember(Class<?> declaringType, Class<?> entityType, Class<?> realType, Class<?> elementType, String propertyName,
 			Annotation[] annotations)
 	{
-		super(declaringType, null);
 		this.declaringType = declaringType;
 		this.entityType = entityType;
 		this.realType = realType;

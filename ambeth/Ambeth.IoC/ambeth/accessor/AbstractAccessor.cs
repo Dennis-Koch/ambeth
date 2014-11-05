@@ -5,11 +5,6 @@ namespace De.Osthus.Ambeth.Accessor
 {
     public abstract class AbstractAccessor
     {
-        protected AbstractAccessor(Type type, IPropertyInfo property)
-	    {
-		    // Intended blank
-	    }
-
         public abstract bool CanRead { get; }
 
         public abstract bool CanWrite { get; }

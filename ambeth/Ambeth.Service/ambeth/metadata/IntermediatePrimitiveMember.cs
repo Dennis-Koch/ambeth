@@ -22,7 +22,6 @@ namespace De.Osthus.Ambeth.Metadata
         protected bool technicalMember;
 
         public IntermediatePrimitiveMember(Type declaringType, Type entityType, Type realType, Type elementType, String propertyName, Attribute[] annotations)
-            : base(declaringType, null)
         {
             this.declaringType = declaringType;
             this.entityType = entityType;
