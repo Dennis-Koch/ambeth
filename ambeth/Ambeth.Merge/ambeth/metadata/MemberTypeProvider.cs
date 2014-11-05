@@ -66,6 +66,8 @@ namespace De.Osthus.Ambeth.Metadata
             return propertyPath;
         }
 
+        protected static readonly Object[] EMPTY_OBJECTS = new Object[0];
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -165,8 +167,8 @@ namespace De.Osthus.Ambeth.Metadata
             {
                 throw new Exception("Must never happen. No enhancement for " + baseType + " has been done");
             }
-            ConstructorInfo constructor = enhancedType.GetConstructor(new Type[] { typeof(Type), typeof(IPropertyInfo) });
-            return (Member)constructor.Invoke(new Object[] { type, null });
+            ConstructorInfo constructor = enhancedType.GetConstructor(Type.EmptyTypes);
+            return (Member)constructor.Invoke(EMPTY_OBJECTS);
         }
 
         protected Type GetMemberTypeIntern(Type targetType, String propertyName, Type baseType)

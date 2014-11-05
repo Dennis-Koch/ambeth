@@ -5,10 +5,8 @@ import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.util.IConversionHelper;
 
-public class HelloWorld
-{
-	public static void main(String[] args)
-	{
+public class HelloWorld {
+	public static void main(String[] args) {
 		IServiceContext rootContext = BeanContextFactory.createBootstrap();
 		IServiceContext beanContext = rootContext.createService("helloWorld", HelloWorldModule.class, IocBootstrapModule.class);
 

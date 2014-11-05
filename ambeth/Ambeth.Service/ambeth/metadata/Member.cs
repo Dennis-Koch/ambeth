@@ -7,17 +7,6 @@ namespace De.Osthus.Ambeth.Metadata
 {
     public abstract class Member : AbstractAccessor, IComparable<Member>
     {
-        protected Member(Type type, IPropertyInfo property)
-            : base(type, property)
-        {
-            // intended blank
-        }
-
-        public int CompareTo(Member o)
-        {
-            return Name.CompareTo(o.Name);
-        }
-
         public abstract Type EntityType { get; }
 
         public abstract Type ElementType { get; }
@@ -33,6 +22,11 @@ namespace De.Osthus.Ambeth.Metadata
         public abstract Attribute GetAnnotation(Type annotationType);
 
         public abstract String Name { get; }
+        
+        public int CompareTo(Member o)
+        {
+            return Name.CompareTo(o.Name);
+        }
 
 	    public override bool Equals(Object obj)
 	    {

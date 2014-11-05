@@ -79,6 +79,10 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		return propertyPath;
 	}
 
+	protected static final Class<?>[] EMPTY_TYPES = new Class<?>[0];
+
+	protected static final Object[] EMPTY_OBJECTS = new Object[0];
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -195,8 +199,8 @@ public class MemberTypeProvider implements IMemberTypeProvider, IIntermediateMem
 		}
 		try
 		{
-			Constructor<?> constructor = enhancedType.getConstructor(Class.class, IPropertyInfo.class);
-			return (Member) constructor.newInstance(type, null);
+			Constructor<?> constructor = enhancedType.getConstructor(EMPTY_TYPES);
+			return (Member) constructor.newInstance(EMPTY_OBJECTS);
 		}
 		catch (Throwable e)
 		{

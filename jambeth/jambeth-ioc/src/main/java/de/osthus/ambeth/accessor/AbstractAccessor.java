@@ -1,14 +1,8 @@
 package de.osthus.ambeth.accessor;
 
-import de.osthus.ambeth.typeinfo.IPropertyInfo;
 
 public abstract class AbstractAccessor
 {
-	protected AbstractAccessor(Class<?> type, IPropertyInfo property)
-	{
-		// Intended blank
-	}
-
 	public abstract boolean canRead();
 
 	public abstract boolean canWrite();

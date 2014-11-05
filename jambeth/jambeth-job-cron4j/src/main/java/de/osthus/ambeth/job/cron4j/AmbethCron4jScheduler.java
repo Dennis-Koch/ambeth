@@ -11,13 +11,18 @@ import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.job.IJob;
 import de.osthus.ambeth.job.IJobExtendable;
 import de.osthus.ambeth.job.IJobScheduler;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
+import de.osthus.ambeth.security.DefaultAuthentication;
+import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.ISecurityContext;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, IDisposableBean, IStartingBean, IJobExtendable
@@ -25,9 +30,11 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
-	protected ITypeInfoProvider typeInfoProvider;
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
 
 	protected Scheduler scheduler;
 
@@ -49,8 +56,6 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(typeInfoProvider, "TypeInfoProvider");
 		scheduler = new Scheduler();
 	}
 
@@ -96,16 +101,6 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 		checkOfStopThread.start();
 	}
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setTypeInfoProvider(ITypeInfoProvider typeInfoProvider)
-	{
-		this.typeInfoProvider = typeInfoProvider;
-	}
-
 	@Override
 	public void registerJob(IJob job, String jobName, String cronPattern)
 	{
@@ -117,7 +112,8 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 		{
 			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + job.getClass().getName() + "'");
 		}
-		String jobId = scheduler.schedule(cronPattern, createTask(job, jobName, username, null));
+		IAuthentication authentication = new DefaultAuthentication(username, null, PasswordType.PLAIN);
+		String jobId = scheduler.schedule(cronPattern, createTask(job, jobName, authentication));
 		try
 		{
 			jobs.register(jobId, job);
@@ -147,7 +143,7 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	@Override
 	public void scheduleJob(Class<?> jobType, String cronPattern, Map<Object, Object> properties)
 	{
-		scheduleJob(typeInfoProvider.getTypeInfo(jobType).getSimpleName(), jobType, cronPattern, properties);
+		scheduleJob(jobType.getSimpleName(), jobType, cronPattern, properties);
 	}
 
 	@Override
@@ -159,40 +155,58 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 	@Override
 	public void scheduleJob(String jobName, Object jobTask, String cronPattern, Map<Object, Object> properties)
 	{
-		String username = System.getProperty("user.name");
-		scheduleJob(jobName, jobTask, cronPattern, username, null, properties);
+		ISecurityContext context = securityContextHolder.getContext();
+		IAuthentication authentication = context != null ? context.getAuthentication() : null;
+		scheduleJobIntern(jobName, jobTask, cronPattern, authentication, properties);
 	}
 
 	@Override
-	public void scheduleJob(String jobName, Object jobTask, String cronPattern, String username, byte[] userpass, Map<Object, Object> properties)
+	public void scheduleJob(String jobName, Object jobTask, String cronPattern, String username, char[] userpass, Map<Object, Object> properties)
+	{
+		ParamChecker.assertParamNotNull(username, "username");
+		ParamChecker.assertParamNotNull(userpass, "userpass");
+		scheduleJobIntern(jobName, jobTask, cronPattern, new DefaultAuthentication(username, userpass, PasswordType.PLAIN), properties);
+	}
+
+	protected void scheduleJobIntern(String jobName, final Object jobTask, String cronPattern, IAuthentication authentication, Map<Object, Object> properties)
 	{
 		ParamChecker.assertParamNotNull(jobName, "jobName");
 		ParamChecker.assertParamNotNull(jobTask, "jobTask");
 		ParamChecker.assertParamNotNull(cronPattern, "cronPattern");
-		ParamChecker.assertParamNotNull(username, "username");
 
 		if (log.isInfoEnabled())
 		{
-			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + jobTask.getClass().getName() + "'");
+			String impersonating = "";
+			if (authentication != null)
+			{
+				impersonating = " impersonating user '" + authentication.getUserName() + "'";
+			}
+			log.info("Scheduling job '" + jobName + "' on '" + cronPattern + "' with type '" + jobTask.getClass().getName() + "'" + impersonating);
 		}
-		if (jobTask instanceof IJob)
+		if (!(jobTask instanceof IJob))
 		{
-			scheduler.schedule(cronPattern, createTask((IJob) jobTask, jobName, username, userpass));
+			scheduler.schedule(cronPattern, createTask((IJob) jobTask, jobName, authentication));
 		}
 		else if (jobTask instanceof Task)
 		{
-			scheduler.schedule(cronPattern, (Task) jobTask);
+			Task task = (Task) jobTask;
+			scheduler.schedule(cronPattern, createTask(new TaskJob(task), jobName, authentication));
 		}
 		else if (jobTask instanceof Runnable)
 		{
-			scheduler.schedule(cronPattern, (Runnable) jobTask);
+			Runnable runnable = (Runnable) jobTask;
+			scheduler.schedule(cronPattern, createTask(new RunnableJob(runnable), jobName, authentication));
+		}
+		else
+		{
+			throw new IllegalArgumentException("JobTask not recognized: " + jobTask);
 		}
 	}
 
-	protected Task createTask(IJob job, String jobName, String username, byte[] userpass)
+	protected Task createTask(IJob job, String jobName, IAuthentication authentication)
 	{
 		IBeanRuntime<AmbethCron4jJob> jobConf = beanContext.registerAnonymousBean(AmbethCron4jJob.class).propertyValue("Job", job)
-				.propertyValue("JobName", jobName).propertyValue("UserName", username).propertyValue("UserPass", userpass);
+				.propertyValue("JobName", jobName).propertyValue("Authentication", authentication);
 		return jobConf.finish();
 	}
 }
