@@ -42,7 +42,7 @@ public class AnnotationInfo
 
 	// ---- GETTER/SETTER METHODS ----------------------------------------------
 
-	public String getType()
+	public String getAnnotationType()
 	{
 		return annotationType;
 	}

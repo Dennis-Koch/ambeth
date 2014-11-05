@@ -17,7 +17,7 @@ public interface IDeprecation
 		{
 			for (AnnotationInfo annotation : annotationInfo)
 			{
-				String type = annotation.getType();
+				String type = annotation.getAnnotationType();
 				if (type.equals("java.lang.Deprecated") || type.equals("System.ObsoleteAttribute"))
 				{
 					return true;

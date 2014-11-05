@@ -28,7 +28,7 @@ namespace CsharpClassbrowser
             }
             this.Name = methodName;
             this.ReturnType = returnType;
-            this.Annotations = new List<String>();
+            this.Annotations = new List<AnnotationInfo>();
             this.Modifiers = modifiers == null ? new List<string>() : modifiers;
             this.ParameterTypes = parameterTypes == null ? new List<string>() : parameterTypes;
         }
@@ -41,7 +41,7 @@ namespace CsharpClassbrowser
 
         public string Name { get; internal set; }
         public string ReturnType { get; internal set; }
-        public IList<String> Annotations { get; internal set; }
+        public IList<AnnotationInfo> Annotations { get; internal set; }
         public IList<String> Modifiers { get; internal set; }
         public IList<String> ParameterTypes { get; internal set; }
 

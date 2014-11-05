@@ -33,7 +33,7 @@ public class AnnotationParamInfo implements INamed
 	 * @param defaultValue
 	 *            Annotation parameter default value; may be null
 	 * @param currentValue
-	 *            Annotation parameter current value; mandatory
+	 *            Annotation parameter current value; may be null
 	 */
 	public AnnotationParamInfo(String name, String type, Object defaultValue, Object currentValue)
 	{

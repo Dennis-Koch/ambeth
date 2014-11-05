@@ -454,7 +454,7 @@ public class OutputUtil
 	 * @param parentNode
 	 *            Node to append the Annotations node to
 	 * @param annotations
-	 *            List of the annotation names
+	 *            List of the annotation Info
 	 */
 	protected static void createAnnotationNodes(Element parentNode, List<AnnotationInfo> annotations)
 	{
@@ -470,7 +470,7 @@ public class OutputUtil
 		{
 			Element annotationNode = new Element(TAG_NAME_ANNOTATION);
 			annotationRootNode.addContent(annotationNode);
-			annotationNode.setAttribute("type", annotation.getType());
+			annotationNode.setAttribute("type", annotation.getAnnotationType());
 
 			List<AnnotationParamInfo> parameters = annotation.getParameters();
 			for (AnnotationParamInfo parameter : parameters)
@@ -484,23 +484,23 @@ public class OutputUtil
 				if (defaultValue != null)
 				{
 					Element defaultValueNode = new Element(TAG_NAME_DEFAULT_VALUE);
-					defaultValueNode.setText(defaultValue.toString());
 					paramNode.addContent(defaultValueNode);
+					defaultValueNode.setText(defaultValue.toString());
 				}
 
 				Object currentValue = parameter.getCurrentValue();
-				if (parameter.getCurrentValue() != parameter.getDefaultValue() && (currentValue == null || !currentValue.equals(defaultValue)))
+				if (currentValue != defaultValue && (currentValue == null || !currentValue.equals(defaultValue)))
 				{
 					Element currentValueNode = new Element(TAG_NAME_CURRENT_VALUE);
-					if (parameter.getCurrentValue() != null)
+					paramNode.addContent(currentValueNode);
+					if (currentValue != null)
 					{
-						currentValueNode.setText(parameter.getCurrentValue().toString());
+						currentValueNode.setText(currentValue.toString());
 					}
 					else
 					{
 						currentValueNode.setAttribute("isNull", "true");
 					}
-					paramNode.addContent(currentValueNode);
 				}
 			}
 		}

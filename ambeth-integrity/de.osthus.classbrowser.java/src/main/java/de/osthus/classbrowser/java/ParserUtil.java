@@ -572,7 +572,7 @@ public class ParserUtil
 	{
 		for (AnnotationInfo annotation : annotationInfo)
 		{
-			String type = annotation.getType();
+			String type = annotation.getAnnotationType();
 			if (type.equals(annotationType))
 			{
 				return true;

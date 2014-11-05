@@ -37,7 +37,7 @@ namespace CsharpClassbrowser
             this.Name = typeName;
             this.FullTypeName = fullTypeName;
             this.GenericTypeParams = genericTypeParams;
-            this.Annotations = new List<String>();
+            this.Annotations = new List<AnnotationInfo>();
             this.MethodDescriptions = new List<MethodDescription>();
             this.FieldDescriptions = new List<FieldDescription>();
         }
@@ -55,7 +55,7 @@ namespace CsharpClassbrowser
         public string Name { get; internal set; }
         public string FullTypeName { get; internal set; }
         public int GenericTypeParams { get; internal set; }
-        public IList<String> Annotations { get; internal set; }
+        public IList<AnnotationInfo> Annotations { get; internal set; }
         public IList<MethodDescription> MethodDescriptions { get; internal set; }
         public IList<FieldDescription> FieldDescriptions { get; internal set; }
 

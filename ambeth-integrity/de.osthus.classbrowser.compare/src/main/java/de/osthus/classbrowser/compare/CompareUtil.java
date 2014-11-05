@@ -1619,7 +1619,7 @@ public class CompareUtil
 		definingJavaAnnotations = new ArrayList<>(annotations.size());
 		for (AnnotationInfo annotation : annotations)
 		{
-			String annotationType = annotation.getType();
+			String annotationType = annotation.getAnnotationType();
 			definingJavaAnnotations.add(annotationType);
 		}
 		return definingJavaAnnotations;
