@@ -29,7 +29,7 @@ public class TypeDescription implements INamed, IDeprecation
 
 	private int genericTypeParams;
 
-	private final List<String> annotations = new ArrayList<String>();
+	private final List<AnnotationInfo> annotations = new ArrayList<>();
 
 	private final List<MethodDescription> methodDescriptions = new ArrayList<MethodDescription>();
 
@@ -124,7 +124,7 @@ public class TypeDescription implements INamed, IDeprecation
 		return IDeprecation.INSTANCE.isDeprecated(annotations);
 	}
 
-	public List<String> getAnnotations()
+	public List<AnnotationInfo> getAnnotations()
 	{
 		return annotations;
 	}

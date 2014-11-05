@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.CSharp;
+using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.CSharp;
 using System.Text.RegularExpressions;
 
 namespace CsharpClassbrowser
@@ -249,7 +249,7 @@ namespace CsharpClassbrowser
         /// <param name="typeDescription">Description to write the attribute infos to; mandatory</param>
         private static void AddAnnotations(Type givenType, TypeDescription typeDescription)
         {
-            GetAnnotationNames(givenType, typeDescription.Annotations);
+            GetAnnotationInfo(givenType, typeDescription.Annotations);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace CsharpClassbrowser
 
                 foreach (var fieldInfo in fieldInfos)
                 {
-                    IList<String> attributes = GetAnnotationNames(fieldInfo);
+                    IList<AnnotationInfo> attributes = GetAnnotationInfo(fieldInfo);
 
                     Match match = backingFieldPattern.Match(fieldInfo.Name);
                     if (match.Success)
@@ -315,17 +315,17 @@ namespace CsharpClassbrowser
                         {
                             throw new Exception("Property not found: " + givenType.FullName + "." + propertyName);
                         }
-                        IList<String> propertyAttributes = GetAnnotationNames(pi);
-                        foreach (String propertyAttribute in propertyAttributes)
+                        IList<AnnotationInfo> propertyAttributes = GetAnnotationInfo(pi);
+                        foreach (AnnotationInfo propertyAttribute in propertyAttributes)
                         {
                             attributes.Add(propertyAttribute);
                         }
                     }
 
-                    bool isLoggerField = attributes.Contains("De.Osthus.Ambeth.Log.LogInstanceAttribute");
-                    bool isAutowired = attributes.Contains("De.Osthus.Ambeth.Ioc.Annotation.AutowiredAttribute");
+                    bool isLoggerField = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Log.LogInstanceAttribute");
+                    bool isAutowired = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Ioc.Annotation.AutowiredAttribute");
 
-                    bool isProperty = attributes.Contains("De.Osthus.Ambeth.Config.PropertyAttribute");
+                    bool isProperty = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Config.PropertyAttribute");
 
                     // on enums only "recognize" the enum values and not the internal field to save the integer value
                     bool isEnumAndEnumConstant = isEnum && fieldInfo.IsStatic;
@@ -333,8 +333,8 @@ namespace CsharpClassbrowser
                     if (isAutowired || isLoggerField || isEnumAndEnumConstant || isProperty)
                     {
                         var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
-                        IList<String> annotations = fieldDescription.Annotations;
-                        foreach (String attribute in attributes)
+                        IList<AnnotationInfo> annotations = fieldDescription.Annotations;
+                        foreach (AnnotationInfo attribute in attributes)
                         {
                             annotations.Add(attribute);
                         }
@@ -357,7 +357,7 @@ namespace CsharpClassbrowser
             }
 
             string returnType = null;
-            IList<string> attributes = null;
+            IList<AnnotationInfo> attributes = null;
             IList<string> modifiers = null;
             IList<string> parameterTypes = null;
             foreach (var methodInfo in methodInfos)
@@ -366,15 +366,15 @@ namespace CsharpClassbrowser
                 {
                     returnType = GetReturnTypeFrom(methodInfo);
                     parameterTypes = GetParameterTypesFrom(methodInfo);
-                    attributes = GetAnnotationNames(methodInfo);
+                    attributes = GetAnnotationInfo(methodInfo);
                 }
             }
 
             MethodDescription methodDescription = new MethodDescription("Invoke", returnType, modifiers, parameterTypes);
             if (attributes != null)
             {
-                IList<String> annotations = methodDescription.Annotations;
-                foreach (String attribute in attributes)
+                IList<AnnotationInfo> annotations = methodDescription.Annotations;
+                foreach (AnnotationInfo attribute in attributes)
                 {
                     annotations.Add(attribute);
                 }
@@ -399,7 +399,7 @@ namespace CsharpClassbrowser
             var parameterTypes = GetParameterTypesFrom(methodInfo);
 
             MethodDescription methodDescription = new MethodDescription(methodInfo.Name, returnType, modifiers, parameterTypes);
-            GetAnnotationNames(methodInfo, methodDescription.Annotations);
+            GetAnnotationInfo(methodInfo, methodDescription.Annotations);
 
             return methodDescription;
         }
@@ -607,26 +607,74 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="attributeProvider">Object to be analysed; mandatory</param>
         /// <returns>List of the full annotation names; never null (but may be empty)</returns>
-        private static List<String> GetAnnotationNames(MemberInfo attributeProvider)
+        public static List<AnnotationInfo> GetAnnotationInfo(MemberInfo attributeProvider)
         {
-            List<String> annotationNames = new List<String>();
-            GetAnnotationNames(attributeProvider, annotationNames);
-            return annotationNames;
+            List<AnnotationInfo> annotationInfo = new List<AnnotationInfo>();
+            GetAnnotationInfo(attributeProvider, annotationInfo);
+            return annotationInfo;
         }
 
         // FIXME Attribute name is always 'System.Runtime.CompilerServices.CompilerGeneratedAttribute'
-        private static void GetAnnotationNames(MemberInfo attributeProvider, IList<String> target)
+        private static void GetAnnotationInfo(MemberInfo attributeProvider, IList<AnnotationInfo> target)
         {
             Object[] attributes = attributeProvider.GetCustomAttributes(true);
             foreach (Object attr in attributes)
             {
                 Attribute attribute = (Attribute)attr;
-                String name = attribute.GetType().FullName;
-                if (!"System.Runtime.CompilerServices.CompilerGeneratedAttribute".Equals(name))
+                Type annotationType = attribute.GetType();
+                String annotationTypeName = annotationType.FullName;
+                if ("System.Runtime.CompilerServices.CompilerGeneratedAttribute".Equals(annotationTypeName))
                 {
-                    target.Add(name);
+                    continue;
+                }
+
+                Attribute defaultAttribute = null;
+                try
+                {
+                    defaultAttribute = Activator.CreateInstance(annotationType) as Attribute;
+                }
+                catch
+                {
+                    // We could search the constructor with the lowest number of parameters.
+                    // But for now we just do not get the default values.
+                }
+
+                PropertyInfo[] methods = annotationType.GetProperties();
+                List<AnnotationParamInfo> parameters = new List<AnnotationParamInfo>();
+                foreach (PropertyInfo method in methods)
+                {
+                    Type declaringClass = method.DeclaringType;
+                    String declaringClassName = declaringClass.FullName;
+                    if (!annotationTypeName.Equals(declaringClassName))
+                    {
+                        continue;
+                    }
+
+                    String paramName = method.Name;
+                    String paramType = method.PropertyType.ToString();
+                    Object defaultValue =defaultAttribute!=null ? method.GetValue(defaultAttribute, null):null;
+                    Object currentValue = method.GetValue(attribute, null);
+
+                    AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
+                    parameters.Add(param);
+                }
+
+                AnnotationInfo info = new AnnotationInfo(annotationTypeName, parameters);
+                target.Add(info);
+            }
+        }
+
+        private static bool ContainsAnnotation(IList<AnnotationInfo> annotationInfo, String annotationType)
+        {
+            foreach (AnnotationInfo annotation in annotationInfo)
+            {
+                String type = annotation.AnnotationType;
+                if (type.Equals(annotationType))
+                {
+                    return true;
                 }
             }
+            return false;
         }
 
         private static void log(TypeDescription typeDescription)

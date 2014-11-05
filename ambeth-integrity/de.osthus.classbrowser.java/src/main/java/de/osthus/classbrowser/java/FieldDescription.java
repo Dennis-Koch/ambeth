@@ -23,7 +23,7 @@ public class FieldDescription implements INamed
 
 	private List<String> modifiers;
 
-	private List<String> annotations = new ArrayList<String>();
+	private List<AnnotationInfo> annotations = new ArrayList<>();
 
 	// ---- CONSTRUCTORS -------------------------------------------------------
 
@@ -71,7 +71,7 @@ public class FieldDescription implements INamed
 		return modifiers;
 	}
 
-	public List<String> getAnnotations()
+	public List<AnnotationInfo> getAnnotations()
 	{
 		return annotations;
 	}
@@ -81,8 +81,8 @@ public class FieldDescription implements INamed
 	@Override
 	public String toString()
 	{
-		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("field modifiers", this.modifiers).append("field type", this.fieldType)
-				.append("field name", this.fieldName).toString();
+		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("field modifiers", modifiers).append("field type", fieldType)
+				.append("field name", fieldName).toString();
 	}
 
 }

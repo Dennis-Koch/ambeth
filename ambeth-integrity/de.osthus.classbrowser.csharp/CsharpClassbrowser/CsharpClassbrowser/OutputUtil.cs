@@ -18,6 +18,12 @@ namespace CsharpClassbrowser
 
         private const string TAG_NAME_ANNOTATIONS = "Annotations";
 
+        private const string TAG_NAME_PARAMETER = "Parameter";
+
+        private const string TAG_NAME_DEFAULT_VALUE = "DefaultValue";
+
+        private const string TAG_NAME_CURRENT_VALUE = "CurrentValue";
+
         public const string EXPORT_FILE_NAME = "export_csharp.xml";
 
         #endregion
@@ -95,7 +101,7 @@ namespace CsharpClassbrowser
                 typeNode.Attributes.Append(genericTypeParamsAttribute);
             }
 
-            IList<String> annotations = typeDescription.Annotations;
+            IList<AnnotationInfo> annotations = typeDescription.Annotations;
             CreateAnnotationNodes(typeNode, annotations, doc);
 
             XmlNode methodRootNode = doc.CreateElement("MethodDescriptions");
@@ -133,16 +139,10 @@ namespace CsharpClassbrowser
             }
 
             XmlNode methodNode = doc.CreateElement("MethodDescription");
+            AppendAttribute(methodNode, "MethodName", methodDescription.Name, doc);
+            AppendAttribute(methodNode, "ReturnType", methodDescription.ReturnType, doc);
 
-            XmlAttribute nameAttribute = doc.CreateAttribute("MethodName");
-            nameAttribute.InnerText = methodDescription.Name;
-            methodNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute returnTypeAttribute = doc.CreateAttribute("ReturnType");
-            returnTypeAttribute.InnerText = methodDescription.ReturnType;
-            methodNode.Attributes.Append(returnTypeAttribute);
-
-            IList<String> annotations = methodDescription.Annotations;
+            IList<AnnotationInfo> annotations = methodDescription.Annotations;
             CreateAnnotationNodes(methodNode, annotations, doc);
 
             XmlNode modifiersRootNode = doc.CreateElement("MethodModifiers");
@@ -183,16 +183,10 @@ namespace CsharpClassbrowser
             }
 
             XmlNode fieldNode = doc.CreateElement("FieldDescription");
+            AppendAttribute(fieldNode, "FieldName", fieldDescription.Name, doc);
+            AppendAttribute(fieldNode, "FieldType", fieldDescription.FieldType, doc);
 
-            XmlAttribute nameAttribute = doc.CreateAttribute("FieldName");
-            nameAttribute.InnerText = fieldDescription.Name;
-            fieldNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute fieldTypeAttribute = doc.CreateAttribute("FieldType");
-            fieldTypeAttribute.InnerText = fieldDescription.FieldType;
-            fieldNode.Attributes.Append(fieldTypeAttribute);
-
-            IList<String> annotations = fieldDescription.Annotations;
+            IList<AnnotationInfo> annotations = fieldDescription.Annotations;
             CreateAnnotationNodes(fieldNode, annotations, doc);
 
             XmlNode modifiersRootNode = doc.CreateElement("FieldModifiers");
@@ -212,9 +206,9 @@ namespace CsharpClassbrowser
         /// Create the XML nodes for the annotations.
         /// </summary>
         /// <param name="parentNode">Node to append the Annotations node to; mandatory</param>
-        /// <param name="annotations">List of the annotation names; mandatory</param>
+        /// <param name="annotations">List of the annotation info; mandatory</param>
         /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
-        private static void CreateAnnotationNodes(XmlNode parentNode, IList<String> annotations, XmlDocument doc)
+        private static void CreateAnnotationNodes(XmlNode parentNode, IList<AnnotationInfo> annotations, XmlDocument doc)
         {
             if (annotations.Count == 0)
             {
@@ -224,12 +218,51 @@ namespace CsharpClassbrowser
             XmlNode annotationRootNode = doc.CreateElement(TAG_NAME_ANNOTATIONS);
             parentNode.AppendChild(annotationRootNode);
 
-            foreach (String annotation in annotations)
+            foreach (AnnotationInfo annotation in annotations)
             {
                 XmlNode annotationNode = doc.CreateElement(TAG_NAME_ANNOTATION);
-                annotationNode.InnerText = annotation;
                 annotationRootNode.AppendChild(annotationNode);
+                AppendAttribute(annotationNode, "type", annotation.AnnotationType, doc);
+
+                IList<AnnotationParamInfo> parameters = annotation.Parameters;
+                foreach (AnnotationParamInfo parameter in parameters)
+                {
+                    XmlNode paramNode = doc.CreateElement(TAG_NAME_PARAMETER);
+                    annotationNode.AppendChild(paramNode);
+                    AppendAttribute(paramNode, "name", parameter.Name, doc);
+                    AppendAttribute(paramNode, "type", parameter.Type, doc);
+
+                    Object defaultValue = parameter.DefaultValue;
+                    if (defaultValue != null)
+                    {
+                        XmlNode defaultValueNode = doc.CreateElement(TAG_NAME_DEFAULT_VALUE);
+                        paramNode.AppendChild(defaultValueNode);
+                        defaultValueNode.InnerText = defaultValue.ToString();
+                    }
+
+                    Object currentValue = parameter.CurrentValue;
+                    if (currentValue != defaultValue && (currentValue == null || !currentValue.Equals(defaultValue)))
+                    {
+                        XmlNode currentValueNode = doc.CreateElement(TAG_NAME_CURRENT_VALUE);
+                        paramNode.AppendChild(currentValueNode);
+                        if (currentValue != null)
+                        {
+                            currentValueNode.InnerText = currentValue.ToString();
+                        }
+                        else
+                        {
+                            AppendAttribute(currentValueNode, "isNull", "true", doc);
+                        }
+                    }
+                }
             }
+        }
+
+        private static void AppendAttribute(XmlNode parent, string attributeName, string attributeValue, XmlDocument doc)
+        {
+            XmlAttribute attribute = doc.CreateAttribute(attributeName);
+            attribute.InnerText = attributeValue;
+            parent.Attributes.Append(attribute);
         }
 
         #endregion

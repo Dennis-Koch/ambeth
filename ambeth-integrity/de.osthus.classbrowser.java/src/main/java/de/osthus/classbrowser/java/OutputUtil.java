@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -30,6 +31,12 @@ public class OutputUtil
 	private static final String TAG_NAME_ANNOTATION = "Annotation";
 
 	private static final String TAG_NAME_ANNOTATIONS = "Annotations";
+
+	private static final String TAG_NAME_PARAMETER = "Parameter";
+
+	private static final String TAG_NAME_DEFAULT_VALUE = "DefaultValue";
+
+	private static final String TAG_NAME_CURRENT_VALUE = "CurrentValue";
 
 	private static final boolean IGNORE_DEPRECATED_METHODS = true;
 
@@ -85,7 +92,7 @@ public class OutputUtil
 				TypeDescription typeDescription = new TypeDescription(sourceAttributeValue, moduleAttributeValue, namespaceAttributeValue, nameAttributeValue,
 						fullNameAttributeValue, typeAttributeValue, genericTypeParams);
 
-				List<String> annotations = readAnnotationNames(typeNode);
+				List<AnnotationInfo> annotations = readAnnotationInfo(typeNode);
 				typeDescription.getAnnotations().addAll(annotations);
 				if (typeDescription.isDeprecated() && IGNORE_DEPRECATED_TYPES)
 				{
@@ -99,7 +106,7 @@ public class OutputUtil
 					Attribute methodNameAttribute = methodNode.getAttribute("MethodName");
 					Attribute methodReturnTypeAttribute = methodNode.getAttribute("ReturnType");
 
-					annotations = readAnnotationNames(methodNode);
+					annotations = readAnnotationInfo(methodNode);
 					if (IDeprecation.INSTANCE.isDeprecated(annotations) && IGNORE_DEPRECATED_METHODS)
 					{
 						continue;
@@ -135,7 +142,7 @@ public class OutputUtil
 					Attribute fieldNameAttribute = fieldNode.getAttribute("FieldName");
 					Attribute fieldTypeAttribute = fieldNode.getAttribute("FieldType");
 
-					annotations = readAnnotationNames(fieldNode);
+					annotations = readAnnotationInfo(fieldNode);
 
 					List<String> modifiers = new ArrayList<String>();
 					Element fieldModifiersNode = fieldNode.getChild("FieldModifiers");
@@ -162,19 +169,57 @@ public class OutputUtil
 		return results;
 	}
 
-	private static List<String> readAnnotationNames(Element typeNode)
+	private static ArrayList<AnnotationInfo> readAnnotationInfo(Element typeNode)
 	{
-		List<String> annotations = new ArrayList<String>();
+		ArrayList<AnnotationInfo> annotations = new ArrayList<>();
 		Element typeAnnotationsNode = typeNode.getChild(TAG_NAME_ANNOTATIONS);
 		if (typeAnnotationsNode != null)
 		{
-			List<Element> typeAnnotationNodes = typeAnnotationsNode.getChildren(TAG_NAME_ANNOTATION);
-			for (Element typeAnnotationNode : typeAnnotationNodes)
+			List<Element> annotationNodes = typeAnnotationsNode.getChildren(TAG_NAME_ANNOTATION);
+			for (Element annotationNode : annotationNodes)
 			{
-				annotations.add(typeAnnotationNode.getValue());
+				String annotationType = annotationNode.getAttribute("type").getValue();
+				List<AnnotationParamInfo> parameters = readAnnotationParamInfo(annotationNode);
+				AnnotationInfo annotationInfo = new AnnotationInfo(annotationType, parameters);
+				annotations.add(annotationInfo);
 			}
 		}
 		return annotations;
+	}
+
+	private static List<AnnotationParamInfo> readAnnotationParamInfo(Element annotationNode)
+	{
+		List<Element> parameterNodes = annotationNode.getChildren(TAG_NAME_PARAMETER);
+		if (parameterNodes.isEmpty())
+		{
+			return Collections.emptyList();
+		}
+
+		List<AnnotationParamInfo> paramInfo = new ArrayList<>(parameterNodes.size());
+		for (Element parameterNode : parameterNodes)
+		{
+			String paramName = parameterNode.getAttribute("name").getValue();
+			String paramType = parameterNode.getAttribute("type").getValue();
+
+			Element defaultValueNode = parameterNode.getChild(TAG_NAME_DEFAULT_VALUE);
+			Object defaultValue = defaultValueNode == null ? null : defaultValueNode.getText();
+
+			Element currentValueNode = parameterNode.getChild(TAG_NAME_CURRENT_VALUE);
+			Object currentValue;
+			if (currentValueNode == null)
+			{
+				currentValue = defaultValue;
+			}
+			else
+			{
+				currentValue = "true".equals(currentValueNode.getAttribute("isNull")) ? null : currentValueNode.getText();
+			}
+
+			AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
+			paramInfo.add(param);
+		}
+
+		return paramInfo;
 	}
 
 	/**
@@ -299,7 +344,7 @@ public class OutputUtil
 			typeNode.setAttribute(new Attribute("GenericTypeParams", String.valueOf(typeDescription.getGenericTypeParams())));
 		}
 
-		List<String> annotations = typeDescription.getAnnotations();
+		List<AnnotationInfo> annotations = typeDescription.getAnnotations();
 		createAnnotationNodes(typeNode, annotations);
 
 		Element methodRootNode = new Element("MethodDescriptions");
@@ -342,7 +387,7 @@ public class OutputUtil
 		methodNode.setAttribute(new Attribute("MethodName", methodDescription.getName()));
 		methodNode.setAttribute(new Attribute("ReturnType", methodDescription.getReturnType()));
 
-		List<String> annotations = methodDescription.getAnnotations();
+		List<AnnotationInfo> annotations = methodDescription.getAnnotations();
 		createAnnotationNodes(methodNode, annotations);
 
 		Element modifiersRootNode = new Element("MethodModifiers");
@@ -387,7 +432,7 @@ public class OutputUtil
 		fieldNode.setAttribute(new Attribute("FieldName", fieldDescription.getName()));
 		fieldNode.setAttribute(new Attribute("FieldType", fieldDescription.getFieldType()));
 
-		List<String> annotations = fieldDescription.getAnnotations();
+		List<AnnotationInfo> annotations = fieldDescription.getAnnotations();
 		createAnnotationNodes(fieldNode, annotations);
 
 		Element modifiersRootNode = new Element("FieldModifiers");
@@ -409,9 +454,9 @@ public class OutputUtil
 	 * @param parentNode
 	 *            Node to append the Annotations node to
 	 * @param annotations
-	 *            List of the annotation names
+	 *            List of the annotation Info
 	 */
-	protected static void createAnnotationNodes(Element parentNode, List<String> annotations)
+	protected static void createAnnotationNodes(Element parentNode, List<AnnotationInfo> annotations)
 	{
 		if (annotations.isEmpty())
 		{
@@ -421,12 +466,43 @@ public class OutputUtil
 		Element annotationRootNode = new Element(TAG_NAME_ANNOTATIONS);
 		parentNode.addContent(annotationRootNode);
 
-		for (String annotation : annotations)
+		for (AnnotationInfo annotation : annotations)
 		{
 			Element annotationNode = new Element(TAG_NAME_ANNOTATION);
-			annotationNode.setText(annotation);
 			annotationRootNode.addContent(annotationNode);
+			annotationNode.setAttribute("type", annotation.getAnnotationType());
+
+			List<AnnotationParamInfo> parameters = annotation.getParameters();
+			for (AnnotationParamInfo parameter : parameters)
+			{
+				Element paramNode = new Element(TAG_NAME_PARAMETER);
+				annotationNode.addContent(paramNode);
+				paramNode.setAttribute("name", parameter.getName());
+				paramNode.setAttribute("type", parameter.getType());
+
+				Object defaultValue = parameter.getDefaultValue();
+				if (defaultValue != null)
+				{
+					Element defaultValueNode = new Element(TAG_NAME_DEFAULT_VALUE);
+					paramNode.addContent(defaultValueNode);
+					defaultValueNode.setText(defaultValue.toString());
+				}
+
+				Object currentValue = parameter.getCurrentValue();
+				if (currentValue != defaultValue && (currentValue == null || !currentValue.equals(defaultValue)))
+				{
+					Element currentValueNode = new Element(TAG_NAME_CURRENT_VALUE);
+					paramNode.addContent(currentValueNode);
+					if (currentValue != null)
+					{
+						currentValueNode.setText(currentValue.toString());
+					}
+					else
+					{
+						currentValueNode.setAttribute("isNull", "true");
+					}
+				}
+			}
 		}
 	}
-
 }
