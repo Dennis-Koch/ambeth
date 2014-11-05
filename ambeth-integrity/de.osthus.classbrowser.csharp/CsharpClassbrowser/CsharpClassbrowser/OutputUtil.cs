@@ -179,7 +179,7 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
         /// <param name="fieldDescription">FieldDescription to get the information from; mandatory</param>
-        /// <returns>XmlNode with the field infos</returns>
+        /// <returns>XmlNode with the field info</returns>
         public static XmlNode CreateFieldNode(XmlDocument doc, FieldDescription fieldDescription)
         {
             if (doc == null || fieldDescription == null)
@@ -190,18 +190,29 @@ namespace CsharpClassbrowser
             XmlNode fieldNode = doc.CreateElement("FieldDescription");
             AppendAttribute(fieldNode, "FieldName", fieldDescription.Name, doc);
             AppendAttribute(fieldNode, "FieldType", fieldDescription.FieldType, doc);
+            if (fieldDescription.EnumConstant)
+            {
+                AppendAttribute(fieldNode, "isEnumConstant", "true", doc);
+            }
 
             IList<AnnotationInfo> annotations = fieldDescription.Annotations;
             CreateAnnotationNodes(fieldNode, annotations, doc);
 
             XmlNode modifiersRootNode = doc.CreateElement("FieldModifiers");
             fieldNode.AppendChild(modifiersRootNode);
-
             foreach (var modifier in fieldDescription.Modifiers)
             {
                 XmlNode modifierNode = doc.CreateElement("FieldModifier");
-                modifierNode.InnerText = modifier;
                 modifiersRootNode.AppendChild(modifierNode);
+                modifierNode.InnerText = modifier;
+            }
+
+            String initialValue = fieldDescription.InitialValue;
+            if (initialValue != null)
+            {
+                XmlNode initialValueNode = doc.CreateElement("InitialValue");
+                fieldNode.AppendChild(initialValueNode);
+                initialValueNode.InnerText = initialValue;
             }
 
             return fieldNode;
@@ -242,7 +253,13 @@ namespace CsharpClassbrowser
                     {
                         XmlNode defaultValueNode = doc.CreateElement(TAG_NAME_DEFAULT_VALUE);
                         paramNode.AppendChild(defaultValueNode);
-                        defaultValueNode.InnerText = defaultValue.ToString();
+                        String defaultValueString = defaultValue.ToString();
+                        if ("\u0000".Equals(defaultValueString))
+                        {
+                            // Workaround for a character that is illegal in xml
+                            defaultValueString = "\\u0000";
+                        }
+                        defaultValueNode.InnerText = defaultValueString;
                     }
 
                     Object currentValue = parameter.CurrentValue;

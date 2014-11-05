@@ -32,7 +32,7 @@ namespace CsharpClassbrowser
         public const string MODIFIER_ABSTRACT = "abstract";
         public const string MODIFIER_INTERNAL = "internal";
 
-        public const List<String> MODIFIERS_CONSTANT = new List<String>(new String[] { MODIFIER_STATIC, MODIFIER_FINAL });
+        public static readonly List<String> MODIFIERS_CONSTANT = new List<String>(new String[] { MODIFIER_STATIC, MODIFIER_FINAL });
 
         public const string GENERIC_TYPE_PREFIX = "generic:";
 
@@ -69,23 +69,7 @@ namespace CsharpClassbrowser
                         var typeType = ParserUtil.GetTypeType(type);
                         if (typeType != null && !IsTypeSkipped(type))
                         {
-                            int genericTypeParams = CountGenericTypeParams(type);
-                            string simpleName = RemoveGenericTypeParamsFromName(type.Name);
-                            string fullTypeName = RemoveGenericTypeParamsFromName(type.FullName);
-                            string moduleName;
-                            if (moduleMap != null)
-                            {
-                                moduleName = GetModuleFromSources(type, moduleMap);
-                            }
-                            else
-                            {
-                                moduleName = GetModuleFromAssembly(source);
-                            }
-                            TypeDescription typeDescription = new TypeDescription(source, moduleName, type.Namespace, simpleName, fullTypeName, typeType, genericTypeParams);
-                            AddAnnotations(type, typeDescription);
-                            AddMethodDescriptions(type, typeDescription);
-                            AddFieldDescriptions(type, typeDescription);
-                            log(typeDescription);
+                            TypeDescription typeDescription = AnalyzeType(type, typeType, source, moduleMap);
                             foundTypes.Add(typeDescription);
                         }
                     }
@@ -152,6 +136,35 @@ namespace CsharpClassbrowser
                 throw new ArgumentException("Mandatory value missing!");
             }
             return System.IO.Path.GetFileNameWithoutExtension(assemblySourceFilePath);
+        }
+
+        public static TypeDescription AnalyzeType(Type typeToBeAnalyzed, string typeType, string source, IDictionary<string, string> moduleMap)
+        {
+            int genericTypeParams = CountGenericTypeParams(typeToBeAnalyzed);
+            string simpleName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.Name);
+            string fullTypeName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.FullName);
+            string moduleName;
+            if (moduleMap != null)
+            {
+                moduleName = GetModuleFromSources(typeToBeAnalyzed, moduleMap);
+            }
+            else
+            {
+                moduleName = GetModuleFromAssembly(source);
+            }
+
+            Type superclass = typeToBeAnalyzed.BaseType;
+            String superclassName = superclass == null ? null : superclass.FullName;
+
+            TypeDescription typeDescription = new TypeDescription(source, moduleName, typeToBeAnalyzed.Namespace, simpleName, fullTypeName, typeType, genericTypeParams);
+            typeDescription.SuperType = superclassName;
+            AddInterfaces(typeToBeAnalyzed, typeDescription);
+            AddAnnotations(typeToBeAnalyzed, typeDescription);
+            AddMethodDescriptions(typeToBeAnalyzed, typeDescription);
+            AddFieldDescriptions(typeToBeAnalyzed, typeDescription);
+            log(typeDescription);
+
+            return typeDescription;
         }
 
         /// <summary>
@@ -244,6 +257,16 @@ namespace CsharpClassbrowser
             }
         }
 
+        private static void AddInterfaces(Type typeToBeAnalyzed, TypeDescription typeDescription)
+        {
+            Type[] interfaces = typeToBeAnalyzed.GetInterfaces();
+            IList<String> interfaceNames = typeDescription.Interfaces;
+            foreach (Type iface in interfaces)
+            {
+                interfaceNames.Add(iface.FullName);
+            }
+        }
+
         /// <summary>
         /// Add all runtime visible attributes from the given type to the given description.
         /// </summary>
@@ -302,9 +325,12 @@ namespace CsharpClassbrowser
             {
                 bool isEnum = ParserUtil.TYPE_ENUM.Equals(typeDescription.TypeType);
 
+                IList<FieldDescription> fieldDescriptions = typeDescription.FieldDescriptions;
                 foreach (var fieldInfo in fieldInfos)
                 {
                     IList<AnnotationInfo> attributes = GetAnnotationInfo(fieldInfo);
+                    var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
+                    fieldDescriptions.Add(fieldDescription);
 
                     Match match = backingFieldPattern.Match(fieldInfo.Name);
                     if (match.Success)
@@ -324,26 +350,36 @@ namespace CsharpClassbrowser
                         }
                     }
 
-                    bool isLoggerField = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Log.LogInstanceAttribute");
-                    bool isAutowired = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Ioc.Annotation.AutowiredAttribute");
-
-                    bool isProperty = ContainsAnnotation(attributes, "De.Osthus.Ambeth.Config.PropertyAttribute");
-
                     // on enums only "recognize" the enum values and not the internal field to save the integer value
-                    bool isEnumAndEnumConstant = isEnum && fieldInfo.IsStatic;
+                    fieldDescription.EnumConstant = isEnum && fieldInfo.IsStatic;
 
-                    if (isAutowired || isLoggerField || isEnumAndEnumConstant || isProperty)
+                    IList<AnnotationInfo> annotations = fieldDescription.Annotations;
+                    foreach (AnnotationInfo attribute in attributes)
                     {
-                        var fieldDescription = CreateFieldDescriptionFrom(fieldInfo);
-                        IList<AnnotationInfo> annotations = fieldDescription.Annotations;
-                        foreach (AnnotationInfo attribute in attributes)
-                        {
-                            annotations.Add(attribute);
-                        }
-                        typeDescription.FieldDescriptions.Add(fieldDescription);
+                        annotations.Add(attribute);
+                    }
+
+                    // Record the value of primitive and string constants.
+                    if (ContainsAll((List<string>)fieldDescription.Modifiers, MODIFIERS_CONSTANT)
+                            && (fieldInfo.FieldType.IsPrimitive || typeof(String).Equals(fieldInfo.FieldType)))
+                    {
+                        Object initialValue = fieldInfo.GetValue(null);
+                        fieldDescription.InitialValue = initialValue.ToString();
                     }
                 }
             }
+        }
+
+        private static bool ContainsAll(List<string> list, List<string> otherList)
+        {
+            foreach (string value in otherList)
+            {
+                if (!list.Contains(value))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -576,6 +612,10 @@ namespace CsharpClassbrowser
             if (fieldInfo.IsStatic)
             {
                 modifiers.Add(MODIFIER_STATIC);
+            }
+            if (fieldInfo.IsLiteral)
+            {
+                modifiers.Add(MODIFIER_FINAL);
             }
 
             return modifiers;
