@@ -1,8 +1,6 @@
 package de.osthus.ambeth.extscanner;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -13,14 +11,13 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.classbrowser.java.MethodDescription;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class ExtendableTypeScanner extends AbstractLatexScanner implements IStartingBean
+public class ExtendableUpdater extends AbstractLatexScanner implements IStartingBean
 {
 	public static final String LISTING_START = "%% GENERATED LISTINGS - DO NOT EDIT";
 
@@ -86,47 +83,25 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 			{
 				fw.close();
 			}
+			targetFile.setLastModified(currentTime);
 			return;
 		}
-		String newContent;
-		StringBuilder sb = new StringBuilder((int) targetFile.length());
-		BufferedReader rd = new BufferedReader(new FileReader(targetFile));
-		try
+		StringBuilder sb = readFileFully(targetFile);
+		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		Matcher matcher = replaceListingsPattern.matcher(newContent);
+		if (matcher.matches())
 		{
-			int oneByte;
-			while ((oneByte = rd.read()) != -1)
-			{
-				sb.append((char) oneByte);
-			}
-			newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
-			Matcher matcher = replaceListingsPattern.matcher(newContent);
-			if (matcher.matches())
-			{
-				newContent = matcher.group(1) + "\n" + listingsString(extendableEntry) + matcher.group(2);
-			}
-			else
-			{
-				log.warn("Could not replace listings in '" + targetFile.getPath() + "'");
-			}
+			newContent = matcher.group(1) + "\n" + listingsString(extendableEntry) + matcher.group(2);
 		}
-		finally
+		else
 		{
-			rd.close();
+			log.warn("Could not replace listings in '" + targetFile.getPath() + "'");
 		}
 		if (newContent.contentEquals(sb))
 		{
 			return;
 		}
-		// update existing file
-		FileWriter fw = new FileWriter(targetFile);
-		try
-		{
-			fw.append(newContent);
-		}
-		finally
-		{
-			fw.close();
-		}
+		updateFileFully(targetFile, newContent);
 	}
 
 	protected StringBuilder listingsString(ExtendableEntry extendableEntry)
@@ -246,8 +221,8 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		File targetExtendableTexDir = new File(targetExtendableTexDirPath).getCanonicalFile();
 		targetExtendableTexDir.mkdirs();
 
-		log.info("TargetTexFile: " + allExtendablesTexFile);
-		log.info("ExtendableTexDir: " + targetExtendableTexDir);
+		log.debug("TargetTexFile: " + allExtendablesTexFile);
+		log.debug("ExtendableTexDir: " + targetExtendableTexDir);
 
 		String targetExtendableTexDirCP = targetExtendableTexDir.getPath();
 		String targetTexFileCP = allExtendablesTexFile.getParent();
@@ -298,7 +273,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		{
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
-			fw.append("% Any changes have to be done to the java class " + ExtendableTypeScanner.class.getName() + "\n");
+			fw.append("% Any changes have to be done to the java class " + ExtendableUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Extension Points}\n");
 			fw.append("\\begin{longtable}{ l l c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} \\\n");
@@ -310,7 +285,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 			for (String extendableName : extendableNames)
 			{
 				ExtendableEntry extendableEntry = nameToExtendableMap.get(extendableName);
-				log.info("Handling " + extendableEntry.fqName);
+				log.debug("Handling " + extendableEntry.fqName);
 				String texName = extendableEntry.simpleName;
 
 				String labelName = "extendable:" + texName;
@@ -341,6 +316,7 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 		{
 			fw.close();
 		}
+		allExtendablesTexFile.setLastModified(currentTime);
 	}
 
 	protected void findCorrespondingSourceFiles(IMap<String, ExtendableEntry> extendableEntries)
@@ -368,58 +344,6 @@ public class ExtendableTypeScanner extends AbstractLatexScanner implements IStar
 				}
 			});
 		}
-
-		try
-		{
-			String[] pathItems = sourcePath.split(";");
-			for (String pathItem : pathItems)
-			{
-				File rootDir = new File(pathItem).getCanonicalFile();
-				searchForFiles(rootDir, rootDir, nameToFileFoundDelegates);
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected void queueFileSearch(TypeDescription typeDesc, String expectedSuffix, IMap<String, IFileFoundDelegate> nameToFileFoundDelegates,
-			IFileFoundDelegate fileFoundDelegate)
-	{
-		if (typeDesc == null)
-		{
-			return;
-		}
-		String fileName = typeDesc.getName() + expectedSuffix;
-		nameToFileFoundDelegates.put(fileName, fileFoundDelegate);
-	}
-
-	protected void searchForFiles(File baseDir, File currFile, IMap<String, IFileFoundDelegate> nameToFileFoundDelegates)
-	{
-		if (currFile == null)
-		{
-			return;
-		}
-		if (currFile.isDirectory())
-		{
-			File[] listFiles = currFile.listFiles();
-			for (File child : listFiles)
-			{
-				searchForFiles(baseDir, child, nameToFileFoundDelegates);
-				if (nameToFileFoundDelegates.size() == 0)
-				{
-					return;
-				}
-			}
-			return;
-		}
-		IFileFoundDelegate fileFoundDelegate = nameToFileFoundDelegates.remove(currFile.getName());
-		if (fileFoundDelegate == null)
-		{
-			return;
-		}
-		String relativeFilePath = currFile.getPath().substring(baseDir.getPath().length() + 1).replaceAll(Pattern.quote("\\"), Matcher.quoteReplacement("/"));
-		fileFoundDelegate.fileFound(currFile, relativeFilePath);
+		searchForFiles(sourcePath, nameToFileFoundDelegates);
 	}
 }

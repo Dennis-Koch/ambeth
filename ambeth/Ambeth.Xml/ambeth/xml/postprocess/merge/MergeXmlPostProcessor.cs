@@ -38,12 +38,11 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
         [Autowired]
         public IObjRefHelper ObjRefHelper { protected get; set; }
 
-        [Autowired]
-        protected Member DirectObjRefDirectMember { get; set; }
+        protected Member directObjRefDirectMember;
         
         public void AfterStarted()
         {
-            DirectObjRefDirectMember = MemberTypeProvider.GetMember(typeof(DirectObjRef), "Direct");
+            directObjRefDirectMember = MemberTypeProvider.GetMember(typeof(DirectObjRef), "Direct");
         }
 
         public Object ProcessWrite(IPostProcessWriter writer)
@@ -106,7 +105,7 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
             }
 
             ICommandBuilder commandBuilder = CommandBuilder;
-            Member directObjRefDirectMember = DirectObjRefDirectMember;
+            Member directObjRefDirectMember = this.directObjRefDirectMember;
             CUDResult cudResult = (CUDResult)result;
             IList<IChangeContainer> changes = cudResult.AllChanges;
             for (int i = 0, size = changes.Count; i < size; i++)

@@ -88,6 +88,10 @@ namespace CsharpClassbrowser
                         }
                     }
                 }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    Console.WriteLine("Assembly '" + assembly.FullName + "' can't be parsed due to: " + ex.LoaderExceptions[0].Message);
+                }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Assembly '" + assembly.FullName + "' can't be parsed due to: " + ex.Message);
