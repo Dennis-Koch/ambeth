@@ -40,6 +40,8 @@ public class ParserUtil
 	public static final String MODIFIER_FINAL = "final";
 	public static final String MODIFIER_ABSTRACT = "abstract";
 
+	public static final List<String> MODIFIERS_CONSTANT = Arrays.asList(MODIFIER_STATIC, MODIFIER_FINAL);
+
 	public static final String JAVA_ANNOTATION_LOG_INSTANCE = "de.osthus.ambeth.log.LogInstance";
 	public static final String JAVA_ANNOTATION_AUTOWIRED = "de.osthus.ambeth.ioc.annotation.Autowired";
 	public static final String JAVA_ANNOTATION_PROPERTY = "de.osthus.ambeth.config.Property";
@@ -113,8 +115,12 @@ public class ParserUtil
 				String simpleName = classToBeAnalyzed.getSimpleName();
 				String fullTypeName = classToBeAnalyzed.getName();
 				int genericTypeParams = classToBeAnalyzed.getTypeParameters() != null ? classToBeAnalyzed.getTypeParameters().length : 0;
+				Class<?> superclass = classToBeAnalyzed.getSuperclass();
+				String superclassName = superclass == null ? null : superclass.getName();
 
 				TypeDescription typeDescription = new TypeDescription(source, moduleName, namespace, simpleName, fullTypeName, typeType, genericTypeParams);
+				typeDescription.setSuperType(superclassName);
+				addInterfaces(classToBeAnalyzed, typeDescription);
 				addAnnotations(classToBeAnalyzed, typeDescription);
 				addMethodDescriptions(classToBeAnalyzed, typeDescription);
 				addFieldDescriptions(classToBeAnalyzed, typeDescription);
@@ -231,6 +237,16 @@ public class ParserUtil
 		}
 	}
 
+	protected static void addInterfaces(Class<?> classToBeAnalyzed, TypeDescription typeDescription)
+	{
+		Class<?>[] interfaces = classToBeAnalyzed.getInterfaces();
+		List<String> interfaceNames = typeDescription.getInterfaces();
+		for (Class<?> iface : interfaces)
+		{
+			interfaceNames.add(iface.getName());
+		}
+	}
+
 	/**
 	 * Add all runtime visible annotations from the given type to the given description.
 	 * 
@@ -282,21 +298,30 @@ public class ParserUtil
 			throw new IllegalArgumentException("Mandatory values for adding the field descriptions are missing!");
 		}
 
-		boolean isEnum = ParserUtil.TYPE_ENUM.equals(typeDescription.getTypeType());
-
+		List<FieldDescription> fieldDescriptions = typeDescription.getFieldDescriptions();
 		for (Field fieldInfo : givenType.getDeclaredFields())
 		{
 			List<AnnotationInfo> annotationInfo = getAnnotationInfo(fieldInfo);
-			boolean isLoggerField = containsAnnotation(annotationInfo, JAVA_ANNOTATION_LOG_INSTANCE);
-			boolean isAutowired = containsAnnotation(annotationInfo, JAVA_ANNOTATION_AUTOWIRED);
-			// on enums only "recognize" the enum values and not the internal field to save the integer value
-			boolean isEnumAndEnumConstant = isEnum && fieldInfo.isEnumConstant();
+			FieldDescription fieldDescription = createFieldDescriptionFrom(fieldInfo);
+			fieldDescriptions.add(fieldDescription);
 
-			if (isAutowired || isLoggerField || isEnumAndEnumConstant)
+			fieldDescription.setEnumConstant(fieldInfo.isEnumConstant());
+			fieldDescription.getAnnotations().addAll(annotationInfo);
+
+			// Record the value of primitive and string constants.
+			if (fieldDescription.getModifiers().containsAll(MODIFIERS_CONSTANT)
+					&& (fieldInfo.getType().isPrimitive() || String.class.equals(fieldInfo.getType())))
 			{
-				FieldDescription fieldDescription = createFieldDescriptionFrom(fieldInfo);
-				fieldDescription.getAnnotations().addAll(annotationInfo);
-				typeDescription.getFieldDescriptions().add(fieldDescription);
+				try
+				{
+					fieldInfo.setAccessible(true);
+					Object initialValue = fieldInfo.get(null);
+					fieldDescription.setInitialValue(initialValue.toString());
+				}
+				catch (IllegalArgumentException | IllegalAccessException e)
+				{
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}
@@ -547,7 +572,7 @@ public class ParserUtil
 				}
 
 				String paramName = method.getName();
-				String paramType = method.getReturnType().toString();
+				String paramType = method.getReturnType().getName();
 				Object defaultValue = method.getDefaultValue();
 				Object currentValue = null;
 				try
@@ -568,7 +593,7 @@ public class ParserUtil
 		return annotationInfoList;
 	}
 
-	private static boolean containsAnnotation(List<AnnotationInfo> annotationInfo, String annotationType)
+	public static boolean containsAnnotation(List<AnnotationInfo> annotationInfo, String annotationType)
 	{
 		for (AnnotationInfo annotation : annotationInfo)
 		{

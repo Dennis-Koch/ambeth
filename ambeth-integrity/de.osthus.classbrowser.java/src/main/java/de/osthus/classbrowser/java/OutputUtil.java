@@ -153,8 +153,21 @@ public class OutputUtil
 					}
 
 					FieldDescription fieldDescription = new FieldDescription(fieldNameAttribute.getValue(), fieldTypeAttribute.getValue(), modifiers);
-					fieldDescription.getAnnotations().addAll(annotations);
 					typeDescription.getFieldDescriptions().add(fieldDescription);
+					fieldDescription.getAnnotations().addAll(annotations);
+
+					Attribute isEnumConstantAttribute = fieldNode.getAttribute("isEnumConstant");
+					if (isEnumConstantAttribute != null && "true".equals(isEnumConstantAttribute.getValue()))
+					{
+						fieldDescription.setEnumConstant(true);
+					}
+
+					Element initialValueNode = fieldNode.getChild("InitialValue");
+					if (initialValueNode != null)
+					{
+						String initialValue = initialValueNode.getText();
+						fieldDescription.setInitialValue(initialValue);
+					}
 				}
 
 				String key = typeDescription.getFullTypeName().toLowerCase();
@@ -418,7 +431,7 @@ public class OutputUtil
 	 * 
 	 * @param fieldDescription
 	 *            FieldDescription to get the information from; mandatory
-	 * @return Element with the field infos
+	 * @return Element with the field info
 	 */
 	protected static Element createFieldNode(FieldDescription fieldDescription)
 	{
@@ -429,8 +442,12 @@ public class OutputUtil
 
 		Element fieldNode = new Element("FieldDescription");
 
-		fieldNode.setAttribute(new Attribute("FieldName", fieldDescription.getName()));
-		fieldNode.setAttribute(new Attribute("FieldType", fieldDescription.getFieldType()));
+		fieldNode.setAttribute("FieldName", fieldDescription.getName());
+		fieldNode.setAttribute("FieldType", fieldDescription.getFieldType());
+		if (fieldDescription.isEnumConstant())
+		{
+			fieldNode.setAttribute("isEnumConstant", "true");
+		}
 
 		List<AnnotationInfo> annotations = fieldDescription.getAnnotations();
 		createAnnotationNodes(fieldNode, annotations);
@@ -443,6 +460,14 @@ public class OutputUtil
 			Element modifierNode = new Element("FieldModifier");
 			modifierNode.setText(modifier);
 			modifiersRootNode.addContent(modifierNode);
+		}
+
+		String initialValue = fieldDescription.getInitialValue();
+		if (initialValue != null)
+		{
+			Element modifierNode = new Element("InitialValue");
+			modifiersRootNode.addContent(modifierNode);
+			modifierNode.setText(initialValue);
 		}
 
 		return fieldNode;
@@ -485,7 +510,13 @@ public class OutputUtil
 				{
 					Element defaultValueNode = new Element(TAG_NAME_DEFAULT_VALUE);
 					paramNode.addContent(defaultValueNode);
-					defaultValueNode.setText(defaultValue.toString());
+					String defaultValueString = defaultValue.toString();
+					if ("\u0000".equals(defaultValueString))
+					{
+						// Workaround for a character that is illegal in xml
+						defaultValueString = "\\u0000";
+					}
+					defaultValueNode.setText(defaultValueString);
 				}
 
 				Object currentValue = parameter.getCurrentValue();

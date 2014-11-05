@@ -14,12 +14,15 @@ import org.apache.commons.lang3.builder.ToStringStyle;
  */
 public class FieldDescription implements INamed
 {
-
 	// ---- VARIABLES ----------------------------------------------------------
 
 	private String fieldName;
 
 	private String fieldType;
+
+	private String initialValue;
+
+	private boolean enumConstant = false;
 
 	private List<String> modifiers;
 
@@ -66,6 +69,26 @@ public class FieldDescription implements INamed
 		return fieldType;
 	}
 
+	public String getInitialValue()
+	{
+		return initialValue;
+	}
+
+	public void setInitialValue(String initialValue)
+	{
+		this.initialValue = initialValue;
+	}
+
+	public boolean isEnumConstant()
+	{
+		return enumConstant;
+	}
+
+	public void setEnumConstant(boolean enumConstant)
+	{
+		this.enumConstant = enumConstant;
+	}
+
 	public List<String> getModifiers()
 	{
 		return modifiers;
@@ -84,5 +107,4 @@ public class FieldDescription implements INamed
 		return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append("field modifiers", modifiers).append("field type", fieldType)
 				.append("field name", fieldName).toString();
 	}
-
 }

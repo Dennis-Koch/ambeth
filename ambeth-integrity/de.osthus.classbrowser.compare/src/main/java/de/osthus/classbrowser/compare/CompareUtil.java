@@ -273,10 +273,20 @@ public class CompareUtil
 			return;
 		}
 
+		boolean isEnum = ParserUtil.TYPE_ENUM.equals(javaType.getTypeType());
+
 		List<FieldDescription> remainingJavaFields = new ArrayList<FieldDescription>(javaType.getFieldDescriptions());
 		List<String> missingJavaFieldNames = new ArrayList<String>(csharpType.getFieldDescriptions().size());
 		for (FieldDescription csharpFieldDescription : csharpType.getFieldDescriptions())
 		{
+			List<AnnotationInfo> annotations = csharpFieldDescription.getAnnotations();
+			if (!ParserUtil.containsAnnotation(annotations, ParserUtil.JAVA_ANNOTATION_AUTOWIRED)
+					&& !ParserUtil.containsAnnotation(annotations, ParserUtil.JAVA_ANNOTATION_LOG_INSTANCE)
+					&& !(isEnum && csharpFieldDescription.isEnumConstant()))
+			{
+				continue;
+			}
+
 			FieldDescription matchingJavaField = findMatchingJavaField(csharpFieldDescription, remainingJavaFields);
 			if (matchingJavaField == null)
 			{

@@ -158,11 +158,16 @@ namespace CsharpClassbrowser
             XmlNode parameterTypesRootNode = doc.CreateElement("MethodParameterTypes");
             methodNode.AppendChild(parameterTypesRootNode);
 
-            foreach (var parameterType in methodDescription.ParameterTypes)
+            IList<String> paramTypes = methodDescription.ParameterTypes;
+            IList<String> paramNames = methodDescription.ParameterNames;
+            for (int i = 0; i < paramTypes.Count; i++)
             {
+                String parameterType = paramTypes[i];
+                String parameterName = paramNames[i];
                 XmlNode parameterTypeNode = doc.CreateElement("MethodParameterType");
-                parameterTypeNode.InnerText = parameterType;
                 parameterTypesRootNode.AppendChild(parameterTypeNode);
+                parameterTypeNode.InnerText = parameterType;
+                AppendAttribute(parameterTypeNode, "Name", parameterName, doc);
             }
 
             return methodNode;

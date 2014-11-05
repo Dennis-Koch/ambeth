@@ -32,6 +32,8 @@ namespace CsharpClassbrowser
         public const string MODIFIER_ABSTRACT = "abstract";
         public const string MODIFIER_INTERNAL = "internal";
 
+        public const List<String> MODIFIERS_CONSTANT = new List<String>(new String[] { MODIFIER_STATIC, MODIFIER_FINAL });
+
         public const string GENERIC_TYPE_PREFIX = "generic:";
 
         public static readonly Regex backingFieldPattern = new Regex("<(.+)>k__BackingField");
@@ -363,18 +365,21 @@ namespace CsharpClassbrowser
             string returnType = null;
             IList<AnnotationInfo> attributes = null;
             IList<string> modifiers = null;
-            IList<string> parameterTypes = null;
+            IList<String> parameterTypes = null;
+            IList<String> parameterNames = null;
             foreach (var methodInfo in methodInfos)
             {
                 if ("Invoke" == methodInfo.Name)
                 {
                     returnType = GetReturnTypeFrom(methodInfo);
-                    parameterTypes = GetParameterTypesFrom(methodInfo);
+                    parameterTypes = new List<String>();
+                    parameterNames = new List<String>();
+                    GetParameterInfoFrom(methodInfo, parameterTypes, parameterNames);
                     attributes = GetAnnotationInfo(methodInfo);
                 }
             }
 
-            MethodDescription methodDescription = new MethodDescription("Invoke", returnType, modifiers, parameterTypes);
+            MethodDescription methodDescription = new MethodDescription("Invoke", returnType, modifiers, parameterTypes, parameterNames);
             if (attributes != null)
             {
                 IList<AnnotationInfo> annotations = methodDescription.Annotations;
@@ -400,9 +405,11 @@ namespace CsharpClassbrowser
 
             var returnType = GetReturnTypeFrom(methodInfo);
             var modifiers = GetModifiersFrom(methodInfo);
-            var parameterTypes = GetParameterTypesFrom(methodInfo);
+            IList<String> parameterTypes = new List<String>();
+            IList<String> parameterNames = new List<String>();
+            GetParameterInfoFrom(methodInfo, parameterTypes, parameterNames);
 
-            MethodDescription methodDescription = new MethodDescription(methodInfo.Name, returnType, modifiers, parameterTypes);
+            MethodDescription methodDescription = new MethodDescription(methodInfo.Name, returnType, modifiers, parameterTypes, parameterNames);
             GetAnnotationInfo(methodInfo, methodDescription.Annotations);
 
             return methodDescription;
@@ -583,7 +590,7 @@ namespace CsharpClassbrowser
         /// </summary>
         /// <param name="methodInfo">MethodInfo to get the infos from; mandatory</param>
         /// <returns>List of parameter types; never null (but may be empty)</returns>
-        public static IList<string> GetParameterTypesFrom(MethodInfo methodInfo)
+        public static IList<string> GetParameterInfoFrom(MethodInfo methodInfo, IList<String> parameterTypes, IList<String> parameterNames)
         {
             if (methodInfo == null)
             {
@@ -591,10 +598,13 @@ namespace CsharpClassbrowser
             }
 
             IList<string> parameters = new List<string>();
-            foreach (var parameter in methodInfo.GetParameters())
+            foreach (ParameterInfo parameter in methodInfo.GetParameters())
             {
-                var paramType = GetTypeFrom(parameter.ParameterType);
-                parameters.Add(paramType);
+                string paramType = GetTypeFrom(parameter.ParameterType);
+                parameterTypes.Add(paramType);
+
+                string paramName = parameter.Name;
+                parameterNames.Add(paramName);
             }
 
             return parameters;
@@ -656,7 +666,7 @@ namespace CsharpClassbrowser
 
                     String paramName = method.Name;
                     String paramType = method.PropertyType.ToString();
-                    Object defaultValue =defaultAttribute!=null ? method.GetValue(defaultAttribute, null):null;
+                    Object defaultValue = defaultAttribute != null ? method.GetValue(defaultAttribute, null) : null;
                     Object currentValue = method.GetValue(attribute, null);
 
                     AnnotationParamInfo param = new AnnotationParamInfo(paramName, paramType, defaultValue, currentValue);
