@@ -16,8 +16,8 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-random-user</artifactId>
+			<groupId>de.osthus.maven</groupId>
+			<artifactId>random-user-script</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
