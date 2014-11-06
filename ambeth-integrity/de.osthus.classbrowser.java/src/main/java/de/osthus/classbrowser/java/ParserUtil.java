@@ -116,7 +116,7 @@ public class ParserUtil
 				String fullTypeName = classToBeAnalyzed.getName();
 				int genericTypeParams = classToBeAnalyzed.getTypeParameters() != null ? classToBeAnalyzed.getTypeParameters().length : 0;
 				Class<?> superclass = classToBeAnalyzed.getSuperclass();
-				String superclassName = superclass == null ? null : superclass.getName();
+				String superclassName = superclass == null || Object.class.equals(superclass) ? null : superclass.getName();
 
 				TypeDescription typeDescription = new TypeDescription(source, moduleName, namespace, simpleName, fullTypeName, typeType, genericTypeParams);
 				typeDescription.setSuperType(superclassName);
