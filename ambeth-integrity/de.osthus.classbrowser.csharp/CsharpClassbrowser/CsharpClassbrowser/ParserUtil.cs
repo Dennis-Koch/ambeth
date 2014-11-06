@@ -158,7 +158,7 @@ namespace CsharpClassbrowser
             }
 
             Type superclass = typeToBeAnalyzed.BaseType;
-            String superclassName = superclass == null ? null : superclass.FullName;
+            String superclassName = superclass == null || typeof(Object).Equals(superclass) ? null : superclass.FullName;
 
             TypeDescription typeDescription = new TypeDescription(source, moduleName, typeToBeAnalyzed.Namespace, simpleName, fullTypeName, typeType, genericTypeParams);
             typeDescription.SuperType = superclassName;
