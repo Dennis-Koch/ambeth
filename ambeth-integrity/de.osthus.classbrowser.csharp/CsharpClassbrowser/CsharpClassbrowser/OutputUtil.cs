@@ -28,6 +28,8 @@ namespace CsharpClassbrowser
 
         private const string TAG_NAME_CURRENT_VALUE = "CurrentValue";
 
+        private const string ATTRIBUTE_NAME_NAME = "Name";
+
         private const string ATTRIBUTE_NAME_TYPE = "Type";
 
         public const string EXPORT_FILE_NAME = "export_csharp.xml";
@@ -85,7 +87,7 @@ namespace CsharpClassbrowser
             }
 
             XmlNode typeNode = doc.CreateElement("TypeDescription");
-            AppendAttribute(typeNode, "Type", typeDescription.TypeType, doc);
+            AppendAttribute(typeNode, ATTRIBUTE_NAME_TYPE, typeDescription.TypeType, doc);
             AppendAttribute(typeNode, "NamespaceName", typeDescription.NamespaceName, doc);
             AppendAttribute(typeNode, "TypeName", typeDescription.Name, doc);
             AppendAttribute(typeNode, "FullTypeName", typeDescription.FullTypeName, doc);
@@ -169,7 +171,7 @@ namespace CsharpClassbrowser
                 XmlNode parameterTypeNode = doc.CreateElement("MethodParameterType");
                 parameterTypesRootNode.AppendChild(parameterTypeNode);
                 parameterTypeNode.InnerText = parameterType;
-                AppendAttribute(parameterTypeNode, "Name", parameterName, doc);
+                AppendAttribute(parameterTypeNode, ATTRIBUTE_NAME_NAME, parameterName, doc);
             }
 
             return methodNode;
@@ -240,7 +242,7 @@ namespace CsharpClassbrowser
             {
                 XmlNode interfaceNode = doc.CreateElement(TAG_NAME_INTERFACE);
                 interfaceRootNode.AppendChild(interfaceNode);
-                AppendAttribute(interfaceNode, "type", ifaceName, doc);
+                AppendAttribute(interfaceNode, ATTRIBUTE_NAME_TYPE, ifaceName, doc);
             }
         }
 
@@ -264,15 +266,15 @@ namespace CsharpClassbrowser
             {
                 XmlNode annotationNode = doc.CreateElement(TAG_NAME_ANNOTATION);
                 annotationRootNode.AppendChild(annotationNode);
-                AppendAttribute(annotationNode, "type", annotation.AnnotationType, doc);
+                AppendAttribute(annotationNode, ATTRIBUTE_NAME_TYPE, annotation.AnnotationType, doc);
 
                 IList<AnnotationParamInfo> parameters = annotation.Parameters;
                 foreach (AnnotationParamInfo parameter in parameters)
                 {
                     XmlNode paramNode = doc.CreateElement(TAG_NAME_PARAMETER);
                     annotationNode.AppendChild(paramNode);
-                    AppendAttribute(paramNode, "name", parameter.Name, doc);
-                    AppendAttribute(paramNode, "type", parameter.Type, doc);
+                    AppendAttribute(paramNode, ATTRIBUTE_NAME_NAME, parameter.Name, doc);
+                    AppendAttribute(paramNode, ATTRIBUTE_NAME_TYPE, parameter.Type, doc);
 
                     Object defaultValue = parameter.DefaultValue;
                     if (defaultValue != null)
