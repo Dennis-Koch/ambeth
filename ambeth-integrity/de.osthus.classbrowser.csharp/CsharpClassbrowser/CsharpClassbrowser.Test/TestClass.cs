@@ -1,11 +1,16 @@
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace CsharpClassbrowser
 {
-    public class TestClass
+    public class TestClass : AbstractTestClass, TestInterface1, TestInterface2
     {
+        public const String CONST = "test constant";
+
+        private const int DEFAULT = 42;
+
         [LogInstance]
         private object log;
 

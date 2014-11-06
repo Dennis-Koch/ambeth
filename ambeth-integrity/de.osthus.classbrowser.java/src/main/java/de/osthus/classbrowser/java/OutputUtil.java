@@ -454,7 +454,6 @@ public class OutputUtil
 
 		Element modifiersRootNode = new Element("FieldModifiers");
 		fieldNode.addContent(modifiersRootNode);
-
 		for (String modifier : fieldDescription.getModifiers())
 		{
 			Element modifierNode = new Element("FieldModifier");
@@ -465,9 +464,9 @@ public class OutputUtil
 		String initialValue = fieldDescription.getInitialValue();
 		if (initialValue != null)
 		{
-			Element modifierNode = new Element("InitialValue");
-			modifiersRootNode.addContent(modifierNode);
-			modifierNode.setText(initialValue);
+			Element initialValueNode = new Element("InitialValue");
+			fieldNode.addContent(initialValueNode);
+			initialValueNode.setText(initialValue);
 		}
 
 		return fieldNode;

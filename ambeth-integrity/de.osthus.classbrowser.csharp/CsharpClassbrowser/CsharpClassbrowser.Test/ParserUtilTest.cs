@@ -8,6 +8,22 @@ namespace CsharpClassbrowser.Test
     public class ParserUtilTest
     {
         [TestMethod]
+        public void TestAnalyzeType()
+        {
+            Type type = typeof(TestClass);
+            String typeType = ParserUtil.GetTypeType(type);
+            String source = "C:\\dev\\lib\\jambeth-ioc-2.2.321.dll";
+            IDictionary<String, String> moduleMap = new Dictionary<String, String>();
+            TypeDescription typeDescription = ParserUtil.AnalyzeType(type, typeType, source, moduleMap);
+
+            Assert.AreEqual("CsharpClassbrowser.AbstractTestClass", typeDescription.SuperType);
+            IList<String> interfaces = typeDescription.Interfaces;
+            Assert.AreEqual(2, interfaces.Count);
+            Assert.IsTrue(interfaces.Contains("CsharpClassbrowser.TestInterface1"));
+            Assert.IsTrue(interfaces.Contains("CsharpClassbrowser.TestInterface2"));
+        }
+
+        [TestMethod]
         public void TestAddFieldDescriptions()
         {
             TypeDescription typeDescription = new TypeDescription("null", "null", "null", "null", "null", "null", 0);
@@ -15,9 +31,15 @@ namespace CsharpClassbrowser.Test
 
             IList<FieldDescription> fieldDescriptions = typeDescription.FieldDescriptions;
             Assert.IsNotNull(fieldDescriptions);
-            Assert.AreEqual(4, fieldDescriptions.Count);
-            Assert.AreEqual(1, fieldDescriptions[0].Annotations.Count);
+            Assert.AreEqual(7, fieldDescriptions.Count);
             Assert.AreEqual(1, fieldDescriptions[1].Annotations.Count);
+            Assert.AreEqual(1, fieldDescriptions[2].Annotations.Count);
+            Assert.AreEqual(0, fieldDescriptions[5].Annotations.Count);
+            Assert.AreEqual(0, fieldDescriptions[6].Annotations.Count);
+
+            // Check initialValue of constant fields
+            Assert.AreEqual("test constant", fieldDescriptions[5].InitialValue);
+            Assert.AreEqual("42", fieldDescriptions[6].InitialValue);
         }
 
         [TestMethod]
@@ -40,7 +62,7 @@ namespace CsharpClassbrowser.Test
 
             IList<FieldDescription> fieldDescriptions = typeDescription.FieldDescriptions;
             Assert.IsNotNull(fieldDescriptions);
-            Assert.AreEqual(4, fieldDescriptions.Count);
+            Assert.AreEqual(7, fieldDescriptions.Count);
 
             // Check FieldDescriptors
             FieldDescription logFieldDescription = fieldDescriptions[0];
