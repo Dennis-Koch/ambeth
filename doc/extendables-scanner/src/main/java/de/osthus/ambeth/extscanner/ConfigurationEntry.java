@@ -5,7 +5,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.util.EqualsUtil;
 
-public class PropertyEntry
+public class ConfigurationEntry
 {
 	public boolean inJava;
 
@@ -48,7 +48,7 @@ public class PropertyEntry
 
 	public String[] possibleValues;
 
-	public PropertyEntry(String propertyName)
+	public ConfigurationEntry(String propertyName)
 	{
 		this.propertyName = propertyName;
 	}
