@@ -18,11 +18,17 @@ namespace CsharpClassbrowser
 
         private const string TAG_NAME_ANNOTATIONS = "Annotations";
 
+        private const string TAG_NAME_INTERFACE = "Interface";
+
+        private const string TAG_NAME_INTERFACES = "Interfaces";
+
         private const string TAG_NAME_PARAMETER = "Parameter";
 
         private const string TAG_NAME_DEFAULT_VALUE = "DefaultValue";
 
         private const string TAG_NAME_CURRENT_VALUE = "CurrentValue";
+
+        private const string ATTRIBUTE_NAME_TYPE = "Type";
 
         public const string EXPORT_FILE_NAME = "export_csharp.xml";
 
@@ -31,6 +37,16 @@ namespace CsharpClassbrowser
         // ============================================================================================
         #region Methods
         // ============================================================================================
+
+        /// <summary>
+        /// Import the given file and read the type descriptions.
+        /// </summary>
+        /// <param name="fileName">File to import (with full path)</param>
+        /// <returns>Map with TypeDescription as value and the full type name (lower case) as key; never null</returns>
+        public static SortedDictionary<String, TypeDescription> ImportFromFile(String fileName)
+        {
+            throw new Exception("Not yet implemented");
+        }
 
         /// <summary>
         /// Export the given type descriptions to an XML file in the given directory.
@@ -69,37 +85,23 @@ namespace CsharpClassbrowser
             }
 
             XmlNode typeNode = doc.CreateElement("TypeDescription");
-
-            XmlAttribute typeAttribute = doc.CreateAttribute("Type");
-            typeAttribute.InnerText = typeDescription.TypeType;
-            typeNode.Attributes.Append(typeAttribute);
-
-            XmlAttribute namespaceAttribute = doc.CreateAttribute("NamespaceName");
-            namespaceAttribute.InnerText = typeDescription.NamespaceName;
-            typeNode.Attributes.Append(namespaceAttribute);
-
-            XmlAttribute nameAttribute = doc.CreateAttribute("TypeName");
-            nameAttribute.InnerText = typeDescription.Name;
-            typeNode.Attributes.Append(nameAttribute);
-
-            XmlAttribute fullNameAttribute = doc.CreateAttribute("FullTypeName");
-            fullNameAttribute.InnerText = typeDescription.FullTypeName;
-            typeNode.Attributes.Append(fullNameAttribute);
-
-            XmlAttribute moduleAttribute = doc.CreateAttribute("ModuleName");
-            moduleAttribute.InnerText = typeDescription.ModuleName;
-            typeNode.Attributes.Append(moduleAttribute);
-
-            XmlAttribute sourceAttribute = doc.CreateAttribute("Source");
-            sourceAttribute.InnerText = typeDescription.Source;
-            typeNode.Attributes.Append(sourceAttribute);
-
+            AppendAttribute(typeNode, "Type", typeDescription.TypeType, doc);
+            AppendAttribute(typeNode, "NamespaceName", typeDescription.NamespaceName, doc);
+            AppendAttribute(typeNode, "TypeName", typeDescription.Name, doc);
+            AppendAttribute(typeNode, "FullTypeName", typeDescription.FullTypeName, doc);
+            AppendAttribute(typeNode, "ModuleName", typeDescription.ModuleName, doc);
+            AppendAttribute(typeNode, "Source", typeDescription.Source, doc);
             if (typeDescription.GenericTypeParams > 0)
             {
-                XmlAttribute genericTypeParamsAttribute = doc.CreateAttribute("GenericTypeParams");
-                genericTypeParamsAttribute.InnerText = typeDescription.GenericTypeParams.ToString();
-                typeNode.Attributes.Append(genericTypeParamsAttribute);
+                AppendAttribute(typeNode, "GenericTypeParams", typeDescription.GenericTypeParams.ToString(), doc);
             }
+            if (typeDescription.SuperType != null)
+            {
+                AppendAttribute(typeNode, "SuperType", typeDescription.SuperType, doc);
+            }
+
+            IList<String> interfaces = typeDescription.Interfaces;
+            CreateInterfaceNodes(typeNode, interfaces, doc);
 
             IList<AnnotationInfo> annotations = typeDescription.Annotations;
             CreateAnnotationNodes(typeNode, annotations, doc);
@@ -216,6 +218,30 @@ namespace CsharpClassbrowser
             }
 
             return fieldNode;
+        }
+
+        /// <summary>
+        /// Create the XML nodes for the interfaces.
+        /// </summary>
+        /// <param name="parentNode">Node to append the Interfaces node to; mandatory</param>
+        /// <param name="annotations">List of the interface names; mandatory</param>
+        /// <param name="doc">XmlDocument used to create the XML entities; mandatory</param>
+        private static void CreateInterfaceNodes(XmlNode parentNode, IList<String> interfaces, XmlDocument doc)
+        {
+            if (interfaces.Count == 0)
+            {
+                return;
+            }
+
+            XmlNode interfaceRootNode = doc.CreateElement(TAG_NAME_INTERFACES);
+            parentNode.AppendChild(interfaceRootNode);
+
+            foreach (String ifaceName in interfaces)
+            {
+                XmlNode interfaceNode = doc.CreateElement(TAG_NAME_INTERFACE);
+                interfaceRootNode.AppendChild(interfaceNode);
+                AppendAttribute(interfaceNode, "type", ifaceName, doc);
+            }
         }
 
         /// <summary>
