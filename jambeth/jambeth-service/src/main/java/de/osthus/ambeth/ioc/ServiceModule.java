@@ -8,6 +8,8 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.LoggingPostProcessor;
+import de.osthus.ambeth.remote.IClientServiceInterceptorBuilder;
+import de.osthus.ambeth.remote.SyncClientServiceInterceptorBuilder;
 import de.osthus.ambeth.service.DefaultServiceUrlProvider;
 import de.osthus.ambeth.service.IOfflineListenerExtendable;
 import de.osthus.ambeth.service.IProcessService;
@@ -30,11 +32,17 @@ public class ServiceModule implements IInitializingModule
 	@Property(name = ServiceConfigurationConstants.NetworkClientMode, defaultValue = "false")
 	protected boolean networkClientMode;
 
+	@Property(name = ServiceConfigurationConstants.ProcessServiceBeanActive, defaultValue = "true")
+	public boolean processServiceBeanActive;
+
 	@Property(name = ServiceConfigurationConstants.OfflineModeSupported, defaultValue = "false")
 	protected boolean offlineModeSupported;
 
 	@Property(name = ServiceConfigurationConstants.TypeInfoProviderType, mandatory = false)
 	protected Class<?> typeInfoProviderType;
+
+	@Property(name = ServiceConfigurationConstants.ServiceRemoteInterceptorType, mandatory = false)
+	public Class<?> serviceRemoteInterceptorType;
 
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
@@ -56,6 +64,12 @@ public class ServiceModule implements IInitializingModule
 				beanContextFactory.registerBean("serviceUrlProvider", DefaultServiceUrlProvider.class).autowireable(IServiceUrlProvider.class,
 						IOfflineListenerExtendable.class);
 			}
+			if (serviceRemoteInterceptorType == null)
+			{
+				serviceRemoteInterceptorType = SyncClientServiceInterceptorBuilder.class;
+			}
+			beanContextFactory.registerBean("clientServiceInterceptorBuilder", serviceRemoteInterceptorType).autowireable(
+					IClientServiceInterceptorBuilder.class);
 		}
 		else if (!offlineModeSupported)
 		{
