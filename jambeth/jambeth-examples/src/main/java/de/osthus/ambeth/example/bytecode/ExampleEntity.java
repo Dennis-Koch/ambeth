@@ -5,8 +5,7 @@ import java.util.Collection;
 import de.osthus.ambeth.annotation.EntityEqualsAspect;
 
 @EntityEqualsAspect
-public interface ExampleEntity
-{
+public interface ExampleEntity {
 	int getId();
 
 	int getVersion();

@@ -6,12 +6,6 @@ namespace De.Osthus.Ambeth.Metadata
 {
     public abstract class RelationMember : Member
     {
-        protected RelationMember(Type type, IPropertyInfo property)
-            : base(type, property)
-        {
-            // intended blank
-        }
-
         public override Object NullEquivalentValue
         {
             get

@@ -17,7 +17,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.classbrowser.java.FieldDescription;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class ConfigurationScanner extends AbstractLatexScanner implements IStartingBean
+public class ConfigurationUpdater extends AbstractLatexScanner implements IStartingBean
 {
 	// public static final Pattern csharpConstantPattern = Pattern.compile(" *public *const *String *[^ =]+ *= *\"(.+)\" *; *");
 	//
@@ -40,8 +40,8 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		File targetPropertiesTexDir = new File(targetPropertiesTexDirPath).getCanonicalFile();
 		targetPropertiesTexDir.mkdirs();
 
-		log.info("TargetTexFile: " + allPropertiesTexFile);
-		log.info("PropertiesTexDir: " + targetPropertiesTexDir);
+		log.debug("TargetTexFile: " + allPropertiesTexFile);
+		log.debug("PropertiesTexDir: " + targetPropertiesTexDir);
 
 		String targetExtendableTexDirCP = targetPropertiesTexDir.getPath();
 		String targetTexFileCP = allPropertiesTexFile.getParent();
@@ -51,7 +51,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		HashMap<String, PropertyEntry> nameToPropertyMap = new HashMap<String, PropertyEntry>();
+		HashMap<String, ConfigurationEntry> nameToPropertyMap = new HashMap<String, ConfigurationEntry>();
 
 		for (Entry<String, TypeDescription> entry : javaTypes)
 		{
@@ -73,8 +73,6 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 			handleConfigurationConstants(typeDescr, false, nameToPropertyMap);
 		}
 
-		log.info("Found " + nameToPropertyMap.size() + " properties");
-
 		String[] propertyNames = nameToPropertyMap.keySet().toArray(String.class);
 		Arrays.sort(propertyNames);
 
@@ -83,7 +81,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		{
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("% This file is FULLY generated. Please do not edit anything here\n");
-			fw.append("% Any changes have to be done to the java class " + ConfigurationScanner.class.getName() + "\n");
+			fw.append("% Any changes have to be done to the java class " + ConfigurationUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
 			fw.append("\\begin{landscape}\n");
@@ -95,7 +93,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 
 			for (String propertyName : propertyNames)
 			{
-				PropertyEntry propertyEntry = nameToPropertyMap.get(propertyName);
+				ConfigurationEntry propertyEntry = nameToPropertyMap.get(propertyName);
 				log.info("Handling " + propertyEntry.propertyName);
 
 				String texName = buildTexPropertyName(propertyEntry);
@@ -130,6 +128,7 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		{
 			fw.close();
 		}
+		allPropertiesTexFile.setLastModified(currentTime);
 
 		// for (String propertyName : nameToPropertyMap.keySet())
 		// {
@@ -152,27 +151,27 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		// }
 	}
 
-	private void handleConfigurationConstants(TypeDescription typeDescr, boolean isJava, HashMap<String, PropertyEntry> nameToPropertyMap)
+	private void handleConfigurationConstants(TypeDescription typeDescr, boolean isJava, HashMap<String, ConfigurationEntry> nameToConfigurationEntryMap)
 	{
 		for (FieldDescription field : typeDescr.getFieldDescriptions())
 		{
-			PropertyEntry propertyEntry = getEnsurePropertyEntry(field, nameToPropertyMap);
-			if (propertyEntry == null)
+			ConfigurationEntry configurationEntry = getEnsureConfigurationEntry(field, nameToConfigurationEntryMap);
+			if (configurationEntry == null)
 			{
 				continue;
 			}
 			if (isJava)
 			{
-				propertyEntry.inJava = true;
+				configurationEntry.inJava = true;
 			}
 			else
 			{
-				propertyEntry.inCSharp = true;
+				configurationEntry.inCSharp = true;
 			}
 		}
 	}
 
-	protected String buildTexPropertyName(PropertyEntry propertyEntry)
+	protected String buildTexPropertyName(ConfigurationEntry propertyEntry)
 	{
 		String texName = propertyEntry.propertyName;
 		while (texName.contains("."))
@@ -193,35 +192,30 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		return Character.toUpperCase(texName.charAt(0)) + texName.substring(1);
 	}
 
-	protected PropertyEntry getEnsurePropertyEntry(FieldDescription field, Map<String, PropertyEntry> map)
+	protected ConfigurationEntry getEnsureConfigurationEntry(FieldDescription field, Map<String, ConfigurationEntry> map)
 	{
 		if (!field.getFieldType().equals("java.lang.String"))
 		{
-			// we are only interested in property constants (strings)
+			// we are only interested in configuration constants (strings)
 			return null;
 		}
 		List<String> modifiers = field.getModifiers();
-		if (!modifiers.contains("static") && !modifiers.contains("const"))
+		if (!modifiers.contains("public") || !modifiers.contains("static") || !modifiers.contains("final"))
 		{
-			// only static fields can be constants
-			return null;
-		}
-		if (!modifiers.contains("public"))
-		{
-			// only public fields can be constants
+			// only public static final fields can be constants
 			return null;
 		}
 		String valueOfConstant = field.getName() + "$VALUE";
-		PropertyEntry propertyEntry = map.get(valueOfConstant);
+		ConfigurationEntry propertyEntry = map.get(valueOfConstant);
 		if (propertyEntry == null)
 		{
-			propertyEntry = new PropertyEntry(valueOfConstant);
+			propertyEntry = new ConfigurationEntry(valueOfConstant);
 			map.put(valueOfConstant, propertyEntry);
 		}
 		return propertyEntry;
 	}
 
-	protected void writeEmptyConfigurationTexFile(PropertyEntry propertyEntry, String labelName, File targetFile) throws Exception
+	protected void writeEmptyConfigurationTexFile(ConfigurationEntry propertyEntry, String labelName, File targetFile) throws Exception
 	{
 		FileWriter fw = new FileWriter(targetFile);
 		try
@@ -255,9 +249,10 @@ public class ConfigurationScanner extends AbstractLatexScanner implements IStart
 		{
 			fw.close();
 		}
+		targetFile.setLastModified(currentTime);
 	}
 
-	protected void writeTableRow(PropertyEntry propertyEntry, String labelName, FileWriter fw) throws Exception
+	protected void writeTableRow(ConfigurationEntry propertyEntry, String labelName, FileWriter fw) throws Exception
 	{
 		fw.append("\t\t");
 

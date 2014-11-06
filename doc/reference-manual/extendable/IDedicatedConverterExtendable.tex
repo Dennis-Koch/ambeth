@@ -1,6 +1,6 @@
 \section{IDedicatedConverterExtendable}
 \label{extendable:IDedicatedConverterExtendable}
-\AvailableInJavaOnly{\javadoc{de.osthus.ambeth.util.IDedicatedConverterExtendable}{IDedicatedConverterExtendable}
+\AvailableInJavaAndCsharp{\javadoc{de.osthus.ambeth.util.IDedicatedConverterExtendable}{IDedicatedConverterExtendable}
 \javadoc{de.osthus.ambeth.util.IDedicatedConverter}{IDedicatedConverter}
 \TODO}
 
@@ -11,5 +11,12 @@
 IBeanContextFactory bcf = ...
 IBeanConfiguration myExtension = bcf.registerAnonymousBean...
 bcf.link(myExtension).to(IDedicatedConverterExtendable.class).with(...);
+\end{lstlisting}
+\inputcsharp{Extension point for instances of \type{IDedicatedConverter}}
+{Ambeth.Util/ambeth/util/IDedicatedConverterExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IDedicatedConverterExtendable>().With(...);
 \end{lstlisting}
 %% GENERATED LISTINGS END

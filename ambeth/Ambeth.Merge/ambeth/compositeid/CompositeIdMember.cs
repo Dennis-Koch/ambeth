@@ -27,7 +27,6 @@ namespace De.Osthus.Ambeth.CompositeId
         protected bool technicalMember;
 
         public CompositeIdMember(Type declaringType, Type realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
-            : base(declaringType, null)
         {
             this.declaringType = declaringType;
             this.realType = realType;
