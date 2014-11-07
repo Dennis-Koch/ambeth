@@ -34,7 +34,6 @@ public class CompositeIdMember extends PrimitiveMember implements IPrimitiveMemb
 
 	public CompositeIdMember(Class<?> declaringType, Class<?> realType, String name, PrimitiveMember[] members, IMemberTypeProvider memberTypeProvider)
 	{
-		super(declaringType, null);
 		this.declaringType = declaringType;
 		this.realType = realType;
 		this.name = name;
