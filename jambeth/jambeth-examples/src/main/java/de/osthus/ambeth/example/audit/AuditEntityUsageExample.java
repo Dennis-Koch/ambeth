@@ -3,8 +3,7 @@ package de.osthus.ambeth.example.audit;
 import de.osthus.ambeth.audit.Audited;
 
 @Audited
-public interface AuditEntityUsageExample
-{
+public interface AuditEntityUsageExample {
 	Integer getId();
 
 	Integer getVersion();

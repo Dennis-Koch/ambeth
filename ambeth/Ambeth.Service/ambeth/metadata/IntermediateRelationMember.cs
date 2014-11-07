@@ -21,7 +21,6 @@ namespace De.Osthus.Ambeth.Metadata
         protected readonly HashMap<Type, Attribute> annotationMap;
 
         public IntermediateRelationMember(Type declaringType, Type entityType, Type realType, Type elementType, String propertyName, Attribute[] annotations)
-            : base(declaringType, null)
         {
             this.declaringType = declaringType;
             this.entityType = entityType;

@@ -25,18 +25,25 @@ import org.jdom2.output.XMLOutputter;
  */
 public class OutputUtil
 {
-
 	// ---- CONSTANTS ----------------------------------------------------------
 
 	private static final String TAG_NAME_ANNOTATION = "Annotation";
 
 	private static final String TAG_NAME_ANNOTATIONS = "Annotations";
 
+	private static final String TAG_NAME_INTERFACE = "Interface";
+
+	private static final String TAG_NAME_INTERFACES = "Interfaces";
+
 	private static final String TAG_NAME_PARAMETER = "Parameter";
 
 	private static final String TAG_NAME_DEFAULT_VALUE = "DefaultValue";
 
 	private static final String TAG_NAME_CURRENT_VALUE = "CurrentValue";
+
+	private static final String ATTRIBUTE_NAME_NAME = "Name";
+
+	private static final String ATTRIBUTE_NAME_TYPE = "Type";
 
 	private static final boolean IGNORE_DEPRECATED_METHODS = true;
 
@@ -75,7 +82,7 @@ public class OutputUtil
 			for (Element typeNode : typeDescriptionNodes)
 			{
 				// Read mandatory attributes
-				String typeAttributeValue = getMandatoryAttributeValue(typeNode, "Type");
+				String typeAttributeValue = getMandatoryAttributeValue(typeNode, ATTRIBUTE_NAME_TYPE);
 				String nameAttributeValue = getMandatoryAttributeValue(typeNode, "TypeName");
 				String fullNameAttributeValue = getMandatoryAttributeValue(typeNode, "FullTypeName");
 				String sourceAttributeValue = getMandatoryAttributeValue(typeNode, "Source");
@@ -92,8 +99,19 @@ public class OutputUtil
 				TypeDescription typeDescription = new TypeDescription(sourceAttributeValue, moduleAttributeValue, namespaceAttributeValue, nameAttributeValue,
 						fullNameAttributeValue, typeAttributeValue, genericTypeParams);
 
+				Attribute superTypeAttribute = typeNode.getAttribute("SuperType");
+				if (superTypeAttribute != null)
+				{
+					String superType = superTypeAttribute.getValue();
+					typeDescription.setSuperType(superType);
+				}
+
+				List<String> interfaces = readInterfaces(typeNode);
+				typeDescription.getInterfaces().addAll(interfaces);
+
 				List<AnnotationInfo> annotations = readAnnotationInfo(typeNode);
 				typeDescription.getAnnotations().addAll(annotations);
+
 				if (typeDescription.isDeprecated() && IGNORE_DEPRECATED_TYPES)
 				{
 					continue;
@@ -153,8 +171,21 @@ public class OutputUtil
 					}
 
 					FieldDescription fieldDescription = new FieldDescription(fieldNameAttribute.getValue(), fieldTypeAttribute.getValue(), modifiers);
-					fieldDescription.getAnnotations().addAll(annotations);
 					typeDescription.getFieldDescriptions().add(fieldDescription);
+					fieldDescription.getAnnotations().addAll(annotations);
+
+					Attribute isEnumConstantAttribute = fieldNode.getAttribute("isEnumConstant");
+					if (isEnumConstantAttribute != null && "true".equals(isEnumConstantAttribute.getValue()))
+					{
+						fieldDescription.setEnumConstant(true);
+					}
+
+					Element initialValueNode = fieldNode.getChild("InitialValue");
+					if (initialValueNode != null)
+					{
+						String initialValue = initialValueNode.getText();
+						fieldDescription.setInitialValue(initialValue);
+					}
 				}
 
 				String key = typeDescription.getFullTypeName().toLowerCase();
@@ -169,6 +200,22 @@ public class OutputUtil
 		return results;
 	}
 
+	private static ArrayList<String> readInterfaces(Element typeNode)
+	{
+		ArrayList<String> interfaces = new ArrayList<>();
+		Element interfacesNode = typeNode.getChild(TAG_NAME_INTERFACES);
+		if (interfacesNode != null)
+		{
+			List<Element> interfaceNodes = interfacesNode.getChildren(TAG_NAME_INTERFACE);
+			for (Element interfaceNode : interfaceNodes)
+			{
+				String ifaceName = interfaceNode.getAttribute(ATTRIBUTE_NAME_TYPE).getValue();
+				interfaces.add(ifaceName);
+			}
+		}
+		return interfaces;
+	}
+
 	private static ArrayList<AnnotationInfo> readAnnotationInfo(Element typeNode)
 	{
 		ArrayList<AnnotationInfo> annotations = new ArrayList<>();
@@ -178,7 +225,7 @@ public class OutputUtil
 			List<Element> annotationNodes = typeAnnotationsNode.getChildren(TAG_NAME_ANNOTATION);
 			for (Element annotationNode : annotationNodes)
 			{
-				String annotationType = annotationNode.getAttribute("type").getValue();
+				String annotationType = annotationNode.getAttribute(ATTRIBUTE_NAME_TYPE).getValue();
 				List<AnnotationParamInfo> parameters = readAnnotationParamInfo(annotationNode);
 				AnnotationInfo annotationInfo = new AnnotationInfo(annotationType, parameters);
 				annotations.add(annotationInfo);
@@ -198,8 +245,8 @@ public class OutputUtil
 		List<AnnotationParamInfo> paramInfo = new ArrayList<>(parameterNodes.size());
 		for (Element parameterNode : parameterNodes)
 		{
-			String paramName = parameterNode.getAttribute("name").getValue();
-			String paramType = parameterNode.getAttribute("type").getValue();
+			String paramName = parameterNode.getAttribute(ATTRIBUTE_NAME_NAME).getValue();
+			String paramType = parameterNode.getAttribute(ATTRIBUTE_NAME_TYPE).getValue();
 
 			Element defaultValueNode = parameterNode.getChild(TAG_NAME_DEFAULT_VALUE);
 			Object defaultValue = defaultValueNode == null ? null : defaultValueNode.getText();
@@ -333,16 +380,23 @@ public class OutputUtil
 
 		Element typeNode = new Element("TypeDescription");
 
-		typeNode.setAttribute(new Attribute("Type", typeDescription.getTypeType()));
-		typeNode.setAttribute(new Attribute("NamespaceName", typeDescription.getNamespaceName()));
-		typeNode.setAttribute(new Attribute("TypeName", typeDescription.getName()));
-		typeNode.setAttribute(new Attribute("FullTypeName", typeDescription.getFullTypeName()));
-		typeNode.setAttribute(new Attribute("Source", typeDescription.getSource()));
-		typeNode.setAttribute(new Attribute("ModuleName", typeDescription.getModuleName()));
+		typeNode.setAttribute(ATTRIBUTE_NAME_TYPE, typeDescription.getTypeType());
+		typeNode.setAttribute("NamespaceName", typeDescription.getNamespaceName());
+		typeNode.setAttribute("TypeName", typeDescription.getName());
+		typeNode.setAttribute("FullTypeName", typeDescription.getFullTypeName());
+		typeNode.setAttribute("Source", typeDescription.getSource());
+		typeNode.setAttribute("ModuleName", typeDescription.getModuleName());
 		if (typeDescription.getGenericTypeParams() > 0)
 		{
-			typeNode.setAttribute(new Attribute("GenericTypeParams", String.valueOf(typeDescription.getGenericTypeParams())));
+			typeNode.setAttribute("GenericTypeParams", Integer.toString(typeDescription.getGenericTypeParams()));
 		}
+		if (typeDescription.getSuperType() != null)
+		{
+			typeNode.setAttribute("SuperType", typeDescription.getSuperType());
+		}
+
+		List<String> interfaces = typeDescription.getInterfaces();
+		createInterfaceNodes(typeNode, interfaces);
 
 		List<AnnotationInfo> annotations = typeDescription.getAnnotations();
 		createAnnotationNodes(typeNode, annotations);
@@ -418,7 +472,7 @@ public class OutputUtil
 	 * 
 	 * @param fieldDescription
 	 *            FieldDescription to get the information from; mandatory
-	 * @return Element with the field infos
+	 * @return Element with the field info
 	 */
 	protected static Element createFieldNode(FieldDescription fieldDescription)
 	{
@@ -429,15 +483,18 @@ public class OutputUtil
 
 		Element fieldNode = new Element("FieldDescription");
 
-		fieldNode.setAttribute(new Attribute("FieldName", fieldDescription.getName()));
-		fieldNode.setAttribute(new Attribute("FieldType", fieldDescription.getFieldType()));
+		fieldNode.setAttribute("FieldName", fieldDescription.getName());
+		fieldNode.setAttribute("FieldType", fieldDescription.getFieldType());
+		if (fieldDescription.isEnumConstant())
+		{
+			fieldNode.setAttribute("isEnumConstant", "true");
+		}
 
 		List<AnnotationInfo> annotations = fieldDescription.getAnnotations();
 		createAnnotationNodes(fieldNode, annotations);
 
 		Element modifiersRootNode = new Element("FieldModifiers");
 		fieldNode.addContent(modifiersRootNode);
-
 		for (String modifier : fieldDescription.getModifiers())
 		{
 			Element modifierNode = new Element("FieldModifier");
@@ -445,7 +502,41 @@ public class OutputUtil
 			modifiersRootNode.addContent(modifierNode);
 		}
 
+		String initialValue = fieldDescription.getInitialValue();
+		if (initialValue != null)
+		{
+			Element initialValueNode = new Element("InitialValue");
+			fieldNode.addContent(initialValueNode);
+			initialValueNode.setText(initialValue);
+		}
+
 		return fieldNode;
+	}
+
+	/**
+	 * Create the XML nodes for the interfaces.
+	 * 
+	 * @param typeNode
+	 *            Node to append the Annotations node to
+	 * @param interfaces
+	 *            List of the interface names
+	 */
+	private static void createInterfaceNodes(Element typeNode, List<String> interfaces)
+	{
+		if (interfaces.isEmpty())
+		{
+			return;
+		}
+
+		Element interfaceRootNode = new Element(TAG_NAME_INTERFACES);
+		typeNode.addContent(interfaceRootNode);
+
+		for (String ifaceName : interfaces)
+		{
+			Element interfaceNode = new Element(TAG_NAME_INTERFACE);
+			interfaceRootNode.addContent(interfaceNode);
+			interfaceNode.setAttribute(ATTRIBUTE_NAME_TYPE, ifaceName);
+		}
 	}
 
 	/**
@@ -470,22 +561,28 @@ public class OutputUtil
 		{
 			Element annotationNode = new Element(TAG_NAME_ANNOTATION);
 			annotationRootNode.addContent(annotationNode);
-			annotationNode.setAttribute("type", annotation.getAnnotationType());
+			annotationNode.setAttribute(ATTRIBUTE_NAME_TYPE, annotation.getAnnotationType());
 
 			List<AnnotationParamInfo> parameters = annotation.getParameters();
 			for (AnnotationParamInfo parameter : parameters)
 			{
 				Element paramNode = new Element(TAG_NAME_PARAMETER);
 				annotationNode.addContent(paramNode);
-				paramNode.setAttribute("name", parameter.getName());
-				paramNode.setAttribute("type", parameter.getType());
+				paramNode.setAttribute(ATTRIBUTE_NAME_NAME, parameter.getName());
+				paramNode.setAttribute(ATTRIBUTE_NAME_TYPE, parameter.getType());
 
 				Object defaultValue = parameter.getDefaultValue();
 				if (defaultValue != null)
 				{
 					Element defaultValueNode = new Element(TAG_NAME_DEFAULT_VALUE);
 					paramNode.addContent(defaultValueNode);
-					defaultValueNode.setText(defaultValue.toString());
+					String defaultValueString = defaultValue.toString();
+					if ("\u0000".equals(defaultValueString))
+					{
+						// Workaround for a character that is illegal in xml
+						defaultValueString = "\\u0000";
+					}
+					defaultValueNode.setText(defaultValueString);
 				}
 
 				Object currentValue = parameter.getCurrentValue();

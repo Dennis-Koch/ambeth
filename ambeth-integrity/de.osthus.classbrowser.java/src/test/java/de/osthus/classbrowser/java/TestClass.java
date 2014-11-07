@@ -5,8 +5,13 @@ import org.junit.After;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.LogInstance;
 
-public class TestClass
+public class TestClass extends AbstractTestClass implements TestInterface1, TestInterface2
 {
+	public static final String CONST = "test constant";
+
+	@SuppressWarnings("unused")
+	private static final int DEFAULT = 42;
+
 	@LogInstance
 	private Object log;
 
@@ -21,6 +26,7 @@ public class TestClass
 
 	protected Object internal;
 
+	@Override
 	@After
 	public void setInternal(Object internal)
 	{

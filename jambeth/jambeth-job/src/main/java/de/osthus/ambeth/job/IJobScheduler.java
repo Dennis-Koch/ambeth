@@ -10,5 +10,5 @@ public interface IJobScheduler
 
 	void scheduleJob(String jobName, Object jobTask, String cronPattern, Map<Object, Object> properties);
 
-	void scheduleJob(String jobName, Object jobTask, String cronPattern, String username, byte[] userpass, Map<Object, Object> properties);
+	void scheduleJob(String jobName, Object jobTask, String cronPattern, String username, char[] userpass, Map<Object, Object> properties);
 }

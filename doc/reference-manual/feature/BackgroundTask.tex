@@ -1,3 +1,19 @@
+\goodbreak
 \section{Background task}
 \label{feature:BackgroundTask}
-\TODO
+%% feature-condition=IJobExtendable
+\AvailableInJavaOnly{The following example defines a custom job implementing \type{IJob} and using the extension point \prettyref{extendable:IJobExtendable} via the Link-API (\shortprettyref{feature:Link}).}
+
+\inputjava{Example implementation of a background task}
+{jambeth-examples/src/main/java/de/osthus/ambeth/example/job/JobExample.java}
+
+\inputjava{Example registration of the background task to the provided extension point}
+{jambeth-examples/src/main/java/de/osthus/ambeth/example/job/JobExampleModule.java}
+
+Note that a name for the job as well as a cron-like pattern for the trigger interval has to be specified. The name will be used as the thread's name when the job will be triggered. This eases debugging at runtime and improves logging information (many loggers append the log-causing thread). When using the extension point the job impersonates the current user: ``Current user'' means the authentication information available for the active thread at the point when the job will be registered on the extension point.
+
+\tip{The same instance of \type{IJob} can be registered multiple times with different names, authentication information and cron-patterns if intended.}
+
+The scheduler implementation of \AMBETH{} ensures that for each job instance (independent of how many times it has been registered) \emph{at most one thread} will execute the job in any case: That means that for a given job-instance if the execution time is higher than the cron-trigger interval(s) at most one trigger-event will be queued \& waits for termination of the current active job-execution. This queued trigger-event will then immediately re-execute the job (and lets again at most one trigger-event to be queued). Any triggered events more than the described single queued one will be dropped in any case.\\\\
+
+However if you intentionally want to execute a specific job concurrently simply register different \emph{instances} of the same job type. That way they are treated fully independent - the mentioned one-trigger-event-queue then applies for each of those job instances individually.

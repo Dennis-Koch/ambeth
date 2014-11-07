@@ -20,21 +20,21 @@ namespace De.Osthus.Ambeth.Testutil
         [Autowired]
         public IObjectCopier ObjectCopier { protected get; set; }
 
-        private bool Initialized { get; set; }
+        private bool initialized;
 
         public void AfterPropertiesSet()
         {
-            Initialized = false;
+            initialized = false;
         }
 
         public abstract void Initialize();
 
         public IList<ILoadContainer> GetEntities(IList<IObjRef> orisToLoad)
         {
-            if (!Initialized)
+            if (!initialized)
             {
                 Initialize();
-                Initialized = true;
+                initialized = true;
             }
 
             List<ILoadContainer> result = new List<ILoadContainer>(orisToLoad.Count);

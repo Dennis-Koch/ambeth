@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class TypeDescription implements INamed, IDeprecation
 {
-
 	// ---- VARIABLES ----------------------------------------------------------
 
 	private String source;
@@ -28,6 +27,10 @@ public class TypeDescription implements INamed, IDeprecation
 	private String typeType;
 
 	private int genericTypeParams;
+
+	private String superType;
+
+	private final List<String> interfaces = new ArrayList<>();
 
 	private final List<AnnotationInfo> annotations = new ArrayList<>();
 
@@ -113,6 +116,16 @@ public class TypeDescription implements INamed, IDeprecation
 		return genericTypeParams;
 	}
 
+	public String getSuperType()
+	{
+		return superType;
+	}
+
+	public void setSuperType(String superType)
+	{
+		this.superType = superType;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -122,6 +135,11 @@ public class TypeDescription implements INamed, IDeprecation
 	public boolean isDeprecated()
 	{
 		return IDeprecation.INSTANCE.isDeprecated(annotations);
+	}
+
+	public List<String> getInterfaces()
+	{
+		return interfaces;
 	}
 
 	public List<AnnotationInfo> getAnnotations()
@@ -138,5 +156,4 @@ public class TypeDescription implements INamed, IDeprecation
 	{
 		return fieldDescriptions;
 	}
-
 }
