@@ -1,6 +1,8 @@
+\goodbreak
 \section{Current User}
 \label{feature:CurrentUser}
-To allow Ambeth to maintain technical fields like ``CreatedBy'' \& ``UpdatedBy'' a user identifier is needed. The bean handling this information in the persistence module is \type{IContextProvider}. When a transaction is started the implementation of \type{IContextProvider} retrieves its information from \type{ISecurityContextHolder} of the security module.\\
+%% feature-condition=IContextProvider
+\AvailableInJavaAndCsharp{To allow Ambeth to maintain technical fields like ``CreatedBy'' \& ``UpdatedBy'' a user identifier is needed. The bean handling this information in the persistence module is \type{IContextProvider}. When a transaction is started the implementation of \type{IContextProvider} retrieves its information from \type{ISecurityContextHolder} of the security module.}
 
 The \type{ISecurityContextHolder]}-bean by itself does only provide this information if
 \begin{itemize}
