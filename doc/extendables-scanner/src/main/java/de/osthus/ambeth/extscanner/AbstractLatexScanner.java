@@ -21,11 +21,11 @@ import de.osthus.classbrowser.java.TypeDescription;
 
 public abstract class AbstractLatexScanner implements IStartingBean
 {
-	public static final String availableInCsharpOnlyOpening = "\\AvailableInCsharpOnly{";
+	public static final String availableInCsharpOnlyOpening = "\\SetAPI{C}";
 
-	public static final String availableInJavaOnlyOpening = "\\AvailableInJavaOnly{";
+	public static final String availableInJavaOnlyOpening = "\\SetAPI{J}";
 
-	public static final String availableInJavaAndCsharpOpening = "\\AvailableInJavaAndCsharp{";
+	public static final String availableInJavaAndCsharpOpening = "\\SetAPI{J-C}";
 
 	public static final Pattern replaceAllAvailables = Pattern.compile(Pattern.quote(availableInCsharpOnlyOpening) + "|"
 			+ Pattern.quote(availableInJavaOnlyOpening) + "|" + Pattern.quote(availableInJavaAndCsharpOpening));

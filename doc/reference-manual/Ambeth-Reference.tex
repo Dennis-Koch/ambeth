@@ -10,6 +10,7 @@
 \usepackage{longtable}
 \usepackage{transparent}
 \usepackage{float} %allows to force floats being placed exactly where they are defined
+\usepackage{wrapfig} %allows the wraptable environment to wrap text around tabular environments, load wrapfig AFTER float
 \usepackage{eso-pic} % Osthus watermark
 \usepackage{subcaption} %allows subfigures within figures
 
@@ -21,6 +22,8 @@
 %\usepackage{pst-all} %%PSTricks - not useable with pdfLaTeX
 \usepackage[section]{placeins}
 \usepackage{pdflscape} %landscape for specific pages
+\usepackage{titlesec}% to customize the sectional headings (like adding an image to each section title)
+\usepackage{ifthen} % allows if-then-else constructs
 
 \usepackage{array} %allows to define custom column types e.g. \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 %% Please note:
@@ -51,7 +54,7 @@
 \textwidth440pt
 \oddsidemargin0pt
 \evensidemargin40pt
-\floatplacement{figure}{!hbt}
+%\floatplacement{figure}{!hbt}
 
 % The following options are for better float positioning:
 % CAVE: topfraction must always be a higher number than floatpagefraction!
@@ -62,16 +65,14 @@
 \input{listings}
 \input{commands}
 \input{watermark}
-
-\makeatletter   % Should ensure that an implicit \FloatBarrier occurs after each subsection
-\AtBeginDocument{%
-  \expandafter\renewcommand\expandafter\subsection\expandafter{%
-    \expandafter\@fb@secFB\subsection
-  }%
-}
-\makeatother
-
-\listfiles
+%
+%\makeatletter   % Should ensure that an implicit \FloatBarrier occurs after each subsection
+%\AtBeginDocument{%
+  %\expandafter\renewcommand\expandafter\subsection\expandafter{%
+    %\expandafter\@fb@secFB\subsection
+  %}%
+%}
+%\makeatother
 
 \begin{document}
 \input{cover}

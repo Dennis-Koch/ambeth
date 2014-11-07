@@ -1,7 +1,8 @@
-\goodbreak
+\SetAPI{J-C}
 \section{AccessorTypeProvider}
 \label{feature:AccessorTypeProvider}
-\AvailableInJavaAndCsharp{Allows to create instances of \type{AbstractAccessor} which by themselves provide a very fast implementation to dynamically call getters or setters of a given object. Note that each use-case for a specific property (getter/setter-pair) generates a new class derived from \type{AbstractAccessor} at runtime. If extensively used on thousands of different properties might consume large amounts of available PermGen-space. Use this functionality for scenarios of very high invocation amount on given object accessors.}
+\ClearAPI
+Allows to create instances of \type{AbstractAccessor} which by themselves provide a very fast implementation to dynamically call getters or setters of a given object. Note that each use-case for a specific property (getter/setter-pair) generates a new class derived from \type{AbstractAccessor} at runtime. If extensively used on thousands of different properties might consume large amounts of available PermGen-space. Use this functionality for scenarios of very high invocation amount on given object accessors.
 
 Despite the described fact this feature is indeed \emph{the} fastest possible way for dynamic calls (because of the fact that it is not a real ``dynamic invocation'' at all) - and even \emph{much} faster than any reflection based approach or even solutions like CgLib, Castle, DynamicProxy or similiar libraries provide.\\
 

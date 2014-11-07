@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -14,7 +15,9 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.classbrowser.java.AnnotationParamInfo;
 import de.osthus.classbrowser.java.FieldDescription;
+import de.osthus.classbrowser.java.MethodDescription;
 import de.osthus.classbrowser.java.TypeDescription;
 
 public class ConfigurationUpdater extends AbstractLatexScanner implements IStartingBean
@@ -51,7 +54,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		HashMap<String, ConfigurationEntry> nameToPropertyMap = new HashMap<String, ConfigurationEntry>();
+		HashMap<String, ConfigurationEntry> nameToConfigurationMap = new HashMap<String, ConfigurationEntry>();
 
 		for (Entry<String, TypeDescription> entry : javaTypes)
 		{
@@ -60,7 +63,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			{
 				continue;
 			}
-			handleConfigurationConstants(typeDescr, true, nameToPropertyMap);
+			handleConfigurationConstants(typeDescr, true, nameToConfigurationMap);
 		}
 
 		for (Entry<String, TypeDescription> entry : csharpTypes)
@@ -70,10 +73,13 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			{
 				continue;
 			}
-			handleConfigurationConstants(typeDescr, false, nameToPropertyMap);
+			handleConfigurationConstants(typeDescr, false, nameToConfigurationMap);
 		}
 
-		String[] propertyNames = nameToPropertyMap.keySet().toArray(String.class);
+		scanForConfigurationUsage(javaTypes, true, nameToConfigurationMap);
+		scanForConfigurationUsage(csharpTypes, false, nameToConfigurationMap);
+
+		String[] propertyNames = nameToConfigurationMap.keySet().toArray(String.class);
 		Arrays.sort(propertyNames);
 
 		FileWriter fw = new FileWriter(allPropertiesTexFile);
@@ -93,13 +99,19 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 
 			for (String propertyName : propertyNames)
 			{
-				ConfigurationEntry propertyEntry = nameToPropertyMap.get(propertyName);
-				log.info("Handling " + propertyEntry.propertyName);
+				ConfigurationEntry configurationEntry = nameToConfigurationMap.get(propertyName);
+				log.debug("Handling " + configurationEntry.propertyName);
 
-				String texName = buildTexPropertyName(propertyEntry);
+				if (configurationEntry.isMandatory == null)
+				{
+					log.warn("Seems like '" + configurationEntry.propertyName + "' is unused?");
+					configurationEntry.isMandatory = Boolean.FALSE;
+				}
+
+				String texName = buildTexPropertyName(configurationEntry);
 
 				String labelName = "configuration:" + texName;
-				writeTableRow(propertyEntry, labelName, fw);
+				writeTableRow(configurationEntry, labelName, fw);
 				fw.append(" \\\\\n");
 				fw.append("\t\\hline\n");
 
@@ -109,11 +121,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 
 				File expectedConfigurationTexFile = new File(targetPropertiesTexDir, expectedConfigurationTexFileName);
 
-				if (!expectedConfigurationTexFile.exists())
-				{
-					writeEmptyConfigurationTexFile(propertyEntry, labelName, expectedConfigurationTexFile);
-					// nameToConfigurationConstantsMap.get(propertyEntry.propertyName));
-				}
+				writeToConfigurationTexFile(configurationEntry, labelName, expectedConfigurationTexFile);
 			}
 			fw.append("\\end{longtable}\n");
 			fw.append("\\end{landscape}\n");
@@ -129,33 +137,103 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			fw.close();
 		}
 		allPropertiesTexFile.setLastModified(currentTime);
+	}
 
-		// for (String propertyName : nameToPropertyMap.keySet())
-		// {
-		// // remove all "used" properties
-		// nameToConfigurationConstantsMap.remove(propertyName);
-		// }
-		// if (nameToConfigurationConstantsMap.size() > 0)
-		// {
-		// String[] obsoletePropertyNames = nameToConfigurationConstantsMap.keySet().toArray(String.class);
-		// Arrays.sort(obsoletePropertyNames);
-		// StringBuilder sb = new StringBuilder();
-		// sb.append("There are ").append(obsoletePropertyNames.length).append(" configurations without any usage and were therefore been skipped:");
-		// for (String obsoletePropertyName : obsoletePropertyNames)
-		// {
-		// CtField ctField = nameToConfigurationConstantsMap.get(obsoletePropertyName);
-		// sb.append('\n').append(obsoletePropertyName).append(" ==> ").append(ctField.getDeclaringClass().getName()).append(".")
-		// .append(ctField.getName());
-		// }
-		// log.warn(sb.toString());
-		// }
+	protected void scanForConfigurationUsage(IMap<String, TypeDescription> types, boolean isJava, IMap<String, ConfigurationEntry> nameToConfigurationMap)
+	{
+		for (Entry<String, TypeDescription> javaEntry : types)
+		{
+			TypeDescription typeDescr = javaEntry.getValue();
+			for (FieldDescription field : typeDescr.getFieldDescriptions())
+			{
+				for (de.osthus.classbrowser.java.AnnotationInfo annotation : field.getAnnotations())
+				{
+					processAnnotation(typeDescr, annotation, isJava, nameToConfigurationMap);
+				}
+			}
+			for (MethodDescription method : typeDescr.getMethodDescriptions())
+			{
+				for (de.osthus.classbrowser.java.AnnotationInfo annotation : method.getAnnotations())
+				{
+					processAnnotation(typeDescr, annotation, isJava, nameToConfigurationMap);
+				}
+			}
+		}
+	}
+
+	protected void processAnnotation(TypeDescription typeDescr, de.osthus.classbrowser.java.AnnotationInfo annotation, boolean isJava,
+			IMap<String, ConfigurationEntry> nameToConfigurationMap)
+	{
+		if (!Property.class.getName().equals(annotation.getAnnotationType()))
+		{
+			return;
+		}
+		String currentValue = null;
+		Boolean mandatory = null;
+		String defaultValue = null;
+		for (AnnotationParamInfo param : annotation.getParameters())
+		{
+			String name = param.getName();
+			if ("name".equals(name))
+			{
+				currentValue = (String) param.getCurrentValue();
+				if (Property.DEFAULT_VALUE.equals(currentValue))
+				{
+					currentValue = null;
+				}
+			}
+			else if ("mandatory".equals(name))
+			{
+				mandatory = param.getCurrentValue() != null ? Boolean.valueOf((String) param.getCurrentValue()) : null;
+				if (mandatory == null)
+				{
+					mandatory = param.getDefaultValue() != null ? Boolean.valueOf((String) param.getDefaultValue()) : null;
+				}
+			}
+			else if ("defaultValue".equals(name))
+			{
+				defaultValue = (String) param.getCurrentValue();
+			}
+		}
+		if (currentValue == null)
+		{
+			return;
+		}
+		if (mandatory == null)
+		{
+			mandatory = Boolean.TRUE;
+		}
+		ConfigurationEntry configurationEntry = nameToConfigurationMap.get(currentValue);
+		if (configurationEntry == null)
+		{
+			configurationEntry = new ConfigurationEntry(currentValue);
+			nameToConfigurationMap.put(currentValue, configurationEntry);
+		}
+		if (configurationEntry.isMandatory == null)
+		{
+			configurationEntry.isMandatory = mandatory;
+		}
+		else
+		{
+			configurationEntry.isMandatory = Boolean.valueOf(configurationEntry.isMandatory.booleanValue() || mandatory.booleanValue());
+		}
+		configurationEntry.setDefaultValue(defaultValue);
+		configurationEntry.usedInTypes.add(typeDescr.getFullTypeName());
+		if (isJava)
+		{
+			configurationEntry.inJava = true;
+		}
+		else
+		{
+			configurationEntry.inCSharp = true;
+		}
 	}
 
 	private void handleConfigurationConstants(TypeDescription typeDescr, boolean isJava, HashMap<String, ConfigurationEntry> nameToConfigurationEntryMap)
 	{
 		for (FieldDescription field : typeDescr.getFieldDescriptions())
 		{
-			ConfigurationEntry configurationEntry = getEnsureConfigurationEntry(field, nameToConfigurationEntryMap);
+			ConfigurationEntry configurationEntry = getEnsureConfigurationEntry(typeDescr, field, nameToConfigurationEntryMap);
 			if (configurationEntry == null)
 			{
 				continue;
@@ -192,9 +270,9 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		return Character.toUpperCase(texName.charAt(0)) + texName.substring(1);
 	}
 
-	protected ConfigurationEntry getEnsureConfigurationEntry(FieldDescription field, Map<String, ConfigurationEntry> map)
+	protected ConfigurationEntry getEnsureConfigurationEntry(TypeDescription typeDescr, FieldDescription field, Map<String, ConfigurationEntry> map)
 	{
-		if (!field.getFieldType().equals("java.lang.String"))
+		if (!"java.lang.String".equals(field.getFieldType()) && !"string".equals(field.getFieldType()))
 		{
 			// we are only interested in configuration constants (strings)
 			return null;
@@ -205,51 +283,71 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			// only public static final fields can be constants
 			return null;
 		}
-		String valueOfConstant = field.getName() + "$VALUE";
+		String valueOfConstant = field.getInitialValue();
 		ConfigurationEntry propertyEntry = map.get(valueOfConstant);
 		if (propertyEntry == null)
 		{
 			propertyEntry = new ConfigurationEntry(valueOfConstant);
 			map.put(valueOfConstant, propertyEntry);
 		}
+		propertyEntry.contantDefinitions.add(typeDescr.getFullTypeName() + "." + field.getName());
 		return propertyEntry;
 	}
 
-	protected void writeEmptyConfigurationTexFile(ConfigurationEntry propertyEntry, String labelName, File targetFile) throws Exception
+	protected void writeToConfigurationTexFile(ConfigurationEntry propertyEntry, String labelName, File targetFile) throws Exception
 	{
-		FileWriter fw = new FileWriter(targetFile);
-		try
+		String targetOpening;
+		if (propertyEntry.inJava())
 		{
-			fw.append("\\section{").append(propertyEntry.propertyName).append("}\n");
-			fw.append("\\label{").append(labelName).append("}\n");
-			if (propertyEntry.inJava)
+			if (propertyEntry.inCSharp())
 			{
-				if (propertyEntry.inCSharp)
-				{
-					fw.append("\\AvailableInJavaAndCsharp{\\TODO}");
-				}
-				else
-				{
-					fw.append("\\AvailableInJavaOnly{\\TODO}");
-				}
+				targetOpening = availableInJavaAndCsharpOpening;
 			}
-			else if (propertyEntry.inCSharp)
+			else
 			{
-				fw.append("\\AvailableInCsharpOnly{\\TODO}");
+				targetOpening = availableInJavaOnlyOpening;
 			}
-			fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(propertyEntry.propertyName).append("}}]");
-			fw.append("\n").append(propertyEntry.propertyName).append("=");
-			if (propertyEntry.defaultValueSpecified)
-			{
-				fw.append(propertyEntry.getDefaultValue());
-			}
-			fw.append("\n\\end{lstlisting}");
 		}
-		finally
+		else if (propertyEntry.inCSharp())
 		{
-			fw.close();
+			targetOpening = availableInCsharpOnlyOpening;
 		}
-		targetFile.setLastModified(currentTime);
+		else
+		{
+			throw new IllegalStateException("Neither Java nor C# ?");
+		}
+		if (!targetFile.exists())
+		{
+			FileWriter fw = new FileWriter(targetFile);
+			try
+			{
+				fw.append(targetOpening);
+				fw.append("\n\\section{").append(propertyEntry.propertyName).append("}");
+				fw.append("\n\\label{").append(labelName).append("}");
+				fw.append("\n\\ClearAPI");
+				fw.append("\n\\TODO");
+				fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(propertyEntry.propertyName).append("}}]");
+				fw.append("\n").append(propertyEntry.propertyName).append("=");
+				if (propertyEntry.defaultValueSpecified)
+				{
+					fw.append(propertyEntry.getDefaultValue());
+				}
+				fw.append("\n\\end{lstlisting}");
+			}
+			finally
+			{
+				fw.close();
+			}
+			targetFile.setLastModified(currentTime);
+			return;
+		}
+		StringBuilder sb = readFileFully(targetFile);
+		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		if (newContent.contentEquals(sb))
+		{
+			return;
+		}
+		updateFileFully(targetFile, newContent);
 	}
 
 	protected void writeTableRow(ConfigurationEntry propertyEntry, String labelName, FileWriter fw) throws Exception

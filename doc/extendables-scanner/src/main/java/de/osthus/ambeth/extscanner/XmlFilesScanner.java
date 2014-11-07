@@ -1,6 +1,8 @@
 package de.osthus.ambeth.extscanner;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 
 import de.osthus.ambeth.config.Property;
@@ -37,7 +39,27 @@ public class XmlFilesScanner implements IInitializingBean, IXmlFilesScanner
 			throw new IllegalArgumentException("Csharp XML file not found: " + javaFile.getPath());
 		}
 		javaTypes = OutputUtil.importFromFile(javaFile.getPath());
+		Iterator<Entry<String, TypeDescription>> iter = javaTypes.entrySet().iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, TypeDescription> entry = iter.next();
+			TypeDescription typeDescr = entry.getValue();
+			if (typeDescr.getModuleName().endsWith("-test") || typeDescr.getModuleName().endsWith(".Test"))
+			{
+				iter.remove();
+			}
+		}
 		csharpTypes = OutputUtil.importFromFile(csharpFile.getPath());
+		iter = csharpTypes.entrySet().iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, TypeDescription> entry = iter.next();
+			TypeDescription typeDescr = entry.getValue();
+			if (typeDescr.getModuleName().endsWith("-test") || typeDescr.getModuleName().endsWith(".Test"))
+			{
+				iter.remove();
+			}
+		}
 	}
 
 	@Override
