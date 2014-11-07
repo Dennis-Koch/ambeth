@@ -50,6 +50,10 @@ public class RebuildSchema
 					props.load(bootstrapPropertyFile, false);
 				}
 				props.put(PersistenceJdbcConfigurationConstants.IntegratedConnectionFactory, true);
+				if (props.get("ambeth.log.level") == null)
+				{
+					props.put("ambeth.log.level", "INFO");
+				}
 				// intentionally refill with args a third time
 				props.fillWithCommandLineArgs(args);
 			}
@@ -71,6 +75,19 @@ public class RebuildSchema
 		}
 		runner.rebuildStructure();
 		runner.rebuildData();
-		runner.methodInvoker(new FrameworkMethod(ReflectUtil.getDeclaredMethod(false, Object.class, String.class, "toString")), runner.createTest());
+
+		FrameworkMethod method = new FrameworkMethod(ReflectUtil.getDeclaredMethod(false, Object.class, String.class, "toString"));
+		DataSetupExecutor.setAutoRebuildData(Boolean.TRUE);
+		try
+		{
+			runner.rebuildContext(method);
+		}
+		finally
+		{
+			DataSetupExecutor.setAutoRebuildData(null);
+		}
+		runner.rebuildContext();
+
+		runner.methodInvoker(method, runner.createTest());
 	}
 }
