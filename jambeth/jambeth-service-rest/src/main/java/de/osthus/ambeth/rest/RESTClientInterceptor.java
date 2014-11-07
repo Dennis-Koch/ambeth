@@ -97,9 +97,22 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		}
 
 		InputStream responseStream = (InputStream) restResponse.getEntity(); // this is a stream?
-		Object responseEntity = cyclicXMLHandler.readFromStream(responseStream);
-
-		return responseEntity;
+		if (responseStream.available() > 0)
+		{
+			Object responseEntity = cyclicXMLHandler.readFromStream(responseStream);
+			if (responseEntity instanceof AmbethServiceException)
+			{
+				throw ParseServiceException((AmbethServiceException) responseEntity);
+			}
+			else
+			{
+				return responseEntity;
+			}
+		}
+		else
+		{
+			return null;
+		}
 
 		// Object result = null;
 		// boolean hasResult = false;
