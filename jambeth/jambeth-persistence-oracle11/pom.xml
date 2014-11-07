@@ -13,9 +13,9 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>oracle</groupId>
-			<artifactId>oracle-driver</artifactId>
-			<version>11.2.0.3.1</version>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc6</artifactId>
+			<version>11.2.0.3</version>
 		</dependency>
 
 		<dependency>
@@ -28,12 +28,4 @@
 			<artifactId>jambeth-datachange</artifactId>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<repository>
-			<id>thirdparty</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/thirdparty/</url>
-		</repository>
-	</repositories>
-
 </project>
