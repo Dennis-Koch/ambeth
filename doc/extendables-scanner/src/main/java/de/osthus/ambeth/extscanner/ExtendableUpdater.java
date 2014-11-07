@@ -66,14 +66,14 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			FileWriter fw = new FileWriter(targetFile);
 			try
 			{
-				fw.append("\\section{").append(extendableEntry.simpleName).append("}\n");
-				fw.append("\\label{").append(labelName).append("}\n");
 				fw.append(targetOpening);
+				fw.append("\n\\section{").append(extendableEntry.simpleName).append("}");
+				fw.append("\n\\label{").append(labelName).append("}");
+				fw.append("\n\\ClearAPI\n");
 				writeJavadoc(extendableEntry.fqName, extendableEntry.simpleName, fw);
 				fw.append("\n");
 				writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
-				fw.append("\n");
-				fw.append("\\TODO}\n\n");
+				fw.append("\n\\TODO\n\n");
 
 				fw.append(LISTING_START).append('\n');
 				fw.append(listingsString(extendableEntry));
