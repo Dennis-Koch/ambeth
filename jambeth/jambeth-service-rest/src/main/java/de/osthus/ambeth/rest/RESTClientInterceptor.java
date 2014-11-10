@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response;
 import net.sf.cglib.proxy.MethodProxy;
 
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
@@ -40,7 +41,6 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 {
 
 	private Lock clientLock = new ReentrantLock();
-	// private Condition clientLockCondition = clientLock.newCondition();
 
 	@Property(name = ServiceConfigurationConstants.ServiceBaseUrl)
 	protected String ServiceBaseUrl;
@@ -77,6 +77,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 
 		ClientConfig config = new ClientConfig();
 		Client client = ClientBuilder.newClient(config);
+		setAuthorization(client);
+
 		WebTarget rootWebTarget = client.target(restUrl);
 		WebTarget methodWebTarget = rootWebTarget.path(method.getName());
 
@@ -106,209 +108,13 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 			}
 			else
 			{
-				return responseEntity;
+				return convertToExpectedType(method.getReturnType(), responseEntity);
 			}
 		}
 		else
 		{
 			return null;
 		}
-
-		// Object result = null;
-		// boolean hasResult = false;
-		// Exception ex = null;
-		//
-		// webRequestLock.lock();
-		// try
-		// {
-		// webRequest.Accept = "text/plain";
-		// if (HttpAcceptEncodingZipped)
-		// {
-		// TryToSetHeader(HttpRequestHeader.AcceptEncoding, webRequest, "gzip");
-		// webRequest.Headers["Accept-Encoding-Workaround"] = "gzip";
-		// }
-		// SetAuthorization(webRequest);
-		//
-		// if (invocation.Arguments.Length == 0)
-		// {
-		// webRequest.Method = "GET";
-		// webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult2)
-		// {
-		// try
-		// {
-		// HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asyncResult2);
-		// using (Stream responseStream = response.GetResponseStream())
-		// using (Stream memoryStream = new MemoryStream())
-		// {
-		// int b;
-		// while ((b = responseStream.ReadByte()) != -1)
-		// {
-		// memoryStream.WriteByte((byte)b);
-		// }
-		// memoryStream.Position = 0;
-		// try
-		// {
-		// Stream deflateStream = GetResponseStream(response, memoryStream);
-		// result = CyclicXmlHandler.ReadFromStream(deflateStream);
-		// }
-		// catch (XmlTypeNotFoundException)
-		// {
-		// throw;
-		// }
-		// catch (Exception)
-		// {
-		// memoryStream.Position = 0;
-		// result = CyclicXmlHandler.ReadFromStream(memoryStream);
-		// }
-		// }
-		// hasResult = true;
-		// }
-		// catch (WebException e)
-		// {
-		// ex = ParseWebException(e);
-		// using (HttpWebResponse response = (HttpWebResponse)e.Response)
-		// {
-		// HandleException(e, response);
-		// }
-		// }
-		// catch (Exception e)
-		// {
-		// Log.Error(e);
-		// ex = e;
-		// }
-		// finally
-		// {
-		// lock (webRequest)
-		// {
-		// Monitor.PulseAll(webRequest);
-		// }
-		// }
-		// }, null);
-		// }
-		// else
-		// {
-		// webRequest.Method = "POST";
-		// webRequest.ContentType = "text/plain";
-		// if (HttpContentEncodingZipped)
-		// {
-		// TryToSetHeader(HttpRequestHeader.ContentEncoding, webRequest, "gzip");
-		// webRequest.Headers["Content-Encoding-Workaround"] = "gzip";
-		// }
-		// webRequest.BeginGetRequestStream(delegate(IAsyncResult asyncResult)
-		// {
-		// try
-		// {
-		// // using (Stream stream = webRequest.EndGetRequestStream(asyncResult))
-		// //#if SILVERLIGHT
-		// // using (Stream deflateStream = HttpContentEncodingZipped ? new GZipStream(stream, CompressionMode.Compress, CompressionLevel.BestCompression,
-		// false) : stream)
-		// //#else
-		// // using (Stream deflateStream = HttpContentEncodingZipped ? new GZipStream(stream, CompressionMode.Compress, false) : stream)
-		// //#endif
-		// {
-		// CyclicXmlHandler.WriteToStream(deflateStream, invocation.Arguments);
-		// }
-		// webRequest.BeginGetResponse(delegate(IAsyncResult asyncResult2)
-		// {
-		// try
-		// {
-		// HttpWebResponse response = (HttpWebResponse)webRequest.EndGetResponse(asyncResult2);
-		// using (Stream responseStream = response.GetResponseStream())
-		// using (Stream memoryStream = new MemoryStream())
-		// {
-		// int b;
-		// while ((b = responseStream.ReadByte()) != -1)
-		// {
-		// memoryStream.WriteByte((byte)b);
-		// }
-		// memoryStream.Position = 0;
-		// try
-		// {
-		// Stream deflateStream = GetResponseStream(response, memoryStream);
-		// result = CyclicXmlHandler.ReadFromStream(deflateStream);
-		// }
-		// catch (XmlTypeNotFoundException)
-		// {
-		// throw;
-		// }
-		// catch (Exception)
-		// {
-		// memoryStream.Position = 0;
-		// result = CyclicXmlHandler.ReadFromStream(memoryStream);
-		// }
-		// }
-		// hasResult = true;
-		// }
-		// catch (WebException e)
-		// {
-		// ex = ParseWebException(e);
-		// using (HttpWebResponse response = (HttpWebResponse)e.Response)
-		// {
-		// HandleException(e, response);
-		// }
-		// }
-		// catch (Exception e)
-		// {
-		// ex = e;
-		// }
-		// finally
-		// {
-		// webRequestLock.lock();
-		// try
-		// {
-		// // Monitor.PulseAll(webRequest);
-		// webRequest.notifyAll();
-		// }
-		// finally {
-		// webRequestLock.unlock();
-		// }
-		// }
-		// }, null);
-		// }
-		// catch (Exception e)
-		// {
-		// ex = e;
-		// webRequestLock.lock();
-		// try
-		// {
-		// // Monitor.PulseAll(webRequest);
-		// webRequest.notifyAll();
-		// }
-		// finally {
-		// webRequestLock.unlock();
-		// }
-		// }
-		// }, null);
-		// }
-		// while (!hasResult && ex == null)
-		// {
-		//
-		// Monitor.Wait(webRequest);
-		// }
-		// }
-		// finally {
-		// webRequestLock.unlock();
-		// }
-		// if (result is AmbethServiceException)
-		// {
-		// ex = ParseServiceException((AmbethServiceException)result);
-		// throw new Exception("Error occured while calling " + webRequest.Method + " " + webRequest.RequestUri, ex);
-		// }
-		// if (ex != null)
-		// {
-		// if (ex is WebException)
-		// {
-		// throw new Exception(ex.Message + "\r\rError occured while calling " + webRequest.Method + " " + webRequest.RequestUri + ". " +
-		// CyclicXmlHandler.Write(invocation.Arguments), ex);
-		// }
-		// throw new Exception("Error occured while calling " + webRequest.Method + " " + webRequest.RequestUri + ". " +
-		// CyclicXmlHandler.Write(invocation.Arguments), ex);
-		// }
-		// if (!hasResult)
-		// {
-		// throw new Exception("This must never happen");
-		// }
-		// invocation.ReturnValue = ConvertToExpectedType(method.ReturnType, result);
 	}
 
 	protected Exception ParseServiceException(AmbethServiceException serviceException)
@@ -323,7 +129,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected Object ConvertToExpectedType(Class<?> expectedType, Object result)
+	protected Object convertToExpectedType(Class<?> expectedType, Object result)
 	{
 		// if (typeof(void).Equals(expectedType) || result == null)
 		if (result == null) // TODO find .net equivalent?
@@ -378,19 +184,19 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		throw new RuntimeException("Can not convert result " + result + " to expected type " + expectedType.getName());
 	}
 
-	// protected void setAuthorization(HttpWebRequest request)
-	// {
-	// String[] authentication = authenticationHolder.getAuthentication();
-	// String userName = authentication[0];
-	// String password = authentication[1];
-	// if (userName == null && password == null)
-	// {
-	// return;
-	// }
-	// String authInfo = userName + ":" + password; // userName + ":" + Encryption.Encrypt(.password;//TODO Encryption.encrypt(password);
-	// authInfo = Convert.ToBase64String(Encoding.UTF8.GetBytes(authInfo));
-	// request.Headers[HttpRequestHeader.Authorization] = "Basic " + authInfo;
-	// }
+	protected void setAuthorization(Client client)
+	{
+		String[] authentication = authenticationHolder.getAuthentication();
+		String userName = authentication[0];
+		String password = authentication[1];
+		if (userName == null && password == null)
+		{
+			return;
+		}
+		// authInfo = DatatypeConverter.printBase64Binary(authInfo.getBytes(StandardCharsets.UTF_8));
+		HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basic(userName, password);
+		client.register(authFeature);
+	}
 
 	@Override
 	public void beginOnline()
