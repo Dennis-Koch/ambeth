@@ -1,11 +1,12 @@
 package de.osthus.ambeth.extscanner;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
+import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class ExtScannerModule implements IInitializingModule
+public class ScannerModule implements IInitializingModule
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -17,7 +18,9 @@ public class ExtScannerModule implements IInitializingModule
 		beanContextFactory.registerAnonymousBean(XmlFilesScanner.class).autowireable(IXmlFilesScanner.class);
 		beanContextFactory.registerAnonymousBean(ExtendableUpdater.class);
 		beanContextFactory.registerAnonymousBean(ConfigurationUpdater.class);
-		beanContextFactory.registerAnonymousBean(FeatureUpdater.class).autowireable(IFeatureUpdater.class);
-		beanContextFactory.registerAnonymousBean(ModuleUpdater.class);
+		beanContextFactory.registerAnonymousBean(FeatureUpdater.class);
+		beanContextFactory.registerAnonymousBean(ModuleUpdater.class).precedence(PrecedenceType.HIGH);
+
+		beanContextFactory.registerAnonymousBean(Model.class).autowireable(IModel.class);
 	}
 }

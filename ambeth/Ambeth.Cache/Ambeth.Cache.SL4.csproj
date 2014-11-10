@@ -81,7 +81,6 @@
     <Compile Include="ambeth\cache\CacheProvider.cs" />
     <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
     <Compile Include="ambeth\cache\CacheType.cs" />
-    <Compile Include="ambeth\cache\CacheUnmodifiedObjectProvider.cs" />
     <Compile Include="ambeth\cache\ChildCache.cs" />
     <Compile Include="ambeth\cache\collections\CacheHashMap.cs" />
     <Compile Include="ambeth\cache\collections\CacheMapEntry.cs" />
@@ -93,8 +92,12 @@
     <Compile Include="ambeth\cache\collections\ICacheMapEntryAware.cs" />
     <Compile Include="ambeth\cache\collections\ICacheMapEntryFactory.cs" />
     <Compile Include="ambeth\cache\collections\ICacheMapEntryTypeProvider.cs" />
+    <Compile Include="ambeth\cache\config\CacheConfigurationConstants.cs" />
+    <Compile Include="ambeth\cache\config\CacheNamedBeans.cs" />
+    <Compile Include="ambeth\cache\ExecuteServiceDelegate.cs" />
     <Compile Include="ambeth\cache\FirstLevelCacheManager.cs" />
     <Compile Include="ambeth\cache\FlcEntry.cs" />
+    <Compile Include="ambeth\cache\GetDataDelegate.cs" />
     <Compile Include="ambeth\cache\IFirstLevelCacheExtendable.cs" />
     <Compile Include="ambeth\cache\IFirstLevelCacheManager.cs" />
     <Compile Include="ambeth\cache\interceptor\AbstractRootCacheAwareInterceptor.cs" />
@@ -124,18 +127,22 @@
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
     <Compile Include="ambeth\cache\ServiceResultCache.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
+    <Compile Include="ambeth\cache\transfer\LoadContainer.cs" />
+    <Compile Include="ambeth\cache\transfer\ObjRelation.cs" />
+    <Compile Include="ambeth\cache\transfer\ObjRelationResult.cs" />
+    <Compile Include="ambeth\cache\ValueHolderIEC.cs" />
     <Compile Include="ambeth\cache\walker\CacheWalker.cs" />
     <Compile Include="ambeth\cache\walker\CacheWalkerResult.cs" />
     <Compile Include="ambeth\cache\walker\ICacheWalker.cs" />
     <Compile Include="ambeth\cache\walker\ICacheWalkerResult.cs" />
-    <Compile Include="ambeth\config\CacheConfigurationConstants.cs" />
-    <Compile Include="ambeth\config\CacheNamedBeans.cs" />
     <Compile Include="ambeth\databinding\ICollectionChangeExtension.cs" />
     <Compile Include="ambeth\databinding\ICollectionChangeExtensionExtendable.cs" />
     <Compile Include="ambeth\databinding\IPropertyChangeExtension.cs" />
     <Compile Include="ambeth\databinding\IPropertyChangeExtensionExtendable.cs" />
     <Compile Include="ambeth\debug\ValueHolderFlattenHierarchyProxy.cs" />
     <Compile Include="ambeth\exceptions\LazyInitialiationException.cs" />
+    <Compile Include="ambeth\ioc\CacheModule.cs" />
+    <Compile Include="ambeth\merge\CacheUnmodifiedObjectProvider.cs" />
     <Compile Include="ambeth\mixin\DataObjectMixin.cs" />
     <Compile Include="ambeth\mixin\EmbeddedTypeMixin.cs" />
     <Compile Include="ambeth\mixin\EntityEqualsMixin.cs" />
@@ -153,9 +160,6 @@
     <Compile Include="ambeth\service\ICacheServiceWCF.cs" />
     <Compile Include="ambeth\service\ICacheService.cs" />
     <Compile Include="ambeth\cache\RootCache.cs" />
-    <Compile Include="ambeth\transfer\LoadContainer.cs" />
-    <Compile Include="ambeth\transfer\ObjRelation.cs" />
-    <Compile Include="ambeth\transfer\ObjRelationResult.cs" />
     <Compile Include="ambeth\util\AppendableCachePath.cs" />
     <Compile Include="ambeth\util\CacheHelper.cs" />
     <Compile Include="ambeth\util\AlreadyHandledItem.cs" />
@@ -166,8 +170,6 @@
     <Compile Include="ambeth\util\PrefetchState.cs" />
     <Compile Include="ambeth\util\PrefetchConfig.cs" />
     <Compile Include="ambeth\util\PrefetchHandle.cs" />
-    <Compile Include="ambeth\ValueHolderIEC.cs" />
-    <Compile Include="ioc\CacheModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -75,6 +75,8 @@
     <Compile Include="ambeth\config\PrivilegeConfigurationConstants.cs" />
     <Compile Include="ambeth\crypto\AESEncryption.cs" />
     <Compile Include="ambeth\crypto\IEncryption.cs" />
+    <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
+    <Compile Include="ambeth\ioc\SecurityModule.cs" />
     <Compile Include="ambeth\privilege\factory\DefaultEntityPrivilegeFactory.cs" />
     <Compile Include="ambeth\privilege\factory\DefaultEntityTypePrivilegeFactory.cs" />
     <Compile Include="ambeth\privilege\factory\EntityPrivilegeEnhancementHint.cs" />
@@ -139,8 +141,6 @@
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
-    <Compile Include="ioc\PrivilegeModule.cs" />
-    <Compile Include="ioc\SecurityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,19 +2,21 @@ package de.osthus.ambeth.extscanner;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.classbrowser.java.AnnotationInfo;
 import de.osthus.classbrowser.java.AnnotationParamInfo;
 import de.osthus.classbrowser.java.FieldDescription;
 import de.osthus.classbrowser.java.MethodDescription;
@@ -22,11 +24,25 @@ import de.osthus.classbrowser.java.TypeDescription;
 
 public class ConfigurationUpdater extends AbstractLatexScanner implements IStartingBean
 {
-	// public static final Pattern csharpConstantPattern = Pattern.compile(" *public *const *String *[^ =]+ *= *\"(.+)\" *; *");
-	//
+	public static final String LISTING_START = "%% GENERATED USAGE REFERENCE - DO NOT EDIT";
+
+	public static final String LISTING_END = "%% GENERATED USAGE REFERENCE END";
+
+	public static final Pattern replaceUsageReferencePattern = Pattern.compile("(.*" + Pattern.quote(LISTING_START) + ").*(" + Pattern.quote(LISTING_END)
+			+ ".*)", Pattern.DOTALL);
+
+	public static final Pattern configurationConstantsAnnotationMatcher = Pattern.compile(Pattern.quote(ConfigurationConstants.class.getName()) + "|"
+			+ Pattern.quote("De.Osthus.Ambeth.Annotation.ConfigurationConstants"));
+
+	public static final Pattern propertyAnnotationMatcher = Pattern.compile(Pattern.quote(Property.class.getName()) + "|"
+			+ Pattern.quote("De.Osthus.Ambeth.Config.PropertyAttribute"));
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IModel model;
 
 	@Property(name = "properties-tex-file")
 	protected String allPropertiesTexFilePath;
@@ -35,8 +51,56 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 	protected String targetPropertiesTexDirPath;
 
 	@Override
-	protected void handle(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable
+	protected void buildModel(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable
 	{
+		for (Entry<String, TypeDescription> entry : javaTypes)
+		{
+			TypeDescription typeDescr = entry.getValue();
+			List<AnnotationInfo> annotations = typeDescr.getAnnotations();
+			boolean isConfigurationConstant = false;
+			for (AnnotationInfo annotation : annotations)
+			{
+				if (configurationConstantsAnnotationMatcher.matcher(annotation.getAnnotationType()).matches())
+				{
+					isConfigurationConstant = true;
+					break;
+				}
+			}
+			if (isConfigurationConstant)
+			{
+				handleConfigurationConstants(typeDescr, true);
+			}
+		}
+
+		for (Entry<String, TypeDescription> entry : csharpTypes)
+		{
+			TypeDescription typeDescr = entry.getValue();
+			List<AnnotationInfo> annotations = typeDescr.getAnnotations();
+			boolean isConfigurationConstant = false;
+			for (AnnotationInfo annotation : annotations)
+			{
+				if (configurationConstantsAnnotationMatcher.matcher(annotation.getAnnotationType()).matches())
+				{
+					isConfigurationConstant = true;
+					break;
+				}
+			}
+			if (isConfigurationConstant)
+			{
+				handleConfigurationConstants(typeDescr, false);
+			}
+		}
+
+		scanForConfigurationUsage(javaTypes, true);
+		scanForConfigurationUsage(csharpTypes, false);
+	}
+
+	@Override
+	protected void handleModel() throws Throwable
+	{
+		ArrayList<ConfigurationEntry> configurations = new ArrayList<ConfigurationEntry>(model.allConfigurations());
+		Collections.sort(configurations);
+
 		File allPropertiesTexFile = new File(allPropertiesTexFilePath).getCanonicalFile();
 		allPropertiesTexFile.getParentFile().mkdirs();
 
@@ -44,7 +108,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		targetPropertiesTexDir.mkdirs();
 
 		log.debug("TargetTexFile: " + allPropertiesTexFile);
-		log.debug("PropertiesTexDir: " + targetPropertiesTexDir);
+		log.debug("ConfigurationTexDir: " + targetPropertiesTexDir);
 
 		String targetExtendableTexDirCP = targetPropertiesTexDir.getPath();
 		String targetTexFileCP = allPropertiesTexFile.getParent();
@@ -53,34 +117,6 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			throw new IllegalStateException("Path '" + targetExtendableTexDirCP + "' must reside within '" + targetTexFileCP + "'");
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
-
-		HashMap<String, ConfigurationEntry> nameToConfigurationMap = new HashMap<String, ConfigurationEntry>();
-
-		for (Entry<String, TypeDescription> entry : javaTypes)
-		{
-			TypeDescription typeDescr = entry.getValue();
-			if (!typeDescr.getName().endsWith("ConfigurationConstants"))
-			{
-				continue;
-			}
-			handleConfigurationConstants(typeDescr, true, nameToConfigurationMap);
-		}
-
-		for (Entry<String, TypeDescription> entry : csharpTypes)
-		{
-			TypeDescription typeDescr = entry.getValue();
-			if (!typeDescr.getName().endsWith("ConfigurationConstants"))
-			{
-				continue;
-			}
-			handleConfigurationConstants(typeDescr, false, nameToConfigurationMap);
-		}
-
-		scanForConfigurationUsage(javaTypes, true, nameToConfigurationMap);
-		scanForConfigurationUsage(csharpTypes, false, nameToConfigurationMap);
-
-		String[] propertyNames = nameToConfigurationMap.keySet().toArray(String.class);
-		Arrays.sort(propertyNames);
 
 		FileWriter fw = new FileWriter(allPropertiesTexFile);
 		try
@@ -91,15 +127,14 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
 			fw.append("\\begin{landscape}\n");
-			fw.append("\\begin{longtable}{ l l c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} \\\\\n");
+			fw.append("\\begin{longtable}{ l l c c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 
 			ArrayList<String> includes = new ArrayList<String>();
 
-			for (String propertyName : propertyNames)
+			for (ConfigurationEntry configurationEntry : configurations)
 			{
-				ConfigurationEntry configurationEntry = nameToConfigurationMap.get(propertyName);
 				log.debug("Handling " + configurationEntry.propertyName);
 
 				if (configurationEntry.isMandatory == null)
@@ -108,7 +143,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 					configurationEntry.isMandatory = Boolean.FALSE;
 				}
 
-				String texName = buildTexPropertyName(configurationEntry);
+				String texName = buildTexPropertyName(configurationEntry.propertyName);
 
 				String labelName = "configuration:" + texName;
 				writeTableRow(configurationEntry, labelName, fw);
@@ -139,7 +174,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		allPropertiesTexFile.setLastModified(currentTime);
 	}
 
-	protected void scanForConfigurationUsage(IMap<String, TypeDescription> types, boolean isJava, IMap<String, ConfigurationEntry> nameToConfigurationMap)
+	protected void scanForConfigurationUsage(IMap<String, TypeDescription> types, boolean isJava)
 	{
 		for (Entry<String, TypeDescription> javaEntry : types)
 		{
@@ -148,23 +183,22 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			{
 				for (de.osthus.classbrowser.java.AnnotationInfo annotation : field.getAnnotations())
 				{
-					processAnnotation(typeDescr, annotation, isJava, nameToConfigurationMap);
+					processAnnotation(typeDescr, annotation, isJava);
 				}
 			}
 			for (MethodDescription method : typeDescr.getMethodDescriptions())
 			{
 				for (de.osthus.classbrowser.java.AnnotationInfo annotation : method.getAnnotations())
 				{
-					processAnnotation(typeDescr, annotation, isJava, nameToConfigurationMap);
+					processAnnotation(typeDescr, annotation, isJava);
 				}
 			}
 		}
 	}
 
-	protected void processAnnotation(TypeDescription typeDescr, de.osthus.classbrowser.java.AnnotationInfo annotation, boolean isJava,
-			IMap<String, ConfigurationEntry> nameToConfigurationMap)
+	protected void processAnnotation(TypeDescription typeDescr, de.osthus.classbrowser.java.AnnotationInfo annotation, boolean isJava)
 	{
-		if (!Property.class.getName().equals(annotation.getAnnotationType()))
+		if (!propertyAnnotationMatcher.matcher(annotation.getAnnotationType()).matches())
 		{
 			return;
 		}
@@ -174,7 +208,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		for (AnnotationParamInfo param : annotation.getParameters())
 		{
 			String name = param.getName();
-			if ("name".equals(name))
+			if ("name".equals(name) || "Name".equals(name))
 			{
 				currentValue = (String) param.getCurrentValue();
 				if (Property.DEFAULT_VALUE.equals(currentValue))
@@ -182,7 +216,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 					currentValue = null;
 				}
 			}
-			else if ("mandatory".equals(name))
+			else if ("mandatory".equals(name) || "Mandatory".equals(name))
 			{
 				mandatory = param.getCurrentValue() != null ? Boolean.valueOf((String) param.getCurrentValue()) : null;
 				if (mandatory == null)
@@ -190,7 +224,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 					mandatory = param.getDefaultValue() != null ? Boolean.valueOf((String) param.getDefaultValue()) : null;
 				}
 			}
-			else if ("defaultValue".equals(name))
+			else if ("defaultValue".equals(name) || "DefaultValue".equals(name))
 			{
 				defaultValue = (String) param.getCurrentValue();
 			}
@@ -203,11 +237,13 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		{
 			mandatory = Boolean.TRUE;
 		}
-		ConfigurationEntry configurationEntry = nameToConfigurationMap.get(currentValue);
+		ConfigurationEntry configurationEntry = model.resolveConfiguration(currentValue);
 		if (configurationEntry == null)
 		{
-			configurationEntry = new ConfigurationEntry(currentValue);
-			nameToConfigurationMap.put(currentValue, configurationEntry);
+			String texName = buildTexPropertyName(currentValue);
+			String labelName = "configuration:" + texName;
+			configurationEntry = new ConfigurationEntry(log, currentValue, labelName, typeDescr.getModuleName());
+			model.addConfiguration(currentValue, configurationEntry);
 		}
 		if (configurationEntry.isMandatory == null)
 		{
@@ -218,7 +254,8 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			configurationEntry.isMandatory = Boolean.valueOf(configurationEntry.isMandatory.booleanValue() || mandatory.booleanValue());
 		}
 		configurationEntry.setDefaultValue(defaultValue);
-		configurationEntry.usedInTypes.add(typeDescr.getFullTypeName());
+
+		configurationEntry.usedInTypes.add(model.resolveTypeEntry(typeDescr));
 		if (isJava)
 		{
 			configurationEntry.inJava = true;
@@ -229,11 +266,11 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		}
 	}
 
-	private void handleConfigurationConstants(TypeDescription typeDescr, boolean isJava, HashMap<String, ConfigurationEntry> nameToConfigurationEntryMap)
+	private void handleConfigurationConstants(TypeDescription typeDescr, boolean isJava)
 	{
 		for (FieldDescription field : typeDescr.getFieldDescriptions())
 		{
-			ConfigurationEntry configurationEntry = getEnsureConfigurationEntry(typeDescr, field, nameToConfigurationEntryMap);
+			ConfigurationEntry configurationEntry = getEnsureConfigurationEntry(typeDescr, field);
 			if (configurationEntry == null)
 			{
 				continue;
@@ -249,9 +286,9 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		}
 	}
 
-	protected String buildTexPropertyName(ConfigurationEntry propertyEntry)
+	protected String buildTexPropertyName(String propertyName)
 	{
-		String texName = propertyEntry.propertyName;
+		String texName = propertyName;
 		while (texName.contains("."))
 		{
 			int dotIndex = texName.indexOf('.');
@@ -270,7 +307,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		return Character.toUpperCase(texName.charAt(0)) + texName.substring(1);
 	}
 
-	protected ConfigurationEntry getEnsureConfigurationEntry(TypeDescription typeDescr, FieldDescription field, Map<String, ConfigurationEntry> map)
+	protected ConfigurationEntry getEnsureConfigurationEntry(TypeDescription typeDescr, FieldDescription field)
 	{
 		if (!"java.lang.String".equals(field.getFieldType()) && !"string".equals(field.getFieldType()))
 		{
@@ -284,53 +321,39 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			return null;
 		}
 		String valueOfConstant = field.getInitialValue();
-		ConfigurationEntry propertyEntry = map.get(valueOfConstant);
+		ConfigurationEntry propertyEntry = model.resolveConfiguration(valueOfConstant);
 		if (propertyEntry == null)
 		{
-			propertyEntry = new ConfigurationEntry(valueOfConstant);
-			map.put(valueOfConstant, propertyEntry);
+			String texName = buildTexPropertyName(valueOfConstant);
+			String labelName = "configuration:" + texName;
+			propertyEntry = new ConfigurationEntry(log, valueOfConstant, labelName, typeDescr.getModuleName());
+			model.addConfiguration(valueOfConstant, propertyEntry);
 		}
 		propertyEntry.contantDefinitions.add(typeDescr.getFullTypeName() + "." + field.getName());
 		return propertyEntry;
 	}
 
-	protected void writeToConfigurationTexFile(ConfigurationEntry propertyEntry, String labelName, File targetFile) throws Exception
+	protected void writeToConfigurationTexFile(ConfigurationEntry configurationEntry, String labelName, File targetFile) throws Exception
 	{
-		String targetOpening;
-		if (propertyEntry.inJava())
-		{
-			if (propertyEntry.inCSharp())
-			{
-				targetOpening = availableInJavaAndCsharpOpening;
-			}
-			else
-			{
-				targetOpening = availableInJavaOnlyOpening;
-			}
-		}
-		else if (propertyEntry.inCSharp())
-		{
-			targetOpening = availableInCsharpOnlyOpening;
-		}
-		else
-		{
-			throw new IllegalStateException("Neither Java nor C# ?");
-		}
+		String targetOpening = getAPI(configurationEntry);
 		if (!targetFile.exists())
 		{
 			FileWriter fw = new FileWriter(targetFile);
 			try
 			{
 				fw.append(targetOpening);
-				fw.append("\n\\section{").append(propertyEntry.propertyName).append("}");
+				fw.append("\n\\section{").append(configurationEntry.propertyName).append("}");
 				fw.append("\n\\label{").append(labelName).append("}");
 				fw.append("\n\\ClearAPI");
 				fw.append("\n\\TODO");
-				fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(propertyEntry.propertyName).append("}}]");
-				fw.append("\n").append(propertyEntry.propertyName).append("=");
-				if (propertyEntry.defaultValueSpecified)
+				fw.append(LISTING_START).append('\n');
+				fw.append(usageReferenceString(configurationEntry));
+				fw.append(LISTING_END);
+				fw.append("\n\\begin{lstlisting}[style=Props,caption={Usage example for \\textit{").append(configurationEntry.propertyName).append("}}]");
+				fw.append("\n").append(configurationEntry.propertyName).append("=");
+				if (configurationEntry.defaultValueSpecified)
 				{
-					fw.append(propertyEntry.getDefaultValue());
+					fw.append(configurationEntry.getDefaultValue());
 				}
 				fw.append("\n\\end{lstlisting}");
 			}
@@ -343,11 +366,51 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		}
 		StringBuilder sb = readFileFully(targetFile);
 		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		Matcher matcher = replaceUsageReferencePattern.matcher(newContent);
+		if (matcher.matches())
+		{
+			newContent = matcher.group(1) + "\n" + usageReferenceString(configurationEntry) + matcher.group(2);
+		}
+		else
+		{
+			log.warn("Could not replace usage reference in '" + targetFile.getPath() + "'");
+		}
 		if (newContent.contentEquals(sb))
 		{
 			return;
 		}
 		updateFileFully(targetFile, newContent);
+	}
+
+	protected StringBuilder usageReferenceString(ConfigurationEntry configurationEntry)
+	{
+		ArrayList<TypeEntry> usedInTypes = new ArrayList<TypeEntry>(configurationEntry.usedInTypes);
+		Collections.sort(usedInTypes);
+
+		StringBuilder sb = new StringBuilder();
+
+		if (usedInTypes.size() > 0)
+		{
+			sb.append("\\begin{longtable}{ l l } \\hline \\textbf{Used in bean} & \\textbf{Module} \\\n");
+			sb.append("\t\\endhead\n");
+			sb.append("\t\\hline\n");
+
+			for (TypeEntry usedInType : usedInTypes)
+			{
+				sb.append("\t\t");
+				sb.append("\\type{").append(usedInType.typeDesc.getFullTypeName()).append('}');
+				sb.append(" &\n\t\t");
+
+				if (usedInType.moduleEntry != null)
+				{
+					sb.append("\\prettyref{").append(usedInType.moduleEntry.labelName).append('}');
+				}
+				sb.append(" \\\\\n");
+				sb.append("\t\\hline\n");
+			}
+			sb.append("\\end{longtable}\n");
+		}
+		return sb;
 	}
 
 	protected void writeTableRow(ConfigurationEntry propertyEntry, String labelName, FileWriter fw) throws Exception
@@ -367,9 +430,12 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		fw.append(" & ");
 
 		// Java
-		fw.append(propertyEntry.inJava ? "X" : " ").append(" & ");
+		fw.append(propertyEntry.inJava() ? "X" : " ").append(" & ");
 
 		// C#
-		fw.append(propertyEntry.inCSharp ? "X" : " ");
+		fw.append(propertyEntry.inCSharp() ? "X" : " ").append(" & ");
+
+		// Javascript
+		fw.append(propertyEntry.inJavascript() ? "X" : " ");
 	}
 }

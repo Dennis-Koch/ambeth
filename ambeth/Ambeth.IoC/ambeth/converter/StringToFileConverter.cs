@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Accessor
+namespace De.Osthus.Ambeth.Converter
 {
     public class StringToFileConverter : IDedicatedConverter
     {

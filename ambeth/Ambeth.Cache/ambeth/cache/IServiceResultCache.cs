@@ -13,6 +13,4 @@ namespace De.Osthus.Ambeth.Cache
 
         void InvalidateAll();
     }
-
-    public delegate IServiceResult ExecuteServiceDelegate(IServiceDescription serviceDescription);
 }

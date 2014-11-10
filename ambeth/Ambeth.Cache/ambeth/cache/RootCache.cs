@@ -122,7 +122,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly Lock pendingKeysReadLock, pendingKeysWriteLock;
 
-        [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "10000")]
+        [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "0")]
         public int LruThreshold { protected get; set; }
 
         [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]

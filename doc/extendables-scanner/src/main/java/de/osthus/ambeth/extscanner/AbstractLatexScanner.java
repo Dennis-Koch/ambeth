@@ -13,14 +13,17 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public abstract class AbstractLatexScanner implements IStartingBean
+public abstract class AbstractLatexScanner implements IInitializingBean, IStartingBean
 {
+	public static final Pattern labelNamePattern = Pattern.compile(".*\\\\section\\{[^\\}]*\\}\\s*\\\\label\\{([^\\}]*)\\}.*", Pattern.DOTALL);
+
 	public static final String availableInCsharpOnlyOpening = "\\SetAPI{C}";
 
 	public static final String availableInJavaOnlyOpening = "\\SetAPI{J}";
@@ -43,15 +46,52 @@ public abstract class AbstractLatexScanner implements IStartingBean
 	protected long currentTime;
 
 	@Override
-	public void afterStarted() throws Throwable
+	public void afterPropertiesSet() throws Throwable
 	{
 		SortedMap<String, TypeDescription> javaTypes = xmlFilesScanner.getJavaTypes();
 		SortedMap<String, TypeDescription> csharpTypes = xmlFilesScanner.getCsharpTypes();
 
-		handle(new LinkedHashMap<String, TypeDescription>(javaTypes), new LinkedHashMap<String, TypeDescription>(csharpTypes));
+		buildModel(new LinkedHashMap<String, TypeDescription>(javaTypes), new LinkedHashMap<String, TypeDescription>(csharpTypes));
 	}
 
-	abstract protected void handle(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable;
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		handleModel();
+	}
+
+	abstract protected void buildModel(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable;
+
+	abstract protected void handleModel() throws Throwable;
+
+	protected String readLabelName(File currFile)
+	{
+		StringBuilder sb = readFileFully(currFile);
+		Matcher matcher = labelNamePattern.matcher(sb);
+		if (!matcher.matches())
+		{
+			log.warn("Label not found in file " + currFile);
+			return null;
+		}
+		return matcher.group(1);
+	}
+
+	protected String getAPI(IMultiPlatformFeature multiPlatformFeature)
+	{
+		int index = (multiPlatformFeature.inJava() ? 1 : 0) + (multiPlatformFeature.inCSharp() ? 2 : 0) + +(multiPlatformFeature.inJavascript() ? 4 : 0);
+
+		String[] setAPIs =
+		{ "\\ClearAPI",//
+				"\\SetAPI{J}",//
+				"\\SetAPI{C}",//
+				"\\SetAPI{J-C}",//
+				"\\SetAPI{JS}",//
+				"\\SetAPI{J-JS}",//
+				"\\SetAPI{C-JS}",//
+				"\\SetAPI{J-C-JS}",//
+		};
+		return setAPIs[index];
+	}
 
 	protected void writeJavadoc(String fqName, String simpleName, FileWriter fw) throws IOException
 	{

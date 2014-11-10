@@ -73,6 +73,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\config\XmlConfigurationConstants.cs" />
+    <Compile Include="ambeth\ioc\BootstrapScannerModule.cs" />
+    <Compile Include="ambeth\ioc\XmlModule.cs" />
     <Compile Include="ambeth\util\ClasspathScanner.cs" />
     <Compile Include="ambeth\util\IClasspathScanner.cs" />
     <Compile Include="ambeth\util\ModuleScanner.cs" />
@@ -149,8 +151,6 @@
     <Compile Include="ambeth\xml\XmlTypeKey.cs" />
     <Compile Include="ambeth\xml\XmlTypeNotFoundException.cs" />
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs" />
-    <Compile Include="ioc\BootstrapScannerModule.cs" />
-    <Compile Include="ioc\XmlModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

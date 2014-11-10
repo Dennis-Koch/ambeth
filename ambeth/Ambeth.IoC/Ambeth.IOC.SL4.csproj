@@ -153,6 +153,7 @@
     <Compile Include="ambeth\ioc\IInitializingBean.cs" />
     <Compile Include="ambeth\ioc\IInitializingModule.cs" />
     <Compile Include="ambeth\ioc\IModuleProvider.cs" />
+    <Compile Include="ambeth\ioc\IocModule.cs" />
     <Compile Include="ambeth\ioc\IOrderedBeanPostProcessor.cs" />
     <Compile Include="ambeth\ioc\IPropertyLoadingBean.cs" />
     <Compile Include="ambeth\ioc\IServiceContext.cs" />
@@ -202,7 +203,6 @@
     <Compile Include="ambeth\util\Def2Entry.cs" />
     <Compile Include="ambeth\util\ModuleUtil.cs" />
     <Compile Include="ambeth\util\Strong2Key.cs" />
-    <Compile Include="ioc\IocModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

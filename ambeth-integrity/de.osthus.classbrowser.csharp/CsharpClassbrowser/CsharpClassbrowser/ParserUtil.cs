@@ -115,7 +115,7 @@ namespace CsharpClassbrowser
                 throw new ArgumentException("Mandatory value missing!");
             }
 
-            string typeName = typeToBeAnalyzed.FullName.ToLower();
+            string typeName = RemoveGenericTypeParamsFromName(typeToBeAnalyzed.FullName).ToLower();
             // TODO: Remove the HACK
             string fileName = typeName.Replace("de.osthus.", string.Empty).ToLower() + ".cs";
 

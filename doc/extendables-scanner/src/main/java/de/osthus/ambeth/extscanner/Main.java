@@ -18,7 +18,7 @@ public class Main
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props, IocBootstrapModule.class);
 		try
 		{
-			bootstrapContext.createService(ExtScannerModule.class);
+			bootstrapContext.createService(ScannerModule.class);
 		}
 		finally
 		{

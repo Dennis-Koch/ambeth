@@ -1,8 +1,10 @@
+using De.Osthus.Ambeth.Annotation;
 using System;
 
 namespace De.Osthus.Ambeth.Merge.Config
 {
-    public class MergeConfigurationConstants
+    [ConfigurationConstants]
+    public sealed class MergeConfigurationConstants
     {
         public const String EntityFactoryType = "ambeth.merge.entityfactory.type";
 
