@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{ISecurityScopeChangeExtendable}
+\label{extendable:ISecurityScopeChangeExtendable}
+\ClearAPI
+\javadoc{De.Osthus.Minerva.Security.ISecurityScopeChangeExtendable}{ISecurityScopeChangeExtendable}
+\javadoc{De.Osthus.Minerva.Security.ISecurityScopeChangeListener}{ISecurityScopeChangeListener}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{ISecurityScopeChangeListener}}
+{Minerva.Core/minerva/security/ISecurityScopeChangeExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ISecurityScopeChangeExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

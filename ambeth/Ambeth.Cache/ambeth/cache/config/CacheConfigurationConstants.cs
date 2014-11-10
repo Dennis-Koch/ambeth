@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Annotation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,8 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Cache.Config
 {
-    public class CacheConfigurationConstants
+    [ConfigurationConstants]
+    public sealed class CacheConfigurationConstants
     {
         public const String CacheServiceName = "cache.service.name";
 
@@ -39,6 +41,11 @@ namespace De.Osthus.Ambeth.Cache.Config
 
         public const String AsyncPropertyChangeActive = "cache.asyncpropertychange.active";
 
-        public const String FireOldPropertyValueActive = "cache.propertychange.fireoldvalue.active";        
+        public const String FireOldPropertyValueActive = "cache.propertychange.fireoldvalue.active";
+
+        private CacheConfigurationConstants()
+        {
+            // intended blank
+        }
     }
 }

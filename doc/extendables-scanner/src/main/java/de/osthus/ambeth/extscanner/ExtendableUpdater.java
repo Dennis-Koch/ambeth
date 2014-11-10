@@ -2,7 +2,7 @@ package de.osthus.ambeth.extscanner;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.util.Map;
+import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +12,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IStartingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.classbrowser.java.MethodDescription;
@@ -30,6 +31,9 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
+	protected IModel model;
+
 	@Property(name = "source-path")
 	protected String sourcePath;
 
@@ -41,26 +45,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 
 	protected void writeToExtendableTexFile(ExtendableEntry extendableEntry, String labelName, File targetFile) throws Exception
 	{
-		String targetOpening;
-		if (extendableEntry.inJava())
-		{
-			if (extendableEntry.inCSharp())
-			{
-				targetOpening = availableInJavaAndCsharpOpening;
-			}
-			else
-			{
-				targetOpening = availableInJavaOnlyOpening;
-			}
-		}
-		else if (extendableEntry.inCSharp())
-		{
-			targetOpening = availableInCsharpOnlyOpening;
-		}
-		else
-		{
-			throw new IllegalStateException("Neither Java nor C# ?");
-		}
+		String targetOpening = getAPI(extendableEntry);
 		if (!targetFile.exists())
 		{
 			FileWriter fw = new FileWriter(targetFile);
@@ -150,28 +135,18 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		fw.append(" &\n\t\t");
 		writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
 		fw.append(" &\n\t\t");
-		if (extendableEntry.inJava())
-		{
-			fw.append("X &\n\t\t");
-		}
-		else
-		{
-			fw.append("  &\n\t\t");
-		}
-		if (extendableEntry.inCSharp())
-		{
-			fw.append("X ");
-		}
-		else
-		{
-			fw.append("  ");
-		}
-		// fw.append("\n\t\t");
-		// fw.append("\\shortprettyref{").append(labelName).append('}');
+		// Java
+		fw.append(extendableEntry.inJava() ? "X" : " ").append(" & ");
+
+		// C#
+		fw.append(extendableEntry.inCSharp() ? "X" : " ").append(" & ");
+
+		// Javascript
+		fw.append(extendableEntry.inJavascript() ? "X" : " ");
 		return true;
 	}
 
-	protected ExtendableEntry getEnsureExtendableEntry(TypeDescription typeDescr, Map<String, ExtendableEntry> map) throws Exception
+	protected ExtendableEntry getEnsureExtendableEntry(TypeDescription typeDescr) throws Exception
 	{
 		if (typeDescr.isDeprecated())
 		{
@@ -182,8 +157,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		{
 			return null;
 		}
-		String key = typeDescr.getName().toLowerCase();
-		ExtendableEntry extendableEntry = map.get(key);
+		String extendableName = typeDescr.getName().toLowerCase();
+		ExtendableEntry extendableEntry = model.resolveExtendable(extendableName);
 		if (extendableEntry == null)
 		{
 			String extensionType = null;
@@ -207,13 +182,48 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			}
 			extendableEntry = new ExtendableEntry(typeDescr.getFullTypeName(), extensionType);
 			extendableEntry.hasArguments = hasArguments;
-			map.put(key, extendableEntry);
+			model.addExtendable(extendableName, extendableEntry);
 		}
 		return extendableEntry;
 	}
 
 	@Override
-	protected void handle(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable
+	protected void buildModel(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable
+	{
+		for (Entry<String, TypeDescription> entry : javaTypes)
+		{
+			TypeDescription typeDescr = entry.getValue();
+			if (!typeDescr.getName().endsWith("Extendable"))
+			{
+				continue;
+			}
+			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr);
+			if (extendableEntry == null)
+			{
+				continue;
+			}
+			extendableEntry.javaSrc = typeDescr;
+		}
+
+		for (Entry<String, TypeDescription> entry : csharpTypes)
+		{
+			TypeDescription typeDescr = entry.getValue();
+			if (!typeDescr.getName().endsWith("Extendable"))
+			{
+				continue;
+			}
+			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr);
+			if (extendableEntry == null)
+			{
+				continue;
+			}
+			extendableEntry.csharpSrc = typeDescr;
+		}
+		findCorrespondingSourceFiles();
+	}
+
+	@Override
+	protected void handleModel() throws Throwable
 	{
 		File allExtendablesTexFile = new File(allExtendablesTexFilePath).getCanonicalFile();
 		allExtendablesTexFile.getParentFile().mkdirs();
@@ -232,41 +242,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		HashMap<String, ExtendableEntry> nameToExtendableMap = new HashMap<String, ExtendableEntry>();
-
-		for (Entry<String, TypeDescription> entry : javaTypes)
-		{
-			TypeDescription typeDescr = entry.getValue();
-			if (!typeDescr.getName().endsWith("Extendable"))
-			{
-				continue;
-			}
-			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr, nameToExtendableMap);
-			if (extendableEntry == null)
-			{
-				continue;
-			}
-			extendableEntry.javaSrc = typeDescr;
-		}
-
-		for (Entry<String, TypeDescription> entry : csharpTypes)
-		{
-			TypeDescription typeDescr = entry.getValue();
-			if (!typeDescr.getName().endsWith("Extendable"))
-			{
-				continue;
-			}
-			ExtendableEntry extendableEntry = getEnsureExtendableEntry(typeDescr, nameToExtendableMap);
-			if (extendableEntry == null)
-			{
-				continue;
-			}
-			extendableEntry.csharpSrc = typeDescr;
-		}
-		findCorrespondingSourceFiles(nameToExtendableMap);
-
-		String[] extendableNames = nameToExtendableMap.keySet().toArray(String.class);
-		java.util.Arrays.sort(extendableNames);
+		ArrayList<ExtendableEntry> allExtendables = new ArrayList<ExtendableEntry>(model.allExtendables());
+		Collections.sort(allExtendables);
 
 		FileWriter fw = new FileWriter(allExtendablesTexFile);
 		try
@@ -276,15 +253,14 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("% Any changes have to be done to the java class " + ExtendableUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Extension Points}\n");
-			fw.append("\\begin{longtable}{ l l c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} \\\n");
+			fw.append("\\begin{longtable}{ l l c c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
 
 			ArrayList<String> includes = new ArrayList<String>();
 
-			for (String extendableName : extendableNames)
+			for (ExtendableEntry extendableEntry : allExtendables)
 			{
-				ExtendableEntry extendableEntry = nameToExtendableMap.get(extendableName);
 				log.debug("Handling " + extendableEntry.fqName);
 				String texName = extendableEntry.simpleName;
 
@@ -319,20 +295,20 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		allExtendablesTexFile.setLastModified(currentTime);
 	}
 
-	protected void findCorrespondingSourceFiles(IMap<String, ExtendableEntry> extendableEntries)
+	protected void findCorrespondingSourceFiles()
 	{
 		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates = new HashMap<String, IFileFoundDelegate>();
 
-		for (Entry<String, ExtendableEntry> entry : extendableEntries)
+		for (ExtendableEntry extendableEntry : model.allExtendables())
 		{
-			final ExtendableEntry extendableEntry = entry.getValue();
+			final ExtendableEntry fExtendableEntry = extendableEntry;
 
 			queueFileSearch(extendableEntry.javaSrc, ".java", nameToFileFoundDelegates, new IFileFoundDelegate()
 			{
 				@Override
 				public void fileFound(File file, String relativeFilePath)
 				{
-					extendableEntry.javaFile = relativeFilePath;
+					fExtendableEntry.javaFile = relativeFilePath;
 				}
 			});
 			queueFileSearch(extendableEntry.csharpSrc, ".cs", nameToFileFoundDelegates, new IFileFoundDelegate()
@@ -340,7 +316,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 				@Override
 				public void fileFound(File file, String relativeFilePath)
 				{
-					extendableEntry.csharpFile = relativeFilePath;
+					fExtendableEntry.csharpFile = relativeFilePath;
 				}
 			});
 		}

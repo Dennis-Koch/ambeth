@@ -167,7 +167,7 @@
     <Compile Include="ambeth\util\ValueHolderRef.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
     <Compile Include="ambeth\util\XmlValidator.cs" />
-    <Compile Include="ioc\MergeModule.cs" />
+    <Compile Include="ambeth\ioc\MergeModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -208,7 +208,7 @@
     <Compile Include="ambeth\copy\IObjectCopierExtension.cs" />
     <Compile Include="ambeth\copy\IObjectCopierState.cs" />
     <Compile Include="ambeth\copy\ObjectCopier.cs" />
-    <Compile Include="ioc\ObjectCopierModule.cs" />
+    <Compile Include="ambeth\ioc\ObjectCopierModule.cs" />
     <Compile Include="ambeth\copy\ObjectCopierState.cs" />
     <Compile Include="ambeth\copy\StringBuilderOCE.cs" />
   </ItemGroup>

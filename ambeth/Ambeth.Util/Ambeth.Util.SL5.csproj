@@ -80,6 +80,7 @@
     <Compile Include="ambeth\annotation\AnnotationUtil.cs" />
     <Compile Include="ambeth\annotation\CascadeLoadMode.cs" />
     <Compile Include="ambeth\annotation\AnnotationEntry.cs" />
+    <Compile Include="ambeth\annotation\ConfigurationConstants.cs" />
     <Compile Include="ambeth\annotation\EntityEqualsAspect.cs" />
     <Compile Include="ambeth\annotation\FireTargetOnPropertyChange.cs" />
     <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />

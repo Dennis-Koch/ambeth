@@ -47,6 +47,7 @@
     <Compile Include="ambeth\annotation\AnnotationEntry.cs" />
     <Compile Include="ambeth\annotation\AnnotationUtil.cs" />
     <Compile Include="ambeth\annotation\CascadeAttribute.cs" />
+    <Compile Include="ambeth\annotation\ConfigurationConstants.cs" />
     <Compile Include="ambeth\annotation\PropertyAccessor.cs" />
     <Compile Include="ambeth\annotation\IgnoreToBeUpdated.cs" />
     <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />

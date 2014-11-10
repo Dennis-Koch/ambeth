@@ -80,6 +80,7 @@
     <Compile Include="ambeth\config\ServiceConfigurationConstants.cs" />
     <Compile Include="ambeth\exceptions\OptimisticLockException.cs" />
     <Compile Include="ambeth\exceptions\ReconnectException.cs" />
+    <Compile Include="ambeth\ioc\ServiceModule.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataProvider.cs" />
     <Compile Include="ambeth\merge\IEntityMetaDataRefresher.cs" />
     <Compile Include="ambeth\merge\IValueObjectConfig.cs" />
@@ -156,7 +157,6 @@
     <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
     <Compile Include="ambeth\xml\IXmlTypeHelper.cs" />
     <Compile Include="ambeth\xml\XmlTypeHelper.cs" />
-    <Compile Include="ioc\ServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

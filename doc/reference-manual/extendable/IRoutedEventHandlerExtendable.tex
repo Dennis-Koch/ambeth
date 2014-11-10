@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{IRoutedEventHandlerExtendable}
+\label{extendable:IRoutedEventHandlerExtendable}
+\ClearAPI
+\javadoc{De.Osthus.Minerva.Extendable.IRoutedEventHandlerExtendable}{IRoutedEventHandlerExtendable}
+\javadoc{System.Windows.RoutedEventHandler}{RoutedEventHandler}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{RoutedEventHandler}}
+{Minerva.Core/minerva/extendable/IRoutedEventHandlerExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<IRoutedEventHandlerExtendable>();
+\end{lstlisting}
+%% GENERATED LISTINGS END

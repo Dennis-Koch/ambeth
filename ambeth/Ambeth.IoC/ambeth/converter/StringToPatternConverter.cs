@@ -4,7 +4,7 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace De.Osthus.Ambeth.Accessor
+namespace De.Osthus.Ambeth.Converter
 {
     public class StringToPatternConverter : IDedicatedConverter
     {

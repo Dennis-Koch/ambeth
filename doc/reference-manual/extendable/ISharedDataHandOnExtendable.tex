@@ -1,0 +1,17 @@
+\SetAPI{C}
+\section{ISharedDataHandOnExtendable}
+\label{extendable:ISharedDataHandOnExtendable}
+\ClearAPI
+\javadoc{De.Osthus.Minerva.Core.ISharedDataHandOnExtendable}{ISharedDataHandOnExtendable}
+\javadoc{De.Osthus.Minerva.Core.ISharedDataHandOn}{ISharedDataHandOn}
+\TODO
+
+%% GENERATED LISTINGS - DO NOT EDIT
+\inputcsharp{Extension point for instances of \type{ISharedDataHandOn}}
+{Minerva.Core/minerva/core/ISharedDataHandOnExtendable.cs}
+\begin{lstlisting}[style=Csharp,caption={Example to register to the extension point (C\#)}]
+IBeanContextFactory bcf = ...
+IBeanConfiguration myExtension = bcf.RegisterAnonymousBean...
+bcf.Link(myExtension).To<ISharedDataHandOnExtendable>().With(...);
+\end{lstlisting}
+%% GENERATED LISTINGS END

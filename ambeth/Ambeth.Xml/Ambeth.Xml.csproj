@@ -119,7 +119,7 @@
     <Compile Include="ambeth\xml\XmlTypeRegistry.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ioc\XmlModule.cs" />
+    <Compile Include="ambeth\ioc\XmlModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Ambeth.IOC\Ambeth.IOC.csproj">
@@ -167,7 +167,7 @@
     <Compile Include="ambeth\xml\typehandler\ObjectTypeHandler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ioc\BootstrapScannerModule.cs" />
+    <Compile Include="ambeth\ioc\BootstrapScannerModule.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\xml\postprocess\IPostProcessReader.cs" />

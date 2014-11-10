@@ -5,7 +5,5 @@ import de.osthus.classbrowser.java.TypeDescription;
 
 public interface IFeatureUpdater
 {
-
 	IMap<String, FeatureEntry> buildFeatureMap(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes);
-
 }

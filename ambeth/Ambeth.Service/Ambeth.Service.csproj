@@ -113,7 +113,7 @@
     <Compile Include="ambeth\typeinfo\TypeInfoItem.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProvider.cs" />
     <Compile Include="ambeth\typeinfo\TypeInfoProviderFactory.cs" />
-    <Compile Include="ioc\ServiceModule.cs" />
+    <Compile Include="ambeth\ioc\ServiceModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

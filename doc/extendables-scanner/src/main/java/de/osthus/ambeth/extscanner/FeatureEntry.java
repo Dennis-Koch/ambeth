@@ -5,9 +5,11 @@ import java.io.File;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class FeatureEntry
+public class FeatureEntry implements IMultiPlatformFeature
 {
 	public TypeDescription javaSrc;
+
+	public TypeDescription javascriptSrc;
 
 	public TypeDescription csharpSrc;
 
@@ -17,11 +19,19 @@ public class FeatureEntry
 
 	public final String featureName;
 
+	@Override
 	public boolean inJava()
 	{
 		return javaSrc != null;
 	}
 
+	@Override
+	public boolean inJavascript()
+	{
+		return javascriptSrc != null;
+	}
+
+	@Override
 	public boolean inCSharp()
 	{
 		return csharpSrc != null;

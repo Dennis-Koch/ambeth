@@ -91,8 +91,8 @@
     <Compile Include="ambeth\service\PrivilegeServiceModelProvider.cs" />
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
-    <Compile Include="ioc\PrivilegeModule.cs" />
-    <Compile Include="ioc\SecurityModule.cs" />
+    <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
+    <Compile Include="ambeth\ioc\SecurityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

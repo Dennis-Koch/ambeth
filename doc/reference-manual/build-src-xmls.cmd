@@ -12,6 +12,7 @@ set javaSrcDir=%srcDir%\java
 set javaLibDir=%javaSrcDir%\libs
 set javaModuleDir=%srcHome%\osthus-ambeth\jambeth
 set javaModuleDir2=%srcHome%\ambeth
+set integrityDir=%srcHome%\osthus-ambeth\ambeth-integrity
 
 set csSrcDir=%srcDir%\cs
 set csLibDir=%csSrcDir%\libs
@@ -22,12 +23,6 @@ set csSkipModuleScan=false
 set resultType=tc
 set dataDir=%baseDir%\data
 
-@call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java clean compile
-
-rem @call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" "-Dexec.args=jarFolders=""%javaSrcDir%"" libraryJarFolders=""%javaLibDir%"" targetPath=""%dataDir%"" moduleRootPath=""%javaModuleDir%"" " -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
-@call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
-
-goto end
 
 rem If desired removed the target dir to start clean
 rmdir /s /q %baseDir% 1> nul 2> nul
@@ -76,13 +71,19 @@ set csModules=Ambeth.Bytecode,Ambeth.Cache,Ambeth.Cache.Bytecode,Ambeth.CacheDat
 rem Create xml containing the description of the Java code
 rem java -cp "%binDir%\JavaClassbrowser.jar" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%" -DmodulesToBeAnalyzed="%javaModules%" de.osthus.classbrowser.java.Program
 
-@call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java clean compile
-@call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" "-Dexec.args=jarFolders=""%javaSrcDir%"" libraryJarFolders=""%javaLibDir%"" targetPath=""%dataDir%"" moduleRootPath=""%javaModuleDir%"" "
+rem @call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java clean compile
+rem @call mvn -f %srcHome%\osthus-ambeth\ambeth-integrity\de.osthus.classbrowser.java exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" "-Dexec.args=jarFolders=""%javaSrcDir%"" libraryJarFolders=""%javaLibDir%"" targetPath=""%dataDir%"" moduleRootPath=""%javaModuleDir%"" "
 
-rem java -cp "%binDir%\JavaClassbrowser.jar" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%" de.osthus.classbrowser.java.Program
+@call mvn -f "%integrityDir%\de.osthus.classbrowser.java" clean install
+
+rem @call mvn -f "%integrityDir%\de.osthus.classbrowser.java" exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" "-Dexec.args=jarFolders=""%javaSrcDir%"" libraryJarFolders=""%javaLibDir%"" targetPath=""%dataDir%"" moduleRootPath=""%javaModuleDir%"" " -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
+@call mvn -f "%integrityDir%\de.osthus.classbrowser.java" exec:java -Dexec.mainClass="de.osthus.classbrowser.java.Program" -DjarFolders="%javaSrcDir%" -DlibraryJarFolders="%javaLibDir%" -DtargetPath="%dataDir%" -DmoduleRootPath="%javaModuleDir%"
 
 rem Create xml containing the description of the C# code
-rem "%binDir%\CsharpClassbrowser.exe" -assemblyPaths="%csSrcDir%" -libraryAssemblyPaths="%csLibDir%" -targetPath="%dataDir%" -moduleRootPath="%csModuleDir%" -modulesToBeAnalyzed="%csModules%" -skipModuleScan="%csSkipModuleScan%"
-"%binDir%\CsharpClassbrowser.exe" -assemblyPaths="%csSrcDir%" -libraryAssemblyPaths="%csLibDir%" -targetPath="%dataDir%" -moduleRootPath="%csModuleDir%"
+set csClassBrowserDir=%integrityDir%\de.osthus.classbrowser.csharp\CsharpClassbrowser
+
+@C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild.exe "%csClassBrowserDir%\CsharpClassbrowser.sln" "/p:ContinueOnError=false" "/p:StopOnFirstFailure=true"
+@"%csClassBrowserDir%\CsharpClassbrowser\bin\Debug\CsharpClassbrowser.exe" -assemblyPaths="%csSrcDir%" -libraryAssemblyPaths="%csLibDir%" -targetPath="%dataDir%" -moduleRootPath="%csModuleDir%"
+
 :end
 pause

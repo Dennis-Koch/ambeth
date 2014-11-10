@@ -1,11 +1,13 @@
-﻿using System;
+﻿using De.Osthus.Ambeth.Annotation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace De.Osthus.Ambeth.Event.Config
 {
-    public class EventConfigurationConstants
+    [ConfigurationConstants]
+    public sealed class EventConfigurationConstants
     {
         public const String PollingActive = "event.polling.active";
 
@@ -18,5 +20,10 @@ namespace De.Osthus.Ambeth.Event.Config
 	    public const String EventManagerName = "event.manager.name";
 
         public const String EventServiceBeanActive = "event.service.active";
+
+        private EventConfigurationConstants()
+        {
+            // intended blank
+        }
     }
 }

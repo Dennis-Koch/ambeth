@@ -1,8 +1,10 @@
+using De.Osthus.Ambeth.Annotation;
 using System;
 
 namespace De.Osthus.Ambeth.Config
 {
-    public class ServiceConfigurationConstants
+    [ConfigurationConstants]
+    public sealed class ServiceConfigurationConstants
     {
         public const String WrapAllInteractions = "ioc.logged";
 
@@ -47,5 +49,10 @@ namespace De.Osthus.Ambeth.Config
 	    public const String ToOneDefaultCascadeLoadMode = "cache.cascadeload.toone";
 
         public const String ToManyDefaultCascadeLoadMode = "cache.cascadeload.tomany";
+
+        private ServiceConfigurationConstants()
+        {
+            // intended blank
+        }
     }
 }

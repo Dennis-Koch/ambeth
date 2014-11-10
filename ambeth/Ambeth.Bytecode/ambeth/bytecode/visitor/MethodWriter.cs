@@ -1,18 +1,11 @@
-﻿using De.Osthus.Ambeth.Bytecode;
-using De.Osthus.Ambeth.Bytecode.Behavior;
-using De.Osthus.Ambeth.Cache;
-using De.Osthus.Ambeth.CompositeId;
+﻿using De.Osthus.Ambeth.Bytecode.Behavior;
 using De.Osthus.Ambeth.Exceptions;
-using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using De.Osthus.Ambeth.Visitor;
-using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Bytecode.Visitor
 {

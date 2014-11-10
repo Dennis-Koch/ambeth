@@ -97,6 +97,8 @@
     <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
     <Compile Include="ambeth\event\EntityMetaDataRemovedEvent.cs" />
     <Compile Include="ambeth\event\IEntityMetaDataEvent.cs" />
+    <Compile Include="ambeth\ioc\MergeModule.cs" />
+    <Compile Include="ambeth\ioc\ObjectCopierModule.cs" />
     <Compile Include="ambeth\merge\config\IEntityMetaDataReader.cs" />
     <Compile Include="ambeth\merge\config\IndependentEntityMetaDataReader.cs" />
     <Compile Include="ambeth\copy\IObjectCopier.cs" />
@@ -232,8 +234,6 @@
     <Compile Include="ambeth\util\OptimisticLockUtil.cs" />
     <Compile Include="ambeth\util\TypeInfoProviderTP.cs" />
     <Compile Include="ambeth\util\XmlConfigUtil.cs" />
-    <Compile Include="ioc\MergeModule.cs" />
-    <Compile Include="ioc\ObjectCopierModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

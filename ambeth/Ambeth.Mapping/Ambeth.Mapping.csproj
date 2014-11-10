@@ -55,7 +55,7 @@
     <Compile Include="ambeth\mapping\MapperServiceWeakReference.cs" />
     <Compile Include="ambeth\mapping\MappingObjRefProvider.cs" />
     <Compile Include="ambeth\mapping\ModelTransferMapper.cs" />
-    <Compile Include="ioc\MappingModule.cs" />
+    <Compile Include="ambeth\ioc\MappingModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

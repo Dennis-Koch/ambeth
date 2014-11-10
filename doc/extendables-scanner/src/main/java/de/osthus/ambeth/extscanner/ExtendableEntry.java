@@ -7,13 +7,15 @@ import javassist.CtClass;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class ExtendableEntry
+public class ExtendableEntry implements IMultiPlatformFeature, Comparable<ExtendableEntry>
 {
 	public static final Pattern pattern = Pattern.compile("(?:.*[/\\.])?([^/\\.]+)");
 
 	public boolean hasArguments;
 
 	public TypeDescription javaSrc;
+
+	public TypeDescription javascriptSrc;
 
 	public TypeDescription csharpSrc;
 
@@ -25,11 +27,25 @@ public class ExtendableEntry
 
 	public final String simpleExtensionName;
 
+	@Override
+	public int compareTo(ExtendableEntry o)
+	{
+		return simpleExtensionName.compareTo(o.simpleExtensionName);
+	}
+
+	@Override
+	public boolean inJavascript()
+	{
+		return javascriptSrc != null;
+	}
+
+	@Override
 	public boolean inJava()
 	{
 		return javaSrc != null;
 	}
 
+	@Override
 	public boolean inCSharp()
 	{
 		return csharpSrc != null;

@@ -1,4 +1,4 @@
-﻿using De.Osthus.Ambeth.Accessor;
+﻿using De.Osthus.Ambeth.Converter;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Factory;
