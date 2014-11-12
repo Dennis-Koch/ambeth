@@ -54,7 +54,8 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 		}
 		SecurityContextType behaviourOfMethod = methodLevelBehaviour.getBehaviourOfMethod(method);
 
-		IAuthorization oldAuthorization = securityContextHolder.getCreateContext().getAuthorization();
+		ISecurityContext securityContext = securityContextHolder.getContext();
+		IAuthorization oldAuthorization = securityContext != null ? securityContext.getAuthorization() : null;
 		IAuthorization authorization = null;
 		if (oldAuthorization == null && !SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 		{

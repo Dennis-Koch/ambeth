@@ -50,4 +50,13 @@ public interface IAnonymousBeanRegistry
 	 * @return The bean configuration instance to add properties and configurations.
 	 */
 	IBeanConfiguration registerAnonymousBean(Class<?> beanType);
+
+	/**
+	 * To register an anonymous bean in the context.
+	 * 
+	 * @param beanType
+	 *            Class of the bean to be instantiated.
+	 * @return The bean configuration instance to add properties and configurations.
+	 */
+	IBeanConfiguration registerBean(Class<?> beanType);
 }

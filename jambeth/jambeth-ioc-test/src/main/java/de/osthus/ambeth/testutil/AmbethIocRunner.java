@@ -264,6 +264,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			{
 				withAfterClasses.evaluate();
 				disposeContext();
+				System.gc();
 			}
 		};
 	}

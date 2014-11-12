@@ -57,6 +57,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
             ProxyFactory proxyFactory = new ProxyFactory();
             DelegateFactory delegateFactory = new DelegateFactory();
+            AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
 
             callingProxyPostProcessor.PropertyInfoProvider = propertyInfoProvider;
             delegatingConversionHelper.DefaultConversionHelper = conversionHelper;
@@ -67,12 +68,10 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             beanContextInitializer.ConversionHelper = delegatingConversionHelper;
             beanContextInitializer.PropertyInfoProvider = propertyInfoProvider;
             propertyInfoProvider.AccessorTypeProvider = accessorTypeProvider;
+            threadLocalCleanupPreProcessor.SetExtendableRegistry(extendableRegistry);
+			threadLocalCleanupPreProcessor.SetExtendableType(typeof(IThreadLocalCleanupBeanExtendable));
 
             LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-
-            ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
-            threadLocalCleanupPreProcessor.ThreadLocalCleanupBeanExtendable = threadLocalCleanupController;
-            threadLocalCleanupPreProcessor.AfterPropertiesSet();
 
             propertyInfoProvider.AfterPropertiesSet();
 
@@ -95,6 +94,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             loggerHistory.AfterPropertiesSet();
             beanContextInitializer.AfterPropertiesSet();
             threadLocalCleanupController.AfterPropertiesSet();
+            threadLocalCleanupPreProcessor.AfterPropertiesSet();
 
             PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
             propertiesPreProcessor.ConversionHelper = delegatingConversionHelper;
@@ -461,10 +461,20 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         public IBeanConfiguration RegisterAnonymousBean<T>()
         {
-            return RegisterAnonymousBean(typeof(T));
+            return RegisterBean<T>();
         }
 
         public IBeanConfiguration RegisterAnonymousBean(Type beanType)
+        {
+            return RegisterBean(beanType);
+        }
+
+        public IBeanConfiguration RegisterBean<T>()
+        {
+            return RegisterBean(typeof(T));
+        }
+
+        public IBeanConfiguration RegisterBean(Type beanType)
         {
             ParamChecker.AssertParamNotNull(beanType, "beanType");
 

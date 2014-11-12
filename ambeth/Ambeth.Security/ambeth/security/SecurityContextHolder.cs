@@ -6,10 +6,11 @@ using System.Threading;
 using De.Osthus.Ambeth.Util;
 #endif
 using System;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Security
 {
-    public class SecurityContextHolder : IAuthorizationChangeListenerExtendable, ISecurityContextHolder
+    public class SecurityContextHolder : IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
     {
         protected readonly DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>("authorizationChangeListener");
 
@@ -21,6 +22,11 @@ namespace De.Osthus.Ambeth.Security
             {
                 authorizationChangeListener.AuthorizationChanged(authorization);
             }
+        }
+
+        public void CleanupThreadLocal()
+        {
+            ClearContext();
         }
 
         public void RegisterAuthorizationChangeListener(IAuthorizationChangeListener authorizationChangeListener)
