@@ -9,6 +9,9 @@ using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Util;
+#if !SILVERLIGHT
+using Microsoft.Win32.SafeHandles;
+#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
