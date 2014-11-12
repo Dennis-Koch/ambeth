@@ -1,25 +1,20 @@
 package de.osthus.ambeth.rest;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.locks.Condition;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.ws.rs.client.AsyncInvoker;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -30,11 +25,10 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IDisposableBean;
+import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
@@ -43,10 +37,9 @@ import de.osthus.ambeth.service.IOfflineListener;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.transfer.AmbethServiceException;
 import de.osthus.ambeth.util.ListUtil;
-import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
-public class RESTClientInterceptor extends AbstractSimpleInterceptor implements IRemoteInterceptor, IOfflineListener, IDisposableBean
+public class RESTClientInterceptor extends AbstractSimpleInterceptor implements IStartingBean, IRemoteInterceptor, IOfflineListener, IDisposableBean
 {
 
 	private Lock clientLock = new ReentrantLock();
@@ -66,35 +59,46 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 	// protected IThreadPool threadPool;
 
 	@Property(name = ServiceConfigurationConstants.ServiceBaseUrl)
-	protected String ServiceBaseUrl;
+	protected String serviceBaseUrl;
 
 	@Property
 	protected String serviceName;
 
-	protected final Lock writeLock = new ReentrantLock();
+	// protected final Lock writeLock = new ReentrantLock();
 
-	protected final Condition destroyedCondition = writeLock.newCondition();
+	// protected final Condition destroyedCondition = writeLock.newCondition();
 
-	protected final IdentityHashSet<Thread> waitingThreads = new IdentityHashSet<Thread>();
+	// protected final IdentityHashSet<Thread> waitingThreads = new IdentityHashSet<Thread>();
 
 	protected volatile boolean destroyed;
+
+	private WebTarget baseTarget;
+
+	@Override
+	public void afterStarted() throws Throwable
+	{
+		ClientConfig config = new ClientConfig();
+		Client client = ClientBuilder.newClient(config);
+		String baseUrl = serviceBaseUrl + "/" + serviceName + "/";
+		baseTarget = client.target(baseUrl);
+	}
 
 	@Override
 	public void destroy() throws Throwable
 	{
-		writeLock.lock();
-		try
-		{
-			destroyed = true;
-			for (Thread waitingThread : waitingThreads)
-			{
-				waitingThread.interrupt();
-			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		// writeLock.lock();
+		// try
+		// {
+		destroyed = true;
+		// for (Thread waitingThread : waitingThreads)
+		// {
+		// waitingThread.interrupt();
+		// }
+		// }
+		// finally
+		// {
+		// writeLock.unlock();
+		// }
 	}
 
 	@Override
@@ -106,142 +110,29 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		}
 		if (destroyed)
 		{
-			throw new IllegalStateException();
+			throw new IllegalStateException("this Ambeth context has already been disposed!");
 		}
 
 		// MethodInfo method = invocation.Method;
-		String restUrl = ServiceBaseUrl + "/" + serviceName;// + "/" + method.getName();
+		// String restUrl = serviceBaseUrl + "/" + serviceName + "/" + method.getName();
 
-		ClientConfig config = new ClientConfig();
-		Client client = ClientBuilder.newClient(config);
-		setAuthorization(client);
+		WebTarget callTarget = baseTarget.path(method.getName());
+		setAuthorization(callTarget);
 
-		WebTarget rootWebTarget = client.target(restUrl);
-		WebTarget methodWebTarget = rootWebTarget.path(method.getName());
-
-		final Builder restRequest = methodWebTarget.request(MediaType.TEXT_PLAIN);
-
-		Response restResponse;
-		if (args == null || args.length == 0)
+		// WebTarget target = client.target(restUrl);
+		PipedOutputStream pos = new PipedOutputStream();
+		InputStream inputStream = new PipedInputStream(pos);
+		AsyncInvoker asyncInvoker = callTarget.request().async();
+		Future<Response> responseFuture = asyncInvoker.post(Entity.entity(inputStream, MediaType.APPLICATION_OCTET_STREAM));
+		try
 		{
-			// do GET
-			restResponse = restRequest.get();
+			cyclicXMLHandler.writeToStream(pos, args);
 		}
-		else
+		finally
 		{
-			// do POST
-			final PipedInputStream pis = new PipedInputStream(1024);
-			OutputStream os = new PipedOutputStream(pis);
-
-			final ParamHolder<Object> responseHolder = new ParamHolder<Object>();
-			final CountDownLatch latch = new CountDownLatch(1);
-
-			Thread thread = new Thread(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					writeLock.lock();
-					try
-					{
-						waitingThreads.add(Thread.currentThread());
-					}
-					finally
-					{
-						writeLock.unlock();
-					}
-					try
-					{
-						ByteArrayOutputStream bos = new ByteArrayOutputStream();
-						int oneByte;
-						while ((oneByte = pis.read()) != -1)
-						{
-							bos.write(oneByte);
-						}
-						// Response response = restRequest.post(Entity.entity(pis, MediaType.TEXT_PLAIN));
-						Response response = restRequest.post(Entity.entity(bos.toByteArray(), MediaType.TEXT_PLAIN));
-						responseHolder.setValue(response);
-					}
-					catch (Throwable e)
-					{
-						responseHolder.setValue(e);
-					}
-					finally
-					{
-						latch.countDown();
-					}
-				}
-			});
-			thread.setName("REST Request " + restRequest.toString());
-			thread.setDaemon(true);
-			thread.start();
-
-			writeLock.lock();
-			try
-			{
-				waitingThreads.add(Thread.currentThread());
-			}
-			finally
-			{
-				writeLock.unlock();
-			}
-			try
-			{
-				try
-				{
-					cyclicXMLHandler.writeToStream(os, args);
-				}
-				finally
-				{
-					os.close();
-				}
-
-				long waitAmount = 60 * 1000;
-				long waitTill = System.currentTimeMillis() + waitAmount;
-				while (!destroyed || waitAmount <= 0)
-				{
-					try
-					{
-						if (latch.await(waitAmount, TimeUnit.MILLISECONDS))
-						{
-							break;
-						}
-					}
-					catch (InterruptedException e)
-					{
-						// intended blank
-					}
-					waitAmount = waitTill - System.currentTimeMillis();
-				}
-				if (destroyed)
-				{
-					throw new IllegalStateException();
-				}
-				if (responseHolder.getValue() instanceof Throwable)
-				{
-					throw RuntimeExceptionUtil.mask((Throwable) responseHolder.getValue());
-				}
-				restResponse = (Response) responseHolder.getValue();
-				if (restResponse == null)
-				{
-					return new TimeoutException();
-				}
-			}
-			finally
-			{
-				writeLock.lock();
-				try
-				{
-					waitingThreads.remove(Thread.currentThread());
-				}
-				finally
-				{
-					writeLock.unlock();
-				}
-			}
-			// restResponse = restRequest.post(Entity.entity(payloadStream.toString(), MediaType.TEXT_PLAIN));
-			// TODO streamin api?
+			pos.close();
 		}
+		Response restResponse = responseFuture.get();
 
 		InputStream responseStream = (InputStream) restResponse.getEntity();
 		if (responseStream.available() > 0)
@@ -344,7 +235,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		throw new RuntimeException("Can not convert result " + result + " to expected type " + expectedType.getName());
 	}
 
-	protected void setAuthorization(Client client)
+	protected void setAuthorization(WebTarget client)
 	{
 		String[] authentication = authenticationHolder.getAuthentication();
 		String userName = authentication[0];
