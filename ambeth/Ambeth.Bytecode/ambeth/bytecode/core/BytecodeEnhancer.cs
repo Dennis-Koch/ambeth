@@ -152,22 +152,30 @@ namespace De.Osthus.Ambeth.Bytecode.Core
         {
             DirectoryInfo outputFileDir = new DirectoryInfo(TraceDir + Path.DirectorySeparatorChar + GetType().FullName);
             outputFileDir.Create();
-            FileStream outputFile = new FileStream(outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+            String fileName = outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt";
             try
             {
-                StreamWriter fw = new StreamWriter(outputFile);
+                FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Read);
                 try
                 {
-                    fw.Write(bytecodeOutput);
+                    StreamWriter fw = new StreamWriter(outputFile);
+                    try
+                    {
+                        fw.Write(bytecodeOutput);
+                    }
+                    finally
+                    {
+                        fw.Close();
+                    }
                 }
                 finally
                 {
-                    fw.Close();
+                    outputFile.Close();
                 }
             }
-            finally
+            catch (Exception e)
             {
-                outputFile.Close();
+                throw RuntimeExceptionUtil.Mask(e, "Error occurred while trying to write to '" + fileName + "'");
             }
         }
 

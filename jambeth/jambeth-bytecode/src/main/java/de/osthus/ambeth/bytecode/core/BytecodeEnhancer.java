@@ -2,7 +2,6 @@ package de.osthus.ambeth.bytecode.core;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
@@ -230,9 +229,9 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 				fw.close();
 			}
 		}
-		catch (IOException e)
+		catch (Throwable e)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			throw RuntimeExceptionUtil.mask(e, "Error occurred while trying to write to '" + outputFile.getAbsolutePath() + "'");
 		}
 	}
 
