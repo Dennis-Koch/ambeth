@@ -1,10 +1,11 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder
+public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
 {
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
@@ -17,6 +18,12 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 		{
 			authorizationChangeListener.authorizationChanged(authorization);
 		}
+	}
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		clearContext();
 	}
 
 	@Override

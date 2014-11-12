@@ -162,6 +162,7 @@
     <Compile Include="ambeth\ioc\IStartingModule.cs" />
     <Compile Include="ambeth\ioc\link\AbstractLinkContainer.cs" />
     <Compile Include="ambeth\ioc\link\AbstractLinkContainerOld.cs" />
+    <Compile Include="ambeth\ioc\link\AutoLinkPreProcessor.cs" />
     <Compile Include="ambeth\ioc\link\EventDelegate.cs" />
     <Compile Include="ambeth\ioc\link\IEventDelegate.cs" />
     <Compile Include="ambeth\ioc\link\ILinkConfiguration.cs" />
@@ -188,7 +189,6 @@
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBeanExtendable.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupController.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupController.cs" />
-    <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupPreProcessor.cs" />
     <Compile Include="ambeth\log\ILoggerCache.cs" />
     <Compile Include="ambeth\log\LoggerHistory.cs" />
     <Compile Include="ambeth\log\LoggerHistoryKey.cs" />

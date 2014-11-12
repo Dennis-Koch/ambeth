@@ -199,9 +199,6 @@
     <Compile Include="ambeth\ioc\IBeanContextAware.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupPreProcessor.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\ioc\factory\BeanConfigState.cs" />
     <Compile Include="ambeth\ioc\factory\OrderState.cs" />
   </ItemGroup>
@@ -233,6 +230,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\ioc\PostProcessorOrder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\link\AutoLinkPreProcessor.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -1,8 +1,6 @@
 package de.osthus.ambeth.bytecode;
 
-import de.osthus.ambeth.annotation.DataObjectAspect;
 
-@DataObjectAspect
 public abstract class TestEntityWithNonDefaultConstructor
 {
 	protected int id;

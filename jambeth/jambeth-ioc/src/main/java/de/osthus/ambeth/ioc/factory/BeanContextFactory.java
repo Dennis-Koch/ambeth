@@ -25,6 +25,7 @@ import de.osthus.ambeth.ioc.config.BeanInstanceConfiguration;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableRegistry;
 import de.osthus.ambeth.ioc.extendable.IExtendableRegistry;
+import de.osthus.ambeth.ioc.link.AutoLinkPreProcessor;
 import de.osthus.ambeth.ioc.link.ILinkController;
 import de.osthus.ambeth.ioc.link.ILinkRegistryNeededConfiguration;
 import de.osthus.ambeth.ioc.link.ILinkRegistryNeededRuntime;
@@ -34,7 +35,6 @@ import de.osthus.ambeth.ioc.proxy.CallingProxyPostProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBeanExtendable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.ioc.threadlocal.ThreadLocalCleanupController;
-import de.osthus.ambeth.ioc.threadlocal.ThreadLocalCleanupPreProcessor;
 import de.osthus.ambeth.log.ILoggerCache;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LoggerHistory;
@@ -156,6 +156,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
 			ProxyFactory proxyFactory = new ProxyFactory();
 			DelegateFactory delegateFactory = new DelegateFactory();
+			AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
 
 			callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
 			delegatingConversionHelper.setDefaultConversionHelper(conversionHelper);
@@ -168,12 +169,10 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
+			threadLocalCleanupPreProcessor.setExtendableRegistry(extendableRegistry);
+			threadLocalCleanupPreProcessor.setExtendableType(IThreadLocalCleanupBeanExtendable.class);
 
 			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-
-			ThreadLocalCleanupPreProcessor threadLocalCleanupPreProcessor = new ThreadLocalCleanupPreProcessor();
-			threadLocalCleanupPreProcessor.setThreadLocalCleanupBeanExtendable(threadLocalCleanupController);
-			threadLocalCleanupPreProcessor.afterPropertiesSet();
 
 			propertyInfoProvider.afterPropertiesSet();
 
@@ -196,6 +195,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			loggerHistory.afterPropertiesSet();
 			beanContextInitializer.afterPropertiesSet();
 			threadLocalCleanupController.afterPropertiesSet();
+			threadLocalCleanupPreProcessor.afterPropertiesSet();
 
 			PropertiesPreProcessor propertiesPreProcessor = new PropertiesPreProcessor();
 			propertiesPreProcessor.setConversionHelper(delegatingConversionHelper);
@@ -600,8 +600,15 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return beanConfiguration;
 	}
 
+	@Deprecated
 	@Override
 	public IBeanConfiguration registerAnonymousBean(Class<?> beanType)
+	{
+		return registerBean(beanType);
+	}
+
+	@Override
+	public IBeanConfiguration registerBean(Class<?> beanType)
 	{
 		ParamChecker.assertParamNotNull(beanType, "beanType");
 

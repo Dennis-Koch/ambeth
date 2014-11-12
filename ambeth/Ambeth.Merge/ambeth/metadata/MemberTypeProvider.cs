@@ -118,7 +118,7 @@ namespace De.Osthus.Ambeth.Metadata
             if (member is RelationMember)
             {
                 CascadeLoadMode? cascadeLoadMode = null;
-                Cascade cascadeAnnotation = (Cascade) member.GetAnnotation(typeof(Cascade));
+                CascadeAttribute cascadeAnnotation = (CascadeAttribute)member.GetAnnotation(typeof(CascadeAttribute));
                 if (cascadeAnnotation != null)
                 {
                     cascadeLoadMode = cascadeAnnotation.Load;
