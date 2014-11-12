@@ -12,7 +12,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -77,10 +76,8 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		ClientConfig config = new ClientConfig();
-		Client client = ClientBuilder.newClient(config);
 		String baseUrl = serviceBaseUrl + "/" + serviceName + "/";
-		baseTarget = client.target(baseUrl);
+		baseTarget = ClientBuilder.newClient(new ClientConfig()).target(baseUrl);
 	}
 
 	@Override
