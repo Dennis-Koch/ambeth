@@ -149,7 +149,6 @@
     <Compile Include="ambeth\security\transfer\Site.cs" />
     <Compile Include="ambeth\security\transfer\UseCase.cs" />
     <Compile Include="ambeth\security\transfer\User.cs" />
-    <Compile Include="ambeth\security\UserIndependentAttribute.cs" />
     <Compile Include="ambeth\service\IPrivilegeService.cs" />
     <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityServiceWCF.cs" />

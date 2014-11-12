@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IStartingBean;
@@ -33,12 +32,6 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 
 	@Autowired
 	protected IModel model;
-
-	@Property(name = "source-path")
-	protected String sourcePath;
-
-	@Property(name = "target-tex-file")
-	protected String allExtendablesTexFilePath;
 
 	@Property(name = "target-extendable-tex-dir")
 	protected String targetExtendableTexDirPath;
@@ -180,7 +173,15 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 				log.warn("Could not find extension in '" + typeDescr.getFullTypeName() + "'");
 				return null;
 			}
-			extendableEntry = new ExtendableEntry(typeDescr.getFullTypeName(), extensionType);
+			Matcher matcher = ExtendableEntry.pattern.matcher(typeDescr.getFullTypeName());
+			if (!matcher.matches())
+			{
+				throw new IllegalArgumentException(typeDescr.getFullTypeName());
+			}
+			String simpleName = matcher.group(1);
+			String texName = simpleName;
+			String labelName = "extendable:" + texName;
+			extendableEntry = new ExtendableEntry(typeDescr.getFullTypeName(), simpleName, labelName, extensionType);
 			extendableEntry.hasArguments = hasArguments;
 			model.addExtendable(extendableName, extendableEntry);
 		}
@@ -219,14 +220,13 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			}
 			extendableEntry.csharpSrc = typeDescr;
 		}
-		findCorrespondingSourceFiles();
+		findCorrespondingSourceFiles(model.allExtendables());
 	}
 
 	@Override
 	protected void handleModel() throws Throwable
 	{
-		File allExtendablesTexFile = new File(allExtendablesTexFilePath).getCanonicalFile();
-		allExtendablesTexFile.getParentFile().mkdirs();
+		File allExtendablesTexFile = new File(getAllDir(), "all-extendables.tex");
 
 		File targetExtendableTexDir = new File(targetExtendableTexDirPath).getCanonicalFile();
 		targetExtendableTexDir.mkdirs();
@@ -293,33 +293,5 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			fw.close();
 		}
 		allExtendablesTexFile.setLastModified(currentTime);
-	}
-
-	protected void findCorrespondingSourceFiles()
-	{
-		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates = new HashMap<String, IFileFoundDelegate>();
-
-		for (ExtendableEntry extendableEntry : model.allExtendables())
-		{
-			final ExtendableEntry fExtendableEntry = extendableEntry;
-
-			queueFileSearch(extendableEntry.javaSrc, ".java", nameToFileFoundDelegates, new IFileFoundDelegate()
-			{
-				@Override
-				public void fileFound(File file, String relativeFilePath)
-				{
-					fExtendableEntry.javaFile = relativeFilePath;
-				}
-			});
-			queueFileSearch(extendableEntry.csharpSrc, ".cs", nameToFileFoundDelegates, new IFileFoundDelegate()
-			{
-				@Override
-				public void fileFound(File file, String relativeFilePath)
-				{
-					fExtendableEntry.csharpFile = relativeFilePath;
-				}
-			});
-		}
-		searchForFiles(sourcePath, nameToFileFoundDelegates);
 	}
 }

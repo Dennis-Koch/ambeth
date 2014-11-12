@@ -86,6 +86,7 @@
     <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />
     <Compile Include="ambeth\annotation\IAnnotationInfo.cs" />
     <Compile Include="ambeth\annotation\IgnoreToBeUpdated.cs" />
+    <Compile Include="ambeth\annotation\NoProxyAttribute.cs" />
     <Compile Include="ambeth\annotation\ParentChild.cs" />
     <Compile Include="ambeth\annotation\ProcessAttribute.cs" />
     <Compile Include="ambeth\annotation\IgnoreAttribute.cs" />
@@ -175,7 +176,6 @@
     <Compile Include="ambeth\proxy\IProxyFactory.cs" />
     <Compile Include="ambeth\proxy\IProxyOptionsFactory.cs" />
     <Compile Include="ambeth\proxy\ITargetProvider.cs" />
-    <Compile Include="ambeth\proxy\ProxyAttribute.cs" />
     <Compile Include="ambeth\proxy\ProxyFactory.cs" />
     <Compile Include="ambeth\proxy\TargetingInterceptor.cs" />
     <Compile Include="ambeth\service\UtilServiceModelProvider.cs" />

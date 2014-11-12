@@ -5,7 +5,7 @@ import java.io.File;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.classbrowser.java.TypeDescription;
 
-public class FeatureEntry implements IMultiPlatformFeature
+public class FeatureEntry implements IMultiPlatformFeature, ITexFileAware
 {
 	public TypeDescription javaSrc;
 
@@ -48,5 +48,11 @@ public class FeatureEntry implements IMultiPlatformFeature
 		this.featureName = featureName;
 		this.featureLabelName = featureLabelName;
 		this.featureTexFile = featureTexFile;
+	}
+
+	@Override
+	public File getTexFile()
+	{
+		return featureTexFile;
 	}
 }

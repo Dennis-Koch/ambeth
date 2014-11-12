@@ -37,7 +37,7 @@ namespace De.Osthus.Ambeth.Proxy
         protected override void InterceptIntern(IInvocation invocation)
         {
             Attribute annotation = GetMethodLevelBehavior(invocation.Method);
-		    if (annotation is IgnoreAttribute)
+		    if (annotation is NoProxyAttribute)
 		    {
 			    InvokeTarget(invocation);
                 return;

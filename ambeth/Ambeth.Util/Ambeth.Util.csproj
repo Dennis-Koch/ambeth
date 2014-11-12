@@ -48,6 +48,7 @@
     <Compile Include="ambeth\annotation\AnnotationUtil.cs" />
     <Compile Include="ambeth\annotation\CascadeAttribute.cs" />
     <Compile Include="ambeth\annotation\ConfigurationConstants.cs" />
+    <Compile Include="ambeth\annotation\NoProxyAttribute.cs" />
     <Compile Include="ambeth\annotation\PropertyAccessor.cs" />
     <Compile Include="ambeth\annotation\IgnoreToBeUpdated.cs" />
     <Compile Include="ambeth\annotation\FireThisOnPropertyChange.cs" />
@@ -112,7 +113,6 @@
     <Compile Include="ambeth\proxy\DelegateInterceptor.cs" />
     <Compile Include="ambeth\proxy\IProxyFactory.cs" />
     <Compile Include="ambeth\proxy\ITargetProvider.cs" />
-    <Compile Include="ambeth\proxy\ProxyAttribute.cs" />
     <Compile Include="ambeth\proxy\TargetingInterceptor.cs" />
     <Compile Include="ambeth\proxy\CascadedInterceptor.cs" />
     <Compile Include="ambeth\proxy\ICascadedInterceptor.cs" />

@@ -20,6 +20,8 @@ public interface IModel
 
 	Iterable<ExtendableEntry> allExtendables();
 
+	Iterable<AnnotationEntry> allAnnotations();
+
 	TypeEntry resolveTypeEntry(TypeDescription typeDescr);
 
 	void addFeature(String featureName, FeatureEntry featureEntry);
@@ -29,4 +31,8 @@ public interface IModel
 	ExtendableEntry resolveExtendable(String extendableName);
 
 	void addExtendable(String extendableName, ExtendableEntry extendableEntry);
+
+	AnnotationEntry resolveAnnotation(String annotationName);
+
+	void addAnnotation(String annotationName, AnnotationEntry annotationEntry);
 }

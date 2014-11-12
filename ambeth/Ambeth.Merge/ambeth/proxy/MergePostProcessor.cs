@@ -51,7 +51,7 @@ namespace De.Osthus.Ambeth.Proxy
             {
                 return annotation;
             }
-            IgnoreAttribute noProxy = AnnotationUtil.GetAnnotation<IgnoreAttribute>(method, false);
+            NoProxyAttribute noProxy = AnnotationUtil.GetAnnotation<NoProxyAttribute>(method, false);
             if (noProxy != null)
             {
                 return noProxy;

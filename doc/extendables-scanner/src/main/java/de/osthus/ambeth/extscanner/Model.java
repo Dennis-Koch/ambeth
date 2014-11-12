@@ -19,6 +19,8 @@ public class Model implements IModel
 
 	protected final HashMap<String, ConfigurationEntry> nameToConfigurationMap = new HashMap<String, ConfigurationEntry>();
 
+	protected final HashMap<String, AnnotationEntry> nameToAnnotationMap = new HashMap<String, AnnotationEntry>();
+
 	protected final HashMap<String, TypeEntry> nameToTypeMap = new HashMap<String, TypeEntry>();
 
 	@Override
@@ -43,6 +45,12 @@ public class Model implements IModel
 	public Iterable<FeatureEntry> allFeatures()
 	{
 		return nameToFeatureMap.values();
+	}
+
+	@Override
+	public Iterable<AnnotationEntry> allAnnotations()
+	{
+		return nameToAnnotationMap.values();
 	}
 
 	@Override
@@ -82,7 +90,18 @@ public class Model implements IModel
 		{
 			return;
 		}
-		throw new IllegalStateException("Feature name not unique: " + featureEntry.featureTexFile + " vs. " + nameToFeatureMap.get(featureName).featureTexFile);
+		throw new IllegalStateException("Feature name not unique: " + featureEntry.getTexFile() + " vs. " + nameToFeatureMap.get(featureName).getTexFile());
+	}
+
+	@Override
+	public void addAnnotation(String annotationName, AnnotationEntry annotationEntry)
+	{
+		if (nameToAnnotationMap.putIfNotExists(annotationName, annotationEntry))
+		{
+			return;
+		}
+		throw new IllegalStateException("Annotation name not unique: " + annotationEntry.annotationName + " vs. "
+				+ nameToAnnotationMap.get(annotationName).annotationName);
 	}
 
 	@Override
@@ -94,28 +113,32 @@ public class Model implements IModel
 	@Override
 	public ModuleEntry resolveModule(String moduleName)
 	{
-		moduleName = moduleName.toLowerCase();
-		ModuleEntry moduleEntry = nameToModuleMap.get(moduleName);
-		if (moduleEntry == null && moduleName.startsWith("jambeth"))
+		String moduleNameTry = moduleName.toLowerCase();
+		ModuleEntry moduleEntry = nameToModuleMap.get(moduleNameTry);
+		if (moduleEntry == null && moduleNameTry.startsWith("jambeth"))
 		{
-			moduleName = moduleName.substring("jambeth".length());
-			moduleEntry = nameToModuleMap.get(moduleName);
+			moduleNameTry = moduleNameTry.substring("jambeth".length());
+			moduleEntry = nameToModuleMap.get(moduleNameTry);
 		}
-		if (moduleEntry == null && moduleName.startsWith("ambeth"))
+		if (moduleEntry == null && moduleNameTry.startsWith("ambeth"))
 		{
-			moduleName = moduleName.substring("ambeth".length());
-			moduleEntry = nameToModuleMap.get(moduleName);
+			moduleNameTry = moduleNameTry.substring("ambeth".length());
+			moduleEntry = nameToModuleMap.get(moduleNameTry);
 		}
-		if (moduleEntry == null && (moduleName.startsWith(".") || moduleName.startsWith("-")))
+		if (moduleEntry == null && (moduleNameTry.startsWith(".") || moduleNameTry.startsWith("-")))
 		{
-			moduleName = moduleName.substring(1);
-			moduleEntry = nameToModuleMap.get(moduleName);
+			moduleNameTry = moduleNameTry.substring(1);
+			moduleEntry = nameToModuleMap.get(moduleNameTry);
 		}
-		if (moduleEntry == null && moduleName.contains("-"))
+		if (moduleEntry == null && moduleNameTry.contains("-"))
 		{
-			int indexOf = moduleName.indexOf('-');
-			moduleName = moduleName.substring(0, indexOf);
-			moduleEntry = nameToModuleMap.get(moduleName);
+			int indexOf = moduleNameTry.indexOf('-');
+			moduleNameTry = moduleNameTry.substring(0, indexOf);
+			moduleEntry = nameToModuleMap.get(moduleNameTry);
+		}
+		if (moduleEntry != null)
+		{
+			moduleEntry.mavenModules.add(moduleName);
 		}
 		return moduleEntry;
 	}
@@ -142,5 +165,11 @@ public class Model implements IModel
 	public ExtendableEntry resolveExtendable(String extendableName)
 	{
 		return nameToExtendableMap.get(extendableName);
+	}
+
+	@Override
+	public AnnotationEntry resolveAnnotation(String annotationName)
+	{
+		return nameToAnnotationMap.get(annotationName);
 	}
 }

@@ -44,9 +44,6 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 	@Autowired
 	protected IModel model;
 
-	@Property(name = "properties-tex-file")
-	protected String allPropertiesTexFilePath;
-
 	@Property(name = "target-properties-tex-dir")
 	protected String targetPropertiesTexDirPath;
 
@@ -101,8 +98,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		ArrayList<ConfigurationEntry> configurations = new ArrayList<ConfigurationEntry>(model.allConfigurations());
 		Collections.sort(configurations);
 
-		File allPropertiesTexFile = new File(allPropertiesTexFilePath).getCanonicalFile();
-		allPropertiesTexFile.getParentFile().mkdirs();
+		File allPropertiesTexFile = new File(getAllDir(), "all-configurations.tex");
 
 		File targetPropertiesTexDir = new File(targetPropertiesTexDirPath).getCanonicalFile();
 		targetPropertiesTexDir.mkdirs();

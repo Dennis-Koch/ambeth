@@ -38,6 +38,10 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 
 	public static final String CONFIGURATION_END = "%% CONFIGURATION END";
 
+	public static final String MAVEN_GENERATED_START = "%% MAVEN GENERATED START";
+
+	public static final String MAVEN_END = "%% MAVEN END";
+
 	public static final Pattern replaceGeneratedFeaturesPattern = Pattern.compile(
 			"(.*" + Pattern.quote(FEATURES_GENERATED_START) + ").*(" + Pattern.quote(FEATURES_END) + ".*)", Pattern.DOTALL);
 
@@ -49,6 +53,9 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 
 	public static final Pattern replaceManualConfigurationPattern = Pattern.compile(
 			".*" + Pattern.quote(CONFIGURATION_START) + "(.*)" + Pattern.quote(CONFIGURATION_GENERATED_START) + ".*", Pattern.DOTALL);
+
+	public static final Pattern replaceGeneratedMavenPattern = Pattern.compile("(.*" + Pattern.quote(MAVEN_GENERATED_START) + ").*(" + Pattern.quote(MAVEN_END)
+			+ ".*)", Pattern.DOTALL);
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -65,7 +72,16 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 		String targetOpening = getAPI(moduleEntry);
 		StringBuilder sb = readFileFully(targetFile);
 		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
-		Matcher matcher = replaceGeneratedFeaturesPattern.matcher(newContent);
+		Matcher matcher = replaceGeneratedMavenPattern.matcher(newContent);
+		if (matcher.matches())
+		{
+			newContent = matcher.group(1) + "\n" + generatedMaven(moduleEntry) + matcher.group(2);
+		}
+		else
+		{
+			log.warn("Could not replace generated features in '" + targetFile.getPath() + "'");
+		}
+		matcher = replaceGeneratedFeaturesPattern.matcher(newContent);
 		Matcher manualMatcher = replaceManualFeaturesPattern.matcher(newContent);
 		String manualContent = null;
 		if (manualMatcher.matches())
@@ -105,6 +121,33 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 			return;
 		}
 		updateFileFully(targetFile, newContent);
+	}
+
+	protected StringBuilder generatedMaven(ModuleEntry moduleEntry)
+	{
+		ArrayList<String> mavenModules = new ArrayList<String>(moduleEntry.mavenModules);
+		Collections.sort(mavenModules);
+
+		StringBuilder sb = new StringBuilder();
+		if (mavenModules.size() == 0)
+		{
+			return sb;
+		}
+		sb.append("\\begin{lstlisting}[style=POM,caption={Maven modules to use \\emph{Ambeth ").append(moduleEntry.moduleName).append("}}]\n");
+		for (int a = 0, size = mavenModules.size(); a < size; a++)
+		{
+			if (a > 0)
+			{
+				sb.append("\n");
+			}
+			sb.append("<dependency>\n");
+			sb.append("\t<groupId>de.osthus.ambeth</groupId>\n");
+			sb.append("\t<artifactId>").append(mavenModules.get(a)).append("</artifactId>\n");
+			sb.append("\t<version>\\version</version>\n");
+			sb.append("</dependency>\n");
+		}
+		sb.append("\\end{lstlisting}\n");
+		return sb;
 	}
 
 	protected StringBuilder generatedConfigurations(String manualContent, ModuleEntry moduleEntry)
