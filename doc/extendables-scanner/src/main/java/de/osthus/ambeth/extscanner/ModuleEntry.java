@@ -17,6 +17,8 @@ public class ModuleEntry implements IMultiPlatformFeature
 
 	public final ArrayList<FeatureEntry> features = new ArrayList<FeatureEntry>();
 
+	public final HashSet<String> mavenModules = new HashSet<String>();
+
 	public final ArrayList<ConfigurationEntry> configurations = new ArrayList<ConfigurationEntry>();
 
 	@Override

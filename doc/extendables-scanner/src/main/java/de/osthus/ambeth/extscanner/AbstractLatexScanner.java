@@ -9,6 +9,7 @@ import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
@@ -42,6 +43,12 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	@Autowired
 	protected IXmlFilesScanner xmlFilesScanner;
 
+	@Property(name = "target-all-dir")
+	protected String allTexPath;
+
+	@Property(name = "source-path")
+	protected String sourcePath;
+
 	@Property(name = Main.CURRENT_TIME)
 	protected long currentTime;
 
@@ -58,6 +65,20 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	public void afterStarted() throws Throwable
 	{
 		handleModel();
+	}
+
+	protected File getAllDir()
+	{
+		try
+		{
+			File allDir = new File(allTexPath);
+			allDir.mkdirs();
+			return allDir.getCanonicalFile();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	abstract protected void buildModel(IMap<String, TypeDescription> javaTypes, IMap<String, TypeDescription> csharpTypes) throws Throwable;
@@ -202,5 +223,33 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	protected void findCorrespondingSourceFiles(Iterable<? extends ISourceFileAware> sourceFileAwares)
+	{
+		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates = new HashMap<String, IFileFoundDelegate>();
+
+		for (ISourceFileAware sourceFileAware : sourceFileAwares)
+		{
+			final ISourceFileAware fAnnotationEntry = sourceFileAware;
+
+			queueFileSearch(sourceFileAware.getJavaSrc(), ".java", nameToFileFoundDelegates, new IFileFoundDelegate()
+			{
+				@Override
+				public void fileFound(File file, String relativeFilePath)
+				{
+					fAnnotationEntry.setJavaFile(file, relativeFilePath);
+				}
+			});
+			queueFileSearch(sourceFileAware.getCsharpSrc(), ".cs", nameToFileFoundDelegates, new IFileFoundDelegate()
+			{
+				@Override
+				public void fileFound(File file, String relativeFilePath)
+				{
+					fAnnotationEntry.setCsharpFile(getAllDir(), relativeFilePath);
+				}
+			});
+		}
+		searchForFiles(sourcePath, nameToFileFoundDelegates);
 	}
 }
