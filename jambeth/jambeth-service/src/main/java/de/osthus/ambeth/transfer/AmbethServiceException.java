@@ -12,6 +12,9 @@ public class AmbethServiceException
 	@XmlElement(required = false)
 	protected String message;
 
+	@XmlElement(required = true)
+	protected String exceptionType;
+
 	@XmlElement(required = false)
 	protected String stackTrace;
 
@@ -21,6 +24,11 @@ public class AmbethServiceException
 	public String getMessage()
 	{
 		return message;
+	}
+
+	public String getExceptionType()
+	{
+		return exceptionType;
 	}
 
 	public String getStackTrace()
@@ -36,6 +44,11 @@ public class AmbethServiceException
 	public void setMessage(String message)
 	{
 		this.message = message;
+	}
+
+	public void setExceptionType(String exceptionType)
+	{
+		this.exceptionType = exceptionType;
 	}
 
 	public void setStackTrace(String stackTrace)

@@ -231,6 +231,7 @@ public abstract class AbstractServiceREST
 		e.printStackTrace(pw);
 		pw.flush();
 		result.setMessage(e.getMessage());
+		result.setExceptionType(e.getClass().getName());
 		result.setStackTrace(sw.toString());
 		return createResult(result);
 	}
