@@ -1,19 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using De.Osthus.Ambeth.Bytecode.Behavior;
+using De.Osthus.Ambeth.Bytecode.Config;
 using De.Osthus.Ambeth.Bytecode.Visitor;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Util;
-using System.Reflection;
-using De.Osthus.Ambeth.Config;
-using De.Osthus.Ambeth.Bytecode.Config;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Bytecode.Core
 {
@@ -35,8 +35,8 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                     return changeCount;
                 }
             }
-        }
-
+        }          
+        
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -146,36 +146,53 @@ namespace De.Osthus.Ambeth.Bytecode.Core
                 newTypeNamePrefix = targetNameHint.GetTargetName(typeToEnhance);
             }
             return GetEnhancedType(typeToEnhance, newTypeNamePrefix, hint);
-        }
+        }        
 
         protected void LogBytecodeOutput(String typeName, String bytecodeOutput)
         {
+#if SILVERLIGHT
             DirectoryInfo outputFileDir = new DirectoryInfo(TraceDir + Path.DirectorySeparatorChar + GetType().FullName);
             outputFileDir.Create();
-            String fileName = outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt";
+            String formattedName = outputFileDir.FullName + Path.DirectorySeparatorChar + typeName + ".txt";
             try
             {
-                FileStream outputFile = new FileStream(fileName, FileMode.Create, FileAccess.Write, FileShare.Read);
+                using(FileStream outputFile = new FileStream(formattedName, FileMode.Create, FileAccess.Write, FileShare.Read))
+#else
+            // the following code allows to write to directories with a length > 260 chars
+            char sep = System.IO.Path.DirectorySeparatorChar;
+            String dirName = LongPath.CreateDir(TraceDir + sep + GetType().FullName);
+            String formattedName = dirName + sep + typeName + ".txt";
+            try
+            {                
+                // Create a file with generic write access
+                SafeFileHandle fileHandle = LongPath.CreateFile(formattedName, FileAccess.ReadWrite, FileShare.ReadWrite, FileMode.OpenOrCreate);                
                 try
                 {
-                    StreamWriter fw = new StreamWriter(outputFile);
-                    try
+                    using (FileStream outputFile = new FileStream(fileHandle, FileAccess.Write))
+#endif
                     {
-                        fw.Write(bytecodeOutput);
+                        System.IO.StreamWriter fw = new System.IO.StreamWriter(outputFile);
+                        try
+                        {
+                            fw.Write(bytecodeOutput);
+                        }
+                        finally
+                        {
+                            fw.Close();
+                        }
                     }
-                    finally
-                    {
-                        fw.Close();
-                    }
+#if SILVERLIGHT
+#else
                 }
                 finally
                 {
-                    outputFile.Close();
+                    fileHandle.Close();
                 }
+#endif
             }
             catch (Exception e)
             {
-                throw RuntimeExceptionUtil.Mask(e, "Error occurred while trying to write to '" + fileName + "'");
+                throw RuntimeExceptionUtil.Mask(e, "Error occurred while trying to write to '" + formattedName + "'");
             }
         }
 
