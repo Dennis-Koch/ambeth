@@ -6,7 +6,6 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -21,16 +20,12 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
  * <p>
  * Attention: the alternate user has to exist (use script testutil_alternate_test_structure.sql).
  */
-@TestPropertiesList({
-		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName, value = "jambeth_testutil_user"),
-		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseUser, value = "${" + PersistenceJdbcConfigurationConstants.DatabaseSchemaName
-				+ "}"),
+@TestPropertiesList({ @TestProperties(type = AlternativeUserPropertiesProvider.class),//
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/testutil/persistencerunner/testutil_test_orm.xml") })
 @SQLData("testutil_test_data_0.sql")
 @SQLDataRebuild(value = true)
 public class PersistenceRunnerWithRebuildDataContextAndOnlyDataOnClassLevelTest extends AbstractPersistenceRunnerWithServiceTest
 {
-
 	@Test
 	public void testDummy1()
 	{

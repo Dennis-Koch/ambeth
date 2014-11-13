@@ -130,6 +130,12 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	{
 		super.extendProperties(frameworkMethod, props);
 
+		String testForkSuffix = props.getString("test.forksuffix");
+		if (testForkSuffix != null)
+		{
+			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);
+			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser, databaseUser + "_" + testForkSuffix);
+		}
 		DialectSelectorModule.fillTestProperties(props);
 	}
 
@@ -164,7 +170,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 
 		Properties baseProps = new Properties(Properties.getApplication());
-		baseProps.putString("ambeth.log.level", "WARN");
+		// baseProps.putString("ambeth.log.level", "WARN");
 
 		extendProperties(null, baseProps);
 
