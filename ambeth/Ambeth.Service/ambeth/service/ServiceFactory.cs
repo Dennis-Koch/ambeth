@@ -36,7 +36,7 @@ namespace De.Osthus.Ambeth.Service
         {
             AsyncInterface service = BeanContext.GetService<IServiceFactory>().GetService<AsyncInterface>(securityScopes);
 
-            SyncCallInterceptor synchronizedInterceptor = BeanContext.RegisterAnonymousBean<SyncCallInterceptor>().PropertyValue("AsyncService", service).PropertyValue("AsyncServiceInterface", typeof(AsyncInterface)).Finish();
+            SyncCallInterceptor synchronizedInterceptor = BeanContext.RegisterBean<SyncCallInterceptor>().PropertyValue("AsyncService", service).PropertyValue("AsyncServiceInterface", typeof(AsyncInterface)).Finish();
 
             return (SyncInterface)ProxyFactory.CreateProxy(typeof(SyncInterface), synchronizedInterceptor);
         }

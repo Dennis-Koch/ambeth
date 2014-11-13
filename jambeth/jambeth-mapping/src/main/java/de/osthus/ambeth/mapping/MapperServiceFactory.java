@@ -17,7 +17,7 @@ public class MapperServiceFactory implements IMapperServiceFactory
 	@Override
 	public IMapperService create()
 	{
-		IMapperService mapperService = beanContext.registerAnonymousBean(ModelTransferMapper.class).finish();
+		IMapperService mapperService = beanContext.registerBean(ModelTransferMapper.class).finish();
 		IMapperService mapperServiceReference = new MapperServiceWeakReference(mapperService);
 		return mapperServiceReference;
 	}

@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected IDisposableCache CreateIntern(CacheFactoryDirective cacheFactoryDirective, bool privileged, bool foreignThreadAware, bool? useWeakEntries)
         {
-		    IBeanRuntime<ChildCache> firstLevelCacheBC = BeanContext.RegisterAnonymousBean<ChildCache>();
+		    IBeanRuntime<ChildCache> firstLevelCacheBC = BeanContext.RegisterBean<ChildCache>();
             if (!foreignThreadAware)
             {
                 // Do not inject EventQueue because caches without foreign interest will never receive async DCEs

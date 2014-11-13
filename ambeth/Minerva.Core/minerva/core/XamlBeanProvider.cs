@@ -160,7 +160,7 @@ namespace De.Osthus.Minerva.Core
             {
                 try
                 {
-                    beanContextFactory.RegisterAnonymousBean(AssemblyHelper.GetTypeFromAssemblies(br.Type));
+                    beanContextFactory.RegisterBean(AssemblyHelper.GetTypeFromAssemblies(br.Type));
                 }
                 catch (Exception e)
                 {

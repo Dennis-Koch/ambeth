@@ -596,7 +596,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 		}
 		modifyingDatabase.setModifyingDatabase(true);
 
-		IChangeAggregator changeAggregator = beanContext.registerAnonymousBean(ChangeAggregator.class).finish();
+		IChangeAggregator changeAggregator = beanContext.registerBean(ChangeAggregator.class).finish();
 		IList<ITableChange> tableChangeList = tableChangeMap.values();
 		long start = System.currentTimeMillis();
 

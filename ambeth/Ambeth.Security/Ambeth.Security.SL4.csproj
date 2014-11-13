@@ -156,6 +156,12 @@
     <Compile Include="ambeth\service\SecurityServiceDelegate.cs" />
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
+    <Compile Include="ambeth\util\CatchingRunnable.cs" />
+    <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\INamedRunnable.cs" />
+    <Compile Include="ambeth\util\MultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\Runnable.cs" />
+    <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

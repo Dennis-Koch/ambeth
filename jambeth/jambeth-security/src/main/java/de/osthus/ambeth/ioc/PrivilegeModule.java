@@ -29,8 +29,8 @@ public class PrivilegeModule implements IInitializingModule
 		beanContextFactory.registerBean("privilegeProvider_EventListener", UnfilteredDataChangeListener.class).propertyRefs("privilegeProvider");
 		beanContextFactory.link("privilegeProvider_EventListener").to(IEventListenerExtendable.class).with(IDataChange.class);
 
-		beanContextFactory.registerAnonymousBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
-		beanContextFactory.registerAnonymousBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
+		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
+		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
 
 		// if (IsNetworkClientMode && IsPrivilegeServiceBeanActive)
 		// {

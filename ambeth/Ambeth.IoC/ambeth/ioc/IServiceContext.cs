@@ -173,7 +173,22 @@ namespace De.Osthus.Ambeth.Ioc
         /// <param name="beanType">Class of the bean to be instantiated.</param>
         /// <returns>IBeanRuntime to add things to the bean or finish the registration.</returns>
         IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type beanType);
-        
+
+        /// <summary>
+        /// Registers an anonymous bean while the context is already running.
+        /// </summary>
+        /// <typeparam name="V">Class of the bean to be instantiated.</typeparam>
+        /// <returns>IBeanRuntime to add things to the bean or finish the registration.</returns>
+        IBeanRuntime<V> RegisterBean<V>();
+
+        /// <summary>
+        /// Registers an anonymous bean while the context is already running.
+        /// </summary>
+        /// <typeparam name="Object">May be anything</typeparam>
+        /// <param name="beanType">Class of the bean to be instantiated.</param>
+        /// <returns>IBeanRuntime to add things to the bean or finish the registration.</returns>
+        IBeanRuntime<Object> RegisterBean<Object>(Type beanType);
+
         /// <summary>
         /// Finder for configuration of a named bean. Makes it possible to read and change the IoC configuration of a bean during runtime.
         /// </summary>

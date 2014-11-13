@@ -59,7 +59,7 @@ public class ServiceModule implements IInitializingModule
 		}
 		else if (!offlineModeSupported)
 		{
-			beanContextFactory.registerAnonymousBean(NoOpOfflineExtendable.class).autowireable(IOfflineListenerExtendable.class);
+			beanContextFactory.registerBean(NoOpOfflineExtendable.class).autowireable(IOfflineListenerExtendable.class);
 		}
 		beanContextFactory.registerBean("serviceByNameProvider", ServiceByNameProvider.class).propertyValue("ParentServiceByNameProvider", null)
 				.autowireable(IServiceByNameProvider.class, IServiceExtendable.class);

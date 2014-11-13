@@ -44,8 +44,8 @@ public class H2Connector
 		{
 			return false;
 		}
-		beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
-		beanContextFactory.registerAnonymousBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
+		beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+		beanContextFactory.registerBean(H2TestDialect.class).autowireable(IConnectionTestDialect.class);
 		return true;
 	}
 
@@ -62,7 +62,7 @@ public class H2Connector
 		{
 			return false;
 		}
-		beanContextFactory.registerAnonymousBean(H2TestModule.class);
+		beanContextFactory.registerBean(H2TestModule.class);
 		return true;
 	}
 }

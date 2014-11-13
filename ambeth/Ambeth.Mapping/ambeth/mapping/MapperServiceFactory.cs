@@ -14,7 +14,7 @@ namespace De.Osthus.Ambeth.Mapping
 
         public IMapperService Create()
         {
-            IMapperService mapperService = BeanContext.RegisterAnonymousBean<ModelTransferMapper>().Finish();
+            IMapperService mapperService = BeanContext.RegisterBean<ModelTransferMapper>().Finish();
             IMapperService mapperServiceReference = new MapperServiceWeakReference(mapperService);
             return mapperServiceReference;
         }

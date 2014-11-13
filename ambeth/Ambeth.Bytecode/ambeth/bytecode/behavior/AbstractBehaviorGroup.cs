@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
 
         protected void AddDefaultChildBehavior(Type behaviorType)
         {
-            IBytecodeBehavior behavior = BeanContext.RegisterAnonymousBean<IBytecodeBehavior>(behaviorType).Finish();
+            IBytecodeBehavior behavior = BeanContext.RegisterBean<IBytecodeBehavior>(behaviorType).Finish();
             childBehaviors.Add(behavior);
             supportedEnhancements.AddAll(behavior.GetEnhancements());
         }

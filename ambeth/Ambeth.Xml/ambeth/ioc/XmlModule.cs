@@ -26,47 +26,47 @@ namespace De.Osthus.Ambeth.Ioc
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
             {
-                IBeanConfiguration cyclicXmlControllerBC = beanContextFactory.RegisterAnonymousBean(typeof(CyclicXmlController)).Parent("abstractElementHandler");
+                IBeanConfiguration cyclicXmlControllerBC = beanContextFactory.RegisterBean(typeof(CyclicXmlController)).Parent("abstractElementHandler");
 
-                IBeanConfiguration cyclicXmlReaderBC = beanContextFactory.RegisterAnonymousBean(typeof(CyclicXmlReader)).PropertyRefs(cyclicXmlControllerBC);
+                IBeanConfiguration cyclicXmlReaderBC = beanContextFactory.RegisterBean(typeof(CyclicXmlReader)).PropertyRefs(cyclicXmlControllerBC);
 
-                IBeanConfiguration cyclicXmlWriterBC = beanContextFactory.RegisterAnonymousBean(typeof(CyclicXmlWriter)).PropertyRefs(cyclicXmlControllerBC);
+                IBeanConfiguration cyclicXmlWriterBC = beanContextFactory.RegisterBean(typeof(CyclicXmlWriter)).PropertyRefs(cyclicXmlControllerBC);
 
                 beanContextFactory.RegisterBean(CYCLIC_XML_HANDLER, typeof(CyclicXmlHandler)).PropertyRefs(cyclicXmlReaderBC, cyclicXmlWriterBC,
                         cyclicXmlControllerBC);
             }
             {
-                IBeanConfiguration simpleXmlControllerBC = beanContextFactory.RegisterAnonymousBean(typeof(SimpleXmlController));
+                IBeanConfiguration simpleXmlControllerBC = beanContextFactory.RegisterBean(typeof(SimpleXmlController));
 
-                IBeanConfiguration simpleXmlReaderBC = beanContextFactory.RegisterAnonymousBean(typeof(SimpleXmlReader)).PropertyRefs(simpleXmlControllerBC);
+                IBeanConfiguration simpleXmlReaderBC = beanContextFactory.RegisterBean(typeof(SimpleXmlReader)).PropertyRefs(simpleXmlControllerBC);
 
-                IBeanConfiguration simpleXmlWriterBC = beanContextFactory.RegisterAnonymousBean(typeof(SimpleXmlWriter)).PropertyRefs(simpleXmlControllerBC);
+                IBeanConfiguration simpleXmlWriterBC = beanContextFactory.RegisterBean(typeof(SimpleXmlWriter)).PropertyRefs(simpleXmlControllerBC);
 
                 beanContextFactory.RegisterBean(SIMPLE_XML_HANDLER, typeof(CyclicXmlHandler)).PropertyRefs(simpleXmlReaderBC, simpleXmlWriterBC,
                         simpleXmlControllerBC);
             }
 
-            beanContextFactory.RegisterAnonymousBean(typeof(XmlTypeRegistry)).Autowireable(typeof(IXmlTypeRegistry), typeof(IXmlTypeExtendable));
+            beanContextFactory.RegisterBean(typeof(XmlTypeRegistry)).Autowireable(typeof(IXmlTypeRegistry), typeof(IXmlTypeExtendable));
 
-            beanContextFactory.RegisterAnonymousBean(typeof(CommandBuilder)).Autowireable(typeof(ICommandBuilder));
+            beanContextFactory.RegisterBean(typeof(CommandBuilder)).Autowireable(typeof(ICommandBuilder));
 
-            IBeanConfiguration classElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ClassNameHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration classElementHandlerBC = beanContextFactory.RegisterBean(typeof(ClassNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(classElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("c");
 
-            IBeanConfiguration objectElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ObjectTypeHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration objectElementHandlerBC = beanContextFactory.RegisterBean(typeof(ObjectTypeHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(objectElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(ITypeBasedHandlerExtendable)).With(typeof(Object));
 
-            IBeanConfiguration objRefElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ObjRefElementHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration objRefElementHandlerBC = beanContextFactory.RegisterBean(typeof(ObjRefElementHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(objRefElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("or");
 
-            IBeanConfiguration stringElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(StringNameHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration stringElementHandlerBC = beanContextFactory.RegisterBean(typeof(StringNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(stringElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("s");
 
-            IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ObjRefWrapperElementHandler)).Parent(
+            IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.RegisterBean(typeof(ObjRefWrapperElementHandler)).Parent(
                     "abstractElementHandler");
             beanContextFactory.Link(oriWrapperElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("ow");
 
-            IBeanConfiguration numberElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(NumberTypeHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration numberElementHandlerBC = beanContextFactory.RegisterBean(typeof(NumberTypeHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(numberElementHandlerBC).To<ITypeBasedHandlerExtendable>(CYCLIC_XML_HANDLER).With(typeof(Int64?));
             beanContextFactory.Link(numberElementHandlerBC).To<ITypeBasedHandlerExtendable>(CYCLIC_XML_HANDLER).With(typeof(Int32?));
             beanContextFactory.Link(numberElementHandlerBC).To<ITypeBasedHandlerExtendable>(CYCLIC_XML_HANDLER).With(typeof(Int16?));
@@ -93,23 +93,23 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.Link(numberElementHandlerBC).To<ITypeBasedHandlerExtendable>(CYCLIC_XML_HANDLER).With(typeof(Char));
 
 
-            IBeanConfiguration dateTypeHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(DateElementHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration dateTypeHandlerBC = beanContextFactory.RegisterBean(typeof(DateElementHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(dateTypeHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("d");
 
-            IBeanConfiguration collectionElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(CollectionElementHandler)).Parent(
+            IBeanConfiguration collectionElementHandlerBC = beanContextFactory.RegisterBean(typeof(CollectionElementHandler)).Parent(
                     "abstractElementHandler");
             beanContextFactory.Link(collectionElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("l");
             beanContextFactory.Link(collectionElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("set");
 
             beanContextFactory.RegisterBean("abstractElementHandler", typeof(AbstractHandler)).PropertyRef("ClassElementHandler", classElementHandlerBC).Template();
 
-            IBeanConfiguration arrayElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(ArrayNameHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration arrayElementHandlerBC = beanContextFactory.RegisterBean(typeof(ArrayNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(arrayElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("a");
 
-            IBeanConfiguration enumElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(EnumNameHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration enumElementHandlerBC = beanContextFactory.RegisterBean(typeof(EnumNameHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(enumElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("e");
 
-            IBeanConfiguration timeSpanElementHandlerBC = beanContextFactory.RegisterAnonymousBean(typeof(TimeSpanElementHandler)).Parent("abstractElementHandler");
+            IBeanConfiguration timeSpanElementHandlerBC = beanContextFactory.RegisterBean(typeof(TimeSpanElementHandler)).Parent("abstractElementHandler");
             beanContextFactory.Link(timeSpanElementHandlerBC).To(CYCLIC_XML_HANDLER, typeof(INameBasedHandlerExtendable)).With("t");
 
             beanContextFactory.RegisterBean("xmlTransferScanner", typeof(XmlTransferScanner));

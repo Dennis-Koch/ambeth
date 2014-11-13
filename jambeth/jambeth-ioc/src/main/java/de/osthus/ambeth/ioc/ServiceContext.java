@@ -587,7 +587,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	public <I> I createService(String contextName, Class<I> serviceClass, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
 	{
 		checkNotDisposed();
-		IBeanContextInitializer beanContextInitializer = registerAnonymousBean(BeanContextInitializer.class).finish();
+		IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class).finish();
 
 		if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.length == 1)
 		{
@@ -1183,8 +1183,15 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		}
 	}
 
+	@Deprecated
 	@Override
 	public <V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType)
+	{
+		return registerBean(beanType);
+	}
+
+	@Override
+	public <V> IBeanRuntime<V> registerBean(Class<V> beanType)
 	{
 		checkNotDisposed();
 		ParamChecker.assertParamNotNull(beanType, "beanType");

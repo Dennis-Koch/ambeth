@@ -165,7 +165,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T>
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(query.getEntityType());
 		byte idIndex = alternateIdPropertyName == null ? ObjRef.PRIMARY_KEY_INDEX : metaData.getIdIndexByMemberName(alternateIdPropertyName);
 
-		IBeanRuntime<DefaultQueryResultRetriever> queryResultRetrieverBC = beanContext.registerAnonymousBean(DefaultQueryResultRetriever.class);
+		IBeanRuntime<DefaultQueryResultRetriever> queryResultRetrieverBC = beanContext.registerBean(DefaultQueryResultRetriever.class);
 		queryResultRetrieverBC.propertyValue("Query", query);
 		queryResultRetrieverBC.propertyValue("CurrentNameToValueMap", currentNameToValueMap);
 		IQueryResultRetriever queryResultRetriever = queryResultRetrieverBC.finish();

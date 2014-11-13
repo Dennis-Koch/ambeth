@@ -121,7 +121,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				PreparedStatement pstm = (PreparedStatement) proxy.invoke(connection, args);
 
 				pstm.setFetchSize(fetchSize);
-				MethodInterceptor logPstmInterceptor = beanContext.registerAnonymousBean(LogPreparedStatementInterceptor.class)
+				MethodInterceptor logPstmInterceptor = beanContext.registerBean(LogPreparedStatementInterceptor.class)
 						.propertyValue("PreparedStatement", pstm).propertyValue("Statement", pstm).propertyValue("Connection", obj)
 						.propertyValue("sql", args[0]).finish();
 				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class), logPstmInterceptor);
@@ -131,7 +131,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				Statement stm = (Statement) proxy.invoke(connection, args);
 
 				stm.setFetchSize(fetchSize);
-				MethodInterceptor logStmInterceptor = beanContext.registerAnonymousBean(LogStatementInterceptor.class).propertyValue("Statement", stm)
+				MethodInterceptor logStmInterceptor = beanContext.registerBean(LogStatementInterceptor.class).propertyValue("Statement", stm)
 						.propertyValue("Connection", obj).finish();
 				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(stm, IPrintable.class), logStmInterceptor);
 			}

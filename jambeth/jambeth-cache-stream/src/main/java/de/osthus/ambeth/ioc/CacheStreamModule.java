@@ -59,7 +59,7 @@ public class CacheStreamModule implements IInitializingModule
 	public IBeanConfiguration registerInputSourceConverter(IBeanContextFactory beanContextFactory, Class<? extends AbstractInputSourceConverter> converterType,
 			Class<? extends IInputSource> inputSourceType)
 	{
-		IBeanConfiguration converterBC = beanContextFactory.registerAnonymousBean(converterType).propertyValue("ChunkProviderName", chunkProviderName);
+		IBeanConfiguration converterBC = beanContextFactory.registerBean(converterType).propertyValue("ChunkProviderName", chunkProviderName);
 		beanContextFactory.link(converterBC).to(IDedicatedConverterExtendable.class).with(IInputSourceTemplate.class, inputSourceType);
 		return converterBC;
 	}

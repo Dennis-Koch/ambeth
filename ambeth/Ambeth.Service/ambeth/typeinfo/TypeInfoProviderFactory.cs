@@ -18,7 +18,7 @@ namespace De.Osthus.Ambeth.Typeinfo
 
         public virtual ITypeInfoProvider CreateTypeInfoProvider()
 	    {
-            return ServiceContext.RegisterAnonymousBean<ITypeInfoProvider>(TypeInfoProviderType).PropertyValue("Synchronized", false).Finish();
+            return ServiceContext.RegisterBean<ITypeInfoProvider>(TypeInfoProviderType).PropertyValue("Synchronized", false).Finish();
 	    }
     }
 }

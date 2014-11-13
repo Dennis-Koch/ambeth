@@ -141,7 +141,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 						IBeanConfiguration contextProviderBC = confSP.registerAutowireableBean(IContextProvider.class, ContextProvider.class);
 						confSP.link(contextProviderBC).to(IAuthorizationChangeListenerExtendable.class);
 
-						confSP.registerAnonymousBean(ConnectionShutdownBean.class);
+						confSP.registerBean(ConnectionShutdownBean.class);
 						confSP.registerExternalBean(databaseProvider).autowireable(IDatabaseProvider.class);
 
 						confSP.registerBean("database", JDBCDatabaseWrapper.class).propertyValue("DefaultVersionFieldName", "Version")
@@ -153,7 +153,7 @@ public class JdbcDatabaseFactory implements IDatabaseFactory, IDatabaseMapperExt
 						{
 							for (int a = additionalModules.length; a-- > 0;)
 							{
-								confSP.registerAnonymousBean(additionalModules[a]);
+								confSP.registerBean(additionalModules[a]);
 							}
 						}
 					}

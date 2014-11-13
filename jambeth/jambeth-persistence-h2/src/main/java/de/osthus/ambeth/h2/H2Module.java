@@ -50,11 +50,11 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 	{
 		if (!externalTransactionManager && !databaseBehaviourStrict)
 		{
-			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
 		}
 		else
 		{
-			beanContextFactory.registerAnonymousBean(H2Dialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(H2Dialect.class).autowireable(IConnectionDialect.class);
 			if (externalTransactionManager && integratedConnectionPool && log.isWarnEnabled())
 			{
 				if (!databasePassivate)
@@ -63,8 +63,8 @@ public class H2Module implements IInitializingModule, IPropertyLoadingBean
 				}
 			}
 		}
-		beanContextFactory.registerAnonymousBean(H2SequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
+		beanContextFactory.registerBean(H2SequencePrimaryKeyProvider.class).autowireable(IPrimaryKeyProvider.class);
 
-		beanContextFactory.registerAnonymousBean(H2ConnectionExtension.class).autowireable(IConnectionExtension.class);
+		beanContextFactory.registerBean(H2ConnectionExtension.class).autowireable(IConnectionExtension.class);
 	}
 }

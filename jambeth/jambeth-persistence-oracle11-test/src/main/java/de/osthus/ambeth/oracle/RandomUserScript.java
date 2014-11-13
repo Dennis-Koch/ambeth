@@ -83,10 +83,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		@Override
 		public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
-			beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
-			beanContextFactory.registerAnonymousBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
-			beanContextFactory.registerAnonymousBean(RandomUserScript.class);
+			beanContextFactory.registerBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
+			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+			beanContextFactory.registerBean(RandomUserScript.class);
 		}
 	}
 

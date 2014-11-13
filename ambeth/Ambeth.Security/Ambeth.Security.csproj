@@ -92,6 +92,7 @@
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
     <Compile Include="ambeth\ioc\SecurityModule.cs" />
+    <Compile Include="ambeth\util\Runnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +181,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\security\PasswordType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\util\CatchingRunnable.cs" />
+    <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\INamedRunnable.cs" />
+    <Compile Include="ambeth\util\MultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -29,7 +29,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
                         IList<IBytecodeBehavior> cascadePendingBehaviors)
             {
                 // LazyRelationsBehavior executes in this cascade
-                CascadeBehavior2 cascadeBehavior2 = BeanContext.RegisterAnonymousBean<CascadeBehavior2>().PropertyValue("MetaData", MetaData).Finish();
+                CascadeBehavior2 cascadeBehavior2 = BeanContext.RegisterBean<CascadeBehavior2>().PropertyValue("MetaData", MetaData).Finish();
 
                 cascadePendingBehaviors.Add(cascadeBehavior2);
                 return visitor;
@@ -69,7 +69,7 @@ namespace De.Osthus.Ambeth.Bytecode.Behavior
             }
             // DefaultPropertiesBehavior executes in this cascade
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(EntityUtil.GetEntityType(state.Context));
-            CascadeBehavior cascadeBehavior = BeanContext.RegisterAnonymousBean<CascadeBehavior>().PropertyValue("MetaData", metaData).Finish();
+            CascadeBehavior cascadeBehavior = BeanContext.RegisterBean<CascadeBehavior>().PropertyValue("MetaData", metaData).Finish();
             cascadePendingBehaviors.Add(cascadeBehavior);
 
             // // NotifyPropertyChangedBehavior executes in this cascade

@@ -25,7 +25,7 @@ public class BeanPostProcessorTestModule implements IInitializingModule
 		for (int a = number; a-- > 0;)
 		{
 			PostProcessorOrder order = orders[(int) (Math.random() * orders.length)];
-			beanContextFactory.registerAnonymousBean(OrderedPostProcessor.class).propertyValue("Order", order);
+			beanContextFactory.registerBean(OrderedPostProcessor.class).propertyValue("Order", order);
 		}
 	}
 }

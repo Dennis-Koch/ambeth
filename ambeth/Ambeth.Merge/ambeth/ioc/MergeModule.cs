@@ -64,11 +64,11 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
 
-            beanContextFactory.RegisterAnonymousBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable));
+            beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable));
 
-            IBeanConfiguration valueObjectMap = beanContextFactory.RegisterAnonymousBean<ValueObjectMap>();
+            IBeanConfiguration valueObjectMap = beanContextFactory.RegisterBean<ValueObjectMap>();
 
-            IBeanConfiguration entityMetaDataProvider = beanContextFactory.RegisterAnonymousBean<EntityMetaDataProvider>()
+            IBeanConfiguration entityMetaDataProvider = beanContextFactory.RegisterBean<EntityMetaDataProvider>()
                 .PropertyRef("ValueObjectMap", valueObjectMap)
                 .Autowireable<IEntityMetaDataProvider>()
                 .Autowireable<IEntityMetaDataRefresher>()
@@ -93,18 +93,18 @@ namespace De.Osthus.Ambeth.Ioc
                         .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, typeof(IOrmXmlReaderExtendable))
                         .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").Autowireable(typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable));
                 beanContextFactory.RegisterBean<OrmXmlReaderLegathy>("ormXmlReaderLegathy");
-			    IBeanConfiguration ormXmlReader20BC = beanContextFactory.RegisterAnonymousBean<OrmXmlReader20>();
+			    IBeanConfiguration ormXmlReader20BC = beanContextFactory.RegisterBean<OrmXmlReader20>();
 			    beanContextFactory.Link(ormXmlReader20BC).To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
 
 			    beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
             }
-            beanContextFactory.RegisterAnonymousBean<RelationProvider>().Autowireable<IRelationProvider>();
+            beanContextFactory.RegisterBean<RelationProvider>().Autowireable<IRelationProvider>();
 
-            beanContextFactory.RegisterAnonymousBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
-		    beanContextFactory.RegisterAnonymousBean<EmbeddedMemberMixin>().Autowireable<EmbeddedMemberMixin>();
+            beanContextFactory.RegisterBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
+		    beanContextFactory.RegisterBean<EmbeddedMemberMixin>().Autowireable<EmbeddedMemberMixin>();
             
-            beanContextFactory.RegisterAnonymousBean<ObjRefFactory>().Autowireable<IObjRefFactory>();
-            IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.RegisterAnonymousBean<ObjRefObjectCopierExtension>();
+            beanContextFactory.RegisterBean<ObjRefFactory>().Autowireable<IObjRefFactory>();
+            IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.RegisterBean<ObjRefObjectCopierExtension>();
 		    beanContextFactory.Link(objRefObjectCopierExtension).To<IObjectCopierExtendable>().With(typeof(IObjRef));
 
             Type entityFactoryType = this.EntityFactoryType;
@@ -114,7 +114,7 @@ namespace De.Osthus.Ambeth.Ioc
             }
             beanContextFactory.RegisterBean("entityFactory", entityFactoryType).Autowireable<IEntityFactory>();
 
-            beanContextFactory.RegisterAnonymousBean<ObjRefStoreEntryProvider>().Autowireable<IObjRefStoreEntryProvider>();
+            beanContextFactory.RegisterBean<ObjRefStoreEntryProvider>().Autowireable<IObjRefStoreEntryProvider>();
 
             if (IsNetworkClientMode && IsMergeServiceBeanActive)
             {

@@ -602,13 +602,13 @@ namespace De.Osthus.Ambeth.Merge
 
             foreach (MethodInfo prePersistMethod in prePersistMethods)
             {
-                PrePersistMethodLifecycleExtension extension = BeanContext.RegisterAnonymousBean<PrePersistMethodLifecycleExtension>()
+                PrePersistMethodLifecycleExtension extension = BeanContext.RegisterBean<PrePersistMethodLifecycleExtension>()
                         .PropertyValue("Method", prePersistMethod).Finish();
                 allExtensions.Add(extension);
             }
             foreach (MethodInfo postLoadMethod in postLoadMethods)
             {
-                PostLoadMethodLifecycleExtension extension = BeanContext.RegisterAnonymousBean<PostLoadMethodLifecycleExtension>()
+                PostLoadMethodLifecycleExtension extension = BeanContext.RegisterBean<PostLoadMethodLifecycleExtension>()
                         .PropertyValue("Method", postLoadMethod).Finish();
                 allExtensions.Add(extension);
             }

@@ -22,6 +22,6 @@ public class SensorModule implements IInitializingModule
 	{
 		Object sensorProvider = beanContextFactory.registerBean("sensorProvider", SensorProvider.class)
 				.autowireable(ISensorProvider.class, ISensorReceiverExtendable.class).precedence(PrecedenceType.HIGHEST).getInstance();
-		beanContextFactory.registerAnonymousBean(SensorPreProcessor.class).propertyValue("SensorProvider", sensorProvider);
+		beanContextFactory.registerBean(SensorPreProcessor.class).propertyValue("SensorProvider", sensorProvider);
 	}
 }

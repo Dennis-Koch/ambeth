@@ -72,7 +72,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(operand, "operand");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("Operand", operand);
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operand", operand);
 			if (caseSensitive != null)
 			{
 				operatorBC.propertyValue("CaseSensitive", caseSensitive);
@@ -92,7 +92,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("LeftOperand", leftOperand)
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand)
 					.propertyValue("RightOperand", rightOperand);
 			if (caseSensitive != null)
 			{
@@ -112,7 +112,7 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 		ParamChecker.assertParamNotNull(operands, "operands");
 		try
 		{
-			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerAnonymousBean(operatorType).propertyValue("Operands", operands);
+			IBeanRuntime<? extends IOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("Operands", operands);
 			return operatorBC.finish();
 		}
 		catch (Throwable e)
@@ -148,13 +148,13 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingB
 	@Override
 	public IOperator trueOperator()
 	{
-		return beanContext.registerAnonymousBean(TrueOperator.class).finish();
+		return beanContext.registerBean(TrueOperator.class).finish();
 	}
 
 	@Override
 	public IOperator falseOperator()
 	{
-		return beanContext.registerAnonymousBean(FalseOperator.class).finish();
+		return beanContext.registerBean(FalseOperator.class).finish();
 	}
 
 	@Override

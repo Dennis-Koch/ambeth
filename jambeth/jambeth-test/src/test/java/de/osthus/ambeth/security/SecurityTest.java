@@ -64,8 +64,8 @@ public class SecurityTest extends AbstractPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
-			beanContextFactory.registerAnonymousBean(TestUserResolver.class).autowireable(IUserResolver.class);
+			beanContextFactory.registerBean(TestAuthorizationManager.class).autowireable(IAuthorizationManager.class);
+			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
 			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(IN_MEMORY_CACHE_RETRIEVER, InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(User.class);

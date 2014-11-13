@@ -24,13 +24,13 @@ public class CacheDataChangeModule implements IInitializingModule
 	{
 		beanContextFactory.registerBean("revertChangesHelper", RevertChangesHelper.class).autowireable(IRevertChangesHelper.class);
 
-		IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.registerAnonymousBean(RootCacheClearEventListener.class).propertyRefs(
+		IBeanConfiguration rootCacheClearEventListenerBC = beanContextFactory.registerBean(RootCacheClearEventListener.class).propertyRefs(
 				CacheModule.COMMITTED_ROOT_CACHE);
 
 		beanContextFactory.link(rootCacheClearEventListenerBC).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
-		IBeanConfiguration serviceResultCacheDCL = beanContextFactory.registerAnonymousBean(UnfilteredDataChangeListener.class).propertyRef(
-				beanContextFactory.registerAnonymousBean(ServiceResultCacheDCL.class));
+		IBeanConfiguration serviceResultCacheDCL = beanContextFactory.registerBean(UnfilteredDataChangeListener.class).propertyRef(
+				beanContextFactory.registerBean(ServiceResultCacheDCL.class));
 		beanContextFactory.link(serviceResultCacheDCL).to(IEventListenerExtendable.class).with(IDataChange.class);
 
 		beanContextFactory.registerBean(CacheModule.CACHE_DATA_CHANGE_LISTENER, CacheDataChangeListener.class);

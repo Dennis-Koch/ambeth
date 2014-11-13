@@ -45,8 +45,8 @@ public class OracleConnector
 		{
 			return false;
 		}
-		beanContextFactory.registerAnonymousBean(Oracle10gDialect.class).autowireable(IConnectionDialect.class);
-		beanContextFactory.registerAnonymousBean(Oracle10gTestDialect.class).autowireable(IConnectionTestDialect.class);
+		beanContextFactory.registerBean(Oracle10gDialect.class).autowireable(IConnectionDialect.class);
+		beanContextFactory.registerBean(Oracle10gTestDialect.class).autowireable(IConnectionTestDialect.class);
 		return true;
 	}
 
@@ -63,7 +63,7 @@ public class OracleConnector
 		{
 			return false;
 		}
-		beanContextFactory.registerAnonymousBean(Oracle10gTestModule.class);
+		beanContextFactory.registerBean(Oracle10gTestModule.class);
 		return true;
 	}
 }

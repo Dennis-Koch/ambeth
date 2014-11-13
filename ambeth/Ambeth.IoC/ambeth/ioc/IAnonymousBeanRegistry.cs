@@ -17,6 +17,8 @@ namespace De.Osthus.Ambeth.Ioc
 
         IBeanConfiguration RegisterAnonymousBean(Type beanType);
 
+        IBeanConfiguration RegisterBean<T>();
+
         IBeanConfiguration RegisterBean(Type beanType);
     }
 }

@@ -245,7 +245,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			{
 				for (int a = 0, size = bootstrapModules.length; a < size; a++)
 				{
-					parentContextFactory.registerAnonymousBean(bootstrapModules[a]);
+					parentContextFactory.registerBean(bootstrapModules[a]);
 				}
 			}
 			if (bootstrapModuleInstances != null)
@@ -457,7 +457,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
-			registerAnonymousBean(serviceModuleType);
+			registerBean(serviceModuleType);
 		}
 		if (preProcessors != null)
 		{
@@ -492,7 +492,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
-			registerAnonymousBean(serviceModuleType);
+			registerBean(serviceModuleType);
 		}
 		List<IBeanPreProcessor> preProcessors = parent.getPreProcessors();
 		if (preProcessors != null)

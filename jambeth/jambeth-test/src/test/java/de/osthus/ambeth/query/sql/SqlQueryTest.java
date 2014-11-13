@@ -65,7 +65,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	protected String buildQuery(IOperand rootOperand)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
 
 		ArrayList<Object> parameters = new ArrayList<Object>();
 
@@ -74,7 +74,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	protected String buildSimpleQuery(String paramName, Object value, IOperand rootOperand, List<Object> parameters)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
 
 		nameToValueMap.put(paramName, value);
 
@@ -87,7 +87,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	protected String buildCompositeQuery(String paramName1, Object value1, String paramName2, Object value2, IOperand rootOperand, List<Object> parameters)
 	{
-		StringQuery query = beanContext.registerAnonymousBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
+		StringQuery query = beanContext.registerBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
 
 		if (parameters == null)
 		{

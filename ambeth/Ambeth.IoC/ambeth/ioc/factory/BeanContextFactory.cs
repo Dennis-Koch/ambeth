@@ -130,7 +130,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 for (int a = 0, size = bootstrapModules.Length; a < size; a++)
                 {
-                    parentContextFactory.RegisterAnonymousBean(bootstrapModules[a]);
+                    parentContextFactory.RegisterBean(bootstrapModules[a]);
                 }
             }
             if (bootstrapModuleInstances != null)
@@ -315,7 +315,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {
-                RegisterAnonymousBean(serviceModuleType);
+                RegisterBean(serviceModuleType);
             }
             if (preProcessors != null)
             {
@@ -350,7 +350,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {
-                RegisterAnonymousBean(serviceModuleType);
+                RegisterBean(serviceModuleType);
             }
             IList<IBeanPreProcessor> preProcessors = parent.GetPreProcessors();
             if (preProcessors != null)
@@ -459,11 +459,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return beanConfiguration;
         }
 
+        [Obsolete]
         public IBeanConfiguration RegisterAnonymousBean<T>()
         {
             return RegisterBean<T>();
         }
 
+        [Obsolete]
         public IBeanConfiguration RegisterAnonymousBean(Type beanType)
         {
             return RegisterBean(beanType);

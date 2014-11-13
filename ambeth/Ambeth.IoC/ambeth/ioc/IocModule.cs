@@ -34,30 +34,30 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<CharArrayConverter>("charArrayConverter");
             DedicatedConverterUtil.BiLink(beanContextFactory, "charArrayConverter", typeof(String), typeof(char[]));
 
-            IBeanConfiguration stringToFileConverter = beanContextFactory.RegisterAnonymousBean<StringToFileConverter>();
+            IBeanConfiguration stringToFileConverter = beanContextFactory.RegisterBean<StringToFileConverter>();
 		    DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(FileInfo));
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToFileConverter, typeof(String), typeof(DirectoryInfo));
 
-            IBeanConfiguration stringToClassArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToClassArrayConverter>();
+            IBeanConfiguration stringToClassArrayConverter = beanContextFactory.RegisterBean<StringToClassArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToClassArrayConverter, typeof(String), typeof(Type[]));
 
-            IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToDoubleArrayConverter>();
+            IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory.RegisterBean<StringToDoubleArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToDoubleArrayConverter, typeof(String), typeof(double[]));
 
-            IBeanConfiguration stringToFloatArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToFloatArrayConverter>();
+            IBeanConfiguration stringToFloatArrayConverter = beanContextFactory.RegisterBean<StringToFloatArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToFloatArrayConverter, typeof(String), typeof(float[]));
 
-            IBeanConfiguration stringToIntArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToIntArrayConverter>();
+            IBeanConfiguration stringToIntArrayConverter = beanContextFactory.RegisterBean<StringToIntArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToIntArrayConverter, typeof(String), typeof(int[]));
 
-            IBeanConfiguration stringToLongArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToLongArrayConverter>();
+            IBeanConfiguration stringToLongArrayConverter = beanContextFactory.RegisterBean<StringToLongArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToLongArrayConverter, typeof(String), typeof(long[]));
 
-            IBeanConfiguration stringToPatternConverterBC = beanContextFactory.RegisterAnonymousBean<StringToPatternConverter>();
+            IBeanConfiguration stringToPatternConverterBC = beanContextFactory.RegisterBean<StringToPatternConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToPatternConverterBC, typeof(String), typeof(Regex));
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToPatternConverterBC, typeof(String), typeof(Regex[]));
 
-            IBeanConfiguration stringToStringArrayConverter = beanContextFactory.RegisterAnonymousBean<StringToStringArrayConverter>();
+            IBeanConfiguration stringToStringArrayConverter = beanContextFactory.RegisterBean<StringToStringArrayConverter>();
             DedicatedConverterUtil.BiLink(beanContextFactory, stringToStringArrayConverter, typeof(String), typeof(String[]));
 
             beanContextFactory.RegisterBean<InterningFeature>("interningFeature").Autowireable<IInterningFeature>();

@@ -56,7 +56,7 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
             IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE);
             IServiceContext mergeContext = BeanContext.CreateService(new RegisterPhaseDelegate(delegate(IBeanContextFactory childContextFactory)
                 {
-                    childContextFactory.RegisterAnonymousBean(typeof(MergeHandle)).Autowireable<MergeHandle>().PropertyValue("Cache", childCache);
+                    childContextFactory.RegisterBean(typeof(MergeHandle)).Autowireable<MergeHandle>().PropertyValue("Cache", childCache);
                 }));
             try
             {

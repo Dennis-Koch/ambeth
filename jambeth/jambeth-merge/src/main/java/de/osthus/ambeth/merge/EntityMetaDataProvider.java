@@ -705,13 +705,13 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 
 		for (Method prePersistMethod : prePersistMethods)
 		{
-			PrePersistMethodLifecycleExtension extension = beanContext.registerAnonymousBean(PrePersistMethodLifecycleExtension.class)
+			PrePersistMethodLifecycleExtension extension = beanContext.registerBean(PrePersistMethodLifecycleExtension.class)
 					.propertyValue("Method", prePersistMethod).finish();
 			allExtensions.add(extension);
 		}
 		for (Method postLoadMethod : postLoadMethods)
 		{
-			PostLoadMethodLifecycleExtension extension = beanContext.registerAnonymousBean(PostLoadMethodLifecycleExtension.class)
+			PostLoadMethodLifecycleExtension extension = beanContext.registerBean(PostLoadMethodLifecycleExtension.class)
 					.propertyValue("Method", postLoadMethod).finish();
 			allExtensions.add(extension);
 		}

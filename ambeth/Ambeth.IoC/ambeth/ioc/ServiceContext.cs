@@ -508,7 +508,7 @@ namespace De.Osthus.Ambeth.Ioc
         public IServiceContext CreateService(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
-            IBeanContextInitializer beanContextInitializer = RegisterAnonymousBean<BeanContextInitializer>().Finish();
+            IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
 
             if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.Length == 1)
             {
@@ -551,7 +551,7 @@ namespace De.Osthus.Ambeth.Ioc
         public IBeanContextHolder<I> CreateService<I>(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
-            IBeanContextInitializer beanContextInitializer = RegisterAnonymousBean<BeanContextInitializer>().Finish();
+            IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
 
             if (contextName == null && registerPhaseDelegate == null && serviceModuleTypes.Length == 1)
             {
@@ -1164,14 +1164,25 @@ namespace De.Osthus.Ambeth.Ioc
             }
         }
 
-
+        [Obsolete]
         public IBeanRuntime<V> RegisterAnonymousBean<V>()
+        {
+            return RegisterBean<V>();
+        }
+
+        [Obsolete]
+        public IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type type)
+        {
+            return RegisterBean<Object>(type);
+        }
+
+        public IBeanRuntime<V> RegisterBean<V>()
         {
             CheckNotDisposed();
             return new BeanRuntime<V>(this, typeof(V), true);
         }
 
-        public IBeanRuntime<Object> RegisterAnonymousBean<Object>(Type type)
+        public IBeanRuntime<Object> RegisterBean<Object>(Type type)
         {
             CheckNotDisposed();
             ParamChecker.AssertParamNotNull(type, "type");

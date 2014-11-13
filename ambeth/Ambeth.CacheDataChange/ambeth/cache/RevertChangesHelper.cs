@@ -92,7 +92,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
             });
 
-            return BeanContext.RegisterAnonymousBean<RevertChangesSavepoint>().PropertyValue("Changes", weakObjectsToBackup).Finish();
+            return BeanContext.RegisterBean<RevertChangesSavepoint>().PropertyValue("Changes", weakObjectsToBackup).Finish();
         }
 
         protected void BackupObjects(Object obj, IDictionary<Object, RevertChangesSavepoint.IBackup> originalToValueBackup)

@@ -8,6 +8,6 @@ public class RdfModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(RdfUtils.class).autowireable(IRdfUtils.class);
+		beanContextFactory.registerBean(RdfUtils.class).autowireable(IRdfUtils.class);
 	}
 }

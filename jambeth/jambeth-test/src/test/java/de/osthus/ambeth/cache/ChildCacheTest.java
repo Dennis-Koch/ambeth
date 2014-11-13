@@ -71,7 +71,7 @@ public class ChildCacheTest extends AbstractInformationBusTest
 	@Before
 	public void setUp() throws Exception
 	{
-		childCache = beanContext.registerAnonymousBean(ChildCache.class).propertyValue("Parent", parent).finish();
+		childCache = beanContext.registerBean(ChildCache.class).propertyValue("Parent", parent).finish();
 	}
 
 	@After

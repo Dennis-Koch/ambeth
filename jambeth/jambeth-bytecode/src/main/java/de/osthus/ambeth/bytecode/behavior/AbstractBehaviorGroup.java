@@ -32,7 +32,7 @@ public abstract class AbstractBehaviorGroup implements IBytecodeBehavior, IIniti
 
 	protected void addDefaultChildBehavior(Class<? extends IBytecodeBehavior> behaviorType)
 	{
-		IBytecodeBehavior behavior = beanContext.registerAnonymousBean(behaviorType).finish();
+		IBytecodeBehavior behavior = beanContext.registerBean(behaviorType).finish();
 		childBehaviors.add(behavior);
 		supportedEnhancements.addAll(behavior.getEnhancements());
 	}
