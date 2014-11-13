@@ -671,7 +671,8 @@ public class RelationsTest extends AbstractPersistenceTest
 	public void testListOfStrings()
 	{
 		Employee employee = cache.getObject(Employee.class, 1);
-		employee.setNicknames(Arrays.asList("nick1", "nick2"));
+		employee.getNicknames().add("nick1");
+		employee.getNicknames().add("nick2");
 		employeeService.save(employee);
 	}
 }
