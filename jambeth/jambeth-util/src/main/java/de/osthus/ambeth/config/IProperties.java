@@ -12,6 +12,8 @@ public interface IProperties
 
 	Object get(String key);
 
+	Object get(String key, IProperties initiallyCalledProps);
+
 	String resolvePropertyParts(String value);
 
 	String getString(String key);
