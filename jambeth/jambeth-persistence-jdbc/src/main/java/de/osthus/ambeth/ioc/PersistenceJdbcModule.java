@@ -109,14 +109,14 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 			}
 		}
 
-		beanContextFactory.registerAnonymousBean(JdbcDatabaseFactory.class).propertyRefs("databaseProvider")
+		beanContextFactory.registerBean(JdbcDatabaseFactory.class).propertyRefs("databaseProvider")
 				.propertyValue("AdditionalModules", connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
 				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
 
-		beanContextFactory.registerAnonymousBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
+		beanContextFactory.registerBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
 				IConnectionHolderExtendable.class);
 
-		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerAnonymousBean(ConnectionHolderInterceptor.class)
+		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerBean(ConnectionHolderInterceptor.class)
 				.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();
 		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 
@@ -145,7 +145,7 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		}
 		beanContextFactory.registerAutowireableBean(ISqlConnection.class, JDBCSqlConnection.class);
 
-		IBeanConfiguration arrayConverter = beanContextFactory.registerAnonymousBean(ArrayConverter.class);
+		IBeanConfiguration arrayConverter = beanContextFactory.registerBean(ArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, boolean[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Boolean[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, byte[].class);
@@ -167,12 +167,12 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Collection.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, arrayConverter, Array.class, Set.class);
 
-		IBeanConfiguration lobConverter = beanContextFactory.registerAnonymousBean(LobConverter.class);
+		IBeanConfiguration lobConverter = beanContextFactory.registerBean(LobConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Blob.class, byte[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, char[].class);
 		DedicatedConverterUtil.biLink(beanContextFactory, lobConverter, Clob.class, String.class);
 
-		IBeanConfiguration timestampConverter = beanContextFactory.registerAnonymousBean(TimestampToCalendarConverter.class);
+		IBeanConfiguration timestampConverter = beanContextFactory.registerBean(TimestampToCalendarConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, timestampConverter, Long.class, java.util.Calendar.class);
 	}
 }

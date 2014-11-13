@@ -58,7 +58,7 @@ namespace De.Osthus.Ambeth.Ioc
             }
             else if (!IsOfflineModeSupported)
             {
-                beanContextFactory.RegisterAnonymousBean<NoOpOfflineExtendable>().Autowireable<IOfflineListenerExtendable>();
+                beanContextFactory.RegisterBean<NoOpOfflineExtendable>().Autowireable<IOfflineListenerExtendable>();
             }
 
             beanContextFactory.RegisterBean("serviceByNameProvider", typeof(ServiceByNameProvider)).Autowireable(

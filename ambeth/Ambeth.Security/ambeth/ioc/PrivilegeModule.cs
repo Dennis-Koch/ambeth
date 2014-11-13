@@ -27,8 +27,8 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<UnfilteredDataChangeListener>("privilegeProvider_EventListener").PropertyRefs("privilegeProvider");
             beanContextFactory.Link("privilegeProvider_EventListener").To<IEventListenerExtendable>().With(typeof(IDataChange));
 
-            beanContextFactory.RegisterAnonymousBean<EntityPrivilegeFactoryProvider>().Autowireable<IEntityPrivilegeFactoryProvider>();
-		    beanContextFactory.RegisterAnonymousBean<EntityTypePrivilegeFactoryProvider>().Autowireable<IEntityTypePrivilegeFactoryProvider>();
+            beanContextFactory.RegisterBean<EntityPrivilegeFactoryProvider>().Autowireable<IEntityPrivilegeFactoryProvider>();
+		    beanContextFactory.RegisterBean<EntityTypePrivilegeFactoryProvider>().Autowireable<IEntityTypePrivilegeFactoryProvider>();
 
             if (IsNetworkClientMode && IsPrivilegeServiceBeanActive)
             {

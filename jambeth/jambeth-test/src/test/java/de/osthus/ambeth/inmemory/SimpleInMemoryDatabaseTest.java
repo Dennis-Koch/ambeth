@@ -43,7 +43,7 @@ import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.MultithreadingHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 
 @TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/inmemory/simpleinmemory_orm.xml")
@@ -54,7 +54,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			IBeanConfiguration inMemoryDatabase = beanContextFactory.registerAnonymousBean(SimpleInMemoryDatabase.class);
+			IBeanConfiguration inMemoryDatabase = beanContextFactory.registerBean(SimpleInMemoryDatabase.class);
 
 			// beanContextFactory.link(inMemoryDatabase).to(ITransactionListenerExtendable.class);
 			beanContextFactory.link(inMemoryDatabase, "handleDatabaseAcquire").to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);
@@ -76,6 +76,9 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 	protected String name = "myNameIs";
 
 	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
+
+	@Autowired
 	protected IAlternateIdEntityService service;
 
 	@Autowired(CacheNamedBeans.CacheProviderSingleton)
@@ -86,7 +89,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 		aie.setName(name);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 		return aie;
 	}
 
@@ -104,7 +107,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 	{
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 
 		Assert.assertFalse("Wrong id", aie.getId() == 0);
 		Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
@@ -144,7 +147,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
 
-		this.service.updateAlternateIdEntity(entity);
+		service.updateAlternateIdEntity(entity);
 
 		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
 
@@ -272,7 +275,7 @@ public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
 				}
 			}
 		};
-		MultithreadingHelper.invokeInParallel(beanContext, run1, run2, run3);
+		multithreadingHelper.invokeInParallel(beanContext, run1, run2, run3);
 	}
 
 	@Test

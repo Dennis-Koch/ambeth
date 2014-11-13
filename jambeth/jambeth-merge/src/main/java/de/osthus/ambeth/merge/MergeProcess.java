@@ -112,7 +112,7 @@ public class MergeProcess implements IMergeProcess
 		IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
 		try
 		{
-			final MergeHandle mergeHandle = beanContext.registerAnonymousBean(MergeHandle.class).propertyValue("Cache", childCache).finish();
+			final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", childCache).finish();
 			final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
 			if (guiThreadHelper.isInGuiThread())
 			{

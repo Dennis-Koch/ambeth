@@ -14,7 +14,7 @@ public class OrmXmlReader20TestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(OrmXmlReader20.class).autowireable(OrmXmlReader20.class);
+		beanContextFactory.registerBean(OrmXmlReader20.class).autowireable(OrmXmlReader20.class);
 		beanContextFactory.registerBean("databaseDummy", DatabaseDummy.class).autowireable(IDatabase.class);
 		beanContextFactory.registerBean("xmlConfigUtil", XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 		beanContextFactory.registerBean("proxyHelper", DefaultProxyHelper.class).autowireable(IProxyHelper.class);

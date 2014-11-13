@@ -63,14 +63,14 @@ namespace De.Osthus.Ambeth.Ioc
         {
             ParamChecker.AssertNotNull(ProxyFactory, "ProxyFactory");
 
-            IBeanConfiguration serviceResultcache = beanContextFactory.RegisterAnonymousBean<ServiceResultCache>().Autowireable<IServiceResultCache>();
+            IBeanConfiguration serviceResultcache = beanContextFactory.RegisterBean<ServiceResultCache>().Autowireable<IServiceResultCache>();
             beanContextFactory.Link(serviceResultcache, "HandleClearAllCaches").To<IEventListenerExtendable>().With(typeof(ClearAllCachesEvent));
 
-            beanContextFactory.RegisterAnonymousBean<ValueHolderIEC>().Autowireable(typeof(ValueHolderIEC), typeof(IProxyHelper));
+            beanContextFactory.RegisterBean<ValueHolderIEC>().Autowireable(typeof(ValueHolderIEC), typeof(IProxyHelper));
 
-            beanContextFactory.RegisterAnonymousBean<CacheHelper>().Autowireable(typeof(ICacheHelper), typeof(ICachePathHelper), typeof(IPrefetchHelper));
+            beanContextFactory.RegisterBean<CacheHelper>().Autowireable(typeof(ICacheHelper), typeof(ICachePathHelper), typeof(IPrefetchHelper));
 
-            beanContextFactory.RegisterAnonymousBean<CacheWalker>().Autowireable<ICacheWalker>();
+            beanContextFactory.RegisterBean<CacheWalker>().Autowireable<ICacheWalker>();
 
             beanContextFactory.RegisterAutowireableBean<ICacheMapEntryTypeProvider, CacheMapEntryTypeProvider>();
 
@@ -137,7 +137,7 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<CacheEventTargetExtractor>("cacheEventTargetExtractor");
             beanContextFactory.Link("cacheEventTargetExtractor").To<IEventTargetExtractorExtendable>().With(typeof(ICache));
 
-            beanContextFactory.RegisterAnonymousBean<CacheFactory>().Autowireable<ICacheFactory>();
+            beanContextFactory.RegisterBean<CacheFactory>().Autowireable<ICacheFactory>();
 
             IInterceptor cacheProviderInterceptor = (IInterceptor)beanContextFactory
                     .RegisterBean<CacheProviderInterceptor>("cacheProviderInterceptor")
@@ -184,8 +184,8 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.Link(defaultCacheProviderBeanName).To<ICacheProviderExtendable>();
 
             // CacheContextPostProcessor must be registered AFTER CachePostProcessor...
-            Object cachePostProcessor = beanContextFactory.RegisterAnonymousBean<CachePostProcessor>().GetInstance();
-            beanContextFactory.RegisterAnonymousBean<CacheContextPostProcessor>().PropertyValue("CachePostProcessor", cachePostProcessor);
+            Object cachePostProcessor = beanContextFactory.RegisterBean<CachePostProcessor>().GetInstance();
+            beanContextFactory.RegisterBean<CacheContextPostProcessor>().PropertyValue("CachePostProcessor", cachePostProcessor);
 
             if (IsNetworkClientMode && IsCacheServiceBeanActive)
             {
@@ -201,12 +201,12 @@ namespace De.Osthus.Ambeth.Ioc
                 //beanContextFactory.RegisterAlias(CacheModule.ROOT_CACHE_RETRIEVER, CacheModule.EXTERNAL_CACHE_SERVICE);
                 //beanContextFactory.registerBean<CacheServiceDelegate>("cacheService").autowireable<ICacheService>();
             }
-            beanContextFactory.RegisterAnonymousBean<DataObjectMixin>().Autowireable<DataObjectMixin>();
-            beanContextFactory.RegisterAnonymousBean<EntityEqualsMixin>().Autowireable<EntityEqualsMixin>();
-            beanContextFactory.RegisterAnonymousBean<EmbeddedTypeMixin>().Autowireable<EmbeddedTypeMixin>();
-            beanContextFactory.RegisterAnonymousBean<PropertyChangeMixin>().Autowireable(typeof(PropertyChangeMixin),
+            beanContextFactory.RegisterBean<DataObjectMixin>().Autowireable<DataObjectMixin>();
+            beanContextFactory.RegisterBean<EntityEqualsMixin>().Autowireable<EntityEqualsMixin>();
+            beanContextFactory.RegisterBean<EmbeddedTypeMixin>().Autowireable<EmbeddedTypeMixin>();
+            beanContextFactory.RegisterBean<PropertyChangeMixin>().Autowireable(typeof(PropertyChangeMixin),
                 typeof(IPropertyChangeExtensionExtendable), typeof(ICollectionChangeExtensionExtendable));
-            beanContextFactory.RegisterAnonymousBean<ValueHolderContainerMixin>().Autowireable<ValueHolderContainerMixin>();
+            beanContextFactory.RegisterBean<ValueHolderContainerMixin>().Autowireable<ValueHolderContainerMixin>();
         }
     }
 }

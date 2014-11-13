@@ -75,9 +75,9 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(TestAuditService.class).autowireable(ITestAuditService.class);
+			beanContextFactory.registerBean(TestAuditService.class).autowireable(ITestAuditService.class);
 
-			IBeanConfiguration bc = beanContextFactory.registerAnonymousBean(ABC.class);
+			IBeanConfiguration bc = beanContextFactory.registerBean(ABC.class);
 			SecurityServerModule.linkPermissionRule(beanContextFactory, bc, User.class);
 		}
 	}
@@ -87,8 +87,8 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerAnonymousBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
-			beanContextFactory.registerAnonymousBean(TestUserResolver.class).autowireable(IUserResolver.class);
+			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
 			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntity.class);
 			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);

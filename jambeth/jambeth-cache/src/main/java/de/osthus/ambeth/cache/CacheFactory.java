@@ -53,7 +53,7 @@ public class CacheFactory implements ICacheFactory
 
 	protected IDisposableCache createIntern(CacheFactoryDirective cacheFactoryDirective, boolean privileged, boolean foreignThreadAware, Boolean useWeakEntries)
 	{
-		IBeanRuntime<ChildCache> firstLevelCacheBC = beanContext.registerAnonymousBean(ChildCache.class);
+		IBeanRuntime<ChildCache> firstLevelCacheBC = beanContext.registerBean(ChildCache.class);
 		if (!foreignThreadAware)
 		{
 			// Do not inject EventQueue because caches without foreign interest will never receive async DCEs

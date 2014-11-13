@@ -31,17 +31,17 @@ public class MergeServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(DatabaseToEntityMetaData.class).propertyRef("PersistenceMergeServiceExtension", MERGE_SERVICE_SERVER)
+		beanContextFactory.registerBean(DatabaseToEntityMetaData.class).propertyRef("PersistenceMergeServiceExtension", MERGE_SERVICE_SERVER)
 				.propertyRef("PersistenceCacheRetriever", CacheModule.DEFAULT_CACHE_RETRIEVER);
 
-		IBeanConfiguration relationMergeService = beanContextFactory.registerAnonymousBean(RelationMergeService.class)
+		IBeanConfiguration relationMergeService = beanContextFactory.registerBean(RelationMergeService.class)
 				.autowireable(IRelationMergeService.class);
 		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
 		beanContextFactory.link(relationMergeService).to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 		beanContextFactory.registerBean(MERGE_SERVICE_SERVER, PersistenceMergeServiceExtension.class).autowireable(IMergeListenerExtendable.class);
 
-		IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerAnonymousBean(LocalToPublicDispatcher.class);
+		IBeanConfiguration localToPublicDispatcher = beanContextFactory.registerBean(LocalToPublicDispatcher.class);
 
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(IDataChangeOfSession.class);
 		beanContextFactory.link(localToPublicDispatcher).to(IEventListenerExtendable.class).with(DatabaseAcquireEvent.class);

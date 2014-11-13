@@ -60,16 +60,16 @@ public class PersistenceModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
-		beanContextFactory.registerAnonymousBean(PersistencePostProcessor.class);
+		beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
+		beanContextFactory.registerBean(PersistencePostProcessor.class);
 
-		beanContextFactory.registerAnonymousBean(QueryPostProcessor.class);
+		beanContextFactory.registerBean(QueryPostProcessor.class);
 
-		beanContextFactory.registerAnonymousBean(EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
+		beanContextFactory.registerBean(EntityLoader.class).autowireable(IEntityLoader.class, ILoadContainerProvider.class);
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class, ITransactionListenerExtendable.class);
 
-		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerAnonymousBean(EntityLoaderParallelInvoker.class)
+		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerBean(EntityLoaderParallelInvoker.class)
 				.propertyRefs("databaseProvider").autowireable(IEntityLoaderParallelInvoker.class);
 		if (parallelReadActive)
 		{
@@ -87,32 +87,32 @@ public class PersistenceModule implements IInitializingModule
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class);
 
-		beanContextFactory.registerAnonymousBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
+		beanContextFactory.registerBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
 				IDatabaseProviderExtendable.class);
 
 		beanContextFactory.registerBean("databaseSessionIdController", DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
-		beanContextFactory.registerAnonymousBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
-		beanContextFactory.registerAnonymousBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH);
+		beanContextFactory.registerBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
+		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH);
 
-		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerAnonymousBean(OrmXmlReaderLegathy.class);
+		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 
 		beanContextFactory.registerBean("ormXmlReader", ExtendableBean.class).propertyValue(ExtendableBean.P_PROVIDER_TYPE, IOrmXmlReaderRegistry.class)
 				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IOrmXmlReaderExtendable.class).propertyRef(ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy)
 				.autowireable(IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class);
 
-		IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
+		IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerBean(OrmXmlReader20.class);
 		beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
 
-		beanContextFactory.registerAnonymousBean(SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
+		beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class, ISqlKeywordRegistry.class);
 
-		TargetingInterceptor databaseInterceptor = (TargetingInterceptor) beanContextFactory.registerAnonymousBean(TargetingInterceptor.class)
+		TargetingInterceptor databaseInterceptor = (TargetingInterceptor) beanContextFactory.registerBean(TargetingInterceptor.class)
 				.propertyRef("TargetProvider", "databaseProvider").getInstance();
 
 		IDatabase databaseTlProxy = proxyFactory.createProxy(IDatabase.class, databaseInterceptor);
 
 		beanContextFactory.registerExternalBean(databaseTlProxy).autowireable(IDatabase.class);
 
-		beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+		beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 	}
 }

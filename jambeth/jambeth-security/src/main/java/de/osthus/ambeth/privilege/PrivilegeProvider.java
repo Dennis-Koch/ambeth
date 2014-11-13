@@ -159,7 +159,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	@Override
 	public IPrivilegeCache createPrivilegeCache()
 	{
-		return beanContext.registerAnonymousBean(PrivilegeCache.class).finish();
+		return beanContext.registerBean(PrivilegeCache.class).finish();
 	}
 
 	@Override

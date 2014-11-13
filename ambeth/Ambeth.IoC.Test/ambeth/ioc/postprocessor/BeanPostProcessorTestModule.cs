@@ -21,7 +21,7 @@ namespace De.Osthus.Ambeth.Ioc.Postprocessor
             for (int a = Number; a-- > 0; )
             {
                 PostProcessorOrder order = orders[rand.Next(orders.Length)];
-                beanContextFactory.RegisterAnonymousBean<OrderedPostProcessor>().PropertyValue("Order", order);
+                beanContextFactory.RegisterBean<OrderedPostProcessor>().PropertyValue("Order", order);
             }
         }
     }

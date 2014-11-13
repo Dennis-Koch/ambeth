@@ -32,7 +32,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.MultithreadingHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ReflectUtil;
 
 @SQLStructure("MergeControllerTest_structure.sql")
@@ -55,6 +55,9 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 
 	@Autowired
 	protected IMergeController mergeController;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -139,7 +142,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 				}
 			}
 		};
-		MultithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
+		multithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
 	}
 
 	@Test
@@ -193,7 +196,7 @@ public class MergeControllerClientTest extends AbstractPersistenceTest
 				}
 			}
 		};
-		MultithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
+		multithreadingHelper.invokeInParallel(beanContext, parentModifierRunnable, childModifierRunnable);
 	}
 
 	@Test

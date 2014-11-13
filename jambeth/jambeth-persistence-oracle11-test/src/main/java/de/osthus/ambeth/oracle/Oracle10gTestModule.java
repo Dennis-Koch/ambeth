@@ -9,7 +9,7 @@ public class Oracle10gTestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(Oracle10gModule.class);
-		beanContextFactory.registerAnonymousBean(Oracle10gTestDialect.class).autowireable(IConnectionTestDialect.class);
+		beanContextFactory.registerBean(Oracle10gModule.class);
+		beanContextFactory.registerBean(Oracle10gTestDialect.class).autowireable(IConnectionTestDialect.class);
 	}
 }

@@ -9,7 +9,7 @@ public class QueryIsInMassdataTestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(ChildService.class).autowireable(IChildService.class);
+		beanContextFactory.registerBean(ChildService.class).autowireable(IChildService.class);
 	}
 
 }

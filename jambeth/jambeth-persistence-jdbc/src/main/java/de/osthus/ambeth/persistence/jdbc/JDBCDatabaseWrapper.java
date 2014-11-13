@@ -985,7 +985,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			int scale = entry.getSize();
 			int digits = entry.getDigits();
 
-			IBeanRuntime<SqlField> field = serviceContext.registerAnonymousBean(SqlField.class);
+			IBeanRuntime<SqlField> field = serviceContext.registerBean(SqlField.class);
 			field.propertyValue("Name", fieldName);
 			field.propertyValue("FieldType", JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits));
 
@@ -1102,7 +1102,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			int scale = entry.getSize();
 			int digits = entry.getDigits();
 
-			IBeanRuntime<SqlField> field = serviceContext.registerAnonymousBean(SqlField.class).propertyValue("Name", fieldName)
+			IBeanRuntime<SqlField> field = serviceContext.registerBean(SqlField.class).propertyValue("Name", fieldName)
 					.propertyValue("FieldType", JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits));
 
 			if (fieldName.equals(linkColumnName))

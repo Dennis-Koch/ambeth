@@ -202,7 +202,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
 		try
 		{
-			IBeanRuntime<? extends BasicTwoPlaceOperator> operatorBC = beanContext.registerAnonymousBean(operatorType)
+			IBeanRuntime<? extends BasicTwoPlaceOperator> operatorBC = beanContext.registerBean(operatorType)
 					.propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand);
 			if (caseSensitive != null)
 			{
@@ -573,7 +573,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertTrue(fieldName != null || field != null, "either fieldName or field must be valid");
 		try
 		{
-			IBeanRuntime<SqlColumnOperand> br = getBeanContext().registerAnonymousBean(SqlColumnOperand.class)
+			IBeanRuntime<SqlColumnOperand> br = getBeanContext().registerBean(SqlColumnOperand.class)
 					.propertyValue("ColumnName", field == null ? fieldName : field.getName()).propertyValue("TableAliasHolder", tableAliasHolder);
 			if (field != null)
 			{
@@ -744,7 +744,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(operand, "operand");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlNullCheck.class).propertyValue("Operand", operand).propertyValue("IsNull", true).finish();
+			return getBeanContext().registerBean(SqlNullCheck.class).propertyValue("Operand", operand).propertyValue("IsNull", true).finish();
 		}
 		catch (Throwable e)
 		{
@@ -758,7 +758,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(operand, "operand");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlNullCheck.class).propertyValue("Operand", operand).propertyValue("IsNull", false).finish();
+			return getBeanContext().registerBean(SqlNullCheck.class).propertyValue("Operand", operand).propertyValue("IsNull", false).finish();
 		}
 		catch (Throwable e)
 		{
@@ -811,7 +811,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		}
 		try
 		{
-			return getBeanContext().registerAnonymousBean(DirectValueOperand.class).propertyValue("Value", value).finish();
+			return getBeanContext().registerBean(DirectValueOperand.class).propertyValue("Value", value).finish();
 		}
 		catch (Throwable e)
 		{
@@ -825,7 +825,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(paramName, "paramName");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SimpleValueOperand.class).propertyValue("ParamName", paramName).finish();
+			return getBeanContext().registerBean(SimpleValueOperand.class).propertyValue("ParamName", paramName).finish();
 		}
 		catch (Throwable e)
 		{
@@ -838,7 +838,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlAllOperand.class).finish();
+			return getBeanContext().registerBean(SqlAllOperand.class).finish();
 		}
 		catch (Throwable e)
 		{
@@ -934,7 +934,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(operands, "operands");
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
+			return getBeanContext().registerBean(SqlFunctionOperand.class).propertyValue("Name", name).propertyValue("Operands", operands).finish();
 		}
 		catch (Throwable e)
 		{
@@ -947,7 +947,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		ParamChecker.assertParamNotNull(operand, "operand");
 		ParamChecker.assertParamNotNull(orderByType, "orderByType");
-		IOperand orderByOperand = getBeanContext().registerAnonymousBean(SqlOrderByOperator.class).propertyValue("Column", operand)
+		IOperand orderByOperand = getBeanContext().registerBean(SqlOrderByOperator.class).propertyValue("Column", operand)
 				.propertyValue("OrderByType", orderByType).finish();
 
 		if (orderByOperands == null)
@@ -991,7 +991,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		{
 			selectOperands = new ArrayList<IOperand>();
 		}
-		IOperand additionalSelectOperand = getBeanContext().registerAnonymousBean(SqlAdditionalSelectOperand.class).propertyValue("Column", columnOperand)
+		IOperand additionalSelectOperand = getBeanContext().registerBean(SqlAdditionalSelectOperand.class).propertyValue("Column", columnOperand)
 				.finish();
 		selectOperands.add(additionalSelectOperand);
 		return selectOperands.size() - 1;
@@ -1013,7 +1013,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ITable table = database.getTableByType(entityType);
 		try
 		{
-			return getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("TableName", table.getName())
+			return getBeanContext().registerBean(SqlJoinOperator.class).propertyValue("TableName", table.getName())
 					.propertyValue("FullqualifiedEscapedTableName", table.getFullqualifiedEscapedName()).propertyValue("Clause", clause)
 					.propertyValue("JoinType", joinType).finish();
 		}
@@ -1062,7 +1062,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		}
 		try
 		{
-			SqlJoinOperator joinClause = getBeanContext().registerAnonymousBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
+			SqlJoinOperator joinClause = getBeanContext().registerBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
 					.propertyValue("TableName", tableName).propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
 					.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).finish();
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
@@ -1086,7 +1086,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		SqlColumnOperand[] columns = new SqlColumnOperand[selectedColumns.length];
 		System.arraycopy(selectedColumns, 0, columns, 0, selectedColumns.length);
 
-		SqlSubselectOperand subQueryOperand = getBeanContext().registerAnonymousBean(SqlSubselectOperand.class).propertyValue("SelectedColumns", columns)
+		SqlSubselectOperand subQueryOperand = getBeanContext().registerBean(SqlSubselectOperand.class).propertyValue("SelectedColumns", columns)
 				.propertyValue("SubQuery", subQuery).finish();
 
 		subQueries.add(subQueryOperand);

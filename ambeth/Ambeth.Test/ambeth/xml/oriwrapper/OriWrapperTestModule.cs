@@ -12,7 +12,7 @@ namespace De.Osthus.Ambeth.Xml.Test
         {
             beanContextFactory.RegisterBean<OriWrapperTestBed>("oriWrapperTestBed").Autowireable(typeof(OriWrapperTestBed));
 
-            IBeanConfiguration cacheRetrieverConf = beanContextFactory.RegisterAnonymousBean<CacheRetrieverMock>();
+            IBeanConfiguration cacheRetrieverConf = beanContextFactory.RegisterBean<CacheRetrieverMock>();
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(EntityA));
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(EntityB));
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(Material));

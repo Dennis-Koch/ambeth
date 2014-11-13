@@ -43,23 +43,23 @@ public class SecurityServerModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
-		beanContextFactory.registerAnonymousBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
-		beanContextFactory.registerAnonymousBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
-		beanContextFactory.registerAnonymousBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);
+		beanContextFactory.registerBean(PasswordUtil.class).autowireable(IPasswordUtil.class);
+		beanContextFactory.registerBean(PBEncryptor.class).autowireable(IPBEncryptor.class);
+		beanContextFactory.registerBean(SignatureUtil.class).autowireable(ISignatureUtil.class);
+		beanContextFactory.registerBean(PersistedPrivateKeyProvider.class).autowireable(IPrivateKeyProvider.class);
 
 		if (isSecurityActive)
 		{
-			beanContextFactory.registerAnonymousBean(SecurityPostProcessor.class);
+			beanContextFactory.registerBean(SecurityPostProcessor.class);
 
-			beanContextFactory.registerAnonymousBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
+			beanContextFactory.registerBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
 
-			beanContextFactory.registerAnonymousBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
+			beanContextFactory.registerBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
 					IMergeSecurityManager.class, IServiceFilterExtendable.class);
 
 			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class, IActionPermission.class);
 
-			IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerAnonymousBean(DefaultServiceFilter.class);
+			IBeanConfiguration defaultServiceFilterBC = beanContextFactory.registerBean(DefaultServiceFilter.class);
 			beanContextFactory.link(defaultServiceFilterBC).to(IServiceFilterExtendable.class);
 		}
 	}
@@ -67,7 +67,7 @@ public class SecurityServerModule implements IInitializingModule
 	public static void registerAndLinkPermissionRule(IBeanContextFactory beanContextFactory, Class<? extends IPermissionRule> permissionRuleType,
 			Class<?>... entityTypes)
 	{
-		IBeanConfiguration permissionRule = beanContextFactory.registerAnonymousBean(permissionRuleType);
+		IBeanConfiguration permissionRule = beanContextFactory.registerBean(permissionRuleType);
 		for (Class<?> entityType : entityTypes)
 		{
 			linkPermissionRule(beanContextFactory, permissionRule, entityType);

@@ -46,29 +46,29 @@ public class IocBootstrapModule implements IInitializingModule
 		beanContextFactory.registerBean("charArrayConverter", CharArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, "charArrayConverter", String.class, char[].class);
 
-		IBeanConfiguration stringToFileConverter = beanContextFactory.registerAnonymousBean(StringToFileConverter.class);
+		IBeanConfiguration stringToFileConverter = beanContextFactory.registerBean(StringToFileConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File.class);
 
-		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerAnonymousBean(StringToClassArrayConverter.class);
+		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerBean(StringToClassArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class, Class[].class);
 
-		IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory.registerAnonymousBean(StringToDoubleArrayConverter.class);
+		IBeanConfiguration stringToDoubleArrayConverter = beanContextFactory.registerBean(StringToDoubleArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToDoubleArrayConverter, String.class, double[].class);
 
-		IBeanConfiguration stringToFloatArrayConverter = beanContextFactory.registerAnonymousBean(StringToFloatArrayConverter.class);
+		IBeanConfiguration stringToFloatArrayConverter = beanContextFactory.registerBean(StringToFloatArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFloatArrayConverter, String.class, float[].class);
 
-		IBeanConfiguration stringToIntArrayConverter = beanContextFactory.registerAnonymousBean(StringToIntArrayConverter.class);
+		IBeanConfiguration stringToIntArrayConverter = beanContextFactory.registerBean(StringToIntArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToIntArrayConverter, String.class, int[].class);
 
-		IBeanConfiguration stringToLongArrayConverter = beanContextFactory.registerAnonymousBean(StringToLongArrayConverter.class);
+		IBeanConfiguration stringToLongArrayConverter = beanContextFactory.registerBean(StringToLongArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToLongArrayConverter, String.class, long[].class);
 
-		IBeanConfiguration stringToPatternConverterBC = beanContextFactory.registerAnonymousBean(StringToPatternConverter.class);
+		IBeanConfiguration stringToPatternConverterBC = beanContextFactory.registerBean(StringToPatternConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToPatternConverterBC, String.class, Pattern[].class);
 
-		IBeanConfiguration stringToStringArrayConverter = beanContextFactory.registerAnonymousBean(StringToStringArrayConverter.class);
+		IBeanConfiguration stringToStringArrayConverter = beanContextFactory.registerBean(StringToStringArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToStringArrayConverter, String.class, String[].class);
 
 		beanContextFactory.registerBean("interningFeature", InterningFeature.class).autowireable(IInterningFeature.class);

@@ -67,7 +67,7 @@ public class AmbethCron4jJob extends Task
 			try
 			{
 				thread.setName("Job " + jobName);
-				final AmbethCron4jJobContext jobContext = beanContext.registerAnonymousBean(AmbethCron4jJobContext.class)
+				final AmbethCron4jJobContext jobContext = beanContext.registerBean(AmbethCron4jJobContext.class)
 						.propertyValue("TaskExecutionContext", context).finish();
 
 				if (log.isDebugEnabled())

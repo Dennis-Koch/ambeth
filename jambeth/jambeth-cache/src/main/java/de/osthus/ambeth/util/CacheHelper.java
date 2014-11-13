@@ -136,7 +136,7 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 	@Override
 	public IPrefetchConfig createPrefetch()
 	{
-		return beanContext.registerAnonymousBean(PrefetchConfig.class).finish();
+		return beanContext.registerBean(PrefetchConfig.class).finish();
 	}
 
 	@Override

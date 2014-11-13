@@ -16,12 +16,12 @@ public class SetupModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(DataSetup.class).autowireable(IDataSetup.class, IDatasetBuilderExtensionExtendable.class);
+		beanContextFactory.registerBean(DataSetup.class).autowireable(IDataSetup.class, IDatasetBuilderExtensionExtendable.class);
 	}
 
 	public static void registerDataSetBuilder(IBeanContextFactory beanContextFactory, Class<? extends IDatasetBuilder> type)
 	{
-		IBeanConfiguration builder = beanContextFactory.registerAnonymousBean(type).autowireable(type);
+		IBeanConfiguration builder = beanContextFactory.registerBean(type).autowireable(type);
 		beanContextFactory.link(builder).to(IDatasetBuilderExtensionExtendable.class);
 	}
 }

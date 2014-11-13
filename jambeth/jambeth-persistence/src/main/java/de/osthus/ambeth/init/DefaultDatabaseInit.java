@@ -60,7 +60,7 @@ public class DefaultDatabaseInit<D extends IDatabase> implements IDatabaseInit<D
 
 		initCustom(database);
 
-		MergeHandle mergeHandle = serviceContext.registerAnonymousBean(MergeHandle.class).finish();
+		MergeHandle mergeHandle = serviceContext.registerBean(MergeHandle.class).finish();
 		ICUDResult cudResult = mergeController.mergeDeep(CreateHelper.getAndClearEntityQueue(), mergeHandle);
 
 		IOriCollection oriCollection = mergeService.merge(cudResult, null);

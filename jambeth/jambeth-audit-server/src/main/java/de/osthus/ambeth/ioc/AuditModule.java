@@ -36,15 +36,15 @@ public class AuditModule implements IInitializingModule
 		{
 			return;
 		}
-		beanContextFactory.registerAnonymousBean(AuditMethodCallPostProcessor.class);
+		beanContextFactory.registerBean(AuditMethodCallPostProcessor.class);
 
-		IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerAnonymousBean(AuditEntryWriterV1.class);
+		IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerBean(AuditEntryWriterV1.class);
 		beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
 
-		beanContextFactory.registerAnonymousBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class,
+		beanContextFactory.registerBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class,
 				IAuditConfigurationExtendable.class);
 
-		IBeanConfiguration auditEntryController = beanContextFactory.registerAnonymousBean(AuditController.class).autowireable(IMethodCallLogger.class,
+		IBeanConfiguration auditEntryController = beanContextFactory.registerBean(AuditController.class).autowireable(IMethodCallLogger.class,
 				IAuditEntryVerifier.class, IAuditEntryWriterExtendable.class);
 		beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
 		beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);

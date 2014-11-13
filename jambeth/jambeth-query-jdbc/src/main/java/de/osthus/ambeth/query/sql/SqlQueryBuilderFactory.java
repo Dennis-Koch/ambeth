@@ -24,7 +24,7 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory
 	@Override
 	public <T> IQueryBuilder<T> create(final Class<T> entityType)
 	{
-		return beanContext.registerAnonymousBean(SqlQueryBuilder.class).propertyValue("EntityType", entityType)
+		return beanContext.registerBean(SqlQueryBuilder.class).propertyValue("EntityType", entityType)
 				.propertyValue("DisposeContextOnDispose", Boolean.FALSE).finish();
 	}
 }

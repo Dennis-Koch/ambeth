@@ -30,7 +30,7 @@ public final class ConfigurationPropertiesScanner
 		props.put("ambeth.log.level", "INFO");
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
-		IClasspathScanner classpathScanner = bootstrapContext.registerAnonymousBean(ClasspathScanner.class).finish();
+		IClasspathScanner classpathScanner = bootstrapContext.registerBean(ClasspathScanner.class).finish();
 		List<Class<?>> types = classpathScanner.scanClassesAnnotatedWith(ConfigurationConstants.class);
 		Collections.sort(types, new Comparator<Class<?>>()
 		{

@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Remote;
 using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Service;
+using De.Osthus.Ambeth.Util;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -20,11 +21,13 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-       		beanContextFactory.RegisterAnonymousBean<SecurityActivation>().Autowireable<ISecurityActivation>();
+            beanContextFactory.RegisterBean<MultithreadingHelper>().Autowireable<IMultithreadingHelper>();
 
-    		beanContextFactory.RegisterAnonymousBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
+            beanContextFactory.RegisterBean<SecurityActivation>().Autowireable<ISecurityActivation>();
 
-            beanContextFactory.RegisterAnonymousBean<SecurityContextHolder>().Autowireable(typeof(ISecurityContextHolder), typeof(IAuthorizationChangeListenerExtendable));
+            beanContextFactory.RegisterBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
+
+            beanContextFactory.RegisterBean<SecurityContextHolder>().Autowireable(typeof(ISecurityContextHolder), typeof(IAuthorizationChangeListenerExtendable));
 
             if (IsNetworkClientMode && IsSecurityBeanActive)
             {

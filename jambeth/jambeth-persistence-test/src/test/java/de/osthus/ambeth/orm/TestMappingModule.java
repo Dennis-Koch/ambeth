@@ -16,6 +16,6 @@ public class TestMappingModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(XmlDatabaseMapper.class);
+		beanContextFactory.registerBean(XmlDatabaseMapper.class);
 	}
 }

@@ -95,18 +95,18 @@ public class MergeModule implements IInitializingModule
 		// EntityMetaDataCache.class);
 		// metaDataCache.setEntityMetaDataProvider(metaDataClient);
 		// }
-		beanContextFactory.registerAnonymousBean(CacheModification.class).autowireable(ICacheModification.class);
+		beanContextFactory.registerBean(CacheModification.class).autowireable(ICacheModification.class);
 
 		beanContextFactory.registerAutowireableBean(IObjRefHelper.class, ObjRefHelper.class);
-		beanContextFactory.registerAnonymousBean(CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
+		beanContextFactory.registerBean(CUDResultHelper.class).autowireable(ICUDResultHelper.class, ICUDResultExtendable.class);
 
-		beanContextFactory.registerAnonymousBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
+		beanContextFactory.registerBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 
-		beanContextFactory.registerAnonymousBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class);
+		beanContextFactory.registerBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class);
 
-		IBeanConfiguration valueObjectMap = beanContextFactory.registerAnonymousBean(ValueObjectMap.class);
+		IBeanConfiguration valueObjectMap = beanContextFactory.registerBean(ValueObjectMap.class);
 		beanContextFactory
-				.registerAnonymousBean(EntityMetaDataProvider.class)
+				.registerBean(EntityMetaDataProvider.class)
 				.propertyRef("ValueObjectMap", valueObjectMap)
 				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
 						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class,
@@ -115,7 +115,7 @@ public class MergeModule implements IInitializingModule
 
 		if (!independentMetaData)
 		{
-			IBeanConfiguration entityMetaDataConverter = beanContextFactory.registerAnonymousBean(EntityMetaDataConverter.class);
+			IBeanConfiguration entityMetaDataConverter = beanContextFactory.registerBean(EntityMetaDataConverter.class);
 			DedicatedConverterUtil.biLink(beanContextFactory, entityMetaDataConverter, EntityMetaData.class, EntityMetaDataTransfer.class);
 		}
 		else
@@ -123,21 +123,21 @@ public class MergeModule implements IInitializingModule
 			// beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
 			// beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
 
-			IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerAnonymousBean(OrmXmlReaderLegathy.class);
+			IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 			ExtendableBean.registerExtendableBean(beanContextFactory, IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class).propertyRef(
 					ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy);
-			IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerAnonymousBean(OrmXmlReader20.class);
+			IBeanConfiguration ormXmlReader20BC = beanContextFactory.registerBean(OrmXmlReader20.class);
 			beanContextFactory.link(ormXmlReader20BC).to(IOrmXmlReaderExtendable.class).with(OrmXmlReader20.ORM_XML_NS);
 
-			beanContextFactory.registerAnonymousBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
+			beanContextFactory.registerBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 		}
-		beanContextFactory.registerAnonymousBean(RelationProvider.class).autowireable(IRelationProvider.class);
+		beanContextFactory.registerBean(RelationProvider.class).autowireable(IRelationProvider.class);
 
-		beanContextFactory.registerAnonymousBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class, IIntermediateMemberTypeProvider.class);
-		beanContextFactory.registerAnonymousBean(EmbeddedMemberMixin.class).autowireable(EmbeddedMemberMixin.class);
+		beanContextFactory.registerBean(MemberTypeProvider.class).autowireable(IMemberTypeProvider.class, IIntermediateMemberTypeProvider.class);
+		beanContextFactory.registerBean(EmbeddedMemberMixin.class).autowireable(EmbeddedMemberMixin.class);
 
-		beanContextFactory.registerAnonymousBean(ObjRefFactory.class).autowireable(IObjRefFactory.class);
-		IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.registerAnonymousBean(ObjRefObjectCopierExtension.class);
+		beanContextFactory.registerBean(ObjRefFactory.class).autowireable(IObjRefFactory.class);
+		IBeanConfiguration objRefObjectCopierExtension = beanContextFactory.registerBean(ObjRefObjectCopierExtension.class);
 		beanContextFactory.link(objRefObjectCopierExtension).to(IObjectCopierExtendable.class).with(IObjRef.class).optional();
 
 		Class<?> entityFactoryType = this.entityFactoryType;
@@ -147,7 +147,7 @@ public class MergeModule implements IInitializingModule
 		}
 		beanContextFactory.registerBean("entityFactory", entityFactoryType).autowireable(IEntityFactory.class);
 
-		beanContextFactory.registerAnonymousBean(ObjRefStoreEntryProvider.class).autowireable(IObjRefStoreEntryProvider.class);
+		beanContextFactory.registerBean(ObjRefStoreEntryProvider.class).autowireable(IObjRefStoreEntryProvider.class);
 
 		// if (isNetworkClientMode)
 		// {

@@ -30,9 +30,9 @@ public class AmbethPersistenceSchemaModule implements IInitializingModule, IProp
 	@Override
 	public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(IocBootstrapModule.class);
-		beanContextFactory.registerAnonymousBean(DialectSelectorSchemaModule.class);
-		beanContextFactory.registerAnonymousBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
-		beanContextFactory.registerAnonymousBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
+		beanContextFactory.registerBean(IocBootstrapModule.class);
+		beanContextFactory.registerBean(DialectSelectorSchemaModule.class);
+		beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+		beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 	}
 }

@@ -19,7 +19,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
 
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            IBeanConfiguration cacheRetrieverConf = beanContextFactory.RegisterAnonymousBean<CacheRetrieverMock>();
+            IBeanConfiguration cacheRetrieverConf = beanContextFactory.RegisterBean<CacheRetrieverMock>();
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(Material));
             beanContextFactory.Link(cacheRetrieverConf).To<ICacheRetrieverExtendable>().With(typeof(MaterialType));
 

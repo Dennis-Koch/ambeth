@@ -40,6 +40,6 @@ public class InMemoryQueryBuilderFactory implements IQueryBuilderFactory, IIniti
 	@Override
 	public <T> IQueryBuilder<T> create(Class<T> entityType)
 	{
-		return beanContext.registerAnonymousBean(InMemoryQueryBuilder.class).propertyValue("EntityType", entityType).finish();
+		return beanContext.registerBean(InMemoryQueryBuilder.class).propertyValue("EntityType", entityType).finish();
 	}
 }

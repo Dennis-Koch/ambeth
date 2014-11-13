@@ -14,7 +14,7 @@ public class TableAliasProviderTest extends AbstractIocTest
 	@Before
 	public void setUp() throws Exception
 	{
-		fixture = beanContext.registerAnonymousBean(TableAliasProvider.class).finish();
+		fixture = beanContext.registerBean(TableAliasProvider.class).finish();
 	}
 
 	@Test

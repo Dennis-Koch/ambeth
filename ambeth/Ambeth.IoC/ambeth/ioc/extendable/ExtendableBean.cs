@@ -42,7 +42,7 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                 return beanContextFactory.RegisterBean(beanName, typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
                         .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).Autowireable(providerType, extendableType);
             }
-            return beanContextFactory.RegisterAnonymousBean(typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
+            return beanContextFactory.RegisterBean(typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, providerType)
                     .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, extendableType).Autowireable(providerType, extendableType);
         }
 

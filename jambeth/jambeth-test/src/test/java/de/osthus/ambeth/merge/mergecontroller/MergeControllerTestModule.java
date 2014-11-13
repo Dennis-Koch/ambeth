@@ -8,6 +8,6 @@ public class MergeControllerTestModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(ParentService.class).autowireable(IParentService.class);
+		beanContextFactory.registerBean(ParentService.class).autowireable(IParentService.class);
 	}
 }

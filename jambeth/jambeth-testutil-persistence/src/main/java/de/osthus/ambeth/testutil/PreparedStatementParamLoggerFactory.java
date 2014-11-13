@@ -66,7 +66,7 @@ public class PreparedStatementParamLoggerFactory implements IFactoryBean, IIniti
 	@Override
 	public Object getObject() throws Throwable
 	{
-		PreparedStatementParamLogger paramLogger = beanContext.registerAnonymousBean(PreparedStatementParamLogger.class)
+		PreparedStatementParamLogger paramLogger = beanContext.registerBean(PreparedStatementParamLogger.class)
 				.propertyValue("ParamSetters", paramSetters).finish();
 
 		return paramLogger;

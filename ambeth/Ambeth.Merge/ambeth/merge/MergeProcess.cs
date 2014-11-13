@@ -77,7 +77,7 @@ namespace De.Osthus.Ambeth.Merge
             IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false);
             try
             {
-                MergeHandle mergeHandle = BeanContext.RegisterAnonymousBean<MergeHandle>().PropertyValue("Cache", childCache).Finish();
+                MergeHandle mergeHandle = BeanContext.RegisterBean<MergeHandle>().PropertyValue("Cache", childCache).Finish();
                 ICUDResult cudResult = MergeController.MergeDeep(objectToMerge, mergeHandle);
                 if (GuiThreadHelper.IsInGuiThread())
                 {

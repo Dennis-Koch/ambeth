@@ -205,7 +205,7 @@ public class AmbethCron4jScheduler implements IJobScheduler, IInitializingBean, 
 
 	protected Task createTask(IJob job, String jobName, IAuthentication authentication)
 	{
-		IBeanRuntime<AmbethCron4jJob> jobConf = beanContext.registerAnonymousBean(AmbethCron4jJob.class).propertyValue("Job", job)
+		IBeanRuntime<AmbethCron4jJob> jobConf = beanContext.registerBean(AmbethCron4jJob.class).propertyValue("Job", job)
 				.propertyValue("JobName", jobName).propertyValue("Authentication", authentication);
 		return jobConf.finish();
 	}

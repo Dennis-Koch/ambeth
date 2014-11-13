@@ -115,7 +115,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 		if (tableChange == null)
 		{
 			Class<? extends ITableChange> tableChangeType = entityHandler != null ? TableChange.class : LinkTableChange.class;
-			tableChange = beanContext.registerAnonymousBean(tableChangeType).propertyValue("EntityHandlerName", entityHandlerName)
+			tableChange = beanContext.registerBean(tableChangeType).propertyValue("EntityHandlerName", entityHandlerName)
 					.propertyValue("Table", entityHandler).finish();
 			tableChangeMap.put(entityHandlerName, tableChange);
 		}

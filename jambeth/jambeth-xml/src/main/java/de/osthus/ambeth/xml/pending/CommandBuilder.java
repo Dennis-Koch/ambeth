@@ -60,7 +60,7 @@ public class CommandBuilder implements ICommandBuilder
 		{
 			commandType = overridingCommandType;
 		}
-		IBeanRuntime<? extends C> beanRuntime = beanContext.registerAnonymousBean(commandType).propertyValue("ObjectFuture", objectFuture)
+		IBeanRuntime<? extends C> beanRuntime = beanContext.registerBean(commandType).propertyValue("ObjectFuture", objectFuture)
 				.propertyValue("Parent", parent);
 		return beanRuntime;
 	}

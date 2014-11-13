@@ -12,7 +12,7 @@ public class QueryMassDataModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(IQueryEntityCRUD.class).autowireable(IQueryEntityCRUD.class);
+		beanContextFactory.registerBean(IQueryEntityCRUD.class).autowireable(IQueryEntityCRUD.class);
 
 		IBeanConfiguration queryBeanBC = beanContextFactory.registerBean("myQuery1", QueryBean.class);
 		queryBeanBC.propertyValue("EntityType", QueryEntity.class);

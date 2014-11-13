@@ -9,6 +9,6 @@ public class DataSetupExecutorModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAnonymousBean(DataSetupExecutor.class).autowireable(DataSetupExecutor.class).precedence(PrecedenceType.LOWEST);
+		beanContextFactory.registerBean(DataSetupExecutor.class).autowireable(DataSetupExecutor.class).precedence(PrecedenceType.LOWEST);
 	}
 }

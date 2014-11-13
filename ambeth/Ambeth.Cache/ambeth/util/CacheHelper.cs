@@ -113,7 +113,7 @@ namespace De.Osthus.Ambeth.Util
 
         public IPrefetchConfig CreatePrefetch()
         {
-            return BeanContext.RegisterAnonymousBean<PrefetchConfig>().Finish();
+            return BeanContext.RegisterBean<PrefetchConfig>().Finish();
         }
         
         public IPrefetchState EnsureInitializedRelations(Object objects, ILinkedMap<Type, CachePath[]> entityTypeToPrefetchSteps)

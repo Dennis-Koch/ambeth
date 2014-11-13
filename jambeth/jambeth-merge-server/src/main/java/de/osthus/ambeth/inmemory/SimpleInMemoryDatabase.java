@@ -108,7 +108,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		this.committedData = this.beanContext.registerAnonymousBean(RootCache.class)//
+		this.committedData = this.beanContext.registerBean(RootCache.class)//
 				.propertyValue("WeakEntries", Boolean.FALSE)//
 				.propertyValue("Privileged", Boolean.TRUE)//
 				.ignoreProperties("CacheRetriever", "EventQueue", "PrivilegeProvider", "SecurityActivation", "SecurityScopeProvider")//
@@ -188,7 +188,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 		{
 			return session;
 		}
-		RootCache transactionalData = this.beanContext.registerAnonymousBean(RootCache.class)//
+		RootCache transactionalData = this.beanContext.registerBean(RootCache.class)//
 				.propertyValue("WeakEntries", Boolean.FALSE)//
 				.propertyValue("Privileged", Boolean.TRUE)//
 				.propertyValue("CacheRetriever", this.committedData)//
@@ -608,7 +608,7 @@ public class SimpleInMemoryDatabase implements ICacheRetriever, IMergeServiceExt
 	protected void doChanges(ILoadContainer[] newLCs, List<IChangeContainer> changes, List<IObjRef> objRefList, Map<IObjRef, IObjRef> givenToInternalObjRefMap,
 			SimpleInMemorySession session)
 	{
-		IChangeAggregator changeAggregator = this.beanContext.registerAnonymousBean(ChangeAggregator.class).finish();
+		IChangeAggregator changeAggregator = this.beanContext.registerBean(ChangeAggregator.class).finish();
 		IList<IObjRef> toRemove = new ArrayList<IObjRef>(newLCs.length);
 		for (int a = newLCs.length; a-- > 0;)
 		{

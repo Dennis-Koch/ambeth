@@ -14,12 +14,15 @@ import de.osthus.ambeth.persistence.xml.RelationsTest;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
-import de.osthus.ambeth.util.MultithreadingHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 
 @TestPropertiesList({ @TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
 		@TestProperties(name = CacheConfigurationConstants.FirstLevelCacheType, value = "PROTOTYPE") })
 public class SecondLevelCacheTest extends RelationsTest
 {
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
+
 	@Autowired
 	protected IRootCache rootCache;
 
@@ -59,7 +62,7 @@ public class SecondLevelCacheTest extends RelationsTest
 
 			runnables[a] = runnable;
 		}
-		MultithreadingHelper.invokeInParallel(beanContext, runnables);
+		multithreadingHelper.invokeInParallel(beanContext, runnables);
 
 		IdentityHashSet<Object> alreadyReferencedObjects = new IdentityHashSet<Object>();
 

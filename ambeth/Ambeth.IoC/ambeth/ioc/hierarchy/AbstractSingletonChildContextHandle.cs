@@ -77,7 +77,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
                             {
                                 content.Invoke(beanContextFactory);
                             }
-                            beanContextFactory.RegisterAnonymousBean<ChildContextFoot>().PropertyValue("ContextHandle", this);
+                            beanContextFactory.RegisterBean<ChildContextFoot>().PropertyValue("ContextHandle", this);
                         });
                     if (ContextFactory != null)
                     {

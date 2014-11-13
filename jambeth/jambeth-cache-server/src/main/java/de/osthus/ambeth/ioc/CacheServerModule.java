@@ -32,11 +32,11 @@ public class CacheServerModule implements IInitializingModule
 
 		beanContextFactory.registerBean(CacheModule.DEFAULT_CACHE_RETRIEVER, DefaultPersistenceCacheRetriever.class).autowireable(ICacheRetriever.class);
 
-		IBeanConfiguration cacheLocalDataChangeListener = beanContextFactory.registerAnonymousBean(CacheLocalDataChangeListener.class).propertyRefs(
+		IBeanConfiguration cacheLocalDataChangeListener = beanContextFactory.registerBean(CacheLocalDataChangeListener.class).propertyRefs(
 				CacheModule.CACHE_DATA_CHANGE_LISTENER);
 		beanContextFactory.link(cacheLocalDataChangeListener).to(IEventTargetListenerExtendable.class).with(IDataChangeOfSession.class);
 
-		IBeanConfiguration dataChangeEventStoreHandlerBC = beanContextFactory.registerAnonymousBean(DataChangeEventStoreHandler.class);
+		IBeanConfiguration dataChangeEventStoreHandlerBC = beanContextFactory.registerBean(DataChangeEventStoreHandler.class);
 		beanContextFactory.link(dataChangeEventStoreHandlerBC).to(IEventStoreHandlerExtendable.class).with(IDataChange.class).optional();
 	}
 }

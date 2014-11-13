@@ -251,6 +251,15 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	<V> IBeanRuntime<V> registerAnonymousBean(Class<V> beanType);
 
 	/**
+	 * Registers an anonymous bean while the context is already running.
+	 * 
+	 * @param beanType
+	 *            Class of the bean to be instantiated.
+	 * @return IBeanRuntime to add things to the bean or finish the registration.
+	 */
+	<V> IBeanRuntime<V> registerBean(Class<V> beanType);
+
+	/**
 	 * Finder for configuration of a named bean. Makes it possible to read and change the IoC configuration of a bean during runtime.
 	 * 
 	 * @param beanName
