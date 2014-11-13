@@ -167,28 +167,36 @@ namespace De.Osthus.Ambeth.Config
 
         public Object Get(String key)
         {
-            return Get<Object>(key);
+            return Get(key, this);
+        }
+
+        public Object Get(String key, IProperties initiallyCalledProps)
+        {
+            if (initiallyCalledProps == null)
+            {
+                initiallyCalledProps = this;
+            }
+            Object propertyValue = DictionaryExtension.ValueOrDefault(dictionary, key);
+		    if (propertyValue == null && Parent != null)
+		    {
+                return Parent.Get(key, initiallyCalledProps);
+		    }
+		    if (!(propertyValue is String))
+		    {
+			    return propertyValue;
+		    }
+            return initiallyCalledProps.ResolvePropertyParts((String)propertyValue);
         }
 
         public String GetString(String key)
         {
-            return Get<String>(key);
+            return (String) Get(key);
         }
 
         public Object this[String key]
         {
             get {
-
-                Object propertyValue = DictionaryExtension.ValueOrDefault(dictionary, key);
-		        if (propertyValue == null && Parent != null)
-		        {
-			        return Parent.GetString(key);
-		        }
-		        if (!(propertyValue is String))
-		        {
-			        return propertyValue;
-		        }
-		        return ResolvePropertyParts((String) propertyValue);
+                return Get(key);
             }
             set
             {
@@ -209,25 +217,6 @@ namespace De.Osthus.Ambeth.Config
         public void Set(String key, String value)
         {
             PutProperty(key, value);
-        }
-
-        public T Get<T>(String key)
-        {
-            Object value = this[key];
-            if (value is T)
-            {
-                return (T)value;
-            }
-            if (value != null && typeof(String).Equals(typeof(T)))
-            {
-                return (T)(Object)value.ToString();
-            }
-            return (T)value; //force CCE
-        }
-
-        public void Set<T>(String key, T value)
-        {
-            this[key] = value;
         }
 
         public IEnumerator<KeyValuePair<String, Object>> GetEnumerator()
