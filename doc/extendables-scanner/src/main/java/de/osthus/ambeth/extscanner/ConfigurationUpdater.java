@@ -1,7 +1,9 @@
 package de.osthus.ambeth.extscanner;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
@@ -114,7 +116,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		}
 		String pathToExtendableTexFile = targetExtendableTexDirCP.substring(targetTexFileCP.length() + 1);
 
-		FileWriter fw = new FileWriter(allPropertiesTexFile);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allPropertiesTexFile), Charset.forName("UTF-8"));
 		try
 		{
 			fw.append("%---------------------------------------------------------------\n");
@@ -334,7 +336,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		String targetOpening = getAPI(configurationEntry);
 		if (!targetFile.exists())
 		{
-			FileWriter fw = new FileWriter(targetFile);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
 			try
 			{
 				fw.append(targetOpening);
@@ -409,7 +411,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		return sb;
 	}
 
-	protected void writeTableRow(ConfigurationEntry propertyEntry, String labelName, FileWriter fw) throws Exception
+	protected void writeTableRow(ConfigurationEntry propertyEntry, String labelName, OutputStreamWriter fw) throws Exception
 	{
 		fw.append("\t\t");
 

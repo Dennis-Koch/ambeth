@@ -1,8 +1,10 @@
 package de.osthus.classbrowser.java;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -356,7 +358,7 @@ public class OutputUtil
 		XMLOutputter xmlOutPutter = new XMLOutputter(Format.getPrettyFormat());
 		try
 		{
-			xmlOutPutter.output(doc, new FileWriter(fileName));
+			xmlOutPutter.output(doc, new OutputStreamWriter(new FileOutputStream(fileName), Charset.forName("UTF-8")));
 		}
 		catch (IOException e)
 		{
