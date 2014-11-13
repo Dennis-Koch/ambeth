@@ -11,6 +11,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.PersistenceException;
+
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -224,11 +226,12 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 
 	private String createUser(final Connection connection, final String username, final String password, final String quota) throws SQLException
 	{
-		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "create procedure", "create sequence", "create session", "create table", "create trigger",
-				"create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS", "EXECUTE ON CTXSYS.CTX_DDL",
-				"EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY", "EXECUTE ON CTXSYS.CTX_REPORT",
-				"EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA", "SYS.CON$", "SYS.CDEF$", "SYS.CCOL$", "SYS.COL$",
-				"SYS._CURRENT_EDITION_OBJ", "SYS.ATTRCOL$" };
+		String[] privileges = { "RESOURCE", "CONNECT", "CTXAPP", "SELECT_CATALOG_ROLE", "create procedure", "create sequence", "create session",
+				"create table", "create trigger", "create type", "create view", "create user", "drop user", "CHANGE NOTIFICATION", "EXECUTE ON CTXSYS.CTX_CLS",
+				"EXECUTE ON CTXSYS.CTX_DDL", "EXECUTE ON CTXSYS.CTX_DOC", "EXECUTE ON CTXSYS.CTX_OUTPUT", "EXECUTE ON CTXSYS.CTX_QUERY",
+				"EXECUTE ON CTXSYS.CTX_REPORT", "EXECUTE ON CTXSYS.CTX_THES", "EXECUTE ON CTXSYS.CTX_ULEXER", "SELECT ON V_$SQLAREA", "SELECT ON SYS.CON$",
+				"SELECT ON SYS.CDEF$", "SELECT ON SYS.CCOL$", "SELECT ON SYS.COL$", "SELECT ON SYS.USER$", "SELECT ON SYS.\"_CURRENT_EDITION_OBJ\"",
+				"SELECT ON SYS.ATTRCOL$" };
 
 		String createdUserName = null;
 		Statement stm = connection.createStatement();
@@ -270,7 +273,14 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			{
 				for (int a = privileges.length; a-- > 0;)
 				{
-					stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
+					try
+					{
+						stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
+					}
+					catch (PersistenceException e)
+					{
+						log.error(e);
+					}
 				}
 				stm.execute("ALTER USER " + createdUserName + " QUOTA " + quota + " ON \"" + userTablespace + "\"");
 				stm.execute("ALTER USER " + createdUserName + " ACCOUNT UNLOCK");
