@@ -1,13 +1,15 @@
 package de.osthus.ambeth.bytecode.core;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -219,7 +221,7 @@ public class BytecodeEnhancer implements IBytecodeEnhancer, IBytecodeBehaviorExt
 		File outputFile = new File(outputFileDir, typeName + ".txt");
 		try
 		{
-			FileWriter fw = new FileWriter(outputFile);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(outputFile), Charset.forName("UTF-8"));
 			try
 			{
 				fw.write(bytecodeOutput);

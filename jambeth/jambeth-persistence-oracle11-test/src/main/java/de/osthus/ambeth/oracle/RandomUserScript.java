@@ -1,8 +1,10 @@
 package de.osthus.ambeth.oracle;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -303,10 +305,10 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			throw new IllegalArgumentException("Mandatory values not set!");
 		}
 		File propertyFile = new File(propertyFileName);
-		FileWriter fileWriter = null;
+		OutputStreamWriter fileWriter = null;
 		try
 		{
-			fileWriter = new FileWriter(propertyFile);
+			fileWriter = new OutputStreamWriter(new FileOutputStream(propertyFile), Charset.forName("UTF-8"));
 			String content = createPropertyFileContent(createdUserNames, passwords);
 			fileWriter.append(content);
 		}

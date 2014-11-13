@@ -1,7 +1,9 @@
 package de.osthus.ambeth.extscanner;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -41,7 +43,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		String targetOpening = getAPI(extendableEntry);
 		if (!targetFile.exists())
 		{
-			FileWriter fw = new FileWriter(targetFile);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
 			try
 			{
 				fw.append(targetOpening);
@@ -120,7 +122,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		return sb;
 	}
 
-	protected boolean writeTableRow(ExtendableEntry extendableEntry, String labelName, FileWriter fw) throws Exception
+	protected boolean writeTableRow(ExtendableEntry extendableEntry, String labelName, OutputStreamWriter fw) throws Exception
 	{
 		fw.append("\t\t");
 		fw.append("\\nameref{").append(labelName).append('}');
@@ -173,7 +175,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 				log.warn("Could not find extension in '" + typeDescr.getFullTypeName() + "'");
 				return null;
 			}
-			Matcher matcher = ExtendableEntry.pattern.matcher(typeDescr.getFullTypeName());
+			Matcher matcher = AbstractSourceFileAware.pattern.matcher(typeDescr.getFullTypeName());
 			if (!matcher.matches())
 			{
 				throw new IllegalArgumentException(typeDescr.getFullTypeName());
@@ -245,7 +247,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		ArrayList<ExtendableEntry> allExtendables = new ArrayList<ExtendableEntry>(model.allExtendables());
 		Collections.sort(allExtendables);
 
-		FileWriter fw = new FileWriter(allExtendablesTexFile);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allExtendablesTexFile), Charset.forName("UTF-8"));
 		try
 		{
 			fw.append("%---------------------------------------------------------------\n");

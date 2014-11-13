@@ -2,9 +2,11 @@ package de.osthus.ambeth.extscanner;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,8 +103,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	{
 		int index = (multiPlatformFeature.inJava() ? 1 : 0) + (multiPlatformFeature.inCSharp() ? 2 : 0) + +(multiPlatformFeature.inJavascript() ? 4 : 0);
 
-		String[] setAPIs =
-		{ "\\ClearAPI",//
+		String[] setAPIs = { "\\ClearAPI",//
 				"\\SetAPI{J}",//
 				"\\SetAPI{C}",//
 				"\\SetAPI{J-C}",//
@@ -114,7 +115,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		return setAPIs[index];
 	}
 
-	protected void writeJavadoc(String fqName, String simpleName, FileWriter fw) throws IOException
+	protected void writeJavadoc(String fqName, String simpleName, OutputStreamWriter fw) throws IOException
 	{
 		fw.append("\\javadoc{").append(fqName).append("}{").append(simpleName).append('}');
 	}
@@ -208,7 +209,7 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		try
 		{
 			// update existing file
-			FileWriter fw = new FileWriter(file);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF-8"));
 			try
 			{
 				fw.append(sb);

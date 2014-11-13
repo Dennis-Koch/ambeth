@@ -1,7 +1,9 @@
 package de.osthus.ambeth.extscanner;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
@@ -42,7 +44,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		String targetOpening = getAPI(annotationEntry);
 		if (!targetFile.exists())
 		{
-			FileWriter fw = new FileWriter(targetFile);
+			OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(targetFile), Charset.forName("UTF-8"));
 			try
 			{
 				fw.append(targetOpening);
@@ -97,7 +99,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		return sb;
 	}
 
-	protected boolean writeTableRow(AnnotationEntry annotationEntry, FileWriter fw) throws Exception
+	protected boolean writeTableRow(AnnotationEntry annotationEntry, OutputStreamWriter fw) throws Exception
 	{
 		fw.append("\t\t");
 		fw.append("\\nameref{").append(annotationEntry.labelName).append('}');
@@ -227,7 +229,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		ArrayList<AnnotationEntry> allAnnotations = new ArrayList<AnnotationEntry>(model.allAnnotations());
 		Collections.sort(allAnnotations);
 
-		FileWriter fw = new FileWriter(allAnnotationsTexFile);
+		OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(allAnnotationsTexFile), Charset.forName("UTF-8"));
 		try
 		{
 			fw.append("%---------------------------------------------------------------\n");

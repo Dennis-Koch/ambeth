@@ -2,9 +2,11 @@ package de.osthus.ambeth.log;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -53,7 +55,7 @@ public class Logger implements IConfigurableLogger
 				}
 				try
 				{
-					loggerStream = new BufferedWriter(new FileWriter(logfileHandle, appendModeActive));
+					loggerStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logfileHandle, appendModeActive), Charset.forName("UTF-8")));
 				}
 				catch (IOException e)
 				{
