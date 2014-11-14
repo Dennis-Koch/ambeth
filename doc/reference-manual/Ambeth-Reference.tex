@@ -77,9 +77,11 @@
 \begin{document}
 \input{cover}
 \tableofcontents
+\renewcommand{\sectionbreak}{\clearpage}
 \input{all-modules}
 \input{all-features}
 \input{all-extendables}
+\renewcommand{\sectionbreak}{}
 \input{all-annotations}
 \input{all-configurations}
 \input{cites}
