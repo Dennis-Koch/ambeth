@@ -9,6 +9,6 @@ import de.osthus.ambeth.typeinfo.IPropertyInfo;
 
 public interface IBeanPreProcessor
 {
-	void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service,
+	void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
 			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties);
 }

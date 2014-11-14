@@ -84,9 +84,15 @@ namespace De.Osthus.Ambeth.Log
         public static void ConfigureLogger(Type source, IConfigurableLogger logger, IProperties appProps)
         {
             String loggerName = source.Namespace + "." + source.Name;
+            ConfigureLogger(loggerName, logger, appProps);
+        }
 
-            ISet<String> allPropertiesSet = appProps.CollectAllPropertyKeys();
-            int highestPrecisionFound = 0;
+        public static void ConfigureLogger(String loggerName, IConfigurableLogger logger, IProperties appProps)
+        {
+            HashSet<String> allPropertiesSet = new HashSet<String>();
+            appProps.CollectAllPropertyKeys(allPropertiesSet);
+            // highest precision found
+            int logLevelHPF = 0, logConsoleHPF = 0, logSourceHPF = 0;
             foreach (String key in allPropertiesSet)
             {
                 Match match = logLevelRegex.Match(key);
@@ -106,11 +112,11 @@ namespace De.Osthus.Ambeth.Log
                 }
                 if (logLevelPropertyName.Equals(type))
                 {
-                    if (target.Length < highestPrecisionFound)
+                    if (target.Length < logLevelHPF)
                     {
                         continue;
                     }
-                    highestPrecisionFound = target.Length;
+                    logLevelHPF = target.Length;
                     String valueString = appProps.GetString(key).ToLower();
                     if ("debug".Equals(valueString))
                     {
@@ -143,11 +149,21 @@ namespace De.Osthus.Ambeth.Log
                 }
                 else if (logConsolePropertyName.Equals(type))
                 {
+                    if (target.Length < logConsoleHPF)
+                    {
+                        continue;
+                    }
+                    logConsoleHPF = target.Length;
                     String valueString = appProps.GetString(key).ToLower();
                     logger.LogToConsole = Boolean.Parse(valueString);
                 }
                 else if (logSourcePropertyName.Equals(type))
                 {
+                    if (target.Length < logSourceHPF)
+                    {
+                        continue;
+                    }
+                    logSourceHPF = target.Length;
                     String valueString = appProps.GetString(key);
                     logger.LogSourceLevel = (LogSourceLevel)Enum.Parse(typeof(LogSourceLevel), valueString, true);
                 }
@@ -156,6 +172,7 @@ namespace De.Osthus.Ambeth.Log
                     throw new Exception("Property: " + key + " not supported");
                 }
             }
+            logger.PostProcess(appProps);
         }
 
         private LoggerFactory()

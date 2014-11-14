@@ -18,7 +18,6 @@ using System.Diagnostics;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
-
     public class BeanContextInitializer : IBeanContextInitializer, IInitializingBean
     {
         [LogInstance]
@@ -554,7 +553,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     for (int a = 0, size = preProcessors.Count; a < size; a++)
                     {
                         IBeanPreProcessor preProcessor = preProcessors[a];
-                        preProcessor.PreProcessProperties(beanContextFactory, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
+                        preProcessor.PreProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
                     }
                 }
                 InitializeDefining(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, propertyConfigurations, alreadySpecifiedPropertyNamesSet);

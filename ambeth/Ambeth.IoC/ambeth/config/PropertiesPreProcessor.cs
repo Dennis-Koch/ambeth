@@ -25,7 +25,7 @@ namespace De.Osthus.Ambeth.Config
             ParamChecker.AssertNotNull(PropertyInfoProvider, "PropertyInfoProvider");
         }
 
-        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
         {
             if (properties == null)
             {

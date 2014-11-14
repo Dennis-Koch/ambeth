@@ -77,7 +77,7 @@ namespace De.Osthus.Ambeth.Util
                 dir = @"\\?\" + dir;
             }
             System.IO.FileAttributes fileAttributes = GetFileAttributes(dir);
-            if (fileAttributes != 0)
+            if (fileAttributes >= 0)
             {
                 return dir;
             }

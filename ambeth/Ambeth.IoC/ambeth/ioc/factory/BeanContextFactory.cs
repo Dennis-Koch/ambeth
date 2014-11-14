@@ -102,7 +102,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             propertiesPreProcessor.AfterPropertiesSet();
 
             // The DelegatingConversionHelper is functional, but has yet no properties set
-            propertiesPreProcessor.PreProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, null);
+            propertiesPreProcessor.PreProcessProperties(null, null, newProps, "delegatingConversionHelper", delegatingConversionHelper, typeof(DelegatingConversionHelper), null, null);
             delegatingConversionHelper.AfterPropertiesSet();
 
             BeanContextFactory parentContextFactory = new BeanContextFactory(linkController, beanContextInitializer, proxyFactory, null, newProps, null);
@@ -150,7 +150,7 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         protected static void ScanForLogInstance(IBeanPreProcessor beanPreProcessor, IPropertyInfoProvider propertyInfoProvider, IProperties properties, Object bean)
         {
             IPropertyInfo[] props = propertyInfoProvider.GetProperties(bean.GetType());
-            beanPreProcessor.PreProcessProperties(null, properties, null, bean, bean.GetType(), null, props);
+            beanPreProcessor.PreProcessProperties(null, null, properties, null, bean, bean.GetType(), null, props);
         }
 
         protected IList<IBeanConfiguration> beanConfigurations;

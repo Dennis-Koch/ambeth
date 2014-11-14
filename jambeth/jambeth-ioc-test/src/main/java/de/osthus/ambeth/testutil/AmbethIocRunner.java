@@ -25,8 +25,6 @@ import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import de.osthus.ambeth.log.Logger;
-import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.NullPrintStream;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
@@ -38,8 +36,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	protected IServiceContext testClassLevelContext;
 
 	protected IServiceContext beanContext;
-
-	protected boolean objectCollectorOfLoggerSet;
 
 	public AmbethIocRunner(Class<?> testClass) throws InitializationError
 	{
@@ -69,10 +65,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			testClassLevelContext.dispose();
 			testClassLevelContext = null;
 			beanContext = null;
-			if (objectCollectorOfLoggerSet)
-			{
-				Logger.objectCollector = null;
-			}
 			tlCleanupController.cleanupThreadLocal();
 		}
 	}
@@ -139,11 +131,6 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		boolean success = false;
 		try
 		{
-			if (Logger.objectCollector == null)
-			{
-				Logger.objectCollector = testClassLevelContext.getService(IThreadLocalObjectCollector.class);
-				objectCollectorOfLoggerSet = true;
-			}
 			Class<?> oldTypeScope = FileUtil.setCurrentTypeScope(getTestClass().getJavaClass());
 			try
 			{

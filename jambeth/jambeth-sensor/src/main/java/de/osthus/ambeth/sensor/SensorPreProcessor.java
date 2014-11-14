@@ -11,6 +11,7 @@ import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IPropertyConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
@@ -33,7 +34,7 @@ public class SensorPreProcessor extends SmartCopyMap<Class<?>, Object[]> impleme
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service,
+	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
 			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
 	{
 		ISensorProvider sensorProvider = this.sensorProvider;

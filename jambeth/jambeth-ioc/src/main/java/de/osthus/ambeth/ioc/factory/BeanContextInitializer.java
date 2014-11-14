@@ -691,7 +691,8 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 				for (int a = 0, size = preProcessors.size(); a < size; a++)
 				{
 					IBeanPreProcessor preProcessor = preProcessors.get(a);
-					preProcessor.preProcessProperties(beanContextFactory, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
+					preProcessor.preProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations,
+							propertyInfos);
 				}
 			}
 			initializeDefining(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, propertyConfigurations, alreadySpecifiedPropertyNamesSet);

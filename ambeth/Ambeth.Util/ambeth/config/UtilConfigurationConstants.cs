@@ -9,9 +9,11 @@ namespace De.Osthus.Ambeth.Config
     [ConfigurationConstants]
     public sealed class UtilConfigurationConstants
     {
-       	public static readonly String BootstrapPropertyFile = "property.file";
+       	public const String BootstrapPropertyFile = "property.file";
 
-        public static readonly String DebugMode = "ambeth.debug.active";
+        public const String DebugMode = "ambeth.debug.active";
+
+        public const String ForkName = "ambeth.test.forkname";
 
         private UtilConfigurationConstants()
         {

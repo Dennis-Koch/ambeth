@@ -666,7 +666,7 @@
 					<!-- <forkCount>3</forkCount> <reuseForks>true</reuseForks> -->
 					<argLine>-XX:MaxPermSize=128m</argLine>
 					<systemPropertyVariables>
-						<test.forksuffix>f${surefire.forkNumber}</test.forksuffix>
+						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
 					</systemPropertyVariables>
 				</configuration>
 			</plugin>

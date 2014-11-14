@@ -12,6 +12,9 @@ public final class UtilConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DebugMode = "ambeth.debug.active";
 
+	@ConfigurationConstantDescription("TODO")
+	public static final String ForkName = "ambeth.test.forkname";
+
 	private UtilConfigurationConstants()
 	{
 		// Intended blank
