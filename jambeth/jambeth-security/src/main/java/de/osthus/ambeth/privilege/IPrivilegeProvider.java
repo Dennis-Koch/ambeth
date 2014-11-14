@@ -6,7 +6,6 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
-import de.osthus.ambeth.privilege.model.ITypePrivilege;
 
 public interface IPrivilegeProvider
 {
