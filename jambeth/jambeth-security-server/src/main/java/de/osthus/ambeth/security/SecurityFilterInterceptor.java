@@ -21,6 +21,9 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Autowired
 	protected IAuthenticationManager authenticationManager;
 
+	@Autowired(optional = true)
+	protected IAuthorizationExceptionFactory authorizationExceptionFactory;
+
 	@Autowired
 	protected IMethodLevelBehavior<SecurityContextType> methodLevelBehaviour;
 
@@ -48,6 +51,10 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable
 	{
+		if (finalizeMethod.equals(method))
+		{
+			return null;
+		}
 		if (method.getDeclaringClass().equals(Object.class) || !securityActivation.isSecured())
 		{
 			return invokeTarget(obj, method, args, proxy);
@@ -70,8 +77,18 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 			if (!SecurityContextType.NOT_REQUIRED.equals(behaviourOfMethod))
 			{
 				IAuthentication authentication = getAuthentication();
+
+				if (authorizationExceptionFactory != null)
+				{
+					Throwable authorizationException = authorizationExceptionFactory.createAuthorizationException(authentication, authorization);
+					if (authorizationException != null)
+					{
+						throw authorizationException;
+					}
+				}
 				String userName = authentication != null ? authentication.getUserName() : null;
 				String sid = authorization != null ? authorization.getSID() : null;
+
 				throw new SecurityException("User is not a valid user. '" + userName + "' with SID '" + sid + "'");
 			}
 		}
