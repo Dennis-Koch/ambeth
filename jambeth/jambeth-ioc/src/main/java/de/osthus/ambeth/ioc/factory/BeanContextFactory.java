@@ -157,6 +157,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			ProxyFactory proxyFactory = new ProxyFactory();
 			DelegateFactory delegateFactory = new DelegateFactory();
 			AutoLinkPreProcessor threadLocalCleanupPreProcessor = new AutoLinkPreProcessor();
+			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
 
 			callingProxyPostProcessor.setPropertyInfoProvider(propertyInfoProvider);
 			delegatingConversionHelper.setDefaultConversionHelper(conversionHelper);
@@ -168,12 +169,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			beanContextInitializer.setConversionHelper(delegatingConversionHelper);
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
+			loggerInstancePreProcessor.setObjectCollector(tlObjectCollector);
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
 			threadLocalCleanupPreProcessor.setExtendableRegistry(extendableRegistry);
 			threadLocalCleanupPreProcessor.setExtendableType(IThreadLocalCleanupBeanExtendable.class);
 
-			LoggerInstancePreProcessor loggerInstancePreProcessor = new LoggerInstancePreProcessor();
-
+			loggerInstancePreProcessor.afterPropertiesSet();
 			propertyInfoProvider.afterPropertiesSet();
 
 			scanForLogInstance(loggerInstancePreProcessor, propertyInfoProvider, newProps, accessorTypeProvider);
@@ -203,7 +204,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			propertiesPreProcessor.afterPropertiesSet();
 
 			// The DelegatingConversionHelper is functional, but has yet no properties set
-			propertiesPreProcessor.preProcessProperties(null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
+			propertiesPreProcessor.preProcessProperties(null, null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
 					DelegatingConversionHelper.class, null, null);
 			delegatingConversionHelper.afterPropertiesSet();
 
@@ -277,7 +278,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	protected static void scanForLogInstance(IBeanPreProcessor beanPreProcessor, IPropertyInfoProvider propertyInfoProvider, IProperties properties, Object bean)
 	{
 		IPropertyInfo[] props = propertyInfoProvider.getProperties(bean.getClass());
-		beanPreProcessor.preProcessProperties(null, properties, null, bean, bean.getClass(), null, props);
+		beanPreProcessor.preProcessProperties(null, null, properties, null, bean, bean.getClass(), null, props);
 	}
 
 	protected List<IBeanConfiguration> beanConfigurations;

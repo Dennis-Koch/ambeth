@@ -26,7 +26,7 @@ namespace De.Osthus.Ambeth.Log
         
         protected readonly Object lockHandle = new Object();
 
-        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
         {
             ScanForLogField(props, service, beanType, service.GetType());
         }

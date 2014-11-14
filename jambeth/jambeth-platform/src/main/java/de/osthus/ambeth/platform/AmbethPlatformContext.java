@@ -16,7 +16,6 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.Logger;
 import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
@@ -58,12 +57,6 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 			providerModuleInstances = providerModuleInstancesCopy;
 
 			bootstrapContext = BeanContextFactory.createBootstrap(props, providerModules, providerModuleInstances);
-
-			if (Logger.objectCollector == null)
-			{
-				Logger.objectCollector = bootstrapContext.getService(IThreadLocalObjectCollector.class);
-				apc.disposeStaticReferences = true;
-			}
 
 			IList<IModuleProvider> moduleProviders = bootstrapContext.getImplementingObjects(IModuleProvider.class);
 			for (int a = moduleProviders.size(); a-- > 0;)
@@ -139,17 +132,11 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 				bootstrapContext.dispose();
 				tlCleanupController.cleanupThreadLocal();
 			}
-			if (apc.disposeStaticReferences)
-			{
-				Logger.objectCollector = null;
-			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
 
 	protected IServiceContext beanContext;
-
-	protected boolean disposeStaticReferences;
 
 	protected IEventQueue eventQueue;
 
@@ -169,10 +156,6 @@ public class AmbethPlatformContext implements IAmbethPlatformContext
 		{
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocal();
 			((ThreadLocalObjectCollector) tlObjectCollector).clearThreadLocals();
-		}
-		if (disposeStaticReferences)
-		{
-			Logger.objectCollector = null;
 		}
 	}
 

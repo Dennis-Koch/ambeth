@@ -37,6 +37,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -130,7 +131,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	{
 		super.extendProperties(frameworkMethod, props);
 
-		String testForkSuffix = props.getString("test.forksuffix");
+		String testForkSuffix = props.getString(UtilConfigurationConstants.ForkName);
 		if (testForkSuffix != null)
 		{
 			String databaseUser = props.getString(PersistenceJdbcConfigurationConstants.DatabaseUser);

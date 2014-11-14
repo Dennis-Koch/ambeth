@@ -13,7 +13,9 @@ import java.util.Date;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.ParamChecker;
@@ -21,9 +23,7 @@ import de.osthus.ambeth.util.SystemUtil;
 
 public class Logger implements IConfigurableLogger
 {
-	public static IThreadLocalObjectCollector objectCollector;
-
-	protected static final DateFormat format = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss.SSS]");
+	protected static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private static boolean logStreamEnabled;
 
@@ -106,7 +106,11 @@ public class Logger implements IConfigurableLogger
 
 	private final String source, shortSource;
 
+	protected String forkName;
+
 	protected LogSourceLevel logSourceLevel = LogSourceLevel.DEFAULT;
+
+	protected IThreadLocalObjectCollector objectCollector;
 
 	public Logger(String source)
 	{
@@ -120,6 +124,18 @@ public class Logger implements IConfigurableLogger
 		{
 			shortSource = source;
 		}
+	}
+
+	@Override
+	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
+	{
+		this.objectCollector = objectCollector;
+	}
+
+	@Override
+	public void postProcess(IProperties properties)
+	{
+		forkName = properties.getString(UtilConfigurationConstants.ForkName);
 	}
 
 	protected DateFormat getFormat()
@@ -444,19 +460,13 @@ public class Logger implements IConfigurableLogger
 		StringBuilder sb = acquireStringBuilder();
 		try
 		{
-			String dateString;
-			// DateFormat is not thread-safe
-			DateFormat format = getFormat();
-			formatWriteLock.lock();
-			try
+			String dateString = formatDate(date);
+			sb.append('[');
+			if (forkName != null)
 			{
-				dateString = format.format(date);
+				sb.append(forkName).append('-');
 			}
-			finally
-			{
-				formatWriteLock.unlock();
-			}
-			sb.append('[').append(currentThread.getId()).append(": ").append(threadName).append("] ");
+			sb.append(currentThread.getId()).append(": ").append(threadName).append("] ");
 
 			String printedSource;
 			switch (logSourceLevel)
@@ -475,7 +485,7 @@ public class Logger implements IConfigurableLogger
 					throw new IllegalStateException("Enum " + logSourceLevel + " not supported");
 			}
 
-			sb.append(dateString).append(' ').append(logLevel.name());
+			sb.append('[').append(dateString).append("] ").append(logLevel.name());
 			for (int a = logLevel.name().length(); a < 5; a++)
 			{
 				sb.append(' ');
@@ -493,14 +503,29 @@ public class Logger implements IConfigurableLogger
 		}
 	}
 
+	protected String formatDate(Date date)
+	{
+		// DateFormat is not thread-safe
+		DateFormat format = getFormat();
+		formatWriteLock.lock();
+		try
+		{
+			return format.format(date);
+		}
+		finally
+		{
+			formatWriteLock.unlock();
+		}
+	}
+
 	protected StringBuilder acquireStringBuilder()
 	{
-		IThreadLocalObjectCollector localObjectCollector = objectCollector;
-		if (localObjectCollector == null)
+		IThreadLocalObjectCollector objectCollector = this.objectCollector;
+		if (objectCollector == null)
 		{
 			return new StringBuilder();
 		}
-		return localObjectCollector.create(StringBuilder.class);
+		return objectCollector.create(StringBuilder.class);
 	}
 
 	protected void dispose(StringBuilder sb)

@@ -6,6 +6,7 @@ import net.sf.cglib.reflect.FastMethod;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IPropertyConfiguration;
 import de.osthus.ambeth.ioc.extendable.IExtendableRegistry;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -61,8 +62,8 @@ public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcesso
 	}
 
 	@Override
-	public void preProcessProperties(IBeanContextFactory beanContextFactory, IProperties props, String beanName, Object service, Class<?> beanType,
-			List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
 	{
 		if (extensionType.isAssignableFrom(service.getClass()))
 		{

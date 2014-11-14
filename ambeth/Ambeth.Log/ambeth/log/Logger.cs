@@ -58,7 +58,9 @@ namespace De.Osthus.Ambeth.Log
 
         public bool ErrorEnabled { get; set; }
 
-        private readonly string _source, _shortSource;
+        private readonly String _source, _shortSource;
+
+        protected String forkName;
 
         public Logger(string source)
         {
@@ -77,6 +79,11 @@ namespace De.Osthus.Ambeth.Log
             InfoEnabled = true;
             WarnEnabled = true;
             ErrorEnabled = true;
+        }
+
+        public void PostProcess(IProperties properties)
+        {
+            forkName = properties.GetString(UtilConfigurationConstants.ForkName);
         }
 
         public void Info(String message)
@@ -363,10 +370,11 @@ namespace De.Osthus.Ambeth.Log
                 default:
                     throw new Exception("Enum " + LogSourceLevel + " not supported");
             }
-
-            String output = String.Format("[{4,2}: {5}] [{0:yyyy-MM-dd HH:mm:ss.fff}] {1,-5} {2}: {3}", new object[]
+            String dateTimeFraction = now.ToString("yyyy-MM-dd'T'HH:mm:ss.fff");
+            String timezoneFraction = now.ToString("zzz").Replace(":", "");
+            String output = String.Format("[{6}{4,2}: {5}] [{0}{7}] {1,-5} {2}: {3}", new object[]
             {
-                now, logLevel.ToString(), printedSource, notification, currentThread.ManagedThreadId, threadName
+                dateTimeFraction, logLevel.ToString(), printedSource, notification, currentThread.ManagedThreadId, threadName, forkName, timezoneFraction
             });
             Log(logLevel, output);
         }
