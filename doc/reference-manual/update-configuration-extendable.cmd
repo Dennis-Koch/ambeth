@@ -1,5 +1,5 @@
 @ECHO OFF
 @call mvn -f ../extendables-scanner clean compile
-@call mvn -f ../extendables-scanner exec:java -Dexec.mainClass="de.osthus.ambeth.extscanner.Main" "-Dexec.args=scan-path=""../reference-manual/target/data"" target-tex-file=""../reference-manual/all-extendables.tex"" target-extendable-tex-dir=""../reference-manual/extendable"" properties-tex-file=""../reference-manual/all-configurations.tex"" target-properties-tex-dir=""../reference-manual/configuration"" source-path=""../../ambeth;../../jambeth"" target-feature-tex-dir=""../reference-manual/feature"" target-module-tex-dir=""../reference-manual/module"" "
+@call mvn -f ../extendables-scanner exec:java -Dexec.mainClass="de.osthus.ambeth.extscanner.Main" "-Dexec.args=scan-path=""../reference-manual/target/data"" source-path=""../../ambeth;../../jambeth"" target-all-dir=""../reference-manual"" target-extendable-tex-dir=""${target-all-dir}/extendable"" target-properties-tex-dir=""${target-all-dir}/configuration"" target-feature-tex-dir=""${target-all-dir}/feature"" target-module-tex-dir=""${target-all-dir}/module"" target-annotation-tex-dir=""${target-all-dir}/annotation"" "
 @pause
 

@@ -4,6 +4,31 @@
 \ClearAPI
 \TODO
 %% MAVEN GENERATED START
+\begin{lstlisting}[style=POM,caption={Maven modules to use \emph{Ambeth Security}}]
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>Ambeth.Security</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-security</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-security-bytecode</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-security-server</artifactId>
+	<version>§\version§</version>
+</dependency>
+\end{lstlisting}
 %% MAVEN END
 \subsection{Features}
 \begin{itemize}
@@ -22,6 +47,7 @@
 %% CONFIGURATION GENERATED START
 \subsection{Configuration}
 \begin{itemize}
+	\item \prettyref{configuration:AmbethMthTimeout}
 	\item \prettyref{configuration:AmbethSecurityActive}
 	\item \prettyref{configuration:EncryptionPassword}
 	\item \prettyref{configuration:SecurityCryptoAlgorithmName}
