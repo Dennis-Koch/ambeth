@@ -2,4 +2,23 @@
 \section{ObjRefBehavior}
 \label{feature:ObjRefBehavior}
 \ClearAPI
-\TODO
+Optimizes memory footprint of ambeth-internal instances of \type{IObjRef}: The entity type and idIndex property will be compiled into each sub-class at runtime. On a x64 system this reduces necessary heap by 20\% at least - in some circumstances up to 50\%.
+
+\begin{lstlisting}[style=Java,caption={Example usage to receive a memory optimized instance of \type{IObjRef} (Java)}]
+@Autowired
+protected IObjRefFactory objRefFactory;
+
+public IObjRef optimizedObjRef(Object id, Object version)
+{
+	return objRefFactory.create(MyEntity.class, ObjRef.PRIMARY_KEY_INDEX, id, version);
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Example usage to receive a memory optimized instance of \type{IObjRef} (C\#)}]
+[Autowired]
+public IObjRefFactory ObjRefFactory { protected get; set; }
+
+public IObjRef OptimizedObjRef(Object id, Object version)
+{
+	return ObjRefFactory.Create(typeof(MyEntity), ObjRef.PRIMARY_KEY_INDEX, id, version);
+}
+\end{lstlisting}

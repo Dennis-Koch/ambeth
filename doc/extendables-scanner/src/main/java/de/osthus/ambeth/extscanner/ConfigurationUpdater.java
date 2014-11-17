@@ -363,7 +363,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			return;
 		}
 		StringBuilder sb = readFileFully(targetFile);
-		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		String newContent = writeSetAPI(sb, configurationEntry);
 		Matcher matcher = replaceUsageReferencePattern.matcher(newContent);
 		if (matcher.matches())
 		{

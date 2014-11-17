@@ -32,7 +32,7 @@ public class FeatureUpdater extends AbstractLatexScanner implements IStartingBea
 	{
 		String targetOpening = getAPI(featureEntry);
 		StringBuilder sb = readFileFully(targetFile);
-		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		String newContent = writeSetAPI(sb, featureEntry);
 		if (newContent.contentEquals(sb))
 		{
 			return;
@@ -59,23 +59,23 @@ public class FeatureUpdater extends AbstractLatexScanner implements IStartingBea
 			for (Entry<String, TypeDescription> entry : javaTypes)
 			{
 				TypeDescription typeDescr = entry.getValue();
-				FeatureEntry featureEntry = findFeatureEntry(typeDescr);
-				if (featureEntry == null)
+				FeatureEntry[] featureEntries = findFeatureEntry(typeDescr);
+				for (FeatureEntry featureEntry : featureEntries)
 				{
-					continue;
+					TypeEntry typeEntry = model.resolveTypeEntry(typeDescr);
+					featureEntry.javaSrc.add(typeEntry);
 				}
-				featureEntry.javaSrc = typeDescr;
 			}
 
 			for (Entry<String, TypeDescription> entry : csharpTypes)
 			{
 				TypeDescription typeDescr = entry.getValue();
-				FeatureEntry featureEntry = findFeatureEntry(typeDescr);
-				if (featureEntry == null)
+				FeatureEntry[] featureEntries = findFeatureEntry(typeDescr);
+				for (FeatureEntry featureEntry : featureEntries)
 				{
-					continue;
+					TypeEntry typeEntry = model.resolveTypeEntry(typeDescr);
+					featureEntry.csharpSrc.add(typeEntry);
 				}
-				featureEntry.csharpSrc = typeDescr;
 			}
 		}
 		catch (Throwable e)
@@ -122,22 +122,20 @@ public class FeatureUpdater extends AbstractLatexScanner implements IStartingBea
 		{
 			featureName = featureConditionMatcher.group(1);
 		}
+		String[] featureNames = featureName.split(";");
 		String labelName = readLabelName(currFile);
-		model.addFeature(featureName, new FeatureEntry(featureName, labelName, currFile));
+		FeatureEntry featureEntry = new FeatureEntry(featureName, labelName, currFile);
+		for (String featureNameItem : featureNames)
+		{
+			featureEntry.typeConditions.add(featureNameItem);
+			featureEntry.typeConditions.add("I" + featureNameItem);
+		}
+		model.addFeature(labelName, featureEntry);
 	}
 
-	protected FeatureEntry findFeatureEntry(TypeDescription typeDescr)
+	protected FeatureEntry[] findFeatureEntry(TypeDescription typeDescr)
 	{
-		String name = typeDescr.getName();
-		FeatureEntry featureEntry = model.resolveFeature("I" + name);
-		if (featureEntry == null)
-		{
-			featureEntry = model.resolveFeature(name);
-		}
-		if (featureEntry == null && name.startsWith("I"))
-		{
-			featureEntry = model.resolveFeature(name.substring(1));
-		}
-		return featureEntry;
+		TypeEntry typeEntry = model.resolveTypeEntry(typeDescr);
+		return model.resolveFeaturesByType(typeEntry);
 	}
 }

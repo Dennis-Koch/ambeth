@@ -67,7 +67,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			return;
 		}
 		StringBuilder sb = readFileFully(targetFile);
-		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		String newContent = writeSetAPI(sb, extendableEntry);
 		Matcher matcher = replaceListingsPattern.matcher(newContent);
 		if (matcher.matches())
 		{

@@ -35,4 +35,6 @@ public interface IModel
 	AnnotationEntry resolveAnnotation(String annotationName);
 
 	void addAnnotation(String annotationName, AnnotationEntry annotationEntry);
+
+	FeatureEntry[] resolveFeaturesByType(TypeEntry typeEntry);
 }

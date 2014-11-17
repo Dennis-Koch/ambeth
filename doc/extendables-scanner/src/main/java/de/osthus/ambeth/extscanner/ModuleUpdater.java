@@ -71,7 +71,7 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 	{
 		String targetOpening = getAPI(moduleEntry);
 		StringBuilder sb = readFileFully(targetFile);
-		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		String newContent = writeSetAPI(sb, moduleEntry);
 		Matcher matcher = replaceGeneratedMavenPattern.matcher(newContent);
 		if (matcher.matches())
 		{
@@ -300,20 +300,33 @@ public class ModuleUpdater extends AbstractLatexScanner implements IStartingBean
 	{
 		for (FeatureEntry featureEntry : model.allFeatures())
 		{
-			ModuleEntry moduleEntry = null;
-			if (featureEntry.csharpSrc != null)
+			for (TypeEntry typeEntry : featureEntry.csharpSrc)
 			{
-				moduleEntry = model.resolveModule(featureEntry.csharpSrc.getModuleName());
+				ModuleEntry moduleEntry = typeEntry.moduleEntry;
+				if (moduleEntry == null)
+				{
+					continue;
+				}
+				moduleEntry.features.add(featureEntry);
 			}
-			if (moduleEntry == null && featureEntry.javaSrc != null)
+			for (TypeEntry typeEntry : featureEntry.javaSrc)
 			{
-				moduleEntry = model.resolveModule(featureEntry.javaSrc.getModuleName());
+				ModuleEntry moduleEntry = typeEntry.moduleEntry;
+				if (moduleEntry == null)
+				{
+					continue;
+				}
+				moduleEntry.features.add(featureEntry);
 			}
-			if (moduleEntry == null)
+			for (TypeEntry typeEntry : featureEntry.javascriptSrc)
 			{
-				continue;
+				ModuleEntry moduleEntry = typeEntry.moduleEntry;
+				if (moduleEntry == null)
+				{
+					continue;
+				}
+				moduleEntry.features.add(featureEntry);
 			}
-			moduleEntry.features.add(featureEntry);
 		}
 		for (ConfigurationEntry configurationEntry : model.allConfigurations())
 		{

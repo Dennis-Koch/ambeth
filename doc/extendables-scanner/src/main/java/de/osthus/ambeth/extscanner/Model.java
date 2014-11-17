@@ -1,5 +1,8 @@
 package de.osthus.ambeth.extscanner;
 
+import java.util.Map.Entry;
+
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -171,5 +174,37 @@ public class Model implements IModel
 	public AnnotationEntry resolveAnnotation(String annotationName)
 	{
 		return nameToAnnotationMap.get(annotationName);
+	}
+
+	@Override
+	public FeatureEntry[] resolveFeaturesByType(TypeEntry typeEntry)
+	{
+		ArrayList<FeatureEntry> featureEntries = new ArrayList<FeatureEntry>();
+
+		for (Entry<String, FeatureEntry> entry : nameToFeatureMap)
+		{
+			FeatureEntry featureEntry = entry.getValue();
+			if (!featureEntry.typeConditions.contains(typeEntry.typeDesc.getName())
+					&& !featureEntry.typeConditions.contains(typeEntry.typeDesc.getFullTypeName()))
+			{
+				continue;
+			}
+			featureEntries.add(featureEntry);
+		}
+		// String name = typeDescr.getName();
+		// FeatureEntry featureEntry = model.resolveFeature("I" + name);
+		// if (featureEntry == null)
+		// {
+		// featureEntry = model.resolveFeature(name);
+		// }
+		// if (featureEntry == null && name.startsWith("I"))
+		// {
+		// featureEntry = model.resolveFeature(name.substring(1));
+		// }
+		// return featureEntry;
+		//
+		// return null;
+
+		return featureEntries.toArray(FeatureEntry.class);
 	}
 }

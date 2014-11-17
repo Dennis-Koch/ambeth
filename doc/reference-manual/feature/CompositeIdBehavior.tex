@@ -2,4 +2,31 @@
 \section{CompositeIdBehavior}
 \label{feature:CompositeIdBehavior}
 \ClearAPI
-\TODO
+Allows to create objects at runtime where their equals() hashcode() toString() methods behave like a composite id (unique identifier). This way it is possible for \AMBETH{} to pass composite id information via the Member-API as a single argument / response. At runtime the created object has public fields which are named like the mapped primitive members forming the composite id (unique identifier)
+
+\begin{lstlisting}[style=Java,caption={Example usage to receive an instance of a composite id (Java)}]
+@Autowired
+protected ICompositeIdFactory compositeIdFactory;
+
+@Autowired
+protected IEntityMetaDataProvider entityMetaDataProvider;
+
+public Object extractCompositeId(Object myObject)
+{
+	IEntityMetaData metaData = entityMetaDataProvider.getMetaData(myObject.getClass());
+	return compositeIdFactory.createCompositeId(metaData, metaData.getIdMember(), myObject.getId1(), myObject.getId2());
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Example usage to receive an instance of a composite id (C\#)}]
+[Autowired]
+public ICompositeIdFactory CompositeIdFactory { protected get; set; }
+
+[Autowired]
+public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
+
+public Object ExtractCompositeId(Object myObject)
+{
+	IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(myObject.GetType());
+	return CompositeIdFactory.CreateCompositeId(metaData, metaData.IdMember, myObject.Id1, myObject.Id2);
+}
+\end{lstlisting}

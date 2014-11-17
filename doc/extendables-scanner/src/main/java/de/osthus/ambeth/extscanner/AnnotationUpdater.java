@@ -66,7 +66,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			return;
 		}
 		StringBuilder sb = readFileFully(targetFile);
-		String newContent = replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(targetOpening));
+		String newContent = writeSetAPI(sb, annotationEntry);
 		Matcher matcher = replaceListingsPattern.matcher(newContent);
 		if (matcher.matches())
 		{

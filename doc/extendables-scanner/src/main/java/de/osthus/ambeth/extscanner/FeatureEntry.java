@@ -3,15 +3,17 @@ package de.osthus.ambeth.extscanner;
 import java.io.File;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.classbrowser.java.TypeDescription;
+import de.osthus.ambeth.collections.HashSet;
 
 public class FeatureEntry implements IMultiPlatformFeature, ITexFileAware
 {
-	public TypeDescription javaSrc;
+	public final HashSet<TypeEntry> javaSrc = new HashSet<TypeEntry>();
 
-	public TypeDescription javascriptSrc;
+	public final HashSet<TypeEntry> javascriptSrc = new HashSet<TypeEntry>();
 
-	public TypeDescription csharpSrc;
+	public final HashSet<TypeEntry> csharpSrc = new HashSet<TypeEntry>();
+
+	public final HashSet<String> typeConditions = new HashSet<String>();
 
 	public String javaFile;
 
@@ -22,19 +24,19 @@ public class FeatureEntry implements IMultiPlatformFeature, ITexFileAware
 	@Override
 	public boolean inJava()
 	{
-		return javaSrc != null;
+		return javaSrc.size() > 0;
 	}
 
 	@Override
 	public boolean inJavascript()
 	{
-		return javascriptSrc != null;
+		return javascriptSrc.size() > 0;
 	}
 
 	@Override
 	public boolean inCSharp()
 	{
-		return csharpSrc != null;
+		return csharpSrc.size() > 0;
 	}
 
 	public final ArrayList<String> fromModules = new ArrayList<String>();

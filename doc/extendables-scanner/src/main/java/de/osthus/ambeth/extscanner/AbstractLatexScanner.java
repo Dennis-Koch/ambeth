@@ -27,14 +27,17 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 {
 	public static final Pattern labelNamePattern = Pattern.compile(".*\\\\section\\{[^\\}]*\\}\\s*\\\\label\\{([^\\}]*)\\}.*", Pattern.DOTALL);
 
-	public static final String availableInCsharpOnlyOpening = "\\SetAPI{C}";
+	public static final String[] setAPIs = { "\\SetAPI{nothing}",//
+			"\\SetAPI{J}",//
+			"\\SetAPI{C}",//
+			"\\SetAPI{J-C}",//
+			"\\SetAPI{JS}",//
+			"\\SetAPI{J-JS}",//
+			"\\SetAPI{C-JS}",//
+			"\\SetAPI{J-C-JS}",//
+	};
 
-	public static final String availableInJavaOnlyOpening = "\\SetAPI{J}";
-
-	public static final String availableInJavaAndCsharpOpening = "\\SetAPI{J-C}";
-
-	public static final Pattern replaceAllAvailables = Pattern.compile(Pattern.quote(availableInCsharpOnlyOpening) + "|"
-			+ Pattern.quote(availableInJavaOnlyOpening) + "|" + Pattern.quote(availableInJavaAndCsharpOpening));
+	public static final Pattern replaceAllAvailables = Pattern.compile("\\\\SetAPI\\{[^\\{\\}]*\\}");
 
 	public static final Pattern texFilePattern = Pattern.compile("(.+)\\.tex");
 
@@ -67,6 +70,12 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	public void afterStarted() throws Throwable
 	{
 		handleModel();
+	}
+
+	protected String writeSetAPI(StringBuilder sb, IMultiPlatformFeature multiPlatformFeature)
+	{
+		String api = getAPI(multiPlatformFeature);
+		return replaceAllAvailables.matcher(sb).replaceAll(Matcher.quoteReplacement(api));
 	}
 
 	protected File getAllDir()
@@ -103,15 +112,6 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 	{
 		int index = (multiPlatformFeature.inJava() ? 1 : 0) + (multiPlatformFeature.inCSharp() ? 2 : 0) + +(multiPlatformFeature.inJavascript() ? 4 : 0);
 
-		String[] setAPIs = { "\\ClearAPI",//
-				"\\SetAPI{J}",//
-				"\\SetAPI{C}",//
-				"\\SetAPI{J-C}",//
-				"\\SetAPI{JS}",//
-				"\\SetAPI{J-JS}",//
-				"\\SetAPI{C-JS}",//
-				"\\SetAPI{J-C-JS}",//
-		};
 		return setAPIs[index];
 	}
 
