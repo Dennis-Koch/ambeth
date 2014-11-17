@@ -187,9 +187,9 @@
   <ItemGroup>
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValue.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValue.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueFactory.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueEnhancementHint.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\collections\ICacheMapEntryAware.cs" />
@@ -217,6 +217,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\cache\walker\ICacheWalkerResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactoryDelegate.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValueFactoryDelegate.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

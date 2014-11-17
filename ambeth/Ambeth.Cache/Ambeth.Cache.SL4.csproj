@@ -121,10 +121,12 @@
     <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
     <Compile Include="ambeth\cache\IServiceResultCache.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValue.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValueFactoryDelegate.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueFactory.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValue.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueEnhancementHint.cs" />
-    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueTypeProvider.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactory.cs" />
+    <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactoryDelegate.cs" />
     <Compile Include="ambeth\cache\ServiceResultCache.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
     <Compile Include="ambeth\cache\transfer\LoadContainer.cs" />

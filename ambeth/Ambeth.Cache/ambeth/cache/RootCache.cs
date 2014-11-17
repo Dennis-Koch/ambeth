@@ -106,7 +106,7 @@ namespace De.Osthus.Ambeth.Cache
         public IPrefetchHelper PrefetchHelper { protected get; set; }
 
         [Autowired]
-        public IRootCacheValueTypeProvider RootCacheValueTypeProvider { protected get; set; }
+        public IRootCacheValueFactory RootCacheValueFactory { protected get; set; }
 
         [Autowired(Optional = true)]
 	    public ISecurityActivation SecurityActivation { protected get; set; }
@@ -183,9 +183,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public override Object CreateCacheValueInstance(IEntityMetaData metaData, Object obj)
         {
-            Type entityType = metaData.EntityType;
-            ConstructorInfo constructor = RootCacheValueTypeProvider.GetRootCacheValueType(entityType);
-            return (RootCacheValue)constructor.Invoke(new Object[] { metaData });
+            return RootCacheValueFactory.CreateRootCacheValue(metaData);
         }
 
         protected override Object GetIdOfCacheValue(IEntityMetaData metaData, RootCacheValue cacheValue)

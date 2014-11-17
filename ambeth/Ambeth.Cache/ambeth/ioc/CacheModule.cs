@@ -74,7 +74,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterAutowireableBean<ICacheMapEntryTypeProvider, CacheMapEntryTypeProvider>();
 
-            beanContextFactory.RegisterAutowireableBean<IRootCacheValueTypeProvider, RootCacheValueTypeProvider>();
+            beanContextFactory.RegisterAutowireableBean<IRootCacheValueFactory, RootCacheValueFactory>();
 
             //IBeanConfiguration rootCache = beanContextFactory.registerBean<RootCache>("rootCache").autowireable(typeof(RootCache), typeof(IWritableCache));
             //if (IsUseSingleChildCache)

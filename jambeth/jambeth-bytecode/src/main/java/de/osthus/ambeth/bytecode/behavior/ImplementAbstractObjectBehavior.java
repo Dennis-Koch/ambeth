@@ -6,28 +6,17 @@ import de.osthus.ambeth.bytecode.IEnhancementHint;
 import de.osthus.ambeth.bytecode.abstractobject.IImplementAbstractObjectFactory;
 import de.osthus.ambeth.bytecode.abstractobject.ImplementAbstractObjectEnhancementHint;
 import de.osthus.ambeth.bytecode.visitor.InterfaceAdder;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.util.ParamChecker;
 
 /**
  * The ImplementAbstractObjectBehavior creates objects that implement an interface registered for {@link IImplementAbstractObjectFactory}. The generated
  * implementations inherit from {@link IImplementAbstractObjectFactory#getBaseType(Class)} if interface type was registered with an base type.
  */
-public class ImplementAbstractObjectBehavior extends AbstractBehavior implements IInitializingBean
+public class ImplementAbstractObjectBehavior extends AbstractBehavior
 {
+	@Autowired
 	protected IImplementAbstractObjectFactory implementAbstractObjectFactory;
-
-	public void setImplementAbstractObjectFactory(IImplementAbstractObjectFactory implementAbstractObjectFactory)
-	{
-		this.implementAbstractObjectFactory = implementAbstractObjectFactory;
-	}
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(implementAbstractObjectFactory, "ImplementAbstractObjectFactory");
-	}
 
 	protected boolean isActive(IEnhancementHint hint, Class<?> originalType)
 	{
