@@ -14,14 +14,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.annotation.CascadeLoadMode;
 import de.osthus.ambeth.cache.collections.CacheMapEntry;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
-import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
+import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueFactory;
 import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.transfer.LoadContainer;
 import de.osthus.ambeth.cache.transfer.ObjRelationResult;
@@ -144,7 +143,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	protected IPrefetchHelper prefetchHelper;
 
 	@Autowired
-	protected IRootCacheValueTypeProvider rootCacheValueTypeProvider;
+	protected IRootCacheValueFactory rootCacheValueFactory;
 
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
@@ -228,16 +227,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	@Override
 	public RootCacheValue createCacheValueInstance(IEntityMetaData metaData, Object obj)
 	{
-		Class<?> entityType = metaData.getEntityType();
-		FastConstructor constructor = rootCacheValueTypeProvider.getRootCacheValueType(entityType);
-		try
-		{
-			return (RootCacheValue) constructor.newInstance(new Object[] { metaData });
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		return rootCacheValueFactory.createRootCacheValue(metaData);
 	}
 
 	@Override

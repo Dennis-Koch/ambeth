@@ -34,8 +34,8 @@ import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.cache.interceptor.CacheProviderInterceptor;
 import de.osthus.ambeth.cache.interceptor.ThreadLocalRootCacheInterceptor;
 import de.osthus.ambeth.cache.interceptor.TransactionalRootCacheInterceptor;
-import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueTypeProvider;
-import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueTypeProvider;
+import de.osthus.ambeth.cache.rootcachevalue.IRootCacheValueFactory;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValueFactory;
 import de.osthus.ambeth.cache.walker.CacheWalker;
 import de.osthus.ambeth.cache.walker.ICacheWalker;
 import de.osthus.ambeth.config.Property;
@@ -126,7 +126,7 @@ public class CacheModule implements IInitializingModule
 
 		beanContextFactory.registerAutowireableBean(ICacheMapEntryTypeProvider.class, CacheMapEntryTypeProvider.class);
 
-		beanContextFactory.registerAutowireableBean(IRootCacheValueTypeProvider.class, RootCacheValueTypeProvider.class);
+		beanContextFactory.registerAutowireableBean(IRootCacheValueFactory.class, RootCacheValueFactory.class);
 
 		beanContextFactory.registerBean(ROOT_CACHE_RETRIEVER, CacheRetrieverRegistry.class).autowireable(ICacheServiceByNameExtendable.class,
 				ICacheRetrieverExtendable.class);

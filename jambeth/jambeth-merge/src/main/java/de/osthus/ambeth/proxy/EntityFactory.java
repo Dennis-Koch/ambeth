@@ -6,7 +6,6 @@ import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastConstructor;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.bytecode.IBytecodePrinter;
-import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IBeanContextAware;
@@ -19,7 +18,6 @@ import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataRefresher;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
-import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.ListUtil;
 
 public class EntityFactory extends AbstractEntityFactory
@@ -53,19 +51,10 @@ public class EntityFactory extends AbstractEntityFactory
 	protected IBytecodePrinter bytecodePrinter;
 
 	@Autowired
-	protected ICacheModification cacheModification;
-
-	@Autowired
 	protected IBytecodeEnhancer bytecodeEnhancer;
 
 	@Autowired
 	protected IEntityMetaDataRefresher entityMetaDataRefresher;
-
-	@Autowired
-	protected IProxyFactory proxyFactory;
-
-	@Autowired
-	protected IPropertyInfoProvider propertyInfoProvider;
 
 	@Self
 	protected IEntityFactory self;
