@@ -2,4 +2,29 @@
 \section{RootCacheValueBehavior}
 \label{feature:RootCacheValueBehavior}
 \ClearAPI
-\TODO
+Optimizes memory footprint of ambeth-internal instances of \type{RootCacheValue}.
+
+\begin{itemize}
+	\item The entity type property will be compiled into each sub-class at runtime
+	\item Each number primitive is stored internally in its native representation (always unboxed).
+	\item Each Date and Calendar primitive is stored internally as a native long (UTC format)
+\end{itemize}
+
+\begin{lstlisting}[style=Java,caption={Example usage to receive a memory optimized instance of \type{RootCacheValue} (Java)}]
+@Autowired
+protected IRootCacheValueFactory rootCacheValueFactory;
+
+public RootCacheValue createCacheValue(IEntityMetaData metaData)
+{
+	return rootCacheValueFactory.createRootCacheValue(metaData);
+}
+\end{lstlisting}
+\begin{lstlisting}[style=Csharp,caption={Example usage to receive a memory optimized instance of \type{RootCacheValue} (C\#)}]
+[Autowired]
+public IRootCacheValueFactory RootCacheValueFactory { protected get; set; }
+
+public RootCacheValue CreateCacheValue(IEntityMetaData metaData)
+{
+	return RootCacheValueFactory.CreateRootCacheValue(metaData);
+}
+\end{lstlisting}

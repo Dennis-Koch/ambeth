@@ -65,11 +65,11 @@
 		<!-- Location of the osthus-pom -->
 		<repository>
 			<id>osthus-releases</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
+			<url>http://172.16.200.17:8081/nexus/content/repositories/osthus-releases/</url>
 		</repository>
 		<repository>
 			<id>osthus-snapshots</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
+			<url>http://172.16.200.17:8081/nexus/content/repositories/osthus-snapshots/</url>
 		</repository>
 	</repositories>
 </project>

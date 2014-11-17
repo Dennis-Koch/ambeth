@@ -15,7 +15,7 @@ public class ModuleEntry implements IMultiPlatformFeature
 
 	public final HashSet<TypeEntry> csharpFiles = new HashSet<TypeEntry>();
 
-	public final ArrayList<FeatureEntry> features = new ArrayList<FeatureEntry>();
+	public final HashSet<FeatureEntry> features = new HashSet<FeatureEntry>();
 
 	public final HashSet<String> mavenModules = new HashSet<String>();
 
