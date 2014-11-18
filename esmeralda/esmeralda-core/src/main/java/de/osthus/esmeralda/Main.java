@@ -4,6 +4,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
+import de.osthus.esmeralda.ioc.EsmeraldaCoreModule;
 
 public class Main
 {
