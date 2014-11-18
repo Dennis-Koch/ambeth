@@ -48,6 +48,7 @@ public class IocBootstrapModule implements IInitializingModule
 
 		IBeanConfiguration stringToFileConverter = beanContextFactory.registerBean(StringToFileConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File.class);
+		DedicatedConverterUtil.biLink(beanContextFactory, stringToFileConverter, String.class, File[].class);
 
 		IBeanConfiguration stringToClassArrayConverter = beanContextFactory.registerBean(StringToClassArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToClassArrayConverter, String.class, Class[].class);

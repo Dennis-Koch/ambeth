@@ -399,6 +399,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			auditEntry.setSignature(null);
 			auditEntry.setHashAlgorithm(null);
+			auditEntry.setSignature(null);
+			;
 			return;
 		}
 		try

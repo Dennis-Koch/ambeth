@@ -1,0 +1,120 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.osthus.esmeralda</groupId>
+	<artifactId>esmeralda-pom</artifactId>
+	<version>1.0.X-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>de.osthus</groupId>
+		<artifactId>osthus-pom</artifactId>
+		<version>0.0.29</version>
+	</parent>
+
+	<properties>
+		<ambeth.version>2.2.X-SNAPSHOT</ambeth.version>
+	</properties>
+
+	<modules>
+		<module>esmeralda-core</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- External dependencies -->
+			<dependency>
+				<groupId>cglib</groupId>
+				<artifactId>cglib</artifactId>
+				<version>2.2.2</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.javassist</groupId>
+				<artifactId>javassist</artifactId>
+				<version>3.18.2-GA</version>
+			</dependency>
+
+			<!-- jAmbeth dependencies -->
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-core</artifactId>
+				<version>${ambeth.version}</version>
+				<type>pom</type>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-core-test</artifactId>
+				<version>${ambeth.version}</version>
+				<scope>test</scope>
+				<type>pom</type>
+			</dependency>
+
+			<!-- BUNDLES -->
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkCount>1C</forkCount>
+					<reuseForks>true</reuseForks>
+					<argLine>-XX:MaxPermSize=128m</argLine>
+					<systemPropertyVariables>
+						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+							<goal>test-jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>findbugs-maven-plugin</artifactId>
+					<version>2.5.3</version>
+					<configuration>
+						<excludeFilterFile>${jambeth.path.test}/findbugs_exclude_checks.xml</excludeFilterFile>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>
