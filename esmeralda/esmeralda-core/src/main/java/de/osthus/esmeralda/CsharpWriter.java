@@ -87,7 +87,7 @@ public class CsharpWriter implements IStartingBean
 			}
 		}
 
-		INodeHandlerExtension classHandler = nodeHandlerRegistry.get("C#" + "class");
+		INodeHandlerExtension classHandler = nodeHandlerRegistry.get(Lang.C_SHARP + Type.CLASS);
 		ArrayList<JavaClassInfo> classInfos = codeProcessor.getClassInfos();
 		for (JavaClassInfo classInfo : classInfos)
 		{
