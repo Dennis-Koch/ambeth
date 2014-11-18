@@ -111,9 +111,7 @@ public class ClassInfoDataSetter
 		List<? extends AnnotationMirror> annotations = e.getAnnotationMirrors();
 		for (AnnotationMirror annotationMirror : annotations)
 		{
-			String qualifiedName = annotationMirror.toString().substring(1);
-			AnnotationInfo annotationInfo = new AnnotationInfo();
-			annotationInfo.setName(qualifiedName);
+			AnnotationInfo annotationInfo = new AnnotationInfo(annotationMirror);
 			clazzInfo.addAnnotation(annotationInfo);
 		}
 

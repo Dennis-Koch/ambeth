@@ -87,14 +87,12 @@ public class MethodInfoDataSetter
 	{
 		e.accept(new SimpleElementVisitor6<Object, MethodInfo>()
 		{
-
 			@Override
 			public Object visitExecutable(ExecutableElement element, MethodInfo mInfo)
 			{
-
 				for (VariableElement var : element.getParameters())
 				{
-					methodInfo.addParameters(var.asType().toString());
+					methodInfo.addParameters(var);
 				}
 				methodInfo.setReturnType(element.getReturnType().toString());
 				return super.visitExecutable(element, methodInfo);
