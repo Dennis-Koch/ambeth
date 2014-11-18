@@ -18,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaCompiler;
@@ -29,8 +31,6 @@ import javax.tools.ToolProvider;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.ClassType;
-import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
@@ -50,6 +50,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
+import demo.codeanalyzer.common.model.Annotation;
+import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -58,33 +60,46 @@ import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class CsharpWriter implements IStartingBean
 {
-	protected static final Pattern genericTypePattern = Pattern.compile("(.+)<(.+)>");
+	protected static final Pattern genericTypePattern = Pattern.compile("([^<>]+)<(.+)>");
 
 	protected static final Pattern commaSplitPattern = Pattern.compile(",");
 
-	protected static final HashMap<String, String> javaTypeToCsharpMap = new HashMap<String, String>();
+	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
 	static
 	{
-		javaTypeToCsharpMap.put("boolean", "bool");
-		javaTypeToCsharpMap.put("char", "char");
-		javaTypeToCsharpMap.put("byte", "sbyte");
-		javaTypeToCsharpMap.put("short", "short");
-		javaTypeToCsharpMap.put("int", "int");
-		javaTypeToCsharpMap.put("long", "long");
-		javaTypeToCsharpMap.put("float", "float");
-		javaTypeToCsharpMap.put("double", "double");
-		javaTypeToCsharpMap.put("java.lang.Boolean", "bool?");
-		javaTypeToCsharpMap.put("java.lang.Character", "char?");
-		javaTypeToCsharpMap.put("java.lang.Byte", "sbyte?");
-		javaTypeToCsharpMap.put("java.lang.Short", "short?");
-		javaTypeToCsharpMap.put("java.lang.Integer", "int?");
-		javaTypeToCsharpMap.put("java.lang.Long", "long?");
-		javaTypeToCsharpMap.put("java.lang.Float", "float?");
-		javaTypeToCsharpMap.put("java.lang.Double", "double?");
-		javaTypeToCsharpMap.put("java.lang.String", "System.String");
-		javaTypeToCsharpMap.put("java.lang.Class<?>", "System.Type");
-		javaTypeToCsharpMap.put("java.util.Map.Entry", "De.Osthus.Ambeth.Collections.Entry");
+		put("void", "void");
+		put("boolean", "bool");
+		put("char", "char");
+		put("byte", "sbyte");
+		put("short", "short");
+		put("int", "int");
+		put("long", "long");
+		put("float", "float");
+		put("double", "double");
+		put(Void.class.getName(), "void");
+		put(Boolean.class.getName(), "bool?");
+		put(Character.class.getName(), "char?");
+		put(Byte.class.getName(), "sbyte?");
+		put(Short.class.getName(), "short?");
+		put(Integer.class.getName(), "int?");
+		put(Long.class.getName(), "long?");
+		put(Float.class.getName(), "float?");
+		put(Double.class.getName(), "double?");
+		put(String.class.getName(), "System.String");
+		put("java.lang.Class<?>", "System.Type");
+		put(ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
+
+		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
+		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
+		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
+		put("java.util.Map.Entry", "De.Osthus.Ambeth.Collections.Entry");
+	}
+
+	protected static final void put(String key, String... values)
+	{
+		javaTypeToCsharpMap.put(key, values);
 	}
 
 	@SuppressWarnings("unused")
@@ -105,11 +120,13 @@ public class CsharpWriter implements IStartingBean
 
 	protected final ThreadLocal<Integer> codeLevel = new ThreadLocal<Integer>();
 
-	protected final ThreadLocal<ISet<String>> usedTypesTL = new ThreadLocal<ISet<String>>();
+	protected final ThreadLocal<ISet<TypeUsing>> usedTypesTL = new ThreadLocal<ISet<TypeUsing>>();
+
+	protected final ThreadLocal<ISet<String>> slUsedTypesTL = new ThreadLocal<ISet<String>>();
 
 	protected final ThreadLocal<IMap<String, String>> importsTL = new ThreadLocal<IMap<String, String>>();
 
-	protected final ThreadLocal<List<String>> usingsTL = new ThreadLocal<List<String>>();
+	protected final ThreadLocal<List<TypeUsing>> usingsTL = new ThreadLocal<List<TypeUsing>>();
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -172,7 +189,7 @@ public class CsharpWriter implements IStartingBean
 	{
 		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
 		// without ambiguity
-		HashSet<String> usedTypes = new HashSet<String>();
+		HashSet<TypeUsing> usedTypes = new HashSet<TypeUsing>();
 		usedTypesTL.set(usedTypes);
 		try
 		{
@@ -186,9 +203,9 @@ public class CsharpWriter implements IStartingBean
 
 		// PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
 		HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
-		for (String usedType : usedTypes)
+		for (TypeUsing usedType : usedTypes)
 		{
-			Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(usedType);
+			Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(usedType.typeName);
 			if (!matcher.matches())
 			{
 				continue;
@@ -203,9 +220,10 @@ public class CsharpWriter implements IStartingBean
 			}
 			list.add(packageName);
 		}
+		String classNamespace = camelCaseName(classInfo.getPackageName());
 		// PHASE 3: fill imports and usings information for this class file
 		LinkedHashMap<String, String> imports = new LinkedHashMap<String, String>();
-		HashSet<String> usings = new HashSet<String>();
+		HashSet<TypeUsing> usings = new HashSet<TypeUsing>();
 		for (Entry<String, Set<String>> entry : simpleNameToPackagesMap)
 		{
 			Set<String> packagesSet = entry.getValue();
@@ -215,8 +233,22 @@ public class CsharpWriter implements IStartingBean
 			}
 			String packageName = (String) packagesSet.toArray()[0];
 			// simpleName is unique. So we can use an import for them
-			imports.put(packageName + "." + entry.getKey(), entry.getKey());
-			usings.add(packageName);
+			String fqTypeName = packageName + "." + entry.getKey();
+			imports.put(fqTypeName, entry.getKey());
+			if (classNamespace.equals(packageName))
+			{
+				// do not create a "using" for types in our own namespace
+				continue;
+			}
+			TypeUsing existingTypeUsing = usedTypes.get(new TypeUsing(fqTypeName, false));
+			TypeUsing newPackageUsing = new TypeUsing(packageName, existingTypeUsing.isInSilverlightOnly());
+			TypeUsing existingPackageUsing = usings.get(newPackageUsing);
+			if (existingPackageUsing != null)
+			{
+				boolean isInSilverlightOnly = existingPackageUsing.isInSilverlightOnly() && newPackageUsing.isInSilverlightOnly();
+				newPackageUsing = new TypeUsing(packageName, isInSilverlightOnly);
+			}
+			usings.add(newPackageUsing);
 		}
 		usingsTL.set(usings.toList());
 		importsTL.set(imports);
@@ -320,6 +352,24 @@ public class CsharpWriter implements IStartingBean
 		return writer;
 	}
 
+	protected boolean spaceIfIfFalse(boolean value, Writer writer) throws IOException
+	{
+		if (!value)
+		{
+			writer.append(' ');
+		}
+		return false;
+	}
+
+	protected boolean newLineIntendIfFalse(boolean value, Writer writer) throws IOException
+	{
+		if (!value)
+		{
+			newLineIntend(writer);
+		}
+		return false;
+	}
+
 	protected void scopeIntend(Writer writer, IBackgroundWorkerDelegate run) throws Throwable
 	{
 		newLineIntend(writer).append('{');
@@ -339,34 +389,40 @@ public class CsharpWriter implements IStartingBean
 	protected void writeNamespace(final JavaClassInfo classInfo, final Writer writer) throws Throwable
 	{
 		boolean firstLine = true;
-		List<String> usings = usingsTL.get();
+		List<TypeUsing> usings = usingsTL.get();
 		if (usings != null && usings.size() > 0)
 		{
 			Collections.sort(usings);
-			for (String using : usings)
+			boolean silverlightFlagActive = false;
+			for (TypeUsing using : usings)
 			{
-				if (firstLine)
+				firstLine = newLineIntendIfFalse(firstLine, writer);
+				if (silverlightFlagActive && !using.isInSilverlightOnly())
 				{
-					firstLine = false;
-				}
-				else
-				{
+					// deactivate flag
+					writer.append("#endif");
 					newLineIntend(writer);
+					silverlightFlagActive = false;
 				}
-				writer.append("using ").append(using).append(';');
+				else if (!silverlightFlagActive && using.isInSilverlightOnly())
+				{
+					// activate flag
+					newLineIntend(writer).append("#if SILVERLIGHT");
+					silverlightFlagActive = true;
+				}
+				writer.append("using ").append(using.getTypeName()).append(';');
+			}
+			if (silverlightFlagActive)
+			{
+				// deactivate flag
+				newLineIntend(writer).append("#endif");
+
 			}
 			newLineIntend(writer);
 		}
 		String packageName = classInfo.getPackageName();
 		String camelCasePackageName = camelCaseName(packageName);
-		if (firstLine)
-		{
-			firstLine = false;
-		}
-		else
-		{
-			newLineIntend(writer);
-		}
+		firstLine = newLineIntendIfFalse(firstLine, writer);
 		writer.append("namespace ").append(camelCasePackageName);
 		scopeIntend(writer, new IBackgroundWorkerDelegate()
 		{
@@ -393,15 +449,33 @@ public class CsharpWriter implements IStartingBean
 		return sb.toString();
 	}
 
+	protected String[] camelCaseName(String[] typeNames)
+	{
+		String[] camelCase = new String[typeNames.length];
+		for (int a = typeNames.length; a-- > 0;)
+		{
+			camelCase[a] = camelCaseName(typeNames[a]);
+		}
+		return camelCase;
+	}
+
 	protected void writeClass(final JavaClassInfo classInfo, final Writer writer) throws Throwable
 	{
 		newLineIntend(writer).append("public class ").append(classInfo.getName());
 		boolean firstInterfaceName = true;
+		String nameOfSuperClass = classInfo.getNameOfSuperClass();
+		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass))
+		{
+			writer.append(" : ");
+			writeType(nameOfSuperClass, writer);
+			firstInterfaceName = false;
+		}
 		for (String nameOfInterface : classInfo.getNameOfInterfaces())
 		{
 			if (firstInterfaceName)
 			{
 				writer.append(" : ");
+				firstInterfaceName = false;
 			}
 			else
 			{
@@ -409,45 +483,59 @@ public class CsharpWriter implements IStartingBean
 			}
 			writeType(nameOfInterface, writer);
 		}
-
 		scopeIntend(writer, new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				for (Field field : classInfo.getFields())
+				boolean firstEntry = true;
+				IList<Field> fields = classInfo.getFields();
+				for (int a = 0, size = fields.size(); a < size; a++)
 				{
+					Field field = fields.get(a);
+					firstEntry = newLineIntendIfFalse(firstEntry, writer);
 					writeField(field, writer);
 				}
 				for (Method method : classInfo.getMethods())
 				{
-					// writeMethod(method, writer);
+					firstEntry = newLineIntendIfFalse(firstEntry, writer);
+					writeMethod(method, writer);
 				}
 			}
 		});
 	}
 
-	protected void writeField(Field field, final Writer writer) throws Throwable
+	protected boolean writeModifiers(BaseJavaClassModel javaClassModel, Writer writer) throws Throwable
 	{
 		boolean firstKeyWord = true;
-		newLineIntend(writer);
-		newLineIntend(writer);
-		if (field.isPrivate())
+		if (javaClassModel.isPrivate())
 		{
 			writer.append("private");
 			firstKeyWord = false;
 		}
-		else if (field.isProtected())
+		else if (javaClassModel.isProtected())
 		{
 			writer.append("protected");
 			firstKeyWord = false;
 		}
-		else if (field.isPublic())
+		else if (javaClassModel.isPublic())
 		{
 			writer.append("public");
 			firstKeyWord = false;
 		}
-		if (field.isStatic())
+		if (javaClassModel.isAbstract())
+		{
+			if (firstKeyWord)
+			{
+				firstKeyWord = false;
+			}
+			else
+			{
+				writer.append(' ');
+			}
+			writer.append("abstract");
+		}
+		if (javaClassModel.isStatic())
 		{
 			if (firstKeyWord)
 			{
@@ -459,7 +547,7 @@ public class CsharpWriter implements IStartingBean
 			}
 			writer.append("static");
 		}
-		if (field.isFinal())
+		if (javaClassModel.isFinal())
 		{
 			if (firstKeyWord)
 			{
@@ -471,70 +559,223 @@ public class CsharpWriter implements IStartingBean
 			}
 			writer.append("readonly");
 		}
-		String[] fieldTypes = field.getFieldTypes().toArray(String.class);
-		if (firstKeyWord)
+		return firstKeyWord;
+	}
+
+	protected void writeMethod(Method method, final Writer writer) throws Throwable
+	{
+		writeAnnotations(method, writer);
+		newLineIntend(writer);
+
+		boolean firstKeyWord = writeModifiers(method, writer);
+		firstKeyWord = spaceIfIfFalse(firstKeyWord, writer);
+		writeType(method.getReturnType(), writer).append(' ');
+		String methodName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
+		// TODO: remind of the changed method name on all invocations
+		writer.append(methodName).append('(');
+		IList<VariableElement> parameters = method.getParameters();
+		for (int a = 0, size = parameters.size(); a < size; a++)
 		{
+			VariableElement parameter = parameters.get(a);
+			if (a > 0)
+			{
+				writer.append(", ");
+			}
+			writeType(parameter.asType().toString(), writer).append(' ');
+			writer.append(parameter.getSimpleName());
+		}
+		writer.append(')');
+
+		scopeIntend(writer, new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				// abc
+			}
+		});
+	}
+
+	protected boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType)
+	{
+		for (Annotation annotation : model.getAnnotations())
+		{
+			if (annotationType.getName().equals(annotation.getType()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected void writeField(Field field, final Writer writer) throws Throwable
+	{
+		writeAnnotations(field, writer);
+		newLineIntend(writer);
+
+		boolean annotatedWithAutowired = isAnnotatedWith(field, Autowired.class);
+		boolean annotatedWithProperty = isAnnotatedWith(field, Property.class);
+
+		boolean firstKeyWord;
+		if (annotatedWithAutowired || annotatedWithProperty)
+		{
+			writer.append("public");
 			firstKeyWord = false;
 		}
 		else
 		{
-			writer.append(' ');
+			firstKeyWord = writeModifiers(field, writer);
 		}
-		writeType(fieldTypes[0], writer).append(' ').append(field.getName());
+		String[] fieldTypes = field.getFieldTypes().toArray(String.class);
+		firstKeyWord = spaceIfIfFalse(firstKeyWord, writer);
+		writeType(fieldTypes[0], writer).append(' ');
+
+		boolean finishWithSemicolon = true;
+
+		if (annotatedWithAutowired || annotatedWithProperty)
+		{
+			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
+			// TODO remind changed name of the field for later access to the property get/set
+			writer.append(name).append(" { protected get; set; }");
+			finishWithSemicolon = false;
+		}
+		else if (isAnnotatedWith(field, LogInstance.class))
+		{
+			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
+			// TODO remind changed name of the field for later access to the property get/set
+			writer.append(name).append(" { private get; set; }");
+			finishWithSemicolon = false;
+		}
+		else
+		{
+			writer.append(field.getName());
+		}
 
 		ExpressionTree initializer = ((FieldInfo) field).getInitializer();
 		if (initializer instanceof JCNewClass)
 		{
-			JCNewClass newClass = ((JCNewClass) initializer);
-			List<JCExpression> args = newClass.args;
-			List<Type> genericTypeArguments = ((ClassType) newClass.type).allparams_field;
-			List<Type> argumentTypes = ((MethodType) newClass.constructor.type).argtypes;
-			String owner = ((ClassSymbol) newClass.constructor.owner).fullname.toString();
-
-			writer.append(" = new ");
-			writeType(owner, writer);
-
-			if (genericTypeArguments.size() > 0)
-			{
-				writer.append('<');
-				for (int a = 0, size = genericTypeArguments.size(); a < size; a++)
-				{
-					Type genericTypeArgument = genericTypeArguments.get(a);
-					if (a > 0)
-					{
-						writer.append(", ");
-					}
-					writeType(genericTypeArgument.toString(), writer);
-				}
-				writer.append('>');
-			}
-
-			writer.append('(');
-			for (int a = 0, size = args.size(); a < size; a++)
-			{
-				JCExpression arg = args.get(a);
-				if (a > 0)
-				{
-					writer.append(", ");
-				}
-				writer.append(arg.toString());
-			}
-			writer.append(')');
+			writeNewInstance((JCNewClass) initializer, writer);
 		}
 		else if (initializer != null)
 		{
-			System.out.println();
+			log.warn("Could not handle: " + initializer);
 		}
+		if (finishWithSemicolon)
+		{
+			writer.append(';');
+		}
+	}
 
-		writer.append(';');
+	protected Writer writeAnnotations(BaseJavaClassModel model, Writer writer) throws Throwable
+	{
+		IList<Annotation> annotations = model.getAnnotations();
+		for (int a = 0, size = annotations.size(); a < size; a++)
+		{
+			Annotation annotation = annotations.get(a);
+			writeAnnotation(annotation, writer);
+		}
+		return writer;
+	}
+
+	protected Writer writeAnnotation(Annotation annotation, Writer writer) throws Throwable
+	{
+		if (SuppressWarnings.class.getName().equals(annotation.getType()))
+		{
+			// skip this annotation
+			return writer;
+		}
+		newLineIntend(writer);
+		writer.append('[');
+		writeType(annotation.getType(), writer);
+		IMap<String, AnnotationValue> properties = annotation.getProperties();
+		if (properties.size() == 0)
+		{
+			writer.append(']');
+			return writer;
+		}
+		writer.append('(');
+		boolean firstProperty = true;
+		for (Entry<String, AnnotationValue> entry : properties)
+		{
+			if (firstProperty)
+			{
+				firstProperty = false;
+			}
+			else
+			{
+				writer.append(", ");
+			}
+			String propertyName = StringConversionHelper.upperCaseFirst(objectCollector, entry.getKey());
+			writer.append(propertyName).append("=");
+			writer.append(entry.getValue().toString());
+		}
+		writer.append(')');
+		return writer;
+	}
+
+	protected Writer writeNewInstance(JCNewClass newClass, Writer writer) throws Throwable
+	{
+		List<JCExpression> arguments = newClass.args;
+		List<Type> genericTypeArguments = newClass.type != null ? newClass.type.allparams() : null;
+		// List<Type> argumentTypes = ((MethodType) newClass.constructor.type).getTypeArguments();
+		String owner = newClass.constructor != null ? ((ClassSymbol) newClass.constructor.owner).fullname.toString() : newClass.clazz.toString();
+
+		writer.append(" = new ");
+		writeType(owner, writer);
+
+		writeGenericTypeArguments(genericTypeArguments, writer);
+		writeMethodArguments(arguments, writer);
+		return writer;
+	}
+
+	protected Writer writeGenericTypeArguments(List<Type> genericTypeArguments, Writer writer) throws Throwable
+	{
+		if (genericTypeArguments == null || genericTypeArguments.size() == 0)
+		{
+			return writer;
+		}
+		writer.append('<');
+		for (int a = 0, size = genericTypeArguments.size(); a < size; a++)
+		{
+			Type genericTypeArgument = genericTypeArguments.get(a);
+			if (a > 0)
+			{
+				writer.append(", ");
+			}
+			writeType(genericTypeArgument.toString(), writer);
+		}
+		writer.append('>');
+		return writer;
+	}
+
+	protected Writer writeMethodArguments(List<JCExpression> methodArguments, Writer writer) throws Throwable
+	{
+		writer.append('(');
+		for (int a = 0, size = methodArguments.size(); a < size; a++)
+		{
+			JCExpression arg = methodArguments.get(a);
+			if (a > 0)
+			{
+				writer.append(", ");
+			}
+			writer.append(arg.toString());
+		}
+		writer.append(')');
+		return writer;
 	}
 
 	protected Writer writeType(String typeName, Writer writer) throws Throwable
 	{
 		typeName = typeName.trim();
-		String mappedTypeName = javaTypeToCsharpMap.get(typeName);
+		String[] mappedTypeName = javaTypeToCsharpMap.get(typeName);
 		if (mappedTypeName == null)
 		{
+			if (typeName.endsWith("[]"))
+			{
+				writeType(typeName.substring(0, typeName.length() - 2), writer);
+				writer.append("[]");
+				return writer;
+			}
 			Matcher genericTypeMatcher = genericTypePattern.matcher(typeName);
 			if (genericTypeMatcher.matches())
 			{
@@ -560,26 +801,36 @@ public class CsharpWriter implements IStartingBean
 				writer.append('>');
 				return writer;
 			}
-			mappedTypeName = camelCaseName(typeName);
+			mappedTypeName = camelCaseName(new String[] { typeName });
 		}
-		ISet<String> usedTypes = usedTypesTL.get();
+		ISet<TypeUsing> usedTypes = usedTypesTL.get();
 		if (usedTypes != null)
 		{
-			usedTypes.add(mappedTypeName);
+			usedTypes.add(new TypeUsing(mappedTypeName[0], false));
+			if (mappedTypeName.length > 1)
+			{
+				// TypeUsing silverlightTypeUsing = new TypeUsing(mappedTypeName[1], true);
+				// TypeUsing existingTypeUsing = usedTypes.get(silverlightTypeUsing);
+				// if (existingTypeUsing == null)
+				// {
+				// // add silverlight using only if it is not already added for non-silverlight
+				// usedTypes.add(silverlightTypeUsing);
+				// }
+			}
 		}
 		else
 		{
 			Map<String, String> imports = importsTL.get();
 			if (imports != null)
 			{
-				String nameFromImplicitImport = imports.get(mappedTypeName);
+				String nameFromImplicitImport = imports.get(mappedTypeName[0]);
 				if (nameFromImplicitImport != null)
 				{
-					mappedTypeName = nameFromImplicitImport;
+					mappedTypeName = new String[] { nameFromImplicitImport };
 				}
 			}
 		}
-		writer.append(mappedTypeName);
+		writer.append(mappedTypeName[0]);
 		return writer;
 	}
 
@@ -600,7 +851,10 @@ public class CsharpWriter implements IStartingBean
 				{
 					return false;
 				}
-				sourceFiles.add(file);
+				if (sourceFiles.size() < 2000)
+				{
+					sourceFiles.add(file);
+				}
 				return true;
 			}
 		});

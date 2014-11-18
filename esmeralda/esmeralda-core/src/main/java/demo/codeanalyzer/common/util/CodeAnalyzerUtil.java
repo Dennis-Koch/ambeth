@@ -65,7 +65,7 @@ public class CodeAnalyzerUtil {
     public static List getAnnotationAsStringList (ClassFile classFile) {
         List<String> annotationList = new ArrayList<String>();
         for (Annotation clazzAnnotation : classFile.getAnnotations()) {
-            annotationList.add(clazzAnnotation.getName());
+            annotationList.add(clazzAnnotation.getType());
         }    
         return annotationList;
     }    

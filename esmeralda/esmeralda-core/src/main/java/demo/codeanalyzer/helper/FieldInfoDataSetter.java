@@ -1,6 +1,7 @@
 package demo.codeanalyzer.helper;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -9,6 +10,7 @@ import javax.lang.model.element.Modifier;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 
 import demo.codeanalyzer.common.model.AnnotationInfo;
 import demo.codeanalyzer.common.model.FieldInfo;
@@ -30,13 +32,19 @@ public class FieldInfoDataSetter
 		{
 			return;
 		}
+		Element parent = e.getEnclosingElement();
+		if (!(parent instanceof ClassSymbol))
+		{
+			return;
+		}
 		FieldInfo fieldInfo = new FieldInfo();
 		String fieldName = variableTree.getName().toString();
 		fieldInfo.setName(fieldName);
 		fieldInfo.setOwningClass(clazzInfo);
 		fieldInfo.addFieldType(e.asType().toString());
 		// Set modifier details
-		for (Modifier modifier : e.getModifiers())
+		Set<Modifier> modifiers = variableTree.getModifiers().getFlags();
+		for (Modifier modifier : modifiers)
 		{
 			DataSetterUtil.setModifiers(modifier.toString(), fieldInfo);
 		}
@@ -44,9 +52,7 @@ public class FieldInfoDataSetter
 		List<? extends AnnotationMirror> annotations = e.getAnnotationMirrors();
 		for (AnnotationMirror annotationMirror : annotations)
 		{
-			String qualifiedName = annotationMirror.toString().substring(1);
-			AnnotationInfo annotationInfo = new AnnotationInfo();
-			annotationInfo.setName(qualifiedName);
+			AnnotationInfo annotationInfo = new AnnotationInfo(annotationMirror);
 			fieldInfo.addAnnotation(annotationInfo);
 		}
 		clazzInfo.addField(fieldInfo);
