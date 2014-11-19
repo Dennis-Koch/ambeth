@@ -21,7 +21,7 @@ import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
-public class CsharpWriter implements IStartingBean
+public class ConversionManager implements IStartingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
