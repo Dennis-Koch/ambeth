@@ -2,6 +2,8 @@ package demo.codeanalyzer.common.model;
 
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.tree.MethodTree;
+
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 
@@ -14,6 +16,7 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 {
 
 	private ClassFile owningClass;
+	private MethodTree methodTree;
 	private ArrayList<VariableElement> parameters = new ArrayList<VariableElement>();
 	private String returnType;
 	ArrayList<String> exceptions = new ArrayList<String>();
@@ -27,6 +30,17 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	public void setOwningClass(ClassFile owningClass)
 	{
 		this.owningClass = owningClass;
+	}
+
+	@Override
+	public MethodTree getMethodTree()
+	{
+		return methodTree;
+	}
+
+	public void setMethodTree(MethodTree methodTree)
+	{
+		this.methodTree = methodTree;
 	}
 
 	@Override

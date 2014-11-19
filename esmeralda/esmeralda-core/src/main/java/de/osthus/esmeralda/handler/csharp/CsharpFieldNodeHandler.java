@@ -1,6 +1,7 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -41,13 +42,12 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public void handle(Object astNode)
+	public void handle(Tree astNode)
 	{
 		IConversionContext context = this.context.getCurrent();
 		Field field = context.getField();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
 		languageHelper.writeAnnotations(field);
 		languageHelper.newLineIntend();
 

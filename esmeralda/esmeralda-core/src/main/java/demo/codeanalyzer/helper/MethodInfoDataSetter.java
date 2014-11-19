@@ -42,6 +42,7 @@ public class MethodInfoDataSetter
 	{
 
 		MethodInfo methodInfo = new MethodInfo();
+		methodInfo.setMethodTree(methodTree);
 		String methodName = methodTree.getName().toString();
 		methodInfo.setOwningClass(clazzInfo);
 		// Set modifier details

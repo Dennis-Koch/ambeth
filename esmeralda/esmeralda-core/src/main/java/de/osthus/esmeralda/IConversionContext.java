@@ -19,6 +19,8 @@ public interface IConversionContext
 
 	void setTargetPath(File targetPath);
 
+	File getSnippetPath();
+
 	void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap);
 
 	IMap<String, JavaClassInfo> getFqNameToClassInfoMap();
@@ -74,5 +76,4 @@ public interface IConversionContext
 	Method getMethod();
 
 	void setMethod(Method method);
-
 }

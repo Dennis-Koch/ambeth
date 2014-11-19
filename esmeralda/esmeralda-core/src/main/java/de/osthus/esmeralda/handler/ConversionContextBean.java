@@ -66,6 +66,12 @@ public class ConversionContextBean implements IConversionContext, IThreadLocalCl
 	}
 
 	@Override
+	public File getSnippetPath()
+	{
+		return getContext().getSnippetPath();
+	}
+
+	@Override
 	public void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap)
 	{
 		getContext().setFqNameToClassInfoMap(fqNameToClassInfoMap);

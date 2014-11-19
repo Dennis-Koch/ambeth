@@ -13,6 +13,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree;
+
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
@@ -59,7 +62,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	protected INodeHandlerRegistry nodeHandlerRegistry;
 
 	@Override
-	public void handle(Object astNode)
+	public void handle(Tree astNode)
 	{
 		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
@@ -337,15 +340,19 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			public void invoke() throws Throwable
 			{
 				IConversionContext context = CsharpClassNodeHandler.this.context.getCurrent();
+				boolean firstLine = true;
 				for (Field field : classInfo.getFields())
 				{
+					firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 					context.setField(field);
 					fieldHandler.handle(null);
 				}
 				for (Method method : classInfo.getMethods())
 				{
+					firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 					context.setMethod(method);
-					methodHandler.handle(null);
+					MethodTree methodTree = method.getMethodTree();
+					methodHandler.handle(methodTree);
 				}
 			}
 		});

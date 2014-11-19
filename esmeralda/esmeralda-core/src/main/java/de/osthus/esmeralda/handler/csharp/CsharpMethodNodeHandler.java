@@ -2,6 +2,10 @@ package de.osthus.esmeralda.handler.csharp;
 
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree;
+
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -12,6 +16,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
+import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -35,17 +40,21 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 	protected ISnippetManagerFactory snippetManagerFactory;
 
 	@Override
-	public void handle(Object astNode)
+	public void handle(Tree astNode)
 	{
 		IConversionContext context = this.context.getCurrent();
 		Method method = context.getMethod();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
 		languageHelper.writeAnnotations(method);
 		languageHelper.newLineIntend();
 
-		boolean firstKeyWord = languageHelper.writeModifiers(method);
+		boolean firstKeyWord = true;
+		if (!method.getOwningClass().isInterface())
+		{
+			firstKeyWord = languageHelper.writeModifiers(method);
+		}
+
 		String currTypeName = context.getClassInfo().getNameOfSuperClass();
 		boolean overrideNeeded = false;
 		while (currTypeName != null)
@@ -69,9 +78,11 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 		}
 		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
 		languageHelper.writeType(method.getReturnType());
+
 		writer.append(' ');
 		String methodName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
 		// TODO: remind of the changed method name on all invocations
+
 		writer.append(methodName).append('(');
 		IList<VariableElement> parameters = method.getParameters();
 		for (int a = 0, size = parameters.size(); a < size; a++)
@@ -86,17 +97,32 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 		}
 		writer.append(')');
 
+		if (method.getOwningClass().isInterface())
+		{
+			writer.append(';');
+			return;
+		}
+
+		final MethodTree methodTree = (MethodTree) astNode;
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				// TODO does not work yet
-				// ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(astNode, context, languageHelper);
+				ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
 
-				// method body
+				// for now very simple...
+				BlockTree methodBodyBlock = methodTree.getBody();
+				String bodyBlockCode = methodBodyBlock.toString();
 
-				// snippetManager.finished();
+				// Ups, we code we cannot (yet) convert...
+				String bodyCode = bodyBlockCode.substring(3, bodyBlockCode.length() - 3);
+
+				// ...just ask the snippet manager.
+				snippetManager.writeSnippet(bodyCode);
+
+				// Starts check for unused (old) snippet files for this method
+				snippetManager.finished();
 			}
 		});
 	}
