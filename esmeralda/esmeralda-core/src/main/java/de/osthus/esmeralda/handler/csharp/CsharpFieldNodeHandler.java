@@ -55,7 +55,7 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 			firstKeyWord = languageHelper.writeModifiers(field, context, writer);
 		}
 		String[] fieldTypes = field.getFieldTypes().toArray(String.class);
-		firstKeyWord = languageHelper.spaceIfFalse(firstKeyWord, context, writer);
+		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord, context, writer);
 		languageHelper.writeType(fieldTypes[0], context, writer).append(' ');
 
 		boolean finishWithSemicolon = true;

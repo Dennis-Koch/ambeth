@@ -23,7 +23,7 @@ public interface ILanguageHelper
 
 	boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType, ConversionContext context) throws Throwable;
 
-	boolean spaceIfFalse(boolean value, ConversionContext context, Writer writer) throws Throwable;
+	boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable;
 
 	Writer writeType(String typeName, ConversionContext context, Writer writer) throws Throwable;
 

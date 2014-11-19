@@ -35,6 +35,8 @@ public interface ClassFile extends BaseJavaClassModel
 	 */
 	IList<String> getNameOfInterfaces();
 
+	boolean hasMethodWithIdenticalSignature(Method method);
+
 	/**
 	 * @return true if this is an interface, else false
 	 */

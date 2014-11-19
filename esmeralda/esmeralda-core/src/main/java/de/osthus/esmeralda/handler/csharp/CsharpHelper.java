@@ -19,6 +19,8 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -32,8 +34,6 @@ import demo.codeanalyzer.common.model.BaseJavaClassModel;
 
 public class CsharpHelper implements ICsharpHelper
 {
-	protected static final Pattern genericTypePattern = Pattern.compile("(.+)<(.+)>");
-
 	protected static final Pattern commaSplitPattern = Pattern.compile(",");
 
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
@@ -122,7 +122,7 @@ public class CsharpHelper implements ICsharpHelper
 				writer.append("[]");
 				return writer;
 			}
-			Matcher genericTypeMatcher = genericTypePattern.matcher(typeName);
+			Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(typeName);
 			if (genericTypeMatcher.matches())
 			{
 				String plainType = genericTypeMatcher.group(1);
@@ -181,11 +181,11 @@ public class CsharpHelper implements ICsharpHelper
 	}
 
 	@Override
-	public boolean spaceIfFalse(boolean value, ConversionContext context, Writer writer) throws Throwable
+	public boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable
 	{
-		if (!value)
+		if (!condition)
 		{
-			writer.append(' ');
+			writer.append(value);
 		}
 		return false;
 	}
@@ -313,6 +313,12 @@ public class CsharpHelper implements ICsharpHelper
 			// skip this annotation
 			return writer;
 		}
+		if (Override.class.getName().equals(annotation.getType()))
+		{
+			// skip this annotation because overrides of interfaces is NOT an override in C# sense. So we need to check for overridden abstract or concrete
+			// methods from superclasses to write a C# override
+			return writer;
+		}
 		newLineIntend(context, writer);
 		writer.append('[');
 		writeType(annotation.getType(), context, writer);
@@ -323,17 +329,22 @@ public class CsharpHelper implements ICsharpHelper
 			return writer;
 		}
 		writer.append('(');
+		// clone the map to be able to modify it
+		properties = new LinkedHashMap<String, AnnotationValue>(properties);
 		boolean firstProperty = true;
+		if (Property.class.getName().equals(annotation.getType()))
+		{
+			AnnotationValue valueOfName = properties.remove("name");
+			if (valueOfName != null)
+			{
+				// in C# the name value can be passed directly as a constructor argument without key=value pattern
+				firstProperty = writeStringIfFalse(", ", firstProperty, context, writer);
+				writer.append(valueOfName.toString());
+			}
+		}
 		for (Entry<String, AnnotationValue> entry : properties)
 		{
-			if (firstProperty)
-			{
-				firstProperty = false;
-			}
-			else
-			{
-				writer.append(", ");
-			}
+			firstProperty = writeStringIfFalse(", ", firstProperty, context, writer);
 			String propertyName = StringConversionHelper.upperCaseFirst(objectCollector, entry.getKey());
 			writer.append(propertyName).append("=");
 			writer.append(entry.getValue().toString());
