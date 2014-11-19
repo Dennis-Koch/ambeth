@@ -291,6 +291,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		languageHelper.writeAnnotations(classInfo);
 		languageHelper.newLineIntend();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
 		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
