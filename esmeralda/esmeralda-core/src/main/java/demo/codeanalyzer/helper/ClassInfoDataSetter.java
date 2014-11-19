@@ -15,6 +15,7 @@ import javax.lang.model.type.TypeMirror;
 import com.sun.source.tree.ClassTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 
 import demo.codeanalyzer.common.model.AnnotationInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -75,7 +76,7 @@ public class ClassInfoDataSetter
 		clazzInfo.setNestingKind(e.getNestingKind().toString());
 
 		// Set modifier details
-		for (Modifier modifier : e.getModifiers())
+		for (Modifier modifier : ((JCClassDecl) classTree).getModifiers().getFlags())
 		{
 			DataSetterUtil.setModifiers(modifier.toString(), clazzInfo);
 		}

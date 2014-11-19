@@ -1,7 +1,5 @@
 package de.osthus.esmeralda.handler.csharp;
 
-import java.io.Writer;
-
 import javax.lang.model.element.VariableElement;
 
 import de.osthus.ambeth.collections.IList;
@@ -11,7 +9,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
-import de.osthus.esmeralda.ConversionContext;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -24,6 +23,9 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 	private ILogger log;
 
 	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
 	protected ICsharpHelper languageHelper;
 
 	@Autowired
@@ -33,22 +35,41 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 	protected ISnippetManagerFactory snippetManagerFactory;
 
 	@Override
-	public void handle(final Object astNode, final ConversionContext context, Writer writer) throws Throwable
+	public void handle(Object astNode)
 	{
+		IConversionContext context = this.context.getCurrent();
 		Method method = context.getMethod();
-		languageHelper.newLineIntend(context, writer);
-		languageHelper.writeAnnotations(method, context, writer);
-		languageHelper.newLineIntend(context, writer);
+		IWriter writer = context.getWriter();
 
-		boolean firstKeyWord = languageHelper.writeModifiers(method, context, writer);
-		JavaClassInfo superClass = context.resolveClassInfo(context.getClassInfo().getNameOfSuperClass());
-		if (superClass != null && superClass.hasMethodWithIdenticalSignature(method))
+		languageHelper.newLineIntend();
+		languageHelper.writeAnnotations(method);
+		languageHelper.newLineIntend();
+
+		boolean firstKeyWord = languageHelper.writeModifiers(method);
+		String currTypeName = context.getClassInfo().getNameOfSuperClass();
+		boolean overrideNeeded = false;
+		while (currTypeName != null)
 		{
-			firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord, context, writer);
+			JavaClassInfo currType = context.resolveClassInfo(currTypeName);
+			if (currType == null)
+			{
+				break;
+			}
+			if (currType.hasMethodWithIdenticalSignature(method))
+			{
+				overrideNeeded = true;
+				break;
+			}
+			currTypeName = currType.getNameOfSuperClass();
+		}
+		if (overrideNeeded)
+		{
+			firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
 			writer.append("override");
 		}
-		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord, context, writer);
-		languageHelper.writeType(method.getReturnType(), context, writer).append(' ');
+		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
+		languageHelper.writeType(method.getReturnType());
+		writer.append(' ');
 		String methodName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
 		// TODO: remind of the changed method name on all invocations
 		writer.append(methodName).append('(');
@@ -60,12 +81,12 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 			{
 				writer.append(", ");
 			}
-			languageHelper.writeType(parameter.asType().toString(), context, writer).append(' ');
-			writer.append(parameter.getSimpleName());
+			languageHelper.writeType(parameter.asType().toString());
+			writer.append(' ').append(parameter.getSimpleName());
 		}
 		writer.append(')');
 
-		languageHelper.scopeIntend(context, writer, new IBackgroundWorkerDelegate()
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
