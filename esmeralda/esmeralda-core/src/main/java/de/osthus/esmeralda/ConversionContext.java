@@ -15,7 +15,7 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ConversionContext
 {
-	public static final Pattern genericTypePattern = Pattern.compile("(.+)<(.+)>");
+	public static final Pattern genericTypePattern = Pattern.compile("([^<>]+)<(.+)>");
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -86,11 +86,6 @@ public class ConversionContext
 			String genericTypeArguments = genericTypeMatcher.group(2);
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType);
 			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
-		}
-		if (fqTypeName.startsWith(Enum.class.getName() + "<"))
-		{
-			// .net has no member inheritance
-			return resolveClassInfo(Enum.class.getName());
 		}
 		throw new IllegalArgumentException("Could not resolve '" + fqTypeName + "'");
 	}
