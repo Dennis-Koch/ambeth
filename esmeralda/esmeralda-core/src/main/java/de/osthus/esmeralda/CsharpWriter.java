@@ -1,9 +1,6 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.tools.Diagnostic;
@@ -15,27 +12,17 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class CsharpWriter implements IStartingBean
 {
-	protected static final Pattern genericTypePattern = Pattern.compile("([^<>]+)<(.+)>");
-
-	protected static final Pattern commaSplitPattern = Pattern.compile(",");
-
-	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -45,9 +32,6 @@ public class CsharpWriter implements IStartingBean
 
 	@Autowired
 	protected IFileUtil fileUtil;
-
-	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
 	protected INodeHandlerRegistry nodeHandlerRegistry;
@@ -99,7 +83,9 @@ public class CsharpWriter implements IStartingBean
 			}
 		}
 
-		INodeHandlerExtension classHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.CLASS);
+		INodeHandlerExtension csClassHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.CLASS);
+		INodeHandlerExtension jsClassHandler = nodeHandlerRegistry.get(Lang.JS + EsmeType.CLASS);
+
 		ArrayList<JavaClassInfo> classInfos = codeProcessor.getClassInfos();
 		for (JavaClassInfo classInfo : classInfos)
 		{
@@ -108,75 +94,20 @@ public class CsharpWriter implements IStartingBean
 			{
 				continue;
 			}
-			packageName = classInfo.getPackageName().replace(".", "/");
-			File targetFilePath = new File(targetPath, packageName);
-			targetFilePath.mkdirs();
-			File targetFile = new File(targetFilePath, classInfo.getName() + ".cs");
 
-			ConversionContext context = new ConversionContext();
-			context.setClassInfo(classInfo);
-			context.setTargetFile(targetFile);
+			ConversionContext csContext = new ConversionContext();
+			csContext.setTargetPath(targetPath);
+			csContext.setLanguagePath("csharp");
+			csContext.setNsPrefixRemove("de.osthus.");
+			csContext.setClassInfo(classInfo);
+			csClassHandler.handle(null, csContext, null);
 
-			classHandler.handle(null, context, null);
+			ConversionContext jsContext = new ConversionContext();
+			jsContext.setTargetPath(targetPath);
+			jsContext.setLanguagePath("js");
+			jsContext.setNsPrefixRemove("de.osthus.");
+			jsContext.setClassInfo(classInfo);
+			jsClassHandler.handle(null, jsContext, null);
 		}
-	}
-
-	protected IList<File> findAllSourceFiles()
-	{
-		final ArrayList<File> sourceFiles = new ArrayList<File>();
-
-		searchForFiles(sourcePath, new FileFilter()
-		{
-			@Override
-			public boolean accept(File file)
-			{
-				if (!file.getName().endsWith(".java"))
-				{
-					return false;
-				}
-				if (file.getPath().contains("repackaged"))
-				{
-					return false;
-				}
-				sourceFiles.add(file);
-				return true;
-			}
-		});
-		return sourceFiles;
-	}
-
-	protected void searchForFiles(File[] baseDirs, FileFilter fileFilter)
-	{
-		for (File pathItem : baseDirs)
-		{
-			File rootDir;
-			try
-			{
-				rootDir = pathItem.getCanonicalFile();
-			}
-			catch (IOException e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			searchForFiles(rootDir, rootDir, fileFilter);
-		}
-	}
-
-	protected void searchForFiles(File baseDir, File currFile, FileFilter fileFilter)
-	{
-		if (currFile == null)
-		{
-			return;
-		}
-		if (currFile.isDirectory())
-		{
-			File[] listFiles = currFile.listFiles();
-			for (File child : listFiles)
-			{
-				searchForFiles(baseDir, child, fileFilter);
-			}
-			return;
-		}
-		fileFilter.accept(currFile);
 	}
 }
