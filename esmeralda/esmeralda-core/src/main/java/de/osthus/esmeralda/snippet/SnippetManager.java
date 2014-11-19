@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.digest.Md5Crypt;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import com.sun.source.tree.MethodTree;
 
@@ -23,7 +23,6 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
-import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IWriter;
@@ -32,6 +31,10 @@ import demo.codeanalyzer.common.model.Method;
 
 public class SnippetManager implements ISnippetManager, IInitializingBean
 {
+	private static final String TAB_EQUIVALENT = "    ";
+
+	private static final Pattern PATTERN_START_TABS = Pattern.compile("^(" + TAB_EQUIVALENT + ")+");
+
 	private static final String TEXT_COMMENTED_OUT = "// ";
 
 	private static final String TEXT_EXPL_HEADER = "This code could not be converted automatically. Please provide a snippet to use in the converted file.";
@@ -82,24 +85,21 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 
 		IConversionContext context = this.context.getCurrent();
 		File snippetPathBase = context.getSnippetPath();
-		String languagePath = context.getLanguagePath();
-		if (languagePath != null)
-		{
-			snippetPathBase = new File(snippetPathBase, languagePath);
-		}
-
 		Path packagePath = languageHelper.createRelativeTargetPath();
 		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), packagePath.toString());
 	}
 
-	private void createFileNameParts()
+	// TODO think about adding the parameters to the name
+	protected void createFileNameParts()
 	{
+		String methodName = method.getName();
 		String targetFileName = languageHelper.createTargetFileName(classInfo);
 		int lastDot = targetFileName.lastIndexOf(".");
-		fileNameParts[0] = targetFileName.substring(0, lastDot);
+		fileNameParts[0] = targetFileName.substring(0, lastDot) + "." + methodName;
 		fileNameParts[1] = targetFileName.substring(lastDot + 1);
 	}
 
+	// FIXME This Code is run multiple times since there are some "analysis" runs in the CsharpClassNodeHandler
 	@Override
 	public void finished()
 	{
@@ -121,22 +121,58 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	public void writeSnippet(String untranslatableCode)
 	{
 		IConversionContext context = this.context.getCurrent();
-		// TODO find snippet file and return snippet code
-		createSnippetPath();
+		IWriter writer = context.getWriter();
+
+		String unindentedCode = unindentCode(untranslatableCode);
+		String md5Hash = DigestUtils.md5Hex(unindentedCode);
+		Path snippetFilePath = createSnippetFilePath(md5Hash);
+		// TODO snippet path erstellung
+		boolean fileExists = Files.exists(snippetFilePath);
+		if (fileExists)
+		{
+			usedSnippetFiles.add(snippetFilePath.getFileName().toString());
+			List<String> snippet = readSnippet(snippetFilePath);
+			if (snippet != null)
+			{
+				for (int i = 0, size = snippet.size(); i < size; i++)
+				{
+					String line = snippet.get(i);
+					languageHelper.newLineIntend();
+					writer.append(line);
+				}
+				return;
+			}
+		}
+
 		// TODO if snippet file does not exist, create file and report this
 
 		// TODO find equal snippets
 		// TODO If implemented use the code and inform in log
 		// If not implemented just inform in log
 
-		IWriter writer = context.getWriter();
 		languageHelper.newLineIntend();
 		writer.append("// TODO");
 	}
 
-	protected Path createSnippetFilePath(String untranslatableCode)
+	protected String unindentCode(String untranslatableCode)
 	{
-		String md5Hash = Md5Crypt.apr1Crypt(untranslatableCode);
+		if (!untranslatableCode.startsWith(TAB_EQUIVALENT))
+		{
+			return untranslatableCode;
+		}
+
+		Matcher matcher = PATTERN_START_TABS.matcher(untranslatableCode);
+		matcher.find();
+		String tabs = matcher.group(1);
+		untranslatableCode = untranslatableCode.substring(tabs.length());
+
+		String unindentedCodde = untranslatableCode.replaceAll("([\n\r]+)" + tabs, "$1");
+
+		return unindentedCodde;
+	}
+
+	protected Path createSnippetFilePath(String md5Hash)
+	{
 		StringBuilder sb = new StringBuilder();
 		sb.append(fileNameParts[0]).append(".").append(md5Hash).append(".").append(fileNameParts[1]);
 		String fileName = sb.toString();
@@ -148,7 +184,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	{
 		ArrayList<String> allSnippetFiles = new ArrayList<>();
 		File snippetDir = snippetPath.toFile();
-		if (!snippetDir.exists())
+		if (!Files.exists(snippetPath))
 		{
 			return allSnippetFiles;
 		}
@@ -173,11 +209,11 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		return allSnippetFiles;
 	}
 
-	protected List<String> readSnippet(Path snippetFile, ConversionContext context)
+	protected List<String> readSnippet(Path snippetFilePath)
 	{
 		try
 		{
-			List<String> lines = Files.readAllLines(snippetFile, StandardCharsets.UTF_8);
+			List<String> lines = Files.readAllLines(snippetFilePath, StandardCharsets.UTF_8);
 			List<String> withoutPreface = null;
 			for (int i = 0, size = lines.size(); i < size; i++)
 			{
