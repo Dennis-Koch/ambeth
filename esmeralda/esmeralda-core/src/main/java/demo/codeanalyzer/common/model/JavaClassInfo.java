@@ -1,6 +1,7 @@
 package demo.codeanalyzer.common.model;
 
 import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.VariableElement;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.collections.LinkedHashMap;
  */
 public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 {
-
 	private String nameOfSuperClass;
 	private String packageName;
 	private String nestingKind;
@@ -89,6 +89,43 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public IList<Method> getMethods()
 	{
 		return methods;
+	}
+
+	@Override
+	public boolean hasMethodWithIdenticalSignature(Method method)
+	{
+		for (Method existingMethod : getMethods())
+		{
+			if (!existingMethod.getName().equals(method.getName()))
+			{
+				// not the same name
+				continue;
+			}
+			IList<VariableElement> existingParameters = existingMethod.getParameters();
+			IList<VariableElement> parameters = method.getParameters();
+
+			if (existingParameters.size() != parameters.size())
+			{
+				// not the same parameter count
+				continue;
+			}
+			boolean parametersIdentical = true;
+			for (int a = existingParameters.size(); a-- > 0;)
+			{
+				VariableElement existingParameter = existingParameters.get(a);
+				VariableElement parameter = parameters.get(a);
+				if (!existingParameter.toString().equals(parameter.toString()))
+				{
+					parametersIdentical = false;
+					break;
+				}
+			}
+			if (parametersIdentical)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void addMethod(Method method)

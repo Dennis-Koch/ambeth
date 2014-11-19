@@ -1,6 +1,8 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
@@ -13,6 +15,8 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ConversionContext
 {
+	public static final Pattern genericTypePattern = Pattern.compile("(.+)<(.+)>");
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -22,6 +26,8 @@ public class ConversionContext
 	private int indentationLevel;
 
 	private JavaClassInfo classInfo;
+
+	private final IMap<String, JavaClassInfo> fqNameToClassInfoMap;
 
 	private HashSet<TypeUsing> usedTypes;
 
@@ -33,9 +39,55 @@ public class ConversionContext
 
 	private Method method;
 
+	public ConversionContext(IMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	{
+		this.fqNameToClassInfoMap = fqNameToClassInfoMap;
+	}
+
 	public File getTargetFile()
 	{
 		return targetFile;
+	}
+
+	public JavaClassInfo resolveClassInfo(String fqTypeName)
+	{
+		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
+		if (classInfo != null)
+		{
+			return classInfo;
+		}
+		if ("<none>".equals(fqTypeName))
+		{
+			return null;
+		}
+		if (fqTypeName.contains(".repackaged."))
+		{
+			throw new SkipGenerationException();
+		}
+		if (fqTypeName.equals(ClassLoader.class.getName()))
+		{
+			throw new SkipGenerationException();
+		}
+		Matcher genericTypeMatcher = genericTypePattern.matcher(fqTypeName);
+		if (genericTypeMatcher.matches())
+		{
+			String nonGenericType = genericTypeMatcher.group(1);
+			String genericTypeArguments = genericTypeMatcher.group(2);
+			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType);
+			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
+		}
+		if (fqTypeName.startsWith(Enum.class.getName() + "<"))
+		{
+			// .net has no member inheritance
+			return resolveClassInfo(Enum.class.getName());
+		}
+		throw new IllegalArgumentException("Could not resolve '" + fqTypeName + "'");
+	}
+
+	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
+	{
+		// TODO: create new instance of javaClassInfo and replace the corresponding generic type parameters according to the given generic type arguments.
+		return classInfo;
 	}
 
 	public void setTargetFile(File targetFile)

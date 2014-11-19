@@ -57,7 +57,7 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public boolean spaceIfFalse(boolean value, ConversionContext context, Writer writer) throws Throwable
+	public boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable
 	{
 		return false;
 	}
