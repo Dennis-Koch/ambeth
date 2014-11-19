@@ -1,5 +1,6 @@
 package de.osthus.esmeralda;
 
+import java.io.File;
 import java.io.Writer;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public interface ILanguageHelper
 	boolean newLineIntendIfFalse(boolean firstLine, ConversionContext context, Writer writer) throws Throwable;
 
 	void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable;
+
+	File createTargetFile(ConversionContext context);
 
 	String camelCaseName(String typeName);
 
@@ -38,5 +41,4 @@ public interface ILanguageHelper
 	Writer writeGenericTypeArguments(List<Type> genericTypeArguments, ConversionContext context, Writer writer) throws Throwable;
 
 	Writer writeMethodArguments(List<JCExpression> methodArguments, ConversionContext context, Writer writer) throws Throwable;
-
 }

@@ -56,8 +56,6 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	@Override
 	public void handle(Object astNode, ConversionContext context, Writer writer)
 	{
-		// protected void convertJavaToCsharp(JavaClassInfo classInfo, File csharpFile)
-		// {
 		JavaClassInfo classInfo = context.getClassInfo();
 
 		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
@@ -139,7 +137,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 
 			String newFileContent = writer.toString();
 
-			File csharpFile = context.getTargetFile();
+			File csharpFile = languageHelper.createTargetFile(context);
 			if (csharpFile.exists())
 			{
 				StringBuilder existingFileContent = readFileFully(csharpFile);

@@ -1,7 +1,10 @@
 package de.osthus.esmeralda.handler.csharp;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,6 +34,7 @@ import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.TypeUsing;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class CsharpHelper implements ICsharpHelper
 {
@@ -198,6 +202,42 @@ public class CsharpHelper implements ICsharpHelper
 			newLineIntend(context, writer);
 		}
 		return false;
+	}
+
+	@Override
+	public File createTargetFile(ConversionContext context)
+	{
+		JavaClassInfo classInfo = context.getClassInfo();
+		String packageName = classInfo.getPackageName();
+
+		String nsPrefixRemove = context.getNsPrefixRemove();
+		if (packageName.startsWith(nsPrefixRemove))
+		{
+			int removeLength = nsPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
+		}
+
+		String nsPrefixAdd = context.getNsPrefixAdd();
+		if (nsPrefixAdd != null)
+		{
+			packageName = nsPrefixAdd + packageName;
+		}
+
+		packageName = camelCaseName(packageName);
+		packageName = packageName.replace(".", "/");
+
+		File targetPath = context.getTargetPath();
+		Path targetFilePath = Paths.get(targetPath.getPath());
+		String languagePath = context.getLanguagePath();
+		if (languagePath != null && !languagePath.isEmpty())
+		{
+			targetFilePath = targetFilePath.resolve(languagePath);
+		}
+		File targetFileDir = new File(targetFilePath.toFile(), packageName);
+		targetFileDir.mkdirs();
+
+		File targetFile = new File(targetFileDir, classInfo.getName() + ".cs");
+		return targetFile;
 	}
 
 	@Override
