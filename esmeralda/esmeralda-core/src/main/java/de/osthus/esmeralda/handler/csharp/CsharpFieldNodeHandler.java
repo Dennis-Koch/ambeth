@@ -8,6 +8,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
+import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -57,6 +58,13 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 		if (annotatedWithAutowired || annotatedWithProperty)
 		{
 			writer.append("public");
+			firstKeyWord = false;
+		}
+		else if (languageHelper.isAnnotatedWith(field.getOwningClass(), ConfigurationConstants.class) && field.isPublic() && field.isStatic()
+				&& field.isFinal())
+		{
+			// constants here must be a C# "const" instead of static readonly because of the time of value resolving (static instead of dynamic)
+			writer.append("public const");
 			firstKeyWord = false;
 		}
 		else
