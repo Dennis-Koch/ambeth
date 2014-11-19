@@ -58,6 +58,7 @@ public class ConversionManager implements IStartingBean
 	@Autowired
 	protected IConversionContext context;
 
+	@Autowired
 	protected IEsmeFileUtil fileUtil;
 
 	@Autowired

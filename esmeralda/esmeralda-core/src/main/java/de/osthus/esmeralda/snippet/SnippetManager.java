@@ -75,7 +75,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			snippetPathBase = new File(snippetPathBase, languagePath);
 		}
 
-		Path packagePath = languageHelper.createRelativeTargetPath(context);
+		Path packagePath = languageHelper.createRelativeTargetPath();
 		String className = classInfo.getName();
 		Path classPath = packagePath.resolve(className);
 		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), classPath.toString());
