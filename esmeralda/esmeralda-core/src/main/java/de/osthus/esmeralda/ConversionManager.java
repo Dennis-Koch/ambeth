@@ -68,7 +68,7 @@ public class ConversionManager implements IStartingBean
 	protected File[] sourcePath;
 
 	@Property(name = "snippet-path")
-	protected File[] snippetPath;
+	protected File snippetPath;
 
 	@Property(name = "target-path")
 	protected File targetPath;
@@ -143,8 +143,9 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			IConversionContext csContext = new ConversionContext();
+			ConversionContext csContext = new ConversionContext();
 			csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
 			csContext.setNsPrefixRemove("de.osthus.");
@@ -161,8 +162,10 @@ public class ConversionManager implements IStartingBean
 					context.setCurrent(oldContext);
 				}
 			}
-			IConversionContext jsContext = new ConversionContext();
+
+			ConversionContext jsContext = new ConversionContext();
 			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
 			jsContext.setNsPrefixRemove("de.osthus.");
@@ -172,15 +175,13 @@ public class ConversionManager implements IStartingBean
 				context.setCurrent(csContext);
 				try
 				{
-					csClassHandler.handle(null);
+					jsClassHandler.handle(null);
 				}
 				finally
 				{
 					context.setCurrent(oldContext);
 				}
 			}
-
-			jsClassHandler.handle(null);
 		}
 	}
 
