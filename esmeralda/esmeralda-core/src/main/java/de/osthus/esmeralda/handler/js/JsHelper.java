@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.js;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
@@ -30,6 +31,12 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable
 	{
+	}
+
+	@Override
+	public File createTargetFile(ConversionContext context)
+	{
+		return null;
 	}
 
 	@Override

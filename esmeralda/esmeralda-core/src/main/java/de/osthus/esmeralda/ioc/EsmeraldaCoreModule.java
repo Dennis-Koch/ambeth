@@ -5,7 +5,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.esmeralda.CodeProcessor;
-import de.osthus.esmeralda.CsharpWriter;
+import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.FileUtil;
 import de.osthus.esmeralda.IFileUtil;
 import de.osthus.esmeralda.Lang;
@@ -27,7 +27,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		// beanContextFactory.registerBean(InterfaceConverter.class);
-		beanContextFactory.registerBean(CsharpWriter.class);
+		beanContextFactory.registerBean(ConversionManager.class);
 		beanContextFactory.registerBean(CodeProcessor.class).autowireable(CodeProcessor.class);
 
 		beanContextFactory.registerBean(FileUtil.class).autowireable(IFileUtil.class);
