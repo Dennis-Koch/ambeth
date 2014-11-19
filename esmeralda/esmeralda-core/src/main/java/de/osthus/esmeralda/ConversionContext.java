@@ -17,7 +17,13 @@ public class ConversionContext
 	@LogInstance
 	private ILogger log;
 
-	private File targetFile;
+	private File targetPath;
+
+	private String languagePath;
+
+	private String nsPrefixAdd;
+
+	private String nsPrefixRemove;
 
 	private int indentationLevel;
 
@@ -33,14 +39,44 @@ public class ConversionContext
 
 	private Method method;
 
-	public File getTargetFile()
+	public File getTargetPath()
 	{
-		return targetFile;
+		return targetPath;
 	}
 
-	public void setTargetFile(File targetFile)
+	public void setTargetPath(File targetPath)
 	{
-		this.targetFile = targetFile;
+		this.targetPath = targetPath;
+	}
+
+	public String getLanguagePath()
+	{
+		return languagePath;
+	}
+
+	public void setLanguagePath(String languagePath)
+	{
+		this.languagePath = languagePath;
+	}
+
+	public String getNsPrefixAdd()
+	{
+		return nsPrefixAdd;
+	}
+
+	public void setNsPrefixAdd(String nsPrefixAdd)
+	{
+		this.nsPrefixAdd = nsPrefixAdd;
+	}
+
+	public String getNsPrefixRemove()
+	{
+		return nsPrefixRemove;
+	}
+
+	public void setNsPrefixRemove(String nsPrefixRemove)
+	{
+		this.nsPrefixRemove = nsPrefixRemove;
 	}
 
 	public int getIndentationLevel()
