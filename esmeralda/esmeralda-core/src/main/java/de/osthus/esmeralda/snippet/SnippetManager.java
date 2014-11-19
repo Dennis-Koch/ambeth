@@ -91,6 +91,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		this.methodAstNode = methodAstNode;
 	}
 
+	@Override
 	public void finished()
 	{
 		List<String> allSnippetFiles = findAllSnippetFiles();
@@ -101,7 +102,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			StringBuilder sb = new StringBuilder("The following snippet file(s) was/were not used:");
 			for (String snippetFile : allSnippetFiles)
 			{
-				sb.append(NL).append("\t").append(snippetPath).append(File.pathSeparatorChar).append(snippetFile);
+				sb.append(NL).append("\t").append(snippetPath).append(File.separatorChar).append(snippetFile);
 			}
 			log.info(sb);
 		}
@@ -181,6 +182,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 				withoutPreface = withoutPreface.subList(1, withoutPreface.size());
 			}
 
+			// TODO glue lines indeted
+
 			return null;
 		}
 		catch (IOException e)
@@ -205,6 +208,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		byte[] bytes = sb.toString().getBytes();
 		try
 		{
+			Files.createDirectories(snippetFile.getParent());
 			Files.write(snippetFile, bytes);
 		}
 		catch (IOException e)

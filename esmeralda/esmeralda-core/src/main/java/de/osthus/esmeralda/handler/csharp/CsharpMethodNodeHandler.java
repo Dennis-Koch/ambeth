@@ -13,6 +13,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
+import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
@@ -28,8 +29,11 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
+	protected ISnippetManagerFactory snippetManagerFactory;
+
 	@Override
-	public void handle(Object astNode, ConversionContext context, Writer writer) throws Throwable
+	public void handle(final Object astNode, final ConversionContext context, Writer writer) throws Throwable
 	{
 		Method method = context.getMethod();
 		languageHelper.newLineIntend(context, writer);
@@ -66,7 +70,12 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 			@Override
 			public void invoke() throws Throwable
 			{
+				// TODO does not work yet
+				// ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(astNode, context, languageHelper);
+
 				// method body
+
+				// snippetManager.finished();
 			}
 		});
 	}

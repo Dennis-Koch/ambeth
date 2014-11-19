@@ -54,6 +54,12 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public String createNameSpace(ConversionContext context)
+	{
+		return null;
+	}
+
+	@Override
 	public String camelCaseName(String typeName)
 	{
 		return null;
