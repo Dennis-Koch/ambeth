@@ -6,11 +6,7 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionManager;
-import de.osthus.esmeralda.EsmeType;
-import de.osthus.esmeralda.FileUtil;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IFileUtil;
-import de.osthus.esmeralda.Lang;
 import de.osthus.esmeralda.handler.ConversionContextBean;
 import de.osthus.esmeralda.handler.INodeHandlerExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
@@ -22,6 +18,12 @@ import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassNodeHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
+import de.osthus.esmeralda.misc.EsmeFileUtil;
+import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
+import de.osthus.esmeralda.snippet.SnippetManagerFactory;
 
 public class EsmeraldaCoreModule implements IInitializingModule
 {
@@ -33,7 +35,9 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(CodeProcessor.class).autowireable(CodeProcessor.class);
 		beanContextFactory.registerBean(ConversionContextBean.class).autowireable(IConversionContext.class);
 
-		beanContextFactory.registerBean(FileUtil.class).autowireable(IFileUtil.class);
+		beanContextFactory.registerBean(SnippetManagerFactory.class).autowireable(ISnippetManagerFactory.class);
+
+		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 
 		beanContextFactory.registerBean(CsharpHelper.class).autowireable(ICsharpHelper.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);

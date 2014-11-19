@@ -1,4 +1,4 @@
-package de.osthus.esmeralda;
+package de.osthus.esmeralda.misc;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -10,7 +10,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class FileUtil implements IFileUtil
+public class EsmeFileUtil implements IEsmeFileUtil
 {
 	@SuppressWarnings("unused")
 	@LogInstance

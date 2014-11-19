@@ -35,6 +35,13 @@
 				<version>3.18.2-GA</version>
 			</dependency>
 
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.11</version>
+				<scope>runtime</scope>
+			</dependency>
+
 			<!-- jAmbeth dependencies -->
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>

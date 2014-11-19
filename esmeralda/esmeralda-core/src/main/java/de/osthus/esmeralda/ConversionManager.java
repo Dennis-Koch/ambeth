@@ -40,6 +40,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
+import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.MethodInfo;
 
@@ -56,13 +59,16 @@ public class ConversionManager implements IStartingBean
 	protected IConversionContext context;
 
 	@Autowired
-	protected IFileUtil fileUtil;
+	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
 	protected INodeHandlerRegistry nodeHandlerRegistry;
 
 	@Property(name = "source-path")
 	protected File[] sourcePath;
+
+	@Property(name = "snippet-path")
+	protected File[] snippetPath;
 
 	@Property(name = "target-path")
 	protected File targetPath;
@@ -122,6 +128,7 @@ public class ConversionManager implements IStartingBean
 				throw new IllegalStateException("Full qualified name is not unique: " + fqName);
 			}
 		}
+
 		addClassInfo(mockType(Object.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(Enum.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(SoftReference.class), fqNameToClassInfoMap);

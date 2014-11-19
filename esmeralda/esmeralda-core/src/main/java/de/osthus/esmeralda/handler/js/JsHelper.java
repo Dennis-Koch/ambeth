@@ -1,6 +1,7 @@
 package de.osthus.esmeralda.handler.js;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 import com.sun.tools.javac.code.Type;
@@ -12,6 +13,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class JsHelper implements IJsHelper
 {
@@ -37,6 +39,18 @@ public class JsHelper implements IJsHelper
 
 	@Override
 	public File createTargetFile()
+	{
+		return null;
+	}
+
+	@Override
+	public Path createRelativeTargetPath()
+	{
+		return null;
+	}
+
+	@Override
+	public String createTargetFileName(JavaClassInfo classInfo)
 	{
 		return null;
 	}

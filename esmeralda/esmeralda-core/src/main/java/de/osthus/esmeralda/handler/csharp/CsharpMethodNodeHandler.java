@@ -12,6 +12,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
+import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
@@ -29,6 +30,9 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected ISnippetManagerFactory snippetManagerFactory;
 
 	@Override
 	public void handle(Object astNode)
@@ -87,7 +91,12 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 			@Override
 			public void invoke() throws Throwable
 			{
+				// TODO does not work yet
+				// ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(astNode, context, languageHelper);
+
 				// method body
+
+				// snippetManager.finished();
 			}
 		});
 	}
