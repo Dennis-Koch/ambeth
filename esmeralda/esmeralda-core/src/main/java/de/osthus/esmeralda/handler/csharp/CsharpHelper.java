@@ -220,6 +220,23 @@ public class CsharpHelper implements ICsharpHelper
 	@Override
 	public Path createRelativeTargetPath(ConversionContext context)
 	{
+		String packageName = createNameSpace(context);
+
+		String relativeTargetPathName = packageName.replace(".", File.separator);
+
+		String languagePath = context.getLanguagePath();
+		if (languagePath != null && !languagePath.isEmpty())
+		{
+			relativeTargetPathName = languagePath + File.separator + relativeTargetPathName;
+		}
+		Path relativeTargetPath = Paths.get(relativeTargetPathName);
+
+		return relativeTargetPath;
+	}
+
+	@Override
+	public String createNameSpace(ConversionContext context)
+	{
 		JavaClassInfo classInfo = context.getClassInfo();
 		String packageName = classInfo.getPackageName();
 
@@ -237,15 +254,7 @@ public class CsharpHelper implements ICsharpHelper
 		}
 
 		packageName = camelCaseName(packageName);
-		Path relativeTargetPath = Paths.get(packageName.replace(".", "/"));
-
-		String languagePath = context.getLanguagePath();
-		if (languagePath != null && !languagePath.isEmpty())
-		{
-			relativeTargetPath = relativeTargetPath.resolve(languagePath);
-		}
-
-		return relativeTargetPath;
+		return packageName;
 	}
 
 	@Override

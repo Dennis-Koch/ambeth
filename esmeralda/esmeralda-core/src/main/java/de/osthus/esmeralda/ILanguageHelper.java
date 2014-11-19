@@ -28,6 +28,8 @@ public interface ILanguageHelper
 
 	String createTargetFileName(JavaClassInfo classInfo);
 
+	String createNameSpace(ConversionContext context);
+
 	String camelCaseName(String typeName);
 
 	boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType, ConversionContext context) throws Throwable;

@@ -1,4 +1,4 @@
-package de.osthus.esmeralda;
+package de.osthus.esmeralda.misc;
 
 import java.io.File;
 import java.io.FileFilter;

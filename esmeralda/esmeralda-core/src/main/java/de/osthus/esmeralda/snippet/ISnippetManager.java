@@ -5,4 +5,6 @@ import de.osthus.esmeralda.ConversionContext;
 public interface ISnippetManager
 {
 	String getSnippet(Object astNode, ConversionContext context);
+
+	void finished();
 }

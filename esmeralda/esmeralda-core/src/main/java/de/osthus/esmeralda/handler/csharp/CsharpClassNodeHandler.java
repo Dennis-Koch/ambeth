@@ -23,13 +23,13 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.ConversionContext;
-import de.osthus.esmeralda.EsmeType;
-import de.osthus.esmeralda.IEsmeFileUtil;
-import de.osthus.esmeralda.Lang;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
+import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -254,10 +254,10 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			}
 			languageHelper.newLineIntend(context, writer);
 		}
-		String packageName = classInfo.getPackageName();
-		String camelCasePackageName = languageHelper.camelCaseName(packageName);
+
+		String nameSpace = languageHelper.createNameSpace(context);
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine, context, writer);
-		writer.append("namespace ").append(camelCasePackageName);
+		writer.append("namespace ").append(nameSpace);
 		languageHelper.scopeIntend(context, writer, new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -270,10 +270,20 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 
 	protected void writeClass(final JavaClassInfo classInfo, final ConversionContext context, final Writer writer) throws Throwable
 	{
-		languageHelper.newLineIntend(context, writer).append("public class ").append(classInfo.getName());
+		languageHelper.newLineIntend(context, writer);
+		if (!classInfo.isInterface())
+		{
+			writer.append("public class ");
+		}
+		else
+		{
+			// FIXME classInfo.isInterface() is not working
+			writer.append("public interface ");
+		}
+		writer.append(classInfo.getName());
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass))
+		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
 		{
 			writer.append(" : ");
 			languageHelper.writeType(nameOfSuperClass, context, writer);
