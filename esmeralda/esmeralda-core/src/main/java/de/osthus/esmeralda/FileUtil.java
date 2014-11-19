@@ -68,6 +68,11 @@ public class FileUtil implements IFileUtil
 		}
 		if (currFile.isDirectory())
 		{
+			if ("target".equals(currFile.getName()))
+			{
+				// skip scanning directory
+				return;
+			}
 			File[] listFiles = currFile.listFiles();
 			for (File child : listFiles)
 			{
