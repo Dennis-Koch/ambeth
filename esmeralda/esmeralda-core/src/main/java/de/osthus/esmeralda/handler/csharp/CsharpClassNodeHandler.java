@@ -22,9 +22,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.EsmeType;
+import de.osthus.esmeralda.EsmeraldaWriter;
+import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IFileUtil;
+import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.Lang;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
@@ -42,6 +44,9 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	private ILogger log;
 
 	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
@@ -54,8 +59,9 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	protected INodeHandlerRegistry nodeHandlerRegistry;
 
 	@Override
-	public void handle(Object astNode, ConversionContext context, Writer writer)
+	public void handle(Object astNode)
 	{
+		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 
 		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
@@ -64,9 +70,8 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		context.setUsedTypes(usedTypes);
 		try
 		{
-			writer = new StringWriter();
-			writeToWriter(classInfo, context, writer);
-			writer = null;
+			context.setWriter(new EsmeraldaWriter(new StringWriter()));
+			writeToWriter(classInfo);
 		}
 		catch (SkipGenerationException e)
 		{
@@ -74,6 +79,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		}
 		finally
 		{
+			context.setWriter(null);
 			context.setUsedTypes(null);
 		}
 
@@ -128,61 +134,69 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			usings.add(newPackageUsing);
 		}
 
+		String newFileContent;
 		context.setUsings(usings.toList());
 		context.setImports(imports);
 		try
 		{
-			writer = new StringWriter();
-			writeToWriter(classInfo, context, writer);
+			StringWriter writer = new StringWriter();
+			context.setWriter(new EsmeraldaWriter(writer));
+			writeToWriter(classInfo);
 
-			String newFileContent = writer.toString();
-
-			File csharpFile = languageHelper.createTargetFile(context);
-			if (csharpFile.exists())
-			{
-				StringBuilder existingFileContent = readFileFully(csharpFile);
-				if (existingFileContent.toString().equals(newFileContent))
-				{
-					if (log.isDebugEnabled())
-					{
-						log.debug("File is already up-to-date: " + csharpFile);
-					}
-					return;
-				}
-				if (log.isInfoEnabled())
-				{
-					log.info("Updating file: " + csharpFile);
-				}
-			}
-			else
-			{
-				if (log.isInfoEnabled())
-				{
-					log.info("Creating file: " + csharpFile);
-				}
-			}
-			try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(csharpFile), "UTF-8"))
-			{
-				fileWriter.append(newFileContent);
-			}
-			catch (Throwable e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
+			newFileContent = writer.toString();
 		}
 		finally
 		{
+			context.setWriter(null);
 			context.setImports(null);
 			context.setUsings(null);
 		}
+		updateFile(newFileContent);
 	}
 
-	protected void writeToWriter(JavaClassInfo classInfo, ConversionContext context, Writer writer)
+	protected void updateFile(String newFileContent)
 	{
+		File csharpFile = languageHelper.createTargetFile();
+		if (csharpFile.exists())
+		{
+			StringBuilder existingFileContent = readFileFully(csharpFile);
+			if (existingFileContent.toString().equals(newFileContent))
+			{
+				if (log.isDebugEnabled())
+				{
+					log.debug("File is already up-to-date: " + csharpFile);
+				}
+				return;
+			}
+			if (log.isInfoEnabled())
+			{
+				log.info("Updating file: " + csharpFile);
+			}
+		}
+		else
+		{
+			if (log.isInfoEnabled())
+			{
+				log.info("Creating file: " + csharpFile);
+			}
+		}
+		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(csharpFile), "UTF-8"))
+		{
+			fileWriter.append(newFileContent);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected void writeToWriter(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
 		context.setIndentationLevel(0);
 		try
 		{
-			writeNamespace(classInfo, context, writer);
+			writeNamespace(classInfo);
 		}
 		catch (Throwable e)
 		{
@@ -220,8 +234,9 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		}
 	}
 
-	protected void writeNamespace(final JavaClassInfo classInfo, final ConversionContext context, final Writer writer) throws Throwable
+	protected void writeNamespace(final JavaClassInfo classInfo)
 	{
+		IWriter writer = context.getWriter();
 		boolean firstLine = true;
 		List<TypeUsing> usings = context.getUsings();
 		if (usings != null && usings.size() > 0)
@@ -230,18 +245,19 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			boolean silverlightFlagActive = false;
 			for (TypeUsing using : usings)
 			{
-				firstLine = languageHelper.newLineIntendIfFalse(firstLine, context, writer);
+				firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 				if (silverlightFlagActive && !using.isInSilverlightOnly())
 				{
 					// deactivate flag
 					writer.append("#endif");
-					languageHelper.newLineIntend(context, writer);
+					languageHelper.newLineIntend();
 					silverlightFlagActive = false;
 				}
 				else if (!silverlightFlagActive && using.isInSilverlightOnly())
 				{
 					// activate flag
-					languageHelper.newLineIntend(context, writer).append("#if SILVERLIGHT");
+					languageHelper.newLineIntend();
+					writer.append("#if SILVERLIGHT");
 					silverlightFlagActive = true;
 				}
 				writer.append("using ").append(using.getTypeName()).append(';');
@@ -249,34 +265,38 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			if (silverlightFlagActive)
 			{
 				// deactivate flag
-				languageHelper.newLineIntend(context, writer).append("#endif");
+				languageHelper.newLineIntend();
+				writer.append("#endif");
 
 			}
-			languageHelper.newLineIntend(context, writer);
+			languageHelper.newLineIntend();
 		}
 		String packageName = classInfo.getPackageName();
 		String camelCasePackageName = languageHelper.camelCaseName(packageName);
-		firstLine = languageHelper.newLineIntendIfFalse(firstLine, context, writer);
+		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 		writer.append("namespace ").append(camelCasePackageName);
-		languageHelper.scopeIntend(context, writer, new IBackgroundWorkerDelegate()
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				writeClass(classInfo, context, writer);
+				writeClass(classInfo);
 			}
 		});
 	}
 
-	protected void writeClass(final JavaClassInfo classInfo, final ConversionContext context, final Writer writer) throws Throwable
+	protected void writeClass(final JavaClassInfo classInfo)
 	{
-		languageHelper.newLineIntend(context, writer).append("public class ").append(classInfo.getName());
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		languageHelper.newLineIntend();
+		writer.append("public class ").append(classInfo.getName());
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
 		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass))
 		{
 			writer.append(" : ");
-			languageHelper.writeType(nameOfSuperClass, context, writer);
+			languageHelper.writeType(nameOfSuperClass);
 			firstInterfaceName = false;
 		}
 		for (String nameOfInterface : classInfo.getNameOfInterfaces())
@@ -290,26 +310,27 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			{
 				writer.append(", ");
 			}
-			languageHelper.writeType(nameOfInterface, context, writer);
+			languageHelper.writeType(nameOfInterface);
 		}
 
 		final INodeHandlerExtension fieldHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.FIELD);
 		final INodeHandlerExtension methodHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.METHOD);
 
-		languageHelper.scopeIntend(context, writer, new IBackgroundWorkerDelegate()
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
+				IConversionContext context = CsharpClassNodeHandler.this.context.getCurrent();
 				for (Field field : classInfo.getFields())
 				{
 					context.setField(field);
-					fieldHandler.handle(null, context, writer);
+					fieldHandler.handle(null);
 				}
 				for (Method method : classInfo.getMethods())
 				{
 					context.setMethod(method);
-					methodHandler.handle(null, context, writer);
+					methodHandler.handle(null);
 				}
 			}
 		});

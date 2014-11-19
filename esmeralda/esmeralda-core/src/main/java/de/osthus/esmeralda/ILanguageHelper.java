@@ -1,7 +1,6 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
-import java.io.Writer;
 import java.util.List;
 
 import com.sun.tools.javac.code.Type;
@@ -14,31 +13,31 @@ import demo.codeanalyzer.common.model.BaseJavaClassModel;
 
 public interface ILanguageHelper
 {
-	Writer newLineIntend(ConversionContext context, Writer writer) throws Throwable;
+	void newLineIntend();
 
-	boolean newLineIntendIfFalse(boolean firstLine, ConversionContext context, Writer writer) throws Throwable;
+	boolean newLineIntendIfFalse(boolean firstLine);
 
-	void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable;
+	void scopeIntend(IBackgroundWorkerDelegate run);
 
-	File createTargetFile(ConversionContext context);
+	File createTargetFile();
 
 	String camelCaseName(String typeName);
 
-	boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType, ConversionContext context) throws Throwable;
+	boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType);
 
-	boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable;
+	boolean writeStringIfFalse(String value, boolean condition);
 
-	Writer writeType(String typeName, ConversionContext context, Writer writer) throws Throwable;
+	void writeType(String typeName);
 
-	boolean writeModifiers(BaseJavaClassModel javaClassModel, ConversionContext context, Writer writer) throws Throwable;
+	boolean writeModifiers(BaseJavaClassModel javaClassModel);
 
-	Writer writeAnnotations(BaseJavaClassModel handle, ConversionContext context, Writer writer) throws Throwable;
+	void writeAnnotations(BaseJavaClassModel handle);
 
-	Writer writeAnnotation(Annotation annotation, ConversionContext context, Writer writer) throws Throwable;
+	void writeAnnotation(Annotation annotation);
 
-	Writer writeNewInstance(JCNewClass initializer, ConversionContext context, Writer writer) throws Throwable;
+	void writeNewInstance(JCNewClass initializer);
 
-	Writer writeGenericTypeArguments(List<Type> genericTypeArguments, ConversionContext context, Writer writer) throws Throwable;
+	void writeGenericTypeArguments(List<Type> genericTypeArguments);
 
-	Writer writeMethodArguments(List<JCExpression> methodArguments, ConversionContext context, Writer writer) throws Throwable;
+	void writeMethodArguments(List<JCExpression> methodArguments);
 }

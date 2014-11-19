@@ -1,8 +1,6 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -24,6 +22,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -31,6 +30,8 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.TypeUsing;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
@@ -53,24 +54,26 @@ public class CsharpHelper implements ICsharpHelper
 		put("long", "long");
 		put("float", "float");
 		put("double", "double");
-		put(Void.class.getName(), "void");
-		put(Boolean.class.getName(), "bool?");
-		put(Character.class.getName(), "char?");
-		put(Byte.class.getName(), "sbyte?");
-		put(Short.class.getName(), "short?");
-		put(Integer.class.getName(), "int?");
-		put(Long.class.getName(), "long?");
-		put(Float.class.getName(), "float?");
-		put(Double.class.getName(), "double?");
-		put(String.class.getName(), "System.String");
-		put("java.lang.Class<?>", "System.Type");
-		put(ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
+		put(java.lang.Void.class.getName(), "void");
+		put(java.lang.Boolean.class.getName(), "bool?");
+		put(java.lang.Character.class.getName(), "char?");
+		put(java.lang.Byte.class.getName(), "sbyte?");
+		put(java.lang.Short.class.getName(), "short?");
+		put(java.lang.Integer.class.getName(), "int?");
+		put(java.lang.Long.class.getName(), "long?");
+		put(java.lang.Float.class.getName(), "float?");
+		put(java.lang.Double.class.getName(), "double?");
+		put(java.lang.String.class.getName(), "System.String");
 
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(java.lang.Class.class.getName(), "System.Type");
+		put(java.lang.Class.class.getName() + "<?>", "System.Type");
+		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
-		put("java.util.Map.Entry", "De.Osthus.Ambeth.Collections.Entry");
+		put(java.util.Map.Entry.class.getName(), "De.Osthus.Ambeth.Collections.Entry");
 	}
 
 	protected static final void put(String key, String... values)
@@ -83,73 +86,86 @@ public class CsharpHelper implements ICsharpHelper
 	private ILogger log;
 
 	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public Writer newLineIntend(ConversionContext context, Writer writer) throws IOException
+	public void newLineIntend()
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		writer.append('\n');
 		int indentationLevel = context.getIndentationLevel();
 		for (int a = indentationLevel; a-- > 0;)
 		{
 			writer.append('\t');
 		}
-		return writer;
 	}
 
 	@Override
-	public void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable
+	public void scopeIntend(IBackgroundWorkerDelegate run)
 	{
-		newLineIntend(context, writer).append('{');
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		newLineIntend();
+		writer.append('{');
 		context.incremetIndentationLevel();
 		try
 		{
 			run.invoke();
 		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 		finally
 		{
 			context.decremetIndentationLevel();
 		}
-		newLineIntend(context, writer).append('}');
+		newLineIntend();
+		writer.append('}');
 	}
 
 	@Override
-	public Writer writeType(String typeName, ConversionContext context, Writer writer) throws Throwable
+	public void writeType(String typeName)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		typeName = typeName.trim();
 		String[] mappedTypeName = javaTypeToCsharpMap.get(typeName);
 		if (mappedTypeName == null)
 		{
 			if (typeName.endsWith("[]"))
 			{
-				writeType(typeName.substring(0, typeName.length() - 2), context, writer);
+				writeType(typeName.substring(0, typeName.length() - 2));
 				writer.append("[]");
-				return writer;
+				return;
 			}
 			Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(typeName);
 			if (genericTypeMatcher.matches())
 			{
 				String plainType = genericTypeMatcher.group(1);
 
-				writeType(plainType, context, writer).append('<');
+				writeType(plainType);
+				if (Class.class.getName().equals(plainType))
+				{
+					// in C# the type handle is not generic so we intentionally "lose" the generic type information here
+					return;
+				}
+				writer.append('<');
 
 				String typeArguments = genericTypeMatcher.group(2);
 				String[] typeArgumentsSplit = commaSplitPattern.split(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
-					if (firstArgument)
-					{
-						firstArgument = false;
-					}
-					else
-					{
-						writer.append(',');
-					}
-					writeType(typeArgumentSplit, context, writer);
+					firstArgument = writeStringIfFalse(",", firstArgument);
+					writeType(typeArgumentSplit);
 				}
 				writer.append('>');
-				return writer;
+				return;
 			}
 			mappedTypeName = camelCaseName(new String[] { typeName });
 		}
@@ -181,32 +197,35 @@ public class CsharpHelper implements ICsharpHelper
 			}
 		}
 		writer.append(mappedTypeName[0]);
-		return writer;
 	}
 
 	@Override
-	public boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable
+	public boolean writeStringIfFalse(String value, boolean condition)
 	{
+
 		if (!condition)
 		{
+			IConversionContext context = this.context.getCurrent();
+			IWriter writer = context.getWriter();
 			writer.append(value);
 		}
 		return false;
 	}
 
 	@Override
-	public boolean newLineIntendIfFalse(boolean value, ConversionContext context, Writer writer) throws Throwable
+	public boolean newLineIntendIfFalse(boolean value)
 	{
 		if (!value)
 		{
-			newLineIntend(context, writer);
+			newLineIntend();
 		}
 		return false;
 	}
 
 	@Override
-	public File createTargetFile(ConversionContext context)
+	public File createTargetFile()
 	{
+		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 		String packageName = classInfo.getPackageName();
 
@@ -267,40 +286,43 @@ public class CsharpHelper implements ICsharpHelper
 	}
 
 	@Override
-	public Writer writeAnnotations(BaseJavaClassModel model, ConversionContext context, Writer writer) throws Throwable
+	public void writeAnnotations(BaseJavaClassModel model)
 	{
 		IList<Annotation> annotations = model.getAnnotations();
 		for (int a = 0, size = annotations.size(); a < size; a++)
 		{
 			Annotation annotation = annotations.get(a);
-			writeAnnotation(annotation, context, writer);
+			writeAnnotation(annotation);
 		}
-		return writer;
 	}
 
 	@Override
-	public Writer writeNewInstance(JCNewClass newClass, ConversionContext context, Writer writer) throws Throwable
+	public void writeNewInstance(JCNewClass newClass)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
 		List<JCExpression> arguments = newClass.args;
 		List<Type> genericTypeArguments = newClass.type != null ? newClass.type.allparams() : null;
 		// List<Type> argumentTypes = ((MethodType) newClass.constructor.type).getTypeArguments();
 		String owner = newClass.constructor != null ? ((ClassSymbol) newClass.constructor.owner).fullname.toString() : newClass.clazz.toString();
 
-		writer.append(" = new ");
-		writeType(owner, context, writer);
+		writer.append(" new ");
+		writeType(owner);
 
-		writeGenericTypeArguments(genericTypeArguments, context, writer);
-		writeMethodArguments(arguments, context, writer);
-		return writer;
+		writeGenericTypeArguments(genericTypeArguments);
+		writeMethodArguments(arguments);
 	}
 
 	@Override
-	public Writer writeGenericTypeArguments(List<Type> genericTypeArguments, ConversionContext context, Writer writer) throws Throwable
+	public void writeGenericTypeArguments(List<Type> genericTypeArguments)
 	{
 		if (genericTypeArguments == null || genericTypeArguments.size() == 0)
 		{
-			return writer;
+			return;
 		}
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		writer.append('<');
 		for (int a = 0, size = genericTypeArguments.size(); a < size; a++)
 		{
@@ -309,15 +331,16 @@ public class CsharpHelper implements ICsharpHelper
 			{
 				writer.append(", ");
 			}
-			writeType(genericTypeArgument.toString(), context, writer);
+			writeType(genericTypeArgument.toString());
 		}
 		writer.append('>');
-		return writer;
 	}
 
 	@Override
-	public Writer writeMethodArguments(List<JCExpression> methodArguments, ConversionContext context, Writer writer) throws Throwable
+	public void writeMethodArguments(List<JCExpression> methodArguments)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		writer.append('(');
 		for (int a = 0, size = methodArguments.size(); a < size; a++)
 		{
@@ -329,11 +352,10 @@ public class CsharpHelper implements ICsharpHelper
 			writer.append(arg.toString());
 		}
 		writer.append(')');
-		return writer;
 	}
 
 	@Override
-	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType, ConversionContext context) throws Throwable
+	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType)
 	{
 		for (Annotation annotation : model.getAnnotations())
 		{
@@ -346,27 +368,29 @@ public class CsharpHelper implements ICsharpHelper
 	}
 
 	@Override
-	public Writer writeAnnotation(Annotation annotation, ConversionContext context, Writer writer) throws Throwable
+	public void writeAnnotation(Annotation annotation)
 	{
 		if (SuppressWarnings.class.getName().equals(annotation.getType()))
 		{
 			// skip this annotation
-			return writer;
+			return;
 		}
 		if (Override.class.getName().equals(annotation.getType()))
 		{
 			// skip this annotation because overrides of interfaces is NOT an override in C# sense. So we need to check for overridden abstract or concrete
 			// methods from superclasses to write a C# override
-			return writer;
+			return;
 		}
-		newLineIntend(context, writer);
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		newLineIntend();
 		writer.append('[');
-		writeType(annotation.getType(), context, writer);
+		writeType(annotation.getType());
 		IMap<String, AnnotationValue> properties = annotation.getProperties();
 		if (properties.size() == 0)
 		{
 			writer.append(']');
-			return writer;
+			return;
 		}
 		writer.append('(');
 		// clone the map to be able to modify it
@@ -378,24 +402,25 @@ public class CsharpHelper implements ICsharpHelper
 			if (valueOfName != null)
 			{
 				// in C# the name value can be passed directly as a constructor argument without key=value pattern
-				firstProperty = writeStringIfFalse(", ", firstProperty, context, writer);
+				firstProperty = writeStringIfFalse(", ", firstProperty);
 				writer.append(valueOfName.toString());
 			}
 		}
 		for (Entry<String, AnnotationValue> entry : properties)
 		{
-			firstProperty = writeStringIfFalse(", ", firstProperty, context, writer);
+			firstProperty = writeStringIfFalse(", ", firstProperty);
 			String propertyName = StringConversionHelper.upperCaseFirst(objectCollector, entry.getKey());
 			writer.append(propertyName).append("=");
 			writer.append(entry.getValue().toString());
 		}
 		writer.append(')');
-		return writer;
 	}
 
 	@Override
-	public boolean writeModifiers(BaseJavaClassModel javaClassModel, ConversionContext context, Writer writer) throws Throwable
+	public boolean writeModifiers(BaseJavaClassModel javaClassModel)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		boolean firstKeyWord = true;
 		if (javaClassModel.isPrivate())
 		{

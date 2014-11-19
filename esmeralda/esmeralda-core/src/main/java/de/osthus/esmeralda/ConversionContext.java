@@ -13,7 +13,7 @@ import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class ConversionContext
+public class ConversionContext implements IConversionContext
 {
 	public static final Pattern genericTypePattern = Pattern.compile("([^<>]+)<(.+)>");
 
@@ -33,7 +33,7 @@ public class ConversionContext
 
 	private JavaClassInfo classInfo;
 
-	private final IMap<String, JavaClassInfo> fqNameToClassInfoMap;
+	private IMap<String, JavaClassInfo> fqNameToClassInfoMap;
 
 	private HashSet<TypeUsing> usedTypes;
 
@@ -45,21 +45,57 @@ public class ConversionContext
 
 	private Method method;
 
-	public ConversionContext(IMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	private IWriter writer;
+
+	@Override
+	public IConversionContext getCurrent()
 	{
-		this.fqNameToClassInfoMap = fqNameToClassInfoMap;
+		return this;
 	}
 
+	@Override
+	public void setCurrent(IConversionContext current)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public File getTargetPath()
 	{
 		return targetPath;
 	}
 
+	@Override
 	public void setTargetPath(File targetPath)
 	{
 		this.targetPath = targetPath;
 	}
 
+	@Override
+	public void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	{
+		this.fqNameToClassInfoMap = fqNameToClassInfoMap;
+	}
+
+	@Override
+	public IMap<String, JavaClassInfo> getFqNameToClassInfoMap()
+	{
+		return fqNameToClassInfoMap;
+	}
+
+	@Override
+	public IWriter getWriter()
+	{
+		return writer;
+	}
+
+	@Override
+	public void setWriter(IWriter writer)
+	{
+		this.writer = writer;
+	}
+
+	@Override
 	public JavaClassInfo resolveClassInfo(String fqTypeName)
 	{
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
@@ -70,10 +106,6 @@ public class ConversionContext
 		if ("<none>".equals(fqTypeName))
 		{
 			return null;
-		}
-		if (fqTypeName.contains(".repackaged."))
-		{
-			throw new SkipGenerationException();
 		}
 		if (fqTypeName.equals(ClassLoader.class.getName()))
 		{
@@ -87,6 +119,10 @@ public class ConversionContext
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType);
 			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
 		}
+		if (fqTypeName.contains(".repackaged."))
+		{
+			throw new SkipGenerationException();
+		}
 		throw new IllegalArgumentException("Could not resolve '" + fqTypeName + "'");
 	}
 
@@ -96,118 +132,141 @@ public class ConversionContext
 		return classInfo;
 	}
 
+	@Override
 	public void setTargetFile(File targetFile)
 	{
 		targetPath = targetPath;
 	}
 
+	@Override
 	public String getLanguagePath()
 	{
 		return languagePath;
 	}
 
+	@Override
 	public void setLanguagePath(String languagePath)
 	{
 		this.languagePath = languagePath;
 	}
 
+	@Override
 	public String getNsPrefixAdd()
 	{
 		return nsPrefixAdd;
 	}
 
+	@Override
 	public void setNsPrefixAdd(String nsPrefixAdd)
 	{
 		this.nsPrefixAdd = nsPrefixAdd;
 	}
 
+	@Override
 	public String getNsPrefixRemove()
 	{
 		return nsPrefixRemove;
 	}
 
+	@Override
 	public void setNsPrefixRemove(String nsPrefixRemove)
 	{
 		this.nsPrefixRemove = nsPrefixRemove;
 	}
 
+	@Override
 	public int getIndentationLevel()
 	{
 		return indentationLevel;
 	}
 
+	@Override
 	public void setIndentationLevel(int indentationLevel)
 	{
 		this.indentationLevel = indentationLevel;
 	}
 
+	@Override
 	public int incremetIndentationLevel()
 	{
 		indentationLevel++;
 		return indentationLevel;
 	}
 
+	@Override
 	public int decremetIndentationLevel()
 	{
 		indentationLevel--;
 		return indentationLevel;
 	}
 
+	@Override
 	public JavaClassInfo getClassInfo()
 	{
 		return classInfo;
 	}
 
+	@Override
 	public void setClassInfo(JavaClassInfo classInfo)
 	{
 		this.classInfo = classInfo;
 	}
 
+	@Override
 	public HashSet<TypeUsing> getUsedTypes()
 	{
 		return usedTypes;
 	}
 
+	@Override
 	public void setUsedTypes(HashSet<TypeUsing> usedTypes)
 	{
 		this.usedTypes = usedTypes;
 	}
 
+	@Override
 	public IMap<String, String> getImports()
 	{
 		return imports;
 	}
 
+	@Override
 	public void setImports(IMap<String, String> imports)
 	{
 		this.imports = imports;
 	}
 
+	@Override
 	public IList<TypeUsing> getUsings()
 	{
 		return usings;
 	}
 
+	@Override
 	public void setUsings(IList<TypeUsing> usings)
 	{
 		this.usings = usings;
 	}
 
+	@Override
 	public Field getField()
 	{
 		return field;
 	}
 
+	@Override
 	public void setField(Field field)
 	{
 		this.field = field;
 	}
 
+	@Override
 	public Method getMethod()
 	{
 		return method;
 	}
 
+	@Override
 	public void setMethod(Method method)
 	{
 		this.method = method;
