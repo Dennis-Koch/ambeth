@@ -127,6 +127,7 @@ public class ConversionManager implements IStartingBean
 		addClassInfo(mockType(Enum.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(SoftReference.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(WeakReference.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.io.InputStream.class), fqNameToClassInfoMap);
 		for (JavaClassInfo classInfo : classInfos)
 		{
 			String packageName = classInfo.getPackageName();
