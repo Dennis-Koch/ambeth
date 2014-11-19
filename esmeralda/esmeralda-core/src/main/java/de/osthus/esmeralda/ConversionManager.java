@@ -31,7 +31,7 @@ public class ConversionManager implements IStartingBean
 	protected CodeProcessor codeProcessor;
 
 	@Autowired
-	protected IFileUtil fileUtil;
+	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
 	protected INodeHandlerRegistry nodeHandlerRegistry;

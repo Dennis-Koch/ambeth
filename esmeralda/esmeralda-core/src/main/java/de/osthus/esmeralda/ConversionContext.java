@@ -21,6 +21,8 @@ public class ConversionContext
 
 	private String languagePath;
 
+	private File snippetPath;
+
 	private String nsPrefixAdd;
 
 	private String nsPrefixRemove;
@@ -57,6 +59,16 @@ public class ConversionContext
 	public void setLanguagePath(String languagePath)
 	{
 		this.languagePath = languagePath;
+	}
+
+	public File getSnippetPath()
+	{
+		return snippetPath;
+	}
+
+	public void setSnippetPath(File snippetPath)
+	{
+		this.snippetPath = snippetPath;
 	}
 
 	public String getNsPrefixAdd()
