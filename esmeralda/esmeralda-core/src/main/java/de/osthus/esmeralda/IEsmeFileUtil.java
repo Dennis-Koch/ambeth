@@ -8,7 +8,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public interface IFileUtil
+public interface IEsmeFileUtil
 {
 
 	IList<File> findAllSourceFiles(File[] sourcePath);

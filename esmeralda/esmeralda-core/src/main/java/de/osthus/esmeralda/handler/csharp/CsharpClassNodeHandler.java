@@ -24,7 +24,7 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.EsmeType;
-import de.osthus.esmeralda.IFileUtil;
+import de.osthus.esmeralda.IEsmeFileUtil;
 import de.osthus.esmeralda.Lang;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
@@ -44,7 +44,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IFileUtil fileUtil;
+	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
 	protected ICsharpHelper languageHelper;

@@ -2,6 +2,7 @@ package de.osthus.esmeralda;
 
 import java.io.File;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.List;
 
 import com.sun.tools.javac.code.Type;
@@ -11,6 +12,7 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public interface ILanguageHelper
 {
@@ -21,6 +23,10 @@ public interface ILanguageHelper
 	void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable;
 
 	File createTargetFile(ConversionContext context);
+
+	Path createRelativeTargetPath(ConversionContext context);
+
+	String createTargetFileName(JavaClassInfo classInfo);
 
 	String camelCaseName(String typeName);
 

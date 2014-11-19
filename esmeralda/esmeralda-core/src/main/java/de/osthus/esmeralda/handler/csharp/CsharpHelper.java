@@ -208,6 +208,19 @@ public class CsharpHelper implements ICsharpHelper
 	public File createTargetFile(ConversionContext context)
 	{
 		JavaClassInfo classInfo = context.getClassInfo();
+		File targetPath = context.getTargetPath();
+		Path relativeTargetPath = createRelativeTargetPath(context);
+		File targetFileDir = new File(targetPath, relativeTargetPath.toString());
+		targetFileDir.mkdirs();
+
+		File targetFile = new File(targetFileDir, createTargetFileName(classInfo));
+		return targetFile;
+	}
+
+	@Override
+	public Path createRelativeTargetPath(ConversionContext context)
+	{
+		JavaClassInfo classInfo = context.getClassInfo();
 		String packageName = classInfo.getPackageName();
 
 		String nsPrefixRemove = context.getNsPrefixRemove();
@@ -224,20 +237,21 @@ public class CsharpHelper implements ICsharpHelper
 		}
 
 		packageName = camelCaseName(packageName);
-		packageName = packageName.replace(".", "/");
+		Path relativeTargetPath = Paths.get(packageName.replace(".", "/"));
 
-		File targetPath = context.getTargetPath();
-		Path targetFilePath = Paths.get(targetPath.getPath());
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
 		{
-			targetFilePath = targetFilePath.resolve(languagePath);
+			relativeTargetPath = relativeTargetPath.resolve(languagePath);
 		}
-		File targetFileDir = new File(targetFilePath.toFile(), packageName);
-		targetFileDir.mkdirs();
 
-		File targetFile = new File(targetFileDir, classInfo.getName() + ".cs");
-		return targetFile;
+		return relativeTargetPath;
+	}
+
+	@Override
+	public String createTargetFileName(JavaClassInfo classInfo)
+	{
+		return classInfo.getName() + ".cs";
 	}
 
 	@Override
