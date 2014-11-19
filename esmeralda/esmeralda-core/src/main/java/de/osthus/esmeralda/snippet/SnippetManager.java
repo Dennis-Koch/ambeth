@@ -12,14 +12,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.digest.Md5Crypt;
+
+import com.sun.source.tree.MethodTree;
+
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.esmeralda.ConversionContext;
+import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.IWriter;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
@@ -37,11 +44,12 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
+	protected MethodTree methodTree;
+
 	protected ILanguageHelper languageHelper;
 
-	protected Object methodAstNode;
-
-	protected ConversionContext context;
+	@Autowired
+	protected IConversionContext context;
 
 	protected JavaClassInfo classInfo;
 
@@ -49,18 +57,22 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 
 	protected Path snippetPath;
 
+	protected String[] fileNameParts = new String[2];
+
 	protected ArrayList<String> usedSnippetFiles = new ArrayList<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(methodAstNode, "methodAstNode");
-		ParamChecker.assertNotNull(context, "context");
+		ParamChecker.assertNotNull(methodTree, "methodAstNode");
+		ParamChecker.assertNotNull(languageHelper, "languageHelper");
 
+		IConversionContext context = this.context.getCurrent();
 		classInfo = context.getClassInfo();
 		method = context.getMethod();
 
 		createSnippetPath();
+		createFileNameParts();
 	}
 
 	protected void createSnippetPath()
@@ -68,6 +80,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		ParamChecker.assertNotNull(classInfo, "classInfo");
 		ParamChecker.assertNotNull(method, "method");
 
+		IConversionContext context = this.context.getCurrent();
 		File snippetPathBase = context.getSnippetPath();
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null)
@@ -76,19 +89,15 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 
 		Path packagePath = languageHelper.createRelativeTargetPath();
-		String className = classInfo.getName();
-		Path classPath = packagePath.resolve(className);
-		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), classPath.toString());
+		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), packagePath.toString());
 	}
 
-	public void setConversionContext(ConversionContext context)
+	private void createFileNameParts()
 	{
-		this.context = context;
-	}
-
-	public void setMethodAstNode(Object methodAstNode)
-	{
-		this.methodAstNode = methodAstNode;
+		String targetFileName = languageHelper.createTargetFileName(classInfo);
+		int lastDot = targetFileName.lastIndexOf(".");
+		fileNameParts[0] = targetFileName.substring(0, lastDot);
+		fileNameParts[1] = targetFileName.substring(lastDot + 1);
 	}
 
 	@Override
@@ -109,15 +118,30 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	}
 
 	@Override
-	public String getSnippet(Object astNode, ConversionContext context)
+	public void writeSnippet(String untranslatableCode)
 	{
+		IConversionContext context = this.context.getCurrent();
 		// TODO find snippet file and return snippet code
+		createSnippetPath();
 		// TODO if snippet file does not exist, create file and report this
 
 		// TODO find equal snippets
 		// TODO If implemented use the code and inform in log
 		// If not implemented just inform in log
-		return null;
+
+		IWriter writer = context.getWriter();
+		languageHelper.newLineIntend();
+		writer.append("// TODO");
+	}
+
+	protected Path createSnippetFilePath(String untranslatableCode)
+	{
+		String md5Hash = Md5Crypt.apr1Crypt(untranslatableCode);
+		StringBuilder sb = new StringBuilder();
+		sb.append(fileNameParts[0]).append(".").append(md5Hash).append(".").append(fileNameParts[1]);
+		String fileName = sb.toString();
+		Path snippetFilePath = snippetPath.resolve(fileName);
+		return snippetFilePath;
 	}
 
 	protected ArrayList<String> findAllSnippetFiles()
@@ -129,13 +153,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			return allSnippetFiles;
 		}
 
-		String targetFileName = languageHelper.createTargetFileName(classInfo);
-		int lastDot = targetFileName.lastIndexOf(".");
-		String name = targetFileName.substring(0, lastDot);
-		String postfix = targetFileName.substring(lastDot + 1);
-
-		String nameForRegex = name.replace(".", "\\.");
-		String snippetNameRegex = nameForRegex + "\\.[0-9a-f]{32}\\." + postfix;
+		String nameForRegex = fileNameParts[0].replace(".", "\\.");
+		String snippetNameRegex = nameForRegex + "\\.[0-9a-f]{32}\\." + fileNameParts[1];
 		final Pattern snippetFilePattern = Pattern.compile(snippetNameRegex);
 
 		FilenameFilter filter = new FilenameFilter()
@@ -154,7 +173,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		return allSnippetFiles;
 	}
 
-	protected String readSnippet(Path snippetFile, ConversionContext context)
+	protected List<String> readSnippet(Path snippetFile, ConversionContext context)
 	{
 		try
 		{
@@ -182,9 +201,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 				withoutPreface = withoutPreface.subList(1, withoutPreface.size());
 			}
 
-			// TODO glue lines indeted
-
-			return null;
+			return withoutPreface;
 		}
 		catch (IOException e)
 		{

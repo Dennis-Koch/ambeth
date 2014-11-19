@@ -1,9 +1,10 @@
 package de.osthus.esmeralda.snippet;
 
-import de.osthus.esmeralda.ConversionContext;
+import com.sun.source.tree.MethodTree;
+
 import de.osthus.esmeralda.ILanguageHelper;
 
 public interface ISnippetManagerFactory
 {
-	ISnippetManager createSnippetManager(Object methodAstNode, ConversionContext context, ILanguageHelper languageHelper);
+	ISnippetManager createSnippetManager(MethodTree methodTree, ILanguageHelper languageHelper);
 }

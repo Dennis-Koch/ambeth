@@ -81,6 +81,13 @@ public class ClassInfoDataSetter
 			DataSetterUtil.setModifiers(modifier.toString(), clazzInfo);
 		}
 
+		// Set interface flag
+		String classModifiers = ((JCClassDecl) classTree).getModifiers().toString();
+		if (classModifiers.contains("interface"))
+		{
+			clazzInfo.setIsInterface(true);
+		}
+
 		// Set extending class info
 		clazzInfo.setNameOfSuperClass(e.getSuperclass().toString());
 
