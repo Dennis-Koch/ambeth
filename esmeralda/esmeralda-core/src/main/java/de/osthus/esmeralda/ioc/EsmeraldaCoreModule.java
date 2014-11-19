@@ -6,10 +6,12 @@ import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionManager;
+import de.osthus.esmeralda.EsmeType;
 import de.osthus.esmeralda.FileUtil;
+import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IFileUtil;
 import de.osthus.esmeralda.Lang;
-import de.osthus.esmeralda.EsmeType;
+import de.osthus.esmeralda.handler.ConversionContextBean;
 import de.osthus.esmeralda.handler.INodeHandlerExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.csharp.CsharpClassNodeHandler;
@@ -29,6 +31,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		// beanContextFactory.registerBean(InterfaceConverter.class);
 		beanContextFactory.registerBean(ConversionManager.class);
 		beanContextFactory.registerBean(CodeProcessor.class).autowireable(CodeProcessor.class);
+		beanContextFactory.registerBean(ConversionContextBean.class).autowireable(IConversionContext.class);
 
 		beanContextFactory.registerBean(FileUtil.class).autowireable(IFileUtil.class);
 

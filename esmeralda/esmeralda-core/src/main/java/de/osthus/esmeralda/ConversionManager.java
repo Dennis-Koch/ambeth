@@ -1,8 +1,6 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
@@ -33,10 +31,8 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -55,6 +51,9 @@ public class ConversionManager implements IStartingBean
 
 	@Autowired
 	protected CodeProcessor codeProcessor;
+
+	@Autowired
+	protected IConversionContext context;
 
 	@Autowired
 	protected IFileUtil fileUtil;
@@ -136,19 +135,44 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			ConversionContext csContext = new ConversionContext(fqNameToClassInfoMap);
+			IConversionContext csContext = new ConversionContext();
+			csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
-			csClassHandler.handle(null, csContext, null);
-
-			ConversionContext jsContext = new ConversionContext(fqNameToClassInfoMap);
+			{
+				IConversionContext oldContext = context.getCurrent();
+				context.setCurrent(csContext);
+				try
+				{
+					csClassHandler.handle(null);
+				}
+				finally
+				{
+					context.setCurrent(oldContext);
+				}
+			}
+			IConversionContext jsContext = new ConversionContext();
+			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
-			jsClassHandler.handle(null, jsContext, null);
+			{
+				IConversionContext oldContext = context.getCurrent();
+				context.setCurrent(csContext);
+				try
+				{
+					csClassHandler.handle(null);
+				}
+				finally
+				{
+					context.setCurrent(oldContext);
+				}
+			}
+
+			jsClassHandler.handle(null);
 		}
 	}
 
@@ -310,64 +334,5 @@ public class ConversionManager implements IStartingBean
 			mi.addParameters(ve);
 		}
 		return mi;
-	}
-
-	protected IList<File> findAllSourceFiles()
-	{
-		final ArrayList<File> sourceFiles = new ArrayList<File>();
-
-		searchForFiles(sourcePath, new FileFilter()
-		{
-			@Override
-			public boolean accept(File file)
-			{
-				if (!file.getName().endsWith(".java"))
-				{
-					return false;
-				}
-				if (file.getPath().contains("repackaged"))
-				{
-					return false;
-				}
-				sourceFiles.add(file);
-				return true;
-			}
-		});
-		return sourceFiles;
-	}
-
-	protected void searchForFiles(File[] baseDirs, FileFilter fileFilter)
-	{
-		for (File pathItem : baseDirs)
-		{
-			File rootDir;
-			try
-			{
-				rootDir = pathItem.getCanonicalFile();
-			}
-			catch (IOException e)
-			{
-				throw RuntimeExceptionUtil.mask(e);
-			}
-			searchForFiles(rootDir, rootDir, fileFilter);
-		}
-	}
-
-	protected void searchForFiles(File baseDir, File currFile, FileFilter fileFilter)
-	{
-		if (currFile == null)
-		{
-			return;
-		}
-		if (currFile.isDirectory())
-		{
-			File[] listFiles = currFile.listFiles();
-			for (File child : listFiles)
-			{
-				searchForFiles(baseDir, child, fileFilter);
-			}
-			return;
-		}
-		fileFilter.accept(currFile);
 	}
 }

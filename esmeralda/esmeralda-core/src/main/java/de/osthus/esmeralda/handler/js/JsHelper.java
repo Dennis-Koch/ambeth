@@ -1,8 +1,6 @@
 package de.osthus.esmeralda.handler.js;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.List;
 
 import com.sun.tools.javac.code.Type;
@@ -12,7 +10,6 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.esmeralda.ConversionContext;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 
@@ -23,18 +20,23 @@ public class JsHelper implements IJsHelper
 	private ILogger log;
 
 	@Override
-	public Writer newLineIntend(ConversionContext context, Writer writer) throws IOException
-	{
-		return null;
-	}
-
-	@Override
-	public void scopeIntend(ConversionContext context, Writer writer, IBackgroundWorkerDelegate run) throws Throwable
+	public void newLineIntend()
 	{
 	}
 
 	@Override
-	public File createTargetFile(ConversionContext context)
+	public boolean newLineIntendIfFalse(boolean firstLine)
+	{
+		return false;
+	}
+
+	@Override
+	public void scopeIntend(IBackgroundWorkerDelegate run)
+	{
+	}
+
+	@Override
+	public File createTargetFile()
 	{
 		return null;
 	}
@@ -46,62 +48,51 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public Writer writeType(String typeName, ConversionContext context, Writer writer) throws Throwable
-	{
-		return null;
-	}
-
-	@Override
-	public boolean newLineIntendIfFalse(boolean firstLine, ConversionContext context, Writer writer) throws Throwable
+	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType, ConversionContext context) throws Throwable
+	public boolean writeStringIfFalse(String value, boolean condition)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean writeStringIfFalse(String value, boolean condition, ConversionContext context, Writer writer) throws Throwable
+	public void writeType(String typeName)
+	{
+	}
+
+	@Override
+	public boolean writeModifiers(BaseJavaClassModel javaClassModel)
 	{
 		return false;
 	}
 
 	@Override
-	public boolean writeModifiers(BaseJavaClassModel javaClassModel, ConversionContext context, Writer writer) throws Throwable
+	public void writeAnnotations(BaseJavaClassModel handle)
 	{
-		return false;
 	}
 
 	@Override
-	public Writer writeAnnotations(BaseJavaClassModel handle, ConversionContext context, Writer writer) throws Throwable
+	public void writeAnnotation(Annotation annotation)
 	{
-		return null;
 	}
 
 	@Override
-	public Writer writeAnnotation(Annotation annotation, ConversionContext context, Writer writer) throws Throwable
+	public void writeNewInstance(JCNewClass initializer)
 	{
-		return null;
 	}
 
 	@Override
-	public Writer writeNewInstance(JCNewClass initializer, ConversionContext context, Writer writer) throws Throwable
+	public void writeGenericTypeArguments(List<Type> genericTypeArguments)
 	{
-		return null;
 	}
 
 	@Override
-	public Writer writeGenericTypeArguments(List<Type> genericTypeArguments, ConversionContext context, Writer writer) throws Throwable
+	public void writeMethodArguments(List<JCExpression> methodArguments)
 	{
-		return null;
 	}
 
-	@Override
-	public Writer writeMethodArguments(List<JCExpression> methodArguments, ConversionContext context, Writer writer) throws Throwable
-	{
-		return null;
-	}
 }

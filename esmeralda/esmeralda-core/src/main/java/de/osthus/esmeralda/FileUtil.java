@@ -30,10 +30,10 @@ public class FileUtil implements IFileUtil
 				{
 					return false;
 				}
-				if (file.getPath().contains("repackaged"))
-				{
-					return false;
-				}
+				// if (file.getPath().contains("repackaged"))
+				// {
+				// return false;
+				// }
 				sourceFiles.add(file);
 				return true;
 			}
