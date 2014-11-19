@@ -26,6 +26,7 @@ import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.EsmeType;
 import de.osthus.esmeralda.IEsmeFileUtil;
 import de.osthus.esmeralda.Lang;
+import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
@@ -66,6 +67,10 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			writer = new StringWriter();
 			writeToWriter(classInfo, context, writer);
 			writer = null;
+		}
+		catch (SkipGenerationException e)
+		{
+			return;
 		}
 		finally
 		{

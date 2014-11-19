@@ -13,6 +13,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
 public class CsharpMethodNodeHandler implements INodeHandlerExtension
@@ -36,7 +37,13 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 		languageHelper.newLineIntend(context, writer);
 
 		boolean firstKeyWord = languageHelper.writeModifiers(method, context, writer);
-		firstKeyWord = languageHelper.spaceIfFalse(firstKeyWord, context, writer);
+		JavaClassInfo superClass = context.resolveClassInfo(context.getClassInfo().getNameOfSuperClass());
+		if (superClass != null && superClass.hasMethodWithIdenticalSignature(method))
+		{
+			firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord, context, writer);
+			writer.append("override");
+		}
+		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord, context, writer);
 		languageHelper.writeType(method.getReturnType(), context, writer).append(' ');
 		String methodName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
 		// TODO: remind of the changed method name on all invocations
