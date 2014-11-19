@@ -91,7 +91,7 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 		ExpressionTree initializer = ((FieldInfo) field).getInitializer();
 		if (initializer != null)
 		{
-			writer.append(" =");
+			writer.append(" = ");
 		}
 		if (initializer instanceof JCLiteral || initializer instanceof JCIdent)
 		{
@@ -106,7 +106,7 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 			JCExpression expression = ((JCFieldAccess) initializer).getExpression();
 			if (expression instanceof JCIdent && ((JCIdent) expression).sym instanceof ClassSymbol)
 			{
-				writer.append(" typeof(");
+				writer.append("typeof(");
 				writer.append(expression.toString());
 				writer.append(')');
 			}
