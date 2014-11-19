@@ -424,54 +424,40 @@ public class CsharpHelper implements ICsharpHelper
 		boolean firstKeyWord = true;
 		if (javaClassModel.isPrivate())
 		{
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("private");
-			firstKeyWord = false;
 		}
 		else if (javaClassModel.isProtected())
 		{
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("protected");
-			firstKeyWord = false;
 		}
 		else if (javaClassModel.isPublic())
 		{
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("public");
-			firstKeyWord = false;
 		}
 		if (javaClassModel.isAbstract())
 		{
-			if (firstKeyWord)
-			{
-				firstKeyWord = false;
-			}
-			else
-			{
-				writer.append(' ');
-			}
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("abstract");
 		}
 		if (javaClassModel.isStatic())
 		{
-			if (firstKeyWord)
-			{
-				firstKeyWord = false;
-			}
-			else
-			{
-				writer.append(' ');
-			}
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("static");
 		}
 		if (javaClassModel.isFinal())
 		{
-			if (firstKeyWord)
+			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
+			if (javaClassModel instanceof JavaClassInfo)
 			{
-				firstKeyWord = false;
+				writer.append("sealed");
 			}
 			else
 			{
-				writer.append(' ');
+				writer.append("readonly");
 			}
-			writer.append("readonly");
 		}
 		return firstKeyWord;
 	}

@@ -290,7 +290,9 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		languageHelper.newLineIntend();
-		writer.append("public class ").append(classInfo.getName());
+		boolean firstModifier = languageHelper.writeModifiers(classInfo);
+		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+		writer.append("class ").append(classInfo.getName());
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
 		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass))
