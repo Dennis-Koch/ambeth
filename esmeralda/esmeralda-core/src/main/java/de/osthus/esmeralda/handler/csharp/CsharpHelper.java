@@ -228,7 +228,7 @@ public class CsharpHelper implements ICsharpHelper
 		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 		File targetPath = context.getTargetPath();
-		Path relativeTargetPath = createRelativeTargetPath(context);
+		Path relativeTargetPath = createRelativeTargetPath();
 		File targetFileDir = new File(targetPath, relativeTargetPath.toString());
 		targetFileDir.mkdirs();
 
@@ -237,25 +237,9 @@ public class CsharpHelper implements ICsharpHelper
 	}
 
 	@Override
-	public Path createRelativeTargetPath(ConversionContext context)
+	public Path createRelativeTargetPath()
 	{
-		String packageName = createNameSpace(context);
-
-		String relativeTargetPathName = packageName.replace(".", File.separator);
-
-		String languagePath = context.getLanguagePath();
-		if (languagePath != null && !languagePath.isEmpty())
-		{
-			relativeTargetPathName = languagePath + File.separator + relativeTargetPathName;
-		}
-		Path relativeTargetPath = Paths.get(relativeTargetPathName);
-
-		return relativeTargetPath;
-	}
-
-	@Override
-	public String createNameSpace(ConversionContext context)
-	{
+		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 		String packageName = classInfo.getPackageName();
 
@@ -273,7 +257,17 @@ public class CsharpHelper implements ICsharpHelper
 		}
 
 		packageName = camelCaseName(packageName);
-		return packageName;
+
+		String relativeTargetPathName = packageName.replace(".", File.separator);
+
+		String languagePath = context.getLanguagePath();
+		if (languagePath != null && !languagePath.isEmpty())
+		{
+			relativeTargetPathName = languagePath + File.separator + relativeTargetPathName;
+		}
+		Path relativeTargetPath = Paths.get(relativeTargetPathName);
+
+		return relativeTargetPath;
 	}
 
 	@Override

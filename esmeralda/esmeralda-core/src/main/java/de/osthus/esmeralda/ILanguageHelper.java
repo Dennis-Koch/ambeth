@@ -23,11 +23,9 @@ public interface ILanguageHelper
 
 	File createTargetFile();
 
-	Path createRelativeTargetPath(ConversionContext context);
+	Path createRelativeTargetPath();
 
 	String createTargetFileName(JavaClassInfo classInfo);
-
-	String createNameSpace(ConversionContext context);
 
 	String camelCaseName(String typeName);
 

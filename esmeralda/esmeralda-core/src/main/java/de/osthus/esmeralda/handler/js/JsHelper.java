@@ -38,26 +38,19 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public Path createRelativeTargetPath(ConversionContext context)
+	public File createTargetFile()
+	{
+		return null;
+	}
+
+	@Override
+	public Path createRelativeTargetPath()
 	{
 		return null;
 	}
 
 	@Override
 	public String createTargetFileName(JavaClassInfo classInfo)
-	{
-		return null;
-	}
-
-	@Override
-	public String createNameSpace(ConversionContext context)
-	{
-		return null;
-	}
-
-	@Override
-	public String camelCaseName(String typeName)
-	public File createTargetFile()
 	{
 		return null;
 	}

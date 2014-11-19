@@ -272,7 +272,8 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			languageHelper.newLineIntend();
 		}
 
-		String nameSpace = languageHelper.createNameSpace(context);
+		String packageName = classInfo.getPackageName();
+		String nameSpace = languageHelper.camelCaseName(packageName);
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 		writer.append("namespace ").append(nameSpace);
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
@@ -289,21 +290,21 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		languageHelper.newLineIntend();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
 		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		writer.append("class ").append(classInfo.getName());
-		languageHelper.newLineIntend(context, writer);
 		if (!classInfo.isInterface())
 		{
-			writer.append("public class ");
+			writer.append("class ");
 		}
 		else
 		{
 			// FIXME classInfo.isInterface() is not working
-			writer.append("public interface ");
+			writer.append("interface ");
 		}
 		writer.append(classInfo.getName());
+
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
 		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
