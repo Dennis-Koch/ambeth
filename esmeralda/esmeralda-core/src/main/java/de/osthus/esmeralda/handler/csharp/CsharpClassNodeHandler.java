@@ -22,16 +22,16 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.esmeralda.EsmeType;
 import de.osthus.esmeralda.EsmeraldaWriter;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IFileUtil;
 import de.osthus.esmeralda.IWriter;
-import de.osthus.esmeralda.Lang;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
+import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -50,7 +50,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IFileUtil fileUtil;
+	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
 	protected ICsharpHelper languageHelper;
@@ -271,10 +271,11 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			}
 			languageHelper.newLineIntend();
 		}
+
 		String packageName = classInfo.getPackageName();
-		String camelCasePackageName = languageHelper.camelCaseName(packageName);
+		String nameSpace = languageHelper.camelCaseName(packageName);
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
-		writer.append("namespace ").append(camelCasePackageName);
+		writer.append("namespace ").append(nameSpace);
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -289,14 +290,25 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		languageHelper.writeAnnotations(classInfo);
 		languageHelper.newLineIntend();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
 		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		writer.append("class ").append(classInfo.getName());
+		if (!classInfo.isInterface())
+		{
+			writer.append("class ");
+		}
+		else
+		{
+			// FIXME classInfo.isInterface() is not working
+			writer.append("interface ");
+		}
+		writer.append(classInfo.getName());
+
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass))
+		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
 		{
 			writer.append(" : ");
 			languageHelper.writeType(nameOfSuperClass);

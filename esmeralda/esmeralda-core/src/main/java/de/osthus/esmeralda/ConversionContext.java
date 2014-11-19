@@ -25,6 +25,8 @@ public class ConversionContext implements IConversionContext
 
 	private String languagePath;
 
+	private File snippetPath;
+
 	private String nsPrefixAdd;
 
 	private String nsPrefixRemove;
@@ -148,6 +150,16 @@ public class ConversionContext implements IConversionContext
 	public void setLanguagePath(String languagePath)
 	{
 		this.languagePath = languagePath;
+	}
+
+	public File getSnippetPath()
+	{
+		return snippetPath;
+	}
+
+	public void setSnippetPath(File snippetPath)
+	{
+		this.snippetPath = snippetPath;
 	}
 
 	@Override
