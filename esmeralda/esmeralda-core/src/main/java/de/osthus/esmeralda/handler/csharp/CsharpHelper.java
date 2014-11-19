@@ -68,7 +68,11 @@ public class CsharpHelper implements ICsharpHelper
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
 		put(java.lang.Class.class.getName(), "System.Type");
 		put(java.lang.Class.class.getName() + "<?>", "System.Type");
+		put(java.lang.Exception.class.getName(), "System.Exception");
 		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
+		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");

@@ -127,6 +127,9 @@ public class ConversionManager implements IStartingBean
 		addClassInfo(mockType(SoftReference.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(WeakReference.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(java.io.InputStream.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.RuntimeException.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.Exception.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(org.junit.runners.BlockJUnit4ClassRunner.class), fqNameToClassInfoMap);
 		for (JavaClassInfo classInfo : classInfos)
 		{
 			String packageName = classInfo.getPackageName();
@@ -141,38 +144,35 @@ public class ConversionManager implements IStartingBean
 			csContext.setLanguagePath("csharp");
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
-			{
-				IConversionContext oldContext = context.getCurrent();
-				context.setCurrent(csContext);
-				try
-				{
-					csClassHandler.handle(null);
-				}
-				finally
-				{
-					context.setCurrent(oldContext);
-				}
-			}
+
+			invokeNodeHandler(csClassHandler, csContext);
+
 			IConversionContext jsContext = new ConversionContext();
 			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
-			{
-				IConversionContext oldContext = context.getCurrent();
-				context.setCurrent(csContext);
-				try
-				{
-					csClassHandler.handle(null);
-				}
-				finally
-				{
-					context.setCurrent(oldContext);
-				}
-			}
 
-			jsClassHandler.handle(null);
+			invokeNodeHandler(jsClassHandler, jsContext);
+		}
+	}
+
+	protected void invokeNodeHandler(INodeHandlerExtension nodeHandler, IConversionContext newContext)
+	{
+		IConversionContext oldContext = context.getCurrent();
+		context.setCurrent(newContext);
+		try
+		{
+			nodeHandler.handle(null);
+		}
+		catch (TypeResolveException e)
+		{
+			log.error(e);
+		}
+		finally
+		{
+			context.setCurrent(oldContext);
 		}
 	}
 

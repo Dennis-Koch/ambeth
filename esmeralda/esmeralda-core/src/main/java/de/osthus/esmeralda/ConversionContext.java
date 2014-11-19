@@ -123,7 +123,7 @@ public class ConversionContext implements IConversionContext
 		{
 			throw new SkipGenerationException();
 		}
-		throw new IllegalArgumentException("Could not resolve '" + fqTypeName + "'");
+		throw new TypeResolveException(fqTypeName);
 	}
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
