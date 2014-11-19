@@ -115,7 +115,7 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 				BlockTree methodBodyBlock = methodTree.getBody();
 				String bodyBlockCode = methodBodyBlock.toString();
 
-				// Ups, we code we cannot (yet) convert...
+				// Ups, we have code we cannot (yet) convert...
 				String bodyCode = bodyBlockCode.substring(3, bodyBlockCode.length() - 3);
 
 				// ...just ask the snippet manager.

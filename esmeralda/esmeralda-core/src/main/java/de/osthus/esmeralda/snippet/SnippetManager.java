@@ -126,7 +126,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		String unindentedCode = unindentCode(untranslatableCode);
 		String md5Hash = DigestUtils.md5Hex(unindentedCode);
 		Path snippetFilePath = createSnippetFilePath(md5Hash);
-		// TODO snippet path erstellung
+
 		boolean fileExists = Files.exists(snippetFilePath);
 		if (fileExists)
 		{
@@ -145,10 +145,11 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 
 		// TODO if snippet file does not exist, create file and report this
+		// TODO if snippet file does exists but not yet edited report this
 
 		// TODO find equal snippets
 		// TODO If implemented use the code and inform in log
-		// If not implemented just inform in log
+		// TODO If not implemented just inform in log
 
 		languageHelper.newLineIntend();
 		writer.append("// TODO");
