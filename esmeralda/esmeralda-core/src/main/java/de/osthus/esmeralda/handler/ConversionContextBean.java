@@ -11,6 +11,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -249,6 +250,18 @@ public class ConversionContextBean implements IConversionContext, IThreadLocalCl
 	public void setMethod(Method method)
 	{
 		getContext().setMethod(method);
+	}
+
+	@Override
+	public ISnippetManager getSnippetManager()
+	{
+		return getContext().getSnippetManager();
+	}
+
+	@Override
+	public void setSnippetManager(ISnippetManager snippetManager)
+	{
+		getContext().setSnippetManager(snippetManager);
 	}
 
 	@Override

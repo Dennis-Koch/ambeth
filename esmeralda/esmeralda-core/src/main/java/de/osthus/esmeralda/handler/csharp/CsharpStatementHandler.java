@@ -18,7 +18,7 @@ import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 
-public class CsharpFieldNodeHandler implements INodeHandlerExtension
+public class CsharpStatementHandler implements INodeHandlerExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance

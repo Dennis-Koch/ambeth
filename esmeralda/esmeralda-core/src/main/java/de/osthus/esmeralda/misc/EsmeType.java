@@ -8,6 +8,8 @@ public final class EsmeType
 
 	public static final String METHOD = "method";
 
+	public static final String STATEMENT = "statement";
+
 	private EsmeType()
 	{
 		// Intended blank
