@@ -9,33 +9,6 @@ import java.util.Random;
 
 public class LinkedIntKeyMap<V> implements Externalizable
 {
-	public static class LinkedIntKeyMapEntry<V> extends AbstractListElem<LinkedIntKeyMapEntry<V>>
-	{
-		protected int key, hash;
-
-		protected LinkedIntKeyMapEntry<V> nextEntry;
-
-		protected V value;
-
-		public void initEntry(final int hash, final int key, final V value, LinkedIntKeyMapEntry<V> nextEntry)
-		{
-			this.value = value;
-			this.nextEntry = nextEntry;
-			this.key = key;
-			this.hash = hash;
-		}
-
-		public V getValue()
-		{
-			return value;
-		}
-
-		public int getKey()
-		{
-			return key;
-		}
-	}
-
 	static final int DEFAULT_INITIAL_CAPACITY = 16;
 
 	public static final int MAXIMUM_CAPACITY = 1 << 30;

@@ -125,7 +125,7 @@ public class ConversionContext implements IConversionContext
 		{
 			throw new SkipGenerationException();
 		}
-		throw new IllegalArgumentException("Could not resolve '" + fqTypeName + "'");
+		throw new TypeResolveException(fqTypeName);
 	}
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
@@ -135,9 +135,9 @@ public class ConversionContext implements IConversionContext
 	}
 
 	@Override
-	public void setTargetFile(File targetFile)
+	public void setTargetFile(File targetPath)
 	{
-		targetPath = targetPath;
+		this.targetPath = targetPath;
 	}
 
 	@Override

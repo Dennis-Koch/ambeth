@@ -1,6 +1,6 @@
 package demo.codeanalyzer.common.model;
 
-import de.osthus.ambeth.collections.IList;
+import com.sun.tools.javac.code.Type;
 
 /**
  * Stores details of fields in the java code
@@ -9,12 +9,10 @@ import de.osthus.ambeth.collections.IList;
  */
 public interface Field extends BaseJavaClassModel
 {
-	void addFieldType(String fieldType);
-
 	/**
 	 * @return the {@link ClassFile} this method belongs to.
 	 */
 	ClassFile getOwningClass();
 
-	IList<String> getFieldTypes();
+	Type getFieldType();
 }

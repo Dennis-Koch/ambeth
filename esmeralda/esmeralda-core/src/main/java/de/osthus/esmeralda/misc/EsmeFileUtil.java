@@ -68,6 +68,11 @@ public class EsmeFileUtil implements IEsmeFileUtil
 		}
 		if (currFile.isDirectory())
 		{
+			if ("target".equals(currFile.getName()))
+			{
+				// skip scanning directory
+				return;
+			}
 			File[] listFiles = currFile.listFiles();
 			for (File child : listFiles)
 			{
