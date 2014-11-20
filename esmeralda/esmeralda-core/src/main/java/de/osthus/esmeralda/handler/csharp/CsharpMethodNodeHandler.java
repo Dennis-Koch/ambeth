@@ -5,17 +5,20 @@ import javax.lang.model.element.VariableElement;
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
+import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -32,6 +35,9 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 
 	@Autowired
 	protected ICsharpHelper languageHelper;
+
+	@Autowired
+	protected IStatementHandlerRegistry statementHandlerRegistry;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -103,27 +109,21 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 			return;
 		}
 
-		final MethodTree methodTree = (MethodTree) astNode;
-		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		MethodTree methodTree = (MethodTree) astNode;
+		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
+		context.setSnippetManager(snippetManager);
+		try
 		{
-			@Override
-			public void invoke() throws Throwable
-			{
-				ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
+			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.get(Lang.C_SHARP + Kind.BLOCK);
+			BlockTree methodBodyBlock = methodTree.getBody();
+			blockHandler.handle(methodBodyBlock);
 
-				// for now very simple...
-				BlockTree methodBodyBlock = methodTree.getBody();
-				String bodyBlockCode = methodBodyBlock.toString();
-
-				// Ups, we have code we cannot (yet) convert...
-				String bodyCode = bodyBlockCode.substring(3, bodyBlockCode.length() - 3);
-
-				// ...just ask the snippet manager.
-				snippetManager.writeSnippet(bodyCode);
-
-				// Starts check for unused (old) snippet files for this method
-				snippetManager.finished();
-			}
-		});
+			// Starts check for unused (old) snippet files for this method
+			snippetManager.finished();
+		}
+		finally
+		{
+			context.setSnippetManager(null);
+		}
 	}
 }

@@ -5,6 +5,7 @@ import java.io.File;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -80,4 +81,8 @@ public interface IConversionContext
 	Method getMethod();
 
 	void setMethod(Method method);
+
+	ISnippetManager getSnippetManager();
+
+	void setSnippetManager(ISnippetManager snippetManager);
 }

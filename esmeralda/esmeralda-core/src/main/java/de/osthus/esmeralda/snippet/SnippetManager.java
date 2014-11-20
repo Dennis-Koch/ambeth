@@ -35,6 +35,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 
 	private static final Pattern PATTERN_START_TABS = Pattern.compile("^(" + TAB_EQUIVALENT + ")+");
 
+	private static final Pattern PATTERN_NL = Pattern.compile("[\\n\\r]+");
+
 	private static final String TEXT_COMMENTED_OUT = "// ";
 
 	private static final String TEXT_EXPL_HEADER = "This code cannot be converted automatically. Please provide a snippet to use in the converted file.";
@@ -134,12 +136,10 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 	}
 
-	// TODO think: May be change the parameter to a string list of statements
 	@Override
-	public void writeSnippet(String untranslatableCode)
+	public void writeSnippet(List<String> untranslatableStatements)
 	{
-		untranslatableCode = unindentCode(untranslatableCode);
-		String md5Hash = DigestUtils.md5Hex(untranslatableCode);
+		String md5Hash = calculateMd5(untranslatableStatements);
 
 		Path snippetFilePath = createSnippetFilePath(md5Hash);
 		String relativeSnippetFileName = createRelativeSnippetFilePath(snippetFilePath).toString();
@@ -156,7 +156,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			}
 			else if (log.isWarnEnabled())
 			{
-				writeCodeTodo(untranslatableCode, relativeSnippetFileName);
+				writeCodeTodo(untranslatableStatements, relativeSnippetFileName);
 				log.warn("Existing snippet file '" + relativeSnippetFileName + "' is needed, but was not edited yet.");
 			}
 
@@ -168,8 +168,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			return;
 		}
 
-		createSnippetFile(snippetFilePath, untranslatableCode);
-		writeCodeTodo(untranslatableCode, relativeSnippetFileName);
+		createSnippetFile(snippetFilePath, untranslatableStatements);
+		writeCodeTodo(untranslatableStatements, relativeSnippetFileName);
 		if (log.isInfoEnabled())
 		{
 			log.info("A new snippet file was created at '" + relativeSnippetFileName + "'");
@@ -180,21 +180,23 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		// TODO If not implemented just inform in log
 	}
 
-	protected String unindentCode(String untranslatableCode)
+	protected String calculateMd5(List<String> untranslatableStatements)
 	{
-		if (!untranslatableCode.startsWith(TAB_EQUIVALENT))
+		StringBuilder sb = new StringBuilder();
+		int size = untranslatableStatements.size();
+		int lastIndex = size - 1;
+		for (int i = 0; i < size; i++)
 		{
-			return untranslatableCode;
+			String line = untranslatableStatements.get(i);
+			sb.append(line);
+			if (i < lastIndex)
+			{
+				sb.append(NL);
+			}
 		}
-
-		Matcher matcher = PATTERN_START_TABS.matcher(untranslatableCode);
-		matcher.find();
-		String tabs = matcher.group(1);
-		untranslatableCode = untranslatableCode.substring(tabs.length());
-
-		String unindentedCodde = untranslatableCode.replaceAll("([\n\r]+)" + tabs, "$1");
-
-		return unindentedCodde;
+		String code = sb.toString();
+		String md5Hash = DigestUtils.md5Hex(code);
+		return md5Hash;
 	}
 
 	protected Path createSnippetFilePath(String md5Hash)
@@ -299,16 +301,20 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_END);
 	}
 
-	protected void createSnippetFile(Path snippetFile, String untranslatableCode)
+	protected void createSnippetFile(Path snippetFile, List<String> untranslatableStatements)
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append(TEXT_COMMENTED_OUT).append(TEXT_EXPL_HEADER).append(NL);
 		sb.append(TEXT_COMMENTED_OUT).append(NL);
 
-		String[] lines = untranslatableCode.split("[\\n\\r]+");
-		for (String line : lines)
+		for (int i = 0, size = untranslatableStatements.size(); i < size; i++)
 		{
-			sb.append(TEXT_COMMENTED_OUT).append(line).append(NL);
+			String statement = untranslatableStatements.get(i);
+			String[] lines = PATTERN_NL.split(statement);
+			for (String line : lines)
+			{
+				sb.append(TEXT_COMMENTED_OUT).append(line).append(NL);
+			}
 		}
 
 		sb.append(TEXT_COMMENTED_OUT).append(NL).append(TEXT_COMMENTED_OUT).append(TEXT_EXPL_EMPTY_LINE);
@@ -325,7 +331,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 	}
 
-	protected void writeCodeTodo(String untranslatableCode, String relativeSnippetFileName)
+	protected void writeCodeTodo(List<String> untranslatableStatements, String relativeSnippetFileName)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -335,11 +341,15 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		languageHelper.newLineIntend();
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_UNTRANSLATABLE_CODE_START);
 
-		String[] codeLines = untranslatableCode.split("[\\n\\r]+");
-		for (String line : codeLines)
+		for (int i = 0, size = untranslatableStatements.size(); i < size; i++)
 		{
-			languageHelper.newLineIntend();
-			writer.append(TEXT_COMMENTED_OUT).append(line);
+			String statement = untranslatableStatements.get(i);
+			String[] lines = PATTERN_NL.split(statement);
+			for (String line : lines)
+			{
+				languageHelper.newLineIntend();
+				writer.append(TEXT_COMMENTED_OUT).append(line);
+			}
 		}
 
 		languageHelper.newLineIntend();

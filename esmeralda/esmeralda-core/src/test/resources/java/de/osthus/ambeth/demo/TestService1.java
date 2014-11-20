@@ -21,7 +21,9 @@ public class TestService1 implements ITestInterface
 	@Override
 	public int testMethod2()
 	{
-		int value = 0;
+		int value;
+		value = 0;
+		// Test comment
 		for (int i = 0; i < 11; i++)
 		{
 			value += i;
