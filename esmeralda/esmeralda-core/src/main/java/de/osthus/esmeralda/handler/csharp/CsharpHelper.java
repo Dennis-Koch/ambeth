@@ -6,11 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,19 +17,8 @@ import javax.lang.model.element.AnnotationValueVisitor;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Attribute;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -41,6 +28,7 @@ import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -49,14 +37,14 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
-import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
-import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
-public class CsharpHelper implements ICsharpHelper
+public class CsharpHelper implements ICsharpHelper, IExpressionHandlerExtendable
 {
 	protected static final Pattern commaSplitPattern = Pattern.compile(",");
 
@@ -137,6 +125,21 @@ public class CsharpHelper implements ICsharpHelper
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	protected final ClassExtendableContainer<IExpressionHandler> expressionHandlers = new ClassExtendableContainer<IExpressionHandler>("expressionHandler",
+			"expressionType");
+
+	@Override
+	public void register(IExpressionHandler expressionHandler, Class<?> expressionType)
+	{
+		expressionHandlers.register(expressionHandler, expressionType);
+	}
+
+	@Override
+	public void unregister(IExpressionHandler expressionHandler, Class<?> expressionType)
+	{
+		expressionHandlers.unregister(expressionHandler, expressionType);
+	}
 
 	@Override
 	public void newLineIntend()
@@ -358,24 +361,6 @@ public class CsharpHelper implements ICsharpHelper
 			Annotation annotation = annotations.get(a);
 			writeAnnotation(annotation);
 		}
-	}
-
-	@Override
-	public void writeNewInstance(JCNewClass newClass)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-
-		List<JCExpression> arguments = newClass.args;
-		List<Type> genericTypeArguments = newClass.type != null ? newClass.type.allparams() : null;
-		// List<Type> argumentTypes = ((MethodType) newClass.constructor.type).getTypeArguments();
-		String owner = newClass.constructor != null ? ((ClassSymbol) newClass.constructor.owner).fullname.toString() : newClass.clazz.toString();
-
-		writer.append("new ");
-		writeType(owner);
-
-		writeGenericTypeArguments(genericTypeArguments);
-		writeMethodArguments(arguments);
 	}
 
 	@Override
@@ -606,312 +591,16 @@ public class CsharpHelper implements ICsharpHelper
 	@Override
 	public void writeExpressionTree(ExpressionTree expression)
 	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		if (expression instanceof JCLiteral || expression instanceof JCIdent)
+		if (expression == null)
 		{
-			writer.append(expression.toString());
+			return;
 		}
-		else if (expression instanceof JCNewClass)
-		{
-			writeNewInstance((JCNewClass) expression);
-		}
-		else if (expression instanceof JCNewArray)
-		{
-			writeNewArray((JCNewArray) expression);
-		}
-		else if (expression instanceof JCFieldAccess)
-		{
-			writeFieldAccess((JCFieldAccess) expression);
-		}
-		else if (expression instanceof JCBinary)
-		{
-			writeBinary((JCBinary) expression);
-		}
-		else if (expression instanceof JCMethodInvocation)
-		{
-			writeMethodInvocation((JCMethodInvocation) expression);
-		}
-		else if (expression != null)
+		IExpressionHandler expressionHandler = expressionHandlers.getExtension(expression.getClass());
+		if (expressionHandler == null)
 		{
 			log.warn("Could not handle expression: " + expression);
-		}
-	}
-
-	protected void writeNewArray(JCNewArray newArray)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		writer.append("new ");
-		if (newArray.elemtype instanceof JCPrimitiveTypeTree)
-		{
-			writeType(((JCPrimitiveTypeTree) newArray.elemtype).type.toString());
-		}
-		else
-		{
-			Field field = context.getField();
-			if (field != null)
-			{
-				Type fieldType = field.getFieldType();
-				// TODO: not quite correct to pass the array-type with its brackets "[]" here
-				writeType(fieldType.toString());
-			}
-			else
-			{
-				writeType(((JCIdent) newArray.elemtype).sym.toString());
-			}
-		}
-		for (JCExpression dimension : newArray.getDimensions())
-		{
-			writer.append('[');
-			writer.append(dimension.toString());
-			writer.append(']');
-		}
-		if (newArray.getInitializers() != null)
-		{
-			// TODO: handle array initializers
-			log.warn("Array initializer not yet supported");
-			for (JCExpression initializer : newArray.getInitializers())
-			{
-			}
-		}
-	}
-
-	protected void writeMethodInvocation(JCMethodInvocation methodInvocation)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		if (methodInvocation.meth == null)
-		{
-			log.warn("Could not handle method invocation: " + methodInvocation);
 			return;
 		}
-		String methodName;
-		String owner;
-		boolean writeOwnerAsType = false;
-		String typeOfOwner;
-		if (methodInvocation.meth instanceof JCIdent)
-		{
-			JCIdent ident = (JCIdent) methodInvocation.meth;
-			methodName = ident.name.toString();
-			owner = null;
-			typeOfOwner = context.getClassInfo().getPackageName() + "." + context.getClassInfo().getName();
-		}
-		else
-		{
-			JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
-			if (meth.selected instanceof JCLiteral)
-			{
-				owner = ((JCLiteral) meth.selected).value.toString();
-				typeOfOwner = ((JCLiteral) meth.selected).type.toString();
-			}
-			else if (meth.selected instanceof JCFieldAccess)
-			{
-				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
-				writeFieldAccess(fieldAccess);
-				owner = null;
-				if (fieldAccess.type == null)
-				{// TODO: handle this case. Is this an error in the sources? Is there something missing?
-					throw new TypeResolveException("No type in method invocation '" + methodInvocation + "'");
-				}
-				typeOfOwner = fieldAccess.type.toString();
-			}
-			else if (meth.selected instanceof JCMethodInvocation)
-			{
-				JCMethodInvocation mi = (JCMethodInvocation) meth.selected;
-				writeMethodInvocation(mi);
-				owner = null;
-				typeOfOwner = mi.type.toString();
-			}
-			else if (meth.selected instanceof JCNewClass)
-			{
-				JCNewClass newClass = (JCNewClass) meth.selected;
-				writeNewInstance(newClass);
-				owner = null;
-				typeOfOwner = newClass.type.toString();
-			}
-			else
-			{
-				JCIdent selected = (JCIdent) meth.selected;
-				if (selected.sym instanceof VarSymbol)
-				{
-					owner = selected.sym.toString();
-					typeOfOwner = selected.type.toString();
-				}
-				else if (selected.sym instanceof ClassSymbol)
-				{
-					owner = selected.type.toString();
-					typeOfOwner = selected.type.toString();
-					writeOwnerAsType = true;
-				}
-				else if (selected.sym == null)
-				{
-					owner = selected.toString();
-					typeOfOwner = selected.toString();
-					writeOwnerAsType = true;
-				}
-				else
-				{
-					throw new IllegalStateException("Unknown symbol type: " + selected.sym + " (" + selected.sym.getClass().getName() + ")");
-				}
-			}
-			methodName = meth.name.toString();
-		}
-		String nonGenericTypeOfOwner = typeOfOwner;
-		Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(nonGenericTypeOfOwner);
-		if (genericTypeMatcher.matches())
-		{
-			nonGenericTypeOfOwner = genericTypeMatcher.group(1);
-		}
-		if (EnumSet.class.getName().equals(nonGenericTypeOfOwner))
-		{
-			// if we handle the enums either as C# enums or as static readonly objects will be decided by the flags-annotation
-			// TODO: read integrity-xml of .NET and look whether the enum has this annotation
-			log.warn("Could not handle method invocation: " + methodInvocation);
-			return;
-		}
-		if (Condition.class.getName().equals(nonGenericTypeOfOwner))
-		{
-			// TODO: handle java.concurrent.lock API
-			log.warn("Could not handle method invocation: " + methodInvocation);
-			return;
-		}
-		if (owner != null)
-		{
-			if (writeOwnerAsType)
-			{
-				writeType(owner);
-			}
-			else
-			{
-				writer.append(owner);
-			}
-		}
-		writer.append('.');
-
-		methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
-		boolean isPropertyInvocation = false;
-		if (Class.class.getName().equals(nonGenericTypeOfOwner))
-		{
-			if ("GetSimpleName".equals(methodName))
-			{
-				methodName = "Name";
-				isPropertyInvocation = true;
-			}
-			else if ("GetName".equals(methodName))
-			{
-				methodName = "FullName";
-				isPropertyInvocation = true;
-			}
-		}
-		writer.append(methodName);
-		if (!isPropertyInvocation)
-		{
-			writeMethodArguments(methodInvocation.getArguments());
-		}
-		else if (methodInvocation.getArguments().size() > 0)
-		{
-			// C# will be an assignment to a property (setter-semantics)
-			writer.append(" = ");
-			boolean firstArgument = true;
-			for (JCExpression argument : methodInvocation.getArguments())
-			{
-				firstArgument = writeStringIfFalse(", ", firstArgument);
-				writeExpressionTree(argument);
-			}
-		}
-	}
-
-	protected void writeBinary(JCBinary binary)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		switch (binary.getKind())
-		{
-			case DIVIDE:
-			{
-				writeSimpleBinary(" / ", binary);
-				break;
-			}
-			case LEFT_SHIFT:
-			{
-				writeSimpleBinary(" << ", binary);
-				break;
-			}
-			case MINUS:
-			{
-				writeSimpleBinary(" - ", binary);
-				break;
-			}
-			case MULTIPLY:
-			{
-				writeSimpleBinary(" * ", binary);
-				break;
-			}
-			case OR:
-			{
-				writeSimpleBinary(" | ", binary);
-				break;
-			}
-			case PLUS:
-			{
-				writeSimpleBinary(" + ", binary);
-				break;
-			}
-			default:
-				log.warn("Could not handle binary: " + binary);
-		}
-	}
-
-	protected void writeSimpleBinary(String operator, JCBinary binary)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		writeExpressionTree(binary.lhs);
-		writer.append(operator);
-		writeExpressionTree(binary.rhs);
-	}
-
-	public void writeFieldAccess(JCFieldAccess fieldAccess)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-		JCExpression expression = fieldAccess.getExpression();
-		String name = fieldAccess.name.toString();
-		if ("class".equals(name))
-		{
-			String typeForTypeof = null;
-			if (expression instanceof JCIdent && ((JCIdent) expression).sym instanceof ClassSymbol)
-			{
-				typeForTypeof = ((JCIdent) expression).sym.toString();
-			}
-			else if (expression instanceof JCIdent && ((JCIdent) expression).sym == null)
-			{
-				typeForTypeof = ((JCIdent) expression).name.toString();
-			}
-			else if (expression instanceof JCPrimitiveTypeTree)
-			{
-				typeForTypeof = expression.toString();
-			}
-			else if (expression instanceof JCArrayTypeTree)
-			{
-				typeForTypeof = ((JCArrayTypeTree) expression).type.toString();
-			}
-			if (typeForTypeof != null)
-			{
-				writer.append("typeof(");
-				writeType(typeForTypeof);
-				writer.append(')');
-				return;
-			}
-		}
-		if (expression instanceof JCIdent && ((JCIdent) expression).sym instanceof ClassSymbol)
-		{
-			writeType(((JCIdent) expression).sym.toString());
-			writer.append('.');
-			writer.append(name);
-			return;
-		}
-		writeExpressionTree(fieldAccess.getExpression());
+		expressionHandler.handleExpression(expression);
 	}
 }

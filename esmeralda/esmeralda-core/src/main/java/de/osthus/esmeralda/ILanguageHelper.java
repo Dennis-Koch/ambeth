@@ -7,7 +7,6 @@ import java.util.List;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import demo.codeanalyzer.common.model.Annotation;
@@ -43,8 +42,6 @@ public interface ILanguageHelper
 	void writeAnnotations(BaseJavaClassModel handle);
 
 	void writeAnnotation(Annotation annotation);
-
-	void writeNewInstance(JCNewClass initializer);
 
 	void writeExpressionTree(ExpressionTree expressionTree);
 
