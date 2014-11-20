@@ -49,6 +49,8 @@ public class ConversionContext implements IConversionContext
 
 	private IWriter writer;
 
+	private boolean dryRun = false;
+
 	@Override
 	public IConversionContext getCurrent()
 	{
@@ -95,6 +97,18 @@ public class ConversionContext implements IConversionContext
 	public void setWriter(IWriter writer)
 	{
 		this.writer = writer;
+	}
+
+	@Override
+	public boolean isDryRun()
+	{
+		return dryRun;
+	}
+
+	@Override
+	public void setDryRun(boolean dryRun)
+	{
+		this.dryRun = dryRun;
 	}
 
 	@Override
@@ -152,6 +166,7 @@ public class ConversionContext implements IConversionContext
 		this.languagePath = languagePath;
 	}
 
+	@Override
 	public File getSnippetPath()
 	{
 		return snippetPath;

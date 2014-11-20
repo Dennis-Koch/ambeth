@@ -96,6 +96,18 @@ public class ConversionContextBean implements IConversionContext, IThreadLocalCl
 	}
 
 	@Override
+	public boolean isDryRun()
+	{
+		return getContext().isDryRun();
+	}
+
+	@Override
+	public void setDryRun(boolean dryRun)
+	{
+		getContext().setDryRun(dryRun);
+	}
+
+	@Override
 	public JavaClassInfo resolveClassInfo(String fqTypeName)
 	{
 		return getContext().resolveClassInfo(fqTypeName);
