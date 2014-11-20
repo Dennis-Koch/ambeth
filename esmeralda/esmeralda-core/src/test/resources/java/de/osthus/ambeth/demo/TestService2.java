@@ -33,11 +33,18 @@ public class TestService2 implements IInitializingBean
 
 	public void overloadedMethod(String stringParam)
 	{
-		System.out.println(stringParam);
+		boolean print = true;
+		while (print) {
+			System.out.println(stringParam);
+			print = false;
+		}
 	}
 
 	public void overloadedMethod(Integer intParam)
 	{
-		System.out.println(intParam);
+		if (intParam != null) {
+			System.out.println(intParam);
+		} else
+			System.out.println(0);
 	}
 }
