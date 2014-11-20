@@ -25,22 +25,22 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.esmeralda.EsmeraldaWriter;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
-public class CsharpClassNodeHandler implements INodeHandlerExtension
+public class CsClassHandler implements INodeHandlerExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -56,7 +56,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
-	protected ICsharpHelper languageHelper;
+	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected INodeHandlerRegistry nodeHandlerRegistry;
@@ -350,7 +350,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 			@Override
 			public void invoke() throws Throwable
 			{
-				IConversionContext context = CsharpClassNodeHandler.this.context.getCurrent();
+				IConversionContext context = CsClassHandler.this.context.getCurrent();
 				boolean firstLine = true;
 				for (Field field : classInfo.getFields())
 				{

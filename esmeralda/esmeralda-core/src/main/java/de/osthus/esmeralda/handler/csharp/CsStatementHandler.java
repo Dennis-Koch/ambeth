@@ -12,13 +12,13 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
+import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 
-public class CsharpFieldNodeHandler implements INodeHandlerExtension
+public class CsStatementHandler implements INodeHandlerExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -28,7 +28,7 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 	protected IConversionContext context;
 
 	@Autowired
-	protected ICsharpHelper languageHelper;
+	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected INodeHandlerRegistry nodeHandlerRegistry;

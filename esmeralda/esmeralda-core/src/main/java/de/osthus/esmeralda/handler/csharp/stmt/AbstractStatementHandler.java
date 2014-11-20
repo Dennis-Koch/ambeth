@@ -10,7 +10,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
@@ -20,7 +20,7 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 	protected IConversionContext context;
 
 	@Autowired
-	protected ICsharpHelper languageHelper;
+	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;

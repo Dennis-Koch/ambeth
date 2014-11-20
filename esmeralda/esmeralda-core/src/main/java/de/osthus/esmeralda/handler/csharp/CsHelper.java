@@ -36,15 +36,15 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
+import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
-public class CsharpHelper implements ICsharpHelper, IExpressionHandlerExtendable
+public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 {
 	protected static final Pattern commaSplitPattern = Pattern.compile(",");
 

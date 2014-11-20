@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -9,7 +9,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
+import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 
 public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewArray>

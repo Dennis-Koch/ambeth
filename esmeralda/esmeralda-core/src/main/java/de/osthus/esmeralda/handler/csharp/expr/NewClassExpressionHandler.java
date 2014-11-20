@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
+import de.osthus.esmeralda.misc.IWriter;
 
 public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {

@@ -5,8 +5,8 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.misc.IWriter;
 
 public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionStatement> implements IStatementHandlerExtension<JCExpressionStatement>
 {

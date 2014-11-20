@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler;
+package de.osthus.esmeralda;
 
 import java.io.File;
 
@@ -8,9 +8,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
-import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;

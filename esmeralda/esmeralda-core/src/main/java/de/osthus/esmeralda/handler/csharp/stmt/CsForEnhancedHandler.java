@@ -8,8 +8,8 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 
 public class CsForEnhancedHandler extends AbstractStatementHandler<JCEnhancedForLoop> implements IStatementHandlerExtension<JCEnhancedForLoop>

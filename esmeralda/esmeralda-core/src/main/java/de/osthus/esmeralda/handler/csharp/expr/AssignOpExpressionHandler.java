@@ -1,26 +1,26 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
-import com.sun.tools.javac.tree.JCTree.JCAssign;
+import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
+import de.osthus.esmeralda.misc.IWriter;
 
-public class AssignExpressionHandler extends AbstractExpressionHandler<JCAssign>
+public class AssignOpExpressionHandler extends AbstractExpressionHandler<JCAssignOp>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	protected void handleExpressionIntern(JCAssign expression)
+	protected void handleExpressionIntern(JCAssignOp expression)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeExpressionTree(expression.lhs);
-		writer.append(" = ");
+		writer.append(" ").append(expression.operator.name).append("= ");
 		languageHelper.writeExpressionTree(expression.rhs);
 	}
 }

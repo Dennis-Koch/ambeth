@@ -6,7 +6,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 
-public class JsClassNodeHandler implements INodeHandlerExtension
+public class JsClassHandler implements INodeHandlerExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance

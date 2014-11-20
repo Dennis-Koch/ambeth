@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
 import java.util.EnumSet;
 import java.util.concurrent.locks.Condition;
@@ -18,8 +18,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.TypeResolveException;
+import de.osthus.esmeralda.misc.IWriter;
 
 public class MethodInvocationExpressionHandler extends AbstractExpressionHandler<JCMethodInvocation>
 {

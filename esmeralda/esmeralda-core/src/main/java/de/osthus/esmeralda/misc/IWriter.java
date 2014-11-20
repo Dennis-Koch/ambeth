@@ -1,4 +1,4 @@
-package de.osthus.esmeralda;
+package de.osthus.esmeralda.misc;
 
 public interface IWriter
 {
