@@ -11,6 +11,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFieldAccess>
@@ -45,13 +46,11 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 			{
 				typeForTypeof = ((JCArrayTypeTree) expression).type.toString();
 			}
-			if (typeForTypeof != null)
-			{
-				writer.append("typeof(");
-				languageHelper.writeType(typeForTypeof);
-				writer.append(')');
-				return;
-			}
+			writer.append("typeof(");
+			languageHelper.writeType(typeForTypeof);
+			writer.append(')');
+			context.setTypeOnStack(java.lang.Class.class.getName());
+			return;
 		}
 		if (expression instanceof JCIdent)
 		{
@@ -61,15 +60,25 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				languageHelper.writeType(identityExpression.sym.toString());
 				writer.append('.');
 				writer.append(name);
+				context.setTypeOnStack(identityExpression.sym.toString());
 			}
 			else if (identityExpression.sym instanceof VarSymbol)
 			{
 				languageHelper.writeExpressionTree(identityExpression);
 				writer.append('.').append(name);
 			}
+			else
+			{
+				throw new IllegalStateException(identityExpression.toString());
+			}
 			return;
 		}
-
 		languageHelper.writeExpressionTree(fieldAccess.getExpression());
+
+		if (fieldAccess.type == null)
+		{// TODO: handle this case. Is this an error in the sources? Is there something missing?
+			throw new TypeResolveException("No type in method invocation '" + fieldAccess + "'");
+		}
+		context.setTypeOnStack(fieldAccess.type.toString());
 	}
 }

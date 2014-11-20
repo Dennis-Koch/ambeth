@@ -86,4 +86,12 @@ public interface IConversionContext
 	ISnippetManager getSnippetManager();
 
 	void setSnippetManager(ISnippetManager snippetManager);
+
+	void queuePostProcess(IPostProcess postProcess);
+
+	IList<IPostProcess> getPostProcesses();
+
+	String getTypeOnStack();
+
+	void setTypeOnStack(String typeOnStack);
 }

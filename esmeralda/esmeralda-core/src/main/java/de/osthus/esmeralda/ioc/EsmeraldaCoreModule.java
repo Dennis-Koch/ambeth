@@ -11,6 +11,7 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewArray;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCUnary;
 
@@ -44,13 +45,20 @@ import de.osthus.esmeralda.handler.csharp.expr.LiteralExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.MethodInvocationExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewArrayExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.ParensExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.TypeCastExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.UnaryExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsBreakHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsContinueHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForEnhancedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsIfHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsSkipHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
@@ -107,11 +115,17 @@ public class EsmeraldaCoreModule implements IInitializingModule
 				.autowireable(IStatementHandlerExtendable.class, IStatementHandlerRegistry.class);
 
 		registerStatementHandler(beanContextFactory, CsBlockHandler.class, Lang.C_SHARP + Kind.BLOCK);
+		registerStatementHandler(beanContextFactory, CsBreakHandler.class, Lang.C_SHARP + Kind.BREAK);
+		registerStatementHandler(beanContextFactory, CsContinueHandler.class, Lang.C_SHARP + Kind.CONTINUE);
 		registerStatementHandler(beanContextFactory, CsForEnhancedHandler.class, Lang.C_SHARP + Kind.ENHANCED_FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsForHandler.class, Lang.C_SHARP + Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsExpressionHandler.class, Lang.C_SHARP + Kind.EXPRESSION_STATEMENT);
+		registerStatementHandler(beanContextFactory, CsIfHandler.class, Lang.C_SHARP + Kind.IF);
 		registerStatementHandler(beanContextFactory, CsReturnHandler.class, Lang.C_SHARP + Kind.RETURN);
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);
+		registerStatementHandler(beanContextFactory, CsSkipHandler.class, Lang.C_SHARP + Kind.EMPTY_STATEMENT);
+		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP + Kind.TRY);
+		registerStatementHandler(beanContextFactory, CsThrowHandler.class, Lang.C_SHARP + Kind.THROW);
 
 		// expressions
 		registerExpressionHandler(beanContextFactory, ArrayAccessExpressionHandler.class, JCArrayAccess.class);
@@ -123,6 +137,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerExpressionHandler(beanContextFactory, MethodInvocationExpressionHandler.class, JCMethodInvocation.class);
 		registerExpressionHandler(beanContextFactory, NewArrayExpressionHandler.class, JCNewArray.class);
 		registerExpressionHandler(beanContextFactory, NewClassExpressionHandler.class, JCNewClass.class);
+		registerExpressionHandler(beanContextFactory, ParensExpressionHandler.class, JCParens.class);
 		registerExpressionHandler(beanContextFactory, TypeCastExpressionHandler.class, JCTypeCast.class);
 		registerExpressionHandler(beanContextFactory, UnaryExpressionHandler.class, JCUnary.class);
 	}

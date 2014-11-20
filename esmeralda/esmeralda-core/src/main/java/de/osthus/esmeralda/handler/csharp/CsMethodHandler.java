@@ -3,6 +3,7 @@ package de.osthus.esmeralda.handler.csharp;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.BlockTree;
+import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
@@ -14,6 +15,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -54,7 +56,42 @@ public class CsMethodHandler implements INodeHandlerExtension
 
 		languageHelper.writeAnnotations(method);
 		languageHelper.newLineIntend();
+		if (method.getOwningClass().isAnnotation())
+		{
+			MethodTree methodTree = method.getMethodTree();
+			final Tree defaultValue = methodTree.getDefaultValue();
+			// handle special case of annotation property
+			final String propertyName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
+			// TODO: remind of the changed method name on all invocations
 
+			writer.append("public ");
+			languageHelper.writeType(method.getReturnType());
+			writer.append(' ');
+			writer.append(propertyName);
+			writer.append(" { get; set; }");
+			if (defaultValue != null)
+			{
+				context.queuePostProcess(new IPostProcess()
+				{
+					@Override
+					public void postProcess()
+					{
+						IConversionContext context = CsMethodHandler.this.context.getCurrent();
+						IWriter writer = context.getWriter();
+						writer.append(propertyName).append(" = ");
+						if (defaultValue instanceof ExpressionTree)
+						{
+							languageHelper.writeExpressionTree((ExpressionTree) defaultValue);
+						}
+						else
+						{
+							writer.append(defaultValue.toString());
+						}
+					}
+				});
+			}
+			return;
+		}
 		boolean firstKeyWord = true;
 		if (!method.getOwningClass().isInterface())
 		{
@@ -103,12 +140,11 @@ public class CsMethodHandler implements INodeHandlerExtension
 		}
 		writer.append(')');
 
-		if (method.getOwningClass().isInterface())
+		if (method.getOwningClass().isInterface() || method.isAbstract())
 		{
 			writer.append(';');
 			return;
 		}
-
 		MethodTree methodTree = (MethodTree) astNode;
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
 		context.setSnippetManager(snippetManager);

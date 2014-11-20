@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.AnnotationValueVisitor;
+import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Attribute;
@@ -33,6 +34,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
@@ -42,7 +44,10 @@ import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.ClassFile;
+import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 {
@@ -181,6 +186,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@Override
 	public void writeType(String typeName)
 	{
+		ParamChecker.assertParamNotNullOrEmpty(typeName, "typeName");
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		typeName = typeName.trim();
@@ -536,7 +542,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			firstProperty = writeStringIfFalse(", ", firstProperty);
 			String propertyName = StringConversionHelper.upperCaseFirst(objectCollector, entry.getKey());
-			writer.append(propertyName).append("=");
+			writer.append(propertyName).append(" = ");
 			writer.append(entry.getValue().toString());
 		}
 		writer.append(')');
@@ -602,13 +608,46 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			return;
 		}
 		// FIXME For dev: Exceptions from MethodInvocationExpressionHandler stop code processing
-		try
+		expressionHandler.handleExpression(expression);
+	}
+
+	@Override
+	public String resolveTypeFromVariableName(String variableName)
+	{
+		ParamChecker.assertParamNotNullOrEmpty(variableName, "variableName");
+		Method method = context.getMethod();
+
+		if ("this".equals(variableName))
 		{
-			expressionHandler.handleExpression(expression);
+			JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
+			return owningClass.getPackageName() + "." + owningClass.getName();
 		}
-		catch (Exception e)
+		// look for stack variables first
+		for (VariableElement parameter : method.getParameters())
 		{
-			e.printStackTrace();
+			if (variableName.equals(parameter.getSimpleName().toString()))
+			{
+				return parameter.asType().toString();
+			}
 		}
+		// look for declared fields up the whole class hierarchy
+		ClassFile classInfo = method.getOwningClass();
+		while (classInfo != null)
+		{
+			for (Field field : classInfo.getFields())
+			{
+				if (variableName.equals(field.getName()))
+				{
+					return field.getFieldType().toString();
+				}
+			}
+			String nameOfSuperClass = classInfo.getNameOfSuperClass();
+			if (nameOfSuperClass == null)
+			{
+				break;
+			}
+			classInfo = context.resolveClassInfo(nameOfSuperClass);
+		}
+		throw new IllegalStateException("Could not resolve variable '" + variableName + "' in method signature: " + method);
 	}
 }

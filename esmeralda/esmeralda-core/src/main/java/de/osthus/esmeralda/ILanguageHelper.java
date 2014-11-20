@@ -48,4 +48,6 @@ public interface ILanguageHelper
 	void writeGenericTypeArguments(List<Type> genericTypeArguments);
 
 	void writeMethodArguments(List<JCExpression> methodArguments);
+
+	String resolveTypeFromVariableName(String variableName);
 }

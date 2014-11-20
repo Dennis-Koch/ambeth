@@ -40,6 +40,11 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 				writeSimpleUnary(unary, "++");
 				break;
 			}
+			case LOGICAL_COMPLEMENT:
+			{
+				writeSimpleUnary("!", unary);
+				break;
+			}
 			default:
 				log.warn("Could not handle unary of type " + unary.getKind() + ": " + unary);
 		}

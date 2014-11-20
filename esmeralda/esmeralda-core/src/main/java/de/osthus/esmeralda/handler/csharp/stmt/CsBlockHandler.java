@@ -1,8 +1,5 @@
 package de.osthus.esmeralda.handler.csharp.stmt;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree.Kind;
@@ -25,6 +22,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
 	{
+		System.out.println();
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -33,19 +31,14 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 				IConversionContext context = CsBlockHandler.this.context.getCurrent();
 				ISnippetManager snippetManager = context.getSnippetManager();
 
-				List<? extends StatementTree> statements = blockTree.getStatements();
-				Iterator<? extends StatementTree> iter = statements.iterator();
-
 				ArrayList<String> untranslatableStatements = new ArrayList<>();
 
-				while (iter.hasNext())
+				for (StatementTree statement : blockTree.getStatements())
 				{
-					StatementTree statement = iter.next();
 					Kind kind = statement.getKind();
 					IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
 					if (stmtHandler != null)
 					{
-						checkUntranslatableList(untranslatableStatements, snippetManager);
 						stmtHandler.handle(statement);
 					}
 					else

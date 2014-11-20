@@ -38,9 +38,24 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" * ", binary);
 				break;
 			}
+			case AND:
+			{
+				writeSimpleBinary(" & ", binary);
+				break;
+			}
 			case OR:
 			{
 				writeSimpleBinary(" | ", binary);
+				break;
+			}
+			case CONDITIONAL_AND:
+			{
+				writeSimpleBinary(" &&", binary);
+				break;
+			}
+			case CONDITIONAL_OR:
+			{
+				writeSimpleBinary(" || ", binary);
 				break;
 			}
 			case PLUS:
@@ -51,26 +66,37 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			case EQUAL_TO:
 			{
 				writeSimpleBinary(" == ", binary);
+				context.setTypeOnStack(boolean.class.getName());
+				break;
+			}
+			case NOT_EQUAL_TO:
+			{
+				writeSimpleBinary(" != ", binary);
+				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
 			case GREATER_THAN:
 			{
 				writeSimpleBinary(" > ", binary);
+				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
 			case LESS_THAN:
 			{
 				writeSimpleBinary(" < ", binary);
+				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
 			case GREATER_THAN_EQUAL:
 			{
 				writeSimpleBinary(" >= ", binary);
+				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
 			case LESS_THAN_EQUAL:
 			{
 				writeSimpleBinary(" <= ", binary);
+				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
 			default:
