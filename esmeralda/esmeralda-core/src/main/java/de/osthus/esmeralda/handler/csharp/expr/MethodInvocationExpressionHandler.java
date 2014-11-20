@@ -1,25 +1,39 @@
 package de.osthus.esmeralda.handler.csharp.expr;
 
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeMirror;
+
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type.TypeVar;
+import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCParens;
+import com.sun.tools.javac.util.List;
 
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.ClassFile;
+import demo.codeanalyzer.common.model.Field;
+import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class MethodInvocationExpressionHandler extends AbstractExpressionHandler<JCMethodInvocation>
 {
@@ -32,6 +46,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		if (methodInvocation.meth == null)
 		{
 			log.warn("Could not handle method invocation: " + methodInvocation);
@@ -67,23 +82,12 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				}
 				typeOfOwner = fieldAccess.type.toString();
 			}
-			else if (meth.selected instanceof JCMethodInvocation)
+			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
+					|| meth.selected instanceof JCArrayAccess)
 			{
-				JCMethodInvocation mi = (JCMethodInvocation) meth.selected;
-				languageHelper.writeExpressionTree(mi);
+				languageHelper.writeExpressionTree(meth.selected);
 				owner = null;
-				if (mi.type == null)
-				{// TODO: handle this case. Code does not work with fluent APIs
-					throw new TypeResolveException("No type in method invocation '" + methodInvocation + "'");
-				}
-				typeOfOwner = mi.type.toString();
-			}
-			else if (meth.selected instanceof JCNewClass)
-			{
-				JCNewClass newClass = (JCNewClass) meth.selected;
-				languageHelper.writeExpressionTree(newClass);
-				owner = null;
-				typeOfOwner = newClass.type.toString();
+				typeOfOwner = context.getTypeOnStack();
 			}
 			else
 			{
@@ -91,7 +95,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				if (selected.sym instanceof VarSymbol)
 				{
 					owner = selected.sym.toString();
-					typeOfOwner = selected.type.toString();
+					typeOfOwner = selected.sym.type != null ? selected.sym.type.toString() : resolveTypeFromVariableName(owner);
 				}
 				else if (selected.sym instanceof ClassSymbol)
 				{
@@ -101,9 +105,9 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				}
 				else if (selected.sym == null)
 				{
+					// resolve owner by scanning the method signature & method body
 					owner = selected.toString();
-					typeOfOwner = selected.toString();
-					writeOwnerAsType = true;
+					typeOfOwner = resolveTypeFromVariableName(owner);
 				}
 				else
 				{
@@ -144,24 +148,41 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		}
 		writer.append('.');
 
-		methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
+		String formattedMethodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
 		boolean isPropertyInvocation = false;
 		if (Class.class.getName().equals(nonGenericTypeOfOwner))
 		{
-			if ("GetSimpleName".equals(methodName))
+			if ("getSimpleName".equals(methodName))
 			{
-				methodName = "Name";
+				formattedMethodName = "Name";
 				isPropertyInvocation = true;
 			}
-			else if ("GetName".equals(methodName))
+			else if ("getName".equals(methodName))
 			{
-				methodName = "FullName";
+				formattedMethodName = "FullName";
 				isPropertyInvocation = true;
 			}
 		}
-		writer.append(methodName);
+		writer.append(formattedMethodName);
+
+		String[] argTypes = null;
 		if (!isPropertyInvocation)
 		{
+			writer.append('(');
+			List<JCExpression> arguments = methodInvocation.getArguments();
+			argTypes = new String[arguments.size()];
+			for (int a = 0, size = arguments.size(); a < size; a++)
+			{
+				JCExpression arg = arguments.get(a);
+				if (a > 0)
+				{
+					writer.append(", ");
+				}
+				languageHelper.writeExpressionTree(arg);
+				String typeOnStack = context.getTypeOnStack();
+				argTypes[a] = extractNonGenericType(typeOnStack);
+			}
+			writer.append(')');
 			languageHelper.writeMethodArguments(methodInvocation.getArguments());
 		}
 		else if (methodInvocation.getArguments().size() > 0)
@@ -175,5 +196,122 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				languageHelper.writeExpressionTree(argument);
 			}
 		}
+		if (methodInvocation.type != null)
+		{
+			context.setTypeOnStack(methodInvocation.type.toString());
+			return;
+		}
+		String returnType = resolveMethodReturnType(typeOfOwner, methodName, argTypes);
+		context.setTypeOnStack(returnType);
+	}
+
+	protected String resolveMethodReturnType(String currOwner, String methodName, String... argTypes)
+	{
+		while (currOwner != null)
+		{
+			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);
+			if (ownerInfo == null)
+			{
+				System.out.println();
+			}
+			for (Method method : ownerInfo.getMethods())
+			{
+				if (!method.getName().equals(methodName))
+				{
+					continue;
+				}
+				IList<VariableElement> parameters = method.getParameters();
+				if (parameters.size() != argTypes.length)
+				{
+					continue;
+				}
+				boolean identicalParameterTypes = true;
+				for (int a = argTypes.length; a-- > 0;)
+				{
+					String argType = argTypes[a];
+					TypeMirror parameterType = parameters.get(a).asType();
+					String parameterTypeName;
+					if (parameterType instanceof TypeVar)
+					{
+						parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
+					}
+					else
+					{
+						parameterTypeName = parameterType.toString();
+					}
+					parameterTypeName = extractNonGenericType(parameterTypeName);
+					boolean parameterMatch = false;
+					while (argType != null)
+					{
+						if (parameterTypeName.equals(argType))
+						{
+							parameterMatch = true;
+							break;
+						}
+						JavaClassInfo argClassInfo = context.resolveClassInfo(argType);
+						if (argClassInfo == null)
+						{
+							break;
+						}
+						argType = argClassInfo.getNameOfSuperClass();
+					}
+					if (!parameterMatch)
+					{
+						identicalParameterTypes = false;
+						break;
+					}
+				}
+				if (!identicalParameterTypes)
+				{
+					continue;
+				}
+				return method.getReturnType();
+			}
+			currOwner = ownerInfo.getNameOfSuperClass();
+		}
+		throw new TypeResolveException("No matching method found '" + methodName + "(" + Arrays.toString(argTypes) + ")");
+	}
+
+	protected String extractNonGenericType(String typeName)
+	{
+		Matcher paramGenericTypeMatcher = ConversionContext.genericTypePattern.matcher(typeName);
+		if (paramGenericTypeMatcher.matches())
+		{
+			return paramGenericTypeMatcher.group(1);
+		}
+		return typeName;
+	}
+
+	protected String resolveTypeFromVariableName(String variableName)
+	{
+		ParamChecker.assertParamNotNullOrEmpty(variableName, "variableName");
+		Method method = context.getMethod();
+		// look for stack variables first
+		for (VariableElement parameter : method.getParameters())
+		{
+			if (variableName.equals(parameter.getSimpleName().toString()))
+			{
+				return parameter.asType().toString();
+			}
+		}
+		// look for declared fields up the whole class hierarchy
+		ClassFile classInfo = method.getOwningClass();
+		while (classInfo != null)
+		{
+			for (Field field : classInfo.getFields())
+			{
+				if (variableName.equals(field.getName()))
+				{
+					return field.getFieldType().toString();
+				}
+			}
+			String nameOfSuperClass = classInfo.getNameOfSuperClass();
+			if (nameOfSuperClass == null)
+			{
+				break;
+			}
+			classInfo = context.resolveClassInfo(nameOfSuperClass);
+		}
+		throw new IllegalStateException("Could not resolve variable '" + variableName + "' in method signature: " + method);
 	}
 }

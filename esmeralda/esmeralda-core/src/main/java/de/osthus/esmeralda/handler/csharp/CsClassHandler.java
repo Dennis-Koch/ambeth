@@ -26,6 +26,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
@@ -364,6 +365,10 @@ public class CsClassHandler implements INodeHandlerExtension
 					context.setMethod(method);
 					MethodTree methodTree = method.getMethodTree();
 					methodHandler.handle(methodTree);
+				}
+				for (IPostProcess postProcess : context.getPostProcesses())
+				{
+					postProcess.postProcess();
 				}
 			}
 		});

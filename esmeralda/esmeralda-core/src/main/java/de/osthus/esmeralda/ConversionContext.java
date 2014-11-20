@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -53,7 +54,11 @@ public class ConversionContext implements IConversionContext
 
 	private ISnippetManager snippetManager;
 
+	private final ArrayList<IPostProcess> postProcesses = new ArrayList<IPostProcess>();
+
 	private boolean dryRun = false;
+
+	private String typeOnStack;
 
 	@Override
 	public IConversionContext getCurrent()
@@ -313,5 +318,39 @@ public class ConversionContext implements IConversionContext
 	public void setSnippetManager(ISnippetManager snippetManager)
 	{
 		this.snippetManager = snippetManager;
+	}
+
+	@Override
+	public void queuePostProcess(IPostProcess postProcess)
+	{
+		postProcesses.add(postProcess);
+	}
+
+	@Override
+	public IList<IPostProcess> getPostProcesses()
+	{
+		return postProcesses;
+	}
+
+	@Override
+	public String getTypeOnStack()
+	{
+		return typeOnStack;
+	}
+
+	@Override
+	public void setTypeOnStack(String typeOnStack)
+	{
+		this.typeOnStack = typeOnStack;
+	}
+
+	@Override
+	public String toString()
+	{
+		if (classInfo != null)
+		{
+			return classInfo.toString();
+		}
+		return super.toString();
 	}
 }

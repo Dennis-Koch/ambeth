@@ -116,7 +116,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 			{
 				VariableElement existingParameter = existingParameters.get(a);
 				VariableElement parameter = parameters.get(a);
-				if (!existingParameter.toString().equals(parameter.toString()))
+				if (!existingParameter.asType().equals(parameter.asType()))
 				{
 					parametersIdentical = false;
 					break;
@@ -217,5 +217,11 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public boolean isTopLevelClass()
 	{
 		return nestingKind.equals(NestingKind.TOP_LEVEL.toString());
+	}
+
+	@Override
+	public String toString()
+	{
+		return getPackageName() + "." + getName();
 	}
 }

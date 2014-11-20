@@ -19,9 +19,15 @@ public class ArrayAccessExpressionHandler extends AbstractExpressionHandler<JCAr
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.writeExpressionTree(expression.indexed);
+		languageHelper.writeExpressionTree(expression.getExpression());
+		String typeOnStack = context.getTypeOnStack();
+		if (typeOnStack.endsWith("[]"))
+		{
+			typeOnStack = typeOnStack.substring(0, typeOnStack.length() - 2);
+		}
 		writer.append("[");
-		languageHelper.writeExpressionTree(expression.index);
+		languageHelper.writeExpressionTree(expression.getIndex());
 		writer.append("]");
+		context.setTypeOnStack(typeOnStack);
 	}
 }

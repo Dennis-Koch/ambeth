@@ -16,6 +16,8 @@ import de.osthus.esmeralda.snippet.ISnippetManager;
 
 public abstract class AbstractStatementHandler<T extends StatementTree> implements IStatementHandlerExtension<T>
 {
+	public static final String INTENDED_BLANK = "// intended blank";
+
 	@Autowired
 	protected IConversionContext context;
 

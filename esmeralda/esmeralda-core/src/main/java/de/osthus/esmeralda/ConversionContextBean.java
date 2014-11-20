@@ -1,26 +1,84 @@
 package de.osthus.esmeralda;
 
-import java.io.File;
-
-import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IMap;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+import de.osthus.ambeth.ioc.IFactoryBean;
+import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.esmeralda.misc.IWriter;
-import de.osthus.esmeralda.snippet.ISnippetManager;
-import demo.codeanalyzer.common.model.Field;
-import demo.codeanalyzer.common.model.JavaClassInfo;
-import demo.codeanalyzer.common.model.Method;
+import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.util.ReflectUtil;
 
-public class ConversionContextBean implements IConversionContext, IThreadLocalCleanupBean
+public class ConversionContextBean implements IThreadLocalCleanupBean, MethodInterceptor, IFactoryBean, IInitializingBean
 {
+	private static final java.lang.reflect.Method finalizeMethod = CascadedInterceptor.finalizeMethod;
+
+	private static final java.lang.reflect.Method toStringMethod;
+
+	private static final java.lang.reflect.Method setCurrentMethod;
+
+	private static final java.lang.reflect.Method getCurrentMethod;
+
+	static
+	{
+		setCurrentMethod = ReflectUtil.getDeclaredMethod(false, IConversionContext.class, void.class, "setCurrent", IConversionContext.class);
+		getCurrentMethod = ReflectUtil.getDeclaredMethod(false, IConversionContext.class, IConversionContext.class, "getCurrent");
+		toStringMethod = ReflectUtil.getDeclaredMethod(false, Object.class, String.class, "toString");
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
+	protected IProxyFactory proxyFactory;
+
 	protected final ThreadLocal<IConversionContext> conversionContextTL = new ThreadLocal<IConversionContext>();
+
+	private IConversionContext proxy;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		proxy = proxyFactory.createProxy(IConversionContext.class, this);
+	}
+
+	@Override
+	public Object getObject() throws Throwable
+	{
+		return proxy;
+	}
+
+	@Override
+	public Object intercept(Object obj, java.lang.reflect.Method method, Object[] args, MethodProxy proxy) throws Throwable
+	{
+		if (finalizeMethod.equals(method))
+		{
+			return null;
+		}
+		if (setCurrentMethod.equals(method))
+		{
+			setCurrent((IConversionContext) args[0]);
+			return null;
+		}
+		if (getCurrentMethod.equals(method))
+		{
+			return getCurrent();
+		}
+		if (toStringMethod.equals(method))
+		{
+			return toString();
+		}
+		if (IConversionContext.class.isAssignableFrom(method.getDeclaringClass()))
+		{
+			IConversionContext context = getContext();
+			return proxy.invoke(context, args);
+		}
+		return proxy.invoke(this, args);
+	}
 
 	@Override
 	public void cleanupThreadLocal()
@@ -33,14 +91,12 @@ public class ConversionContextBean implements IConversionContext, IThreadLocalCl
 		return conversionContextTL.get();
 	}
 
-	@Override
-	public IConversionContext getCurrent()
+	protected IConversionContext getCurrent()
 	{
 		return getContext();
 	}
 
-	@Override
-	public void setCurrent(IConversionContext current)
+	protected void setCurrent(IConversionContext current)
 	{
 		if (current == null)
 		{
@@ -50,216 +106,6 @@ public class ConversionContextBean implements IConversionContext, IThreadLocalCl
 		{
 			conversionContextTL.set(current);
 		}
-	}
-
-	@Override
-	public File getTargetPath()
-	{
-		return getContext().getTargetPath();
-	}
-
-	@Override
-	public void setTargetPath(File targetPath)
-	{
-		getContext().setTargetPath(targetPath);
-	}
-
-	@Override
-	public File getSnippetPath()
-	{
-		return getContext().getSnippetPath();
-	}
-
-	@Override
-	public void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap)
-	{
-		getContext().setFqNameToClassInfoMap(fqNameToClassInfoMap);
-	}
-
-	@Override
-	public IMap<String, JavaClassInfo> getFqNameToClassInfoMap()
-	{
-		return getContext().getFqNameToClassInfoMap();
-	}
-
-	@Override
-	public IWriter getWriter()
-	{
-		return getContext().getWriter();
-	}
-
-	@Override
-	public void setWriter(IWriter writer)
-	{
-		getContext().setWriter(writer);
-	}
-
-	@Override
-	public boolean isDryRun()
-	{
-		return getContext().isDryRun();
-	}
-
-	@Override
-	public void setDryRun(boolean dryRun)
-	{
-		getContext().setDryRun(dryRun);
-	}
-
-	@Override
-	public JavaClassInfo resolveClassInfo(String fqTypeName)
-	{
-		return getContext().resolveClassInfo(fqTypeName);
-	}
-
-	@Override
-	public void setTargetFile(File targetFile)
-	{
-		getContext().setTargetFile(targetFile);
-	}
-
-	@Override
-	public String getLanguagePath()
-	{
-		return getContext().getLanguagePath();
-	}
-
-	@Override
-	public void setLanguagePath(String languagePath)
-	{
-		getContext().setLanguagePath(languagePath);
-	}
-
-	@Override
-	public String getNsPrefixAdd()
-	{
-		return getContext().getNsPrefixAdd();
-	}
-
-	@Override
-	public void setNsPrefixAdd(String nsPrefixAdd)
-	{
-		getContext().setNsPrefixAdd(nsPrefixAdd);
-	}
-
-	@Override
-	public String getNsPrefixRemove()
-	{
-		return getContext().getNsPrefixRemove();
-	}
-
-	@Override
-	public void setNsPrefixRemove(String nsPrefixRemove)
-	{
-		getContext().setNsPrefixRemove(nsPrefixRemove);
-	}
-
-	@Override
-	public int getIndentationLevel()
-	{
-		return getContext().getIndentationLevel();
-	}
-
-	@Override
-	public void setIndentationLevel(int indentationLevel)
-	{
-		getContext().setIndentationLevel(indentationLevel);
-	}
-
-	@Override
-	public int incremetIndentationLevel()
-	{
-		return getContext().incremetIndentationLevel();
-	}
-
-	@Override
-	public int decremetIndentationLevel()
-	{
-		return getContext().decremetIndentationLevel();
-	}
-
-	@Override
-	public JavaClassInfo getClassInfo()
-	{
-		return getContext().getClassInfo();
-	}
-
-	@Override
-	public void setClassInfo(JavaClassInfo classInfo)
-	{
-		getContext().setClassInfo(classInfo);
-	}
-
-	@Override
-	public HashSet<TypeUsing> getUsedTypes()
-	{
-		return getContext().getUsedTypes();
-	}
-
-	@Override
-	public void setUsedTypes(HashSet<TypeUsing> usedTypes)
-	{
-		getContext().setUsedTypes(usedTypes);
-	}
-
-	@Override
-	public IMap<String, String> getImports()
-	{
-		return getContext().getImports();
-	}
-
-	@Override
-	public void setImports(IMap<String, String> imports)
-	{
-		getContext().setImports(imports);
-	}
-
-	@Override
-	public IList<TypeUsing> getUsings()
-	{
-		return getContext().getUsings();
-	}
-
-	@Override
-	public void setUsings(IList<TypeUsing> usings)
-	{
-		getContext().setUsings(usings);
-	}
-
-	@Override
-	public Field getField()
-	{
-		return getContext().getField();
-	}
-
-	@Override
-	public void setField(Field field)
-	{
-		getContext().setField(field);
-	}
-
-	@Override
-	public Method getMethod()
-	{
-		return getContext().getMethod();
-	}
-
-	@Override
-	public void setMethod(Method method)
-	{
-		getContext().setMethod(method);
-	}
-
-	@Override
-	public ISnippetManager getSnippetManager()
-	{
-		return getContext().getSnippetManager();
-	}
-
-	@Override
-	public void setSnippetManager(ISnippetManager snippetManager)
-	{
-		getContext().setSnippetManager(snippetManager);
 	}
 
 	@Override

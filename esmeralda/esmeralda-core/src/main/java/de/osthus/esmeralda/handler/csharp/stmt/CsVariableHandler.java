@@ -1,6 +1,5 @@
 package de.osthus.esmeralda.handler.csharp.stmt;
 
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
@@ -17,7 +16,7 @@ public class CsVariableHandler extends AbstractStatementHandler<JCVariableDecl> 
 	private ILogger log;
 
 	@Override
-	public void handle(JCVariableDecl tree, boolean standalone)
+	public void handle(JCVariableDecl variableStatement, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -27,13 +26,10 @@ public class CsVariableHandler extends AbstractStatementHandler<JCVariableDecl> 
 			languageHelper.newLineIntend();
 		}
 
-		boolean firstKeyWord = true;
-		JCTree varType = tree.getType();
-		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
-		languageHelper.writeType(varType.toString());
-		writer.append(' ').append(tree.getName());
+		languageHelper.writeType(variableStatement.getType().toString());
+		writer.append(' ').append(variableStatement.getName());
 
-		JCExpression initializer = tree.getInitializer();
+		JCExpression initializer = variableStatement.getInitializer();
 		if (initializer != null)
 		{
 			writer.append(" = ");
