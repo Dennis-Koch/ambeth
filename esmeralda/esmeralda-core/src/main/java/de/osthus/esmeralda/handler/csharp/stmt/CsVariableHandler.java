@@ -4,33 +4,28 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
 
-public class CsVariableHandler implements IStatementHandlerExtension<JCVariableDecl>
+public class CsVariableHandler extends AbstractStatementHandler<JCVariableDecl> implements IStatementHandlerExtension<JCVariableDecl>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	@Autowired
-	protected IConversionContext context;
-
-	@Autowired
-	protected ICsharpHelper languageHelper;
-
 	@Override
-	public void handle(JCVariableDecl tree)
+	public void handle(JCVariableDecl tree, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		if (standalone)
+		{
+			languageHelper.newLineIntend();
+		}
 
 		boolean firstKeyWord = true;
 		JCTree varType = tree.getType();
@@ -45,6 +40,9 @@ public class CsVariableHandler implements IStatementHandlerExtension<JCVariableD
 			languageHelper.writeExpressionTree(initializer);
 		}
 
-		writer.append(';');
+		if (standalone)
+		{
+			writer.append(';');
+		}
 	}
 }

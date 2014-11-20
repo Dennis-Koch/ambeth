@@ -5,4 +5,6 @@ import com.sun.source.tree.StatementTree;
 public interface IStatementHandlerExtension<T extends StatementTree>
 {
 	void handle(T tree);
+
+	void handle(T tree, boolean standalone);
 }

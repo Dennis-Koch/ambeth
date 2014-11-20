@@ -41,6 +41,7 @@ import de.osthus.esmeralda.handler.csharp.NewClassExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForEnhancedHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsForHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
@@ -99,6 +100,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 
 		registerStatementHandler(beanContextFactory, CsBlockHandler.class, Lang.C_SHARP + Kind.BLOCK);
 		registerStatementHandler(beanContextFactory, CsForEnhancedHandler.class, Lang.C_SHARP + Kind.ENHANCED_FOR_LOOP);
+		registerStatementHandler(beanContextFactory, CsForHandler.class, Lang.C_SHARP + Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsExpressionHandler.class, Lang.C_SHARP + Kind.EXPRESSION_STATEMENT);
 		registerStatementHandler(beanContextFactory, CsReturnHandler.class, Lang.C_SHARP + Kind.RETURN);
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);

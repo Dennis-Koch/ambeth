@@ -1,0 +1,61 @@
+package de.osthus.esmeralda.handler.csharp.stmt;
+
+import java.util.Collections;
+import java.util.List;
+
+import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.Tree.Kind;
+
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
+import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.snippet.ISnippetManager;
+
+public abstract class AbstractStatementHandler<T extends StatementTree> implements IStatementHandlerExtension<T>
+{
+	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
+	protected ICsharpHelper languageHelper;
+
+	@Autowired
+	protected IStatementHandlerRegistry statementHandlerRegistry;
+
+	@Override
+	public void handle(T tree)
+	{
+		handle(tree, true);
+	}
+
+	protected void handleChildStatement(StatementTree statement)
+	{
+		handleChildStatement(statement, true);
+	}
+
+	protected void handleChildStatement(StatementTree statement, boolean standalone)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ISnippetManager snippetManager = context.getSnippetManager();
+
+		Kind kind = statement.getKind();
+		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+		if (stmtHandler != null)
+		{
+			stmtHandler.handle(statement, standalone);
+		}
+		else if (standalone)
+		{
+			String statementString = statement.toString();
+			List<String> untranslatableStatements = Collections.singletonList(statementString);
+			snippetManager.writeSnippet(untranslatableStatements);
+		}
+		else
+		{
+			throw new IllegalArgumentException("Cannot handle embedded statement " + statement.toString());
+		}
+	}
+}

@@ -8,38 +8,25 @@ import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
-public class CsBlockHandler implements IStatementHandlerExtension<BlockTree>
+public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	@Autowired
-	protected IConversionContext context;
-
-	@Autowired
-	protected ICsharpHelper languageHelper;
-
-	@Autowired
-	protected IStatementHandlerRegistry statementHandlerRegistry;
-
 	@Override
-	public void handle(final BlockTree blockTree)
+	public void handle(final BlockTree blockTree, boolean standalone)
 	{
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
-			@SuppressWarnings("unused")
 			@Override
 			public void invoke() throws Throwable
 			{
