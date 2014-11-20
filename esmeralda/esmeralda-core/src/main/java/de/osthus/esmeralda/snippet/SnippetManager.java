@@ -329,7 +329,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		for (String line : codeLines)
 		{
 			languageHelper.newLineIntend();
-			writer.append(line);
+			writer.append(TEXT_COMMENTED_OUT).append(line);
 		}
 
 		languageHelper.newLineIntend();
