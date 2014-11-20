@@ -29,6 +29,10 @@ public interface IConversionContext
 
 	void setWriter(IWriter writer);
 
+	boolean isDryRun();
+
+	void setDryRun(boolean dryRun);
+
 	JavaClassInfo resolveClassInfo(String fqTypeName);
 
 	void setTargetFile(File targetFile);

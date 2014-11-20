@@ -70,6 +70,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
 		// without ambiguity
 		HashSet<TypeUsing> usedTypes = new HashSet<TypeUsing>();
+		context.setDryRun(true);
 		context.setUsedTypes(usedTypes);
 		try
 		{
@@ -84,6 +85,7 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		{
 			context.setWriter(null);
 			context.setUsedTypes(null);
+			context.setDryRun(false);
 		}
 
 		// PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
@@ -239,7 +241,9 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 
 	protected void writeNamespace(final JavaClassInfo classInfo)
 	{
+		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		boolean firstLine = true;
 		List<TypeUsing> usings = context.getUsings();
 		if (usings != null && usings.size() > 0)

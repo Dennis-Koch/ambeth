@@ -110,11 +110,16 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		fileNameParts[1] = targetFileName.substring(lastDot + 1);
 	}
 
-	// FIXME This Code is run multiple times since there are some "analysis" runs in the CsharpClassNodeHandler
 	// FIXME False positives due to overloaded methods (they do not use the files of the other overloaded methods)
 	@Override
 	public void finished()
 	{
+		IConversionContext context = this.context.getCurrent();
+		if (context.isDryRun())
+		{
+			return;
+		}
+
 		List<String> allSnippetFiles = findAllSnippetFiles();
 		allSnippetFiles.removeAll(usedSnippetFiles);
 
@@ -155,6 +160,11 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 				log.warn("Existing snippet file '" + relativeSnippetFileName + "' is needed, but was not edited yet.");
 			}
 
+			return;
+		}
+
+		if (context.isDryRun())
+		{
 			return;
 		}
 
