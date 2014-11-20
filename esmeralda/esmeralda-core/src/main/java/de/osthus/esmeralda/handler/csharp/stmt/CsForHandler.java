@@ -10,8 +10,8 @@ import com.sun.tools.javac.util.List;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.misc.IWriter;
 
 public class CsForHandler extends AbstractStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
 {

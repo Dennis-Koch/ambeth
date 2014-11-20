@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
@@ -10,7 +10,7 @@ import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
+import de.osthus.esmeralda.misc.IWriter;
 
 public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFieldAccess>
 {

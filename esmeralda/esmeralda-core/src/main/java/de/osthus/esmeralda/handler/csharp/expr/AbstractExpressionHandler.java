@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.csharp.expr;
 
 import com.sun.source.tree.ExpressionTree;
 
@@ -8,6 +8,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
 
 public abstract class AbstractExpressionHandler<T> implements IExpressionHandler
 {
@@ -19,7 +20,7 @@ public abstract class AbstractExpressionHandler<T> implements IExpressionHandler
 	protected IConversionContext context;
 
 	@Autowired
-	protected ICsharpHelper languageHelper;
+	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;

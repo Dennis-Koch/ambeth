@@ -14,17 +14,17 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsharpMethodNodeHandler implements INodeHandlerExtension
+public class CsMethodHandler implements INodeHandlerExtension
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -34,7 +34,7 @@ public class CsharpMethodNodeHandler implements INodeHandlerExtension
 	protected IConversionContext context;
 
 	@Autowired
-	protected ICsharpHelper languageHelper;
+	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;

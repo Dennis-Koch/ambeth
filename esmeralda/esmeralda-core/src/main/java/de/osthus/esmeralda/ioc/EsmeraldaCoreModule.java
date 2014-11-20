@@ -17,9 +17,9 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.esmeralda.CodeProcessor;
+import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.handler.ConversionContextBean;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerExtendable;
@@ -27,21 +27,21 @@ import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtendable;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.AssignExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.AssignOpExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.BinaryExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.CsharpClassNodeHandler;
-import de.osthus.esmeralda.handler.csharp.CsharpFieldNodeHandler;
-import de.osthus.esmeralda.handler.csharp.CsharpHelper;
-import de.osthus.esmeralda.handler.csharp.CsharpMethodNodeHandler;
-import de.osthus.esmeralda.handler.csharp.CsharpStatementHandler;
-import de.osthus.esmeralda.handler.csharp.FieldAccessExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.ICsharpHelper;
-import de.osthus.esmeralda.handler.csharp.LiteralExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.MethodInvocationExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.NewArrayExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.NewClassExpressionHandler;
-import de.osthus.esmeralda.handler.csharp.UnaryExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.CsClassHandler;
+import de.osthus.esmeralda.handler.csharp.CsFieldHandler;
+import de.osthus.esmeralda.handler.csharp.CsHelper;
+import de.osthus.esmeralda.handler.csharp.CsMethodHandler;
+import de.osthus.esmeralda.handler.csharp.CsStatementHandler;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
+import de.osthus.esmeralda.handler.csharp.expr.AssignExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.AssignOpExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.BinaryExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.FieldAccessExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.LiteralExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.MethodInvocationExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.NewArrayExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.UnaryExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForEnhancedHandler;
@@ -49,7 +49,7 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsForHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
-import de.osthus.esmeralda.handler.js.JsClassNodeHandler;
+import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
 import de.osthus.esmeralda.misc.EsmeType;
@@ -72,7 +72,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 
-		beanContextFactory.registerBean(CsharpHelper.class).autowireable(ICsharpHelper.class, IExpressionHandlerExtendable.class);
+		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class, IExpressionHandlerExtendable.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 
 		// language elements
@@ -82,18 +82,18 @@ public class EsmeraldaCoreModule implements IInitializingModule
 				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, INodeHandlerRegistry.class) //
 				.autowireable(INodeHandlerExtendable.class, INodeHandlerRegistry.class);
 
-		IBeanConfiguration csClassNodeHandler = beanContextFactory.registerBean(CsharpClassNodeHandler.class);
-		beanContextFactory.link(csClassNodeHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.CLASS);
-		IBeanConfiguration jsClassNodeHandler = beanContextFactory.registerBean(JsClassNodeHandler.class);
-		beanContextFactory.link(jsClassNodeHandler).to(INodeHandlerExtendable.class).with(Lang.JS + EsmeType.CLASS);
+		IBeanConfiguration csClassHandler = beanContextFactory.registerBean(CsClassHandler.class);
+		beanContextFactory.link(csClassHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.CLASS);
+		IBeanConfiguration jsClassHandler = beanContextFactory.registerBean(JsClassHandler.class);
+		beanContextFactory.link(jsClassHandler).to(INodeHandlerExtendable.class).with(Lang.JS + EsmeType.CLASS);
 
-		IBeanConfiguration csFieldNodeHandler = beanContextFactory.registerBean(CsharpFieldNodeHandler.class);
-		beanContextFactory.link(csFieldNodeHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.FIELD);
+		IBeanConfiguration csFieldHandler = beanContextFactory.registerBean(CsFieldHandler.class);
+		beanContextFactory.link(csFieldHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.FIELD);
 
-		IBeanConfiguration csMethodNodeHandler = beanContextFactory.registerBean(CsharpMethodNodeHandler.class);
-		beanContextFactory.link(csMethodNodeHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.METHOD);
+		IBeanConfiguration csMethodHandler = beanContextFactory.registerBean(CsMethodHandler.class);
+		beanContextFactory.link(csMethodHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.METHOD);
 
-		IBeanConfiguration csStatementHandler = beanContextFactory.registerBean(CsharpStatementHandler.class);
+		IBeanConfiguration csStatementHandler = beanContextFactory.registerBean(CsStatementHandler.class);
 		beanContextFactory.link(csStatementHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.STATEMENT);
 
 		// statements
