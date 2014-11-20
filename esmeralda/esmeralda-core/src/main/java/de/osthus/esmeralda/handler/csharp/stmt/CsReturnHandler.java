@@ -23,12 +23,12 @@ public class CsReturnHandler extends AbstractStatementHandler<JCReturn> implemen
 
 		languageHelper.newLineIntend();
 
-		writer.append("return ");
+		writer.append("return");
 
 		JCExpression initializer = tree.getExpression();
 		if (initializer != null)
 		{
-			writer.append(" = ");
+			writer.append(" ");
 			languageHelper.writeExpressionTree(initializer);
 		}
 
