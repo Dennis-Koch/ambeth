@@ -41,7 +41,7 @@ public class TestService1 implements ITestInterface
 	public void testMethod4(String stringParam, int count)
 	{
 		String[] data = new String[count];
-		for (int i = 0; i < count; i++)
+		for (int i = 0, length = data.length; i < length; i++)
 		{
 			data[i] = stringParam;
 		}

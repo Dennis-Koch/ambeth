@@ -16,8 +16,6 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	@Override
 	protected void handleExpressionIntern(JCBinary binary)
 	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
 		switch (binary.getKind())
 		{
 			case DIVIDE:
@@ -50,8 +48,33 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" + ", binary);
 				break;
 			}
+			case EQUAL_TO:
+			{
+				writeSimpleBinary(" == ", binary);
+				break;
+			}
+			case GREATER_THAN:
+			{
+				writeSimpleBinary(" > ", binary);
+				break;
+			}
+			case LESS_THAN:
+			{
+				writeSimpleBinary(" < ", binary);
+				break;
+			}
+			case GREATER_THAN_EQUAL:
+			{
+				writeSimpleBinary(" >= ", binary);
+				break;
+			}
+			case LESS_THAN_EQUAL:
+			{
+				writeSimpleBinary(" <= ", binary);
+				break;
+			}
 			default:
-				log.warn("Could not handle binary: " + binary);
+				log.warn("Could not handle binary of type " + binary.getKind() + ": " + binary);
 		}
 	}
 
@@ -59,6 +82,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		languageHelper.writeExpressionTree(binary.lhs);
 		writer.append(operator);
 		languageHelper.writeExpressionTree(binary.rhs);
