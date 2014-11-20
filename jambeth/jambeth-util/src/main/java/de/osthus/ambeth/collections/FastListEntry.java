@@ -1,6 +1,5 @@
 package de.osthus.ambeth.collections;
 
-import de.osthus.ambeth.collections.LinkedIntKeyMap.LinkedIntKeyMapEntry;
 
 public class FastListEntry<V> extends LinkedIntKeyMapEntry<FastListEntry<V>>
 {

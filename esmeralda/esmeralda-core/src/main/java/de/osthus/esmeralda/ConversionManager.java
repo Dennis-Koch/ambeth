@@ -2,8 +2,6 @@ package de.osthus.esmeralda;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +31,7 @@ import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -129,13 +128,17 @@ public class ConversionManager implements IStartingBean
 			}
 		}
 
-		addClassInfo(mockType(Object.class), fqNameToClassInfoMap);
-		addClassInfo(mockType(Enum.class), fqNameToClassInfoMap);
-		addClassInfo(mockType(SoftReference.class), fqNameToClassInfoMap);
-		addClassInfo(mockType(WeakReference.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.io.ByteArrayInputStream.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(java.io.InputStream.class), fqNameToClassInfoMap);
-		addClassInfo(mockType(java.lang.RuntimeException.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.io.OutputStream.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.Enum.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(java.lang.Exception.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.Object.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.ref.SoftReference.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.ref.WeakReference.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.lang.RuntimeException.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.util.AbstractSet.class), fqNameToClassInfoMap);
+		addClassInfo(mockType(java.util.EventObject.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(org.junit.runners.BlockJUnit4ClassRunner.class), fqNameToClassInfoMap);
 		for (JavaClassInfo classInfo : classInfos)
 		{
@@ -176,6 +179,11 @@ public class ConversionManager implements IStartingBean
 		catch (TypeResolveException e)
 		{
 			log.error(e);
+		}
+		catch (Throwable e)
+		{
+			JavaClassInfo classInfo = newContext.getClassInfo();
+			throw RuntimeExceptionUtil.mask(e, "Error occured while processing type '" + classInfo.getName() + "'");
 		}
 		finally
 		{

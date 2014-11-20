@@ -294,16 +294,23 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		languageHelper.writeAnnotations(classInfo);
 		languageHelper.newLineIntend();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
-		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+		if (classInfo.isEnum())
+		{
+			// an enum in java can never be inherited from - we convert this as a sealed class
+			firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+			writer.append("sealed");
+		}
 		if (!classInfo.isInterface())
 		{
-			writer.append("class ");
+			firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+			writer.append("class");
 		}
 		else
 		{
-			// FIXME classInfo.isInterface() is not working
-			writer.append("interface ");
+			firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+			writer.append("interface");
 		}
+		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
 		writer.append(classInfo.getName());
 
 		boolean firstInterfaceName = true;

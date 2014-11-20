@@ -10,6 +10,7 @@ import javax.lang.model.element.Modifier;
 import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 
 import demo.codeanalyzer.common.model.AnnotationInfo;
@@ -40,8 +41,9 @@ public class FieldInfoDataSetter
 		FieldInfo fieldInfo = new FieldInfo();
 		String fieldName = variableTree.getName().toString();
 		fieldInfo.setName(fieldName);
+
 		fieldInfo.setOwningClass(clazzInfo);
-		fieldInfo.addFieldType(e.asType().toString());
+		fieldInfo.setFieldType(((Symbol) e).type);
 		// Set modifier details
 		Set<Modifier> modifiers = variableTree.getModifiers().getFlags();
 		for (Modifier modifier : modifiers)

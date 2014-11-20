@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
@@ -106,6 +107,16 @@ public class JsHelper implements IJsHelper
 
 	@Override
 	public void writeMethodArguments(List<JCExpression> methodArguments)
+	{
+	}
+
+	@Override
+	public void writeMethodArguments(JCExpression methodInvocation)
+	{
+	}
+
+	@Override
+	public void writeExpressionTree(ExpressionTree expressionTree)
 	{
 	}
 

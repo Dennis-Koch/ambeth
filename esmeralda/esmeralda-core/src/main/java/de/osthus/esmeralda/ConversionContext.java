@@ -135,9 +135,9 @@ public class ConversionContext implements IConversionContext
 	}
 
 	@Override
-	public void setTargetFile(File targetFile)
+	public void setTargetFile(File targetPath)
 	{
-		targetPath = targetPath;
+		this.targetPath = targetPath;
 	}
 
 	@Override
