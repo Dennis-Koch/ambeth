@@ -601,6 +601,14 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			log.warn("Could not handle expression (" + expression.getKind() + ", " + expression.getClass().getSimpleName() + "): " + expression);
 			return;
 		}
-		expressionHandler.handleExpression(expression);
+		// FIXME For dev: Exceptions from MethodInvocationExpressionHandler stop code processing
+		try
+		{
+			expressionHandler.handleExpression(expression);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 }
