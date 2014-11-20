@@ -304,7 +304,6 @@ public class CsharpClassNodeHandler implements INodeHandlerExtension
 		}
 		else
 		{
-			// FIXME classInfo.isInterface() is not working
 			writer.append("interface ");
 		}
 		writer.append(classInfo.getName());
