@@ -37,13 +37,17 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 
 	private static final String TEXT_COMMENTED_OUT = "// ";
 
-	private static final String TEXT_EXPL_HEADER = "This code could not be converted automatically. Please provide a snippet to use in the converted file.";
+	private static final String TEXT_EXPL_HEADER = "This code cannot be converted automatically. Please provide a snippet to use in the converted file.";
 
 	private static final String TEXT_EXPL_EMPTY_LINE = "The next line should be empty and will not be included in the final snippet.";
 
-	private static final String TEXT_SNIPPET_HEADER = "Snippet Start: From file ";
+	private static final String TEXT_SNIPPET_START = "Snippet Start: From file ";
 
-	private static final String TEXT_SNIPPET_FOOTER = "Snippet End";
+	private static final String TEXT_SNIPPET_END = "Snippet End";
+
+	private static final String TEXT_UNTRANSLATABLE_CODE_START = "Untranslatable Code Start";
+
+	private static final String TEXT_UNTRANSLATABLE_CODE_END = "Untranslatable Code End";
 
 	private static final String NL = System.getProperty("line.separator");
 
@@ -61,6 +65,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	protected JavaClassInfo classInfo;
 
 	protected Method method;
+
+	protected Path snippetBasePath;
 
 	protected Path snippetPath;
 
@@ -93,7 +99,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), packagePath.toString());
 	}
 
-	// TODO think about adding the parameters to the name. Include a "dryRun" flag in the ConversionContext
+	// TODO think about adding the parameters to the name.
+	// TODOInclude a "dryRun" flag in the ConversionContext
 	protected void createFileNameParts()
 	{
 		String methodName = method.getName();
@@ -104,6 +111,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	}
 
 	// FIXME This Code is run multiple times since there are some "analysis" runs in the CsharpClassNodeHandler
+	// FIXME False positives due to overloaded methods (they do not use the files of the other overloaded methods)
 	@Override
 	public void finished()
 	{
@@ -121,51 +129,45 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 	}
 
+	// TODO think: May be change the parameter to a string list of statements
 	@Override
 	public void writeSnippet(String untranslatableCode)
 	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
+		untranslatableCode = unindentCode(untranslatableCode);
+		String md5Hash = DigestUtils.md5Hex(untranslatableCode);
 
-		String unindentedCode = unindentCode(untranslatableCode);
-		String md5Hash = DigestUtils.md5Hex(unindentedCode);
 		Path snippetFilePath = createSnippetFilePath(md5Hash);
+		String relativeSnippetFileName = createRelativeSnippetFilePath(snippetFilePath).toString();
+
+		usedSnippetFiles.add(snippetFilePath.getFileName().toString());
 
 		boolean fileExists = Files.exists(snippetFilePath);
 		if (fileExists)
 		{
-			usedSnippetFiles.add(snippetFilePath.getFileName().toString());
-
 			List<String> snippet = readSnippet(snippetFilePath);
 			if (snippet != null)
 			{
-				File snippetPathBase = context.getSnippetPath();
-				String languagePath = context.getLanguagePath();
-				String absoluteSnippetPath = snippetPathBase.getAbsolutePath() + (languagePath != null ? File.separator + languagePath : "");
-				Path relativeSnippetFilePath = Paths.get(absoluteSnippetPath).relativize(snippetFilePath);
-				languageHelper.newLineIntend();
-				writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_HEADER).append(relativeSnippetFilePath.toString());
-				for (int i = 0, size = snippet.size(); i < size; i++)
-				{
-					String line = snippet.get(i);
-					languageHelper.newLineIntend();
-					writer.append(line);
-				}
-				languageHelper.newLineIntend();
-				writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_FOOTER);
-				return;
+				writeSnippetIntern(snippet, relativeSnippetFileName);
 			}
+			else if (log.isWarnEnabled())
+			{
+				writeCodeTodo(untranslatableCode, relativeSnippetFileName);
+				log.warn("Existing snippet file '" + relativeSnippetFileName + "' is needed, but was not edited yet.");
+			}
+
+			return;
 		}
 
-		// TODO if snippet file does not exist, create file and report this
-		// TODO if snippet file does exists but not yet edited report this
+		createSnippetFile(snippetFilePath, untranslatableCode);
+		writeCodeTodo(untranslatableCode, relativeSnippetFileName);
+		if (log.isInfoEnabled())
+		{
+			log.info("A new snippet file was created at '" + relativeSnippetFileName + "'");
+		}
 
-		// TODO find equal snippets
+		// TODO later: find equal snippets
 		// TODO If implemented use the code and inform in log
 		// TODO If not implemented just inform in log
-
-		languageHelper.newLineIntend();
-		writer.append("// TODO");
 	}
 
 	protected String unindentCode(String untranslatableCode)
@@ -192,6 +194,17 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		String fileName = sb.toString();
 		Path snippetFilePath = snippetPath.resolve(fileName);
 		return snippetFilePath;
+	}
+
+	protected Path createRelativeSnippetFilePath(Path snippetFilePath)
+	{
+		IConversionContext context = this.context.getCurrent();
+
+		File snippetPathBase = context.getSnippetPath();
+		String languagePath = context.getLanguagePath();
+		String absoluteSnippetPath = snippetPathBase.getAbsolutePath() + (languagePath != null ? File.separator + languagePath : "");
+		Path relativeSnippetFilePath = Paths.get(absoluteSnippetPath).relativize(snippetFilePath);
+		return relativeSnippetFilePath;
 	}
 
 	protected ArrayList<String> findAllSnippetFiles()
@@ -259,10 +272,28 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		}
 	}
 
+	protected void writeSnippetIntern(List<String> snippet, String relativeSnippetFileName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		languageHelper.newLineIntend();
+		writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_START).append(relativeSnippetFileName);
+		for (int i = 0, size = snippet.size(); i < size; i++)
+		{
+			String line = snippet.get(i);
+			languageHelper.newLineIntend();
+			writer.append(line);
+		}
+		languageHelper.newLineIntend();
+		writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_END);
+	}
+
 	protected void createSnippetFile(Path snippetFile, String untranslatableCode)
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append(TEXT_COMMENTED_OUT).append(TEXT_EXPL_HEADER).append(NL);
+		sb.append(TEXT_COMMENTED_OUT).append(NL);
 
 		String[] lines = untranslatableCode.split("[\\n\\r]+");
 		for (String line : lines)
@@ -270,7 +301,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			sb.append(TEXT_COMMENTED_OUT).append(line).append(NL);
 		}
 
-		sb.append(NL).append(TEXT_COMMENTED_OUT).append(TEXT_EXPL_EMPTY_LINE);
+		sb.append(TEXT_COMMENTED_OUT).append(NL).append(TEXT_COMMENTED_OUT).append(TEXT_EXPL_EMPTY_LINE);
 
 		byte[] bytes = sb.toString().getBytes();
 		try
@@ -282,5 +313,26 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	protected void writeCodeTodo(String untranslatableCode, String relativeSnippetFileName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		languageHelper.newLineIntend();
+		writer.append(TEXT_COMMENTED_OUT).append("TODO implement snippet file '" + relativeSnippetFileName + "'");
+		languageHelper.newLineIntend();
+		writer.append(TEXT_COMMENTED_OUT).append(TEXT_UNTRANSLATABLE_CODE_START);
+
+		String[] codeLines = untranslatableCode.split("[\\n\\r]+");
+		for (String line : codeLines)
+		{
+			languageHelper.newLineIntend();
+			writer.append(line);
+		}
+
+		languageHelper.newLineIntend();
+		writer.append(TEXT_COMMENTED_OUT).append(TEXT_UNTRANSLATABLE_CODE_END);
 	}
 }
