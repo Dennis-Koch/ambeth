@@ -1,6 +1,9 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import java.io.File;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -10,11 +13,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.AnnotationValueVisitor;
 
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.source.tree.ExpressionTree;
+import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -24,6 +28,7 @@ import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -33,15 +38,19 @@ import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IWriter;
 import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
-public class CsharpHelper implements ICsharpHelper
+public class CsharpHelper implements ICsharpHelper, IExpressionHandlerExtendable
 {
 	protected static final Pattern commaSplitPattern = Pattern.compile(",");
 
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
+
+	protected static final HashMap<String, String> annotationTargetMap = new HashMap<String, String>();
 
 	static
 	{
@@ -65,15 +74,41 @@ public class CsharpHelper implements ICsharpHelper
 		put(java.lang.Double.class.getName(), "double?");
 		put(java.lang.String.class.getName(), "System.String");
 
+		put(java.io.InputStream.class.getName(), "System.IO.Stream");
+		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
+		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
+		put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
 		put(java.lang.Class.class.getName(), "System.Type");
 		put(java.lang.Class.class.getName() + "<?>", "System.Type");
+		put(java.lang.Exception.class.getName(), "System.Exception");
 		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
+		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
 		put(java.util.Map.Entry.class.getName(), "De.Osthus.Ambeth.Collections.Entry");
+
+		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.TYPE.name(), "Class");
+		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PARAMETER.name(), "Parameter");
+
+		// PACKAGE not supported in C#
+		// annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PACKAGE.name(), null);
+
+		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.METHOD.name(), "Method");
+
+		// LOCAL_VARIABLE not supported in C#
+		// annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.LOCAL_VARIABLE.name(), null);
+
+		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.FIELD.name(), "Field");
+		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.CONSTRUCTOR.name(), "Constructor");
+
+		// ANNOTATION_TYPE not supported in C#
+		// annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.ANNOTATION_TYPE.name(), null);
 	}
 
 	protected static final void put(String key, String... values)
@@ -90,6 +125,21 @@ public class CsharpHelper implements ICsharpHelper
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	protected final ClassExtendableContainer<IExpressionHandler> expressionHandlers = new ClassExtendableContainer<IExpressionHandler>("expressionHandler",
+			"expressionType");
+
+	@Override
+	public void register(IExpressionHandler expressionHandler, Class<?> expressionType)
+	{
+		expressionHandlers.register(expressionHandler, expressionType);
+	}
+
+	@Override
+	public void unregister(IExpressionHandler expressionHandler, Class<?> expressionType)
+	{
+		expressionHandlers.unregister(expressionHandler, expressionType);
+	}
 
 	@Override
 	public void newLineIntend()
@@ -314,24 +364,6 @@ public class CsharpHelper implements ICsharpHelper
 	}
 
 	@Override
-	public void writeNewInstance(JCNewClass newClass)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-
-		List<JCExpression> arguments = newClass.args;
-		List<Type> genericTypeArguments = newClass.type != null ? newClass.type.allparams() : null;
-		// List<Type> argumentTypes = ((MethodType) newClass.constructor.type).getTypeArguments();
-		String owner = newClass.constructor != null ? ((ClassSymbol) newClass.constructor.owner).fullname.toString() : newClass.clazz.toString();
-
-		writer.append(" new ");
-		writeType(owner);
-
-		writeGenericTypeArguments(genericTypeArguments);
-		writeMethodArguments(arguments);
-	}
-
-	@Override
 	public void writeGenericTypeArguments(List<Type> genericTypeArguments)
 	{
 		if (genericTypeArguments == null || genericTypeArguments.size() == 0)
@@ -366,9 +398,17 @@ public class CsharpHelper implements ICsharpHelper
 			{
 				writer.append(", ");
 			}
-			writer.append(arg.toString());
+			writeExpressionTree(arg);
 		}
 		writer.append(')');
+	}
+
+	@Override
+	public void writeMethodArguments(JCExpression methodInvocation)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		writer.append(methodInvocation.toString());
 	}
 
 	@Override
@@ -388,6 +428,11 @@ public class CsharpHelper implements ICsharpHelper
 	public void writeAnnotation(Annotation annotation)
 	{
 		if (SuppressWarnings.class.getName().equals(annotation.getType()))
+		{
+			// skip this annotation
+			return;
+		}
+		if (Retention.class.getName().equals(annotation.getType()))
 		{
 			// skip this annotation
 			return;
@@ -422,6 +467,70 @@ public class CsharpHelper implements ICsharpHelper
 				firstProperty = writeStringIfFalse(", ", firstProperty);
 				writer.append(valueOfName.toString());
 			}
+		}
+		if (Target.class.getName().equals(annotation.getType()))
+		{
+			AnnotationValue valueOfValue = properties.remove("value");
+			if (valueOfValue != null)
+			{
+				Attribute[] values = ((Attribute.Array) valueOfValue).values;
+				firstProperty = writeStringIfFalse(", ", firstProperty);
+
+				boolean firstAttributeTarget = true;
+				// in C# the ValidOn value can be passed directly as a constructor argument without key=value pattern
+				for (int a = 0, size = values.length; a < size; a++)
+				{
+					Attribute value = values[a];
+					String attributeTarget = annotationTargetMap.get(value.toString());
+					if (attributeTarget == null)
+					{
+						continue;
+					}
+					firstAttributeTarget = writeStringIfFalse(" | ", firstAttributeTarget);
+					writeType("System.AttributeTargets");
+					writer.append('.').append(attributeTarget);
+				}
+			}
+			properties.put("inherited", new AnnotationValue()
+			{
+				@Override
+				public Object getValue()
+				{
+					return "false";
+				}
+
+				@Override
+				public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p)
+				{
+					throw new UnsupportedOperationException();
+				}
+
+				@Override
+				public String toString()
+				{
+					return "false";
+				}
+			});
+			properties.put("allowMultiple", new AnnotationValue()
+			{
+				@Override
+				public Object getValue()
+				{
+					return "false";
+				}
+
+				@Override
+				public <R, P> R accept(AnnotationValueVisitor<R, P> v, P p)
+				{
+					throw new UnsupportedOperationException();
+				}
+
+				@Override
+				public String toString()
+				{
+					return "false";
+				}
+			});
 		}
 		for (Entry<String, AnnotationValue> entry : properties)
 		{
@@ -477,5 +586,21 @@ public class CsharpHelper implements ICsharpHelper
 			}
 		}
 		return firstKeyWord;
+	}
+
+	@Override
+	public void writeExpressionTree(ExpressionTree expression)
+	{
+		if (expression == null)
+		{
+			return;
+		}
+		IExpressionHandler expressionHandler = expressionHandlers.getExtension(expression.getClass());
+		if (expressionHandler == null)
+		{
+			log.warn("Could not handle expression: " + expression);
+			return;
+		}
+		expressionHandler.handleExpression(expression);
 	}
 }
