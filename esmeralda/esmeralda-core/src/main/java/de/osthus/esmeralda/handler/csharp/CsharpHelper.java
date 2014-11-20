@@ -598,7 +598,7 @@ public class CsharpHelper implements ICsharpHelper, IExpressionHandlerExtendable
 		IExpressionHandler expressionHandler = expressionHandlers.getExtension(expression.getClass());
 		if (expressionHandler == null)
 		{
-			log.warn("Could not handle expression: " + expression);
+			log.warn("Could not handle expression (" + expression.getKind() + ", " + expression.getClass().getSimpleName() + "): " + expression);
 			return;
 		}
 		expressionHandler.handleExpression(expression);

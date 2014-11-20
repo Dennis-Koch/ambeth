@@ -42,6 +42,7 @@ public class CsForHandler extends AbstractStatementHandler<JCForLoop> implements
 		writer.append(';');
 
 		JCExpression condition = tree.getCondition();
+		writer.append(' ');
 		languageHelper.writeExpressionTree(condition);
 
 		writer.append(';');
@@ -50,10 +51,7 @@ public class CsForHandler extends AbstractStatementHandler<JCForLoop> implements
 		for (int i = 0, length = update.length(); i < length; i++)
 		{
 			JCStatement statement = update.get(i);
-			if (i > 0)
-			{
-				writer.append(", ");
-			}
+			writer.append(i > 0 ? ", " : " ");
 			handleChildStatement(statement, false);
 		}
 

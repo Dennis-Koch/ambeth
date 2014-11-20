@@ -72,6 +72,10 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				JCMethodInvocation mi = (JCMethodInvocation) meth.selected;
 				languageHelper.writeExpressionTree(mi);
 				owner = null;
+				if (mi.type == null)
+				{// TODO: handle this case. Code does not work with fluent APIs
+					throw new TypeResolveException("No type in method invocation '" + methodInvocation + "'");
+				}
 				typeOfOwner = mi.type.toString();
 			}
 			else if (meth.selected instanceof JCNewClass)
