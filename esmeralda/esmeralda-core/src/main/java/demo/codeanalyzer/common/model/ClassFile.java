@@ -42,6 +42,10 @@ public interface ClassFile extends BaseJavaClassModel
 	 */
 	boolean isInterface();
 
+	boolean isAnnotation();
+
+	boolean isEnum();
+
 	boolean isSerializable();
 
 	public boolean isTopLevelClass();

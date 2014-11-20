@@ -18,6 +18,8 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	private String packageName;
 	private String nestingKind;
 	private boolean isInterface;
+	private boolean isAnnotation;
+	private boolean isEnum;
 	private boolean isSerializable;
 	private JavaSourceTreeInfo sourceTreeInfo;
 	private ArrayList<Method> methods = new ArrayList<Method>();
@@ -176,6 +178,28 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setIsInterface(boolean interfaceFlag)
 	{
 		isInterface = interfaceFlag;
+	}
+
+	@Override
+	public boolean isEnum()
+	{
+		return isEnum;
+	}
+
+	public void setIsEnum(boolean isEnum)
+	{
+		this.isEnum = isEnum;
+	}
+
+	@Override
+	public boolean isAnnotation()
+	{
+		return isAnnotation;
+	}
+
+	public void setIsAnnotation(boolean isAnnotation)
+	{
+		this.isAnnotation = isAnnotation;
 	}
 
 	public void setSerializable(boolean isSerializable)

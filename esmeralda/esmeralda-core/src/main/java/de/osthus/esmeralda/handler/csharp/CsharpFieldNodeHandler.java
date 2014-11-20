@@ -1,12 +1,7 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import com.sun.source.tree.ExpressionTree;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.code.Type;
 
 import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -71,9 +66,9 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 		{
 			firstKeyWord = languageHelper.writeModifiers(field);
 		}
-		String[] fieldTypes = field.getFieldTypes().toArray(String.class);
+		Type fieldType = field.getFieldType();
 		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
-		languageHelper.writeType(fieldTypes[0]);
+		languageHelper.writeType(fieldType.toString());
 		writer.append(' ');
 
 		boolean finishWithSemicolon = true;
@@ -100,32 +95,7 @@ public class CsharpFieldNodeHandler implements INodeHandlerExtension
 		if (initializer != null)
 		{
 			writer.append(" = ");
-		}
-		if (initializer instanceof JCLiteral || initializer instanceof JCIdent)
-		{
-			writer.append(initializer.toString());
-		}
-		else if (initializer instanceof JCNewClass)
-		{
-			languageHelper.writeNewInstance((JCNewClass) initializer);
-		}
-		else if (initializer instanceof JCFieldAccess)
-		{
-			JCExpression expression = ((JCFieldAccess) initializer).getExpression();
-			if (expression instanceof JCIdent && ((JCIdent) expression).sym instanceof ClassSymbol)
-			{
-				writer.append("typeof(");
-				writer.append(expression.toString());
-				writer.append(')');
-			}
-			else
-			{
-				log.warn("Could not handle: " + initializer);
-			}
-		}
-		else if (initializer != null)
-		{
-			log.warn("Could not handle: " + initializer);
+			languageHelper.writeExpressionTree(initializer);
 		}
 		if (finishWithSemicolon)
 		{

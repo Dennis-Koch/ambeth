@@ -1,7 +1,5 @@
 package demo.codeanalyzer.helper;
 
-import static demo.codeanalyzer.common.util.CodeAnalyzerConstants.SERIALIZABLE_PKG;
-
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +14,7 @@ import com.sun.source.tree.ClassTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
 import demo.codeanalyzer.common.model.AnnotationInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -74,39 +73,40 @@ public class ClassInfoDataSetter
 
 		// Set Nesting kind
 		clazzInfo.setNestingKind(e.getNestingKind().toString());
+		JCModifiers modifiers = ((JCClassDecl) classTree).getModifiers();
 
 		// Set modifier details
-		for (Modifier modifier : ((JCClassDecl) classTree).getModifiers().getFlags())
+		for (Modifier modifier : modifiers.getFlags())
 		{
 			DataSetterUtil.setModifiers(modifier.toString(), clazzInfo);
 		}
-
+		String modifiersString = classTree.toString();
+		int indexOfSimpleName = modifiersString.indexOf(((JCClassDecl) classTree).getSimpleName().toString());
+		modifiersString = modifiersString.substring(0, indexOfSimpleName);
+		if (modifiersString.contains(" interface")) // space intended to not match on '@interface' which are annotations
+		{
+			clazzInfo.setIsInterface(true);
+		}
+		if (modifiersString.contains("@interface"))
+		{
+			clazzInfo.setIsAnnotation(true);
+		}
+		if (modifiersString.contains(" enum"))
+		{
+			clazzInfo.setIsEnum(true);
+		}
+		String superClass = e.getSuperclass().toString();
+		if (superClass != null && superClass.startsWith(Enum.class.getName() + "<"))
+		{
+			clazzInfo.setIsEnum(true);
+		}
 		// Set extending class info
-		clazzInfo.setNameOfSuperClass(e.getSuperclass().toString());
+		clazzInfo.setNameOfSuperClass(superClass);
 
 		// Set implementing interface details
 		for (TypeMirror mirror : e.getInterfaces())
 		{
 			clazzInfo.addNameOfInterface(mirror.toString());
-		}
-		// Set serializable property
-		try
-		{
-			Class serializable = Class.forName(SERIALIZABLE_PKG);
-			Class thisClass = Class.forName(e.getQualifiedName().toString());
-			if (serializable.isAssignableFrom(thisClass))
-			{
-				clazzInfo.setSerializable(true);
-			}
-			else
-			{
-				clazzInfo.setSerializable(false);
-			}
-
-		}
-		catch (ClassNotFoundException ex)
-		{
-			clazzInfo.setSerializable(false);
 		}
 
 		List<? extends AnnotationMirror> annotations = e.getAnnotationMirrors();
