@@ -114,4 +114,10 @@ public class JsHelper implements IJsHelper
 	{
 	}
 
+	@Override
+	public String resolveTypeFromVariableName(String variableName)
+	{
+		return null;
+	}
+
 }
