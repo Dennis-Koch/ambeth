@@ -41,6 +41,10 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 
 	private static final String TEXT_EXPL_EMPTY_LINE = "The next line should be empty and will not be included in the final snippet.";
 
+	private static final String TEXT_SNIPPET_HEADER = "Snippet Start: From file ";
+
+	private static final String TEXT_SNIPPET_FOOTER = "Snippet End";
+
 	private static final String NL = System.getProperty("line.separator");
 
 	@SuppressWarnings("unused")
@@ -89,7 +93,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		snippetPath = Paths.get(snippetPathBase.getAbsolutePath(), packagePath.toString());
 	}
 
-	// TODO think about adding the parameters to the name
+	// TODO think about adding the parameters to the name. Include a "dryRun" flag in the ConversionContext
 	protected void createFileNameParts()
 	{
 		String methodName = method.getName();
@@ -131,15 +135,24 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		if (fileExists)
 		{
 			usedSnippetFiles.add(snippetFilePath.getFileName().toString());
+
 			List<String> snippet = readSnippet(snippetFilePath);
 			if (snippet != null)
 			{
+				File snippetPathBase = context.getSnippetPath();
+				String languagePath = context.getLanguagePath();
+				String absoluteSnippetPath = snippetPathBase.getAbsolutePath() + (languagePath != null ? File.separator + languagePath : "");
+				Path relativeSnippetFilePath = Paths.get(absoluteSnippetPath).relativize(snippetFilePath);
+				languageHelper.newLineIntend();
+				writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_HEADER).append(relativeSnippetFilePath.toString());
 				for (int i = 0, size = snippet.size(); i < size; i++)
 				{
 					String line = snippet.get(i);
 					languageHelper.newLineIntend();
 					writer.append(line);
 				}
+				languageHelper.newLineIntend();
+				writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_FOOTER);
 				return;
 			}
 		}
@@ -219,7 +232,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			for (int i = 0, size = lines.size(); i < size; i++)
 			{
 				String line = lines.get(i);
-				if (!line.startsWith("// "))
+				if (!line.startsWith("//"))
 				{
 					withoutPreface = lines.subList(i, size);
 					break;
