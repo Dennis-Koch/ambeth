@@ -183,7 +183,6 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				argTypes[a] = extractNonGenericType(typeOnStack);
 			}
 			writer.append(')');
-			languageHelper.writeMethodArguments(methodInvocation.getArguments());
 		}
 		else if (methodInvocation.getArguments().size() > 0)
 		{

@@ -396,6 +396,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		writer.append('(');
 		for (int a = 0, size = methodArguments.size(); a < size; a++)
 		{
