@@ -15,7 +15,11 @@ public class StatementCount
 
 	protected int untranslatableStatements = 0;
 
-	public void setName(String name)
+	public StatementCount()
+	{
+	}
+
+	public StatementCount(String name)
 	{
 		this.name = name;
 	}
@@ -53,8 +57,8 @@ public class StatementCount
 		if (statements > 0)
 		{
 			int converted = statements - untranslatableStatements;
-			sb.append(": " + converted + " of " + statements + " statements automatically converted, that is " + ((converted * 10000 / statements) / 100.)
-					+ "%");
+			double percentage = (converted * 10000 / statements) / 100.;
+			sb.append(": " + converted + " of " + statements + " statements automatically converted, that is " + percentage + "%");
 		}
 		else
 		{

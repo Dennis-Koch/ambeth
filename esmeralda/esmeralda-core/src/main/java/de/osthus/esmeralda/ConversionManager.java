@@ -142,10 +142,8 @@ public class ConversionManager implements IStartingBean
 		addClassInfo(mockType(java.util.EventObject.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(org.junit.runners.BlockJUnit4ClassRunner.class), fqNameToClassInfoMap);
 
-		StatementCount csMetric = new StatementCount();
-		csMetric.setName("C#");
-		StatementCount jsMetric = new StatementCount();
-		jsMetric.setName("JS");
+		StatementCount csMetric = new StatementCount("C#");
+		StatementCount jsMetric = new StatementCount("JS");
 
 		for (JavaClassInfo classInfo : classInfos)
 		{

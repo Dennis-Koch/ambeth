@@ -23,6 +23,8 @@ public class TestService2 implements IInitializingBean
 	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
+		boolean check = true;
+		int var = check ? 1 : 0;
 	}
 
 	public void setConversionHelper(IConversionHelper conversionHelper)
