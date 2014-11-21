@@ -45,9 +45,15 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 
 		Kind kind = statement.getKind();
 		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
-		if (stmtHandler != null)
+		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);
+		}
+		else if (stmtHandler != null)
+		{
+			context.incremetIndentationLevel();
+			stmtHandler.handle(statement, standalone);
+			context.decremetIndentationLevel();
 		}
 		else if (standalone)
 		{

@@ -51,6 +51,7 @@ import de.osthus.esmeralda.handler.csharp.expr.UnaryExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBreakHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsContinueHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsDoWhileHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForEnhancedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForHandler;
@@ -60,6 +61,7 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsSkipHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsWhileHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
@@ -117,15 +119,17 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, CsBlockHandler.class, Lang.C_SHARP + Kind.BLOCK);
 		registerStatementHandler(beanContextFactory, CsBreakHandler.class, Lang.C_SHARP + Kind.BREAK);
 		registerStatementHandler(beanContextFactory, CsContinueHandler.class, Lang.C_SHARP + Kind.CONTINUE);
+		registerStatementHandler(beanContextFactory, CsDoWhileHandler.class, Lang.C_SHARP + Kind.DO_WHILE_LOOP);
 		registerStatementHandler(beanContextFactory, CsForEnhancedHandler.class, Lang.C_SHARP + Kind.ENHANCED_FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsForHandler.class, Lang.C_SHARP + Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsExpressionHandler.class, Lang.C_SHARP + Kind.EXPRESSION_STATEMENT);
 		registerStatementHandler(beanContextFactory, CsIfHandler.class, Lang.C_SHARP + Kind.IF);
 		registerStatementHandler(beanContextFactory, CsReturnHandler.class, Lang.C_SHARP + Kind.RETURN);
-		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);
 		registerStatementHandler(beanContextFactory, CsSkipHandler.class, Lang.C_SHARP + Kind.EMPTY_STATEMENT);
-		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP + Kind.TRY);
 		registerStatementHandler(beanContextFactory, CsThrowHandler.class, Lang.C_SHARP + Kind.THROW);
+		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP + Kind.TRY);
+		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);
+		registerStatementHandler(beanContextFactory, CsWhileHandler.class, Lang.C_SHARP + Kind.WHILE_LOOP);
 
 		// expressions
 		registerExpressionHandler(beanContextFactory, ArrayAccessExpressionHandler.class, JCArrayAccess.class);

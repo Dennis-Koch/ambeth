@@ -9,6 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -22,7 +23,6 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
 	{
-		System.out.println();
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -39,13 +39,31 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 					IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
 					if (stmtHandler != null)
 					{
-						stmtHandler.handle(statement);
+						// Important to check here to keep the code in order
+						checkUntranslatableList(untranslatableStatements, snippetManager);
+						try
+						{
+							stmtHandler.handle(statement);
+							continue;
+						}
+						catch (TypeResolveException e)
+						{
+							// Intentionally blank
+							// Conversion of this statement failed. Let the SnippetManager handle it.
+
+							// TODO think: To "rollback" already written code we should use an other writer in the handle() call. Or we use a writter that can
+							// be resetted to save points.
+							// A second writer would be better. That way we could do the untranslatable list check after we know we can handle the statement,
+							// but put the snippet code before the statement code.
+							// @DeK lass uns da Montag mal drüber reden. Das Exception-Handling ergibt hier so sehr viel Sinn, aber momentan wird so noch
+							// kaputter Code produziert (siehe TestModule.cs).
+						}
 					}
-					else
-					{
-						log.info("unhandled: " + kind + ": " + statement.getClass().getSimpleName() + ": " + statement.toString());
-						untranslatableStatements.add(statement.toString() + ";");
-					}
+
+					log.info("unhandled: " + kind + ": " + statement.getClass().getSimpleName() + ": " + statement.toString());
+					String untranslatableStatement = statement.toString();
+					untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
+					untranslatableStatements.add(untranslatableStatement);
 				}
 				checkUntranslatableList(untranslatableStatements, snippetManager);
 			}
