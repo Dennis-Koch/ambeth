@@ -1,7 +1,6 @@
 package de.osthus.esmeralda.handler.csharp.expr;
 
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -62,14 +61,10 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				writer.append(name);
 				context.setTypeOnStack(identityExpression.sym.toString());
 			}
-			else if (identityExpression.sym instanceof VarSymbol)
+			else
 			{
 				languageHelper.writeExpressionTree(identityExpression);
 				writer.append('.').append(name);
-			}
-			else
-			{
-				throw new IllegalStateException(identityExpression.toString());
 			}
 			return;
 		}

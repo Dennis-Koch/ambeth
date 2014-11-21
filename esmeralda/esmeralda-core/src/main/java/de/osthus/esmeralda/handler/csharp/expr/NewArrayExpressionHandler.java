@@ -34,8 +34,12 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 			if (field != null)
 			{
 				Type fieldType = field.getFieldType();
-				// TODO: not quite correct to pass the array-type with its brackets "[]" here
-				languageHelper.writeType(fieldType.toString());
+				String fieldTypeString = fieldType.toString();
+				while (fieldTypeString.endsWith("[]"))
+				{
+					fieldTypeString = fieldTypeString.substring(0, fieldTypeString.length() - 2);
+				}
+				languageHelper.writeType(fieldTypeString);
 			}
 			else
 			{
@@ -56,5 +60,6 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 			{
 			}
 		}
+		context.setTypeOnStack(newArray.type.toString());
 	}
 }
