@@ -6,6 +6,7 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -94,4 +95,8 @@ public interface IConversionContext
 	String getTypeOnStack();
 
 	void setTypeOnStack(String typeOnStack);
+
+	StatementCount getMetric();
+
+	void setMetric(StatementCount metric);
 }
