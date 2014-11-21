@@ -28,6 +28,11 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" << ", binary);
 				break;
 			}
+			case RIGHT_SHIFT:
+			{
+				writeSimpleBinary(" >> ", binary);
+				break;
+			}
 			case MINUS:
 			{
 				writeSimpleBinary(" - ", binary);
@@ -48,9 +53,14 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" | ", binary);
 				break;
 			}
+			case XOR:
+			{
+				writeSimpleBinary(" ^ ", binary);
+				break;
+			}
 			case CONDITIONAL_AND:
 			{
-				writeSimpleBinary(" &&", binary);
+				writeSimpleBinary(" && ", binary);
 				break;
 			}
 			case CONDITIONAL_OR:

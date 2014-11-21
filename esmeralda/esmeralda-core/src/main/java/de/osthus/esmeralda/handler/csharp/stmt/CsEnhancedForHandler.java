@@ -12,7 +12,7 @@ import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 
-public class CsForEnhancedHandler extends AbstractStatementHandler<JCEnhancedForLoop> implements IStatementHandlerExtension<JCEnhancedForLoop>
+public class CsEnhancedForHandler extends AbstractStatementHandler<JCEnhancedForLoop> implements IStatementHandlerExtension<JCEnhancedForLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -32,7 +32,7 @@ public class CsForEnhancedHandler extends AbstractStatementHandler<JCEnhancedFor
 		JCVariableDecl variable = tree.getVariable();
 		varHandler.handle(variable, false);
 
-		writer.append(" : ");
+		writer.append(" in ");
 		languageHelper.writeExpressionTree(tree.getExpression());
 		writer.append(")");
 
