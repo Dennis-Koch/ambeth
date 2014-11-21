@@ -145,8 +145,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			{
 				writer.append(owner);
 			}
+			writer.append('.');
 		}
-		writer.append('.');
 
 		String formattedMethodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
 		boolean isPropertyInvocation = false;
