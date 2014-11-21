@@ -42,6 +42,7 @@ import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.misc.EsmeType;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.MethodInfo;
 
@@ -140,6 +141,12 @@ public class ConversionManager implements IStartingBean
 		addClassInfo(mockType(java.util.AbstractSet.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(java.util.EventObject.class), fqNameToClassInfoMap);
 		addClassInfo(mockType(org.junit.runners.BlockJUnit4ClassRunner.class), fqNameToClassInfoMap);
+
+		StatementCount csMetric = new StatementCount();
+		csMetric.setName("C#");
+		StatementCount jsMetric = new StatementCount();
+		jsMetric.setName("JS");
+
 		for (JavaClassInfo classInfo : classInfos)
 		{
 			String packageName = classInfo.getPackageName();
@@ -153,6 +160,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
+			csContext.setMetric(csMetric);
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
 
@@ -163,10 +171,17 @@ public class ConversionManager implements IStartingBean
 			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
+			csContext.setMetric(jsMetric);
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
 
 			invokeNodeHandler(jsClassHandler, jsContext);
+		}
+
+		if (log.isInfoEnabled())
+		{
+			log.info(csMetric.toString());
+			log.info(jsMetric.toString());
 		}
 	}
 

@@ -1,5 +1,7 @@
 package de.osthus.esmeralda.handler.csharp.stmt;
 
+import java.util.List;
+
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree.Kind;
@@ -12,6 +14,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
 public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>
@@ -30,10 +33,16 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 			{
 				IConversionContext context = CsBlockHandler.this.context.getCurrent();
 				ISnippetManager snippetManager = context.getSnippetManager();
+				StatementCount metric = context.getMetric();
 
 				ArrayList<String> untranslatableStatements = new ArrayList<>();
 
-				for (StatementTree statement : blockTree.getStatements())
+				List<? extends StatementTree> statements = blockTree.getStatements();
+				if (!context.isDryRun())
+				{
+					metric.setStatements(metric.getStatements() + statements.size());
+				}
+				for (StatementTree statement : statements)
 				{
 					Kind kind = statement.getKind();
 					IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
@@ -75,6 +84,14 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		if (untranslatableStatements.isEmpty())
 		{
 			return;
+		}
+
+		if (!context.isDryRun())
+		{
+			IConversionContext context = CsBlockHandler.this.context.getCurrent();
+			StatementCount metric = context.getMetric();
+
+			metric.setUntranslatableStatements(metric.getUntranslatableStatements() + untranslatableStatements.size());
 		}
 
 		snippetManager.writeSnippet(untranslatableStatements);

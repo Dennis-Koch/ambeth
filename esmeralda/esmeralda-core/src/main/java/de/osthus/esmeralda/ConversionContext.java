@@ -11,6 +11,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -59,6 +60,8 @@ public class ConversionContext implements IConversionContext
 	private boolean dryRun = false;
 
 	private String typeOnStack;
+
+	private StatementCount metric;
 
 	@Override
 	public IConversionContext getCurrent()
@@ -342,6 +345,16 @@ public class ConversionContext implements IConversionContext
 	public void setTypeOnStack(String typeOnStack)
 	{
 		this.typeOnStack = typeOnStack;
+	}
+
+	public StatementCount getMetric()
+	{
+		return metric;
+	}
+
+	public void setMetric(StatementCount metric)
+	{
+		this.metric = metric;
 	}
 
 	@Override
