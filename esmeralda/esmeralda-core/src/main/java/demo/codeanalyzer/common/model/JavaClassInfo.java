@@ -1,11 +1,19 @@
 package demo.codeanalyzer.common.model;
 
+import java.util.List;
+
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.util.TreePath;
+
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.LinkedHashSet;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IVariable;
 
 /**
  * Stores basic attributes of a java class
@@ -21,12 +29,34 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	private boolean isAnnotation;
 	private boolean isEnum;
 	private boolean isSerializable;
+	private boolean isArray;
 	private JavaSourceTreeInfo sourceTreeInfo;
 	private ArrayList<Method> methods = new ArrayList<Method>();
 	private ArrayList<Method> constructors = new ArrayList<Method>();
 	private ArrayList<String> nameOfInterfaces = new ArrayList<String>();
 	private ArrayList<String> classTypes = new ArrayList<String>();
 	private LinkedHashMap<String, Field> fields = new LinkedHashMap<String, Field>();
+	private LinkedHashSet<IVariable> allUsedVariables = null;
+	private boolean isAnonymous;
+
+	public IConversionContext context;
+
+	private TreePath treePath;
+
+	public JavaClassInfo(IConversionContext context)
+	{
+		this.context = context;
+	}
+
+	public void setArray(boolean isArray)
+	{
+		this.isArray = isArray;
+	}
+
+	public boolean isArray()
+	{
+		return isArray;
+	}
 
 	public void addField(Field field)
 	{
@@ -36,7 +66,17 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	@Override
 	public Field getField(String fieldName)
 	{
-		return fields.get(fieldName);
+		Field field = fields.get(fieldName);
+		if (field == null)
+		{
+			String nameOfSuperClass = getNameOfSuperClass();
+			if (nameOfSuperClass != null)
+			{
+				return context.resolveClassInfo(nameOfSuperClass).getField(fieldName);
+			}
+			throw new IllegalArgumentException("No field found: " + getPackageName() + "." + getName() + "." + fieldName);
+		}
+		return field;
 	}
 
 	@Override
@@ -220,8 +260,52 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	}
 
 	@Override
-	public String toString()
+	public String getFqName()
 	{
 		return getPackageName() + "." + getName();
+	}
+
+	@Override
+	public String toString()
+	{
+		return getFqName();
+	}
+
+	public boolean isAnonymous()
+	{
+		return isAnonymous;
+	}
+
+	public void setIsAnonymous(boolean isAnonymous)
+	{
+		this.isAnonymous = isAnonymous;
+	}
+
+	public void addUsedVariables(List<IVariable> allUsedVariables)
+	{
+		if (this.allUsedVariables == null)
+		{
+			this.allUsedVariables = new LinkedHashSet<IVariable>();
+		}
+		this.allUsedVariables.addAll(allUsedVariables);
+	}
+
+	public IList<IVariable> getAllUsedVariables()
+	{
+		if (allUsedVariables == null)
+		{
+			return EmptyList.getInstance();
+		}
+		return allUsedVariables.toList();
+	}
+
+	public TreePath getTreePath()
+	{
+		return treePath;
+	}
+
+	public void setTreePath(TreePath treePath)
+	{
+		this.treePath = treePath;
 	}
 }

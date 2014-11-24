@@ -5,8 +5,10 @@ import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCAssign;
 import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import com.sun.tools.javac.tree.JCTree.JCBinary;
+import com.sun.tools.javac.tree.JCTree.JCConditional;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewArray;
@@ -23,8 +25,11 @@ import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.ClassInfoFactory;
+import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
+import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.INodeHandlerExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtendable;
@@ -36,11 +41,14 @@ import de.osthus.esmeralda.handler.csharp.CsHelper;
 import de.osthus.esmeralda.handler.csharp.CsMethodHandler;
 import de.osthus.esmeralda.handler.csharp.CsStatementHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
+import de.osthus.esmeralda.handler.csharp.MethodTransformer;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayAccessExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.AssignExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.AssignOpExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.BinaryExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.ConditionalExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.FieldAccessExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.InstanceOfExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.LiteralExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.MethodInvocationExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewArrayExpressionHandler;
@@ -82,9 +90,11 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(ConversionContextBean.class).autowireable(IConversionContext.class);
 
 		beanContextFactory.registerBean(SnippetManagerFactory.class).autowireable(ISnippetManagerFactory.class);
+		beanContextFactory.registerBean(MethodTransformer.class).autowireable(IMethodTransformer.class);
 
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 
+		beanContextFactory.registerBean(ClassInfoFactory.class).autowireable(IClassInfoFactory.class);
 		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class, IExpressionHandlerExtendable.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 
@@ -134,8 +144,10 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerExpressionHandler(beanContextFactory, AssignExpressionHandler.class, JCAssign.class);
 		registerExpressionHandler(beanContextFactory, AssignOpExpressionHandler.class, JCAssignOp.class);
 		registerExpressionHandler(beanContextFactory, BinaryExpressionHandler.class, JCBinary.class);
+		registerExpressionHandler(beanContextFactory, ConditionalExpressionHandler.class, JCConditional.class);
 		registerExpressionHandler(beanContextFactory, FieldAccessExpressionHandler.class, JCFieldAccess.class);
 		registerExpressionHandler(beanContextFactory, LiteralExpressionHandler.class, JCLiteral.class, JCIdent.class);
+		registerExpressionHandler(beanContextFactory, InstanceOfExpressionHandler.class, JCInstanceOf.class);
 		registerExpressionHandler(beanContextFactory, MethodInvocationExpressionHandler.class, JCMethodInvocation.class);
 		registerExpressionHandler(beanContextFactory, NewArrayExpressionHandler.class, JCNewArray.class);
 		registerExpressionHandler(beanContextFactory, NewClassExpressionHandler.class, JCNewClass.class);

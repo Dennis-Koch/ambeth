@@ -1,6 +1,5 @@
 package demo.codeanalyzer.common.model;
 
-import com.sun.tools.javac.code.Type;
 
 /**
  * Stores details of fields in the java code
@@ -14,5 +13,5 @@ public interface Field extends BaseJavaClassModel
 	 */
 	ClassFile getOwningClass();
 
-	Type getFieldType();
+	String getFieldType();
 }

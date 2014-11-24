@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree.Kind;
+import com.sun.source.util.TreePath;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -18,12 +19,49 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {
-	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>");
+	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
+
+	public static final String getFqNameFromAnonymousName(String fqName)
+	{
+		Matcher anonymousMatcher = NewClassExpressionHandler.anonymousPattern.matcher(fqName);
+		if (!anonymousMatcher.matches())
+		{
+			return fqName;
+		}
+		return anonymousMatcher.group(1) + anonymousMatcher.group(2);
+	}
+
+	public static final String findFqAnonymousName(TreePath path)
+	{
+		TreePath currPath = path;
+		String reverseSuffix = "";
+		String anonymousFqName;
+		while (true)
+		{
+			JCClassDecl leaf = (JCClassDecl) currPath.getLeaf();
+			anonymousFqName = leaf.sym.toString();
+			if (anonymousFqName.indexOf('.') != -1)
+			{
+				return anonymousFqName + reverseSuffix;
+			}
+			else if (reverseSuffix.length() > 0)
+			{
+				reverseSuffix = "." + anonymousFqName + reverseSuffix;
+			}
+			else
+			{
+				reverseSuffix = "." + anonymousFqName;
+			}
+			currPath = currPath.getParentPath();
+		}
+	}
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -37,7 +75,12 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 
 		List<JCExpression> arguments = newClass.args;
 		// the type can be null in the case of the internal constructor of enums
-		String owner = newClass.type != null ? newClass.type.toString() : newClass.clazz.toString();
+		String owner = newClass.type != null ? newClass.type.toString() : null;
+		if (owner == null || "<any>".equals(owner))
+		{
+			owner = newClass.clazz.toString();
+		}
+		owner = context.resolveClassInfo(owner).getFqName();
 		JCClassDecl def = newClass.def;
 		if (def == null)
 		{
@@ -48,12 +91,36 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 			return;
 		}
 		// this is an anonymous class instantiation
-		Matcher anonymousMatcher = anonymousPattern.matcher(owner);
-		if (!anonymousMatcher.matches())
+		// writeDelegate(owner, def);
+		writeAnonymousInstantiation(owner, def);
+	}
+
+	protected void writeAnonymousInstantiation(String owner, JCClassDecl def)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		owner = NewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
+		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
+
+		writer.append("new ");
+		languageHelper.writeType(owner);
+		writer.append('(');
+		boolean firstParameter = true;
+		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
 		{
-			throw new IllegalStateException(owner);
+			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
+			writer.append(usedVariable.getName());
 		}
-		owner = anonymousMatcher.group(1);
+		writer.append(')');
+		context.setTypeOnStack(owner);
+	}
+
+	protected void writeDelegate(String owner, JCClassDecl def)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		owner = getFqNameFromAnonymousName(owner);
 
 		if (def.defs.size() != 2)
 		{

@@ -1,6 +1,6 @@
 package de.osthus.esmeralda.handler.csharp.expr;
 
-import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.Tree;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -31,7 +31,7 @@ public abstract class AbstractExpressionHandler<T> implements IExpressionHandler
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void handleExpression(ExpressionTree expression)
+	public void handleExpression(Tree expression)
 	{
 		handleExpressionIntern((T) expression);
 	}

@@ -2,7 +2,6 @@ package de.osthus.esmeralda.handler.csharp;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.Tree;
-import com.sun.tools.javac.code.Type;
 
 import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -66,9 +65,9 @@ public class CsFieldHandler implements INodeHandlerExtension
 		{
 			firstKeyWord = languageHelper.writeModifiers(field);
 		}
-		Type fieldType = field.getFieldType();
+		String fieldType = field.getFieldType();
 		firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
-		languageHelper.writeType(fieldType.toString());
+		languageHelper.writeType(fieldType);
 		writer.append(' ');
 
 		boolean finishWithSemicolon = true;

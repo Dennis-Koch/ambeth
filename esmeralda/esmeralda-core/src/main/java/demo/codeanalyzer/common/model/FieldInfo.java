@@ -1,7 +1,6 @@
 package demo.codeanalyzer.common.model;
 
 import com.sun.source.tree.ExpressionTree;
-import com.sun.tools.javac.code.Type;
 
 /**
  * Stores details of fields in the java code
@@ -14,7 +13,7 @@ public class FieldInfo extends BaseJavaClassModelInfo implements Field
 	private ClassFile owningClass;
 
 	protected ExpressionTree initializer;
-	private Type fieldType;
+	private String fieldType;
 
 	public ExpressionTree getInitializer()
 	{
@@ -41,13 +40,19 @@ public class FieldInfo extends BaseJavaClassModelInfo implements Field
 	}
 
 	@Override
-	public Type getFieldType()
+	public String getFieldType()
 	{
 		return fieldType;
 	}
 
-	public void setFieldType(Type fieldType)
+	public void setFieldType(String fieldType)
 	{
 		this.fieldType = fieldType;
+	}
+
+	@Override
+	public String toString()
+	{
+		return getFieldType() + " " + getOwningClass().getFqName() + "." + getName();
 	}
 }

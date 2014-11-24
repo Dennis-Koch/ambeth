@@ -7,17 +7,24 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
 
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.TypeResolveException;
+import de.osthus.esmeralda.handler.IMethodTransformer;
+import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.Field;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFieldAccess>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IMethodTransformer methodTransformer;
 
 	@Override
 	protected void handleExpressionIntern(JCFieldAccess fieldAccess)
@@ -45,6 +52,10 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 			{
 				typeForTypeof = ((JCArrayTypeTree) expression).type.toString();
 			}
+			else
+			{
+				typeForTypeof = expression.toString();
+			}
 			writer.append("typeof(");
 			languageHelper.writeType(typeForTypeof);
 			writer.append(')');
@@ -53,27 +64,38 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 		}
 		if (expression instanceof JCIdent)
 		{
+
 			JCIdent identityExpression = (JCIdent) expression;
 			if (identityExpression.sym instanceof ClassSymbol)
 			{
-				languageHelper.writeType(identityExpression.sym.toString());
+				ITransformedMemberAccess transformedMemberAccess = methodTransformer.transformFieldAccess(identityExpression.sym.toString(), fieldAccess
+						.getIdentifier().toString());
+				languageHelper.writeType(transformedMemberAccess.getOwner());
 				writer.append('.');
-				writer.append(name);
-				context.setTypeOnStack(identityExpression.sym.toString());
+				writer.append(transformedMemberAccess.getName());
+				context.setTypeOnStack(transformedMemberAccess.getReturnType());
 			}
 			else
 			{
 				languageHelper.writeExpressionTree(identityExpression);
+				String typeOnStack = context.getTypeOnStack();
+				JavaClassInfo classInfoOnStack = context.resolveClassInfo(typeOnStack);
+				Field fieldOfNameOfStack = classInfoOnStack.getField(name);
+				// String typeFromSymbolName = languageHelper.resolveTypeFromVariableName(name);
 				writer.append('.').append(name);
+				context.setTypeOnStack(fieldOfNameOfStack.getFieldType());
 			}
 			return;
 		}
-		languageHelper.writeExpressionTree(fieldAccess.getExpression());
+		languageHelper.writeExpressionTree(expression);
 
 		if (fieldAccess.type == null)
-		{// TODO: handle this case. Is this an error in the sources? Is there something missing?
-			throw new TypeResolveException("No type in method invocation '" + fieldAccess + "'");
+		{
+			log.warn("No type in method invocation '" + fieldAccess + "'");
 		}
-		context.setTypeOnStack(fieldAccess.type.toString());
+		else
+		{
+			context.setTypeOnStack(fieldAccess.type.toString());
+		}
 	}
 }

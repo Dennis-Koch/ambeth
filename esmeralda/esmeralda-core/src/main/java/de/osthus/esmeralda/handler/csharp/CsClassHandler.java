@@ -18,6 +18,7 @@ import com.sun.source.tree.Tree;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -31,6 +32,7 @@ import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.EsmeType;
 import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
@@ -302,6 +304,12 @@ public class CsClassHandler implements INodeHandlerExtension
 		languageHelper.writeAnnotations(classInfo);
 		languageHelper.newLineIntend();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
+		if (!classInfo.isPrivate() && !classInfo.isProtected() && !classInfo.isPublic())
+		{
+			// no visibility defined. so we default to "public"
+			firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
+			writer.append("public");
+		}
 		if (classInfo.isEnum())
 		{
 			// an enum in java can never be inherited from - we convert this as a sealed class
@@ -343,28 +351,19 @@ public class CsClassHandler implements INodeHandlerExtension
 			languageHelper.writeType(nameOfInterface);
 		}
 
-		final INodeHandlerExtension fieldHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.FIELD);
-		final INodeHandlerExtension methodHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.METHOD);
-
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
 				IConversionContext context = CsClassHandler.this.context.getCurrent();
-				boolean firstLine = true;
-				for (Field field : classInfo.getFields())
+				if (classInfo.isAnonymous())
 				{
-					firstLine = languageHelper.newLineIntendIfFalse(firstLine);
-					context.setField(field);
-					fieldHandler.handle(null);
+					writeAnonymousClassBody(classInfo);
 				}
-				for (Method method : classInfo.getMethods())
+				else
 				{
-					firstLine = languageHelper.newLineIntendIfFalse(firstLine);
-					context.setMethod(method);
-					MethodTree methodTree = method.getMethodTree();
-					methodHandler.handle(methodTree);
+					writeClassBody(classInfo);
 				}
 				for (IPostProcess postProcess : context.getPostProcesses())
 				{
@@ -372,5 +371,79 @@ public class CsClassHandler implements INodeHandlerExtension
 				}
 			}
 		});
+	}
+
+	protected void writeAnonymousClassBody(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			languageHelper.newLineIntend();
+			writer.append("private ");
+			languageHelper.writeType(usedVariable.getType());
+			writer.append(' ');
+			writer.append(usedVariable.getName());
+			writer.append(';');
+		}
+		languageHelper.newLineIntend();
+		languageHelper.newLineIntend();
+		writer.append("public ");
+		writer.append(classInfo.getName());
+		writer.append('(');
+		boolean firstVariable = true;
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
+			languageHelper.writeType(usedVariable.getType());
+			writer.append(' ');
+			writer.append(usedVariable.getName());
+		}
+		writer.append(')');
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				IConversionContext context = CsClassHandler.this.context.getCurrent();
+				IWriter writer = context.getWriter();
+				for (IVariable usedVariable : allUsedVariables)
+				{
+					languageHelper.newLineIntend();
+					writer.append("this.");
+					writer.append(usedVariable.getName());
+					writer.append(" = ");
+					writer.append(usedVariable.getName());
+					writer.append(";");
+				}
+			}
+		});
+		writeClassBody(classInfo);
+	}
+
+	protected void writeClassBody(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+
+		final INodeHandlerExtension fieldHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.FIELD);
+		final INodeHandlerExtension methodHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.METHOD);
+
+		boolean firstLine = true;
+		for (Field field : classInfo.getFields())
+		{
+			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			context.setField(field);
+			fieldHandler.handle(null);
+		}
+
+		for (Method method : classInfo.getMethods())
+		{
+			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			context.setMethod(method);
+			MethodTree methodTree = method.getMethodTree();
+			methodHandler.handle(methodTree);
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package de.osthus.esmeralda;
 
+import java.util.List;
+
 import javax.lang.model.element.Element;
 
 import com.sun.source.tree.ClassTree;
@@ -9,6 +11,9 @@ import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
 
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.helper.ClassInfoDataSetter;
 import demo.codeanalyzer.helper.FieldInfoDataSetter;
@@ -23,23 +28,45 @@ import demo.codeanalyzer.helper.MethodInfoDataSetter;
  */
 public class CodeVisitor extends TreePathScanner<Object, Trees>
 {
+	protected static final ArrayList<JavaClassInfo> classInfoStack = new ArrayList<JavaClassInfo>();
 
-	// Model class stores the details of the visiting class
-	protected JavaClassInfo clazzInfo;
+	protected static final ArrayList<JavaClassInfo> collectedClassInfos = new ArrayList<JavaClassInfo>();
+
+	public static List<JavaClassInfo> getClassInfoStack()
+	{
+		return classInfoStack;
+	}
 
 	public void reset()
 	{
-		clazzInfo = new JavaClassInfo();
+		classInfoStack.clear();
+		collectedClassInfos.clear();
 	}
+
+	@Autowired
+	protected IConversionContext context;
 
 	@Override
 	public Object visitClass(ClassTree classTree, Trees trees)
 	{
+		JavaClassInfo classInfo = new JavaClassInfo(context);
+		classInfoStack.add(classInfo);
+		try
+		{
+			TreePath path = getCurrentPath();
+			// populate required class information to model
+			ClassInfoDataSetter.populateClassInfo(classInfo, classTree, path, trees);
 
-		TreePath path = getCurrentPath();
-		// populate required class information to model
-		ClassInfoDataSetter.populateClassInfo(clazzInfo, classTree, path, trees);
-		return super.visitClass(classTree, trees);
+			if (classInfo.getName() != null)
+			{
+				collectedClassInfos.add(classInfo);
+			}
+			return super.visitClass(classTree, trees);
+		}
+		finally
+		{
+			classInfoStack.remove(classInfoStack.size() - 1);
+		}
 	}
 
 	/**
@@ -54,7 +81,7 @@ public class CodeVisitor extends TreePathScanner<Object, Trees>
 	{
 		TreePath path = getCurrentPath();
 		// populate required method information to model
-		MethodInfoDataSetter.populateMethodInfo(clazzInfo, methodTree, path, trees);
+		MethodInfoDataSetter.populateMethodInfo(classInfoStack.get(classInfoStack.size() - 1), methodTree, path, trees);
 		return super.visitMethod(methodTree, trees);
 	}
 
@@ -72,7 +99,7 @@ public class CodeVisitor extends TreePathScanner<Object, Trees>
 		Element e = trees.getElement(path);
 
 		// populate required method information to model
-		FieldInfoDataSetter.populateFieldInfo(clazzInfo, variableTree, e, path, trees);
+		FieldInfoDataSetter.populateFieldInfo(classInfoStack.get(classInfoStack.size() - 1), variableTree, e, path, trees);
 		return super.visitVariable(variableTree, trees);
 	}
 
@@ -81,8 +108,8 @@ public class CodeVisitor extends TreePathScanner<Object, Trees>
 	 * 
 	 * @return clazzInfo Java class model
 	 */
-	public JavaClassInfo getClassInfo()
+	public IList<JavaClassInfo> getClassInfos()
 	{
-		return clazzInfo;
+		return collectedClassInfos;
 	}
 }
