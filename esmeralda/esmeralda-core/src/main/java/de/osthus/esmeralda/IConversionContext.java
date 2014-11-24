@@ -37,6 +37,8 @@ public interface IConversionContext
 
 	JavaClassInfo resolveClassInfo(String fqTypeName);
 
+	JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly);
+
 	void setTargetFile(File targetFile);
 
 	String getLanguagePath();

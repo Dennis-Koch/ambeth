@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
@@ -110,12 +110,23 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeExpressionTree(ExpressionTree expressionTree)
+	public void writeExpressionTree(Tree expressionTree)
 	{
 	}
 
 	@Override
 	public String resolveTypeFromVariableName(String variableName)
+	{
+		return null;
+	}
+
+	@Override
+	public void writeTypeDirect(String typeName)
+	{
+	}
+
+	@Override
+	public String resolveFqTypeFromTypeName(String typeName)
 	{
 		return null;
 	}

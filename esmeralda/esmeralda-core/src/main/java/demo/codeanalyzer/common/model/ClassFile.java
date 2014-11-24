@@ -58,4 +58,6 @@ public interface ClassFile extends BaseJavaClassModel
 
 	public void addClassType(String classType);
 
+	String getFqName();
+
 }

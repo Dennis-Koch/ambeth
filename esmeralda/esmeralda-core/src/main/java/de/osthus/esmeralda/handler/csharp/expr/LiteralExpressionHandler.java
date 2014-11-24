@@ -68,6 +68,11 @@ public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpres
 				context.setTypeOnStack(int.class.getName());
 				break;
 			}
+			case LONG_LITERAL:
+			{
+				context.setTypeOnStack(long.class.getName());
+				break;
+			}
 			case STRING_LITERAL:
 			{
 				context.setTypeOnStack(String.class.getName());

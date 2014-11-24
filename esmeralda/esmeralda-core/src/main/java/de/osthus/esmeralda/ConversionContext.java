@@ -4,12 +4,19 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.source.util.TreePath;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCImport;
+
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.handler.IClassInfoFactory;
+import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
@@ -18,7 +25,7 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ConversionContext implements IConversionContext
 {
-	public static final Pattern genericTypePattern = Pattern.compile("([^<>]+)<(.+)>");
+	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -59,6 +66,13 @@ public class ConversionContext implements IConversionContext
 	private boolean dryRun = false;
 
 	private String typeOnStack;
+
+	protected IClassInfoFactory classInfoFactory;
+
+	public void setClassInfoFactory(IClassInfoFactory classInfoFactory)
+	{
+		this.classInfoFactory = classInfoFactory;
+	}
 
 	@Override
 	public IConversionContext getCurrent()
@@ -120,9 +134,42 @@ public class ConversionContext implements IConversionContext
 		this.dryRun = dryRun;
 	}
 
+	protected String getResolveGenericFqTypeName(String fqTypeName)
+	{
+		// Method method = getMethod();
+		// for (VariableElement parameter : method.getParameters())
+		// {
+		// {
+		// TypeMirror asType = parameter.asType();
+		// if (asType instanceof ArrayType)
+		// {
+		// ArrayType arrayType = (ArrayType) asType;
+		// if (arrayType.elemtype instanceof TypeVar)
+		// {
+		// Type upperBound = arrayType.elemtype.getUpperBound();
+		//
+		// }
+		// }
+		// if (asType.toString().equals(fqTypeName))
+		// {
+		//
+		// }
+		// }
+		return fqTypeName;
+		// }
+	}
+
 	@Override
 	public JavaClassInfo resolveClassInfo(String fqTypeName)
 	{
+		return resolveClassInfo(fqTypeName, false);
+	}
+
+	@Override
+	public JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly)
+	{
+		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);
+		fqTypeName = getResolveGenericFqTypeName(fqTypeName);
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
 		if (classInfo != null)
 		{
@@ -144,11 +191,47 @@ public class ConversionContext implements IConversionContext
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType);
 			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
 		}
-		if (fqTypeName.contains(".repackaged."))
+		JavaClassInfo javaClassInfo = classInfoFactory.createClassInfo(fqTypeName);
+		if (javaClassInfo == null)
 		{
-			throw new SkipGenerationException();
+			TreePath treePath = getClassInfo().getTreePath();
+			while (!(treePath.getLeaf() instanceof JCCompilationUnit))
+			{
+				treePath = treePath.getParentPath();
+			}
+			for (JCImport importItem : ((JCCompilationUnit) treePath.getLeaf()).getImports())
+			{
+				JCFieldAccess fa = (JCFieldAccess) importItem.getQualifiedIdentifier();
+				String simpleNameOfImport = fa.name.toString();
+				if (fqTypeName.equals(simpleNameOfImport))
+				{
+					return resolveClassInfo(fa.toString(), tryOnly);
+				}
+			}
+			// implicit imports java.lang.*
+			try
+			{
+				return resolveClassInfo(Thread.currentThread().getContextClassLoader().loadClass("java.lang." + fqTypeName).getName(), tryOnly);
+			}
+			catch (Throwable e)
+			{
+				if (tryOnly)
+				{
+					return null;
+				}
+				throw new TypeResolveException(fqTypeName);
+			}
 		}
-		throw new TypeResolveException(fqTypeName);
+		if (!fqNameToClassInfoMap.putIfNotExists(fqTypeName, javaClassInfo))
+		{
+			throw new IllegalStateException("Duplicate type registration: " + fqTypeName);
+		}
+		return javaClassInfo;
+		// if (fqTypeName.contains(".repackaged."))
+		// {
+		// throw new SkipGenerationException();
+		// }
+		// throw new TypeResolveException(fqTypeName);
 	}
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)

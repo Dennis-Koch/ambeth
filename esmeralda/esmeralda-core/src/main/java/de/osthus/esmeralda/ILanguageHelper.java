@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
@@ -35,6 +35,8 @@ public interface ILanguageHelper
 
 	void writeType(String typeName);
 
+	void writeTypeDirect(String typeName);
+
 	void writeMethodArguments(JCExpression methodInvocation);
 
 	boolean writeModifiers(BaseJavaClassModel javaClassModel);
@@ -43,11 +45,13 @@ public interface ILanguageHelper
 
 	void writeAnnotation(Annotation annotation);
 
-	void writeExpressionTree(ExpressionTree expressionTree);
+	void writeExpressionTree(Tree expressionTree);
 
 	void writeGenericTypeArguments(List<Type> genericTypeArguments);
 
 	void writeMethodArguments(List<JCExpression> methodArguments);
 
 	String resolveTypeFromVariableName(String variableName);
+
+	String resolveFqTypeFromTypeName(String typeName);
 }

@@ -1,6 +1,5 @@
 package de.osthus.esmeralda.handler.csharp.expr;
 
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCNewArray;
@@ -33,8 +32,7 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 			Field field = context.getField();
 			if (field != null)
 			{
-				Type fieldType = field.getFieldType();
-				String fieldTypeString = fieldType.toString();
+				String fieldTypeString = field.getFieldType();
 				while (fieldTypeString.endsWith("[]"))
 				{
 					fieldTypeString = fieldTypeString.substring(0, fieldTypeString.length() - 2);

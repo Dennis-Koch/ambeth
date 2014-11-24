@@ -55,4 +55,10 @@ public class EsmeraldaWriter implements IWriter
 			throw RuntimeExceptionUtil.mask(e);
 		}
 	}
+
+	@Override
+	public String toString()
+	{
+		return writer.toString();
+	}
 }

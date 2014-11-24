@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
@@ -16,6 +15,7 @@ import com.sun.source.util.Trees;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 
+import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import demo.codeanalyzer.common.model.AnnotationInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.JavaSourceTreeInfo;
@@ -30,6 +30,7 @@ import demo.codeanalyzer.common.model.LocationInfo;
 public class ClassInfoDataSetter
 {
 	public static final Pattern fqPattern = Pattern.compile("(.+)\\.([^\\.]+)");
+	private static final String JCClassDecl = null;
 
 	/**
 	 * Set the attributes of the currently visiting class to the java class model
@@ -45,22 +46,18 @@ public class ClassInfoDataSetter
 	 */
 	public static void populateClassInfo(JavaClassInfo clazzInfo, ClassTree classTree, TreePath path, Trees trees)
 	{
+		clazzInfo.setTreePath(path);
 		TypeElement e = (TypeElement) trees.getElement(path);
 
 		if (e == null)
 		{
 			return;
 		}
-		String fqName = e.getQualifiedName().toString();
-		if (fqName.length() == 0)
+		String anonymousFqName = NewClassExpressionHandler.findFqAnonymousName(path);
+		String fqName = NewClassExpressionHandler.getFqNameFromAnonymousName(anonymousFqName);
+		if (!fqName.equals(anonymousFqName))
 		{
-			// skip anonymous classes
-			return;
-		}
-		if (!(e.getEnclosingElement() instanceof PackageElement))
-		{
-			// skip internal classes
-			return;
+			clazzInfo.setIsAnonymous(true);
 		}
 		// Set qualified class name
 		Matcher fqMatcher = fqPattern.matcher(fqName);
@@ -125,6 +122,5 @@ public class ClassInfoDataSetter
 		treeInfo.setCompileTree(tp.getCompilationUnit());
 		treeInfo.setSourcePos(trees.getSourcePositions());
 		clazzInfo.setSourceTreeInfo(treeInfo);
-
 	}
 }

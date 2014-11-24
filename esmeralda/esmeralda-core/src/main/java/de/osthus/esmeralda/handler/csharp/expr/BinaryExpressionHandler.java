@@ -99,6 +99,12 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
+			case XOR:
+			{
+				writeSimpleBinary(" ^ ", binary);
+				context.setTypeOnStack(int.class.getName());
+				break;
+			}
 			default:
 				log.warn("Could not handle binary of type " + binary.getKind() + ": " + binary);
 		}

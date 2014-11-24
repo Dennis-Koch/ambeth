@@ -43,7 +43,7 @@ public class FieldInfoDataSetter
 		fieldInfo.setName(fieldName);
 
 		fieldInfo.setOwningClass(clazzInfo);
-		fieldInfo.setFieldType(((Symbol) e).type);
+		fieldInfo.setFieldType(((Symbol) e).type.toString());
 		// Set modifier details
 		Set<Modifier> modifiers = variableTree.getModifiers().getFlags();
 		for (Modifier modifier : modifiers)

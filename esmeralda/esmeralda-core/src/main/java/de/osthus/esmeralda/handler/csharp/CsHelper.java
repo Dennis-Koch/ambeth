@@ -16,12 +16,17 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.AnnotationValueVisitor;
 import javax.lang.model.element.VariableElement;
 
-import com.sun.source.tree.ExpressionTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
+import com.sun.tools.javac.tree.JCTree.JCImport;
 
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
@@ -55,10 +60,24 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
+	protected static final HashMap<String, String> implicitJavaImportsMap = new HashMap<String, String>();
+
+	protected static final HashSet<String> nativeTypesSet = new HashSet<String>();
+
 	protected static final HashMap<String, String> annotationTargetMap = new HashMap<String, String>();
 
 	static
 	{
+		nativeTypesSet.add("void");
+		nativeTypesSet.add("boolean");
+		nativeTypesSet.add("char");
+		nativeTypesSet.add("byte");
+		nativeTypesSet.add("short");
+		nativeTypesSet.add("int");
+		nativeTypesSet.add("long");
+		nativeTypesSet.add("float");
+		nativeTypesSet.add("double");
+
 		put("void", "void");
 		put("boolean", "bool");
 		put("char", "char");
@@ -114,6 +133,16 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 
 		// ANNOTATION_TYPE not supported in C#
 		// annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.ANNOTATION_TYPE.name(), null);
+
+		implicitJavaImportsMap.put("Boolean", Boolean.class.getName());
+		implicitJavaImportsMap.put("Character", Character.class.getName());
+		implicitJavaImportsMap.put("Byte", Byte.class.getName());
+		implicitJavaImportsMap.put("Short", Short.class.getName());
+		implicitJavaImportsMap.put("Integer", Integer.class.getName());
+		implicitJavaImportsMap.put("Long", Long.class.getName());
+		implicitJavaImportsMap.put("Float", Float.class.getName());
+		implicitJavaImportsMap.put("Double", Double.class.getName());
+		implicitJavaImportsMap.put("String", String.class.getName());
 	}
 
 	protected static final void put(String key, String... values)
@@ -186,6 +215,17 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@Override
 	public void writeType(String typeName)
 	{
+		writeTypeIntern(typeName, false);
+	}
+
+	@Override
+	public void writeTypeDirect(String typeName)
+	{
+		writeTypeIntern(typeName, true);
+	}
+
+	protected void writeTypeIntern(String typeName, boolean direct)
+	{
 		ParamChecker.assertParamNotNullOrEmpty(typeName, "typeName");
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -195,7 +235,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			if (typeName.endsWith("[]"))
 			{
-				writeType(typeName.substring(0, typeName.length() - 2));
+				writeTypeIntern(typeName.substring(0, typeName.length() - 2), direct);
 				writer.append("[]");
 				return;
 			}
@@ -204,7 +244,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			{
 				String plainType = genericTypeMatcher.group(1);
 
-				writeType(plainType);
+				writeTypeIntern(plainType, direct);
 				if (Class.class.getName().equals(plainType))
 				{
 					// in C# the type handle is not generic so we intentionally "lose" the generic type information here
@@ -218,12 +258,20 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
 					firstArgument = writeStringIfFalse(",", firstArgument);
-					writeType(typeArgumentSplit);
+					writeTypeIntern(typeArgumentSplit, direct);
 				}
 				writer.append('>');
 				return;
 			}
-			mappedTypeName = camelCaseName(new String[] { typeName });
+			if (!direct)
+			{
+				typeName = resolveFqTypeFromTypeName(typeName);
+				mappedTypeName = camelCaseName(new String[] { typeName });
+			}
+			else
+			{
+				mappedTypeName = new String[] { typeName };
+			}
 		}
 		ISet<TypeUsing> usedTypes = context.getUsedTypes();
 		if (usedTypes != null)
@@ -251,6 +299,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 					mappedTypeName = new String[] { nameFromImplicitImport };
 				}
 			}
+
 		}
 		writer.append(mappedTypeName[0]);
 	}
@@ -493,7 +542,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 						continue;
 					}
 					firstAttributeTarget = writeStringIfFalse(" | ", firstAttributeTarget);
-					writeType("System.AttributeTargets");
+					writeTypeDirect("System.AttributeTargets");
 					writer.append('.').append(attributeTarget);
 				}
 			}
@@ -595,7 +644,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public void writeExpressionTree(ExpressionTree expression)
+	public void writeExpressionTree(Tree expression)
 	{
 		if (expression == null)
 		{
@@ -612,42 +661,98 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
+	public String resolveFqTypeFromTypeName(String typeName)
+	{
+		if (nativeTypesSet.contains(typeName))
+		{
+			return typeName;
+		}
+		if (context.resolveClassInfo(typeName, true) != null)
+		{
+			return typeName;
+		}
+		// if it is not a variable symbol is can be a simpleName of a class in our current package or in our import scope
+		String fqVariableName = context.getClassInfo().getPackageName() + "." + typeName;
+		if (context.resolveClassInfo(fqVariableName, true) != null)
+		{
+			return fqVariableName;
+		}
+		TreePath treePath = context.getClassInfo().getTreePath();
+		while (!(treePath.getLeaf() instanceof JCCompilationUnit))
+		{
+			treePath = treePath.getParentPath();
+		}
+		for (JCImport importItem : ((JCCompilationUnit) treePath.getLeaf()).getImports())
+		{
+			JCFieldAccess fa = (JCFieldAccess) importItem.getQualifiedIdentifier();
+			String simpleNameOfImport = fa.name.toString();
+			if (typeName.equals(simpleNameOfImport))
+			{
+				return fa.toString();
+			}
+		}
+		// implicit imports java.lang.*
+		try
+		{
+			return Thread.currentThread().getContextClassLoader().loadClass("java.lang." + typeName).getName();
+		}
+		catch (ClassNotFoundException e)
+		{
+			log.warn("Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
+					+ context.getClassInfo().getName() + "'");
+			return typeName;
+		}
+	}
+
+	@Override
 	public String resolveTypeFromVariableName(String variableName)
 	{
 		ParamChecker.assertParamNotNullOrEmpty(variableName, "variableName");
 		Method method = context.getMethod();
 
-		if ("this".equals(variableName))
+		try
 		{
-			JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
-			return owningClass.getPackageName() + "." + owningClass.getName();
-		}
-		// look for stack variables first
-		for (VariableElement parameter : method.getParameters())
-		{
-			if (variableName.equals(parameter.getSimpleName().toString()))
+			if ("this".equals(variableName))
 			{
-				return parameter.asType().toString();
+				JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
+				return owningClass.getPackageName() + "." + owningClass.getName();
 			}
-		}
-		// look for declared fields up the whole class hierarchy
-		ClassFile classInfo = method.getOwningClass();
-		while (classInfo != null)
-		{
-			for (Field field : classInfo.getFields())
+			if ("super".equals(variableName))
 			{
-				if (variableName.equals(field.getName()))
+				JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
+				return owningClass.getNameOfSuperClass();
+			}
+			// look for stack variables first
+			for (VariableElement parameter : method.getParameters())
+			{
+				if (variableName.equals(parameter.getSimpleName().toString()))
 				{
-					return field.getFieldType().toString();
+					return parameter.asType().toString();
 				}
 			}
-			String nameOfSuperClass = classInfo.getNameOfSuperClass();
-			if (nameOfSuperClass == null)
+			// look for declared fields up the whole class hierarchy
+			ClassFile classInfo = method.getOwningClass();
+			while (classInfo != null)
 			{
-				break;
+				for (Field field : classInfo.getFields())
+				{
+					if (variableName.equals(field.getName()))
+					{
+						return field.getFieldType().toString();
+					}
+				}
+				String nameOfSuperClass = classInfo.getNameOfSuperClass();
+				if (nameOfSuperClass == null)
+				{
+					break;
+				}
+				classInfo = context.resolveClassInfo(nameOfSuperClass);
 			}
-			classInfo = context.resolveClassInfo(nameOfSuperClass);
+			return resolveFqTypeFromTypeName(variableName);
 		}
-		throw new IllegalStateException("Could not resolve variable '" + variableName + "' in method signature: " + method);
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e, "Could not resolve symbol name '" + variableName + "' on method signature: " + method);
+		}
 	}
 }

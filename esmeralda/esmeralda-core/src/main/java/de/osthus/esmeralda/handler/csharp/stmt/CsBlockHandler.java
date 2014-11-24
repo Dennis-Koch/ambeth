@@ -22,7 +22,6 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
 	{
-		System.out.println();
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override

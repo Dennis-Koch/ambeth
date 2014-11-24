@@ -80,15 +80,7 @@ public class CodeProcessor extends AbstractProcessor
 			visitor.reset();
 			// invoke the scanner
 			visitor.scan(tp, trees);
-			// TypeElement typeElement = (TypeElement) e;
-			// String className = typeElement.getQualifiedName().toString();
-			// JavaClassInfo clazzInfo = visitor.getClassInfo();
-			// LocationInfoSetter.setLocationInfoForElements(clazzInfo);
-			// ClassModelMap.getInstance().addClassInfo(className, clazzInfo);
-			// CodeAnalyzer.getInstance().process(className);
-			JavaClassInfo clazzInfo = visitor.getClassInfo();
-
-			classInfos.add(clazzInfo);
+			classInfos.addAll(visitor.getClassInfos());
 			index++;
 
 			if (System.currentTimeMillis() - lastLog < 1000)
