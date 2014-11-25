@@ -1,15 +1,17 @@
 package de.osthus.esmeralda.handler.csharp;
 
-import java.io.PrintStream;
 import java.util.List;
 import java.util.regex.Matcher;
 
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
@@ -25,7 +27,7 @@ import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class MethodTransformer implements IMethodTransformer
+public class MethodTransformer implements IMethodTransformer, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -40,75 +42,90 @@ public class MethodTransformer implements IMethodTransformer
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
+	protected IProxyFactory proxFactory;
+
+	protected final HashMap<MethodKey, ITransformedMethod> methodTransformationMap = new HashMap<MethodKey, ITransformedMethod>();
+
+	private ITransformedMethod nullTransformedMethod;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		nullTransformedMethod = proxFactory.createProxy(ITransformedMethod.class);
+
+		mapTransformation(java.lang.Class.class, "getSimpleName", "System.Type", "Name", true);
+		mapTransformation(java.lang.Class.class, "getName", "System.Type", "FullName", true);
+		mapTransformation(java.io.PrintStream.class, "println", "System.Console", "WriteLine", false, String.class);
+		mapTransformation(java.io.PrintStream.class, "print", "System.Console", "Write", false, String.class);
+		mapTransformation(java.util.List.class, "size", "System.Collections.ICollection", "Count", true);
+		mapTransformation(java.lang.Object.class, "hashCode", "System.Object", "GetHashCode", false);
+		mapTransformation(java.lang.Object.class, "getClass", "System.Object", "GetType", false);
+	}
+
+	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
+			Class<?>... parameterTypes)
+	{
+		String[] parameters = new String[parameterTypes.length];
+		for (int a = parameterTypes.length; a-- > 0;)
+		{
+			parameters[a] = parameterTypes[a].getName();
+		}
+		methodTransformationMap.put(//
+				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
+				new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false));
+	}
+
+	protected MethodKey buildMethodKey(java.lang.reflect.Method method)
+	{
+		Class<?>[] parameterTypes = method.getParameterTypes();
+		String[] parameters = new String[parameterTypes.length];
+		for (int a = parameterTypes.length; a-- > 0;)
+		{
+			parameters[a] = parameterTypes[a].getName();
+		}
+		return new MethodKey(method.getDeclaringClass().getName(), method.getName(), parameters);
+	}
+
 	@Override
 	public ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes)
 	{
+		IConversionContext context = this.context.getCurrent();
+
 		String[] argTypes = parseArgumentTypes(parameterTypes);
 
-		String nonGenericOwner = owner;
-		Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(owner);
-		if (genericTypeMatcher.matches())
+		String currOwner = owner;
+		while (currOwner != null)
 		{
-			nonGenericOwner = genericTypeMatcher.group(1);
+			String nonGenericOwner = currOwner;
+			Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(currOwner);
+			if (genericTypeMatcher.matches())
+			{
+				nonGenericOwner = genericTypeMatcher.group(1);
+			}
+			ITransformedMethod transformedMethod = methodTransformationMap.get(new MethodKey(nonGenericOwner, methodName, argTypes));
+			if (transformedMethod != null)
+			{
+				return transformedMethod;
+			}
+			JavaClassInfo classInfo = context.resolveClassInfo(currOwner);
+			if (classInfo == null)
+			{
+				throw new IllegalStateException(currOwner);
+			}
+			for (String interfaceName : classInfo.getNameOfInterfaces())
+			{
+				transformedMethod = methodTransformationMap.get(new MethodKey(interfaceName, methodName, argTypes));
+				if (transformedMethod != null)
+				{
+					return transformedMethod;
+				}
+			}
+			currOwner = classInfo.getNameOfSuperClass();
 		}
-		// if (EnumSet.class.getName().equals(nonGenericOwner))
-		// {
-		// // if we handle the enums either as C# enums or as static readonly objects will be decided by the flags-annotation
-		// // TODO: read integrity-xml of .NET and look whether the enum has this annotation
-		// throw new RuntimeException("EnumSet not yet supported");
-		// }
-		// if (Condition.class.getName().equals(nonGenericOwner))
-		// {
-		// // TODO: handle java.concurrent.lock API
-		// throw new RuntimeException("Condition not yet supported");
-		// }
-		// if (owner != null)
-		// {
-		// if (writeOwnerAsType)
-		// {
-		// languageHelper.writeType(owner);
-		// }
-		// else
-		// {
-		// writer.append(owner);
-		// }
-		// writer.append('.');
-		// }
-		// else if (writeMethodDot)
-		// {
-		// writer.append('.');
-		// }
 
-		String transformedOwner = owner;
 		String formattedMethodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
-		boolean isPropertyInvocation = false;
-		if (Class.class.getName().equals(nonGenericOwner))
-		{
-			transformedOwner = "System.Type";
-			if ("getSimpleName".equals(methodName))
-			{
-				formattedMethodName = "Name";
-				isPropertyInvocation = true;
-			}
-			else if ("getName".equals(methodName))
-			{
-				formattedMethodName = "FullName";
-				isPropertyInvocation = true;
-			}
-		}
-		if (PrintStream.class.getName().equals(nonGenericOwner))
-		{
-			transformedOwner = "System.Console";
-			if ("println".equals(methodName))
-			{
-				formattedMethodName = "WriteLine";
-			}
-			else if ("print".equals(methodName))
-			{
-				formattedMethodName = "Write";
-			}
-		}
-		return new TransformedMethod(transformedOwner, formattedMethodName, argTypes, isPropertyInvocation, false);
+		return new TransformedMethod(owner, formattedMethodName, argTypes, false, false);
 	}
 
 	@Override
@@ -120,6 +137,12 @@ public class MethodTransformer implements IMethodTransformer
 	@Override
 	public ITransformedMemberAccess transformFieldAccess(final String owner, final String name)
 	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo internalClassInfo = context.resolveClassInfo(owner + "." + name, true);
+		if (internalClassInfo != null)
+		{
+			return new TransformedMemberAccess(internalClassInfo.getFqName(), null, internalClassInfo.getFqName());
+		}
 		JavaClassInfo classInfo = context.resolveClassInfo(owner);
 		Field field = classInfo.getField(name);
 

@@ -5,7 +5,6 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
@@ -22,37 +21,31 @@ public class CsIfHandler extends AbstractStatementHandler<JCIf> implements IStat
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		final JCStatement thenStatement = ifStatement.getThenStatement();
-		final JCStatement elseStatement = ifStatement.getElseStatement();
-		languageHelper.newLineIntend();
-		writer.append("if (");
+		if (standalone)
+		{
+			languageHelper.newLineIntend();
+		}
+
+		writer.append("if ");
 		languageHelper.writeExpressionTree(ifStatement.getCondition());
-		writer.append(')');
-		languageHelper.scopeIntend(buildThenOrElse(thenStatement));
+
+		JCStatement thenStatement = ifStatement.getThenStatement();
+		handleChildStatement(thenStatement);
+
+		JCStatement elseStatement = ifStatement.getElseStatement();
 		if (elseStatement != null)
 		{
-			languageHelper.scopeIntend(buildThenOrElse(elseStatement));
-		}
-	}
-
-	protected IBackgroundWorkerDelegate buildThenOrElse(final JCStatement statement)
-	{
-		return new IBackgroundWorkerDelegate()
-		{
-			@Override
-			public void invoke() throws Throwable
+			languageHelper.newLineIntend();
+			writer.append("else");
+			if (elseStatement instanceof JCIf)
 			{
-				IConversionContext context = CsIfHandler.this.context.getCurrent();
-				IWriter writer = context.getWriter();
-				if (statement == null)
-				{
-					writer.append(INTENDED_BLANK);
-				}
-				else
-				{
-					handleChildStatement(statement);
-				}
+				writer.append(" ");
+				handle((JCIf) elseStatement, false);
 			}
-		};
+			else
+			{
+				handleChildStatement(elseStatement);
+			}
+		}
 	}
 }

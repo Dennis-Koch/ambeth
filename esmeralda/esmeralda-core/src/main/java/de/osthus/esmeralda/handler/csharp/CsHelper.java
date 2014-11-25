@@ -6,6 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,16 +18,12 @@ import javax.lang.model.element.AnnotationValueVisitor;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.Tree;
-import com.sun.source.util.TreePath;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCImport;
 
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
@@ -36,6 +33,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
@@ -46,7 +44,12 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
+import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.ClassFile;
@@ -62,22 +65,10 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 
 	protected static final HashMap<String, String> implicitJavaImportsMap = new HashMap<String, String>();
 
-	protected static final HashSet<String> nativeTypesSet = new HashSet<String>();
-
 	protected static final HashMap<String, String> annotationTargetMap = new HashMap<String, String>();
 
 	static
 	{
-		nativeTypesSet.add("void");
-		nativeTypesSet.add("boolean");
-		nativeTypesSet.add("char");
-		nativeTypesSet.add("byte");
-		nativeTypesSet.add("short");
-		nativeTypesSet.add("int");
-		nativeTypesSet.add("long");
-		nativeTypesSet.add("float");
-		nativeTypesSet.add("double");
-
 		put("void", "void");
 		put("boolean", "bool");
 		put("char", "char");
@@ -107,9 +98,10 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		put(java.lang.Class.class.getName(), "System.Type");
 		put(java.lang.Class.class.getName() + "<?>", "System.Type");
 		put(java.lang.Exception.class.getName(), "System.Exception");
-		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
 		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
 		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		put(java.lang.Object.class.getName(), "System.Object");
+		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
 		put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
@@ -158,7 +150,13 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	protected IConversionContext context;
 
 	@Autowired
+	protected ILoggerHistory loggerHistory;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IStatementHandlerRegistry statementHandlerRegistry;
 
 	protected final ClassExtendableContainer<IExpressionHandler> expressionHandlers = new ClassExtendableContainer<IExpressionHandler>("expressionHandler",
 			"expressionType");
@@ -445,6 +443,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
 		writer.append('(');
 		for (int a = 0, size = methodArguments.size(); a < size; a++)
 		{
@@ -651,57 +650,63 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			return;
 		}
 		IExpressionHandler expressionHandler = expressionHandlers.getExtension(expression.getClass());
-		if (expressionHandler == null)
+		if (expressionHandler != null)
 		{
-			log.warn("Could not handle expression (" + expression.getKind() + ", " + expression.getClass().getSimpleName() + "): " + expression);
+			expressionHandler.handleExpression(expression);
 			return;
 		}
-		// FIXME For dev: Exceptions from MethodInvocationExpressionHandler stop code processing
-		expressionHandler.handleExpression(expression);
+		handleChildStatement(expression);
+	}
+
+	protected void handleChildStatement(Tree statement)
+	{
+		handleChildStatement(statement, true);
+	}
+
+	protected <T extends Tree> void handleChildStatement(T statement, boolean standalone)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ISnippetManager snippetManager = context.getSnippetManager();
+
+		Kind kind = statement.getKind();
+		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
+		{
+			stmtHandler.handle(statement, standalone);
+		}
+		else if (stmtHandler != null)
+		{
+			context.incremetIndentationLevel();
+			stmtHandler.handle(statement, standalone);
+			context.decremetIndentationLevel();
+		}
+		else if (standalone)
+		{
+			String statementString = statement.toString();
+			List<String> untranslatableStatements = Collections.singletonList(statementString);
+			snippetManager.writeSnippet(untranslatableStatements);
+		}
+		else
+		{
+			throw new IllegalArgumentException("Cannot handle embedded statement " + statement.toString());
+		}
 	}
 
 	@Override
 	public String resolveFqTypeFromTypeName(String typeName)
 	{
-		if (nativeTypesSet.contains(typeName))
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo resolvedClassInfo = context.resolveClassInfo(typeName, true);
+		if (resolvedClassInfo != null)
 		{
-			return typeName;
+			return resolvedClassInfo.getFqName();
 		}
-		if (context.resolveClassInfo(typeName, true) != null)
+		if (log.isWarnEnabled())
 		{
-			return typeName;
-		}
-		// if it is not a variable symbol is can be a simpleName of a class in our current package or in our import scope
-		String fqVariableName = context.getClassInfo().getPackageName() + "." + typeName;
-		if (context.resolveClassInfo(fqVariableName, true) != null)
-		{
-			return fqVariableName;
-		}
-		TreePath treePath = context.getClassInfo().getTreePath();
-		while (!(treePath.getLeaf() instanceof JCCompilationUnit))
-		{
-			treePath = treePath.getParentPath();
-		}
-		for (JCImport importItem : ((JCCompilationUnit) treePath.getLeaf()).getImports())
-		{
-			JCFieldAccess fa = (JCFieldAccess) importItem.getQualifiedIdentifier();
-			String simpleNameOfImport = fa.name.toString();
-			if (typeName.equals(simpleNameOfImport))
-			{
-				return fa.toString();
-			}
-		}
-		// implicit imports java.lang.*
-		try
-		{
-			return Thread.currentThread().getContextClassLoader().loadClass("java.lang." + typeName).getName();
-		}
-		catch (ClassNotFoundException e)
-		{
-			log.warn("Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
+			loggerHistory.warnOnce(log, this, "Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
 					+ context.getClassInfo().getName() + "'");
-			return typeName;
 		}
+		return typeName;
 	}
 
 	@Override

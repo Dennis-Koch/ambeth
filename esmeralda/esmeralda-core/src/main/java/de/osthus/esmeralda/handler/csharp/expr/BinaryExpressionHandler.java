@@ -23,9 +23,19 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" / ", binary);
 				break;
 			}
+			case REMAINDER:
+			{
+				writeSimpleBinary(" % ", binary);
+				break;
+			}
 			case LEFT_SHIFT:
 			{
 				writeSimpleBinary(" << ", binary);
+				break;
+			}
+			case RIGHT_SHIFT:
+			{
+				writeSimpleBinary(" >> ", binary);
 				break;
 			}
 			case MINUS:
@@ -48,9 +58,14 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				writeSimpleBinary(" | ", binary);
 				break;
 			}
+			case XOR:
+			{
+				writeSimpleBinary(" ^ ", binary);
+				break;
+			}
 			case CONDITIONAL_AND:
 			{
-				writeSimpleBinary(" &&", binary);
+				writeSimpleBinary(" && ", binary);
 				break;
 			}
 			case CONDITIONAL_OR:
@@ -97,12 +112,6 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			{
 				writeSimpleBinary(" <= ", binary);
 				context.setTypeOnStack(boolean.class.getName());
-				break;
-			}
-			case XOR:
-			{
-				writeSimpleBinary(" ^ ", binary);
-				context.setTypeOnStack(int.class.getName());
 				break;
 			}
 			default:

@@ -98,8 +98,10 @@ public class ClassInfoDataSetter
 			clazzInfo.setIsEnum(true);
 		}
 		// Set extending class info
-		clazzInfo.setNameOfSuperClass(superClass);
-
+		if (superClass != null && !"<none>".equals(superClass))
+		{
+			clazzInfo.setNameOfSuperClass(superClass);
+		}
 		// Set implementing interface details
 		for (TypeMirror mirror : e.getInterfaces())
 		{

@@ -66,15 +66,65 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	@Override
 	public Field getField(String fieldName)
 	{
+		return getField(fieldName, false);
+	}
+
+	public Field getField(String fieldName, boolean tryOnly)
+	{
 		Field field = fields.get(fieldName);
 		if (field == null)
 		{
+			if ("this".equals(fieldName))
+			{
+				FieldInfo thisField = new FieldInfo();
+				thisField.setOwningClass(this);
+				thisField.setName(fieldName);
+				thisField.setFieldType(getFqName());
+				thisField.setPublicFlag(true);
+				addField(thisField);
+				return thisField;
+			}
 			String nameOfSuperClass = getNameOfSuperClass();
 			if (nameOfSuperClass != null)
 			{
-				return context.resolveClassInfo(nameOfSuperClass).getField(fieldName);
+				JavaClassInfo superClassInfo = context.resolveClassInfo(nameOfSuperClass);
+				if ("super".equals(fieldName))
+				{
+					FieldInfo thisField = new FieldInfo();
+					thisField.setOwningClass(this);
+					thisField.setName(fieldName);
+					thisField.setFieldType(superClassInfo.getFqName());
+					thisField.setPublicFlag(true);
+					addField(thisField);
+					return thisField;
+				}
+				if (superClassInfo != null)
+				{
+					Field fieldFromSuper = superClassInfo.getField(fieldName, true);
+					if (fieldFromSuper != null)
+					{
+						return fieldFromSuper;
+					}
+				}
 			}
-			throw new IllegalArgumentException("No field found: " + getPackageName() + "." + getName() + "." + fieldName);
+			for (String interfaceName : getNameOfInterfaces())
+			{
+				JavaClassInfo interfaceCI = context.resolveClassInfo(interfaceName);
+				if (interfaceCI == null)
+				{
+					continue;
+				}
+				Field fieldFromInterface = interfaceCI.getField(fieldName, true);
+				if (fieldFromInterface != null)
+				{
+					return fieldFromInterface;
+				}
+			}
+			if (tryOnly)
+			{
+				return null;
+			}
+			throw new IllegalArgumentException("No field found: " + getFqName() + "." + fieldName);
 		}
 		return field;
 	}
@@ -262,7 +312,11 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	@Override
 	public String getFqName()
 	{
-		return getPackageName() + "." + getName();
+		if (getPackageName() != null)
+		{
+			return getPackageName() + "." + getName();
+		}
+		return getName();
 	}
 
 	@Override

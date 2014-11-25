@@ -76,13 +76,18 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else if (meth.selected instanceof JCFieldAccess)
 			{
 				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
-				languageHelper.writeExpressionTree(fieldAccess);
-				owner = null;
-				if (fieldAccess.type == null)
-				{// TODO: handle this case. Is this an error in the sources? Is there something missing?
-					throw new TypeResolveException("No type in method invocation '" + methodInvocation + "'");
+				JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.toString(), true);
+				if (classInfoFromFA != null)
+				{
+					typeOfOwner = classInfoFromFA.getFqName();
+					writeOwnerAsType = true;
 				}
-				typeOfOwner = context.resolveClassInfo(fieldAccess.type.toString()).getFqName();
+				else
+				{
+					languageHelper.writeExpressionTree(fieldAccess);
+					typeOfOwner = context.getTypeOnStack();
+				}
+				owner = null;
 				writeMethodDot = true;
 			}
 			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
@@ -126,7 +131,11 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		{
 			languageHelper.writeType(transformedMethod.getOwner());
 		}
-		if (writeMethodDot)
+		else if (owner != null)
+		{
+			writer.append(owner);
+		}
+		if (writeMethodDot || owner != null)
 		{
 			writer.append('.');
 		}
@@ -176,6 +185,10 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		while (currOwner != null)
 		{
 			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);
+			if (ownerInfo == null)
+			{
+				throw new IllegalStateException("ClassInfo not resolved: '" + currOwner + "'");
+			}
 			for (Method method : ownerInfo.getMethods())
 			{
 				if (!method.getName().equals(methodName))

@@ -31,9 +31,9 @@ import demo.codeanalyzer.common.model.Method;
 
 public class SnippetManager implements ISnippetManager, IInitializingBean
 {
-	private static final String TAB_EQUIVALENT = "    ";
+	// static final String TAB_EQUIVALENT = "    ";
 
-	private static final Pattern PATTERN_START_TABS = Pattern.compile("^(" + TAB_EQUIVALENT + ")+");
+	// private static final Pattern PATTERN_START_TABS = Pattern.compile("^(" + TAB_EQUIVALENT + ")+");
 
 	private static final Pattern PATTERN_NL = Pattern.compile("[\\n\\r]+");
 
