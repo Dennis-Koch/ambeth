@@ -48,10 +48,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 					final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
 					if (stmtHandler != null)
 					{
-						// Important to check here to keep the code in order
-						checkUntranslatableList(untranslatableStatements, snippetManager);
-
-						final StatementTree fstatement = statement;
+						final StatementTree fStatement = statement;
 						try
 						{
 							String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
@@ -59,15 +56,20 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 								@Override
 								public void invoke() throws Throwable
 								{
-									stmtHandler.handle(fstatement);
+									stmtHandler.handle(fStatement);
 								}
 							});
+
+							// Important to check here to keep the code in order
+							checkUntranslatableList(untranslatableStatements, snippetManager);
+
 							context.getWriter().append(statementString);
 						}
 						catch (TypeResolveException e)
 						{
 							log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
 									+ statement.toString());
+
 							String untranslatableStatement = statement.toString();
 							untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
 							untranslatableStatements.add(untranslatableStatement);
