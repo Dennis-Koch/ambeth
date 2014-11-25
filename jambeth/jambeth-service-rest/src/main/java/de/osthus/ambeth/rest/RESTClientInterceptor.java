@@ -11,17 +11,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import net.sf.cglib.proxy.MethodProxy;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import com.sun.jersey.api.client.AsyncWebResource;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
@@ -30,6 +27,8 @@ import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
 import de.osthus.ambeth.remote.IRemoteInterceptor;
 import de.osthus.ambeth.service.IOfflineListener;
@@ -40,6 +39,9 @@ import de.osthus.ambeth.xml.ICyclicXMLHandler;
 
 public class RESTClientInterceptor extends AbstractSimpleInterceptor implements IStartingBean, IRemoteInterceptor, IOfflineListener, IDisposableBean
 {
+
+	@LogInstance
+	private ILogger log;
 
 	private Lock clientLock = new ReentrantLock();
 
@@ -71,13 +73,31 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 
 	protected volatile boolean destroyed;
 
-	private WebTarget baseTarget;
+	// Jersey 2.8
+	// private WebTarget baseTarget;
+
+	// Jersey 1.1.4.1
+	// private WebResource baseTarget;
+	private Client jerseyClient;
+	private AsyncWebResource baseTarget;
 
 	@Override
 	public void afterStarted() throws Throwable
 	{
 		String baseUrl = serviceBaseUrl + "/" + serviceName + "/";
-		baseTarget = ClientBuilder.newClient(new ClientConfig()).target(baseUrl);
+		// Jersey 1.1.4.1
+		jerseyClient = Client.create();
+
+		// if (log.isDebugEnabled())
+		// {
+		// jerseyClient.addFilter(new LoggingFilter());
+		// }
+
+		baseTarget = jerseyClient.asyncResource(baseUrl);
+		// baseTarget = Client.create().resource(baseUrl);
+
+		// Jersey 2.8
+		// baseTarget = ClientBuilder.newClient(new ClientConfig()).target(baseUrl);
 	}
 
 	@Override
@@ -113,14 +133,26 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		// MethodInfo method = invocation.Method;
 		// String restUrl = serviceBaseUrl + "/" + serviceName + "/" + method.getName();
 
-		WebTarget callTarget = baseTarget.path(method.getName());
+		// 2.8
+		// WebTarget callTarget = baseTarget.path(method.getName());
+
+		// 1.1.4.1
+		AsyncWebResource callTarget = baseTarget.path(method.getName());
+
 		setAuthorization(callTarget);
 
 		// WebTarget target = client.target(restUrl);
 		PipedOutputStream pos = new PipedOutputStream();
 		InputStream inputStream = new PipedInputStream(pos);
-		AsyncInvoker asyncInvoker = callTarget.request().async();
-		Future<Response> responseFuture = asyncInvoker.post(Entity.entity(inputStream, MediaType.APPLICATION_OCTET_STREAM));
+
+		// jersey 2.8
+		// AsyncInvoker asyncInvoker = callTarget.request().async();
+		// Future<Response> responseFuture = asyncInvoker.post(Entity.entity(inputStream, MediaType.APPLICATION_OCTET_STREAM));
+
+		// jersey 1.1.4.1
+		Future<ClientResponse> responseFuture = callTarget.accept(MediaType.APPLICATION_OCTET_STREAM).type(MediaType.APPLICATION_OCTET_STREAM)
+				.post(ClientResponse.class, inputStream);
+
 		try
 		{
 			cyclicXMLHandler.writeToStream(pos, args);
@@ -129,9 +161,18 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		{
 			pos.close();
 		}
-		Response restResponse = responseFuture.get();
+		// jersey 2.8
+		// Response restResponse = responseFuture.get();
 
-		InputStream responseStream = (InputStream) restResponse.getEntity();
+		// jersey 1.1.4.1
+		ClientResponse restResponse = responseFuture.get();
+
+		// jersey 2.8
+		// InputStream responseStream = (InputStream) restResponse.getEntity();
+
+		// jersey 1.1.4.1
+		InputStream responseStream = restResponse.getEntityInputStream();
+
 		if (responseStream.available() > 0)
 		{
 			Object responseEntity = cyclicXMLHandler.readFromStream(responseStream);
@@ -232,7 +273,7 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		throw new RuntimeException("Can not convert result " + result + " to expected type " + expectedType.getName());
 	}
 
-	protected void setAuthorization(WebTarget client)
+	protected void setAuthorization(AsyncWebResource callTarget)
 	{
 		String[] authentication = authenticationHolder.getAuthentication();
 		String userName = authentication[0];
@@ -241,9 +282,13 @@ public class RESTClientInterceptor extends AbstractSimpleInterceptor implements 
 		{
 			return;
 		}
-		// authInfo = DatatypeConverter.printBase64Binary(authInfo.getBytes(StandardCharsets.UTF_8));
-		HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basic(userName, password);
-		client.register(authFeature);
+
+		// jersey 2.8
+		// HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basic(userName, password);
+		// client.register(authFeature);
+
+		// jersey 1.1.4.1
+		callTarget.addFilter(new HTTPBasicAuthFilter(userName, password));
 	}
 
 	@Override
