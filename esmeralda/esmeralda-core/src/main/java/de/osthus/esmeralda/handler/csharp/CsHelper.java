@@ -1,6 +1,7 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import java.io.File;
+import java.io.StringWriter;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -23,6 +24,7 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -41,12 +43,14 @@ import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
+import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -59,8 +63,6 @@ import demo.codeanalyzer.common.model.Method;
 
 public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 {
-	protected static final Pattern commaSplitPattern = Pattern.compile(",");
-
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
 	protected static final HashMap<String, String> implicitJavaImportsMap = new HashMap<String, String>();
@@ -251,7 +253,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 				writer.append('<');
 
 				String typeArguments = genericTypeMatcher.group(2);
-				String[] typeArgumentsSplit = commaSplitPattern.split(typeArguments);
+				String[] typeArgumentsSplit = splitTypeArgument(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
@@ -701,12 +703,13 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			return resolvedClassInfo.getFqName();
 		}
-		if (log.isWarnEnabled())
-		{
-			loggerHistory.warnOnce(log, this, "Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
-					+ context.getClassInfo().getName() + "'");
-		}
-		return typeName;
+		throw new TypeResolveException(typeName);
+		// if (log.isWarnEnabled())
+		// {
+		// loggerHistory.warnOnce(log, this, "Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
+		// + context.getClassInfo().getName() + "'");
+		// }
+		// return typeName;
 	}
 
 	@Override
@@ -759,5 +762,68 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			throw RuntimeExceptionUtil.mask(e, "Could not resolve symbol name '" + variableName + "' on method signature: " + method);
 		}
+	}
+
+	@Override
+	public String writeToStash(IBackgroundWorkerDelegate run)
+	{
+		IConversionContext context = this.context.getCurrent();
+		StringWriter stringWriter = new StringWriter();
+		IWriter oldWriter = context.getWriter();
+		context.setWriter(new EsmeraldaWriter(stringWriter));
+		try
+		{
+			run.invoke();
+			return stringWriter.toString();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.setWriter(oldWriter);
+		}
+	}
+
+	protected String[] splitTypeArgument(String typeArguments)
+	{
+		ArrayList<String> splittedTypeArguments = new ArrayList<String>();
+		int genericLevelCount = 0;
+		StringBuilder collectedTypeArgument = new StringBuilder();
+		for (int a = 0, size = typeArguments.length(); a < size; a++)
+		{
+			char oneChar = typeArguments.charAt(a);
+			if (genericLevelCount > 0)
+			{
+				collectedTypeArgument.append(oneChar);
+				if (oneChar == '>')
+				{
+					genericLevelCount--;
+				}
+				else if (oneChar == '<')
+				{
+					genericLevelCount++;
+				}
+				continue;
+			}
+			if (genericLevelCount == 0 && oneChar == ',')
+			{
+				splittedTypeArguments.add(collectedTypeArgument.toString());
+				collectedTypeArgument.setLength(0);
+				continue;
+			}
+			collectedTypeArgument.append(oneChar);
+			if (oneChar == '<')
+			{
+				genericLevelCount++;
+			}
+		}
+		if (collectedTypeArgument.length() > 0)
+		{
+			splittedTypeArguments.add(collectedTypeArgument.toString());
+			collectedTypeArgument.setLength(0);
+		}
+		return splittedTypeArguments.toArray(String.class);
 	}
 }

@@ -25,14 +25,9 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 				writeSimpleUnary("~", unary);
 				break;
 			}
-			case PREFIX_DECREMENT:
+			case LOGICAL_COMPLEMENT:
 			{
-				writeSimpleUnary("--", unary);
-				break;
-			}
-			case PREFIX_INCREMENT:
-			{
-				writeSimpleUnary("++", unary);
+				writeSimpleUnary("!", unary);
 				break;
 			}
 			case POSTFIX_DECREMENT:
@@ -45,9 +40,24 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 				writeSimpleUnary(unary, "++");
 				break;
 			}
-			case LOGICAL_COMPLEMENT:
+			case PREFIX_DECREMENT:
 			{
-				writeSimpleUnary("!", unary);
+				writeSimpleUnary("--", unary);
+				break;
+			}
+			case PREFIX_INCREMENT:
+			{
+				writeSimpleUnary("++", unary);
+				break;
+			}
+			case UNARY_MINUS:
+			{
+				writeSimpleUnary("-", unary);
+				break;
+			}
+			case UNARY_PLUS:
+			{
+				writeSimpleUnary("+", unary);
 				break;
 			}
 			default:
@@ -55,23 +65,23 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 		}
 	}
 
-	protected void writeSimpleUnary(String prefix, JCUnary binary)
+	protected void writeSimpleUnary(String prefix, JCUnary unary)
 	{
-		writeSimpleUnary(prefix, binary, "");
+		writeSimpleUnary(prefix, unary, "");
 	}
 
-	protected void writeSimpleUnary(JCUnary binary, String postfix)
+	protected void writeSimpleUnary(JCUnary unary, String postfix)
 	{
-		writeSimpleUnary("", binary, postfix);
+		writeSimpleUnary("", unary, postfix);
 	}
 
-	protected void writeSimpleUnary(String prefix, JCUnary binary, String postfix)
+	protected void writeSimpleUnary(String prefix, JCUnary unary, String postfix)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
 		writer.append(prefix);
-		languageHelper.writeExpressionTree(binary.arg);
+		languageHelper.writeExpressionTree(unary.arg);
 		writer.append(postfix);
 	}
 }

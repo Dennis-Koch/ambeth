@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +33,6 @@ import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.EsmeType;
-import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -68,7 +66,16 @@ public class CsClassHandler implements INodeHandlerExtension
 	public void handle(Tree astNode)
 	{
 		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo classInfo = context.getClassInfo();
+		final JavaClassInfo classInfo = context.getClassInfo();
+
+		IBackgroundWorkerDelegate writeToWriterDelegate = new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				writeToWriter(classInfo);
+			}
+		};
 
 		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
 		// without ambiguity
@@ -77,8 +84,7 @@ public class CsClassHandler implements INodeHandlerExtension
 		context.setUsedTypes(usedTypes);
 		try
 		{
-			context.setWriter(new EsmeraldaWriter(new StringWriter()));
-			writeToWriter(classInfo);
+			languageHelper.writeToStash(writeToWriterDelegate);
 		}
 		catch (SkipGenerationException e)
 		{
@@ -86,7 +92,6 @@ public class CsClassHandler implements INodeHandlerExtension
 		}
 		finally
 		{
-			context.setWriter(null);
 			context.setUsedTypes(null);
 			context.setDryRun(false);
 		}
@@ -147,15 +152,10 @@ public class CsClassHandler implements INodeHandlerExtension
 		context.setImports(imports);
 		try
 		{
-			StringWriter writer = new StringWriter();
-			context.setWriter(new EsmeraldaWriter(writer));
-			writeToWriter(classInfo);
-
-			newFileContent = writer.toString();
+			newFileContent = languageHelper.writeToStash(writeToWriterDelegate);
 		}
 		finally
 		{
-			context.setWriter(null);
 			context.setImports(null);
 			context.setUsings(null);
 		}

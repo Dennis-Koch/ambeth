@@ -131,4 +131,10 @@ public class JsHelper implements IJsHelper
 		return null;
 	}
 
+	@Override
+	public String writeToStash(IBackgroundWorkerDelegate run)
+	{
+		return null;
+	}
+
 }

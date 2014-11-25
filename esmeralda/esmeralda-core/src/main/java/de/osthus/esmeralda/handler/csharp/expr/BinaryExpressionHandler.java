@@ -4,6 +4,7 @@ import com.sun.tools.javac.tree.JCTree.JCBinary;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -14,8 +15,10 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	private ILogger log;
 
 	@Override
-	protected void handleExpressionIntern(JCBinary binary)
+	protected void handleExpressionIntern(final JCBinary binary)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 		switch (binary.getKind())
 		{
 			case DIVIDE:
@@ -112,6 +115,29 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			{
 				writeSimpleBinary(" <= ", binary);
 				context.setTypeOnStack(boolean.class.getName());
+				break;
+			}
+			case UNSIGNED_RIGHT_SHIFT:
+			{
+				languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						writeSimpleBinary(" >> ", binary);
+					}
+				});
+				String typeOnStack = context.getTypeOnStack();
+				if (Integer.TYPE.getName().equals(typeOnStack))
+				{
+					writer.append("(int)((uint)");
+					writeSimpleBinary(" >> ", binary);
+					writer.append(')');
+				}
+				else
+				{
+					System.out.println("ABC");
+				}
 				break;
 			}
 			default:

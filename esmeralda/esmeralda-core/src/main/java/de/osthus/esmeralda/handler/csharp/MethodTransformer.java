@@ -12,6 +12,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IProxyFactory;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
@@ -20,9 +21,6 @@ import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
 import de.osthus.esmeralda.handler.TransformedMethod;
-import de.osthus.esmeralda.misc.EsmeraldaWriter;
-import de.osthus.esmeralda.misc.IWriter;
-import de.osthus.esmeralda.misc.NoOpWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -149,25 +147,23 @@ public class MethodTransformer implements IMethodTransformer, IInitializingBean
 		return new TransformedMemberAccess(owner, name, field.getFieldType());
 	}
 
-	protected String[] parseArgumentTypes(List<JCExpression> parameterTypes)
+	protected String[] parseArgumentTypes(final List<JCExpression> parameterTypes)
 	{
-		IWriter oldWriter = context.getWriter();
-		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
-		try
+		final String[] argTypes = new String[parameterTypes.size()];
+		languageHelper.writeToStash(new IBackgroundWorkerDelegate()
 		{
-			String[] argTypes = new String[parameterTypes.size()];
-			for (int a = 0, size = parameterTypes.size(); a < size; a++)
+			@Override
+			public void invoke() throws Throwable
 			{
-				JCExpression arg = parameterTypes.get(a);
-				languageHelper.writeExpressionTree(arg);
-				String typeOnStack = context.getTypeOnStack();
-				argTypes[a] = typeOnStack;
+				for (int a = 0, size = parameterTypes.size(); a < size; a++)
+				{
+					JCExpression arg = parameterTypes.get(a);
+					languageHelper.writeExpressionTree(arg);
+					String typeOnStack = context.getTypeOnStack();
+					argTypes[a] = typeOnStack;
+				}
 			}
-			return argTypes;
-		}
-		finally
-		{
-			context.setWriter(oldWriter);
-		}
+		});
+		return argTypes;
 	}
 }
