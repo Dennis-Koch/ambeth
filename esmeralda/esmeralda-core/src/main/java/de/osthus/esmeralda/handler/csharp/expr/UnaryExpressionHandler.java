@@ -20,6 +20,11 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 		Kind kind = unary.getKind();
 		switch (kind)
 		{
+			case BITWISE_COMPLEMENT:
+			{
+				writeSimpleUnary("~", unary);
+				break;
+			}
 			case PREFIX_DECREMENT:
 			{
 				writeSimpleUnary("--", unary);
