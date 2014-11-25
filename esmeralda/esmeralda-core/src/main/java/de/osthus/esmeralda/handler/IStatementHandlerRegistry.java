@@ -1,8 +1,8 @@
 package de.osthus.esmeralda.handler;
 
-import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.Tree;
 
 public interface IStatementHandlerRegistry
 {
-	<T extends StatementTree> IStatementHandlerExtension<T> get(String key);
+	<T extends Tree> IStatementHandlerExtension<T> get(String key);
 }

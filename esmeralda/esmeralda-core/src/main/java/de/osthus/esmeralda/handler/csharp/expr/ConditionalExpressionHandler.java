@@ -14,17 +14,15 @@ public class ConditionalExpressionHandler extends AbstractExpressionHandler<JCCo
 	private ILogger log;
 
 	@Override
-	protected void handleExpressionIntern(JCConditional conditional)
+	protected void handleExpressionIntern(JCConditional expression)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.writeExpressionTree(conditional.cond);
+		languageHelper.writeExpressionTree(expression.getCondition());
 		writer.append(" ? ");
-		languageHelper.writeExpressionTree(conditional.truepart);
+		languageHelper.writeExpressionTree(expression.getTrueExpression());
 		writer.append(" : ");
-		languageHelper.writeExpressionTree(conditional.falsepart);
-
-		// type on stack because of falsePart is considered as the current stack type of the conditional expression
+		languageHelper.writeExpressionTree(expression.getFalseExpression());
 	}
 }

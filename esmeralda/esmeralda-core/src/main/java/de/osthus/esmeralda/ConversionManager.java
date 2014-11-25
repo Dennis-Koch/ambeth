@@ -25,6 +25,7 @@ import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.misc.EsmeType;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class ConversionManager implements IStartingBean
@@ -112,12 +113,19 @@ public class ConversionManager implements IStartingBean
 				throw new IllegalStateException("Full qualified name is not unique: " + fqName);
 			}
 		}
+
+		StatementCount csMetric = new StatementCount("C#");
+		StatementCount jsMetric = new StatementCount("JS");
+		int classInfoProgress = 0, classInfoCount = classInfos.size();
+		long lastLog = System.currentTimeMillis();
+
 		for (JavaClassInfo classInfo : classInfos)
 		{
 			String packageName = classInfo.getPackageName();
 			if (packageName == null)
 			{
 				log.warn("Skipped classinfo without a package name: " + classInfo);
+				classInfoCount--;
 				continue;
 			}
 
@@ -126,6 +134,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
+			csContext.setMetric(csMetric);
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
 			csContext.setClassInfoFactory(classInfoFactory);
@@ -137,11 +146,27 @@ public class ConversionManager implements IStartingBean
 			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
+			csContext.setMetric(jsMetric);
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
 			csContext.setClassInfoFactory(classInfoFactory);
 
 			invokeNodeHandler(jsClassHandler, jsContext);
+
+			classInfoProgress++;
+			if (System.currentTimeMillis() - lastLog < 5000)
+			{
+				continue;
+			}
+			log.info("Handled " + ((int) ((classInfoProgress * 10000) / (double) classInfoCount)) / 100.0 + "% of java source. Last conversion '"
+					+ classInfo.toString() + "'");
+			lastLog = System.currentTimeMillis();
+		}
+
+		if (log.isInfoEnabled())
+		{
+			log.info(csMetric.toString());
+			log.info(jsMetric.toString());
 		}
 	}
 

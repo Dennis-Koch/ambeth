@@ -18,6 +18,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -66,6 +67,8 @@ public class ConversionContext implements IConversionContext
 	private boolean dryRun = false;
 
 	private String typeOnStack;
+
+	private StatementCount metric;
 
 	protected IClassInfoFactory classInfoFactory;
 
@@ -168,6 +171,15 @@ public class ConversionContext implements IConversionContext
 	@Override
 	public JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly)
 	{
+		return resolveClassInfo(fqTypeName, tryOnly, true);
+	}
+
+	protected JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly, boolean cascadeSearch)
+	{
+		if ("<none>".equals(fqTypeName))
+		{
+			return null;
+		}
 		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);
 		fqTypeName = getResolveGenericFqTypeName(fqTypeName);
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
@@ -175,9 +187,29 @@ public class ConversionContext implements IConversionContext
 		{
 			return classInfo;
 		}
-		if ("<none>".equals(fqTypeName))
+		boolean isSimpleName = (fqTypeName.indexOf('.') == -1);
+		if (isSimpleName && cascadeSearch)
 		{
-			return null;
+			JavaClassInfo contextualClassInfo = getClassInfo();
+			if (contextualClassInfo != null)
+			{
+				// if it is not a variable symbol is can be a simpleName of a class in our current package or in our import scope
+				classInfo = resolveClassInfo(contextualClassInfo.getFqName() + "." + fqTypeName, true, false);
+				if (classInfo != null)
+				{
+					return classInfo;
+				}
+				classInfo = resolveClassInfo(contextualClassInfo.getPackageName() + "." + fqTypeName, true, false);
+				if (classInfo != null)
+				{
+					return classInfo;
+				}
+			}
+		}
+		classInfo = fqNameToClassInfoMap.get("java.lang." + fqTypeName);
+		if (classInfo != null)
+		{
+			return classInfo;
 		}
 		if (fqTypeName.equals(ClassLoader.class.getName()))
 		{
@@ -188,11 +220,11 @@ public class ConversionContext implements IConversionContext
 		{
 			String nonGenericType = genericTypeMatcher.group(1);
 			String genericTypeArguments = genericTypeMatcher.group(2);
-			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType);
+			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
 			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
 		}
-		JavaClassInfo javaClassInfo = classInfoFactory.createClassInfo(fqTypeName);
-		if (javaClassInfo == null)
+		classInfo = classInfoFactory.createClassInfo(fqTypeName);
+		if (classInfo == null && isSimpleName && cascadeSearch)
 		{
 			TreePath treePath = getClassInfo().getTreePath();
 			while (!(treePath.getLeaf() instanceof JCCompilationUnit))
@@ -202,36 +234,40 @@ public class ConversionContext implements IConversionContext
 			for (JCImport importItem : ((JCCompilationUnit) treePath.getLeaf()).getImports())
 			{
 				JCFieldAccess fa = (JCFieldAccess) importItem.getQualifiedIdentifier();
-				String simpleNameOfImport = fa.name.toString();
-				if (fqTypeName.equals(simpleNameOfImport))
+				String simpleNameOfImport = fa.getIdentifier().toString();
+				if ("*".equals(simpleNameOfImport))
 				{
-					return resolveClassInfo(fa.toString(), tryOnly);
+					// try the basePackage with the simpleName
+					classInfo = resolveClassInfo(fa.getExpression().toString() + "." + fqTypeName, true, false);
+					if (classInfo != null)
+					{
+						return classInfo;
+					}
 				}
-			}
-			// implicit imports java.lang.*
-			try
-			{
-				return resolveClassInfo(Thread.currentThread().getContextClassLoader().loadClass("java.lang." + fqTypeName).getName(), tryOnly);
-			}
-			catch (Throwable e)
-			{
-				if (tryOnly)
+				else if (fqTypeName.equals(simpleNameOfImport))
 				{
-					return null;
+					classInfo = resolveClassInfo(fa.toString(), true, false);
+					if (classInfo != null)
+					{
+						return classInfo;
+					}
 				}
-				throw new TypeResolveException(fqTypeName);
 			}
 		}
-		if (!fqNameToClassInfoMap.putIfNotExists(fqTypeName, javaClassInfo))
+		if (classInfo == null)
 		{
-			throw new IllegalStateException("Duplicate type registration: " + fqTypeName);
+			if (tryOnly)
+			{
+				return null;
+			}
+			throw new TypeResolveException(fqTypeName);
 		}
-		return javaClassInfo;
-		// if (fqTypeName.contains(".repackaged."))
-		// {
-		// throw new SkipGenerationException();
-		// }
-		// throw new TypeResolveException(fqTypeName);
+		if (!fqNameToClassInfoMap.putIfNotExists(fqTypeName, classInfo))
+		{
+			log.warn("Duplicate type registration: " + fqTypeName);
+			classInfo = fqNameToClassInfoMap.get(fqTypeName);
+		}
+		return classInfo;
 	}
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
@@ -425,6 +461,18 @@ public class ConversionContext implements IConversionContext
 	public void setTypeOnStack(String typeOnStack)
 	{
 		this.typeOnStack = typeOnStack;
+	}
+
+	@Override
+	public StatementCount getMetric()
+	{
+		return metric;
+	}
+
+	@Override
+	public void setMetric(StatementCount metric)
+	{
+		this.metric = metric;
 	}
 
 	@Override

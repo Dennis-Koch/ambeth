@@ -23,6 +23,8 @@ public class TestService2 implements IInitializingBean
 	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
+		boolean check = true;
+		int var = check ? 1 : 0;
 	}
 
 	public void setConversionHelper(IConversionHelper conversionHelper)
@@ -34,17 +36,31 @@ public class TestService2 implements IInitializingBean
 	public void overloadedMethod(String stringParam)
 	{
 		boolean print = true;
-		while (print) {
+		while (print)
+		{
 			System.out.println(stringParam);
 			print = false;
 		}
+		print = true;
+		do
+		{
+			System.out.println(stringParam);
+			print = false;
+		}
+		while (print);
 	}
 
 	public void overloadedMethod(Integer intParam)
 	{
-		if (intParam != null) {
-			System.out.println(intParam);
-		} else
+		if (intParam == null)
+		{
 			System.out.println(0);
+		}
+		else if (intParam < 0)
+		{
+			System.out.println("neg.");
+		}
+		else
+			System.out.println(intParam);
 	}
 }

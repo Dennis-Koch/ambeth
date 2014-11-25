@@ -76,9 +76,10 @@ public class MethodInfoDataSetter
 		{
 			TreePath parentTreePath = path.getParentPath();
 			final ArrayList<Object> allVariables = new ArrayList<Object>();
+			final ArrayList<VariableTree> allVariablesFromMethodSignature = new ArrayList<VariableTree>();
 			for (VariableTree parameter : methodTree.getParameters())
 			{
-				allVariables.add(parameter);
+				allVariablesFromMethodSignature.add(parameter);
 			}
 			while (!(parentTreePath.getLeaf() instanceof JCCompilationUnit))
 			{
@@ -118,7 +119,7 @@ public class MethodInfoDataSetter
 				}
 				parentTreePath = parentTreePath.getParentPath();
 			}
-			final ArrayList<IVariable> allUsedVariables = new ArrayList<IVariable>();
+			ArrayList<IVariable> allUsedVariables = new ArrayList<IVariable>();
 
 			methodTree.getBody().accept(new TreeScanner<Object, List<IVariable>>()
 			{
@@ -134,6 +135,16 @@ public class MethodInfoDataSetter
 					if ("super".equals(name))
 					{
 						return super.visitIdentifier(identifierTree, allUsedVariables);
+					}
+					for (VariableTree variable : allVariablesFromMethodSignature)
+					{
+						JCVariableDecl variableDecl = (JCVariableDecl) variable;
+						String variableName = variableDecl.getName().toString();
+						if (variableName.equals(name))
+						{
+							// current identifier is a simple method argument
+							return super.visitIdentifier(identifierTree, allUsedVariables);
+						}
 					}
 					for (Object variable : allVariables)
 					{

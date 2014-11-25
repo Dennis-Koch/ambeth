@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -19,6 +20,7 @@ import javax.lang.model.type.TypeVisitor;
 
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.EmptySet;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -28,9 +30,25 @@ import demo.codeanalyzer.common.model.BaseJavaClassModelInfo;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.MethodInfo;
+import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ClassInfoFactory implements IClassInfoFactory
 {
+	public static final HashMap<String, Class<?>> nativeTypesSet = new HashMap<String, Class<?>>();
+
+	static
+	{
+		nativeTypesSet.put("void", Void.TYPE);
+		nativeTypesSet.put("boolean", Boolean.TYPE);
+		nativeTypesSet.put("char", Character.TYPE);
+		nativeTypesSet.put("byte", Byte.TYPE);
+		nativeTypesSet.put("short", Short.TYPE);
+		nativeTypesSet.put("int", Integer.TYPE);
+		nativeTypesSet.put("long", Long.TYPE);
+		nativeTypesSet.put("float", Float.TYPE);
+		nativeTypesSet.put("double", Double.TYPE);
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -63,17 +81,16 @@ public class ClassInfoFactory implements IClassInfoFactory
 		}
 		JavaClassInfo classInfo = new JavaClassInfo(context);
 
-		Class<?> type;
-		try
-		{
-			type = Thread.currentThread().getContextClassLoader().loadClass(fqName);
-		}
-		catch (Throwable e)
+		Class<?> type = loadClass(fqName);
+		if (type == null)
 		{
 			return null;
 		}
 		classInfo.setName(type.getSimpleName());
-		classInfo.setPackageName(type.getPackage().getName());
+		if (type.getPackage() != null)
+		{
+			classInfo.setPackageName(type.getPackage().getName());
+		}
 		if (type.getSuperclass() != null)
 		{
 			classInfo.setNameOfSuperClass(type.getSuperclass().getName());
@@ -97,6 +114,44 @@ public class ClassInfoFactory implements IClassInfoFactory
 			classInfo.addMethod(mockMethod(classInfo, declaredMethod));
 		}
 		return classInfo;
+	}
+
+	protected Class<?> loadClass(String fqTypeName)
+	{
+		Class<?> nativeType = nativeTypesSet.get(fqTypeName);
+		if (nativeType != null)
+		{
+			return nativeType;
+		}
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		try
+		{
+			try
+			{
+				return classLoader.loadClass(fqTypeName);
+			}
+			catch (ClassNotFoundException e)
+			{
+				return classLoader.loadClass("java.lang." + fqTypeName);
+			}
+		}
+		catch (Throwable e)
+		{
+			// Intended blank
+		}
+		Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(fqTypeName);
+		if (!matcher.matches())
+		{
+			return null;
+		}
+		String packageName = matcher.group(1);
+		String simpleName = matcher.group(2);
+		Class<?> parentClass = loadClass(packageName);
+		if (parentClass == null)
+		{
+			return null;
+		}
+		return loadClass(parentClass.getName() + "$" + simpleName);
 	}
 
 	protected FieldInfo mockField(JavaClassInfo owner, java.lang.reflect.Field field)
