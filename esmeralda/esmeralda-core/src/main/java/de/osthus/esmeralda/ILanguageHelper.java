@@ -54,4 +54,6 @@ public interface ILanguageHelper
 	String resolveTypeFromVariableName(String variableName);
 
 	String resolveFqTypeFromTypeName(String typeName);
+
+	String writeToStash(IBackgroundWorkerDelegate run);
 }

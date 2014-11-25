@@ -14,13 +14,85 @@ public class AssignOpExpressionHandler extends AbstractExpressionHandler<JCAssig
 	private ILogger log;
 
 	@Override
-	protected void handleExpressionIntern(JCAssignOp expression)
+	protected void handleExpressionIntern(JCAssignOp assignOp)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-
-		languageHelper.writeExpressionTree(expression.lhs);
-		writer.append(" ").append(expression.operator.name).append("= ");
-		languageHelper.writeExpressionTree(expression.rhs);
+		switch (assignOp.getKind())
+		{
+			case AND_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" &= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case DIVIDE_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" /= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case LEFT_SHIFT_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" <<= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case MINUS_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" -= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case MULTIPLY_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" *= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case OR_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" |= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case PLUS_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" += ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case RIGHT_SHIFT_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" >>= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case XOR_ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" ^= ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			case ASSIGNMENT:
+			{
+				languageHelper.writeExpressionTree(assignOp.lhs);
+				writer.append(" = ");
+				languageHelper.writeExpressionTree(assignOp.rhs);
+				break;
+			}
+			default:
+				log.warn("Could not handle assignment of type " + assignOp.getKind() + ": " + assignOp);
+		}
+		context.setTypeOnStack(null);
 	}
 }
