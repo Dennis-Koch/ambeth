@@ -64,13 +64,33 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 				{
 					String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
 					{
-						@Override
-						public void invoke() throws Throwable
+						final StatementTree fStatement = statement;
+						try
 						{
-							stmtHandler.handle(fstatement);
+							String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+							{
+								@Override
+								public void invoke() throws Throwable
+								{
+									stmtHandler.handle(fStatement);
+								}
+							});
+
+							// Important to check here to keep the code in order
+							checkUntranslatableList(untranslatableStatements, snippetManager);
+
+							context.getWriter().append(statementString);
 						}
-					});
-					context.getWriter().append(statementString);
+						catch (TypeResolveException e)
+						{
+							log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
+									+ statement.toString());
+
+							String untranslatableStatement = statement.toString();
+							untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
+							untranslatableStatements.add(untranslatableStatement);
+						}
+					}
 				}
 				catch (TypeResolveException e)
 				{
