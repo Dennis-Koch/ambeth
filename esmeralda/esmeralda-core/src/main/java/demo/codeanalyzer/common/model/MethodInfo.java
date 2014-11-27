@@ -14,12 +14,13 @@ import de.osthus.ambeth.collections.IList;
  */
 public class MethodInfo extends BaseJavaClassModelInfo implements Method
 {
-
 	private ClassFile owningClass;
 	private MethodTree methodTree;
 	private ArrayList<VariableElement> parameters = new ArrayList<VariableElement>();
 	private String returnType;
 	ArrayList<String> exceptions = new ArrayList<String>();
+	private ArrayList<Integer> parameterIndexToEraseGenericType = new ArrayList<Integer>();
+	private ArrayList<Integer> parameterIndexToDelete = new ArrayList<Integer>();
 
 	@Override
 	public ClassFile getOwningClass()
@@ -93,5 +94,27 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 			buffer.append(", ");
 		}
 		return buffer.toString();
+	}
+
+	@Override
+	public IList<Integer> getParameterIndexToEraseGenericType()
+	{
+		return parameterIndexToEraseGenericType;
+	}
+
+	public void addParameterIndexToEraseGenericType(int parameterIndex)
+	{
+		parameterIndexToEraseGenericType.add(parameterIndex);
+	}
+
+	@Override
+	public IList<Integer> getParameterIndexToDelete()
+	{
+		return parameterIndexToDelete;
+	}
+
+	public void addParameterIndexToDelete(int parameterIndex)
+	{
+		parameterIndexToDelete.add(parameterIndex);
 	}
 }

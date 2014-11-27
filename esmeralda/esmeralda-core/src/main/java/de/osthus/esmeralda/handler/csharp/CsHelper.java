@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.AnnotationValueVisitor;
-import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
@@ -39,12 +38,13 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
-import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.handler.ASTHelper;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
@@ -53,13 +53,11 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.NoOpWriter;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
-import demo.codeanalyzer.common.model.ClassFile;
-import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
-import demo.codeanalyzer.common.model.Method;
 
 public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 {
@@ -102,6 +100,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		put(java.lang.Exception.class.getName(), "System.Exception");
 		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
 		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		put(java.lang.Throwable.class.getName(), "System.Exception");
 		put(java.lang.Object.class.getName(), "System.Object");
 		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
 		put(java.lang.RuntimeException.class.getName(), "System.Exception");
@@ -147,6 +146,9 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IASTHelper astHelper;
 
 	@Autowired
 	protected IConversionContext context;
@@ -239,7 +241,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 				writer.append("[]");
 				return;
 			}
-			Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(typeName);
+			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
 			if (genericTypeMatcher.matches())
 			{
 				String plainType = genericTypeMatcher.group(1);
@@ -265,7 +267,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			}
 			if (!direct)
 			{
-				typeName = resolveFqTypeFromTypeName(typeName);
+				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
 				mappedTypeName = camelCaseName(new String[] { typeName });
 			}
 			else
@@ -465,19 +467,6 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		writer.append(methodInvocation.toString());
-	}
-
-	@Override
-	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType)
-	{
-		for (Annotation annotation : model.getAnnotations())
-		{
-			if (annotationType.getName().equals(annotation.getType()))
-			{
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override
@@ -695,76 +684,6 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public String resolveFqTypeFromTypeName(String typeName)
-	{
-		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo resolvedClassInfo = context.resolveClassInfo(typeName, true);
-		if (resolvedClassInfo != null)
-		{
-			return resolvedClassInfo.getFqName();
-		}
-		throw new TypeResolveException(typeName);
-		// if (log.isWarnEnabled())
-		// {
-		// loggerHistory.warnOnce(log, this, "Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
-		// + context.getClassInfo().getName() + "'");
-		// }
-		// return typeName;
-	}
-
-	@Override
-	public String resolveTypeFromVariableName(String variableName)
-	{
-		ParamChecker.assertParamNotNullOrEmpty(variableName, "variableName");
-		Method method = context.getMethod();
-
-		try
-		{
-			if ("this".equals(variableName))
-			{
-				JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
-				return owningClass.getPackageName() + "." + owningClass.getName();
-			}
-			if ("super".equals(variableName))
-			{
-				JavaClassInfo owningClass = (JavaClassInfo) method.getOwningClass();
-				return owningClass.getNameOfSuperClass();
-			}
-			// look for stack variables first
-			for (VariableElement parameter : method.getParameters())
-			{
-				if (variableName.equals(parameter.getSimpleName().toString()))
-				{
-					return parameter.asType().toString();
-				}
-			}
-			// look for declared fields up the whole class hierarchy
-			ClassFile classInfo = method.getOwningClass();
-			while (classInfo != null)
-			{
-				for (Field field : classInfo.getFields())
-				{
-					if (variableName.equals(field.getName()))
-					{
-						return field.getFieldType().toString();
-					}
-				}
-				String nameOfSuperClass = classInfo.getNameOfSuperClass();
-				if (nameOfSuperClass == null)
-				{
-					break;
-				}
-				classInfo = context.resolveClassInfo(nameOfSuperClass);
-			}
-			return resolveFqTypeFromTypeName(variableName);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e, "Could not resolve symbol name '" + variableName + "' on method signature: " + method);
-		}
-	}
-
-	@Override
 	public String writeToStash(IBackgroundWorkerDelegate run)
 	{
 		IConversionContext context = this.context.getCurrent();
@@ -775,6 +694,26 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			run.invoke();
 			return stringWriter.toString();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.setWriter(oldWriter);
+		}
+	}
+
+	@Override
+	public <R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter oldWriter = context.getWriter();
+		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
+		try
+		{
+			return run.invoke(arg);
 		}
 		catch (Throwable e)
 		{

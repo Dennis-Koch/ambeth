@@ -14,6 +14,8 @@ public class TransformedMethod implements ITransformedMethod
 
 	protected boolean isStatic;
 
+	private IMethodParameterProcessor parameterProcessor;
+
 	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic)
 	{
 		this.owner = owner;
@@ -51,6 +53,17 @@ public class TransformedMethod implements ITransformedMethod
 	public boolean isPropertyInvocation()
 	{
 		return isPropertyInvocation;
+	}
+
+	public void setParameterProcessor(IMethodParameterProcessor parameterProcessor)
+	{
+		this.parameterProcessor = parameterProcessor;
+	}
+
+	@Override
+	public IMethodParameterProcessor getParameterProcessor()
+	{
+		return parameterProcessor;
 	}
 
 	@Override

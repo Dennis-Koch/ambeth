@@ -134,6 +134,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
+			csContext.setGenericTypeSupported(true);
 			csContext.setMetric(csMetric);
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
@@ -146,10 +147,11 @@ public class ConversionManager implements IStartingBean
 			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");
-			csContext.setMetric(jsMetric);
+			jsContext.setGenericTypeSupported(false);
+			jsContext.setMetric(jsMetric);
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
-			csContext.setClassInfoFactory(classInfoFactory);
+			jsContext.setClassInfoFactory(classInfoFactory);
 
 			invokeNodeHandler(jsClassHandler, jsContext);
 

@@ -35,7 +35,7 @@ public class ClassInfoDataSetter
 	/**
 	 * Set the attributes of the currently visiting class to the java class model
 	 * 
-	 * @param clazzInfo
+	 * @param classInfo
 	 *            The java class model
 	 * @param classTree
 	 *            Curently visiting class tree
@@ -44,9 +44,9 @@ public class ClassInfoDataSetter
 	 * @param trees
 	 *            trees
 	 */
-	public static void populateClassInfo(JavaClassInfo clazzInfo, ClassTree classTree, TreePath path, Trees trees)
+	public static void populateClassInfo(JavaClassInfo classInfo, ClassTree classTree, TreePath path, Trees trees)
 	{
-		clazzInfo.setTreePath(path);
+		classInfo.setTreePath(path);
 		TypeElement e = (TypeElement) trees.getElement(path);
 
 		if (e == null)
@@ -57,7 +57,7 @@ public class ClassInfoDataSetter
 		String fqName = NewClassExpressionHandler.getFqNameFromAnonymousName(anonymousFqName);
 		if (!fqName.equals(anonymousFqName))
 		{
-			clazzInfo.setIsAnonymous(true);
+			classInfo.setIsAnonymous(true);
 		}
 		// Set qualified class name
 		Matcher fqMatcher = fqPattern.matcher(fqName);
@@ -65,64 +65,65 @@ public class ClassInfoDataSetter
 		{
 			throw new IllegalStateException("Must never happen");
 		}
-		clazzInfo.setPackageName(fqMatcher.group(1));
-		clazzInfo.setName(fqMatcher.group(2));
+		classInfo.setClassTree(classTree);
+		classInfo.setPackageName(fqMatcher.group(1));
+		classInfo.setName(fqMatcher.group(2));
 
 		// Set Nesting kind
-		clazzInfo.setNestingKind(e.getNestingKind().toString());
+		classInfo.setNestingKind(e.getNestingKind().toString());
 		JCModifiers modifiers = ((JCClassDecl) classTree).getModifiers();
 
 		// Set modifier details
 		for (Modifier modifier : modifiers.getFlags())
 		{
-			DataSetterUtil.setModifiers(modifier.toString(), clazzInfo);
+			DataSetterUtil.setModifiers(modifier.toString(), classInfo);
 		}
 		String modifiersString = classTree.toString();
 		int indexOfSimpleName = modifiersString.indexOf(((JCClassDecl) classTree).getSimpleName().toString());
 		modifiersString = modifiersString.substring(0, indexOfSimpleName);
 		if (modifiersString.contains(" interface")) // space intended to not match on '@interface' which are annotations
 		{
-			clazzInfo.setIsInterface(true);
+			classInfo.setIsInterface(true);
 		}
 		if (modifiersString.contains("@interface"))
 		{
-			clazzInfo.setIsAnnotation(true);
+			classInfo.setIsAnnotation(true);
 		}
 		if (modifiersString.contains(" enum"))
 		{
-			clazzInfo.setIsEnum(true);
+			classInfo.setIsEnum(true);
 		}
 		String superClass = e.getSuperclass().toString();
 		if (superClass != null && superClass.startsWith(Enum.class.getName() + "<"))
 		{
-			clazzInfo.setIsEnum(true);
+			classInfo.setIsEnum(true);
 		}
 		// Set extending class info
 		if (superClass != null && !"<none>".equals(superClass))
 		{
-			clazzInfo.setNameOfSuperClass(superClass);
+			classInfo.setNameOfSuperClass(superClass);
 		}
 		// Set implementing interface details
 		for (TypeMirror mirror : e.getInterfaces())
 		{
-			clazzInfo.addNameOfInterface(mirror.toString());
+			classInfo.addNameOfInterface(mirror.toString());
 		}
 
 		List<? extends AnnotationMirror> annotations = e.getAnnotationMirrors();
 		for (AnnotationMirror annotationMirror : annotations)
 		{
 			AnnotationInfo annotationInfo = new AnnotationInfo(annotationMirror);
-			clazzInfo.addAnnotation(annotationInfo);
+			classInfo.addAnnotation(annotationInfo);
 		}
 
 		LocationInfo locationInfo = DataSetterUtil.getLocationInfo(trees, path, classTree);
-		clazzInfo.setLocationInfo(locationInfo);
+		classInfo.setLocationInfo(locationInfo);
 
 		// setJavaTreeDetails
 		JavaSourceTreeInfo treeInfo = new JavaSourceTreeInfo();
 		TreePath tp = trees.getPath(e);
 		treeInfo.setCompileTree(tp.getCompilationUnit());
 		treeInfo.setSourcePos(trees.getSourcePositions());
-		clazzInfo.setSourceTreeInfo(treeInfo);
+		classInfo.setSourceTreeInfo(treeInfo);
 	}
 }

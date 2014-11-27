@@ -1,38 +1,40 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import java.util.List;
-import java.util.regex.Matcher;
 
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
-import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.StringConversionHelper;
-import de.osthus.esmeralda.ConversionContext;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IMethodTransformer;
+import de.osthus.esmeralda.handler.IMethodTransformerExtension;
+import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
-import de.osthus.esmeralda.handler.TransformedMethod;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
-import demo.codeanalyzer.common.model.Method;
 
-public class MethodTransformer implements IMethodTransformer, IInitializingBean
+public class MethodTransformer implements IMethodTransformer, IMethodTransformerExtensionExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
+	protected IASTHelper astHelper;
+
+	@Autowired
 	protected IConversionContext context;
+
+	@Autowired
+	protected IMethodTransformerExtension defaultMethodTransformerExtension;
 
 	@Autowired
 	protected ICsHelper languageHelper;
@@ -40,50 +42,8 @@ public class MethodTransformer implements IMethodTransformer, IInitializingBean
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	@Autowired
-	protected IProxyFactory proxFactory;
-
-	protected final HashMap<MethodKey, ITransformedMethod> methodTransformationMap = new HashMap<MethodKey, ITransformedMethod>();
-
-	private ITransformedMethod nullTransformedMethod;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		nullTransformedMethod = proxFactory.createProxy(ITransformedMethod.class);
-
-		mapTransformation(java.lang.Class.class, "getSimpleName", "System.Type", "Name", true);
-		mapTransformation(java.lang.Class.class, "getName", "System.Type", "FullName", true);
-		mapTransformation(java.io.PrintStream.class, "println", "System.Console", "WriteLine", false, String.class);
-		mapTransformation(java.io.PrintStream.class, "print", "System.Console", "Write", false, String.class);
-		mapTransformation(java.util.List.class, "size", "System.Collections.ICollection", "Count", true);
-		mapTransformation(java.lang.Object.class, "hashCode", "System.Object", "GetHashCode", false);
-		mapTransformation(java.lang.Object.class, "getClass", "System.Object", "GetType", false);
-	}
-
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
-			Class<?>... parameterTypes)
-	{
-		String[] parameters = new String[parameterTypes.length];
-		for (int a = parameterTypes.length; a-- > 0;)
-		{
-			parameters[a] = parameterTypes[a].getName();
-		}
-		methodTransformationMap.put(//
-				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
-				new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false));
-	}
-
-	protected MethodKey buildMethodKey(java.lang.reflect.Method method)
-	{
-		Class<?>[] parameterTypes = method.getParameterTypes();
-		String[] parameters = new String[parameterTypes.length];
-		for (int a = parameterTypes.length; a-- > 0;)
-		{
-			parameters[a] = parameterTypes[a].getName();
-		}
-		return new MethodKey(method.getDeclaringClass().getName(), method.getName(), parameters);
-	}
+	protected final MapExtendableContainer<String, IMethodTransformerExtension> methodTransformerExtensions = new MapExtendableContainer<String, IMethodTransformerExtension>(
+			"methodTransformerExtension", "fqTypeName");
 
 	@Override
 	public ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes)
@@ -95,41 +55,41 @@ public class MethodTransformer implements IMethodTransformer, IInitializingBean
 		String currOwner = owner;
 		while (currOwner != null)
 		{
-			String nonGenericOwner = currOwner;
-			Matcher genericTypeMatcher = ConversionContext.genericTypePattern.matcher(currOwner);
-			if (genericTypeMatcher.matches())
+			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensions.getExtension(currOwner);
+			if (methodTransformerExtension != null)
 			{
-				nonGenericOwner = genericTypeMatcher.group(1);
+				MethodKey methodKey = new MethodKey(currOwner, methodName, argTypes);
+				return methodTransformerExtension.buildMethodTransformation(methodKey);
 			}
-			ITransformedMethod transformedMethod = methodTransformationMap.get(new MethodKey(nonGenericOwner, methodName, argTypes));
-			if (transformedMethod != null)
+			String nonGenericOwner = astHelper.extractNonGenericType(currOwner);
+			if (!nonGenericOwner.equals(currOwner))
 			{
-				return transformedMethod;
+				methodTransformerExtension = methodTransformerExtensions.getExtension(nonGenericOwner);
+				if (methodTransformerExtension != null)
+				{
+					MethodKey methodKey = new MethodKey(nonGenericOwner, methodName, argTypes);
+					return methodTransformerExtension.buildMethodTransformation(methodKey);
+				}
 			}
 			JavaClassInfo classInfo = context.resolveClassInfo(currOwner);
 			if (classInfo == null)
 			{
-				throw new IllegalStateException(currOwner);
+				throw new IllegalStateException("Must never happen: " + currOwner);
 			}
 			for (String interfaceName : classInfo.getNameOfInterfaces())
 			{
-				transformedMethod = methodTransformationMap.get(new MethodKey(interfaceName, methodName, argTypes));
-				if (transformedMethod != null)
+				methodTransformerExtension = methodTransformerExtensions.getExtension(interfaceName);
+				if (methodTransformerExtension == null)
 				{
-					return transformedMethod;
+					continue;
 				}
+				MethodKey methodKey = new MethodKey(interfaceName, methodName, argTypes);
+				return methodTransformerExtension.buildMethodTransformation(methodKey);
 			}
 			currOwner = classInfo.getNameOfSuperClass();
 		}
-
-		String formattedMethodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
-		return new TransformedMethod(owner, formattedMethodName, argTypes, false, false);
-	}
-
-	@Override
-	public ITransformedMethod transform(Method method)
-	{
-		return null;
+		MethodKey methodKey = new MethodKey(owner, methodName, argTypes);
+		return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 	}
 
 	@Override
@@ -165,5 +125,17 @@ public class MethodTransformer implements IMethodTransformer, IInitializingBean
 			}
 		});
 		return argTypes;
+	}
+
+	@Override
+	public void registerMethodTransformerExtension(IMethodTransformerExtension methodTransformerExtension, String fqClassType)
+	{
+		methodTransformerExtensions.register(methodTransformerExtension, fqClassType);
+	}
+
+	@Override
+	public void unregisterMethodTransformerExtension(IMethodTransformerExtension methodTransformerExtension, String fqClassType)
+	{
+		methodTransformerExtensions.unregister(methodTransformerExtension, fqClassType);
 	}
 }

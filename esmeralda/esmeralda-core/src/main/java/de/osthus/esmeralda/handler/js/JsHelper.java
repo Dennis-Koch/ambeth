@@ -11,6 +11,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -62,12 +63,6 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType)
-	{
-		return false;
-	}
-
-	@Override
 	public boolean writeStringIfFalse(String value, boolean condition)
 	{
 		return false;
@@ -115,24 +110,18 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public String resolveTypeFromVariableName(String variableName)
-	{
-		return null;
-	}
-
-	@Override
 	public void writeTypeDirect(String typeName)
 	{
 	}
 
 	@Override
-	public String resolveFqTypeFromTypeName(String typeName)
+	public String writeToStash(IBackgroundWorkerDelegate run)
 	{
 		return null;
 	}
 
 	@Override
-	public String writeToStash(IBackgroundWorkerDelegate run)
+	public <R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg)
 	{
 		return null;
 	}

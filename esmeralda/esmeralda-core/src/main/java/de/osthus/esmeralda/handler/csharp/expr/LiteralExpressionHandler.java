@@ -5,9 +5,11 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpression>
@@ -15,6 +17,9 @@ public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpres
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IASTHelper astHelper;
 
 	@Override
 	protected void handleExpressionIntern(JCExpression expression)
@@ -28,7 +33,7 @@ public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpres
 			Type identType = ((JCIdent) expression).type;
 			if (identType == null)
 			{
-				String typeName = languageHelper.resolveTypeFromVariableName(((JCIdent) expression).getName().toString());
+				String typeName = astHelper.resolveTypeFromVariableName(((JCIdent) expression).getName().toString());
 				context.setTypeOnStack(typeName);
 				return;
 			}
