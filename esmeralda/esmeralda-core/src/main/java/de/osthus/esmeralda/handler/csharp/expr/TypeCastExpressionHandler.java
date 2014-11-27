@@ -19,7 +19,7 @@ public class TypeCastExpressionHandler extends AbstractExpressionHandler<JCTypeC
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String fqTypeName = languageHelper.resolveFqTypeFromTypeName(expression.clazz.toString());
+		String fqTypeName = astHelper.resolveFqTypeFromTypeName(expression.clazz.toString());
 
 		writer.append("(");
 		languageHelper.writeType(fqTypeName);

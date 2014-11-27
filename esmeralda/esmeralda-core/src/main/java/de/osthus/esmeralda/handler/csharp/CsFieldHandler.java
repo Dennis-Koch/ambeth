@@ -11,6 +11,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.misc.IWriter;
@@ -22,6 +23,9 @@ public class CsFieldHandler implements INodeHandlerExtension
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IASTHelper astHelper;
 
 	@Autowired
 	protected IConversionContext context;
@@ -45,8 +49,8 @@ public class CsFieldHandler implements INodeHandlerExtension
 		languageHelper.writeAnnotations(field);
 		languageHelper.newLineIntend();
 
-		boolean annotatedWithAutowired = languageHelper.isAnnotatedWith(field, Autowired.class);
-		boolean annotatedWithProperty = languageHelper.isAnnotatedWith(field, Property.class);
+		boolean annotatedWithAutowired = astHelper.isAnnotatedWith(field, Autowired.class);
+		boolean annotatedWithProperty = astHelper.isAnnotatedWith(field, Property.class);
 
 		boolean firstKeyWord;
 		if (annotatedWithAutowired || annotatedWithProperty)
@@ -54,8 +58,7 @@ public class CsFieldHandler implements INodeHandlerExtension
 			writer.append("public");
 			firstKeyWord = false;
 		}
-		else if (languageHelper.isAnnotatedWith(field.getOwningClass(), ConfigurationConstants.class) && field.isPublic() && field.isStatic()
-				&& field.isFinal())
+		else if (astHelper.isAnnotatedWith(field.getOwningClass(), ConfigurationConstants.class) && field.isPublic() && field.isStatic() && field.isFinal())
 		{
 			// constants here must be a C# "const" instead of static readonly because of the time of value resolving (static instead of dynamic)
 			writer.append("public const");
@@ -79,7 +82,7 @@ public class CsFieldHandler implements INodeHandlerExtension
 			writer.append(name).append(" { protected get; set; }");
 			finishWithSemicolon = false;
 		}
-		else if (languageHelper.isAnnotatedWith(field, LogInstance.class))
+		else if (astHelper.isAnnotatedWith(field, LogInstance.class))
 		{
 			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
 			// TODO remind changed name of the field for later access to the property get/set

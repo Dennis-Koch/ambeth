@@ -1,6 +1,8 @@
 package de.osthus.esmeralda.handler;
 
 import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -21,6 +23,7 @@ import javax.lang.model.type.TypeVisitor;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.WeakHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -55,6 +58,10 @@ public class ClassInfoFactory implements IClassInfoFactory
 
 	@Autowired
 	protected IConversionContext context;
+
+	protected final Reference<Class<?>> emptyR = new WeakReference<Class<?>>(null);
+
+	protected final WeakHashMap<String, Reference<Class<?>>> alreadyTriedNames = new WeakHashMap<String, Reference<Class<?>>>();
 
 	@Override
 	public JavaClassInfo createClassInfo(String fqName)
@@ -123,6 +130,18 @@ public class ClassInfoFactory implements IClassInfoFactory
 		{
 			return nativeType;
 		}
+		Reference<Class<?>> typeR = alreadyTriedNames.get(fqTypeName);
+		if (typeR == emptyR)
+		{
+			// already tried without success before
+			return null;
+		}
+		Class<?> type = typeR != null ? typeR.get() : null;
+		if (type != null)
+		{
+			// already tried with success before
+			return type;
+		}
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		try
 		{
@@ -132,11 +151,13 @@ public class ClassInfoFactory implements IClassInfoFactory
 			}
 			catch (ClassNotFoundException e)
 			{
+				alreadyTriedNames.put(fqTypeName, emptyR);
 				return classLoader.loadClass("java.lang." + fqTypeName);
 			}
 		}
-		catch (Throwable e)
+		catch (ClassNotFoundException e)
 		{
+			alreadyTriedNames.put(fqTypeName, emptyR);
 			// Intended blank
 		}
 		Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(fqTypeName);

@@ -8,6 +8,7 @@ import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
@@ -20,6 +21,9 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 
 	@Autowired
 	protected IConversionContext context;
+
+	@Autowired
+	protected IASTHelper astHelper;
 
 	@Autowired
 	protected ICsHelper languageHelper;

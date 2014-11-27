@@ -23,13 +23,24 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 		IWriter writer = context.getWriter();
 		int dimensionCount = 0;
 		Type currType = newArray.type;
-		while (currType instanceof ArrayType)
+		String currTypeName = null;
+		if (currType == null)
 		{
-			dimensionCount++;
-			currType = ((ArrayType) currType).getComponentType();
+			currTypeName = astHelper.resolveFqTypeFromTypeName(newArray.elemtype.toString());
+			dimensionCount = newArray.dims.size();
+		}
+		else
+		{
+			currTypeName = currType.toString();
+			while (currType instanceof ArrayType)
+			{
+				dimensionCount++;
+				currType = ((ArrayType) currType).getComponentType();
+				currTypeName = currType.toString();
+			}
 		}
 		writer.append("new ");
-		languageHelper.writeType(currType.toString());
+		languageHelper.writeType(currTypeName);
 		int specifiedDimensions = 0;
 		for (JCExpression dimension : newArray.getDimensions())
 		{
@@ -54,6 +65,12 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 			}
 			writer.append(" }");
 		}
-		context.setTypeOnStack(newArray.type.toString());
+		StringBuilder fullTypeNameSb = new StringBuilder();
+		fullTypeNameSb.append(currTypeName);
+		for (int a = dimensionCount; a-- > 0;)
+		{
+			fullTypeNameSb.append("[]");
+		}
+		context.setTypeOnStack(fullTypeNameSb.toString());
 	}
 }

@@ -2,7 +2,6 @@ package de.osthus.esmeralda;
 
 import java.io.File;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -15,6 +14,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
@@ -26,8 +26,6 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ConversionContext implements IConversionContext
 {
-	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -72,6 +70,8 @@ public class ConversionContext implements IConversionContext
 
 	protected IClassInfoFactory classInfoFactory;
 
+	private boolean isGenericTypeSupported;
+
 	public void setClassInfoFactory(IClassInfoFactory classInfoFactory)
 	{
 		this.classInfoFactory = classInfoFactory;
@@ -87,6 +87,17 @@ public class ConversionContext implements IConversionContext
 	public void setCurrent(IConversionContext current)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isGenericTypeSupported()
+	{
+		return isGenericTypeSupported;
+	}
+
+	public void setGenericTypeSupported(boolean isGenericTypeSupported)
+	{
+		this.isGenericTypeSupported = isGenericTypeSupported;
 	}
 
 	@Override
@@ -215,7 +226,7 @@ public class ConversionContext implements IConversionContext
 		{
 			throw new SkipGenerationException();
 		}
-		Matcher genericTypeMatcher = genericTypePattern.matcher(fqTypeName);
+		Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(fqTypeName);
 		if (genericTypeMatcher.matches())
 		{
 			String nonGenericType = genericTypeMatcher.group(1);

@@ -6,8 +6,12 @@ import java.util.regex.Matcher;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
+import com.sun.source.tree.VariableTree;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -17,20 +21,23 @@ import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCParens;
+import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.esmeralda.ConversionContext;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
+import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
+import demo.codeanalyzer.common.model.MethodInfo;
 
 public class MethodInvocationExpressionHandler extends AbstractExpressionHandler<JCMethodInvocation>
 {
@@ -46,16 +53,40 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+		Method method = context.getMethod();
 
 		if (methodInvocation.meth == null)
 		{
 			log.warn("Could not handle method invocation: " + methodInvocation);
 			return;
 		}
+		String[] argTypes = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], JCMethodInvocation>()
+		{
+			@Override
+			public String[] invoke(JCMethodInvocation methodInvocation) throws Throwable
+			{
+				IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+
+				String oldTypeOnStack = context.getTypeOnStack();
+
+				List<JCExpression> arguments = methodInvocation.getArguments();
+				String[] argTypes = new String[arguments.size()];
+				for (int a = 0, size = arguments.size(); a < size; a++)
+				{
+					JCExpression arg = arguments.get(a);
+					languageHelper.writeExpressionTree(arg);
+					argTypes[a] = context.getTypeOnStack();
+					context.setTypeOnStack(oldTypeOnStack);
+				}
+				return argTypes;
+			}
+		}, methodInvocation);
+
 		String methodName;
 		String owner;
 		boolean writeOwnerAsType = false;
 		boolean writeMethodDot = false;
+		boolean writeOwnerAsTypeof = false;
 
 		String typeOfOwner;
 		if (methodInvocation.meth instanceof JCIdent)
@@ -84,8 +115,16 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				}
 				else
 				{
-					languageHelper.writeExpressionTree(fieldAccess);
-					typeOfOwner = context.getTypeOnStack();
+					typeOfOwner = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+					{
+						@Override
+						public String invoke(JCExpression state) throws Throwable
+						{
+							IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+							languageHelper.writeExpressionTree(state);
+							return context.getTypeOnStack();
+						}
+					}, fieldAccess);
 				}
 				owner = null;
 				writeMethodDot = true;
@@ -93,7 +132,16 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
 					|| meth.selected instanceof JCArrayAccess)
 			{
-				languageHelper.writeExpressionTree(meth.selected);
+				typeOfOwner = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+				{
+					@Override
+					public String invoke(JCExpression state) throws Throwable
+					{
+						IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+						languageHelper.writeExpressionTree(state);
+						return context.getTypeOnStack();
+					}
+				}, meth.selected);
 				owner = null;
 				typeOfOwner = context.getTypeOnStack();
 				writeMethodDot = true;
@@ -101,23 +149,46 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else
 			{
 				JCIdent selected = (JCIdent) meth.selected;
-				if (selected.sym instanceof VarSymbol)
+				Symbol sym = selected.sym;
+				if (sym instanceof VarSymbol)
 				{
-					owner = selected.sym.toString();
-					typeOfOwner = selected.sym.type != null ? context.resolveClassInfo(selected.sym.type.toString()).getFqName() : languageHelper
+					owner = sym.toString();
+
+					if (method != null)
+					{
+						IList<Integer> parameterIndexToDelete = ((MethodInfo) method).getParameterIndexToDelete();
+						if (parameterIndexToDelete.size() > 0)
+						{
+							java.util.List<? extends VariableTree> parameters = method.getMethodTree().getParameters();
+							for (Integer parameterIndexToErase : parameterIndexToDelete)
+							{
+								VariableTree variableElement = parameters.get(parameterIndexToErase.intValue());
+
+								if (sym == ((JCVariableDecl) variableElement).sym) // reference equals intended
+								{
+									Type typeVar = ((ClassType) ((VarSymbol) sym).type).typarams_field.get(0);
+									owner = typeVar.toString();
+									writeOwnerAsType = true;
+									writeOwnerAsTypeof = true;
+									break;
+								}
+							}
+						}
+					}
+					typeOfOwner = selected.sym.type != null ? context.resolveClassInfo(selected.sym.type.toString()).getFqName() : astHelper
 							.resolveTypeFromVariableName(owner);
 				}
-				else if (selected.sym instanceof ClassSymbol)
+				else if (sym instanceof ClassSymbol)
 				{
 					owner = selected.type.toString();
 					typeOfOwner = context.resolveClassInfo(selected.type.toString()).getFqName();
 					writeOwnerAsType = true;
 				}
-				else if (selected.sym == null)
+				else if (sym == null)
 				{
 					// resolve owner by scanning the method signature & method body
 					owner = selected.toString();
-					typeOfOwner = languageHelper.resolveTypeFromVariableName(owner);
+					typeOfOwner = astHelper.resolveTypeFromVariableName(owner);
 				}
 				else
 				{
@@ -127,50 +198,42 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			methodName = meth.name.toString();
 		}
 		ITransformedMethod transformedMethod = methodTransformer.transform(typeOfOwner, methodName, methodInvocation.getArguments());
-		if (writeOwnerAsType)
-		{
-			languageHelper.writeType(transformedMethod.getOwner());
-		}
-		else if (owner != null)
-		{
-			writer.append(owner);
-		}
-		if (writeMethodDot || owner != null)
-		{
-			writer.append('.');
-		}
-		writer.append(transformedMethod.getName());
 
-		String[] argTypes = null;
-		if (!transformedMethod.isPropertyInvocation())
+		final boolean fWriteOwnerAsType = writeOwnerAsType;
+		final boolean fWriteMethodDot = writeMethodDot;
+		final boolean fWriteOwnerAsTypeof = writeOwnerAsTypeof;
+
+		final IOwnerWriter ownerWriter = new IOwnerWriter()
 		{
-			writer.append('(');
-			List<JCExpression> arguments = methodInvocation.getArguments();
-			argTypes = new String[arguments.size()];
-			for (int a = 0, size = arguments.size(); a < size; a++)
+			@Override
+			public void writeOwner(String owner)
 			{
-				JCExpression arg = arguments.get(a);
-				if (a > 0)
+				IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+				IWriter writer = context.getWriter();
+
+				if (owner != null)
 				{
-					writer.append(", ");
+					if (fWriteOwnerAsType)
+					{
+						if (fWriteOwnerAsTypeof)
+						{
+							writer.append("typeof(");
+						}
+						languageHelper.writeType(owner);
+						if (fWriteOwnerAsTypeof)
+						{
+							writer.append(')');
+						}
+					}
+					else
+					{
+						writer.append(owner);
+					}
 				}
-				languageHelper.writeExpressionTree(arg);
-				String typeOnStack = context.getTypeOnStack();
-				argTypes[a] = extractNonGenericType(typeOnStack);
 			}
-			writer.append(')');
-		}
-		else if (methodInvocation.getArguments().size() > 0)
-		{
-			// C# will be an assignment to a property (setter-semantics)
-			writer.append(" = ");
-			boolean firstArgument = true;
-			for (JCExpression argument : methodInvocation.getArguments())
-			{
-				firstArgument = languageHelper.writeStringIfFalse(", ", firstArgument);
-				languageHelper.writeExpressionTree(argument);
-			}
-		}
+		};
+
+		transformedMethod.getParameterProcessor().processMethodParameters(methodInvocation, owner, transformedMethod, ownerWriter);
 		if (methodInvocation.type != null)
 		{
 			context.setTypeOnStack(methodInvocation.type.toString());
@@ -249,7 +312,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 
 	protected String extractNonGenericType(String typeName)
 	{
-		Matcher paramGenericTypeMatcher = ConversionContext.genericTypePattern.matcher(typeName);
+		Matcher paramGenericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
 		if (paramGenericTypeMatcher.matches())
 		{
 			return paramGenericTypeMatcher.group(1);

@@ -11,4 +11,6 @@ public interface ITransformedMethod
 	boolean isStatic();
 
 	boolean isPropertyInvocation();
+
+	IMethodParameterProcessor getParameterProcessor();
 }

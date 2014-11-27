@@ -29,4 +29,7 @@ public interface Method extends BaseJavaClassModel
 
 	String getReturnType();
 
+	IList<Integer> getParameterIndexToEraseGenericType();
+
+	IList<Integer> getParameterIndexToDelete();
 }

@@ -26,11 +26,15 @@ import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.ClassInfoFactory;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IMethodTransformer;
+import de.osthus.esmeralda.handler.IMethodTransformerExtension;
+import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerExtendable;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtendable;
@@ -73,7 +77,15 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsWhileHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.ICsBlockHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.SynchronizedHandler;
+import de.osthus.esmeralda.handler.csharp.transformer.AbstractMethodTransformerExtension;
+import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodParameterProcessor;
+import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaLangClassTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
@@ -86,16 +98,37 @@ import de.osthus.esmeralda.snippet.SnippetManagerFactory;
 
 public class EsmeraldaCoreModule implements IInitializingModule
 {
+	public static final String DefaultMethodTransformerName = "defaultMethodTransformer";
+
+	public static final String DefaultMethodParameterProcessor = "defaultMethodParameterProcessor";
+
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		// beanContextFactory.registerBean(InterfaceConverter.class);
+		beanContextFactory.registerBean(ASTHelper.class).autowireable(IASTHelper.class);
+
 		beanContextFactory.registerBean(ConversionManager.class);
 		beanContextFactory.registerBean(CodeProcessor.class).autowireable(CodeProcessor.class);
 		beanContextFactory.registerBean(ConversionContextBean.class).autowireable(IConversionContext.class);
 
 		beanContextFactory.registerBean(SnippetManagerFactory.class).autowireable(ISnippetManagerFactory.class);
-		beanContextFactory.registerBean(MethodTransformer.class).autowireable(IMethodTransformer.class);
+
+		IBeanConfiguration defaultMethodParameterProcessor = beanContextFactory.registerBean(DefaultMethodParameterProcessor,
+				DefaultMethodParameterProcessor.class);
+
+		IBeanConfiguration defaultMethodTransformer = beanContextFactory.registerBean(DefaultMethodTransformerName, DefaultMethodTransformer.class)//
+				.propertyRef(defaultMethodParameterProcessor)//
+				.ignoreProperties(AbstractMethodTransformerExtension.defaultMethodTransformerExtensionProp);
+
+		beanContextFactory.registerBean(MethodTransformer.class)//
+				.propertyRef(defaultMethodTransformer)//
+				.autowireable(IMethodTransformer.class, IMethodTransformerExtensionExtendable.class);
+
+		registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaUtilListTransformer.class, java.util.List.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaIoPrintstreamTransformer.class, java.io.PrintStream.class);
 
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 
@@ -130,7 +163,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IStatementHandlerRegistry.class) //
 				.autowireable(IStatementHandlerExtendable.class, IStatementHandlerRegistry.class);
 
-		registerStatementHandler(beanContextFactory, CsBlockHandler.class, Lang.C_SHARP + Kind.BLOCK);
+		registerStatementHandler(beanContextFactory, CsBlockHandler.class, Lang.C_SHARP + Kind.BLOCK).autowireable(ICsBlockHandler.class);
 		registerStatementHandler(beanContextFactory, CsBreakHandler.class, Lang.C_SHARP + Kind.BREAK);
 		registerStatementHandler(beanContextFactory, CsContinueHandler.class, Lang.C_SHARP + Kind.CONTINUE);
 		registerStatementHandler(beanContextFactory, CsDoWhileHandler.class, Lang.C_SHARP + Kind.DO_WHILE_LOOP);
@@ -165,20 +198,31 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerExpressionHandler(beanContextFactory, UnaryExpressionHandler.class, JCUnary.class);
 	}
 
-	private void registerStatementHandler(IBeanContextFactory beanContextFactory, Class<? extends IStatementHandlerExtension<?>> statementHandlerType,
-			String key)
+	public static IBeanConfiguration registerMethodTransformerExtension(IBeanContextFactory beanContextFactory,
+			Class<? extends IMethodTransformerExtension> methodTransformerType, Class<?> type)
+	{
+		IBeanConfiguration methodTransformer = beanContextFactory.registerBean(methodTransformerType)//
+				.propertyRefs(DefaultMethodTransformerName, DefaultMethodParameterProcessor);
+		beanContextFactory.link(methodTransformer).to(IMethodTransformerExtensionExtendable.class).with(type.getName());
+		return methodTransformer;
+	}
+
+	public static IBeanConfiguration registerStatementHandler(IBeanContextFactory beanContextFactory,
+			Class<? extends IStatementHandlerExtension<?>> statementHandlerType, String key)
 	{
 		IBeanConfiguration stmtHandler = beanContextFactory.registerBean(statementHandlerType);
 		beanContextFactory.link(stmtHandler).to(IStatementHandlerExtendable.class).with(key);
+		return stmtHandler;
 	}
 
-	protected void registerExpressionHandler(IBeanContextFactory beanContextFactory, Class<? extends IExpressionHandler> expressionHandlerType,
-			Class<?>... expressionTypes)
+	public static IBeanConfiguration registerExpressionHandler(IBeanContextFactory beanContextFactory,
+			Class<? extends IExpressionHandler> expressionHandlerType, Class<?>... expressionTypes)
 	{
 		IBeanConfiguration expressionHandler = beanContextFactory.registerBean(expressionHandlerType);
 		for (Class<?> expressionType : expressionTypes)
 		{
 			beanContextFactory.link(expressionHandler).to(IExpressionHandlerExtendable.class).with(expressionType);
 		}
+		return expressionHandler;
 	}
 }

@@ -26,7 +26,7 @@ public class CsVariableHandler extends AbstractStatementHandler<JCVariableDecl> 
 			languageHelper.newLineIntend();
 		}
 
-		languageHelper.writeType(variableStatement.getType().toString());
+		languageHelper.writeType(variableStatement.type.toString());
 		writer.append(' ').append(variableStatement.getName());
 
 		JCExpression initializer = variableStatement.getInitializer();

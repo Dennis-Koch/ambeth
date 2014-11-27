@@ -5,6 +5,7 @@ import java.util.List;
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.VariableElement;
 
+import com.sun.source.tree.ClassTree;
 import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -42,6 +43,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public IConversionContext context;
 
 	private TreePath treePath;
+	private ClassTree classTree;
 
 	public JavaClassInfo(IConversionContext context)
 	{
@@ -361,5 +363,15 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setTreePath(TreePath treePath)
 	{
 		this.treePath = treePath;
+	}
+
+	public ClassTree getClassTree()
+	{
+		return classTree;
+	}
+
+	public void setClassTree(ClassTree classTree)
+	{
+		this.classTree = classTree;
 	}
 }

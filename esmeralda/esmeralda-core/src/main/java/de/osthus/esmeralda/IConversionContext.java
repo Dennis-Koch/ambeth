@@ -16,6 +16,8 @@ public interface IConversionContext
 {
 	IConversionContext getCurrent();
 
+	boolean isGenericTypeSupported();
+
 	void setCurrent(IConversionContext current);
 
 	File getTargetPath();
