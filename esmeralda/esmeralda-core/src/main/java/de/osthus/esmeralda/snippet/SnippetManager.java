@@ -139,6 +139,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	@Override
 	public void writeSnippet(List<String> untranslatableStatements)
 	{
+		IConversionContext context = this.context.getCurrent();
+
 		String md5Hash = calculateMd5(untranslatableStatements);
 
 		Path snippetFilePath = createSnippetFilePath(md5Hash);
@@ -154,7 +156,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			{
 				writeSnippetIntern(snippet, relativeSnippetFileName);
 			}
-			else if (log.isWarnEnabled())
+			else if (log.isWarnEnabled() && !context.isDryRun())
 			{
 				writeCodeTodo(untranslatableStatements, relativeSnippetFileName);
 				log.warn("Existing snippet file '" + relativeSnippetFileName + "' is needed, but was not edited yet.");
