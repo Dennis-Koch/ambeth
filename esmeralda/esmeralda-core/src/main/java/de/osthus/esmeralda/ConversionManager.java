@@ -178,7 +178,7 @@ public class ConversionManager implements IStartingBean
 		context.setCurrent(newContext);
 		try
 		{
-			nodeHandler.handle(null);
+			nodeHandler.handle();
 		}
 		catch (TypeResolveException e)
 		{

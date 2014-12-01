@@ -1,8 +1,13 @@
 package de.osthus.esmeralda.misc;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -81,5 +86,67 @@ public class EsmeFileUtil implements IEsmeFileUtil
 			return;
 		}
 		fileFilter.accept(currFile);
+	}
+
+	@Override
+	public void updateFile(String newFileContent, File targetFile)
+	{
+		if (targetFile.exists())
+		{
+			StringBuilder existingFileContent = readFileFully(targetFile);
+			if (existingFileContent.toString().equals(newFileContent))
+			{
+				if (log.isDebugEnabled())
+				{
+					log.debug("File is already up-to-date: " + targetFile);
+				}
+				return;
+			}
+			if (log.isInfoEnabled())
+			{
+				log.info("Updating file: " + targetFile);
+			}
+		}
+		else
+		{
+			if (log.isInfoEnabled())
+			{
+				log.info("Creating file: " + targetFile);
+			}
+		}
+		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(targetFile), "UTF-8"))
+		{
+			fileWriter.append(newFileContent);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	protected StringBuilder readFileFully(File file)
+	{
+		try
+		{
+			StringBuilder sb = new StringBuilder((int) file.length());
+			BufferedReader rd = new BufferedReader(new FileReader(file));
+			try
+			{
+				int oneByte;
+				while ((oneByte = rd.read()) != -1)
+				{
+					sb.append((char) oneByte);
+				}
+				return sb;
+			}
+			finally
+			{
+				rd.close();
+			}
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 }

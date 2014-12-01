@@ -65,7 +65,7 @@ public class CsMethodHandler implements INodeHandlerExtension
 	protected ISnippetManagerFactory snippetManagerFactory;
 
 	@Override
-	public void handle(Tree astNode)
+	public void handle()
 	{
 		IConversionContext context = this.context.getCurrent();
 		Method method = context.getMethod();
