@@ -20,12 +20,11 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
-import de.osthus.esmeralda.handler.INodeHandlerExtension;
-import de.osthus.esmeralda.handler.INodeHandlerRegistry;
-import de.osthus.esmeralda.misc.EsmeType;
+import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
+import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
-import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
@@ -48,10 +47,13 @@ public class ConversionManager implements IStartingBean
 	protected IConversionContext context;
 
 	@Autowired
-	protected IEsmeFileUtil fileUtil;
+	protected ICsClassHandler csClassHandler;
 
 	@Autowired
-	protected INodeHandlerRegistry nodeHandlerRegistry;
+	protected IJsClassHandler jsClassHandler;
+
+	@Autowired
+	protected IEsmeFileUtil fileUtil;
 
 	@Property(name = "source-path")
 	protected File[] sourcePath;
@@ -103,9 +105,6 @@ public class ConversionManager implements IStartingBean
 			}
 		}
 
-		INodeHandlerExtension csClassHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.CLASS);
-		INodeHandlerExtension jsClassHandler = nodeHandlerRegistry.get(Lang.JS + EsmeType.CLASS);
-
 		ArrayList<JavaClassInfo> classInfos = codeProcessor.getClassInfos();
 		HashMap<String, JavaClassInfo> fqNameToClassInfoMap = new HashMap<String, JavaClassInfo>();
 
@@ -150,7 +149,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setAstHelper(astHelper);
 			csContext.setClassInfoFactory(classInfoFactory);
 
-			invokeNodeHandler(csClassHandler, csContext);
+			invokeClassHandler(csClassHandler, csContext);
 
 			ConversionContext jsContext = new ConversionContext();
 			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
@@ -164,7 +163,7 @@ public class ConversionManager implements IStartingBean
 			jsContext.setAstHelper(astHelper);
 			jsContext.setClassInfoFactory(classInfoFactory);
 
-			invokeNodeHandler(jsClassHandler, jsContext);
+			invokeClassHandler(jsClassHandler, jsContext);
 
 			classInfoProgress++;
 			if (System.currentTimeMillis() - lastLog < 5000)
@@ -183,13 +182,13 @@ public class ConversionManager implements IStartingBean
 		}
 	}
 
-	protected void invokeNodeHandler(INodeHandlerExtension nodeHandler, IConversionContext newContext)
+	protected void invokeClassHandler(IClassHandler classHandler, IConversionContext newContext)
 	{
 		IConversionContext oldContext = context.getCurrent();
 		context.setCurrent(newContext);
 		try
 		{
-			nodeHandler.handle();
+			classHandler.handle();
 		}
 		catch (TypeResolveException e)
 		{

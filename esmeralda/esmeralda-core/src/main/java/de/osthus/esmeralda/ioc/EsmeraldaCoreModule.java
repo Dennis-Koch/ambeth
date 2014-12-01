@@ -35,8 +35,6 @@ import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
-import de.osthus.esmeralda.handler.INodeHandlerExtendable;
-import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtendable;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -44,7 +42,10 @@ import de.osthus.esmeralda.handler.csharp.CsClassHandler;
 import de.osthus.esmeralda.handler.csharp.CsFieldHandler;
 import de.osthus.esmeralda.handler.csharp.CsHelper;
 import de.osthus.esmeralda.handler.csharp.CsMethodHandler;
+import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
+import de.osthus.esmeralda.handler.csharp.ICsFieldHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
+import de.osthus.esmeralda.handler.csharp.ICsMethodHandler;
 import de.osthus.esmeralda.handler.csharp.MethodTransformer;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayAccessExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayTypeExpressionHandler;
@@ -87,11 +88,11 @@ import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.StackTraceElementTransformer;
+import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
-import de.osthus.esmeralda.misc.EsmeType;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
@@ -140,22 +141,11 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 
 		// language elements
-		// TODO think: remove extendable since the flexible part to be handled moved to the statement extensions
-		beanContextFactory.registerBean(ExtendableBean.class) //
-				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, INodeHandlerExtendable.class) //
-				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, INodeHandlerRegistry.class) //
-				.autowireable(INodeHandlerExtendable.class, INodeHandlerRegistry.class);
+		beanContextFactory.registerBean(CsClassHandler.class).autowireable(ICsClassHandler.class);
+		beanContextFactory.registerBean(CsFieldHandler.class).autowireable(ICsFieldHandler.class);
+		beanContextFactory.registerBean(CsMethodHandler.class).autowireable(ICsMethodHandler.class);
 
-		IBeanConfiguration csClassHandler = beanContextFactory.registerBean(CsClassHandler.class);
-		beanContextFactory.link(csClassHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.CLASS);
-		IBeanConfiguration jsClassHandler = beanContextFactory.registerBean(JsClassHandler.class);
-		beanContextFactory.link(jsClassHandler).to(INodeHandlerExtendable.class).with(Lang.JS + EsmeType.CLASS);
-
-		IBeanConfiguration csFieldHandler = beanContextFactory.registerBean(CsFieldHandler.class);
-		beanContextFactory.link(csFieldHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.FIELD);
-
-		IBeanConfiguration csMethodHandler = beanContextFactory.registerBean(CsMethodHandler.class);
-		beanContextFactory.link(csMethodHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.METHOD);
+		beanContextFactory.registerBean(JsClassHandler.class).autowireable(IJsClassHandler.class);
 
 		// statements
 		beanContextFactory.registerBean(ExtendableBean.class) //
