@@ -1,6 +1,9 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.tools.Diagnostic;
@@ -13,12 +16,15 @@ import javax.tools.ToolProvider;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
@@ -27,6 +33,7 @@ import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ConversionManager implements IStartingBean
 {
@@ -188,7 +195,7 @@ public class ConversionManager implements IStartingBean
 		context.setCurrent(newContext);
 		try
 		{
-			classHandler.handle();
+			invokeHandleMethod(classHandler);
 		}
 		catch (TypeResolveException e)
 		{
@@ -203,5 +210,106 @@ public class ConversionManager implements IStartingBean
 		{
 			context.setCurrent(oldContext);
 		}
+	}
+
+	public void invokeHandleMethod(final IClassHandler classHandler)
+	{
+		IConversionContext context = this.context.getCurrent();
+		final JavaClassInfo classInfo = context.getClassInfo();
+
+		ILanguageHelper languageHelper = classHandler.getLanguageHelper();
+
+		IBackgroundWorkerDelegate writeToWriterDelegate = new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				classHandler.handle();
+			}
+		};
+
+		// PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple name
+		// without ambiguity
+		HashSet<TypeUsing> usedTypes = new HashSet<TypeUsing>();
+		context.setDryRun(true);
+		context.setUsedTypes(usedTypes);
+		try
+		{
+			languageHelper.writeToStash(writeToWriterDelegate);
+		}
+		catch (SkipGenerationException e)
+		{
+			return;
+		}
+		finally
+		{
+			context.setUsedTypes(null);
+			context.setDryRun(false);
+		}
+
+		// PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
+		HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
+		for (TypeUsing usedType : usedTypes)
+		{
+			Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(usedType.getTypeName());
+			if (!matcher.matches())
+			{
+				continue;
+			}
+			String packageName = matcher.group(1);
+			String simpleName = matcher.group(2);
+			Set<String> list = simpleNameToPackagesMap.get(simpleName);
+			if (list == null)
+			{
+				list = new HashSet<String>();
+				simpleNameToPackagesMap.put(simpleName, list);
+			}
+			list.add(packageName);
+		}
+		String classNamespace = languageHelper.toNamespace(classInfo.getPackageName());
+
+		// PHASE 3: fill imports and usings information for this class file
+		LinkedHashMap<String, String> imports = new LinkedHashMap<String, String>();
+		HashSet<TypeUsing> usings = new HashSet<TypeUsing>();
+		for (Entry<String, Set<String>> entry : simpleNameToPackagesMap)
+		{
+			Set<String> packagesSet = entry.getValue();
+			if (packagesSet.size() > 1)
+			{
+				continue;
+			}
+			String packageName = (String) packagesSet.toArray()[0];
+			// simpleName is unique. So we can use an import for them
+			String fqTypeName = packageName + "." + entry.getKey();
+			imports.put(fqTypeName, entry.getKey());
+			if (classNamespace.equals(packageName))
+			{
+				// do not create a "using" for types in our own namespace
+				continue;
+			}
+			TypeUsing existingTypeUsing = usedTypes.get(new TypeUsing(fqTypeName, false));
+			TypeUsing newPackageUsing = new TypeUsing(packageName, existingTypeUsing.isInSilverlightOnly());
+			TypeUsing existingPackageUsing = usings.get(newPackageUsing);
+			if (existingPackageUsing != null)
+			{
+				boolean isInSilverlightOnly = existingPackageUsing.isInSilverlightOnly() && newPackageUsing.isInSilverlightOnly();
+				newPackageUsing = new TypeUsing(packageName, isInSilverlightOnly);
+			}
+			usings.add(newPackageUsing);
+		}
+
+		String newFileContent;
+		context.setUsings(usings.toList());
+		context.setImports(imports);
+		try
+		{
+			newFileContent = languageHelper.writeToStash(writeToWriterDelegate);
+		}
+		finally
+		{
+			context.setImports(null);
+			context.setUsings(null);
+		}
+		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
 	}
 }

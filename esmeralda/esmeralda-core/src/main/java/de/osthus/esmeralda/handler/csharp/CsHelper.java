@@ -364,7 +364,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			packageName = nsPrefixAdd + packageName;
 		}
 
-		packageName = camelCaseName(packageName);
+		packageName = toNamespace(packageName);
 
 		String relativeTargetPathName = packageName.replace(".", File.separator);
 
@@ -386,7 +386,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public String camelCaseName(String typeName)
+	public String toNamespace(String typeName)
 	{
 		String[] packageSplit = typeName.split(Pattern.quote("."));
 		StringBuilder sb = new StringBuilder();
@@ -406,7 +406,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		String[] camelCase = new String[typeNames.length];
 		for (int a = typeNames.length; a-- > 0;)
 		{
-			camelCase[a] = camelCaseName(typeNames[a]);
+			camelCase[a] = toNamespace(typeNames[a]);
 		}
 		return camelCase;
 	}
