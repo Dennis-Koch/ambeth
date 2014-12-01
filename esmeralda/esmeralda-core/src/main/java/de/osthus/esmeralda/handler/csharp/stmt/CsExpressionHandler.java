@@ -4,6 +4,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
@@ -15,18 +16,29 @@ public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionSt
 	private ILogger log;
 
 	@Override
-	public void handle(JCExpressionStatement tree, boolean standalone)
+	public void handle(final JCExpressionStatement tree, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		String stash = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				languageHelper.writeExpressionTree(tree.getExpression());
+			}
+		});
+
+		if (stash.length() == 0)
+		{
+			return;
+		}
 		if (standalone)
 		{
 			languageHelper.newLineIntend();
 		}
-
-		languageHelper.writeExpressionTree(tree.getExpression());
-
+		writer.append(stash);
 		if (standalone)
 		{
 			writer.append(';');
