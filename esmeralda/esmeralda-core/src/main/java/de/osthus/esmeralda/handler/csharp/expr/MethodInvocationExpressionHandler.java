@@ -245,6 +245,15 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 
 	protected String resolveMethodReturnType(String currOwner, String methodName, String... argTypes)
 	{
+		if ("super".equals(methodName))
+		{
+			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);
+			return resolveMethodReturnType(ownerInfo.getNameOfSuperClass(), "this", argTypes);
+		}
+		if ("this".equals(methodName))
+		{
+			return Void.TYPE.getName();
+		}
 		while (currOwner != null)
 		{
 			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);

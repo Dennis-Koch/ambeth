@@ -68,7 +68,6 @@ public class ClassInfoDataSetter
 		classInfo.setClassTree(classTree);
 		classInfo.setPackageName(fqMatcher.group(1));
 		classInfo.setName(fqMatcher.group(2));
-
 		// Set Nesting kind
 		classInfo.setNestingKind(e.getNestingKind().toString());
 		JCModifiers modifiers = ((JCClassDecl) classTree).getModifiers();

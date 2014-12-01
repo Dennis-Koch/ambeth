@@ -34,8 +34,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		IWriter writer = context.getWriter();
 		List<JCExpression> arguments = methodInvocation.getArguments();
 
-		ownerWriter.writeOwner(owner);
-		writer.append('.');
+		if (owner != null)
+		{
+			ownerWriter.writeOwner(owner);
+			writer.append('.');
+		}
 		writer.append(transformedMethod.getName());
 
 		if (!transformedMethod.isPropertyInvocation())

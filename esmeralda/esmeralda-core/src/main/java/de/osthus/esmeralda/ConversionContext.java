@@ -15,11 +15,13 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.ASTHelper;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
+import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -58,6 +60,8 @@ public class ConversionContext implements IConversionContext
 
 	private IWriter writer;
 
+	private IASTHelper astHelper;
+
 	private ISnippetManager snippetManager;
 
 	private final ArrayList<IPostProcess> postProcesses = new ArrayList<IPostProcess>();
@@ -72,9 +76,16 @@ public class ConversionContext implements IConversionContext
 
 	private boolean isGenericTypeSupported;
 
+	private boolean skipFirstBlockStatement;
+
 	public void setClassInfoFactory(IClassInfoFactory classInfoFactory)
 	{
 		this.classInfoFactory = classInfoFactory;
+	}
+
+	public void setAstHelper(IASTHelper astHelper)
+	{
+		this.astHelper = astHelper;
 	}
 
 	@Override
@@ -191,6 +202,10 @@ public class ConversionContext implements IConversionContext
 		{
 			return null;
 		}
+		if ("?".equals(fqTypeName))
+		{
+			return resolveClassInfo(Object.class.getName(), false, false);
+		}
 		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);
 		fqTypeName = getResolveGenericFqTypeName(fqTypeName);
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
@@ -232,6 +247,10 @@ public class ConversionContext implements IConversionContext
 			String nonGenericType = genericTypeMatcher.group(1);
 			String genericTypeArguments = genericTypeMatcher.group(2);
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
+			if (nonGenericClassInfo == null)
+			{
+				return null;
+			}
 			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
 		}
 		classInfo = classInfoFactory.createClassInfo(fqTypeName);
@@ -283,8 +302,57 @@ public class ConversionContext implements IConversionContext
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
 	{
-		// TODO: create new instance of javaClassInfo and replace the corresponding generic type parameters according to the given generic type arguments.
-		return classInfo;
+		String[] typeArgumentsSplit = astHelper.splitTypeArgument(genericTypeArguments);
+		JavaClassInfo[] typeArgumentCIs = new JavaClassInfo[typeArgumentsSplit.length];
+		StringBuilder sb = new StringBuilder();
+		sb.append(classInfo.getName());
+		boolean first = true;
+		for (int a = typeArgumentsSplit.length; a-- > 0;)
+		{
+			if (first)
+			{
+				sb.append('<');
+				first = false;
+			}
+			else
+			{
+				sb.append(',');
+			}
+			JavaClassInfo typeArgumentCI = resolveClassInfo(typeArgumentsSplit[a]);
+			typeArgumentCIs[a] = resolveClassInfo(typeArgumentsSplit[a]);
+			sb.append(typeArgumentCI.getFqName());
+		}
+		if (!first)
+		{
+			sb.append('>');
+		}
+		JavaClassInfo genericClassInfo = new JavaClassInfo(classInfo.context);
+		genericClassInfo.setName(sb.toString());
+		genericClassInfo.setPackageName(classInfo.getPackageName());
+		genericClassInfo.setTypeArguments(typeArgumentCIs);
+
+		genericClassInfo.setPrivateFlag(classInfo.isPrivate());
+		genericClassInfo.setProtectedFlag(classInfo.isProtected());
+		genericClassInfo.setPublicFlag(classInfo.isPublic());
+		genericClassInfo.setFinalFlag(classInfo.isFinal());
+		genericClassInfo.setNameOfSuperClass(classInfo.getNameOfSuperClass());
+		for (String nameOfInterface : classInfo.getNameOfInterfaces())
+		{
+			genericClassInfo.addNameOfInterface(nameOfInterface);
+		}
+		for (Annotation annotation : classInfo.getAnnotations())
+		{
+			genericClassInfo.addAnnotation(annotation);
+		}
+		for (Field field : classInfo.getFields())
+		{
+			genericClassInfo.addField(field);
+		}
+		for (Method method : classInfo.getMethods())
+		{
+			genericClassInfo.addMethod(method);
+		}
+		return genericClassInfo;
 	}
 
 	@Override
@@ -471,6 +539,10 @@ public class ConversionContext implements IConversionContext
 	@Override
 	public void setTypeOnStack(String typeOnStack)
 	{
+		if ("<nulltype>".equals(typeOnStack))
+		{
+			typeOnStack = null;
+		}
 		this.typeOnStack = typeOnStack;
 	}
 
@@ -494,5 +566,17 @@ public class ConversionContext implements IConversionContext
 			return classInfo.toString();
 		}
 		return super.toString();
+	}
+
+	@Override
+	public boolean isSkipFirstBlockStatement()
+	{
+		return skipFirstBlockStatement;
+	}
+
+	@Override
+	public void setSkipFirstBlockStatement(boolean skipFirstBlockStatement)
+	{
+		this.skipFirstBlockStatement = skipFirstBlockStatement;
 	}
 }

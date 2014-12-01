@@ -14,6 +14,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.IVariable;
 
 /**
@@ -44,6 +45,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 
 	private TreePath treePath;
 	private ClassTree classTree;
+	private JavaClassInfo[] typeArguments;
 
 	public JavaClassInfo(IConversionContext context)
 	{
@@ -222,6 +224,42 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 		return false;
 	}
 
+	public boolean hasMethodWithIdenticalSignature(ITransformedMethod method)
+	{
+		for (Method existingMethod : getMethods())
+		{
+			if (!existingMethod.getName().equals(method.getName()))
+			{
+				// not the same name
+				continue;
+			}
+			IList<VariableElement> existingParameters = existingMethod.getParameters();
+			String[] parameters = method.getArgumentTypes();
+
+			if (existingParameters.size() != parameters.length)
+			{
+				// not the same parameter count
+				continue;
+			}
+			boolean parametersIdentical = true;
+			for (int a = existingParameters.size(); a-- > 0;)
+			{
+				VariableElement existingParameter = existingParameters.get(a);
+				String parameter = parameters[a];
+				if (!existingParameter.asType().toString().equals(parameter))
+				{
+					parametersIdentical = false;
+					break;
+				}
+			}
+			if (parametersIdentical)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public void addMethod(Method method)
 	{
 		methods.add(method);
@@ -373,5 +411,15 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setClassTree(ClassTree classTree)
 	{
 		this.classTree = classTree;
+	}
+
+	public JavaClassInfo[] getTypeArguments()
+	{
+		return typeArguments;
+	}
+
+	public void setTypeArguments(JavaClassInfo[] typeArguments)
+	{
+		this.typeArguments = typeArguments;
 	}
 }

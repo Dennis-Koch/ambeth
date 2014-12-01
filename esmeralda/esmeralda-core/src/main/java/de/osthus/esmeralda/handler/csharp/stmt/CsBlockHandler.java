@@ -50,44 +50,54 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		{
 			metric.setStatements(metric.getStatements() + statements.size());
 		}
-		for (StatementTree statement : statements)
+		boolean skipFirstBlockStatement = context.isSkipFirstBlockStatement();
+		context.setSkipFirstBlockStatement(false);
+		try
 		{
-			Kind kind = statement.getKind();
-			final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
-			if (stmtHandler != null)
+			for (int a = skipFirstBlockStatement ? 1 : 0, size = statements.size(); a < size; a++)
 			{
-				// Important to check here to keep the code in order
-				checkUntranslatableList(untranslatableStatements, snippetManager);
-
-				final StatementTree fstatement = statement;
-				try
+				StatementTree statement = statements.get(a);
+				Kind kind = statement.getKind();
+				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+				if (stmtHandler != null)
 				{
-					String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
-					{
-						@Override
-						public void invoke() throws Throwable
-						{
-							stmtHandler.handle(fstatement);
-						}
-					});
-
 					// Important to check here to keep the code in order
 					checkUntranslatableList(untranslatableStatements, snippetManager);
 
-					context.getWriter().append(statementString);
-				}
-				catch (TypeResolveException e)
-				{
-					log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
-							+ statement.toString());
+					final StatementTree fstatement = statement;
+					try
+					{
+						String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+						{
+							@Override
+							public void invoke() throws Throwable
+							{
+								stmtHandler.handle(fstatement);
+							}
+						});
 
-					String untranslatableStatement = statement.toString();
-					untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
-					untranslatableStatements.add(untranslatableStatement);
+						// Important to check here to keep the code in order
+						checkUntranslatableList(untranslatableStatements, snippetManager);
+
+						context.getWriter().append(statementString);
+					}
+					catch (TypeResolveException e)
+					{
+						log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
+								+ statement.toString());
+
+						String untranslatableStatement = statement.toString();
+						untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
+						untranslatableStatements.add(untranslatableStatement);
+					}
 				}
 			}
+			checkUntranslatableList(untranslatableStatements, snippetManager);
 		}
-		checkUntranslatableList(untranslatableStatements, snippetManager);
+		finally
+		{
+			context.setSkipFirstBlockStatement(skipFirstBlockStatement);
+		}
 	}
 
 	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager)

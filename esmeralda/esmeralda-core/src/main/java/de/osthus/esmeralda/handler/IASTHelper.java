@@ -20,4 +20,6 @@ public interface IASTHelper
 	String resolveFqTypeFromTypeName(String typeName);
 
 	boolean hasGenericTypeArguments(Method method);
+
+	String[] splitTypeArgument(String typeArguments);
 }

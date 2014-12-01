@@ -23,7 +23,6 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -103,7 +102,9 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		put(java.lang.Throwable.class.getName(), "System.Exception");
 		put(java.lang.Object.class.getName(), "System.Object");
 		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		put(java.lang.reflect.Field.class.getName(), "System.Reflection.FieldInfo");
 		put(java.lang.RuntimeException.class.getName(), "System.Exception");
+		put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
@@ -255,7 +256,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 				writer.append('<');
 
 				String typeArguments = genericTypeMatcher.group(2);
-				String[] typeArgumentsSplit = splitTypeArgument(typeArguments);
+				String[] typeArgumentsSplit = astHelper.splitTypeArgument(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
@@ -380,7 +381,8 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@Override
 	public String createTargetFileName(JavaClassInfo classInfo)
 	{
-		return classInfo.getName() + ".cs";
+		String nonGenericType = astHelper.extractNonGenericType(classInfo.getName());
+		return nonGenericType + ".cs";
 	}
 
 	@Override
@@ -723,46 +725,5 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			context.setWriter(oldWriter);
 		}
-	}
-
-	protected String[] splitTypeArgument(String typeArguments)
-	{
-		ArrayList<String> splittedTypeArguments = new ArrayList<String>();
-		int genericLevelCount = 0;
-		StringBuilder collectedTypeArgument = new StringBuilder();
-		for (int a = 0, size = typeArguments.length(); a < size; a++)
-		{
-			char oneChar = typeArguments.charAt(a);
-			if (genericLevelCount > 0)
-			{
-				collectedTypeArgument.append(oneChar);
-				if (oneChar == '>')
-				{
-					genericLevelCount--;
-				}
-				else if (oneChar == '<')
-				{
-					genericLevelCount++;
-				}
-				continue;
-			}
-			if (genericLevelCount == 0 && oneChar == ',')
-			{
-				splittedTypeArguments.add(collectedTypeArgument.toString());
-				collectedTypeArgument.setLength(0);
-				continue;
-			}
-			collectedTypeArgument.append(oneChar);
-			if (oneChar == '<')
-			{
-				genericLevelCount++;
-			}
-		}
-		if (collectedTypeArgument.length() > 0)
-		{
-			splittedTypeArguments.add(collectedTypeArgument.toString());
-			collectedTypeArgument.setLength(0);
-		}
-		return splittedTypeArguments.toArray(String.class);
 	}
 }
