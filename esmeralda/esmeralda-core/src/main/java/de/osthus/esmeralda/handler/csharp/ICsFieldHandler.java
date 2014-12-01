@@ -1,7 +1,7 @@
 package de.osthus.esmeralda.handler.csharp;
 
-import de.osthus.esmeralda.handler.IClassHandler;
+import de.osthus.esmeralda.handler.IFieldHandler;
 
-public interface ICsFieldHandler extends IClassHandler
+public interface ICsFieldHandler extends IFieldHandler
 {
 }

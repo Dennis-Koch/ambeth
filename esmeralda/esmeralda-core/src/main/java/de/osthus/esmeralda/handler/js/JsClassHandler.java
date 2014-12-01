@@ -45,109 +45,9 @@ public class JsClassHandler implements IJsClassHandler
 	@Override
 	public void handle()
 	{
-		return;
-
-		// IConversionContext context = this.context.getCurrent();
-		// final JavaClassInfo classInfo = context.getClassInfo();
-		//
-		// IBackgroundWorkerDelegate writeToWriterDelegate = new IBackgroundWorkerDelegate()
-		// {
-		// @Override
-		// public void invoke() throws Throwable
-		// {
-		// writeToWriter(classInfo);
-		// }
-		// };
-		//
-		// // PHASE 1: parse the current classInfo to collect all used types. We need the usedTypes to decided later which type we can reference by its simple
-		// name
-		// // without ambiguity
-		// HashSet<TypeUsing> usedTypes = new HashSet<TypeUsing>();
-		// context.setDryRun(true);
-		// context.setUsedTypes(usedTypes);
-		// try
-		// {
-		// languageHelper.writeToStash(writeToWriterDelegate);
-		// }
-		// catch (SkipGenerationException e)
-		// {
-		// return;
-		// }
-		// finally
-		// {
-		// context.setUsedTypes(null);
-		// context.setDryRun(false);
-		// }
-		//
-		// // PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
-		// HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
-		// for (TypeUsing usedType : usedTypes)
-		// {
-		// Matcher matcher = ClassInfoDataSetter.fqPattern.matcher(usedType.getTypeName());
-		// if (!matcher.matches())
-		// {
-		// continue;
-		// }
-		// String packageName = matcher.group(1);
-		// String simpleName = matcher.group(2);
-		// Set<String> list = simpleNameToPackagesMap.get(simpleName);
-		// if (list == null)
-		// {
-		// list = new HashSet<String>();
-		// simpleNameToPackagesMap.put(simpleName, list);
-		// }
-		// list.add(packageName);
-		// }
-		// String classNamespace = languageHelper.camelCaseName(classInfo.getPackageName());
-		//
-		// // PHASE 3: fill imports and usings information for this class file
-		// LinkedHashMap<String, String> imports = new LinkedHashMap<String, String>();
-		// HashSet<TypeUsing> usings = new HashSet<TypeUsing>();
-		// for (Entry<String, Set<String>> entry : simpleNameToPackagesMap)
-		// {
-		// Set<String> packagesSet = entry.getValue();
-		// if (packagesSet.size() > 1)
-		// {
-		// continue;
-		// }
-		// String packageName = (String) packagesSet.toArray()[0];
-		// // simpleName is unique. So we can use an import for them
-		// String fqTypeName = packageName + "." + entry.getKey();
-		// imports.put(fqTypeName, entry.getKey());
-		// if (classNamespace.equals(packageName))
-		// {
-		// // do not create a "using" for types in our own namespace
-		// continue;
-		// }
-		// TypeUsing existingTypeUsing = usedTypes.get(new TypeUsing(fqTypeName, false));
-		// TypeUsing newPackageUsing = new TypeUsing(packageName, existingTypeUsing.isInSilverlightOnly());
-		// TypeUsing existingPackageUsing = usings.get(newPackageUsing);
-		// if (existingPackageUsing != null)
-		// {
-		// boolean isInSilverlightOnly = existingPackageUsing.isInSilverlightOnly() && newPackageUsing.isInSilverlightOnly();
-		// newPackageUsing = new TypeUsing(packageName, isInSilverlightOnly);
-		// }
-		// usings.add(newPackageUsing);
-		// }
-		//
-		// String newFileContent;
-		// context.setUsings(usings.toList());
-		// context.setImports(imports);
-		// try
-		// {
-		// newFileContent = languageHelper.writeToStash(writeToWriterDelegate);
-		// }
-		// finally
-		// {
-		// context.setImports(null);
-		// context.setUsings(null);
-		// }
-		// fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
-	}
-
-	protected void writeToWriter(final JavaClassInfo classInfo)
-	{
 		IConversionContext context = this.context.getCurrent();
+		final JavaClassInfo classInfo = context.getClassInfo();
+
 		context.setIndentationLevel(0);
 		try
 		{
@@ -170,6 +70,12 @@ public class JsClassHandler implements IJsClassHandler
 		{
 			context.setIndentationLevel(0);
 		}
+	}
+
+	@Override
+	public IJsHelper getLanguageHelper()
+	{
+		return languageHelper;
 	}
 
 	protected void writeNamespace(JavaClassInfo classInfo)
@@ -213,7 +119,7 @@ public class JsClassHandler implements IJsClassHandler
 		}
 
 		String packageName = classInfo.getPackageName();
-		String nameSpace = languageHelper.camelCaseName(packageName);
+		String nameSpace = languageHelper.toNamespace(packageName);
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 		writer.append("namespace ").append(nameSpace);
 	}

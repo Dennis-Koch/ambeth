@@ -28,7 +28,7 @@ public interface ILanguageHelper
 
 	String createTargetFileName(JavaClassInfo classInfo);
 
-	String camelCaseName(String typeName);
+	String toNamespace(String typeName);
 
 	boolean writeStringIfFalse(String value, boolean condition);
 
