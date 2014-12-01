@@ -44,7 +44,6 @@ import de.osthus.esmeralda.handler.csharp.CsClassHandler;
 import de.osthus.esmeralda.handler.csharp.CsFieldHandler;
 import de.osthus.esmeralda.handler.csharp.CsHelper;
 import de.osthus.esmeralda.handler.csharp.CsMethodHandler;
-import de.osthus.esmeralda.handler.csharp.CsStatementHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.csharp.MethodTransformer;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayAccessExpressionHandler;
@@ -153,9 +152,6 @@ public class EsmeraldaCoreModule implements IInitializingModule
 
 		IBeanConfiguration csMethodHandler = beanContextFactory.registerBean(CsMethodHandler.class);
 		beanContextFactory.link(csMethodHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.METHOD);
-
-		IBeanConfiguration csStatementHandler = beanContextFactory.registerBean(CsStatementHandler.class);
-		beanContextFactory.link(csStatementHandler).to(INodeHandlerExtendable.class).with(Lang.C_SHARP + EsmeType.STATEMENT);
 
 		// statements
 		beanContextFactory.registerBean(ExtendableBean.class) //

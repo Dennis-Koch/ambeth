@@ -1,19 +1,10 @@
 package de.osthus.esmeralda.handler.csharp;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
-
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.Tree;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -63,7 +54,7 @@ public class CsClassHandler implements INodeHandlerExtension
 	protected INodeHandlerRegistry nodeHandlerRegistry;
 
 	@Override
-	public void handle(Tree astNode)
+	public void handle()
 	{
 		IConversionContext context = this.context.getCurrent();
 		final JavaClassInfo classInfo = context.getClassInfo();
@@ -159,52 +150,25 @@ public class CsClassHandler implements INodeHandlerExtension
 			context.setImports(null);
 			context.setUsings(null);
 		}
-		updateFile(newFileContent);
+		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
 	}
 
-	protected void updateFile(String newFileContent)
-	{
-		File csharpFile = languageHelper.createTargetFile();
-		if (csharpFile.exists())
-		{
-			StringBuilder existingFileContent = readFileFully(csharpFile);
-			if (existingFileContent.toString().equals(newFileContent))
-			{
-				if (log.isDebugEnabled())
-				{
-					log.debug("File is already up-to-date: " + csharpFile);
-				}
-				return;
-			}
-			if (log.isInfoEnabled())
-			{
-				log.info("Updating file: " + csharpFile);
-			}
-		}
-		else
-		{
-			if (log.isInfoEnabled())
-			{
-				log.info("Creating file: " + csharpFile);
-			}
-		}
-		try (Writer fileWriter = new OutputStreamWriter(new FileOutputStream(csharpFile), "UTF-8"))
-		{
-			fileWriter.append(newFileContent);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected void writeToWriter(JavaClassInfo classInfo)
+	protected void writeToWriter(final JavaClassInfo classInfo)
 	{
 		IConversionContext context = this.context.getCurrent();
 		context.setIndentationLevel(0);
 		try
 		{
 			writeNamespace(classInfo);
+
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					writeClass(classInfo);
+				}
+			});
 		}
 		catch (Throwable e)
 		{
@@ -216,33 +180,7 @@ public class CsClassHandler implements INodeHandlerExtension
 		}
 	}
 
-	protected StringBuilder readFileFully(File file)
-	{
-		try
-		{
-			StringBuilder sb = new StringBuilder((int) file.length());
-			BufferedReader rd = new BufferedReader(new FileReader(file));
-			try
-			{
-				int oneByte;
-				while ((oneByte = rd.read()) != -1)
-				{
-					sb.append((char) oneByte);
-				}
-				return sb;
-			}
-			finally
-			{
-				rd.close();
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-	}
-
-	protected void writeNamespace(final JavaClassInfo classInfo)
+	protected void writeNamespace(JavaClassInfo classInfo)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -286,14 +224,6 @@ public class CsClassHandler implements INodeHandlerExtension
 		String nameSpace = languageHelper.camelCaseName(packageName);
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 		writer.append("namespace ").append(nameSpace);
-		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-		{
-			@Override
-			public void invoke() throws Throwable
-			{
-				writeClass(classInfo);
-			}
-		});
 	}
 
 	protected void writeClass(final JavaClassInfo classInfo)
@@ -435,15 +365,14 @@ public class CsClassHandler implements INodeHandlerExtension
 		{
 			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 			context.setField(field);
-			fieldHandler.handle(null);
+			fieldHandler.handle();
 		}
 
 		for (Method method : classInfo.getMethods())
 		{
 			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 			context.setMethod(method);
-			MethodTree methodTree = method.getMethodTree();
-			methodHandler.handle(methodTree);
+			methodHandler.handle();
 		}
 	}
 }

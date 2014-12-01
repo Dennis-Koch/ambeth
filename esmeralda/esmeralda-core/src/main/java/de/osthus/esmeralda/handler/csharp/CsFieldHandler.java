@@ -1,7 +1,6 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import com.sun.source.tree.ExpressionTree;
-import com.sun.source.tree.Tree;
 
 import de.osthus.ambeth.annotation.ConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -40,7 +39,7 @@ public class CsFieldHandler implements INodeHandlerExtension
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public void handle(Tree astNode)
+	public void handle()
 	{
 		IConversionContext context = this.context.getCurrent();
 		Field field = context.getField();
