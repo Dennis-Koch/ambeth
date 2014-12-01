@@ -20,19 +20,15 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.SkipGenerationException;
 import de.osthus.esmeralda.TypeUsing;
-import de.osthus.esmeralda.handler.INodeHandlerExtension;
-import de.osthus.esmeralda.handler.INodeHandlerRegistry;
 import de.osthus.esmeralda.handler.IVariable;
-import de.osthus.esmeralda.misc.EsmeType;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IWriter;
-import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
-public class CsClassHandler implements INodeHandlerExtension
+public class CsClassHandler implements ICsClassHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -51,7 +47,10 @@ public class CsClassHandler implements INodeHandlerExtension
 	protected ICsHelper languageHelper;
 
 	@Autowired
-	protected INodeHandlerRegistry nodeHandlerRegistry;
+	protected ICsFieldHandler fieldHandler;
+
+	@Autowired
+	protected ICsMethodHandler methodHandler;
 
 	@Override
 	public void handle()
@@ -350,15 +349,13 @@ public class CsClassHandler implements INodeHandlerExtension
 				}
 			}
 		});
+
 		writeClassBody(classInfo);
 	}
 
 	protected void writeClassBody(JavaClassInfo classInfo)
 	{
 		IConversionContext context = this.context.getCurrent();
-
-		final INodeHandlerExtension fieldHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.FIELD);
-		final INodeHandlerExtension methodHandler = nodeHandlerRegistry.get(Lang.C_SHARP + EsmeType.METHOD);
 
 		boolean firstLine = true;
 		for (Field field : classInfo.getFields())

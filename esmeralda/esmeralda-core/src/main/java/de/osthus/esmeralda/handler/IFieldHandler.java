@@ -1,6 +1,6 @@
 package de.osthus.esmeralda.handler;
 
-public interface INodeHandlerExtension
+public interface IFieldHandler
 {
 	void handle();
 }
