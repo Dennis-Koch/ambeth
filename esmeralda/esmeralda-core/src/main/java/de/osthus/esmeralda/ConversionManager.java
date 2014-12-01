@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.INodeHandlerExtension;
 import de.osthus.esmeralda.handler.INodeHandlerRegistry;
@@ -33,6 +34,9 @@ public class ConversionManager implements IStartingBean
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IASTHelper astHelper;
 
 	@Autowired
 	protected IClassInfoFactory classInfoFactory;
@@ -107,10 +111,15 @@ public class ConversionManager implements IStartingBean
 
 		for (JavaClassInfo classInfo : classInfos)
 		{
-			String fqName = classInfo.getPackageName() + "." + classInfo.getName();
+			String fqName = classInfo.getFqName();
 			if (!fqNameToClassInfoMap.putIfNotExists(fqName, classInfo))
 			{
 				throw new IllegalStateException("Full qualified name is not unique: " + fqName);
+			}
+			String nonGenericFqName = astHelper.extractNonGenericType(classInfo.getFqName());
+			if (!nonGenericFqName.equals(fqName) && !fqNameToClassInfoMap.putIfNotExists(nonGenericFqName, classInfo))
+			{
+				throw new IllegalStateException("Full qualified name is not unique: " + nonGenericFqName);
 			}
 		}
 
@@ -138,6 +147,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setMetric(csMetric);
 			csContext.setNsPrefixRemove("de.osthus.");
 			csContext.setClassInfo(classInfo);
+			csContext.setAstHelper(astHelper);
 			csContext.setClassInfoFactory(classInfoFactory);
 
 			invokeNodeHandler(csClassHandler, csContext);
@@ -151,6 +161,7 @@ public class ConversionManager implements IStartingBean
 			jsContext.setMetric(jsMetric);
 			jsContext.setNsPrefixRemove("de.osthus.");
 			jsContext.setClassInfo(classInfo);
+			jsContext.setAstHelper(astHelper);
 			jsContext.setClassInfoFactory(classInfoFactory);
 
 			invokeNodeHandler(jsClassHandler, jsContext);

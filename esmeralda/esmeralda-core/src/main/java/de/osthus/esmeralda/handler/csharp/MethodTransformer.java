@@ -2,8 +2,11 @@ package de.osthus.esmeralda.handler.csharp;
 
 import java.util.List;
 
+import javax.lang.model.element.VariableElement;
+
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
@@ -20,6 +23,7 @@ import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class MethodTransformer implements IMethodTransformer, IMethodTransformerExtensionExtendable
 {
@@ -48,10 +52,38 @@ public class MethodTransformer implements IMethodTransformer, IMethodTransformer
 	@Override
 	public ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes)
 	{
-		IConversionContext context = this.context.getCurrent();
-
 		String[] argTypes = parseArgumentTypes(parameterTypes);
+		return transformIntern(owner, methodName, argTypes);
+	}
 
+	@Override
+	public ITransformedMethod transformMethodDeclaration(Method method)
+	{
+		String owner = method.getOwningClass().getFqName();
+		String methodName = method.getName();
+		String[] argTypes = parseArgumentTypes(method.getParameters());
+		return transformIntern(owner, methodName, argTypes);
+	}
+
+	protected String[] parseArgumentTypes(final IList<VariableElement> parameterTypes)
+	{
+		final String[] argTypes = new String[parameterTypes.size()];
+		for (int a = 0, size = parameterTypes.size(); a < size; a++)
+		{
+			VariableElement arg = parameterTypes.get(a);
+			argTypes[a] = arg.asType().toString();
+		}
+		return argTypes;
+	}
+
+	protected ITransformedMethod transformIntern(String owner, String methodName, String[] argTypes)
+	{
+		if ("super".equals(methodName) || "this".equals(methodName))
+		{
+			MethodKey methodKey = new MethodKey(owner, methodName, argTypes);
+			return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
+		}
+		IConversionContext context = this.context.getCurrent();
 		String currOwner = owner;
 		while (currOwner != null)
 		{

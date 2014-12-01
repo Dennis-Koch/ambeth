@@ -84,7 +84,9 @@ import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangClassTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.StackTraceElementTransformer;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
@@ -126,8 +128,10 @@ public class EsmeraldaCoreModule implements IInitializingModule
 
 		registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectFieldTransformer.class, java.lang.reflect.Field.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaUtilListTransformer.class, java.util.List.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaIoPrintstreamTransformer.class, java.io.PrintStream.class);
+		registerMethodTransformerExtension(beanContextFactory, StackTraceElementTransformer.class, java.lang.StackTraceElement.class);
 
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 

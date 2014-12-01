@@ -211,12 +211,14 @@ public class MethodInfoDataSetter
 
 		if (methodInfo.getOwningClass().isAnnotation())
 		{
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		List<? extends TypeParameterTree> typeParameters = methodInfo.getMethodTree().getTypeParameters();
 		if (typeParameters.size() == 0)
 		{
 			// nothing special for a non-generic method declaration
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		// check if it contains exactly 1 parameter with the generic type "java.util.Class<T>"
@@ -224,22 +226,26 @@ public class MethodInfoDataSetter
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCTypeApply)
 		{
 			// TODO: handle this
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCPrimitiveTypeTree)
 		{
 			// TODO: handle this
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCArrayTypeTree)
 		{
 			// TODO: handle this
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		JCIdent returnTypeSymbol = (JCIdent) methodInfo.getMethodTree().getReturnType();
 		if (!(returnTypeSymbol.type instanceof TypeVar))
 		{
 			// TODO: handle this
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		TypeVar returnType = (TypeVar) returnTypeSymbol.type;
@@ -262,10 +268,12 @@ public class MethodInfoDataSetter
 		}
 		if (genericParameterOfClass == null)
 		{
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		if (methodName.equals(DEFAULT_CONSTRUCTOR_NAME))
 		{
+			clazzInfo.addMethod(methodInfo);
 			return;
 		}
 		// create a method signature for the genericParameters in addition to the "default" one

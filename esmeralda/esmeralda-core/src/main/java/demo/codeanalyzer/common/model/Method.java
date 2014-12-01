@@ -32,4 +32,6 @@ public interface Method extends BaseJavaClassModel
 	IList<Integer> getParameterIndexToEraseGenericType();
 
 	IList<Integer> getParameterIndexToDelete();
+
+	boolean isConstructor();
 }
