@@ -16,9 +16,20 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 	@Override
 	protected ITransformedMethod buildMethodTransformationIntern(MethodKey methodKey)
 	{
-		String formattedMethodName = StringConversionHelper.upperCaseFirst(objectCollector, methodKey.getMethodName());
-		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), formattedMethodName, methodKey.getParameters(), false,
-				false);
+		String methodName = methodKey.getMethodName();
+		if ("super".equals(methodName))
+		{
+			methodName = "base";
+		}
+		else if ("this".equals(methodName))
+		{
+			methodName = "this";
+		}
+		else
+		{
+			methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
+		}
+		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false, false);
 		transformedMethod.setParameterProcessor(defaultMethodParameterProcessor);
 		return transformedMethod;
 	}

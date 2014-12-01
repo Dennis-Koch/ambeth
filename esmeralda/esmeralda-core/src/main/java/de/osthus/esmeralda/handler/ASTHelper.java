@@ -10,6 +10,7 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -27,6 +28,20 @@ import demo.codeanalyzer.common.model.Method;
 public class ASTHelper implements IASTHelper
 {
 	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
+
+	public static final HashSet<String> primitiveTypeSet = new HashSet<String>();
+
+	static
+	{
+		primitiveTypeSet.add(Boolean.TYPE.getName());
+		primitiveTypeSet.add(Byte.TYPE.getName());
+		primitiveTypeSet.add(Character.TYPE.getName());
+		primitiveTypeSet.add(Short.TYPE.getName());
+		primitiveTypeSet.add(Integer.TYPE.getName());
+		primitiveTypeSet.add(Float.TYPE.getName());
+		primitiveTypeSet.add(Long.TYPE.getName());
+		primitiveTypeSet.add(Double.TYPE.getName());
+	}
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -199,5 +214,47 @@ public class ASTHelper implements IASTHelper
 		// + context.getClassInfo().getName() + "'");
 		// }
 		// return typeName;
+	}
+
+	@Override
+	public String[] splitTypeArgument(String typeArguments)
+	{
+		ArrayList<String> splittedTypeArguments = new ArrayList<String>();
+		int genericLevelCount = 0;
+		StringBuilder collectedTypeArgument = new StringBuilder();
+		for (int a = 0, size = typeArguments.length(); a < size; a++)
+		{
+			char oneChar = typeArguments.charAt(a);
+			if (genericLevelCount > 0)
+			{
+				collectedTypeArgument.append(oneChar);
+				if (oneChar == '>')
+				{
+					genericLevelCount--;
+				}
+				else if (oneChar == '<')
+				{
+					genericLevelCount++;
+				}
+				continue;
+			}
+			if (genericLevelCount == 0 && oneChar == ',')
+			{
+				splittedTypeArguments.add(collectedTypeArgument.toString());
+				collectedTypeArgument.setLength(0);
+				continue;
+			}
+			collectedTypeArgument.append(oneChar);
+			if (oneChar == '<')
+			{
+				genericLevelCount++;
+			}
+		}
+		if (collectedTypeArgument.length() > 0)
+		{
+			splittedTypeArguments.add(collectedTypeArgument.toString());
+			collectedTypeArgument.setLength(0);
+		}
+		return splittedTypeArguments.toArray(String.class);
 	}
 }

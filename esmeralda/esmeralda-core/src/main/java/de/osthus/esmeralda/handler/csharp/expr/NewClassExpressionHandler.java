@@ -13,6 +13,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.log.ILogger;
@@ -46,7 +47,7 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		while (true)
 		{
 			JCClassDecl leaf = (JCClassDecl) currPath.getLeaf();
-			anonymousFqName = leaf.sym.toString();
+			anonymousFqName = buildGenericTypeName(leaf);
 			if (anonymousFqName.indexOf('.') != -1)
 			{
 				return anonymousFqName + reverseSuffix;
@@ -61,6 +62,32 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 			}
 			currPath = currPath.getParentPath();
 		}
+	}
+
+	public static String buildGenericTypeName(JCClassDecl classdecl)
+	{
+		String fqName = classdecl.sym.toString();
+
+		StringBuilder simpleNameBuilder = new StringBuilder(fqName);
+		boolean first = true;
+		for (JCTypeParameter tp : classdecl.typarams)
+		{
+			if (first)
+			{
+				simpleNameBuilder.append('<');
+				first = false;
+			}
+			else
+			{
+				simpleNameBuilder.append(',');
+			}
+			simpleNameBuilder.append(tp.type.toString());
+		}
+		if (!first)
+		{
+			simpleNameBuilder.append('>');
+		}
+		return simpleNameBuilder.toString();
 	}
 
 	@SuppressWarnings("unused")
@@ -80,7 +107,7 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		{
 			owner = newClass.clazz.toString();
 		}
-		owner = context.resolveClassInfo(owner).getFqName();
+		owner = astHelper.resolveFqTypeFromTypeName(owner);
 		JCClassDecl def = newClass.def;
 		if (def == null)
 		{

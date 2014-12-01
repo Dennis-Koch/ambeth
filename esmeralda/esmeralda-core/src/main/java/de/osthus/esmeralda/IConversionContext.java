@@ -103,4 +103,8 @@ public interface IConversionContext
 	StatementCount getMetric();
 
 	void setMetric(StatementCount metric);
+
+	void setSkipFirstBlockStatement(boolean skipFirstBlockStatement);
+
+	boolean isSkipFirstBlockStatement();
 }

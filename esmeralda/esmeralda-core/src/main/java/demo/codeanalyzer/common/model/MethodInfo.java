@@ -23,6 +23,12 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	private ArrayList<Integer> parameterIndexToDelete = new ArrayList<Integer>();
 
 	@Override
+	public boolean isConstructor()
+	{
+		return getName().equals(getOwningClass().getName());
+	}
+
+	@Override
 	public ClassFile getOwningClass()
 	{
 		return owningClass;
