@@ -105,7 +105,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	// TODOInclude a "dryRun" flag in the ConversionContext
 	protected void createFileNameParts()
 	{
-		String methodName = method.getName();
+		String methodName = method.getName().split("<", 2)[0]; // FIXME dirty hack to cut the generic type parameters off
 		String targetFileName = languageHelper.createTargetFileName(classInfo);
 		int lastDot = targetFileName.lastIndexOf(".");
 		fileNameParts[0] = targetFileName.substring(0, lastDot) + "." + methodName;
@@ -139,6 +139,8 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	@Override
 	public void writeSnippet(List<String> untranslatableStatements)
 	{
+		IConversionContext context = this.context.getCurrent();
+
 		String md5Hash = calculateMd5(untranslatableStatements);
 
 		Path snippetFilePath = createSnippetFilePath(md5Hash);
@@ -154,7 +156,7 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			{
 				writeSnippetIntern(snippet, relativeSnippetFileName);
 			}
-			else if (log.isWarnEnabled())
+			else if (log.isWarnEnabled() && !context.isDryRun())
 			{
 				writeCodeTodo(untranslatableStatements, relativeSnippetFileName);
 				log.warn("Existing snippet file '" + relativeSnippetFileName + "' is needed, but was not edited yet.");

@@ -111,10 +111,15 @@ public class ConversionManager implements IStartingBean
 
 		for (JavaClassInfo classInfo : classInfos)
 		{
-			String fqName = classInfo.getPackageName() + "." + classInfo.getName();
+			String fqName = classInfo.getFqName();
 			if (!fqNameToClassInfoMap.putIfNotExists(fqName, classInfo))
 			{
 				throw new IllegalStateException("Full qualified name is not unique: " + fqName);
+			}
+			String nonGenericFqName = astHelper.extractNonGenericType(classInfo.getFqName());
+			if (!nonGenericFqName.equals(fqName) && !fqNameToClassInfoMap.putIfNotExists(nonGenericFqName, classInfo))
+			{
+				throw new IllegalStateException("Full qualified name is not unique: " + nonGenericFqName);
 			}
 		}
 

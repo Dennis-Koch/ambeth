@@ -83,6 +83,7 @@ public class MethodTransformer implements IMethodTransformer, IMethodTransformer
 			MethodKey methodKey = new MethodKey(owner, methodName, argTypes);
 			return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 		}
+		IConversionContext context = this.context.getCurrent();
 		String currOwner = owner;
 		while (currOwner != null)
 		{

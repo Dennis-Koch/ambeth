@@ -98,10 +98,11 @@ public class ClassInfoDataSetter
 			classInfo.setIsEnum(true);
 		}
 		// Set extending class info
-		if (superClass != null && !"<none>".equals(superClass))
+		if (superClass == null || "<none>".equals(superClass))
 		{
-			classInfo.setNameOfSuperClass(superClass);
+			superClass = Object.class.getName();
 		}
+		classInfo.setNameOfSuperClass(superClass);
 		// Set implementing interface details
 		for (TypeMirror mirror : e.getInterfaces())
 		{
