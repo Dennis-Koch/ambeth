@@ -10,6 +10,7 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -17,7 +18,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.TypeResolveException;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.ClassFile;
@@ -31,16 +31,30 @@ public class ASTHelper implements IASTHelper
 
 	public static final HashSet<String> primitiveTypeSet = new HashSet<String>();
 
+	public static final HashSet<String> boxedPrimitiveTypeSet = new HashSet<String>();
+
+	public static final HashMap<String, String> unboxedToBoxedTypeMap = new HashMap<String, String>();
+
+	public static final HashMap<String, String> boxedToUnboxedTypeMap = new HashMap<String, String>();
+
 	static
 	{
-		primitiveTypeSet.add(Boolean.TYPE.getName());
-		primitiveTypeSet.add(Byte.TYPE.getName());
-		primitiveTypeSet.add(Character.TYPE.getName());
-		primitiveTypeSet.add(Short.TYPE.getName());
-		primitiveTypeSet.add(Integer.TYPE.getName());
-		primitiveTypeSet.add(Float.TYPE.getName());
-		primitiveTypeSet.add(Long.TYPE.getName());
-		primitiveTypeSet.add(Double.TYPE.getName());
+		addBoxMapping(Boolean.TYPE.getName(), Boolean.class.getName());
+		addBoxMapping(Byte.TYPE.getName(), Byte.class.getName());
+		addBoxMapping(Character.TYPE.getName(), Character.class.getName());
+		addBoxMapping(Short.TYPE.getName(), Short.class.getName());
+		addBoxMapping(Integer.TYPE.getName(), Integer.class.getName());
+		addBoxMapping(Float.TYPE.getName(), Float.class.getName());
+		addBoxMapping(Long.TYPE.getName(), Long.class.getName());
+		addBoxMapping(Double.TYPE.getName(), Double.class.getName());
+	}
+
+	protected static void addBoxMapping(String unboxedType, String boxedType)
+	{
+		primitiveTypeSet.add(unboxedType);
+		boxedPrimitiveTypeSet.add(boxedType);
+		unboxedToBoxedTypeMap.put(unboxedType, boxedType);
+		boxedToUnboxedTypeMap.put(boxedType, unboxedType);
 	}
 
 	@SuppressWarnings("unused")
@@ -196,24 +210,7 @@ public class ASTHelper implements IASTHelper
 				}
 			}
 		}
-		// for (TypeParameterTree typeParameter : resolveAllTypeParameters())
-		// {
-		// if (typeParameter.getBounds().size() > 0)
-		// {
-		// throw new TypeResolveException("Bounds not yet supported: " + typeParameter);
-		// }
-		// if ()
-		// JCTypeParameter tp = (JCTypeParameter) typeParameter;
-		// Type upperBound = tp.type.getUpperBound();
-		// JCTree tree = tp.getTree();
-		// }
-		throw new TypeResolveException(typeName);
-		// if (log.isWarnEnabled())
-		// {
-		// loggerHistory.warnOnce(log, this, "Could not resolve type '" + typeName + "' in classInfo '" + context.getClassInfo().getPackageName() + "."
-		// + context.getClassInfo().getName() + "'");
-		// }
-		// return typeName;
+		return typeName;
 	}
 
 	@Override
@@ -240,7 +237,7 @@ public class ASTHelper implements IASTHelper
 			}
 			if (genericLevelCount == 0 && oneChar == ',')
 			{
-				splittedTypeArguments.add(collectedTypeArgument.toString());
+				splittedTypeArguments.add(collectedTypeArgument.toString().trim());
 				collectedTypeArgument.setLength(0);
 				continue;
 			}
@@ -252,7 +249,7 @@ public class ASTHelper implements IASTHelper
 		}
 		if (collectedTypeArgument.length() > 0)
 		{
-			splittedTypeArguments.add(collectedTypeArgument.toString());
+			splittedTypeArguments.add(collectedTypeArgument.toString().trim());
 			collectedTypeArgument.setLength(0);
 		}
 		return splittedTypeArguments.toArray(String.class);

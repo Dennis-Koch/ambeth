@@ -1,7 +1,6 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
-import java.util.regex.Matcher;
 
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -14,7 +13,6 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
@@ -241,11 +239,11 @@ public class ConversionContext implements IConversionContext
 		{
 			throw new SkipGenerationException();
 		}
-		Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(fqTypeName);
-		if (genericTypeMatcher.matches())
+		String[] parsedGenericType = parseGenericType(fqTypeName);
+		if (parsedGenericType.length == 2)
 		{
-			String nonGenericType = genericTypeMatcher.group(1);
-			String genericTypeArguments = genericTypeMatcher.group(2);
+			String nonGenericType = parsedGenericType[0];
+			String genericTypeArguments = parsedGenericType[1];
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
 			if (nonGenericClassInfo == null)
 			{
@@ -300,12 +298,63 @@ public class ConversionContext implements IConversionContext
 		return classInfo;
 	}
 
+	protected String[] parseGenericType(String fqTypeName)
+	{
+		int genericBracketCounter = 0;
+		int lastBracketOpening = -1;
+		int lastBracketClosing = -1;
+		for (int a = 0, size = fqTypeName.length(); a < size; a++)
+		{
+			char oneChar = fqTypeName.charAt(a);
+			if (oneChar == '<')
+			{
+				if (genericBracketCounter == 0)
+				{
+					lastBracketOpening = a;
+					lastBracketClosing = -1;
+				}
+				genericBracketCounter++;
+				continue;
+			}
+			else if (oneChar == '>')
+			{
+				genericBracketCounter--;
+				if (genericBracketCounter == 0)
+				{
+					lastBracketClosing = a;
+				}
+				continue;
+			}
+			else if (oneChar == '.')
+			{
+				if (genericBracketCounter == 0)
+				{
+					// reset the bracket index
+					lastBracketOpening = -1;
+					lastBracketClosing = -1;
+					continue;
+				}
+			}
+		}
+		if (genericBracketCounter != 0)
+		{
+			throw new IllegalArgumentException(fqTypeName);
+		}
+		if (lastBracketOpening == -1)
+		{
+			return new String[] { fqTypeName };
+		}
+		String nonGenericType = fqTypeName.substring(0, lastBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
+		String genericTypeArguments = fqTypeName.substring(lastBracketOpening + 1, lastBracketClosing);
+		return new String[] { nonGenericType, genericTypeArguments };
+	}
+
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
 	{
 		String[] typeArgumentsSplit = astHelper.splitTypeArgument(genericTypeArguments);
 		JavaClassInfo[] typeArgumentCIs = new JavaClassInfo[typeArgumentsSplit.length];
 		StringBuilder sb = new StringBuilder();
-		sb.append(classInfo.getName());
+		sb.append(astHelper.extractNonGenericType(classInfo.getName()));
 		boolean first = true;
 		for (int a = typeArgumentsSplit.length; a-- > 0;)
 		{

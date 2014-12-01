@@ -79,12 +79,15 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 						// Important to check here to keep the code in order
 						checkUntranslatableList(untranslatableStatements, snippetManager);
 
-						context.getWriter().append(statementString);
-					}
-					catch (TypeResolveException e)
+					context.getWriter().append(statementString);
+				}
+				catch (TypeResolveException e)
+				{
+					if (log.isInfoEnabled() && !context.isDryRun())
 					{
 						log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
 								+ statement.toString());
+					}
 
 						String untranslatableStatement = statement.toString();
 						untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";

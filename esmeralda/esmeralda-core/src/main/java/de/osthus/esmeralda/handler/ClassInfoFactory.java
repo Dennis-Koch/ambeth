@@ -78,6 +78,7 @@ public class ClassInfoFactory implements IClassInfoFactory
 			ci.setArray(true);
 			ci.setPackageName(componentCI.getPackageName());
 			ci.setName(componentCI.getName() + "[]");
+			ci.setNameOfSuperClass(Object.class.getName());
 
 			FieldInfo lengthField = new FieldInfo();
 			lengthField.setOwningClass(ci);
@@ -224,7 +225,16 @@ public class ClassInfoFactory implements IClassInfoFactory
 		for (int a = 0, size = parameterTypes.length; a < size; a++)
 		{
 			final String parameterName = "arg" + a;
-			final Class<?> parameterType = parameterTypes[a];
+			Class<?> parameterType = parameterTypes[a];
+			StringBuilder parameterTypeSB = new StringBuilder();
+			while (parameterType.isArray())
+			{
+				parameterType = parameterType.getComponentType();
+				parameterTypeSB.append("[]");
+			}
+			parameterTypeSB.insert(0, parameterType.getName());
+			final String parameterTypeToString = parameterTypeSB.toString();
+
 			VariableElement ve = new VariableElement()
 			{
 				@Override
@@ -320,7 +330,7 @@ public class ClassInfoFactory implements IClassInfoFactory
 						@Override
 						public String toString()
 						{
-							return parameterType.getName();
+							return parameterTypeToString;
 						}
 					};
 				}

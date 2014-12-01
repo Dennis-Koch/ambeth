@@ -1,7 +1,7 @@
 package de.osthus.esmeralda.handler.csharp.expr;
 
 import java.util.Arrays;
-import java.util.regex.Matcher;
+import java.util.Set;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -24,11 +24,13 @@ import com.sun.tools.javac.tree.JCTree.JCParens;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.util.List;
 
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.ASTHelper;
@@ -254,12 +256,36 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		{
 			return Void.TYPE.getName();
 		}
-		while (currOwner != null)
+		ParamHolder<Method> methodWithBoxingPH = new ParamHolder<Method>();
+		Method method = searchMethodOnType(currOwner, methodName, argTypes, new HashSet<String>(), methodWithBoxingPH);
+		if (method != null)
 		{
-			JavaClassInfo ownerInfo = context.resolveClassInfo(currOwner);
+			return method.getReturnType();
+		}
+		if (methodWithBoxingPH.getValue() != null)
+		{
+			// if no method with object inheritance match could be found we return the auto-box match if any
+			return methodWithBoxingPH.getValue().getReturnType();
+		}
+		throw new TypeResolveException("No matching method found '" + methodName + "(" + Arrays.toString(argTypes) + ")");
+	}
+
+	protected Method searchMethodOnType(String type, String methodName, String[] argTypes, Set<String> alreadyTriedTypes, ParamHolder<Method> methodWithBoxingPH)
+	{
+		if (!alreadyTriedTypes.add(type))
+		{
+			// already tried
+			return null;
+		}
+		Method methodWithBoxing = null;
+		Method methodOnInterface = null;
+		String currType = type;
+		while (currType != null)
+		{
+			JavaClassInfo ownerInfo = context.resolveClassInfo(currType);
 			if (ownerInfo == null)
 			{
-				throw new IllegalStateException("ClassInfo not resolved: '" + currOwner + "'");
+				throw new IllegalStateException("ClassInfo not resolved: '" + currType + "'");
 			}
 			for (Method method : ownerInfo.getMethods())
 			{
@@ -272,60 +298,126 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				{
 					continue;
 				}
-				boolean identicalParameterTypes = true;
-				for (int a = argTypes.length; a-- > 0;)
+				if (matchParametersByInheritance(argTypes, parameters))
 				{
-					String argType = argTypes[a];
-					TypeMirror parameterType = parameters.get(a).asType();
-					String parameterTypeName;
-					if (parameterType instanceof TypeVar)
+					return method;
+				}
+				if (methodWithBoxing != null)
+				{
+					// we already found our auto-box candidate
+					continue;
+				}
+				// we check if the current method might match for auto-boxing
+				if (matchParametersByBoxing(argTypes, parameters))
+				{
+					methodWithBoxing = method;
+				}
+			}
+			if (methodOnInterface == null)
+			{
+				for (String nameOfInterface : ownerInfo.getNameOfInterfaces())
+				{
+					methodOnInterface = searchMethodOnType(nameOfInterface, methodName, argTypes, alreadyTriedTypes, methodWithBoxingPH);
+					if (methodOnInterface != null)
 					{
-						parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
-					}
-					else
-					{
-						parameterTypeName = parameterType.toString();
-					}
-					parameterTypeName = extractNonGenericType(parameterTypeName);
-					boolean parameterMatch = false;
-					while (argType != null)
-					{
-						if (parameterTypeName.equals(argType))
-						{
-							parameterMatch = true;
-							break;
-						}
-						JavaClassInfo argClassInfo = context.resolveClassInfo(argType);
-						if (argClassInfo == null)
-						{
-							break;
-						}
-						argType = argClassInfo.getNameOfSuperClass();
-					}
-					if (!parameterMatch)
-					{
-						identicalParameterTypes = false;
 						break;
 					}
 				}
-				if (!identicalParameterTypes)
-				{
-					continue;
-				}
-				return method.getReturnType();
 			}
-			currOwner = ownerInfo.getNameOfSuperClass();
+			currType = ownerInfo.getNameOfSuperClass();
 		}
-		throw new TypeResolveException("No matching method found '" + methodName + "(" + Arrays.toString(argTypes) + ")");
+		if (methodOnInterface != null)
+		{
+			return methodOnInterface;
+		}
+		return methodWithBoxing;
 	}
 
-	protected String extractNonGenericType(String typeName)
+	protected boolean matchParametersByBoxing(String[] argTypes, IList<VariableElement> parameters)
 	{
-		Matcher paramGenericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-		if (paramGenericTypeMatcher.matches())
+		for (int a = argTypes.length; a-- > 0;)
 		{
-			return paramGenericTypeMatcher.group(1);
+			String argType = argTypes[a];
+			TypeMirror parameterType = parameters.get(a).asType();
+			String parameterTypeName;
+			if (parameterType instanceof TypeVar)
+			{
+				parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
+			}
+			else
+			{
+				parameterTypeName = parameterType.toString();
+			}
+			if (matchParameterByInheritance(argType, parameterTypeName))
+			{
+				continue;
+			}
+			if (!matchParameterByBoxing(argType, parameterTypeName))
+			{
+				return false;
+			}
 		}
-		return typeName;
+		return true;
+	}
+
+	protected boolean matchParametersByInheritance(String[] argTypes, IList<VariableElement> parameters)
+	{
+		for (int a = argTypes.length; a-- > 0;)
+		{
+			String argType = argTypes[a];
+			TypeMirror parameterType = parameters.get(a).asType();
+			String parameterTypeName;
+			if (parameterType instanceof TypeVar)
+			{
+				parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
+			}
+			else
+			{
+				parameterTypeName = parameterType.toString();
+			}
+			if (!matchParameterByInheritance(argType, parameterTypeName))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	protected boolean matchParameterByBoxing(String argType, String parameterTypeName)
+	{
+		String boxedArgType = ASTHelper.unboxedToBoxedTypeMap.get(argType);
+		if (boxedArgType != null)
+		{
+			return matchParameterByInheritance(boxedArgType, parameterTypeName);
+		}
+		String unboxedArgType = ASTHelper.boxedToUnboxedTypeMap.get(argType);
+		// check for auto-unboxing
+		return (unboxedArgType != null && parameterTypeName.equals(unboxedArgType));
+	}
+
+	protected boolean matchParameterByInheritance(String argType, String parameterTypeName)
+	{
+		String nonGenericParameterTypeName = astHelper.extractNonGenericType(parameterTypeName);
+		while (argType != null)
+		{
+			if (parameterTypeName.equals(argType) || nonGenericParameterTypeName.equals(argType))
+			{
+				return true;
+			}
+			JavaClassInfo argClassInfo = context.resolveClassInfo(argType);
+			if (argClassInfo == null)
+			{
+				return false;
+			}
+			for (String nameOfInterface : argClassInfo.getNameOfInterfaces())
+			{
+				if (matchParameterByInheritance(nameOfInterface, parameterTypeName))
+				{
+					return true;
+				}
+			}
+			argType = argClassInfo.getNameOfSuperClass();
+		}
+		return false;
 	}
 }
