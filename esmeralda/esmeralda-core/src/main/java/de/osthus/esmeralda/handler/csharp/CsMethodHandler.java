@@ -212,6 +212,7 @@ public class CsMethodHandler implements INodeHandlerExtension
 			writer.append(';');
 			return;
 		}
+
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
 		context.setSnippetManager(snippetManager);
 		try
