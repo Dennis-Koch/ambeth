@@ -3,8 +3,10 @@ package de.osthus.ambeth.demo;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class TestService1 implements ITestInterface
+public class TestService1 extends BaseClass implements ITestInterface
 {
+	private static final String WORLD = "World";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -12,8 +14,8 @@ public class TestService1 implements ITestInterface
 	@Override
 	public void testMethod1()
 	{
-		String str1 = "Hello";
-		String str2 = "World";
+		String str1 = hello;
+		String str2 = WORLD;
 		String msg = str1 + testMethod3() + str2;
 		System.out.println(msg);
 	}

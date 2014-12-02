@@ -120,8 +120,7 @@ public class CsClassHandler implements ICsClassHandler
 			languageHelper.newLineIntend();
 		}
 
-		String packageName = classInfo.getPackageName();
-		String nameSpace = languageHelper.toNamespace(packageName);
+		String nameSpace = languageHelper.createNamespace();
 		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
 		writer.append("namespace ").append(nameSpace);
 	}
@@ -161,7 +160,7 @@ public class CsClassHandler implements ICsClassHandler
 
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
+		if (nameOfSuperClass != null && !nameOfSuperClass.isEmpty() && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
 		{
 			writer.append(" : ");
 			languageHelper.writeType(nameOfSuperClass);

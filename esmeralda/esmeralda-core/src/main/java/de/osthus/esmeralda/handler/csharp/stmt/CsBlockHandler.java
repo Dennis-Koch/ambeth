@@ -67,7 +67,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 					final StatementTree fstatement = statement;
 					try
 					{
-						String statementString = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
 						{
 							@Override
 							public void invoke() throws Throwable
@@ -79,15 +79,15 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 						// Important to check here to keep the code in order
 						checkUntranslatableList(untranslatableStatements, snippetManager);
 
-					context.getWriter().append(statementString);
-				}
-				catch (TypeResolveException e)
-				{
-					if (log.isInfoEnabled() && !context.isDryRun())
-					{
-						log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
-								+ statement.toString());
+						context.getWriter().append(statementString);
 					}
+					catch (TypeResolveException e)
+					{
+						if (log.isInfoEnabled() && !context.isDryRun())
+						{
+							log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
+									+ statement.toString());
+						}
 
 						String untranslatableStatement = statement.toString();
 						untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";

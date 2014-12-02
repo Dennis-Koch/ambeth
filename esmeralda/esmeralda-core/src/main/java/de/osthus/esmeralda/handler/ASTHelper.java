@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler;
 
+import java.io.StringWriter;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +17,13 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.misc.EsmeraldaWriter;
+import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.NoOpWriter;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.ClassFile;
@@ -253,5 +259,47 @@ public class ASTHelper implements IASTHelper
 			collectedTypeArgument.setLength(0);
 		}
 		return splittedTypeArguments.toArray(String.class);
+	}
+
+	@Override
+	public String writeToStash(IBackgroundWorkerDelegate run)
+	{
+		IConversionContext context = this.context.getCurrent();
+		StringWriter stringWriter = new StringWriter();
+		IWriter oldWriter = context.getWriter();
+		context.setWriter(new EsmeraldaWriter(stringWriter));
+		try
+		{
+			run.invoke();
+			return stringWriter.toString();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.setWriter(oldWriter);
+		}
+	}
+
+	@Override
+	public <R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter oldWriter = context.getWriter();
+		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
+		try
+		{
+			return run.invoke(arg);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.setWriter(oldWriter);
+		}
 	}
 }

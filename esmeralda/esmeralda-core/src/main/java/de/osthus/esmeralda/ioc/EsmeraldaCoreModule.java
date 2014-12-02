@@ -89,9 +89,13 @@ import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransf
 import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.StackTraceElementTransformer;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
+import de.osthus.esmeralda.handler.js.IJsFieldHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
+import de.osthus.esmeralda.handler.js.IJsMethodHandler;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
+import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
+import de.osthus.esmeralda.handler.js.JsMethodHandler;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
@@ -146,6 +150,8 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(CsMethodHandler.class).autowireable(ICsMethodHandler.class);
 
 		beanContextFactory.registerBean(JsClassHandler.class).autowireable(IJsClassHandler.class);
+		beanContextFactory.registerBean(JsFieldHandler.class).autowireable(IJsFieldHandler.class);
+		beanContextFactory.registerBean(JsMethodHandler.class).autowireable(IJsMethodHandler.class);
 
 		// statements
 		beanContextFactory.registerBean(ExtendableBean.class) //
