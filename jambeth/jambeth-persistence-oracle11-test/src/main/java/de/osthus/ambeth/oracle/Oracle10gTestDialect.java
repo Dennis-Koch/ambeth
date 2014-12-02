@@ -9,6 +9,7 @@ import java.util.List;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocBootstrapModule;
@@ -20,6 +21,16 @@ import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationCons
 
 public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 {
+	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
+
+	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
+
+	@Property(name = ROOT_DATABASE_USER, defaultValue = "sys as sysdba")
+	protected String rootDatabaseUser;
+
+	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
+	protected String rootDatabasePass;
+
 	@Override
 	public boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException
 	{
@@ -36,8 +47,9 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect
 		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "true");
 		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
 		createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, userPassword);
-		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, "sys as sysdba");
-		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, "developer");
+
+		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
+		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
 		try
 		{
