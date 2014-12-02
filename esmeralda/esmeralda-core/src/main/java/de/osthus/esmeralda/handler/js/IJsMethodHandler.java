@@ -1,7 +1,7 @@
 package de.osthus.esmeralda.handler.js;
 
-import de.osthus.esmeralda.handler.IClassHandler;
+import de.osthus.esmeralda.handler.IMethodHandler;
 
-public interface IJsMethodHandler extends IClassHandler
+public interface IJsMethodHandler extends IMethodHandler
 {
 }

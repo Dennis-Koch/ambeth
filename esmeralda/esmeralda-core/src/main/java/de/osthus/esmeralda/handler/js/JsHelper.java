@@ -4,26 +4,35 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class JsHelper implements IJsHelper
 {
+	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -40,17 +49,62 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void newLineIntend()
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append('\n');
+		int indentationLevel = context.getIndentationLevel();
+		for (int a = indentationLevel; a-- > 0;)
+		{
+			writer.append("    ");
+		}
 	}
 
 	@Override
-	public boolean newLineIntendIfFalse(boolean firstLine)
+	public boolean newLineIntendIfFalse(boolean value)
 	{
+		if (!value)
+		{
+			newLineIntend();
+		}
+		return false;
+	}
+
+	@Override
+	public boolean newLineIntendWithCommaIfFalse(boolean value)
+	{
+		if (!value)
+		{
+			IConversionContext context = this.context.getCurrent();
+			IWriter writer = context.getWriter();
+
+			writer.append(",");
+			newLineIntend();
+		}
 		return false;
 	}
 
 	@Override
 	public void scopeIntend(IBackgroundWorkerDelegate run)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+		writer.append('{');
+		context.incremetIndentationLevel();
+		try
+		{
+			run.invoke();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.decremetIndentationLevel();
+		}
+		newLineIntend();
+		writer.append('}');
 	}
 
 	@Override
@@ -70,26 +124,9 @@ public class JsHelper implements IJsHelper
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo classInfo = context.getClassInfo();
-		String packageName = classInfo.getPackageName();
+		String namespace = createNamespace();
 
-		String nsPrefixRemove = context.getNsPrefixRemove();
-		if (packageName.startsWith(nsPrefixRemove))
-		{
-			int removeLength = nsPrefixRemove.length();
-			packageName = packageName.substring(removeLength);
-		}
-
-		String nsPrefixAdd = context.getNsPrefixAdd();
-		if (nsPrefixAdd != null)
-		{
-			packageName = nsPrefixAdd + packageName;
-		}
-
-		packageName = toNamespace(packageName);
-
-		String relativeTargetPathName = packageName.replace(".", File.separator);
+		String relativeTargetPathName = namespace.replace(".", File.separator);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -109,9 +146,15 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public String toNamespace(String packageName)
+	public String createNamespace()
 	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		String packageName = classInfo.getPackageName();
+		packageName = prefixModification(packageName, context);
 		String namespace = StringConversionHelper.upperCaseFirst(objectCollector, packageName);
+
 		return namespace;
 	}
 
@@ -124,6 +167,13 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void writeType(String typeName)
 	{
+		writeTypeIntern(typeName, false);
+	}
+
+	@Override
+	public void writeTypeDirect(String typeName)
+	{
+		writeTypeIntern(typeName, true);
 	}
 
 	@Override
@@ -162,21 +212,79 @@ public class JsHelper implements IJsHelper
 	{
 	}
 
-	@Override
-	public void writeTypeDirect(String typeName)
+	protected void writeTypeIntern(String typeName, boolean direct)
 	{
+		ParamChecker.assertParamNotNullOrEmpty(typeName, "typeName");
+
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		typeName = typeName.trim();
+		String[] mappedTypeName = javaTypeToJsMap.get(typeName);
+		if (mappedTypeName == null)
+		{
+			if (typeName.endsWith("[]"))
+			{
+				writeTypeIntern(typeName.substring(0, typeName.length() - 2), direct);
+				writer.append("[]");
+				return;
+			}
+			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
+			if (genericTypeMatcher.matches())
+			{
+				String plainType = genericTypeMatcher.group(1);
+				writeTypeIntern(plainType, direct);
+				return;
+			}
+
+			typeName = prefixModification(typeName, context);
+
+			if (!direct)
+			{
+				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
+				mappedTypeName = new String[] { StringConversionHelper.upperCaseFirst(objectCollector, typeName) };
+			}
+			else
+			{
+				mappedTypeName = new String[] { typeName };
+			}
+		}
+		ISet<TypeUsing> usedTypes = context.getUsedTypes();
+		if (usedTypes != null)
+		{
+			usedTypes.add(new TypeUsing(mappedTypeName[0], false));
+		}
+		// TODO think: Always full name in JS?
+		// else
+		// {
+		// Map<String, String> imports = context.getImports();
+		// if (imports != null)
+		// {
+		// String nameFromImplicitImport = imports.get(mappedTypeName[0]);
+		// if (nameFromImplicitImport != null)
+		// {
+		// mappedTypeName = new String[] { nameFromImplicitImport };
+		// }
+		// }
+		//
+		// }
+		writer.append(mappedTypeName[0]);
 	}
 
-	@Override
-	public String writeToStash(IBackgroundWorkerDelegate run)
+	protected String prefixModification(String name, IConversionContext context)
 	{
-		return null;
-	}
+		String nsPrefixRemove = context.getNsPrefixRemove();
+		if (name.startsWith(nsPrefixRemove))
+		{
+			int removeLength = nsPrefixRemove.length();
+			name = name.substring(removeLength);
+		}
 
-	@Override
-	public <R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg)
-	{
-		return null;
+		String nsPrefixAdd = context.getNsPrefixAdd();
+		if (nsPrefixAdd != null)
+		{
+			name = nsPrefixAdd + name;
+		}
+		return name;
 	}
-
 }

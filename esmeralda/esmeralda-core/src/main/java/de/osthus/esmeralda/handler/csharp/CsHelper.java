@@ -1,7 +1,6 @@
 package de.osthus.esmeralda.handler.csharp;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -37,7 +36,6 @@ import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
@@ -49,10 +47,8 @@ import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
-import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
-import de.osthus.esmeralda.misc.NoOpWriter;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
@@ -347,26 +343,8 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo classInfo = context.getClassInfo();
-		String packageName = classInfo.getPackageName();
-
-		String nsPrefixRemove = context.getNsPrefixRemove();
-		if (packageName.startsWith(nsPrefixRemove))
-		{
-			int removeLength = nsPrefixRemove.length();
-			packageName = packageName.substring(removeLength);
-		}
-
-		String nsPrefixAdd = context.getNsPrefixAdd();
-		if (nsPrefixAdd != null)
-		{
-			packageName = nsPrefixAdd + packageName;
-		}
-
-		packageName = toNamespace(packageName);
-
-		String relativeTargetPathName = packageName.replace(".", File.separator);
+		String namespace = createNamespace();
+		String relativeTargetPathName = namespace.replace(".", File.separator);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -386,27 +364,38 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public String toNamespace(String typeName)
+	public String createNamespace()
 	{
-		String[] packageSplit = typeName.split(Pattern.quote("."));
-		StringBuilder sb = new StringBuilder();
-		for (int a = 0, size = packageSplit.length; a < size; a++)
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+		String packageName = classInfo.getPackageName();
+
+		String nsPrefixRemove = context.getNsPrefixRemove();
+		if (packageName.startsWith(nsPrefixRemove))
 		{
-			if (a > 0)
-			{
-				sb.append('.');
-			}
-			sb.append(StringConversionHelper.upperCaseFirst(objectCollector, packageSplit[a]));
+			int removeLength = nsPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
 		}
-		return sb.toString();
+
+		String nsPrefixAdd = context.getNsPrefixAdd();
+		if (nsPrefixAdd != null)
+		{
+			packageName = nsPrefixAdd + packageName;
+		}
+
+		String[] packageSplit = packageName.split(Pattern.quote("."));
+		packageSplit = camelCaseName(packageSplit);
+		String namespace = StringConversionHelper.implode(objectCollector, packageSplit, ".");
+
+		return namespace;
 	}
 
-	protected String[] camelCaseName(String[] typeNames)
+	protected String[] camelCaseName(String[] strings)
 	{
-		String[] camelCase = new String[typeNames.length];
-		for (int a = typeNames.length; a-- > 0;)
+		String[] camelCase = new String[strings.length];
+		for (int a = strings.length; a-- > 0;)
 		{
-			camelCase[a] = toNamespace(typeNames[a]);
+			camelCase[a] = StringConversionHelper.upperCaseFirst(objectCollector, strings[a]);
 		}
 		return camelCase;
 	}
@@ -682,48 +671,6 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		else
 		{
 			throw new IllegalArgumentException("Cannot handle embedded statement " + statement.toString());
-		}
-	}
-
-	@Override
-	public String writeToStash(IBackgroundWorkerDelegate run)
-	{
-		IConversionContext context = this.context.getCurrent();
-		StringWriter stringWriter = new StringWriter();
-		IWriter oldWriter = context.getWriter();
-		context.setWriter(new EsmeraldaWriter(stringWriter));
-		try
-		{
-			run.invoke();
-			return stringWriter.toString();
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			context.setWriter(oldWriter);
-		}
-	}
-
-	@Override
-	public <R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter oldWriter = context.getWriter();
-		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
-		try
-		{
-			return run.invoke(arg);
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			context.setWriter(oldWriter);
 		}
 	}
 }

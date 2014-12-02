@@ -248,8 +248,10 @@ public class CsMethodHandler implements ICsMethodHandler
 		{
 			return firstKeyWord;
 		}
+
 		IConversionContext context = this.context;
 		IWriter writer = context.getWriter();
+
 		String currTypeName = context.getClassInfo().getNameOfSuperClass();
 		boolean overrideNeeded = false;
 		while (currTypeName != null)
@@ -266,6 +268,7 @@ public class CsMethodHandler implements ICsMethodHandler
 			}
 			currTypeName = currType.getNameOfSuperClass();
 		}
+
 		if (overrideNeeded)
 		{
 			firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
