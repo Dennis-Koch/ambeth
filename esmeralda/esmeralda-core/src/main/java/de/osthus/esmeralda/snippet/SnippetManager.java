@@ -291,15 +291,15 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_START).append(relativeSnippetFileName);
 		for (int i = 0, size = snippet.size(); i < size; i++)
 		{
 			String line = snippet.get(i);
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append(line);
 		}
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_SNIPPET_END);
 	}
 
@@ -338,9 +338,9 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(TEXT_COMMENTED_OUT).append("TODO implement snippet file '" + relativeSnippetFileName + "'");
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_UNTRANSLATABLE_CODE_START);
 
 		for (int i = 0, size = untranslatableStatements.size(); i < size; i++)
@@ -349,12 +349,12 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 			String[] lines = PATTERN_NL.split(statement);
 			for (String line : lines)
 			{
-				languageHelper.newLineIntend();
+				languageHelper.newLineIndent();
 				writer.append(TEXT_COMMENTED_OUT).append(line);
 			}
 		}
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(TEXT_COMMENTED_OUT).append(TEXT_UNTRANSLATABLE_CODE_END);
 	}
 }

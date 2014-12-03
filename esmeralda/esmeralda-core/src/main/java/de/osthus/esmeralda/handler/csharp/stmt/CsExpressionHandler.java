@@ -36,7 +36,7 @@ public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionSt
 		}
 		if (standalone)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 		writer.append(stash);
 		if (standalone)

@@ -41,7 +41,7 @@ public class CsFieldHandler implements ICsFieldHandler
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeAnnotations(field);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		boolean annotatedWithAutowired = astHelper.isAnnotatedWith(field, Autowired.class);
 		boolean annotatedWithProperty = astHelper.isAnnotatedWith(field, Property.class);

@@ -3,15 +3,23 @@ package de.osthus.esmeralda.handler.js;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
+
+import javax.lang.model.element.AnnotationValue;
 
 import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -27,11 +35,69 @@ import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.MethodInfo;
 
 public class JsHelper implements IJsHelper
 {
+	private static final String BOOLEAN = "Boolean";
+	private static final String NUMBER = "Number";
+	private static final String OBJECT = "Object";
+	private static final String STRING = "String";
+
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
+
+	static
+	{
+		put("void", "void");
+		put("boolean", BOOLEAN);
+		put("char", STRING);
+		put("byte", NUMBER);
+		put("short", NUMBER);
+		put("int", NUMBER);
+		put("long", NUMBER);
+		put("float", NUMBER);
+		put("double", NUMBER);
+		put(java.lang.Void.class.getName(), "void");
+		put(java.lang.Boolean.class.getName(), BOOLEAN);
+		put(java.lang.Character.class.getName(), STRING);
+		put(java.lang.Byte.class.getName(), NUMBER);
+		put(java.lang.Short.class.getName(), NUMBER);
+		put(java.lang.Integer.class.getName(), NUMBER);
+		put(java.lang.Long.class.getName(), NUMBER);
+		put(java.lang.Float.class.getName(), NUMBER);
+		put(java.lang.Double.class.getName(), NUMBER);
+		put(java.lang.String.class.getName(), STRING);
+
+		// put(java.io.InputStream.class.getName(), "System.IO.Stream");
+		// put(java.io.OutputStream.class.getName(), "System.IO.Stream");
+		put(java.util.List.class.getName(), "Ambeth.collections.IList");
+		// put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
+		// put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
+		// put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
+		// put(java.lang.Class.class.getName(), "System.Type");
+		// put(java.lang.Class.class.getName() + "<?>", "System.Type");
+		// put(java.lang.Exception.class.getName(), "System.Exception");
+		// put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
+		// put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		// put(java.lang.Throwable.class.getName(), "System.Exception");
+		put(java.lang.Object.class.getName(), OBJECT);
+		// put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		// put(java.lang.reflect.Field.class.getName(), "System.Reflection.FieldInfo");
+		// put(java.lang.RuntimeException.class.getName(), "System.Exception");
+		// put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
+		put(java.lang.ThreadLocal.class.getName(), "Ambeth.util.ThreadLocal");
+		put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
+		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "Ambeth.collections.List");
+		put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
+		put(java.util.Map.Entry.class.getName(), "Ambeth.collections.Entry");
+	}
+
+	protected static final void put(String key, String... values)
+	{
+		javaTypeToJsMap.put(key, values);
+	}
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -47,7 +113,7 @@ public class JsHelper implements IJsHelper
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Override
-	public void newLineIntend()
+	public void newLineIndent()
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -61,11 +127,11 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public boolean newLineIntendIfFalse(boolean value)
+	public boolean newLineIndentIfFalse(boolean value)
 	{
 		if (!value)
 		{
-			newLineIntend();
+			newLineIndent();
 		}
 		return false;
 	}
@@ -78,8 +144,8 @@ public class JsHelper implements IJsHelper
 			IConversionContext context = this.context.getCurrent();
 			IWriter writer = context.getWriter();
 
-			writer.append(",");
-			newLineIntend();
+			writer.append(',');
+			newLineIndent();
 		}
 		return false;
 	}
@@ -103,7 +169,7 @@ public class JsHelper implements IJsHelper
 		{
 			context.decremetIndentationLevel();
 		}
-		newLineIntend();
+		newLineIndent();
 		writer.append('}');
 	}
 
@@ -161,6 +227,13 @@ public class JsHelper implements IJsHelper
 	@Override
 	public boolean writeStringIfFalse(String value, boolean condition)
 	{
+		if (!condition)
+		{
+			IConversionContext context = this.context.getCurrent();
+			IWriter writer = context.getWriter();
+
+			writer.append(value);
+		}
 		return false;
 	}
 
@@ -183,13 +256,135 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeAnnotations(BaseJavaClassModel handle)
+	public void writeMetadata(BaseJavaClassModel model)
 	{
+		writeMetadata(model, null);
+	}
+
+	@Override
+	public void writeMetadata(BaseJavaClassModel model, String access)
+	{
+		if (!(model instanceof FieldInfo) && !(model instanceof MethodInfo))
+		{
+			return;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIntendWithCommaIfFalse(false);
+		writer.append("m$_").append(model.getName()).append(": {");
+
+		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
+		writer.append("type: '");
+		writeType(type);
+		writer.append('\'');
+
+		if (access != null)
+		{
+			writer.append(", access: '").append(access).append('\'');
+		}
+
+		writeAnnotations(model);
+
+		writer.append('}');
+	}
+
+	@Override
+	public void writeAnnotations(BaseJavaClassModel model)
+	{
+		IList<Annotation> annotations = filterAnnotations(model.getAnnotations());
+		if (annotations.isEmpty())
+		{
+			return;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append(", at: [");
+		for (int i = 0, size = annotations.size(); i < size; i++)
+		{
+			Annotation annotation = annotations.get(i);
+			writeAnnotation(annotation);
+		}
+		writer.append(']');
+	}
+
+	protected ArrayList<Annotation> filterAnnotations(IList<Annotation> annotations)
+	{
+		ArrayList<Annotation> filtered = new ArrayList<>(1);
+		for (int i = 0, size = annotations.size(); i < size; i++)
+		{
+			Annotation annotation = annotations.get(i);
+			if (Autowired.class.getName().equals(annotation.getType()) || //
+					LogInstance.class.getName().equals(annotation.getType()) || //
+					Property.class.getName().equals(annotation.getType()))
+			{
+				filtered.add(annotation);
+			}
+		}
+		return filtered;
 	}
 
 	@Override
 	public void writeAnnotation(Annotation annotation)
 	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		IMap<String, AnnotationValue> properties = annotation.getProperties();
+		AnnotationValue value = properties.get("value");
+		if (properties.size() == 0)
+		{
+			writer.append('\'');
+			writeType(annotation.getType());
+			writer.append('\'');
+			return;
+		}
+		else if (properties.size() == 1 && value != null)
+		{
+			writer.append("{'");
+			writeType(annotation.getType());
+			writer.append("': ").append(value.getValue().toString());
+		}
+		else
+		{
+			writer.append("{'");
+			writeType(annotation.getType());
+			writer.append("': {").append(value.toString());
+			boolean firstProperty = true;
+			for (Entry<String, AnnotationValue> entry : properties)
+			{
+				firstProperty = writeStringIfFalse(", ", firstProperty);
+				String propertyName = entry.getKey();
+				writer.append(propertyName).append(": ").append(entry.getValue().toString());
+			}
+			writer.append(']');
+		}
+	}
+
+	@Override
+	public void writeDocumentation(String... doc)
+	{
+		writeDocumentation(Arrays.asList(doc));
+	}
+
+	@Override
+	public void writeDocumentation(List<String> doc)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndent();
+		writer.append("/**");
+		for (String line : doc)
+		{
+			newLineIndent();
+			writer.append(" * ").append(line);
+		}
+		newLineIndent();
+		writer.append(" */");
 	}
 
 	@Override
@@ -212,12 +407,10 @@ public class JsHelper implements IJsHelper
 	{
 	}
 
-	protected void writeTypeIntern(String typeName, boolean direct)
+	@Override
+	public String convertType(String typeName, boolean direct)
 	{
 		ParamChecker.assertParamNotNullOrEmpty(typeName, "typeName");
-
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
 
 		typeName = typeName.trim();
 		String[] mappedTypeName = javaTypeToJsMap.get(typeName);
@@ -225,16 +418,16 @@ public class JsHelper implements IJsHelper
 		{
 			if (typeName.endsWith("[]"))
 			{
-				writeTypeIntern(typeName.substring(0, typeName.length() - 2), direct);
-				writer.append("[]");
-				return;
+				String convertedType = convertType(typeName.substring(0, typeName.length() - 2), direct);
+				convertedType += "[]";
+				return convertedType;
 			}
 			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
 			if (genericTypeMatcher.matches())
 			{
 				String plainType = genericTypeMatcher.group(1);
-				writeTypeIntern(plainType, direct);
-				return;
+				String convertedType = convertType(plainType, direct);
+				return convertedType;
 			}
 
 			typeName = prefixModification(typeName, context);
@@ -268,7 +461,17 @@ public class JsHelper implements IJsHelper
 		// }
 		//
 		// }
-		writer.append(mappedTypeName[0]);
+
+		return mappedTypeName[0];
+	}
+
+	protected void writeTypeIntern(String typeName, boolean direct)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String convertedType = convertType(typeName, direct);
+		writer.append(convertedType);
 	}
 
 	protected String prefixModification(String name, IConversionContext context)

@@ -68,7 +68,7 @@ public class JsClassHandler implements IJsClassHandler
 			if (fieldsToInit != null && !fieldsToInit.isEmpty())
 			{
 				writer.append(", ");
-				writeInitFunction(fieldsToInit, writer);
+				writeCreateFunction(fieldsToInit, writer);
 			}
 			writer.append(");");
 		}
@@ -84,14 +84,16 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected ArrayList<Field> createInitOps(JavaClassInfo classInfo)
 	{
-		ArrayList<Field> privateStaticFields = createView(classInfo.getFields(), Boolean.TRUE, Boolean.TRUE);
-		if (privateStaticFields.isEmpty())
+		ArrayList<Field> fields = new ArrayList<>(classInfo.getFields());
+		ArrayList<Field> privateStaticFields = createView(fields, Boolean.TRUE, Boolean.TRUE);
+		fields.removeAll(privateStaticFields);
+		if (fields.isEmpty())
 		{
 			return null;
 		}
 
 		ArrayList<Field> fieldsToInit = new ArrayList<>();
-		for (Field field : privateStaticFields)
+		for (Field field : fields)
 		{
 			ExpressionTree initializer = ((FieldInfo) field).getInitializer();
 			if (initializer != null)
@@ -137,8 +139,8 @@ public class JsClassHandler implements IJsClassHandler
 
 				firstLine = writePrivateStaticVars(classInfo, writer, firstLine);
 
-				firstLine = languageHelper.newLineIntendIfFalse(firstLine);
-				languageHelper.newLineIntend();
+				firstLine = languageHelper.newLineIndentIfFalse(firstLine);
+				languageHelper.newLineIndent();
 				writer.append("return ");
 				languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 				{
@@ -152,11 +154,11 @@ public class JsClassHandler implements IJsClassHandler
 						firstLine = writeRequires(classInfo, writer, firstLine);
 
 						firstLine = writerStatic(classInfo, writer, firstLine);
-						firstLine = writerPrivates(classInfo, writer, firstLine);
+						firstLine = writePrivates(classInfo, writer, firstLine);
 
-						firstLine = writerProperties(firstLine);
+						firstLine = writeFields(classInfo, writer, firstLine);
 
-						firstLine = writerConfig(classInfo, writer, firstLine);
+						firstLine = writeConfig(classInfo, writer, firstLine);
 						firstLine = writerAccessors(firstLine);
 
 						firstLine = writerMethods(classInfo, writer, firstLine);
@@ -244,7 +246,7 @@ public class JsClassHandler implements IJsClassHandler
 		IList<Field> privateStaticFields = createView(classInfo.getFields(), Boolean.TRUE, Boolean.TRUE);
 		for (Field field : privateStaticFields)
 		{
-			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
 		}
@@ -261,7 +263,7 @@ public class JsClassHandler implements IJsClassHandler
 		}
 
 		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("extend: '");
 		languageHelper.writeType(nameOfSuperClass);
 		writer.append("'");
@@ -284,7 +286,7 @@ public class JsClassHandler implements IJsClassHandler
 
 		firstLine = false;
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("implements: [");
 
 		Collections.sort(interfaceNames);
@@ -303,7 +305,7 @@ public class JsClassHandler implements IJsClassHandler
 				{
 					additional = true;
 				}
-				languageHelper.newLineIntend();
+				languageHelper.newLineIndent();
 				writer.append("'");
 				languageHelper.writeType(interfaceName);
 				writer.append("'");
@@ -314,7 +316,7 @@ public class JsClassHandler implements IJsClassHandler
 			context.decremetIndentationLevel();
 		}
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("]");
 
 		return firstLine;
@@ -334,7 +336,7 @@ public class JsClassHandler implements IJsClassHandler
 		Collections.sort(requires);
 
 		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("requires: [");
 
 		context.incremetIndentationLevel();
@@ -351,7 +353,7 @@ public class JsClassHandler implements IJsClassHandler
 				{
 					additional = true;
 				}
-				languageHelper.newLineIntend();
+				languageHelper.newLineIndent();
 				writer.append("'").append(className).append("'");
 			}
 		}
@@ -360,7 +362,7 @@ public class JsClassHandler implements IJsClassHandler
 			context.decremetIndentationLevel();
 		}
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("]");
 
 		return firstLine;
@@ -376,7 +378,7 @@ public class JsClassHandler implements IJsClassHandler
 		}
 
 		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("static: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
@@ -415,14 +417,14 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writePublicStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
-		IList<Field> fields = classInfo.getFields();
-		for (Field field : fields)
+		ArrayList<Field> nonStaticPrivateFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.TRUE);
+		if (nonStaticPrivateFields.isEmpty())
 		{
-			if (!field.isAbstract() || field.isPrivate())
-			{
-				continue;
-			}
+			return firstLine;
+		}
 
+		for (Field field : nonStaticPrivateFields)
+		{
 			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
@@ -436,7 +438,7 @@ public class JsClassHandler implements IJsClassHandler
 		IList<Method> methods = classInfo.getMethods();
 		for (Method method : methods)
 		{
-			if (!method.isAbstract())
+			if (!method.isStatic())
 			{
 				continue;
 			}
@@ -449,7 +451,7 @@ public class JsClassHandler implements IJsClassHandler
 		return firstLine;
 	}
 
-	protected boolean writerPrivates(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
+	protected boolean writePrivates(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
 	{
 		final IList<Field> privateNonStaticFields = createView(classInfo.getFields(), Boolean.TRUE, Boolean.FALSE);
 		if (privateNonStaticFields.isEmpty())
@@ -458,7 +460,7 @@ public class JsClassHandler implements IJsClassHandler
 		}
 
 		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("privates: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
@@ -468,7 +470,7 @@ public class JsClassHandler implements IJsClassHandler
 				boolean firstLine = true;
 				for (Field field : privateNonStaticFields)
 				{
-					firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+					firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 					context.setField(field);
 					fieldHandler.handle();
 				}
@@ -478,22 +480,36 @@ public class JsClassHandler implements IJsClassHandler
 		return firstLine;
 	}
 
-	protected boolean writerProperties(boolean firstLine)
+	protected boolean writeFields(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
+		ArrayList<Field> nonPrivateNonStaticFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.FALSE);
+		nonPrivateNonStaticFields = createView(nonPrivateNonStaticFields, Boolean.FALSE, null);
+		if (nonPrivateNonStaticFields.isEmpty())
+		{
+			return firstLine;
+		}
+
+		for (Field field : nonPrivateNonStaticFields)
+		{
+			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+			context.setField(field);
+			fieldHandler.handle();
+		}
+
 		return firstLine;
 	}
 
-	protected boolean writerConfig(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
+	protected boolean writeConfig(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
 	{
 		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("config: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				languageHelper.newLineIntend();
+				languageHelper.newLineIndent();
 				writer.append("// ...");
 			}
 		});
@@ -524,7 +540,7 @@ public class JsClassHandler implements IJsClassHandler
 		return firstLine;
 	}
 
-	protected void writeInitFunction(final ArrayList<Field> fieldsToInit, final IWriter writer)
+	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final IWriter writer)
 	{
 		writer.append("function() ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
@@ -537,8 +553,8 @@ public class JsClassHandler implements IJsClassHandler
 					ExpressionTree initializer = ((FieldInfo) field).getInitializer();
 					if (initializer != null)
 					{
-						languageHelper.newLineIntend();
-						writer.append(field.getName()).append(" = ");
+						languageHelper.newLineIndent();
+						writer.append("this.").append(field.getName()).append(" = ");
 						// TODO replace
 						writer.append(initializer.toString());
 						// languageHelper.writeExpressionTree(initializer);
@@ -557,15 +573,15 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (IVariable usedVariable : allUsedVariables)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append("private ");
 			languageHelper.writeType(usedVariable.getType());
 			writer.append(' ');
 			writer.append(usedVariable.getName());
 			writer.append(';');
 		}
-		languageHelper.newLineIntend();
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
+		languageHelper.newLineIndent();
 		writer.append("public ");
 		writer.append(classInfo.getName());
 		writer.append('(');
@@ -587,7 +603,7 @@ public class JsClassHandler implements IJsClassHandler
 				IWriter writer = context.getWriter();
 				for (IVariable usedVariable : allUsedVariables)
 				{
-					languageHelper.newLineIntend();
+					languageHelper.newLineIndent();
 					writer.append("this.");
 					writer.append(usedVariable.getName());
 					writer.append(" = ");
@@ -606,14 +622,14 @@ public class JsClassHandler implements IJsClassHandler
 		boolean firstLine = true;
 		for (Field field : classInfo.getFields())
 		{
-			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
 		}
 
 		for (Method method : classInfo.getMethods())
 		{
-			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
 		}

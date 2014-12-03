@@ -26,7 +26,7 @@ public class CsReturnHandler extends AbstractStatementHandler<JCReturn> implemen
 		IWriter writer = context.getWriter();
 		Method method = context.getMethod();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		writer.append("return");
 
