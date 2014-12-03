@@ -99,7 +99,7 @@ public class CsMethodHandler implements ICsMethodHandler
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeAnnotations(method);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		boolean firstKeyWord = true;
 		if (!method.getOwningClass().isInterface())
@@ -327,7 +327,7 @@ public class CsMethodHandler implements ICsMethodHandler
 		// TODO: remind of the changed method name on all invocations
 
 		languageHelper.writeAnnotations(method);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		writer.append("public ");
 		languageHelper.writeType(method.getReturnType());

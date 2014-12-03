@@ -175,7 +175,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public void newLineIntend()
+	public void newLineIndent()
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -192,7 +192,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-		newLineIntend();
+		newLineIndent();
 		writer.append('{');
 		context.incremetIndentationLevel();
 		try
@@ -207,7 +207,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			context.decremetIndentationLevel();
 		}
-		newLineIntend();
+		newLineIndent();
 		writer.append('}');
 	}
 
@@ -317,11 +317,11 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public boolean newLineIntendIfFalse(boolean value)
+	public boolean newLineIndentIfFalse(boolean value)
 	{
 		if (!value)
 		{
-			newLineIntend();
+			newLineIndent();
 		}
 		return false;
 	}
@@ -481,7 +481,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		}
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-		newLineIntend();
+		newLineIndent();
 		writer.append('[');
 		writeType(annotation.getType());
 		IMap<String, AnnotationValue> properties = annotation.getProperties();
@@ -576,6 +576,18 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			writer.append(entry.getValue().toString());
 		}
 		writer.append(')');
+	}
+
+	@Override
+	public void writeDocumentation(String... doc)
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
+	public void writeDocumentation(List<String> doc)
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
 	}
 
 	@Override

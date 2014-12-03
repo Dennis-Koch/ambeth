@@ -25,7 +25,7 @@ public class CsForHandler extends AbstractStatementHandler<JCForLoop> implements
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("for (");
 
 		List<JCStatement> initializer = tree.getInitializer();

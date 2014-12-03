@@ -22,7 +22,7 @@ public class CsDoWhileHandler extends AbstractStatementHandler<JCDoWhileLoop> im
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("do ");
 
 		StatementTree statement = tree.getStatement();

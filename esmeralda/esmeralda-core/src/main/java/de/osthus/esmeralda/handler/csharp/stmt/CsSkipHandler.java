@@ -20,7 +20,7 @@ public class CsSkipHandler extends AbstractStatementHandler<JCSkip> implements I
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append(";");
 	}
 }

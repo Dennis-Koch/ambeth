@@ -15,9 +15,9 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public interface ILanguageHelper
 {
-	void newLineIntend();
+	void newLineIndent();
 
-	boolean newLineIntendIfFalse(boolean firstLine);
+	boolean newLineIndentIfFalse(boolean firstLine);
 
 	void scopeIntend(IBackgroundWorkerDelegate run);
 
@@ -42,6 +42,10 @@ public interface ILanguageHelper
 	void writeAnnotations(BaseJavaClassModel handle);
 
 	void writeAnnotation(Annotation annotation);
+
+	void writeDocumentation(String... doc);
+
+	void writeDocumentation(List<String> doc);
 
 	void writeExpressionTree(Tree expressionTree);
 

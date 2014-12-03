@@ -24,7 +24,7 @@ public class CsSwitchHandler extends AbstractStatementHandler<JCSwitch> implemen
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("switch ");
 		languageHelper.writeExpressionTree(switchStatement.getExpression());
 		final List<JCCase> cases = switchStatement.getCases();
@@ -48,7 +48,7 @@ public class CsSwitchHandler extends AbstractStatementHandler<JCSwitch> implemen
 
 		final List<JCStatement> statements = caseItem.getStatements();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("case ");
 		languageHelper.writeExpressionTree(caseItem.getExpression());
 		writer.append(':');

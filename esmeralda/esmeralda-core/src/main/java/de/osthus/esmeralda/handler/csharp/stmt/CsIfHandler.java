@@ -23,7 +23,7 @@ public class CsIfHandler extends AbstractStatementHandler<JCIf> implements IStat
 
 		if (standalone)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 
 		writer.append("if ");
@@ -35,7 +35,7 @@ public class CsIfHandler extends AbstractStatementHandler<JCIf> implements IStat
 		JCStatement elseStatement = ifStatement.getElseStatement();
 		if (elseStatement != null)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append("else");
 			if (elseStatement instanceof JCIf)
 			{
