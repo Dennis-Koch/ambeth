@@ -234,9 +234,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	 * @param evnt
 	 */
 	@Override
-	public void preMerge(ICUDResult cudResult)
+	public ICUDResult preMerge(ICUDResult cudResult)
 	{
 		// intended blank
+		return cudResult;
 	}
 
 	@SuppressWarnings("unchecked")
