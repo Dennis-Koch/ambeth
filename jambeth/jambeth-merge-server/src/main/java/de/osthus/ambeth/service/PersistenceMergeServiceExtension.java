@@ -141,13 +141,13 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 		final IDatabase database = this.database.getCurrent();
 		try
 		{
+			for (IMergeListener mergeListener : mergeListeners.getExtensions())
+			{
+				cudResult = mergeListener.preMerge(cudResult);
+			}
 			if (mergeSecurityManager != null)
 			{
 				mergeSecurityManager.checkMergeAccess(cudResult, methodDescription);
-			}
-			for (IMergeListener mergeListener : mergeListeners.getExtensions())
-			{
-				mergeListener.preMerge(cudResult);
 			}
 			final List<IChangeContainer> allChanges = cudResult.getAllChanges();
 			final HashMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
