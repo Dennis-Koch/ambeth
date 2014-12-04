@@ -58,7 +58,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 			{
 				StatementTree statement = statements.get(a);
 				Kind kind = statement.getKind();
-				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
 				if (stmtHandler != null)
 				{
 					// Important to check here to keep the code in order

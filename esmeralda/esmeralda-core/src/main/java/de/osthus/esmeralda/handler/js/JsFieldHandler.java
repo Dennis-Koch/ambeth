@@ -36,15 +36,15 @@ public class JsFieldHandler implements IJsFieldHandler
 		languageHelper.newLineIndent();
 		if (!privateStatic)
 		{
-			writeField(field, initializer, writer);
+			writeJsonField(field, initializer, writer);
 		}
 		else
 		{
-			writePrivateStaticField(field, initializer, writer);
+			writeField(field, initializer, writer);
 		}
 	}
 
-	protected void writeField(Field field, ExpressionTree initializer, IWriter writer)
+	protected void writeJsonField(Field field, ExpressionTree initializer, IWriter writer)
 	{
 		writer.append(field.getName()).append(": ");
 		if (initializer != null)
@@ -59,14 +59,13 @@ public class JsFieldHandler implements IJsFieldHandler
 		languageHelper.writeMetadata(field);
 	}
 
-	protected void writePrivateStaticField(Field field, ExpressionTree initializer, IWriter writer)
+	protected void writeField(Field field, ExpressionTree initializer, IWriter writer)
 	{
 		writer.append("var ").append(field.getName());
 		if (initializer != null)
 		{
 			writer.append(" = ");
-			// TODO replace
-			writer.append(initializer.toString());
+			languageHelper.writeExpressionTree(initializer);
 		}
 		writer.append(";");
 	}

@@ -30,7 +30,6 @@ import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
@@ -43,7 +42,7 @@ import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IExpressionHandler;
-import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
+import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
@@ -54,7 +53,7 @@ import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
-public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
+public class CsHelper implements ICsHelper
 {
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
@@ -159,20 +158,8 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;
 
-	protected final ClassExtendableContainer<IExpressionHandler> expressionHandlers = new ClassExtendableContainer<IExpressionHandler>("expressionHandler",
-			"expressionType");
-
-	@Override
-	public void register(IExpressionHandler expressionHandler, Class<?> expressionType)
-	{
-		expressionHandlers.register(expressionHandler, expressionType);
-	}
-
-	@Override
-	public void unregister(IExpressionHandler expressionHandler, Class<?> expressionType)
-	{
-		expressionHandlers.unregister(expressionHandler, expressionType);
-	}
+	@Autowired
+	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Override
 	public void newLineIndent()
@@ -327,6 +314,12 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
+	public void writeSimpleName(JavaClassInfo classInfo)
+	{
+		throw new UnsupportedOperationException("Not yet implemented");
+	}
+
+	@Override
 	public File createTargetFile()
 	{
 		IConversionContext context = this.context.getCurrent();
@@ -398,6 +391,28 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 			camelCase[a] = StringConversionHelper.upperCaseFirst(objectCollector, strings[a]);
 		}
 		return camelCase;
+	}
+
+	@Override
+	public void startDocumentation()
+	{
+		// No special symbols to start a doc block in C#
+	}
+
+	@Override
+	public void newLineIndentDocumentation()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndent();
+		writer.append("/// ");
+	}
+
+	@Override
+	public void endDocumentation()
+	{
+		// No special symbols to end a doc block in C#
 	}
 
 	@Override
@@ -579,18 +594,6 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 	}
 
 	@Override
-	public void writeDocumentation(String... doc)
-	{
-		throw new UnsupportedOperationException("Not yet implemented");
-	}
-
-	@Override
-	public void writeDocumentation(List<String> doc)
-	{
-		throw new UnsupportedOperationException("Not yet implemented");
-	}
-
-	@Override
 	public boolean writeModifiers(BaseJavaClassModel javaClassModel)
 	{
 		IConversionContext context = this.context.getCurrent();
@@ -643,7 +646,8 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		{
 			return;
 		}
-		IExpressionHandler expressionHandler = expressionHandlers.getExtension(expression.getClass());
+		Kind kind = expression.getKind();
+		IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.C_SHARP + kind);
 		if (expressionHandler != null)
 		{
 			expressionHandler.handleExpression(expression);
@@ -663,7 +667,7 @@ public class CsHelper implements ICsHelper, IExpressionHandlerExtendable
 		ISnippetManager snippetManager = context.getSnippetManager();
 
 		Kind kind = statement.getKind();
-		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
 		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);
