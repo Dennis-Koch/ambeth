@@ -62,7 +62,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			log.warn("Could not handle method invocation: " + methodInvocation);
 			return;
 		}
-		String[] argTypes = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], JCMethodInvocation>()
+		String[] argTypes = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], JCMethodInvocation>()
 		{
 			@Override
 			public String[] invoke(JCMethodInvocation methodInvocation) throws Throwable
@@ -117,7 +117,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				}
 				else
 				{
-					typeOfOwner = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+					typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
 					{
 						@Override
 						public String invoke(JCExpression state) throws Throwable
@@ -134,7 +134,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass || meth.selected instanceof JCParens
 					|| meth.selected instanceof JCArrayAccess)
 			{
-				typeOfOwner = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+				typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
 				{
 					@Override
 					public String invoke(JCExpression state) throws Throwable

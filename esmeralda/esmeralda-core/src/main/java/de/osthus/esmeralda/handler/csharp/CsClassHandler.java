@@ -93,18 +93,18 @@ public class CsClassHandler implements ICsClassHandler
 			boolean silverlightFlagActive = false;
 			for (TypeUsing using : usings)
 			{
-				firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+				firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 				if (silverlightFlagActive && !using.isInSilverlightOnly())
 				{
 					// deactivate flag
 					writer.append("#endif");
-					languageHelper.newLineIntend();
+					languageHelper.newLineIndent();
 					silverlightFlagActive = false;
 				}
 				else if (!silverlightFlagActive && using.isInSilverlightOnly())
 				{
 					// activate flag
-					languageHelper.newLineIntend();
+					languageHelper.newLineIndent();
 					writer.append("#if SILVERLIGHT");
 					silverlightFlagActive = true;
 				}
@@ -113,16 +113,15 @@ public class CsClassHandler implements ICsClassHandler
 			if (silverlightFlagActive)
 			{
 				// deactivate flag
-				languageHelper.newLineIntend();
+				languageHelper.newLineIndent();
 				writer.append("#endif");
 
 			}
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 
-		String packageName = classInfo.getPackageName();
-		String nameSpace = languageHelper.toNamespace(packageName);
-		firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+		String nameSpace = languageHelper.createNamespace();
+		firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 		writer.append("namespace ").append(nameSpace);
 	}
 
@@ -132,7 +131,7 @@ public class CsClassHandler implements ICsClassHandler
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeAnnotations(classInfo);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		boolean firstModifier = languageHelper.writeModifiers(classInfo);
 		if (!classInfo.isPrivate() && !classInfo.isProtected() && !classInfo.isPublic())
 		{
@@ -161,7 +160,7 @@ public class CsClassHandler implements ICsClassHandler
 
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
+		if (nameOfSuperClass != null && !nameOfSuperClass.isEmpty() && !Object.class.getName().equals(nameOfSuperClass) && !"<none>".equals(nameOfSuperClass))
 		{
 			writer.append(" : ");
 			languageHelper.writeType(nameOfSuperClass);
@@ -211,15 +210,15 @@ public class CsClassHandler implements ICsClassHandler
 
 		for (IVariable usedVariable : allUsedVariables)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append("private ");
 			languageHelper.writeType(usedVariable.getType());
 			writer.append(' ');
 			writer.append(usedVariable.getName());
 			writer.append(';');
 		}
-		languageHelper.newLineIntend();
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
+		languageHelper.newLineIndent();
 		writer.append("public ");
 		writer.append(classInfo.getName());
 		writer.append('(');
@@ -241,7 +240,7 @@ public class CsClassHandler implements ICsClassHandler
 				IWriter writer = context.getWriter();
 				for (IVariable usedVariable : allUsedVariables)
 				{
-					languageHelper.newLineIntend();
+					languageHelper.newLineIndent();
 					writer.append("this.");
 					writer.append(usedVariable.getName());
 					writer.append(" = ");
@@ -261,14 +260,14 @@ public class CsClassHandler implements ICsClassHandler
 		boolean firstLine = true;
 		for (Field field : classInfo.getFields())
 		{
-			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
 		}
 
 		for (Method method : classInfo.getMethods())
 		{
-			firstLine = languageHelper.newLineIntendIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
 		}

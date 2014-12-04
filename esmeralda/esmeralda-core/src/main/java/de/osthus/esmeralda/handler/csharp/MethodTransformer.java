@@ -142,7 +142,7 @@ public class MethodTransformer implements IMethodTransformer, IMethodTransformer
 	protected String[] parseArgumentTypes(final List<JCExpression> parameterTypes)
 	{
 		final String[] argTypes = new String[parameterTypes.size()];
-		languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+		astHelper.writeToStash(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable

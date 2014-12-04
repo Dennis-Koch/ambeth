@@ -25,7 +25,7 @@ public class CsContinueHandler extends AbstractStatementHandler<JCContinue> impl
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("continue;");
 	}
 }

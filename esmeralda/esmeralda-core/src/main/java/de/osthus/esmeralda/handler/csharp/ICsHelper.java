@@ -4,5 +4,4 @@ import de.osthus.esmeralda.ILanguageHelper;
 
 public interface ICsHelper extends ILanguageHelper
 {
-
 }

@@ -128,7 +128,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			}
 			case UNSIGNED_RIGHT_SHIFT:
 			{
-				languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+				astHelper.writeToStash(new IBackgroundWorkerDelegate()
 				{
 					@Override
 					public void invoke() throws Throwable
@@ -159,7 +159,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String[] typeOnStack = languageHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], Object>()
+		String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], Object>()
 		{
 			@Override
 			public String[] invoke(Object state) throws Throwable

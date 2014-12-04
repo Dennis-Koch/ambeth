@@ -21,7 +21,7 @@ public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionSt
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String stash = languageHelper.writeToStash(new IBackgroundWorkerDelegate()
+		String stash = astHelper.writeToStash(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
@@ -36,7 +36,7 @@ public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionSt
 		}
 		if (standalone)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 		writer.append(stash);
 		if (standalone)

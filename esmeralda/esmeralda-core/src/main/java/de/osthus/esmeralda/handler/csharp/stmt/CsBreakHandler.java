@@ -25,7 +25,7 @@ public class CsBreakHandler extends AbstractStatementHandler<JCBreak> implements
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("break;");
 	}
 }
