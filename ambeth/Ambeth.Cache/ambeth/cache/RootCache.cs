@@ -272,11 +272,11 @@ namespace De.Osthus.Ambeth.Cache
             ICacheIntern targetCache;
             if (Privileged && !SecurityActivation.FilterActivated)
             {
-                targetCache = (ICacheIntern)CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+                targetCache = (ICacheIntern)CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
             }
             else
             {
-                targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE);
+                targetCache = (ICacheIntern)CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
             }
             return GetObjects(orisToGet, targetCache, cacheDirective);
         }

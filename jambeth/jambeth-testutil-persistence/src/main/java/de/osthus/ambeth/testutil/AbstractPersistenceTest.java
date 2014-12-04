@@ -13,11 +13,11 @@ import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.CacheServerModule;
-import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.EventDataChangeModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.EventServerModule;
 import de.osthus.ambeth.ioc.MappingModule;
+import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.MergeModule;
 import de.osthus.ambeth.ioc.MergeServerModule;
 import de.osthus.ambeth.ioc.ObjectCopierModule;
@@ -27,6 +27,7 @@ import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
 import de.osthus.ambeth.ioc.SecurityBytecodeModule;
 import de.osthus.ambeth.ioc.SecurityModule;
+import de.osthus.ambeth.ioc.SecurityQueryModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.ServiceModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -43,8 +44,8 @@ import de.osthus.ambeth.util.IConversionHelper;
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, MergeBytecodeModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
 		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
-		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, SQLQueryModule.class,
-		FilterPersistenceModule.class })
+		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, SecurityQueryModule.class,
+		SQLQueryModule.class, FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethPersistenceRunner.class)
 public abstract class AbstractPersistenceTest extends AbstractIocTest

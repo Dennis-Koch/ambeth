@@ -1,9 +1,9 @@
 package de.osthus.ambeth.query.inmemory.builder;
 
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
@@ -41,7 +41,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -65,7 +65,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -77,7 +77,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -95,7 +95,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}
@@ -108,7 +108,7 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
 		return null;
 	}

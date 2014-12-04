@@ -1,10 +1,10 @@
 package de.osthus.ambeth.query;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 
 public interface IOperand
 {
-	void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException;
+	void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters);
 }

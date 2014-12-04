@@ -80,6 +80,11 @@ namespace De.Osthus.Ambeth.Orm
                     String specifiedTableName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.TABLE.LocalName)[0], XmlConstants.NAME);
                     entityConfig.TableName = specifiedTableName;
                 }
+                if (entityDefs.ContainsKey(XmlConstants.PERMISSION_GROUP.LocalName))
+                {
+                    String permissionGroupName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.PERMISSION_GROUP.LocalName)[0], XmlConstants.NAME);
+                    entityConfig.PermissionGroupName = permissionGroupName;
+                }
                 if (entityDefs.ContainsKey(XmlConstants.SEQ.LocalName))
                 {
                     String sequenceName = XmlConfigUtil.GetRequiredAttribute(entityDefs.Get(XmlConstants.SEQ.LocalName)[0], XmlConstants.NAME);

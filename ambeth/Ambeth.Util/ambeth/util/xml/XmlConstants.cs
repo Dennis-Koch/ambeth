@@ -11,6 +11,7 @@ namespace De.Osthus.Ambeth.Util.Xml
         public static readonly XName TYPE = XName.Get("type");
         public static readonly XName EXTERN = XName.Get("external");
         public static readonly XName TABLE = XName.Get("table");
+        public static readonly XName PERMISSION_GROUP = XName.Get("permission-group");
         public static readonly XName SEQ = XName.Get("sequence-generator");
         public static readonly XName ATTR = XName.Get("attributes");
         public static readonly XName ID = XName.Get("id");

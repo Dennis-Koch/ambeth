@@ -2,21 +2,25 @@ package de.osthus.ambeth.sql;
 
 import java.util.List;
 
+import de.osthus.ambeth.appendable.IAppendable;
+
 public interface ISqlBuilder
 {
-	Appendable appendNameValue(String name, Object value, Appendable sb);
+	IAppendable appendNameValue(String name, Object value, IAppendable sb);
 
-	Appendable appendNameValues(String name, List<Object> values, Appendable sb);
+	IAppendable appendNameValues(String name, List<Object> values, IAppendable sb);
 
-	Appendable appendName(String name, Appendable sb);
+	IAppendable appendName(String name, IAppendable sb);
 
-	Appendable appendValue(Object value, Appendable sb);
+	IAppendable appendValue(Object value, IAppendable sb);
 
 	String escapeName(CharSequence name);
 
+	IAppendable escapeName(CharSequence name, IAppendable sb);
+
 	String escapeValue(CharSequence value);
 
-	<V extends Appendable> V escapeValue(CharSequence value, V sb);
+	IAppendable escapeValue(CharSequence value, IAppendable sb);
 
 	boolean isUnescapedType(Class<?> type);
 }

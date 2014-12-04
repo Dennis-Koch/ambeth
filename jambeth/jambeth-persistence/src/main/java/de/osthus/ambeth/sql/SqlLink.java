@@ -2,6 +2,7 @@ package de.osthus.ambeth.sql;
 
 import java.util.List;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -77,7 +78,7 @@ public class SqlLink extends Link
 	@Override
 	public IField getFromField()
 	{
-		return this.fromField;
+		return fromField;
 	}
 
 	public void setFromField(IField fromField)
@@ -88,7 +89,7 @@ public class SqlLink extends Link
 	@Override
 	public IField getToField()
 	{
-		return this.toField;
+		return toField;
 	}
 
 	public void setToField(IField toField)
@@ -118,7 +119,7 @@ public class SqlLink extends Link
 		// 1) T,F WHERE T IN (?) findAllLinked
 		// 2) T,F WHERE F IN (?) findAllLinkedTo isToId=true
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder fieldNamesSB = current.create(StringBuilder.class);
+		AppendableStringBuilder fieldNamesSB = current.create(AppendableStringBuilder.class);
 		try
 		{
 
@@ -148,7 +149,7 @@ public class SqlLink extends Link
 			IField wantedField = isToId ? fromField : toField;
 			IField whereField = isToId ? toField : fromField;
 
-			fieldNamesSB.setLength(0);
+			fieldNamesSB.reset();
 			sqlBuilder.appendName(wantedField.getName(), fieldNamesSB);
 			fieldNamesSB.append(" IS NOT NULL");
 			String whereSQL = fieldNamesSB.toString();
@@ -179,7 +180,7 @@ public class SqlLink extends Link
 			return;
 		}
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder namesSB = current.create(StringBuilder.class);
+		AppendableStringBuilder namesSB = current.create(AppendableStringBuilder.class);
 		ArrayList<Object> convertedToIds = new ArrayList<Object>();
 		try
 		{
@@ -259,8 +260,8 @@ public class SqlLink extends Link
 	public void updateLink(IDirectedLink fromLink, Object fromId, Object toId)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder namesAndvaluesSB = current.create(StringBuilder.class);
-		StringBuilder whereSB = current.create(StringBuilder.class);
+		AppendableStringBuilder namesAndvaluesSB = current.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
 		try
 		{
 			if (getDirectedLink() == fromLink)
@@ -304,7 +305,7 @@ public class SqlLink extends Link
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		ArrayList<Object> values = new ArrayList<Object>();
 		try
 		{
@@ -366,23 +367,31 @@ public class SqlLink extends Link
 			unlinkByUpdate(fromLink, fromId, null);
 			return;
 		}
-		StringBuilder sb = new StringBuilder();
-		if (getDirectedLink() == fromLink)
+		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+		AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
+		try
 		{
-			fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
-			sqlBuilder.appendNameValue(fromField.getName(), fromId, sb);
-		}
-		else if (getReverseDirectedLink() == fromLink)
-		{
-			fromId = conversionHelper.convertValueToType(toField.getFieldType(), fromId);
-			sqlBuilder.appendNameValue(toField.getName(), fromId, sb);
-		}
-		else
-		{
-			throw new IllegalArgumentException("Invalid table " + fromLink);
-		}
+			if (getDirectedLink() == fromLink)
+			{
+				fromId = conversionHelper.convertValueToType(fromField.getFieldType(), fromId);
+				sqlBuilder.appendNameValue(fromField.getName(), fromId, sb);
+			}
+			else if (getReverseDirectedLink() == fromLink)
+			{
+				fromId = conversionHelper.convertValueToType(toField.getFieldType(), fromId);
+				sqlBuilder.appendNameValue(toField.getName(), fromId, sb);
+			}
+			else
+			{
+				throw new IllegalArgumentException("Invalid table " + fromLink);
+			}
 
-		sqlConnection.queueDelete(getFullqualifiedEscapedTableName(), sb.toString(), null);
+			sqlConnection.queueDelete(getFullqualifiedEscapedTableName(), sb.toString(), null);
+		}
+		finally
+		{
+			tlObjectCollector.dispose(sb);
+		}
 	}
 
 	@Override
@@ -408,8 +417,8 @@ public class SqlLink extends Link
 	private void unlinkByUpdate(IDirectedLink fromLink, Object fromId, List<?> toIds)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder nameAndValueSB = current.create(StringBuilder.class);
-		StringBuilder whereSB = current.create(StringBuilder.class);
+		AppendableStringBuilder nameAndValueSB = current.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
 		IList<Object> values = null;
 		try
 		{

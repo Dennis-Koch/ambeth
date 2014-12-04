@@ -82,6 +82,7 @@
     <Compile Include="ambeth\cache\CacheRetrieverRegistry.cs" />
     <Compile Include="ambeth\cache\CacheType.cs" />
     <Compile Include="ambeth\cache\ExecuteServiceDelegate.cs" />
+    <Compile Include="ambeth\cache\interceptor\SingleCacheProvider.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\DefaultRootCacheValueFactoryDelegate.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\IRootCacheValueFactory.cs" />
     <Compile Include="ambeth\cache\rootcachevalue\RootCacheValueFactory.cs" />

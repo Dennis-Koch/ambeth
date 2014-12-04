@@ -1,10 +1,8 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -46,8 +44,7 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	}
 
 	@Override
-	protected void processLeftOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters)
-			throws IOException
+	protected void processLeftOperandAspect(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		boolean caseSensitive = this.caseSensitive;
 		Class<?> leftOperandFieldType = getLeftOperandFieldType();
@@ -86,8 +83,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 	}
 
 	@Override
-	protected void processRightOperandAspect(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
-			List<Object> parameters) throws IOException
+	protected void processRightOperandAspect(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, Class<?> leftOperandFieldType,
+			IList<Object> parameters)
 	{
 		if (supportsMultiValueOperand() && rightOperand instanceof IMultiValueOperand)
 		{
@@ -107,8 +104,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		}
 	}
 
-	protected void handleMultiValueOperand(IMultiValueOperand operand, Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			Class<?> leftOperandFieldType, List<Object> parameters) throws IOException
+	protected void handleMultiValueOperand(IMultiValueOperand operand, IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			Class<?> leftOperandFieldType, IList<Object> parameters)
 	{
 		@SuppressWarnings("unchecked")
 		IList<IList<Object>> splitValues = (IList<IList<Object>>) nameToValueMap.get(QueryConstants.REMAINING_RIGHT_OPERAND_HANDLE);
@@ -153,8 +150,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		}
 	}
 
-	protected void handleWithSingleValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters,
-			IList<IList<Object>> splitValues) throws IOException
+	protected void handleWithSingleValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters,
+			IList<IList<Object>> splitValues)
 	{
 		if (splitValues.isEmpty())
 		{
@@ -193,8 +190,8 @@ abstract public class CaseSensitiveTwoPlaceOperator extends TwoPlaceOperator
 		}
 	}
 
-	protected void handleWithMultiValueLeftField(Appendable querySB, Map<Object, Object> nameToValueMap, List<Object> parameters,
-			IList<IList<Object>> splitValues) throws IOException
+	protected void handleWithMultiValueLeftField(IAppendable querySB, IMap<Object, Object> nameToValueMap, IList<Object> parameters,
+			IList<IList<Object>> splitValues)
 	{
 		Class<?> leftOperandFieldType;
 		leftOperandFieldType = getLeftOperandFieldSubType();

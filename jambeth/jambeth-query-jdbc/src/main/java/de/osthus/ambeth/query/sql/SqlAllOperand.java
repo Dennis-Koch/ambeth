@@ -1,9 +1,8 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -21,7 +20,7 @@ public class SqlAllOperand implements IOperand, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		querySB.append("1=1");
 	}

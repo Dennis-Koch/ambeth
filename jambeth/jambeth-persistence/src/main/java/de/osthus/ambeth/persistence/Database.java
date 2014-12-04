@@ -71,6 +71,7 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	protected final HashMap<String, ITable> nameToTableDict = new HashMap<String, ITable>();
 	protected final HashMap<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
 	protected final HashMap<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
+	protected final HashMap<String, IPermissionGroup> nameToPermissionGroupTableDict = new HashMap<String, IPermissionGroup>();
 	protected final HashMap<String, ILink> nameToLinkDict = new HashMap<String, ILink>();
 	protected final HashMap<String, ILink> definingNameToLinkDict = new HashMap<String, ILink>();
 	protected final HashMap<TablesMapKey, List<ILink>> tablesToLinkDict = new HashMap<TablesMapKey, List<ILink>>();
@@ -115,14 +116,18 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 			}
 			return;
 		}
-		if (!table.isArchive())
-		{
-			typeToTableDict.put(fromType, table);
-		}
-		else
+		if (table.isArchive())
 		{
 			typeToArchiveTableDict.put(fromType, table);
 			return;
+		}
+		else if (table.isPermissionGroup())
+		{
+			return;
+		}
+		else
+		{
+			typeToTableDict.put(fromType, table);
 		}
 
 		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
@@ -470,13 +475,38 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		Class<?> mappedEntityType = table.getEntityType();
 		if (mappedEntityType != null && !mappedEntityType.equals(entityType))
 		{
-			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '"
-					+ typeInfoProvider.getTypeInfo(mappedEntityType).getSimpleName() + "'");
+			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '" + mappedEntityType.getSimpleName() + "'");
 		}
 		Table tableInst = (Table) table;
 		tableInst.setEntityType(entityType);
 		tableInst.setArchive(true);
 		return table;
+	}
+
+	@Override
+	public void mapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable)
+	{
+		Table tableInst = (Table) permissionGroupTable;
+		tableInst.setPermissionGroup(true);
+
+		IField userField = tableInst.getFieldByName(PermissionGroup.userIdName);
+		IField permissionGroupField = tableInst.getFieldByName(PermissionGroup.permGroupIdName);
+		IField readPermissionField = tableInst.getFieldByName(PermissionGroup.readPermColumName);
+		IField permissionGroupFieldOnTarget = targetTable.getFieldByName(PermissionGroup.permGroupIdNameOfData);
+
+		PermissionGroup permissionGroup = serviceContext.registerBean(PermissionGroup.class)//
+				.propertyValue("UserField", userField)//
+				.propertyValue("PermissionGroupField", permissionGroupField)//
+				.propertyValue("ReadPermissionField", readPermissionField)//
+				.propertyValue("PermissionGroupFieldOnTarget", permissionGroupFieldOnTarget)//
+				.propertyValue("Table", permissionGroupTable)//
+				.propertyValue("TargetTable", targetTable)//
+				.finish();
+
+		if (!nameToPermissionGroupTableDict.putIfNotExists(targetTable.getName(), permissionGroup))
+		{
+			throw new IllegalStateException("A permission group is already mapped to table '" + targetTable + "'");
+		}
 	}
 
 	@Override
@@ -540,6 +570,12 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	public ITable getArchiveTableByType(Class<?> entityType)
 	{
 		return typeToArchiveTableDict.get(entityType);
+	}
+
+	@Override
+	public IPermissionGroup getPermissionGroupOfTable(String tableName)
+	{
+		return nameToPermissionGroupTableDict.get(tableName);
 	}
 
 	@Override

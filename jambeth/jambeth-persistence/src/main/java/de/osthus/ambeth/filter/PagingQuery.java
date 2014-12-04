@@ -7,6 +7,7 @@ import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
@@ -79,7 +80,7 @@ public class PagingQuery<T> implements IPagingQuery<T>, IPagingQueryIntern<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return query.getQueryKey(nameToValueMap);
 	}

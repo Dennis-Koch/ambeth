@@ -25,28 +25,6 @@ import de.osthus.ambeth.util.ParamChecker;
 public class CacheProviderInterceptor extends AbstractSimpleInterceptor implements ICacheProviderExtendable, ICacheProvider, ICacheContext,
 		IThreadLocalCleanupBean
 {
-	public static class SingleCacheProvider implements ICacheProvider
-	{
-		protected final ICache cache;
-
-		public SingleCacheProvider(ICache cache)
-		{
-			this.cache = cache;
-		}
-
-		@Override
-		public ICache getCurrentCache()
-		{
-			return cache;
-		}
-
-		@Override
-		public boolean isNewInstanceOnCall()
-		{
-			return false;
-		}
-	}
-
 	private static final Set<Method> methodsDirectlyToRootCache = new HashSet<Method>();
 
 	static
@@ -139,8 +117,25 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	{
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICache cache = cacheProvider.getCurrentCache();
-		return executeWithCache(cache, runnable);
+
+		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		if (stack == null)
+		{
+			stack = new Stack<ICacheProvider>();
+			cacheProviderStackTL.set(stack);
+		}
+		stack.push(cacheProvider);
+		try
+		{
+			return runnable.run();
+		}
+		finally
+		{
+			if (stack.pop() != cacheProvider)
+			{
+				throw new IllegalStateException("Must never happen");
+			}
+		}
 	}
 
 	@Override
@@ -148,8 +143,25 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	{
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICache cache = cacheProvider.getCurrentCache();
-		return executeWithCache(cache, runnable, state);
+
+		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
+		if (stack == null)
+		{
+			stack = new Stack<ICacheProvider>();
+			cacheProviderStackTL.set(stack);
+		}
+		stack.push(cacheProvider);
+		try
+		{
+			return runnable.run(state);
+		}
+		finally
+		{
+			if (stack.pop() != cacheProvider)
+			{
+				throw new IllegalStateException("Must never happen");
+			}
+		}
 	}
 
 	@Override
@@ -157,26 +169,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	{
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
-
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack == null)
-		{
-			stack = new Stack<ICacheProvider>();
-			cacheProviderStackTL.set(stack);
-		}
-		stack.push(singletonCacheProvider);
-		try
-		{
-			return runnable.run();
-		}
-		finally
-		{
-			if (stack.pop() != singletonCacheProvider)
-			{
-				throw new IllegalStateException("Must never happen");
-			}
-		}
+		return executeWithCache(new SingleCacheProvider(cache), runnable);
 	}
 
 	@Override
@@ -184,26 +177,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	{
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
-		ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
-
-		Stack<ICacheProvider> stack = cacheProviderStackTL.get();
-		if (stack == null)
-		{
-			stack = new Stack<ICacheProvider>();
-			cacheProviderStackTL.set(stack);
-		}
-		stack.push(singletonCacheProvider);
-		try
-		{
-			return runnable.run(state);
-		}
-		finally
-		{
-			if (stack.pop() != singletonCacheProvider)
-			{
-				throw new IllegalStateException("Must never happen");
-			}
-		}
+		return executeWithCache(new SingleCacheProvider(cache), runnable, state);
 	}
 
 	@Override

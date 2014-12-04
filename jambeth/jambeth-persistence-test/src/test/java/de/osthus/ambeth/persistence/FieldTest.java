@@ -42,7 +42,7 @@ public class FieldTest
 	public void setUp() throws Exception
 	{
 		Table table = new Table();
-		table.setIdField(new Field());
+		table.setIdFields(new IField[] { new Field() });
 		fixture = new Field();
 		fixture.setProperties(Properties.getApplication());
 		fixture.setTable(table);

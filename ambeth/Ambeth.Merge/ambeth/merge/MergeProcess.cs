@@ -74,7 +74,7 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void MergePhase1(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback, bool addNewEntitiesToCache)
         {
-            IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false);
+            IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false, "MergeProcess.ORIGINAL");
             try
             {
                 MergeHandle mergeHandle = BeanContext.RegisterBean<MergeHandle>().PropertyValue("Cache", childCache).Finish();

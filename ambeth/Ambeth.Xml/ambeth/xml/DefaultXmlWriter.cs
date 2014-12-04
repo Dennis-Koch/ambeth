@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.PostProcess;
+using De.Osthus.Ambeth.Appendable;
 
 namespace De.Osthus.Ambeth.Xml
 {

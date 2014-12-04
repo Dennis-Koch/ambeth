@@ -14,8 +14,10 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.orm.IOrmXmlReaderExtendable;
 import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
+import de.osthus.ambeth.orm.OrmPatternMatcher;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
@@ -69,8 +71,8 @@ public class PersistenceModule implements IInitializingModule
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, ITransactionListenerProvider.class, ITransactionListenerExtendable.class);
 
-		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerBean(EntityLoaderParallelInvoker.class)
-				.propertyRefs("databaseProvider").autowireable(IEntityLoaderParallelInvoker.class);
+		IBeanConfiguration entityLoaderParallelInvokerBC = beanContextFactory.registerBean(EntityLoaderParallelInvoker.class).propertyRefs("databaseProvider")
+				.autowireable(IEntityLoaderParallelInvoker.class);
 		if (parallelReadActive)
 		{
 			entityLoaderParallelInvokerBC.propertyRefs(parallelReadExecutorName);
@@ -87,13 +89,14 @@ public class PersistenceModule implements IInitializingModule
 
 		ExtendableBean.registerExtendableBean(beanContextFactory, IDatabaseLifecycleCallbackRegistry.class, IDatabaseLifecycleCallbackExtendable.class);
 
-		beanContextFactory.registerBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class,
-				IDatabaseProviderExtendable.class);
+		beanContextFactory.registerBean(DatabaseProviderRegistry.class).autowireable(IDatabaseProviderRegistry.class, IDatabaseProviderExtendable.class);
 
 		beanContextFactory.registerBean("databaseSessionIdController", DatabaseSessionIdController.class).autowireable(IDatabaseSessionIdController.class);
 
 		beanContextFactory.registerBean(XmlConfigUtil.class).autowireable(IXmlConfigUtil.class);
 		beanContextFactory.registerBean(XmlDatabaseMapper.class).precedence(PrecedenceType.HIGH);
+
+		beanContextFactory.registerBean(OrmPatternMatcher.class).autowireable(IOrmPatternMatcher.class);
 
 		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 

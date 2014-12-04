@@ -65,6 +65,9 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	@Autowired
 	protected ICacheIntern parent;
 
+	@Property(mandatory = false)
+	protected String name;
+
 	protected int cacheId;
 
 	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
@@ -112,7 +115,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	{
 		if (cacheId != 0)
 		{
-			firstLevelCacheExtendable.unregisterFirstLevelCache(this, null, false);
+			firstLevelCacheExtendable.unregisterFirstLevelCache(this, null, false, name);
 		}
 		entityFactory = null;
 		firstLevelCacheExtendable = null;

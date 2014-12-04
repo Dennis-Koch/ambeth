@@ -1,11 +1,11 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
@@ -127,7 +127,7 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		if (joinQuery || Boolean.TRUE.equals(nameToValueMap.get(QueryConstants.USE_TABLE_ALIAS)))
 		{
@@ -142,5 +142,20 @@ public class SqlColumnOperand implements IOperand, IOperatorAwareOperand, IIniti
 			querySB.append('.');
 		}
 		querySB.append('"').append(columnName).append('"');
+	}
+
+	@Override
+	public String toString()
+	{
+		if (tableAliasHolder == null)
+		{
+			return columnName;
+		}
+		String tableAlias = tableAliasHolder.getTableAlias();
+		if (tableAlias == null)
+		{
+			return columnName;
+		}
+		return tableAlias + "." + columnName;
 	}
 }

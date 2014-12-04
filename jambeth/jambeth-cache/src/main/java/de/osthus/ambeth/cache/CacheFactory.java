@@ -28,30 +28,31 @@ public class CacheFactory implements ICacheFactory
 	protected boolean securityActive;
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective)
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), false, null);
+		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), false, null, name);
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective)
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, String name)
 	{
-		return createIntern(cacheFactoryDirective, true, false, null);
+		return createIntern(cacheFactoryDirective, true, false, null, name);
 	}
 
 	@Override
-	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	public IDisposableCache create(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
 	{
-		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), foreignThreadAware, useWeakEntries);
+		return createIntern(cacheFactoryDirective, !securityActive || !securityActivation.isFilterActivated(), foreignThreadAware, useWeakEntries, name);
 	}
 
 	@Override
-	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries)
+	public IDisposableCache createPrivileged(CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, Boolean useWeakEntries, String name)
 	{
-		return createIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries);
+		return createIntern(cacheFactoryDirective, true, foreignThreadAware, useWeakEntries, name);
 	}
 
-	protected IDisposableCache createIntern(CacheFactoryDirective cacheFactoryDirective, boolean privileged, boolean foreignThreadAware, Boolean useWeakEntries)
+	protected IDisposableCache createIntern(CacheFactoryDirective cacheFactoryDirective, boolean privileged, boolean foreignThreadAware,
+			Boolean useWeakEntries, String name)
 	{
 		IBeanRuntime<ChildCache> firstLevelCacheBC = beanContext.registerBean(ChildCache.class);
 		if (!foreignThreadAware)
@@ -63,9 +64,13 @@ public class CacheFactory implements ICacheFactory
 		{
 			firstLevelCacheBC.propertyValue("WeakEntries", useWeakEntries);
 		}
+		if (name != null)
+		{
+			firstLevelCacheBC.propertyValue("Name", name);
+		}
 		firstLevelCacheBC.propertyValue("Privileged", Boolean.valueOf(privileged));
 		ChildCache firstLevelCache = firstLevelCacheBC.finish();
-		firstLevelCacheExtendable.registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware);
+		firstLevelCacheExtendable.registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name);
 		return firstLevelCache;
 	}
 }

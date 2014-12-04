@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import javax.persistence.OptimisticLockException;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -88,7 +89,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	public void queueDelete(String tableName, String whereSql, List<Object> parameters)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("DELETE FROM ");
@@ -106,7 +107,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	public void queueDelete(String tableName, String[] whereSql)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		String[] sqls = new String[whereSql.length];
 		try
 		{
@@ -116,7 +117,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			String sqlBase = sb.toString();
 			for (int i = whereSql.length; i-- > 0;)
 			{
-				sb.setLength(0);
+				sb.reset();
 				sb.append(sqlBase).append(whereSql[i]);
 				sqls[i] = sb.toString();
 			}
@@ -132,7 +133,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	public void queueDeleteAll(String tableName)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("DELETE FROM ");
@@ -149,7 +150,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	public void queueUpdate(String tableName, String valueAndNamesSql, String whereSql)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("UPDATE ");
@@ -187,7 +188,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("SELECT ");
@@ -233,7 +234,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
-		StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 
 		CharSequence outerFieldNamesSql, innerFieldNamesSql;
 		if (tableAlias == null)
@@ -339,7 +340,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		ArrayList<Object> parameters = new ArrayList<Object>();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			persistenceHelper.appendSplittedValues(idFieldName, idFieldType, ids, parameters, whereSB);

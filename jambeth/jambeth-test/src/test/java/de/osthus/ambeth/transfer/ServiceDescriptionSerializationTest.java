@@ -117,7 +117,7 @@ public class ServiceDescriptionSerializationTest extends AbstractPersistenceTest
 	@SQLData("../service/ProcessServiceTest_data.sql")
 	public void testChangedEntityParamNoReturn() throws Exception
 	{
-		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 
 		String methodName = "entityParamNoReturn";
 		Class<?>[] paramTypes = { MaterialGroup.class };

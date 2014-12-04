@@ -2,6 +2,7 @@ package de.osthus.ambeth.sql;
 
 import java.util.List;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.Field;
@@ -63,8 +64,8 @@ public class SqlField extends Field
 		String versionFieldName = versionField != null ? versionField.getName() : null;
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlBuilder.appendName(idFieldName, selectSB);
@@ -100,27 +101,27 @@ public class SqlField extends Field
 		String versionFieldName = versionField != null ? versionField.getName() : null;
 
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder selectSB = current.create(StringBuilder.class);
-		StringBuilder whereSB = current.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = current.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
 		ArrayList<Object> converted = new ArrayList<Object>(values.size());
 
 		try
 		{
-			this.sqlBuilder.appendName(idFieldName, selectSB);
+			sqlBuilder.appendName(idFieldName, selectSB);
 			selectSB.append(',');
-			this.sqlBuilder.appendName(versionFieldName, selectSB);
+			sqlBuilder.appendName(versionFieldName, selectSB);
 
 			for (int a = values.size(); a-- > 0;)
 			{
 				Object value = values.get(a);
-				Object conValue = this.conversionHelper.convertValueToType(getFieldType(), value);
+				Object conValue = conversionHelper.convertValueToType(getFieldType(), value);
 
 				converted.add(conValue);
 			}
 
-			this.sqlBuilder.appendNameValues(getName(), converted, whereSB);
+			sqlBuilder.appendNameValues(getName(), converted, whereSB);
 
-			IResultSet resultSet = this.connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
@@ -145,9 +146,8 @@ public class SqlField extends Field
 		String versionFieldName = versionField != null ? versionField.getName() : null;
 
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder selectSB = current.create(StringBuilder.class);
-		StringBuilder whereSB = current.create(StringBuilder.class);
-
+		AppendableStringBuilder selectSB = current.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSB = current.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlBuilder.appendName(idFieldName, selectSB);

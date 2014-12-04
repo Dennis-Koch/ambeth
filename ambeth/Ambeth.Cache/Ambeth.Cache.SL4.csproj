@@ -101,6 +101,7 @@
     <Compile Include="ambeth\cache\IFirstLevelCacheExtendable.cs" />
     <Compile Include="ambeth\cache\IFirstLevelCacheManager.cs" />
     <Compile Include="ambeth\cache\interceptor\AbstractRootCacheAwareInterceptor.cs" />
+    <Compile Include="ambeth\cache\interceptor\SingleCacheProvider.cs" />
     <Compile Include="ambeth\cache\interceptor\ThreadLocalRootCacheInterceptor.cs" />
     <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />

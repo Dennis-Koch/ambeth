@@ -1,10 +1,12 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
@@ -53,14 +55,14 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Boolean firstOrderByState = (Boolean) nameToValueMap.get(QueryConstants.FIRST_ORDER_BY_STATE);
 		List<String> additionalSelectColumnList = (List<String>) nameToValueMap.get(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
@@ -76,7 +78,7 @@ public class SqlOrderByOperator implements IOperator, IInitializingBean
 		if (additionalSelectColumnList != null)
 		{
 			IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-			StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+			AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 			try
 			{
 				column.expandQuery(sb, nameToValueMap, joinQuery, parameters);

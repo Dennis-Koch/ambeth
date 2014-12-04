@@ -231,22 +231,16 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			ITable table = tryResolveTable(database, entityConfig.getTableName(), realType.getSimpleName());
 			table = database.mapTable(table.getName(), entityType);
 
-			ITable archiveTable = database.getTableByName(archiveTablePrefix + table.getName() + archiveTablePostfix);
+			ITable archiveTable = database.getTableByName(ormPatternMatcher.buildArchiveFromTableName(table.getName()));
 			if (archiveTable != null)
 			{
 				database.mapArchiveTable(archiveTable.getName(), entityType);
 			}
-
 			String sequenceName = entityConfig.getSequenceName();
 
 			if (sequenceName == null)
 			{
-				Matcher matcher = fqToSoftTableNamePattern.matcher(table.getName());
-				if (!matcher.matches())
-				{
-					throw new IllegalStateException("Must never happen");
-				}
-				sequenceName = sequencePrefix + matcher.group(2) + sequencePostfix;
+				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName());
 			}
 			sequenceName = getFqObjectName(table, sequenceName);
 			if (table instanceof Table)
@@ -375,7 +369,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			ILink link = allLinks.get(i);
 			if (link.getName().equals(link.getTableName()))
 			{
-				String archiveTableName = archiveTablePrefix + link.getName() + archiveTablePostfix;
+				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName());
 				if (confDatabase.isLinkArchiveTable(archiveTableName))
 				{
 					((Link) link).setArchiveTableName(archiveTableName);
@@ -437,7 +431,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			throw new IllegalArgumentException("No table name specified");
 		}
-		String assumedName = tablePrefix + softName + tablePostfix;
+		String assumedName = ormPatternMatcher.buildTableNameFromSoftName(softName);
 
 		ITable table = null;
 		{
@@ -488,7 +482,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			if (idColumnName != null && !idColumnName.isEmpty() && table instanceof Table)
 			{
 				idField = table.getFieldByName(idColumnName);
-				((Table) table).setIdField(idField);
+				((Table) table).setIdFields(new IField[] { idField });
 			}
 			else
 			{
@@ -528,7 +522,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		ISet<String> producedNameCandidates = produceNameCandidates(memberName);
 		for (String name : producedNameCandidates)
 		{
-			String assumedFieldName1 = fieldPrefix + name + fieldPostfix;
+			String assumedFieldName1 = ormPatternMatcher.buildFieldNameFromSoftName(name);
 			String assumedFieldName2 = assumedFieldName1 + "_ID";
 
 			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo))
