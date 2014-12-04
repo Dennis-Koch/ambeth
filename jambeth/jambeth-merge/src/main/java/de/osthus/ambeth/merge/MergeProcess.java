@@ -109,7 +109,7 @@ public class MergeProcess implements IMergeProcess
 	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache)
 	{
-		IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "MergeProcess.ORIGINAL");
 		try
 		{
 			final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", childCache).finish();

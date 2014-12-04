@@ -1,13 +1,13 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
@@ -118,7 +118,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Object value = getValue(nameToValueMap);
 

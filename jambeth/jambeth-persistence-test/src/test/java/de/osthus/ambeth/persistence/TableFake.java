@@ -30,7 +30,7 @@ public class TableFake extends Table
 		idField.setName("ID");
 		idField.setFieldType(Long.class);
 		idField.setMember(entityMetaDataProvider.getMetaData(entityType).getIdMember());
-		setIdField(idField);
+		setIdFields(new IField[] { idField });
 		Field versionField = new Field();
 		versionField.setTable(this);
 		versionField.setName("VERSION");
@@ -51,7 +51,7 @@ public class TableFake extends Table
 		IList<Object> ids = new de.osthus.ambeth.collections.ArrayList<Object>(count);
 		for (int i = count; i-- > 0;)
 		{
-			ids.add(this.nextId++);
+			ids.add(nextId++);
 		}
 		return ids;
 	}
@@ -64,7 +64,7 @@ public class TableFake extends Table
 
 		newId.setValue(id);
 		Integer version;
-		Map<String, Object> obj = this.content.get(id);
+		Map<String, Object> obj = content.get(id);
 		if (obj != null)
 		{
 			version = (Integer) obj.get("version");
@@ -75,7 +75,7 @@ public class TableFake extends Table
 			obj = new HashMap<String, Object>();
 			obj.put("id", id);
 			obj.put("version", version);
-			this.content.put(id, obj);
+			content.put(id, obj);
 		}
 
 		return update(id, version, puis);
@@ -109,7 +109,7 @@ public class TableFake extends Table
 	{
 		Integer newVersion = ((Integer) version) + 1;
 
-		Map<String, Object> obj = this.content.get(id);
+		Map<String, Object> obj = content.get(id);
 		if (obj != null && ((Integer) obj.get("version")).equals(version))
 		{
 			obj.put("version", newVersion);

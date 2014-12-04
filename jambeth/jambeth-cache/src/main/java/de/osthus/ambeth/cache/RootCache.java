@@ -304,11 +304,11 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		ICacheIntern targetCache;
 		if (privileged && securityActivation != null && !securityActivation.isFilterActivated())
 		{
-			targetCache = (ICacheIntern) cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE);
+			targetCache = (ICacheIntern) cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
 		}
 		else
 		{
-			targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+			targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "RootCache.ADHOC");
 		}
 		return getObjects(orisToGet, targetCache, cacheDirective);
 	}

@@ -1,7 +1,5 @@
 package de.osthus.ambeth.query.sql;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,9 +7,14 @@ import java.util.regex.Pattern;
 import javax.persistence.criteria.JoinType;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.database.ITransaction;
+import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.PagingQuery;
@@ -20,6 +23,8 @@ import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
+import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.proxy.Self;
 import de.osthus.ambeth.log.ILogger;
@@ -40,30 +45,29 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.IQueryBuilderExtension;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.query.IQueryBuilderIntern;
 import de.osthus.ambeth.query.ISqlJoin;
 import de.osthus.ambeth.query.ISubQuery;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.Query;
 import de.osthus.ambeth.query.QueryDelegate;
+import de.osthus.ambeth.query.QueryType;
 import de.osthus.ambeth.query.QueryWeakReference;
 import de.osthus.ambeth.query.StringQuery;
 import de.osthus.ambeth.query.SubQueryWeakReference;
+import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
+public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderIntern<T>
 {
 	@LogInstance
 	private ILogger log;
 
-	private static enum QueryType
-	{
-		DEFAULT, PAGING, SUBQUERY;
-	}
-
-	protected static final List<ISqlJoin> emptyJoins = Collections.<ISqlJoin> emptyList();
+	protected static final IList<ISqlJoin> emptyJoins = EmptyList.<ISqlJoin> getInstance();
 
 	protected static final Pattern PATTERN_CONTAINS_JOIN = Pattern.compile("\\.");
 
@@ -71,33 +75,51 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 
 	protected static final Pattern PATTERN_ENTITY_NAME_WITH_MARKER = Pattern.compile("([^A-Z]*[A-Z][^\\.]*)#");
 
-	protected IQueryBuilder<T> self;
+	@Autowired
+	protected IServiceContext beanContext;
 
-	protected final LinkedHashMap<String, ISqlJoin> joinMap = new LinkedHashMap<String, ISqlJoin>();
+	@Autowired
+	protected IDatabase database;
 
-	protected final IList<SqlSubselectOperand> subQueries = new ArrayList<SqlSubselectOperand>();
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IQueryBuilderFactory queryBuilderFactory;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
+
+	@Autowired
+	protected ITableAliasProvider tableAliasProvider;
+
+	@Autowired
+	protected ITransaction transaction;
+
+	@Self
+	protected IQueryBuilderIntern<T> self;
+
+	@Property(defaultValue = "true")
+	protected boolean disposeContextOnDispose;
+
+	@Property
 	protected Class<?> entityType;
+
+	@Property
+	protected IQueryBuilderExtension[] queryBuilderExtensions;
 
 	protected IList<IOperand> orderByOperands;
 
 	protected IList<IOperand> selectOperands;
 
-	protected IServiceContext beanContext;
+	protected final LinkedHashMap<String, ISqlJoin> joinMap = new LinkedHashMap<String, ISqlJoin>();
 
-	protected IDatabase database;
+	protected final IList<SqlSubselectOperand> subQueries = new ArrayList<SqlSubselectOperand>();
 
-	protected boolean disposeContextOnDispose = true;
-
-	protected IEntityMetaDataProvider entityMetaDataProvider;
-
-	protected IThreadLocalObjectCollector objectCollector;
-
-	protected IQueryBuilderFactory qbf;
-
-	protected ITableAliasProvider tableAliasProvider;
-
-	protected ITableAliasHolder tableAliasHolder = new TableAliasHolder();
+	protected final ITableAliasHolder tableAliasHolder = new TableAliasHolder();
 
 	protected final LinkedHashSet<Class<?>> relatedEntityTypes = new LinkedHashSet<Class<?>>();
 
@@ -106,15 +128,6 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(entityType, "entityType");
-		ParamChecker.assertFalse(disposed, "disposed");
-
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "entityMetaDataProvider");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(qbf, "qbf");
-		ParamChecker.assertNotNull(tableAliasProvider, "tableAliasProvider");
-
 		relatedEntityTypes.add(entityType);
 		tableAliasHolder.setTableAlias(tableAliasProvider.getNextSubQueryAlias());
 	}
@@ -139,50 +152,10 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		beanContext = null;
 	}
 
-	public void setBeanContext(IServiceContext beanContext)
+	@Override
+	public Class<?> getEntityType()
 	{
-		this.beanContext = beanContext;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setDisposeContextOnDispose(boolean disposeContextOnDispose)
-	{
-		this.disposeContextOnDispose = disposeContextOnDispose;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setQueryBuilderFactory(IQueryBuilderFactory qbf)
-	{
-		this.qbf = qbf;
-	}
-
-	public void setTableAliasProvider(ITableAliasProvider tableAliasProvider)
-	{
-		this.tableAliasProvider = tableAliasProvider;
-	}
-
-	@Self
-	public void setSelf(IQueryBuilder<T> self)
-	{
-		this.self = self;
-	}
-
-	public void setEntityType(Class<?> entityType)
-	{
-		this.entityType = entityType;
+		return entityType;
 	}
 
 	protected IServiceContext getBeanContext()
@@ -202,8 +175,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(rightOperand, "rightOperand");
 		try
 		{
-			IBeanRuntime<? extends BasicTwoPlaceOperator> operatorBC = beanContext.registerBean(operatorType)
-					.propertyValue("LeftOperand", leftOperand).propertyValue("RightOperand", rightOperand);
+			IBeanRuntime<? extends BasicTwoPlaceOperator> operatorBC = beanContext.registerBean(operatorType).propertyValue("LeftOperand", leftOperand)
+					.propertyValue("RightOperand", rightOperand);
 			if (caseSensitive != null)
 			{
 				operatorBC.propertyValue("CaseSensitive", caseSensitive);
@@ -485,7 +458,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 					String fromMemberName = fromMetaData.getIdMemberByIdIndex(fromMemberIdIndex).getName();
 					IField fromField = dLink.getFromTable().getFieldByPropertyName(fromMemberName);
 					IOperand columnBase = columnIntern(fromField.getName(), fromField, prevJoin);
-					join = join(dLink.getLink().getName(), columnBase, columnIntern(currentFromField.getName(), currentFromField, null), joinType);
+					join = joinIntern(dLink.getLink().getName(), columnBase, columnIntern(currentFromField.getName(), currentFromField, null), joinType, null);
 
 					joinMap.put(joinName.toString() + ".link", join);
 
@@ -991,8 +964,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		{
 			selectOperands = new ArrayList<IOperand>();
 		}
-		IOperand additionalSelectOperand = getBeanContext().registerBean(SqlAdditionalSelectOperand.class).propertyValue("Column", columnOperand)
-				.finish();
+		IOperand additionalSelectOperand = getBeanContext().registerBean(SqlAdditionalSelectOperand.class).propertyValue("Column", columnOperand).finish();
 		selectOperands.add(additionalSelectOperand);
 		return selectOperands.size() - 1;
 	}
@@ -1036,10 +1008,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		String tableName = database.getTableByType(entityType).getName();
-		return join(tableName, columnBase, columnJoined, joinType);
+		return joinIntern(tableName, columnBase, columnJoined, joinType, null);
 	}
 
-	protected ISqlJoin join(String tableName, IOperand columnBase, IOperand columnJoined, JoinType joinType)
+	@Override
+	public ISqlJoin joinIntern(String tableName, IOperand columnBase, IOperand columnJoined, JoinType joinType, IBeanContextFactory childContextFactory)
 	{
 		ParamChecker.assertNotNull(tableName, "tableName");
 		ParamChecker.assertFalse(tableName.isEmpty(), "tableName.isNotEmpty");
@@ -1056,15 +1029,30 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 			entityType = table.getEntityType();
 			fullqualifiedEscapedTableName = table.getFullqualifiedEscapedName();
 		}
+		else
+		{
+			fullqualifiedEscapedTableName = sqlBuilder.escapeName(tableName);
+		}
 		if (entityType != null)
 		{
 			relatedEntityTypes.add(entityType);
 		}
 		try
 		{
-			SqlJoinOperator joinClause = getBeanContext().registerBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
-					.propertyValue("TableName", tableName).propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
-					.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).finish();
+			SqlJoinOperator joinClause;
+			if (childContextFactory != null)
+			{
+				joinClause = (SqlJoinOperator) childContextFactory.registerBean(SqlJoinOperator.class).propertyValue("JoinType", joinType)
+						.propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
+						.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).getInstance();
+				joinClause.setTableName(tableName);
+			}
+			else
+			{
+				joinClause = getBeanContext().registerBean(SqlJoinOperator.class).propertyValue("JoinType", joinType).propertyValue("TableName", tableName)
+						.propertyValue("FullqualifiedEscapedTableName", fullqualifiedEscapedTableName)
+						.propertyValue("Clause", isEqualTo(columnBase, columnJoined)).propertyValue("JoinedColumn", columnJoined).finish();
+			}
 			((SqlColumnOperand) columnJoined).setJoinClause(joinClause);
 			return joinClause;
 		}
@@ -1159,28 +1147,36 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 		ParamChecker.assertParamNotNull(whereClause, "operand");
 		ParamChecker.assertParamNotNull(joinClauses, "joinClauses");
 
-		List<ISqlJoin> joinList;
+		IList<ISqlJoin> joinList;
 		if (joinClauses.length == 0)
 		{
 			joinList = emptyJoins;
 		}
 		else
 		{
-			joinList = Arrays.asList(joinClauses);
+			joinList = new ArrayList<ISqlJoin>(joinClauses);
 		}
 		return build(whereClause, joinList, queryType);
 	}
 
+	protected Object build(final IOperand whereClause, final IList<ISqlJoin> joinClauses, final QueryType queryType)
+	{
+		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
+		{
+			@Override
+			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return buildIntern(whereClause, joinClauses, queryType);
+			}
+		}, false, true);
+	}
+
 	@SuppressWarnings("unchecked")
-	protected Object build(final IOperand whereClause, final List<ISqlJoin> joinClauses, final QueryType queryType)
+	protected Object buildIntern(final IOperand whereClause, final IList<ISqlJoin> joinClauses, final QueryType queryType)
 	{
 		ParamChecker.assertParamNotNull(whereClause, "whereClause");
 		ParamChecker.assertParamNotNull(joinClauses, "joinClauses");
 
-		for (int i = 0; i < joinClauses.size(); i++)
-		{
-			((SqlJoinOperator) joinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
-		}
 		try
 		{
 			if (QueryType.PAGING == queryType && (orderByOperands == null || orderByOperands.size() == 0))
@@ -1190,12 +1186,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 				self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
 			}
 			final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : null;
-
 			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : null;
-
 			final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
-
-			final String queryDelegateName = "queryDelegate", pagingQueryName = "pagingQuery";
+			final String queryDelegateName = "queryDelegate", pagingQueryName = "pagingQuery", queryName = "query";
 
 			IServiceContext beanContext = getBeanContext();
 			// Build a context from the PARENT of the SqlQueryBuilder-Context. Because from now on the query has a
@@ -1207,15 +1200,51 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilder<T>
 						@Override
 						public void invoke(IBeanContextFactory childContextFactory)
 						{
-							childContextFactory.registerBean("stringQuery", StringQuery.class).propertyValue("EntityType", SqlQueryBuilder.this.entityType)
-									.propertyValue("RootOperand", whereClause).propertyValue("JoinClauses", joinClauses);
-							Object query = childContextFactory.registerBean("query", Query.class).propertyValue("EntityType", entityType)
-									.propertyRefs("stringQuery").propertyRef("TransactionalQuery", queryDelegateName).propertyValue("RootOperand", whereClause)
-									.propertyValue("OrderByOperands", orderByOperandArray).propertyValue("SelectOperands", selectArray)
-									.propertyValue("RelatedEntityTypes", relatedEntityTypesList).propertyValue("TableAliasHolder", tableAliasHolder)
-									.propertyValue("ContainsSubQuery", !subQueries.isEmpty()).getInstance();
-							childContextFactory.registerBean(queryDelegateName, QueryDelegate.class).propertyValue("Query", query)
-									.propertyRef("TransactionalQuery", "query");
+							IOperand currWhereClause = whereClause;
+
+							IBeanConfiguration whereClauseConf = null;
+							for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
+							{
+								IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(childContextFactory, self, currWhereClause,
+										joinClauses, queryType);
+								if (currWhereClauseConf == null)
+								{
+									continue;
+								}
+								currWhereClause = (IOperand) currWhereClauseConf.getInstance();
+								whereClauseConf = currWhereClauseConf;
+							}
+							for (int i = 0; i < joinClauses.size(); i++)
+							{
+								((SqlJoinOperator) joinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
+							}
+							IBeanConfiguration stringQuery = childContextFactory.registerBean(StringQuery.class)//
+									.propertyValue("EntityType", SqlQueryBuilder.this.entityType)//
+									.propertyValue("JoinClauses", joinClauses);
+
+							IBeanConfiguration query = childContextFactory.registerBean(queryName, Query.class)//
+									.propertyValue("EntityType", entityType)//
+									.propertyRefs(stringQuery)//
+									.propertyRef("TransactionalQuery", queryDelegateName)//
+									.propertyValue("OrderByOperands", orderByOperandArray)//
+									.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
+									.propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
+									.propertyValue("SelectOperands", selectArray)//
+									.propertyValue("TableAliasHolder", tableAliasHolder)//
+									.propertyValue("ContainsSubQuery", !subQueries.isEmpty());
+							if (whereClauseConf != null)
+							{
+								stringQuery.propertyRef("RootOperand", whereClauseConf);
+								query.propertyRef("RootOperand", whereClauseConf);
+							}
+							else
+							{
+								stringQuery.propertyValue("RootOperand", currWhereClause);
+								query.propertyValue("RootOperand", currWhereClause);
+							}
+							childContextFactory.registerBean(queryDelegateName, QueryDelegate.class)//
+									.propertyValue("Query", query.getInstance())//
+									.propertyRef("TransactionalQuery", queryName);
 							if (QueryType.PAGING == queryType)
 							{
 								childContextFactory.registerBean(pagingQueryName, PagingQuery.class).propertyRef("Query", queryDelegateName);

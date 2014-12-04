@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 
+import de.osthus.ambeth.util.IPrintable;
+
 /**
  * Hochperformante Implementierung einer Liste, welche leer ist und nicht modifiziert werden kann. Der Sinn hierbei ist, dass bei R�ckgabewerten von Methoden,
  * bei dem man �blicherweise eine neue Instanz einer leeren Liste verwenden w�rde, fallspezifisch der Singleton dieser Klasse verwenden werden k�nnte.
@@ -23,7 +25,7 @@ import java.util.ListIterator;
  * @param <V>
  *            Typ der Liste
  */
-public class EmptyList<V> implements IList<V>
+public class EmptyList<V> implements IList<V>, IPrintable
 {
 	@SuppressWarnings("rawtypes")
 	static final ListIterator emptyIter = new ListIterator()
@@ -263,5 +265,17 @@ public class EmptyList<V> implements IList<V>
 	public <T> T[] toArray(final Class<T> componentType)
 	{
 		return (T[]) Array.newInstance(componentType, 0);
+	}
+
+	@Override
+	public String toString()
+	{
+		return "0 items: []";
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append(toString());
 	}
 }

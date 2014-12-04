@@ -82,9 +82,6 @@
     <Compile Include="ambeth\xml\CyclicXmlReader.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ambeth\xml\IAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ambeth\xml\ICyclicXmlDictionary.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -104,12 +101,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ambeth\xml\namehandler\TimeSpanElementHandler.cs" />
-    <Compile Include="ambeth\xml\StreamWriterAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ambeth\xml\StringBuilderAppendable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="ambeth\xml\XmlTransferScanner.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -182,10 +173,6 @@
     <Compile Include="ambeth\xml\simple\SimpleXmlController.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlReader.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\xml\simple\AppendableStreamEncoder.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStringBuilder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -12,37 +12,15 @@ using System.Threading;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using System.Collections.Generic;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
-    public class CacheProviderInterceptor : AbstractSimpleInterceptor, IInitializingBean, ICacheProviderExtendable, ICacheProvider, ICacheContext,
+    public class CacheProviderInterceptor : AbstractSimpleInterceptor, ICacheProviderExtendable, ICacheProvider, ICacheContext,
             IThreadLocalCleanupBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
-
-        public class SingleCacheProvider : ICacheProvider
-        {
-            protected ICache cache;
-
-            public SingleCacheProvider(ICache cache)
-            {
-                this.cache = cache;
-            }
-
-            public ICache GetCurrentCache()
-            {
-                return cache;
-            }
-
-            public bool IsNewInstanceOnCall
-            {
-                get
-                {
-                    return false;
-                }
-            }
-        }
 
         private static readonly ISet<MethodInfo> methodsDirectlyToRootCache = new HashSet<MethodInfo>();
 
@@ -56,28 +34,24 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected readonly ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new ThreadLocal<Stack<ICacheProvider>>();
 
-        public virtual ICacheProvider ThreadLocalCacheProvider { protected get; set; }
+        [Autowired]
+        public ICacheProvider ThreadLocalCacheProvider { protected get; set; }
 
-        public virtual IRootCache RootCache { protected get; set; }
+        [Autowired]
+        public IRootCache RootCache { protected get; set; }
 
-        public virtual void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(RootCache, "RootCache");
-            ParamChecker.AssertNotNull(ThreadLocalCacheProvider, "ThreadLocalCacheProvider");
-        }
-
-        public virtual void CleanupThreadLocal()
+        public void CleanupThreadLocal()
         {
             cacheProviderStackTL.Value = null;
         }
 
-        public virtual void RegisterCacheProvider(ICacheProvider cacheProvider)
+        public void RegisterCacheProvider(ICacheProvider cacheProvider)
         {
             ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
             cacheProviderStack.Push(cacheProvider);
         }
 
-        public virtual void UnregisterCacheProvider(ICacheProvider cacheProvider)
+        public void UnregisterCacheProvider(ICacheProvider cacheProvider)
         {
             ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
             if (cacheProviderStack.Peek() != cacheProvider)
@@ -87,7 +61,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             cacheProviderStack.Pop();
         }
 
-        public virtual ICacheProvider GetCurrentCacheProvider()
+        public ICacheProvider GetCurrentCacheProvider()
         {
             Stack<ICacheProvider> stack = cacheProviderStackTL.Value;
             if (stack != null && stack.Count > 0)
@@ -97,7 +71,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             return cacheProviderStack.Peek();
         }
 
-        public virtual ICache GetCurrentCache()
+        public ICache GetCurrentCache()
         {
             return GetCurrentCacheProvider().GetCurrentCache();
         }
@@ -124,67 +98,62 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         {
             ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
             ParamChecker.AssertParamNotNull(runnable, "runnable");
-            ICache cache = cacheProvider.GetCurrentCache();
-            return ExecuteWithCache(cache, runnable);
-        }
-
-        public R ExecuteWithCache<R, T>(ICacheProvider cacheProvider, ISingleCacheParamRunnable<R, T> runnable, T state)
-	    {
-		    ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
-		    ParamChecker.AssertParamNotNull(runnable, "runnable");
-		    ICache cache = cacheProvider.GetCurrentCache();
-		    return ExecuteWithCache(cache, runnable, state);
-	    }
-
-        public R ExecuteWithCache<R>(ICache cache, ISingleCacheRunnable<R> runnable)
-        {
-            ParamChecker.AssertParamNotNull(cache, "cache");
-            ParamChecker.AssertParamNotNull(runnable, "runnable");
-            ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
             Stack<ICacheProvider> stack = cacheProviderStackTL.Value;
             if (stack == null)
             {
                 stack = new Stack<ICacheProvider>();
                 cacheProviderStackTL.Value = stack;
             }
-            stack.Push(singletonCacheProvider);
+            stack.Push(cacheProvider);
             try
             {
                 return runnable.Invoke();
             }
             finally
             {
-                if (stack.Pop() != singletonCacheProvider)
+                if (!Object.ReferenceEquals(stack.Pop(), cacheProvider))
                 {
                     throw new Exception("Must never happen");
                 }
             }
         }
 
+        public R ExecuteWithCache<R, T>(ICacheProvider cacheProvider, ISingleCacheParamRunnable<R, T> runnable, T state)
+	    {
+		    ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
+		    ParamChecker.AssertParamNotNull(runnable, "runnable");
+            Stack<ICacheProvider> stack = cacheProviderStackTL.Value;
+            if (stack == null)
+            {
+                stack = new Stack<ICacheProvider>();
+                cacheProviderStackTL.Value = stack;
+            }
+            stack.Push(cacheProvider);
+            try
+            {
+                return runnable.Invoke(state);
+            }
+            finally
+            {
+                if (!Object.ReferenceEquals(stack.Pop(), cacheProvider))
+                {
+                    throw new Exception("Must never happen");
+                }
+            }
+	    }
+
+        public R ExecuteWithCache<R>(ICache cache, ISingleCacheRunnable<R> runnable)
+        {
+            ParamChecker.AssertParamNotNull(cache, "cache");
+            ParamChecker.AssertParamNotNull(runnable, "runnable");
+            return ExecuteWithCache<R>(new SingleCacheProvider(cache), runnable);
+        }
+
         public R ExecuteWithCache<R, T>(ICache cache, ISingleCacheParamRunnable<R, T> runnable, T state)
 	    {
 		    ParamChecker.AssertParamNotNull(cache, "cache");
 		    ParamChecker.AssertParamNotNull(runnable, "runnable");
-		    ICacheProvider singletonCacheProvider = new SingleCacheProvider(cache);
-
-		    Stack<ICacheProvider> stack = cacheProviderStackTL.Value;
-		    if (stack == null)
-		    {
-			    stack = new Stack<ICacheProvider>();
-			    cacheProviderStackTL.Value = stack;
-		    }
-		    stack.Push(singletonCacheProvider);
-		    try
-		    {
-			    return runnable.Invoke(state);
-		    }
-		    finally
-		    {
-			    if (stack.Pop() != singletonCacheProvider)
-			    {
-                    throw new Exception("Must never happen");
-			    }
-		    }
+            return ExecuteWithCache<R, T>(new SingleCacheProvider(cache), runnable, state);
 	    }
 
         protected override void InterceptIntern(IInvocation invocation)

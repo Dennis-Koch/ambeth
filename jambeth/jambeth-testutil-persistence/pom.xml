@@ -137,6 +137,11 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-persistence</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-sensor</artifactId>
 		</dependency>
 

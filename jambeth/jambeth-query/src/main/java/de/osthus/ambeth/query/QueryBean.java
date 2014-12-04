@@ -3,9 +3,9 @@ package de.osthus.ambeth.query;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -70,28 +70,28 @@ public class QueryBean<T> implements IQuery<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().getQueryKey(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieveAsVersions(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieveAsCursor(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		return getQuery().retrieve(nameToValueMap);
 	}

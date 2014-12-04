@@ -84,7 +84,7 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
 			return null;
 		}
 
-		final IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		final IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
 		IServiceContext mergeContext = beanContext.createService("mergeXml", new RegisterPhaseDelegate()
 		{
 			@Override

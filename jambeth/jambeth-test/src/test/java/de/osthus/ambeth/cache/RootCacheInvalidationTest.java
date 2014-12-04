@@ -76,7 +76,7 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	@Test
 	public void testRootCacheDataChangePerformance() throws Throwable
 	{
-		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
 		{
 			@Override
@@ -116,7 +116,7 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	@Test
 	public void testRootCacheInvalidation2() throws Throwable
 	{
-		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
 		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
 		{
 			@Override

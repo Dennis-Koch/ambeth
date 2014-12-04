@@ -55,6 +55,7 @@
     <Compile Include="ambeth\cache\config\CacheNamedBeans.cs" />
     <Compile Include="ambeth\cache\ExecuteServiceDelegate.cs" />
     <Compile Include="ambeth\cache\GetDataDelegate.cs" />
+    <Compile Include="ambeth\cache\interceptor\SingleCacheProvider.cs" />
     <Compile Include="ambeth\cache\IParentEntityAware.cs" />
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
     <Compile Include="ambeth\cache\FlcEntry.cs" />

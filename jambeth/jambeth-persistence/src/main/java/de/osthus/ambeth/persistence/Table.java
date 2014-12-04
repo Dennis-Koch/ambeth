@@ -64,9 +64,9 @@ public class Table implements ITable, IInitializingBean
 
 	protected Class<?> entityType;
 
-	protected boolean archive = false;
+	protected boolean archive = false, permissionGroup = false;
 
-	protected IField idField;
+	protected IField[] idFields;
 
 	protected IField versionField;
 
@@ -148,7 +148,7 @@ public class Table implements ITable, IInitializingBean
 		// formerly in afterPropertiesSet, but now only active if an explicit entity mapping is done
 		if (!viewBased)
 		{
-			ParamChecker.assertNotNull(idField, "idField (in " + name + ")");
+			ParamChecker.assertNotNull(idFields, "idField (in " + name + ")");
 		}
 		if (log.isWarnEnabled() && versionField == null)
 		{
@@ -168,14 +168,25 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	@Override
-	public IField getIdField()
+	public boolean isPermissionGroup()
 	{
-		return idField;
+		return permissionGroup;
 	}
 
-	public void setIdField(IField idField)
+	public void setPermissionGroup(boolean permissionGroup)
 	{
-		this.idField = idField;
+		this.permissionGroup = permissionGroup;
+	}
+
+	@Override
+	public IField getIdField()
+	{
+		return idFields != null ? idFields[0] : null;
+	}
+
+	public void setIdFields(IField[] idFields)
+	{
+		this.idFields = idFields;
 	}
 
 	@Override
@@ -393,7 +404,23 @@ public class Table implements ITable, IInitializingBean
 		Field fieldInstance = (Field) field;
 		fieldInstance.setMember(member);
 
-		if (field != idField && field != versionField)
+		boolean isIdOrVersionField = false;
+		if (idFields != null)
+		{
+			for (IField idField : idFields)
+			{
+				if (idField == field)
+				{
+					isIdOrVersionField = true;
+					break;
+				}
+			}
+		}
+		if (field == versionField)
+		{
+			isIdOrVersionField = true;
+		}
+		if (!isIdOrVersionField)
 		{
 			memberNameToFieldDict.put(memberName, field);
 		}
@@ -673,9 +700,15 @@ public class Table implements ITable, IInitializingBean
 		{
 			return null;
 		}
-		if (idField != null && fieldName.equals(idField.getName()))
+		if (idFields != null)
 		{
-			return idField;
+			for (IField idField : idFields)
+			{
+				if (fieldName.equals(idField.getName()))
+				{
+					return idField;
+				}
+			}
 		}
 		if (versionField != null && fieldName.equals(versionField.getName()))
 		{

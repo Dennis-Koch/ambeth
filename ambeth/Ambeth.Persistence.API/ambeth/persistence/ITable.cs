@@ -198,6 +198,11 @@ namespace De.Osthus.Ambeth.Persistence
         bool Archive { get; }
 
         /**
+	     * @return True if this is an permission group table, otherwise false.
+	     */
+        bool PermissionGroup { get; }
+
+        /**
          * Getter for the ID field of this table.
          * 
          * @return Representation of the primary key of this table.

@@ -8,6 +8,8 @@ import de.osthus.ambeth.util.IParamHolder;
 
 public interface IQueryBuilder<T> extends IDisposable
 {
+	Class<?> getEntityType();
+
 	IOperator and(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator and(IOperand... operands);

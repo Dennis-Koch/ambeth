@@ -2,11 +2,12 @@ package de.osthus.ambeth.query.inmemory.builder;
 
 import javax.persistence.criteria.JoinType;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.ioc.IBeanRuntime;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
@@ -33,37 +34,28 @@ import de.osthus.ambeth.query.inmemory.text.StartsWithOperator;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
-public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>, IInitializingBean
+public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Property
 	protected Class<?> entityType;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "beanContext");
-		ParamChecker.assertNotNull(entityType, "entityType");
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setEntityType(Class<?> entityType)
-	{
-		this.entityType = entityType;
-	}
 
 	@Override
 	public void dispose()
 	{
 		// Intended blank
+	}
+
+	@Override
+	public Class<?> getEntityType()
+	{
+		return entityType;
 	}
 
 	protected IOperator createUnaryOperator(Class<? extends IOperator> operatorType, Object operand, Boolean caseSensitive)

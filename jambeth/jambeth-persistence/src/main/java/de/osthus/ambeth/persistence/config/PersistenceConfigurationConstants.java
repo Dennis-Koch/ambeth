@@ -56,6 +56,12 @@ public final class PersistenceConfigurationConstants
 	public static final String DatabaseArchiveTablePostfix = "database.archivetable.postfix";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String DatabasePermissionGroupPrefix = "database.permissiongrouptable.prefix";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String DatabasePermissionGroupPostfix = "database.permissiongrouptable.postfix";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String DatabaseFieldPrefix = "database.field.prefix";
 
 	@ConfigurationConstantDescription("TODO")

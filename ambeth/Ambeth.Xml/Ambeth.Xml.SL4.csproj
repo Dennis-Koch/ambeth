@@ -85,7 +85,6 @@
     <Compile Include="ambeth\xml\CyclicXmlWriter.cs" />
     <Compile Include="ambeth\xml\DefaultXmlReader.cs" />
     <Compile Include="ambeth\xml\DefaultXmlWriter.cs" />
-    <Compile Include="ambeth\xml\IAppendable.cs" />
     <Compile Include="ambeth\xml\ICyclicObjectHandler.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlController.cs" />
     <Compile Include="ambeth\xml\ICyclicXmlDictionary.cs" />
@@ -136,14 +135,10 @@
     <Compile Include="ambeth\xml\postprocess\IXmlPostProcessorRegistry.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeArraySetterCommand.cs" />
     <Compile Include="ambeth\xml\postprocess\merge\MergeXmlPostProcessor.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStreamEncoder.cs" />
-    <Compile Include="ambeth\xml\simple\AppendableStringBuilder.cs" />
     <Compile Include="ambeth\xml\simple\ExtendedStreamReader.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlController.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlReader.cs" />
     <Compile Include="ambeth\xml\simple\SimpleXmlWriter.cs" />
-    <Compile Include="ambeth\xml\StreamWriterAppendable.cs" />
-    <Compile Include="ambeth\xml\StringBuilderAppendable.cs" />
     <Compile Include="ambeth\xml\typehandler\AbstractHandler.cs" />
     <Compile Include="ambeth\xml\typehandler\NumberTypeHandler.cs" />
     <Compile Include="ambeth\xml\typehandler\ObjectTypeHandler.cs" />

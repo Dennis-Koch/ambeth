@@ -118,9 +118,9 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         if (!SecurityActive || !SecurityActivation.FilterActivated)
                         {
-                            return CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+                            return CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
                         }
-                        return CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null);
+                        return CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, null, "CacheProvider.PROTOTYPE");
                     }
                 case CacheType.SINGLETON:
                     {
@@ -131,7 +131,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 if (privilegedSingletonCache == null)
                                 {
-                                    privilegedSingletonCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                    privilegedSingletonCache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, true, null, "CacheProvider.SINGLETON");
                                 }
                                 return privilegedSingletonCache;
                             }
@@ -139,7 +139,7 @@ namespace De.Osthus.Ambeth.Cache
                             {
                                 if (singletonCache == null)
                                 {
-                                    singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null);
+                                    singletonCache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, true, null, "CacheProvider.SINGLETON");
                                 }
                                 return singletonCache;
                             }
@@ -156,7 +156,7 @@ namespace De.Osthus.Ambeth.Cache
                             IDisposableCache cache = privilegedCacheTL.Value;
                             if (cache == null)
                             {
-                                cache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cache = CacheFactory.CreatePrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, false, "CacheProvider.THREAD_LOCAL");
                                 privilegedCacheTL.Value = cache;
                             }
                             return cache;
@@ -166,7 +166,7 @@ namespace De.Osthus.Ambeth.Cache
                             IDisposableCache cache = cacheTL.Value;
                             if (cache == null)
                             {
-                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false);
+                                cache = CacheFactory.Create(CacheFactoryDirective.SubscribeTransactionalDCE, false, false, "CacheProvider.THREAD_LOCAL");
                                 cacheTL.Value = cache;
                             }
                             return cache;

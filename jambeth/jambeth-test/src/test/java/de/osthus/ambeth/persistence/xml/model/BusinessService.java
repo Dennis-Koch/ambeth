@@ -10,7 +10,7 @@ import de.osthus.ambeth.util.ParamChecker;
 public class BusinessService implements IBusinessService, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(BusinessService.class)
+	@LogInstance
 	private ILogger log;
 
 	protected IEmployeeService employeeService;
@@ -18,7 +18,7 @@ public class BusinessService implements IBusinessService, IInitializingBean
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(this.employeeService, "employeeService");
+		ParamChecker.assertNotNull(employeeService, "employeeService");
 	}
 
 	public void setEmployeeService(IEmployeeService employeeService)
@@ -29,6 +29,6 @@ public class BusinessService implements IBusinessService, IInitializingBean
 	@Override
 	public List<Employee> retrieve(List<String> names)
 	{
-		return this.employeeService.retrieve(names);
+		return employeeService.retrieve(names);
 	}
 }

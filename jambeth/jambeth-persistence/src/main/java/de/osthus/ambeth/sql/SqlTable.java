@@ -2,6 +2,7 @@ package de.osthus.ambeth.sql;
 
 import java.util.List;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -111,7 +112,7 @@ public class SqlTable extends Table
 	public void delete(List<IObjRef> oris)
 	{
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		StringBuilder sb = current.create(StringBuilder.class);
+		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
 		String[] whereSqls = new String[oris.size()];
 		try
 		{
@@ -138,7 +139,7 @@ public class SqlTable extends Table
 					sqlBuilder.appendNameValue(versionFieldName, version, sb);
 				}
 				whereSqls[i] = sb.toString();
-				sb.setLength(0);
+				sb.reset();
 			}
 			sqlConnection.queueDelete(getFullqualifiedEscapedName(), whereSqls);
 		}
@@ -164,7 +165,7 @@ public class SqlTable extends Table
 	public ICursor selectValues(List<?> ids)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			List<IField> fields = getAllFields();
@@ -213,7 +214,7 @@ public class SqlTable extends Table
 	public ICursor selectValues(String alternateIdMemberName, List<?> alternateIds)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -278,7 +279,7 @@ public class SqlTable extends Table
 	public IVersionCursor selectVersion(List<?> ids)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -310,7 +311,7 @@ public class SqlTable extends Table
 	public IVersionCursor selectVersion(String alternateIdMemberName, List<?> alternateIds)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -384,8 +385,8 @@ public class SqlTable extends Table
 			List<Object> parameters, String tableAlias)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
-		StringBuilder fieldPatternSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		AppendableStringBuilder fieldPatternSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		HashSet<String> additionalSelectColumnSet = null;
 		try
 		{
@@ -477,7 +478,7 @@ public class SqlTable extends Table
 			int offset, int length, List<Object> parameters, String tableAlias)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			String primaryIdFieldName = getIdField().getName();
@@ -591,7 +592,7 @@ public class SqlTable extends Table
 	public IVersionCursor selectAll()
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlBuilder.appendName(getIdField().getName(), selectSB);

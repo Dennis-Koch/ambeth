@@ -160,7 +160,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 	@Test
 	public final void testCreate()
 	{
-		ICache actual = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICache actual = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		assertNotNull("Returned null!", actual);
 		assertTrue("Should be a ChildCache!", actual instanceof ChildCache);
 		assertNotSame("Parent cache should be a proxy of any explicit root cache!", fixture, ((ChildCache) actual).getParent());
@@ -282,14 +282,14 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertEquals(3, actual.size());
 
 		actual = fixture.createResult(orisToGet, null, Collections.<CacheDirective> emptySet(),
-				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE), true);
+				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true);
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals("Wrong result type!", Material.class, proxyHelper.getRealType(actual.get(0).getClass()));
 		assertEquals("Wrong result type!", Material.class, proxyHelper.getRealType(actual.get(1).getClass()));
 
-		actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(), (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE),
-				true);
+		actual = fixture.createResult(orisToGet, null, CacheDirective.loadContainerResult(),
+				(ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), true);
 		assertNotNull(actual);
 		assertEquals(2, actual.size());
 		assertEquals("Wrong result type!", LoadContainer.class, actual.get(0).getClass());
@@ -332,7 +332,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 	@Test
 	public final void testUpdateExistingObject()
 	{
-		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		Material material = ObjectMother.getNewMaterial(entityFactory, 5, 2, "Update test");
 		ILoadContainer container = entityToLoadContainer(material);
 		Object obj = entityFactory.createEntity(Material.class);
@@ -351,7 +351,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 	@Test(expected = ClassCastException.class)
 	public final void testUpdateExistingObject_wrongType() throws Throwable
 	{
-		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		Material material = ObjectMother.getNewMaterial(entityFactory, 5, 2, "Update test");
 		ILoadContainer container = entityToLoadContainer(material);
 		Object obj = entityFactory.createEntity(Unit.class);
@@ -598,7 +598,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertTrue(material.equals(cachedMaterial));
 		assertTrue(material.equals(independentMaterial));
 
-		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		fixture.applyValues(cachedMaterial, targetCache);
 		assertTrue(material.equals(targetCache.getObject(materialRef, noDirective)));
 		assertTrue(material.equals(fixture.getObject(materialRef, noDirective)));

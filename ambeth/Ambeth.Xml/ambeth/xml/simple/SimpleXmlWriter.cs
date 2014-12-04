@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Appendable;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using System;
 using System.IO;

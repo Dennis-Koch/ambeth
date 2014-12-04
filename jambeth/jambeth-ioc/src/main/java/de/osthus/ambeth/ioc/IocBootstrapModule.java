@@ -3,6 +3,7 @@ package de.osthus.ambeth.ioc;
 import java.io.File;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.converter.StringToClassArrayConverter;
 import de.osthus.ambeth.converter.StringToDoubleArrayConverter;
 import de.osthus.ambeth.converter.StringToFileConverter;
@@ -16,6 +17,8 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.objectcollector.AppendableStringBuilderCollectableController;
+import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 import de.osthus.ambeth.proxy.CgLibUtil;
 import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.threading.GuiThreadHelper;
@@ -71,6 +74,9 @@ public class IocBootstrapModule implements IInitializingModule
 
 		IBeanConfiguration stringToStringArrayConverter = beanContextFactory.registerBean(StringToStringArrayConverter.class);
 		DedicatedConverterUtil.biLink(beanContextFactory, stringToStringArrayConverter, String.class, String[].class);
+
+		IBeanConfiguration appendableStringBuilderCollectableController = beanContextFactory.registerBean(AppendableStringBuilderCollectableController.class);
+		beanContextFactory.link(appendableStringBuilderCollectableController).to(ICollectableControllerExtendable.class).with(AppendableStringBuilder.class);
 
 		beanContextFactory.registerBean("interningFeature", InterningFeature.class).autowireable(IInterningFeature.class);
 

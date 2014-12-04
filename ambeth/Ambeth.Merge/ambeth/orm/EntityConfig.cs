@@ -14,6 +14,8 @@ namespace De.Osthus.Ambeth.Orm
 
         public String TableName { get; set; }
 
+        public String PermissionGroupName { get; set; }
+
         public String SequenceName { get; set; }
 
         public IMemberConfig IdMemberConfig { get; set; }

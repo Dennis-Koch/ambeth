@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 
-namespace De.Osthus.Ambeth.Xml.Simple
+namespace De.Osthus.Ambeth.Appendable
 {
     public class AppendableStringBuilder : IAppendable
     {

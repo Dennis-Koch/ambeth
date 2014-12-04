@@ -6,6 +6,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import sun.nio.cs.StreamEncoder;
+import de.osthus.ambeth.appendable.AppendableStreamEncoder;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.appendable.ByteBufferAppendable;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -14,7 +17,6 @@ import de.osthus.ambeth.xml.DefaultXmlWriter;
 import de.osthus.ambeth.xml.ICyclicXmlController;
 import de.osthus.ambeth.xml.ICyclicXmlWriter;
 import de.osthus.ambeth.xml.IWriter;
-import de.osthus.ambeth.xml.appendable.ByteBufferAppendable;
 
 public class SimpleXmlWriter implements ICyclicXmlWriter
 {

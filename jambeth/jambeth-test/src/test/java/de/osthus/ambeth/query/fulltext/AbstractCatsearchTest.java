@@ -2,12 +2,12 @@ package de.osthus.ambeth.query.fulltext;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.annotation.Autowired;

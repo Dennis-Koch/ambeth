@@ -2,10 +2,10 @@ package de.osthus.ambeth.filter;
 
 import java.lang.reflect.Array;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -31,7 +31,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
-	protected Map<Object, Object> currentNameToValueMap;
+	protected IMap<Object, Object> currentNameToValueMap;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;

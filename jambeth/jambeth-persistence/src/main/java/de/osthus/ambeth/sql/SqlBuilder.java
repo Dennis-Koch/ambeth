@@ -1,15 +1,15 @@
 package de.osthus.ambeth.sql;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -23,7 +23,7 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	@LogInstance
 	private ILogger log;
 
-	protected static final Pattern dotPattern = Pattern.compile(".", Pattern.LITERAL);
+	public static final Pattern dotPattern = Pattern.compile(".", Pattern.LITERAL);
 
 	protected static final Pattern sqlEscapePattern = Pattern.compile("'", Pattern.LITERAL);
 
@@ -74,77 +74,55 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public Appendable appendNameValue(String name, Object value, Appendable sb)
+	public IAppendable appendNameValue(String name, Object value, IAppendable sb)
 	{
-		try
-		{
-			appendName(name, sb).append('=');
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		appendName(name, sb).append('=');
 		appendValue(value, sb);
 		return sb;
 	}
 
 	@Override
-	public Appendable appendNameValues(String name, List<Object> values, Appendable sb)
+	public IAppendable appendNameValues(String name, List<Object> values, IAppendable sb)
 	{
-		IList<String> inClauses = this.persistenceHelper.buildStringListOfValues(values);
+		IList<String> inClauses = persistenceHelper.buildStringListOfValues(values);
 		boolean first = true;
 
-		try
+		if (inClauses.size() > 1)
 		{
-			if (inClauses.size() > 1)
-			{
-				sb.append("(");
-			}
-			for (int i = inClauses.size(); i-- > 0;)
-			{
-				if (!first)
-				{
-					sb.append(" OR ");
-				}
-				else
-				{
-					first = false;
-				}
-				appendName(name, sb).append(" IN (").append(inClauses.get(i)).append(')');
-			}
-			if (inClauses.size() > 1)
-			{
-				sb.append(" )");
-			}
+			sb.append("(");
 		}
-		catch (IOException e)
+		for (int i = inClauses.size(); i-- > 0;)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			if (!first)
+			{
+				sb.append(" OR ");
+			}
+			else
+			{
+				first = false;
+			}
+			appendName(name, sb).append(" IN (").append(inClauses.get(i)).append(')');
 		}
-
+		if (inClauses.size() > 1)
+		{
+			sb.append(" )");
+		}
 		return sb;
 	}
 
 	@Override
-	public Appendable appendName(String name, Appendable sb)
+	public IAppendable appendName(String name, IAppendable sb)
 	{
 		// if (escapedNames.contains(name.toUpperCase()))
 		// {
-		try
+		if (name.startsWith("\""))
 		{
-			if (name.startsWith("\""))
-			{
-				// already escaped
-				sb.append(name);
-				return sb;
-			}
-			String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
-			sb.append('\"').append(dotReplacedName).append('\"');
+			// already escaped
+			sb.append(name);
+			return sb;
 		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		String dotReplacedName = dotPattern.matcher(name).replaceAll("\".\"");
+		sb.append('\"').append(dotReplacedName).append('\"');
 		// }
 		// else
 		// {
@@ -177,27 +155,34 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public Appendable appendValue(Object value, Appendable sb)
+	public IAppendable escapeName(CharSequence name, IAppendable sb)
 	{
-		try
+		if (name.length() == 0 || name.charAt(0) == '\"')
 		{
-			if (value == null)
-			{
-				sb.append("NULL");
-			}
-			else if (isUnescapedType(value.getClass()))
-			{
-				sb.append(value.toString());
-			}
-			else
-			{
-				sb.append('\'');
-				escapeValue(value.toString(), sb).append('\'');
-			}
+			// already escaped
+			sb.append(name);
+			return sb;
 		}
-		catch (IOException e)
+		String dotReplacedName = dotPattern.matcher(name).replaceAll(Matcher.quoteReplacement("\".\""));
+		sb.append('\"').append(dotReplacedName).append('\"');
+		return sb;
+	}
+
+	@Override
+	public IAppendable appendValue(Object value, IAppendable sb)
+	{
+		if (value == null)
 		{
-			throw RuntimeExceptionUtil.mask(e);
+			sb.append("NULL");
+		}
+		else if (isUnescapedType(value.getClass()))
+		{
+			sb.append(value.toString());
+		}
+		else
+		{
+			sb.append('\'');
+			escapeValue(value.toString(), sb).append('\'');
 		}
 		return sb;
 	}
@@ -209,17 +194,10 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 	}
 
 	@Override
-	public <V extends Appendable> V escapeValue(CharSequence value, V sb)
+	public IAppendable escapeValue(CharSequence value, IAppendable sb)
 	{
-		try
-		{
-			value = escapeValue(value);
-			sb.append(value);
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
+		value = escapeValue(value);
+		sb.append(value);
 		return sb;
 	}
 

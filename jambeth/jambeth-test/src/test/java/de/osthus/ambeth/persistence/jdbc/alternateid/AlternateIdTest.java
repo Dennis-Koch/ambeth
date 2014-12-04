@@ -61,7 +61,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 		aie.setName(name);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 		return aie;
 	}
 
@@ -79,7 +79,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 	{
 		AlternateIdEntity aie = entityFactory.createEntity(AlternateIdEntity.class);
 
-		this.service.updateAlternateIdEntity(aie);
+		service.updateAlternateIdEntity(aie);
 
 		Assert.assertFalse("Wrong id", aie.getId() == 0);
 		Assert.assertEquals("Wrong version!", (short) 1, aie.getVersion());
@@ -119,7 +119,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 		AlternateIdEntity entityFromCacheById = cache.getObject(entity.getClass(), entity.getId());
 
-		this.service.updateAlternateIdEntity(entity);
+		service.updateAlternateIdEntity(entity);
 
 		AlternateIdEntity entityFromCacheByIdAfterChange = cache.getObject(entity.getClass(), entity.getId());
 
@@ -207,7 +207,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 		aeEntity.setName("AE_1");
 		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new ISingleCacheRunnable<Object>()
 		{
 			@Override
 			public Object run() throws Throwable
@@ -218,7 +218,7 @@ public class AlternateIdTest extends AbstractPersistenceTest
 				return null;
 			}
 		});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new ISingleCacheRunnable<Object>()
 		{
 			@Override
 			public Object run() throws Throwable

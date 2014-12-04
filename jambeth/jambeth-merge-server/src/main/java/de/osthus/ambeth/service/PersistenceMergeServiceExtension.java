@@ -153,7 +153,7 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 			final HashMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
 			final List<IObjRef> oriList = new java.util.ArrayList<IObjRef>(allChanges.size());
 
-			IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+			IDisposableCache childCache = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "Persistence.STATE");
 			try
 			{
 				final IDisposableCache fChildCache = childCache;

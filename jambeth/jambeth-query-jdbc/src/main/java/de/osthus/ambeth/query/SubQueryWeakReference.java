@@ -1,10 +1,8 @@
 package de.osthus.ambeth.query;
 
-import java.util.List;
-import java.util.Map;
-
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.query.sql.ITableAliasProvider;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
 import de.osthus.ambeth.query.sql.SqlSubselectOperand;
@@ -76,7 +74,7 @@ public class SubQueryWeakReference<T> implements ISubQuery<T>, IDisposable
 	}
 
 	@Override
-	public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList)
+	public String[] getSqlParts(IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList)
 	{
 		return query.getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
 	}

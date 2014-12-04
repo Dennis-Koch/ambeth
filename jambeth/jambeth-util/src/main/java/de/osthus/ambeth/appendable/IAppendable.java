@@ -1,4 +1,4 @@
-package de.osthus.ambeth.xml;
+package de.osthus.ambeth.appendable;
 
 public interface IAppendable
 {

@@ -1,7 +1,8 @@
 using System;
 using System.IO;
 using System.Text;
-namespace De.Osthus.Ambeth.Xml.Simple
+
+namespace De.Osthus.Ambeth.Appendable
 {
     public class AppendableStreamEncoder : IAppendable
     {

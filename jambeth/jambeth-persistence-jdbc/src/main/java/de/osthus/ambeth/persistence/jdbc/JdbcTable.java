@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
@@ -257,7 +258,7 @@ public class JdbcTable extends SqlTable
 			prep = createInsertStatement(fieldNames);
 			perCount.put(namesKey, prep);
 		}
-
+		IField idField = idFields[0];
 		IField versionField = this.versionField;
 		Object initialVersion = this.initialVersion;
 		newId.setValue(conversionHelper.convertValueToType(idField.getMember().getRealType(), id));
@@ -411,7 +412,7 @@ public class JdbcTable extends SqlTable
 				prep.setObject(index++, convertedValue);
 			}
 
-			Object persistenceId = conversionHelper.convertValueToType(idField.getFieldType(), id);
+			Object persistenceId = conversionHelper.convertValueToType(idFields[0].getFieldType(), id);
 			Object persistenceVersion = null;
 			prep.setObject(index++, persistenceId);
 			if (versionField != null)
@@ -519,7 +520,7 @@ public class JdbcTable extends SqlTable
 
 		int variableCount = 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sqlSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlSB.append("INSERT INTO ");
@@ -634,8 +635,8 @@ public class JdbcTable extends SqlTable
 		IField versionField = getVersionField();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder fieldNamesSQL = tlObjectCollector.create(StringBuilder.class);
-		StringBuilder whereSQL = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder fieldNamesSQL = tlObjectCollector.create(AppendableStringBuilder.class);
+		AppendableStringBuilder whereSQL = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlBuilder.appendName(idField.getName(), fieldNamesSQL);
@@ -662,7 +663,7 @@ public class JdbcTable extends SqlTable
 		IField versionField = getVersionField();
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sqlSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlSB.append("UPDATE ");
@@ -746,7 +747,7 @@ public class JdbcTable extends SqlTable
 		IField idField = getIdField();
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder sqlSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlSB.append("DELETE FROM ");
