@@ -26,7 +26,7 @@ public class CsEnhancedForHandler extends AbstractStatementHandler<JCEnhancedFor
 
 		IStatementHandlerExtension<JCVariableDecl> varHandler = statementHandlerRegistry.get(Lang.C_SHARP + Kind.VARIABLE);
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("foreach (");
 
 		JCVariableDecl variable = tree.getVariable();

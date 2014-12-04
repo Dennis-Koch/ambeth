@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.sun.source.tree.TypeParameterTree;
 
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Method;
 
@@ -22,4 +24,8 @@ public interface IASTHelper
 	boolean hasGenericTypeArguments(Method method);
 
 	String[] splitTypeArgument(String typeArguments);
+
+	String writeToStash(IBackgroundWorkerDelegate run);
+
+	<R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg);
 }

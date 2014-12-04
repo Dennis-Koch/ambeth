@@ -9,16 +9,15 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public interface ILanguageHelper
 {
-	void newLineIntend();
+	void newLineIndent();
 
-	boolean newLineIntendIfFalse(boolean firstLine);
+	boolean newLineIndentIfFalse(boolean firstLine);
 
 	void scopeIntend(IBackgroundWorkerDelegate run);
 
@@ -28,7 +27,7 @@ public interface ILanguageHelper
 
 	String createTargetFileName(JavaClassInfo classInfo);
 
-	String toNamespace(String typeName);
+	String createNamespace();
 
 	boolean writeStringIfFalse(String value, boolean condition);
 
@@ -44,13 +43,13 @@ public interface ILanguageHelper
 
 	void writeAnnotation(Annotation annotation);
 
+	void writeDocumentation(String... doc);
+
+	void writeDocumentation(List<String> doc);
+
 	void writeExpressionTree(Tree expressionTree);
 
 	void writeGenericTypeArguments(List<Type> genericTypeArguments);
 
 	void writeMethodArguments(List<JCExpression> methodArguments);
-
-	String writeToStash(IBackgroundWorkerDelegate run);
-
-	<R, A> R writeToStash(IResultingBackgroundWorkerParamDelegate<R, A> run, A arg);
 }

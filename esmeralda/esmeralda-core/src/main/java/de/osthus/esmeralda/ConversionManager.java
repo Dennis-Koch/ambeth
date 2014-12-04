@@ -235,7 +235,7 @@ public class ConversionManager implements IStartingBean
 		context.setUsedTypes(usedTypes);
 		try
 		{
-			languageHelper.writeToStash(writeToWriterDelegate);
+			astHelper.writeToStash(writeToWriterDelegate);
 		}
 		catch (SkipGenerationException e)
 		{
@@ -266,7 +266,7 @@ public class ConversionManager implements IStartingBean
 			}
 			list.add(packageName);
 		}
-		String classNamespace = languageHelper.toNamespace(classInfo.getPackageName());
+		String classNamespace = languageHelper.createNamespace();
 
 		// PHASE 3: fill imports and usings information for this class file
 		LinkedHashMap<String, String> imports = new LinkedHashMap<String, String>();
@@ -303,7 +303,7 @@ public class ConversionManager implements IStartingBean
 		context.setImports(imports);
 		try
 		{
-			newFileContent = languageHelper.writeToStash(writeToWriterDelegate);
+			newFileContent = astHelper.writeToStash(writeToWriterDelegate);
 		}
 		finally
 		{

@@ -22,7 +22,7 @@ public class CsThrowHandler extends AbstractStatementHandler<JCThrow> implements
 
 		if (standalone)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 		writer.append("throw ");
 		languageHelper.writeExpressionTree(throwStatement.getExpression());

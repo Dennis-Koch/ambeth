@@ -99,7 +99,7 @@ public class CsMethodHandler implements ICsMethodHandler
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeAnnotations(method);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		boolean firstKeyWord = true;
 		if (!method.getOwningClass().isInterface())
@@ -248,8 +248,10 @@ public class CsMethodHandler implements ICsMethodHandler
 		{
 			return firstKeyWord;
 		}
+
 		IConversionContext context = this.context;
 		IWriter writer = context.getWriter();
+
 		String currTypeName = context.getClassInfo().getNameOfSuperClass();
 		boolean overrideNeeded = false;
 		while (currTypeName != null)
@@ -266,6 +268,7 @@ public class CsMethodHandler implements ICsMethodHandler
 			}
 			currTypeName = currType.getNameOfSuperClass();
 		}
+
 		if (overrideNeeded)
 		{
 			firstKeyWord = languageHelper.writeStringIfFalse(" ", firstKeyWord);
@@ -324,7 +327,7 @@ public class CsMethodHandler implements ICsMethodHandler
 		// TODO: remind of the changed method name on all invocations
 
 		languageHelper.writeAnnotations(method);
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 
 		writer.append("public ");
 		languageHelper.writeType(method.getReturnType());

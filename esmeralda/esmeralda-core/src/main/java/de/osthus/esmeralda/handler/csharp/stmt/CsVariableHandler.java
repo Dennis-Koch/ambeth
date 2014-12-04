@@ -23,7 +23,7 @@ public class CsVariableHandler extends AbstractStatementHandler<JCVariableDecl> 
 
 		if (standalone)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 		}
 
 		languageHelper.writeType(variableStatement.type.toString());

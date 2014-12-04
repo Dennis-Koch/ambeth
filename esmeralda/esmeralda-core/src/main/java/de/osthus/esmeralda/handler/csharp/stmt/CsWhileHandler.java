@@ -22,7 +22,7 @@ public class CsWhileHandler extends AbstractStatementHandler<JCWhileLoop> implem
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("while ");
 		JCExpression condition = tree.getCondition();
 		languageHelper.writeExpressionTree(condition);

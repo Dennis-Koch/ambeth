@@ -67,14 +67,14 @@ public class CsTryHandler extends AbstractStatementHandler<JCTry> implements ISt
 				return;
 			}
 		}
-		languageHelper.newLineIntend();
+		languageHelper.newLineIndent();
 		writer.append("try");
 		handleChildStatement(tryStatement.getBlock());
 		for (JCCatch catchStatement : catches)
 		{
 			JCVariableDecl parameter = catchStatement.getParameter();
 
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append("catch (");
 			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + parameter.getKind());
 			stmtHandler.handle(parameter, false);
@@ -83,7 +83,7 @@ public class CsTryHandler extends AbstractStatementHandler<JCTry> implements ISt
 		}
 		if (finallyBlock != null)
 		{
-			languageHelper.newLineIntend();
+			languageHelper.newLineIndent();
 			writer.append("finally");
 			handleChildStatement(tryStatement.getFinallyBlock());
 		}
