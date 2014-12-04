@@ -1,51 +1,35 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class SqlNullCheck implements IOperator, IInitializingBean
+public class SqlNullCheck implements IOperator
 {
 	@SuppressWarnings("unused")
-	@LogInstance(SqlNullCheck.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IOperand operand;
 
+	@Property
 	protected Boolean isNull;
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(operand, "operand");
-		ParamChecker.assertNotNull(isNull, "isNull");
-	}
-
-	public void setOperand(IOperand operand)
-	{
-		this.operand = operand;
-	}
-
-	public void setIsNull(boolean isNull)
-	{
-		this.isNull = isNull;
-	}
-
-	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		operate(querySB, nameToValueMap, joinQuery, parameters);
 	}
 
 	@Override
-	public void operate(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		if (isNull)

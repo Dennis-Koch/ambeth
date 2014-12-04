@@ -47,13 +47,13 @@ public class TableTest
 	@Before
 	public void setUp() throws Exception
 	{
-		this.fixture = new Table();
-		this.fixture.setIdField(new Field());
-		this.fixture.setVersionField(new Field());
-		this.fixture.setName("Test table name");
-		this.fixture.memberTypeProvider = new MemberTypeProvider();
-		this.fixture.alreadyLinkedCache = new AlreadyLinkedCache();
-		this.fixture.objectCollector = new NoOpObjectCollector();
+		fixture = new Table();
+		fixture.setIdFields(new IField[] { new Field() });
+		fixture.setVersionField(new Field());
+		fixture.setName("Test table name");
+		fixture.memberTypeProvider = new MemberTypeProvider();
+		fixture.alreadyLinkedCache = new AlreadyLinkedCache();
+		fixture.objectCollector = new NoOpObjectCollector();
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class TableTest
 	@Test
 	public final void testTable()
 	{
-		assertNotNull("Fixture is null!", this.fixture);
+		assertNotNull("Fixture is null!", fixture);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class TableTest
 	@Test
 	public final void testAfterPropertiesSet() throws Throwable
 	{
-		this.fixture.afterPropertiesSet();
+		fixture.afterPropertiesSet();
 	}
 
 	/**
@@ -88,9 +88,9 @@ public class TableTest
 	@Test(expected = IllegalArgumentException.class)
 	public final void testAfterPropertiesSet_noIdField() throws Throwable
 	{
-		this.fixture.setIdField(null);
-		this.fixture.afterPropertiesSet();
-		this.fixture.setEntityType(String.class);
+		fixture.setIdFields(null);
+		fixture.afterPropertiesSet();
+		fixture.setEntityType(String.class);
 	}
 
 	/**
@@ -101,8 +101,8 @@ public class TableTest
 	// 2012-06-25 JH Now it is allowed to have a table without a version column
 	public final void testAfterPropertiesSet_noVersionField() throws Throwable
 	{
-		this.fixture.setVersionField(null);
-		this.fixture.afterPropertiesSet();
+		fixture.setVersionField(null);
+		fixture.afterPropertiesSet();
 	}
 
 	/**
@@ -111,8 +111,8 @@ public class TableTest
 	@Test(expected = IllegalArgumentException.class)
 	public final void testAfterPropertiesSet_noName() throws Throwable
 	{
-		this.fixture.setName(null);
-		this.fixture.afterPropertiesSet();
+		fixture.setName(null);
+		fixture.afterPropertiesSet();
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class TableTest
 	@Test
 	public final void testGetName()
 	{
-		assertNotNull("Returns null!", this.fixture.getName());
+		assertNotNull("Returns null!", fixture.getName());
 	}
 
 	/**
@@ -131,9 +131,9 @@ public class TableTest
 	public final void testSetName()
 	{
 		String actual = "new test name";
-		assertNotSame("Should not be same object!", actual, this.fixture.getName());
-		this.fixture.setName(actual);
-		assertSame("Should be same object!", actual, this.fixture.getName());
+		assertNotSame("Should not be same object!", actual, fixture.getName());
+		fixture.setName(actual);
+		assertSame("Should be same object!", actual, fixture.getName());
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class TableTest
 	@Test
 	public final void testGetEntityType()
 	{
-		assertNull("Does not return null!", this.fixture.getEntityType());
+		assertNull("Does not return null!", fixture.getEntityType());
 	}
 
 	/**
@@ -152,9 +152,9 @@ public class TableTest
 	public final void testSetEntityType()
 	{
 		Class<?> actual = Long.class;
-		assertNotSame("Should not be same object!", actual, this.fixture.getEntityType());
-		this.fixture.setEntityType(actual);
-		assertSame("Should be same object!", actual, this.fixture.getEntityType());
+		assertNotSame("Should not be same object!", actual, fixture.getEntityType());
+		fixture.setEntityType(actual);
+		assertSame("Should be same object!", actual, fixture.getEntityType());
 	}
 
 	/**
@@ -163,19 +163,19 @@ public class TableTest
 	@Test
 	public final void testGetIdField()
 	{
-		assertNotNull("Returns null!", this.fixture.getIdField());
+		assertNotNull("Returns null!", fixture.getIdField());
 	}
 
 	/**
-	 * Test method for {@link de.osthus.ambeth.persistence.Table#setIdField(de.osthus.ambeth.persistence.IField)} .
+	 * Test method for {@link de.osthus.ambeth.persistence.Table#setIdFields(de.osthus.ambeth.persistence.IField)} .
 	 */
 	@Test
 	public final void testSetIdField()
 	{
 		IField actual = new Field();
-		assertNotSame("Should not be same object!", actual, this.fixture.getIdField());
-		this.fixture.setIdField(actual);
-		assertSame("Should be same object!", actual, this.fixture.getIdField());
+		assertNotSame("Should not be same object!", actual, fixture.getIdField());
+		fixture.setIdFields(new IField[] { actual });
+		assertSame("Should be same object!", actual, fixture.getIdField());
 	}
 
 	/**
@@ -184,7 +184,7 @@ public class TableTest
 	@Test
 	public final void testGetVersionField()
 	{
-		assertNotNull("Returns null!", this.fixture.getIdField());
+		assertNotNull("Returns null!", fixture.getIdField());
 	}
 
 	/**
@@ -194,9 +194,9 @@ public class TableTest
 	public final void testSetVersionField()
 	{
 		IField actual = new Field();
-		assertNotSame("Should not be same object!", actual, this.fixture.getVersionField());
-		this.fixture.setVersionField(actual);
-		assertSame("Should be same object!", actual, this.fixture.getVersionField());
+		assertNotSame("Should not be same object!", actual, fixture.getVersionField());
+		fixture.setVersionField(actual);
+		assertSame("Should be same object!", actual, fixture.getVersionField());
 	}
 
 	/**
@@ -205,7 +205,7 @@ public class TableTest
 	@Test
 	public final void testGetTypeInfoProvider()
 	{
-		assertNotNull("Returns null!", this.fixture.getIdField());
+		assertNotNull("Returns null!", fixture.getIdField());
 	}
 
 	/**
@@ -264,7 +264,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testInsert()
 	{
-		this.fixture.insert(null, null, (ILinkedMap<String, Object>) null);
+		fixture.insert(null, null, (ILinkedMap<String, Object>) null);
 	}
 
 	/**
@@ -273,11 +273,11 @@ public class TableTest
 	@Test
 	public final void testMapFieldIField()
 	{
-		assertTrue("Should be empty!", this.fixture.getPrimitiveFields().isEmpty());
+		assertTrue("Should be empty!", fixture.getPrimitiveFields().isEmpty());
 		Field field1 = new Field();
 		field1.setName("Field 1");
-		this.fixture.mapField(field1);
-		assertEquals("Should contain 1 field!", 1, this.fixture.getPrimitiveFields().size());
+		fixture.mapField(field1);
+		assertEquals("Should contain 1 field!", 1, fixture.getPrimitiveFields().size());
 	}
 
 	/**
@@ -286,11 +286,11 @@ public class TableTest
 	@Test(expected = RuntimeException.class)
 	public final void testMapFieldIField_alreadyMapped()
 	{
-		assertTrue("Should be empty!", this.fixture.getPrimitiveFields().isEmpty());
+		assertTrue("Should be empty!", fixture.getPrimitiveFields().isEmpty());
 		Field field1 = new Field();
 		field1.setName("Field 1");
-		this.fixture.mapField(field1);
-		this.fixture.mapField(field1);
+		fixture.mapField(field1);
+		fixture.mapField(field1);
 	}
 
 	/**
@@ -349,7 +349,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testSelectVersion()
 	{
-		this.fixture.selectVersion(null);
+		fixture.selectVersion(null);
 	}
 
 	/**
@@ -358,7 +358,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testSelectAll()
 	{
-		this.fixture.selectAll();
+		fixture.selectAll();
 	}
 
 	/**
@@ -367,7 +367,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testSelectValues()
 	{
-		this.fixture.selectValues(null);
+		fixture.selectValues(null);
 	}
 
 	/**
@@ -376,7 +376,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testUpdate()
 	{
-		this.fixture.update(null, null, (ILinkedMap<String, Object>) null);
+		fixture.update(null, null, (ILinkedMap<String, Object>) null);
 	}
 
 	/**
@@ -435,7 +435,7 @@ public class TableTest
 	@Test(expected = UnsupportedOperationException.class)
 	public final void testDeleteAll()
 	{
-		this.fixture.deleteAll();
+		fixture.deleteAll();
 	}
 
 	/**
@@ -454,7 +454,7 @@ public class TableTest
 	@Test
 	public final void testToString()
 	{
-		assertEquals("Wrong value!", "Table: " + this.fixture.getName(), this.fixture.toString());
+		assertEquals("Wrong value!", "Table: " + fixture.getName(), fixture.toString());
 	}
 
 }

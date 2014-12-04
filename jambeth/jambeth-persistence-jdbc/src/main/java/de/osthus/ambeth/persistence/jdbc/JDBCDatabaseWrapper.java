@@ -36,6 +36,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.Database;
 import de.osthus.ambeth.persistence.DirectedExternalLink;
@@ -47,6 +48,7 @@ import de.osthus.ambeth.persistence.ILink;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
@@ -81,6 +83,9 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
+
+	@Autowired
+	protected IOrmPatternMatcher ormPatternMatcher;
 
 	@Autowired
 	protected IPersistenceHelper persistenceHelper;
@@ -198,7 +203,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			}
 			if (pkFields.length > 0)
 			{
-				table.setIdField(pkFields[0]);
+				table.setIdFields(pkFields);
 				pkFields[0].setIdIndex(ObjRef.PRIMARY_KEY_INDEX);
 			}
 
@@ -246,15 +251,17 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			List<SqlField> fields = tableNameToFields.get(linkName);
 			ITable table = nameToTableDict.get(linkName);
 
+			int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
+
 			if (table != null)
 			{
 				handleLinkWithinDataTable(linkName, values, fields);
 			}
-			else if (fields.size() == 3 && values.size() == 2)
+			else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 2)
 			{
 				handleLinkTable(linkName, values);
 			}
-			else if (fields.size() == 3 && values.size() == 1)
+			else if (((fields.size() - hasPermissionGroupField) == 3) && values.size() == 1)
 			{
 				handleLinkTableToExtern(linkName, values);
 			}
@@ -292,7 +299,14 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		{
 			objects.get(a).mapLinks(this);
 		}
-
+		for (ITable table : getTables())
+		{
+			ITable permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName()));
+			if (permissionGroupTable != null)
+			{
+				mapPermissionGroupTable(permissionGroupTable, table);
+			}
+		}
 		super.afterStarted();
 
 		IList<IDatabaseMappedListener> databaseMappedListeners = serviceContext.getObjects(IDatabaseMappedListener.class);
@@ -708,9 +722,32 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		}
 	}
 
+	protected int fieldsContainPermissionGroup(List<SqlField> fields)
+	{
+		int permissionGroupCount = 0;
+		for (SqlField field : fields)
+		{
+			if (PermissionGroup.permGroupIdNameOfData.equals(field.getName()))
+			{
+				permissionGroupCount++;
+			}
+			Matcher matcher = PermissionGroup.permGroupFieldForLink.matcher(field.getName());
+			if (matcher.matches())
+			{
+				permissionGroupCount++;
+			}
+		}
+		return permissionGroupCount;
+	}
+
 	protected boolean isLinkTable(String tableName, List<SqlField> fields, Map<String, List<String[]>> linkNameToEntryMap)
 	{
-		return linkNameToEntryMap.containsKey(tableName) && fields.size() == 3 && linkNameToEntryMap.get(tableName).size() == 2;
+		if (!linkNameToEntryMap.containsKey(tableName) || linkNameToEntryMap.get(tableName).size() != 2)
+		{
+			return false;
+		}
+		int hasPermissionGroupField = fieldsContainPermissionGroup(fields);
+		return ((fields.size() - hasPermissionGroupField) == 3);
 	}
 
 	protected boolean isLinkTableToExtern(String tableName, List<SqlField> fields, Map<String, List<String[]>> linkNameToEntryMap) throws SQLException

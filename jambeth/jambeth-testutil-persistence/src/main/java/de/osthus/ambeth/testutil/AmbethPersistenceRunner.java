@@ -16,9 +16,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -31,7 +29,10 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
 import de.osthus.ambeth.annotation.IAnnotationInfo;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -67,11 +68,11 @@ import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
+import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.NullPrintStream;
 import de.osthus.ambeth.util.setup.SetupModule;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
-import de.osthus.ambeth.xml.simple.AppendableStringBuilder;
 
 /**
  * TODO: Handle test methods which change the structure
@@ -507,7 +508,18 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				// Trigger clearing of other maps and caches (QueryResultCache,...)
 				beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 
+				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(
+						SecurityConfigurationConstants.SecurityActive, "false"));
+				if (!securityActive)
+				{
+					statement.evaluate();
+					return;
+				}
 				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
+				if (authentication == null)
+				{
+					authentication = method.getMethod().getDeclaringClass().getAnnotation(TestAuthentication.class);
+				}
 				if (authentication == null)
 				{
 					statement.evaluate();
@@ -656,6 +668,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 	private void ensureExistanceOfNeededDatabaseObjects(final Connection conn) throws SQLException
 	{
 		createOptimisticLockingTriggers(conn);
+		createPermissionGroups(conn);
 		getOrCreateSchemaContext().getService(IConnectionDialect.class).preProcessConnection(conn, getSchemaNames(), true);
 		getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preProcessConnectionForTest(conn, getSchemaNames(), true);
 	}
@@ -1174,16 +1187,30 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		return br;
 	}
 
-	private void createOptimisticLockingTriggers(final Connection conn) throws SQLException
+	protected void createOptimisticLockingTriggers(final Connection conn) throws SQLException
 	{
 		IConnectionTestDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionTestDialect.class);
 
 		List<String> tableNames = connectionDialect.getTablesWithoutOptimisticLockTrigger(conn);
 
-		List<String> sql = new ArrayList<String>();
+		ArrayList<String> sql = new ArrayList<String>();
 		for (String tableName : tableNames)
 		{
-			sql.add(connectionDialect.createOptimisticLockTrigger(conn, tableName));
+			sql.addAll(connectionDialect.createOptimisticLockTrigger(conn, tableName));
+		}
+		executeScript(sql, conn, false);
+	}
+
+	protected void createPermissionGroups(final Connection conn) throws SQLException
+	{
+		IConnectionTestDialect connectionDialect = getOrCreateSchemaContext().getService(IConnectionTestDialect.class);
+
+		List<String> tableNames = connectionDialect.getTablesWithoutPermissionGroup(conn);
+
+		ArrayList<String> sql = new ArrayList<String>();
+		for (String tableName : tableNames)
+		{
+			sql.addAll(connectionDialect.createPermissionGroup(conn, tableName));
 		}
 		executeScript(sql, conn, false);
 	}

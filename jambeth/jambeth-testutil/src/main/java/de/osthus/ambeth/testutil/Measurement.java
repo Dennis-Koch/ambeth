@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -13,7 +14,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
-import de.osthus.ambeth.xml.IAppendable;
 
 public class Measurement implements IMeasurement, IInitializingBean, IDisposableBean
 {

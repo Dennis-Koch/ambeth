@@ -2,6 +2,8 @@ package de.osthus.ambeth.xml;
 
 import java.io.Writer;
 
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.appendable.WriterAppendable;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
@@ -9,7 +11,6 @@ import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.ImmutableTypeSet;
-import de.osthus.ambeth.xml.appendable.WriterAppendable;
 import de.osthus.ambeth.xml.postprocess.IPostProcessWriter;
 
 public class DefaultXmlWriter implements IWriter, IPostProcessWriter

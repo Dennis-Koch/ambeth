@@ -1,10 +1,9 @@
 package de.osthus.ambeth.query.sql;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
+import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -17,7 +16,7 @@ import de.osthus.ambeth.util.ParamChecker;
 public class SqlSubselectOperand implements IOperand, IInitializingBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(SqlSubselectOperand.class)
+	@LogInstance
 	private ILogger log;
 
 	protected ISubQuery<?> subQuery;
@@ -56,14 +55,14 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 	}
 
 	@Override
-	public void expandQuery(Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery, List<Object> parameters) throws IOException
+	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Class<?> entityType = subQuery.getEntityType();
 		ITable table = database.getTableByType(entityType);
 		String tableName = table.getFullqualifiedEscapedName();
 		String tableAlias = subQuery.getMainTableAlias();
 
-		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, parameters, Collections.<String> emptyList());
+		String[] sqlParts = subQuery.getSqlParts(nameToValueMap, parameters, EmptyList.<String> getInstance());
 		String joinSql = sqlParts[0];
 		String whereSql = sqlParts[1];
 		String orderBySql = sqlParts[2];

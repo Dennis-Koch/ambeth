@@ -13,6 +13,7 @@ import oracle.jdbc.dcn.RowChangeDescription;
 import oracle.jdbc.dcn.RowChangeDescription.RowOperation;
 import oracle.jdbc.dcn.TableChangeDescription;
 import oracle.sql.ROWID;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.database.ITransaction;
@@ -185,7 +186,7 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener, IIn
 				// ArrayList<ROWID> rowIds = new ArrayList<ROWID>();
 				List<RowId> rowIds = new java.util.ArrayList<RowId>();
 				HashMap<RowIdKey, RowOperation> rowIdToRowOperationMap = new HashMap<RowIdKey, RowOperation>();
-				StringBuilder sb = tlObjectCollector.create(StringBuilder.class);
+				AppendableStringBuilder sb = tlObjectCollector.create(AppendableStringBuilder.class);
 				sb.append("SELECT ");
 				sqlBuilder.appendName("ROWID", sb);
 				sb.append(',');

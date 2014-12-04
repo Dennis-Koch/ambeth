@@ -23,6 +23,7 @@ import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -163,21 +164,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			}
 			for (ILoadContainer loadContainer : loadContainerSet)
 			{
-				if (!supportsLazyBehavior())
-				{
-					IObjRef[][] relations = loadContainer.getRelations();
-					for (int i = relations.length; i-- > 0;)
-					{
-						if (relations[i] == null)
-						{
-							IObjRef ori = loadContainer.getReference();
-							IEntityMetaData metaData = entityMetaDataProvider.getMetaData(ori.getRealType());
-							String memberName = metaData.getRelationMembers()[i].getName();
-							String msg = "Null load value for member '" + memberName + "' of " + ori + " not allowed. Mapping ok?";
-							throw new IllegalStateException(msg);
-						}
-					}
-				}
 				targetEntities.add(loadContainer);
 			}
 		}
@@ -469,12 +455,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				emptyOri.setId(id);
 			}
 		}
-	}
-
-	protected boolean supportsLazyBehavior()
-	{
-		// TODO: Set to true to test assignRelations()
-		return true;
 	}
 
 	@Override
@@ -957,8 +937,26 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 							alreadyLoadedCache.add(toIdIndex, dbValue, toEntityType, toOri);
 						}
 						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
-						Collection<Object> cascadePendingInit = getEnsurePendingInit(toEntityMetaData, cascadeTypeToPendingInit, toIdIndex);
-						cascadePendingInit.add(dbValue);
+						switch (columnBasedDirectedLink.getCascadeLoadMode())
+						{
+							case LAZY:
+							{
+								if (supportsValueHolderContainer)
+								{
+									break;
+								}
+								// fall through intended
+							}
+							case EAGER_VERSION:
+							case EAGER:
+							{
+								Collection<Object> cascadePendingInit = getEnsurePendingInit(toEntityMetaData, cascadeTypeToPendingInit, toIdIndex);
+								cascadePendingInit.add(dbValue);
+								break;
+							}
+							default:
+								throw RuntimeExceptionUtil.createEnumNotSupportedException(columnBasedDirectedLink.getCascadeLoadMode());
+						}
 					}
 				}
 			}
@@ -987,25 +985,24 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			switch (link.getCascadeLoadMode())
 			{
 				case LAZY:
+				{
 					if (supportsValueHolderContainer)
 					{
 						continue;
 					}
-					if (supportsLazyBehavior())
+					RelationMember member = link.getMember();
+					if (!member.getRealType().equals(member.getElementType()))
 					{
-						RelationMember member = link.getMember();
-						if (!member.getRealType().equals(member.getElementType()))
-						{
-							continue;
-						}
-						// To-One-relations may NOT be lazy, because otherwise we would have a non-null valueholder
-						// objects consisting of a null-relation
-						// after initialization
+						continue;
 					}
+					// To-One-relations may NOT be lazy, because otherwise we would have a non-null valueholder
+					// objects consisting of a null-relation
+					// after initialization
 					// If we have no reverse mapped member it is currently impossible on a later request to resolve the
 					// related members
 					// So we still have to eager fetch them
 					// Fall through intended
+				}
 				case EAGER_VERSION:
 				case EAGER:
 				{
@@ -1016,7 +1013,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 					continue;
 				}
 				default:
-					throw new IllegalStateException("Enum " + link.getCascadeLoadMode() + " not supported");
+					throw RuntimeExceptionUtil.createEnumNotSupportedException(link.getCascadeLoadMode());
 			}
 		}
 		if (parallelLinkItems.size() > 0)

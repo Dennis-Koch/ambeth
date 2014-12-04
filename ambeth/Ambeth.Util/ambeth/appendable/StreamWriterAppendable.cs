@@ -4,26 +4,26 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace De.Osthus.Ambeth.Xml
+namespace De.Osthus.Ambeth.Appendable
 {
-    public class StringBuilderAppendable : IAppendable
+    public class StreamWriterAppendable : IAppendable
     {
-        protected StringBuilder sb;
+        protected StreamWriter streamWriter;
 
-        public StringBuilderAppendable(StringBuilder sb)
+        public StreamWriterAppendable(StreamWriter streamWriter)
         {
-            this.sb = sb;
+            this.streamWriter = streamWriter;
         }
 
         public IAppendable Append(String value)
         {
-            sb.Append(value);
+            streamWriter.Write(value);
             return this;
         }
 
         public IAppendable Append(char value)
         {
-            sb.Append(value);
+            streamWriter.Write(value);
             return this;
         }
     }

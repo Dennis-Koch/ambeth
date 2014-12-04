@@ -1,24 +1,22 @@
 package de.osthus.ambeth.query;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
+import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.QueryConstants;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -32,139 +30,68 @@ import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.query.sql.ITableAliasHolder;
+import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
 @PersistenceContext
-public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, ISubQuery<T>
+public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
-	protected IDatabase database;
-
-	protected Class<T> entityType;
-
-	protected boolean containsSubQuery;
-
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
+	protected IDatabase database;
+
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected IOperand rootOperand;
-
-	protected IOperand[] orderByOperands;
-
-	protected IOperand[] selectOperands;
-
-	protected ITableAliasHolder tableAliasHolder;
-
-	protected IStringQuery stringQuery;
-
+	@Autowired
 	protected IServiceUtil serviceUtil;
 
-	protected List<Class<?>> relatedEntityTypes;
+	@Autowired
+	protected IStringQuery stringQuery;
 
-	protected IQueryKey queryKey;
+	@Autowired
+	protected ITableAliasHolder tableAliasHolder;
 
-	protected IQueryIntern<T> transactionalQuery;
-
+	@Autowired
 	protected ITransaction transaction;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(entityType, "EntityType");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(relatedEntityTypes, "RelatedEntityTypes");
-		ParamChecker.assertNotNull(rootOperand, "RootOperand");
-		ParamChecker.assertNotNull(serviceUtil, "ServiceUtil");
-		ParamChecker.assertNotNull(stringQuery, "StringQuery");
-		ParamChecker.assertNotNull(tableAliasHolder, "tableAliasHolder");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-		ParamChecker.assertNotNull(transactionalQuery, "TransactionalQuery");
-	}
+	@Property
+	protected Class<T> entityType;
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
+	@Property(defaultValue = "false")
+	protected boolean containsSubQuery;
 
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
+	@Property
+	protected IOperand rootOperand;
 
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
+	@Property
+	protected IOperand[] orderByOperands;
 
-	public void setEntityType(Class<T> entityType)
-	{
-		this.entityType = entityType;
-	}
+	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
-	public void setContainsSubQuery(boolean containsSubQuery)
-	{
-		this.containsSubQuery = containsSubQuery;
-	}
+	@Property
+	protected IOperand[] selectOperands;
 
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
+	@Property
+	protected List<Class<?>> relatedEntityTypes;
 
-	public void setOrderByOperands(IOperand[] orderByOperands)
-	{
-		this.orderByOperands = orderByOperands;
-	}
+	@Property
+	protected IQueryIntern<T> transactionalQuery;
 
-	public void setSelectOperands(IOperand[] selectOperands)
-	{
-		this.selectOperands = selectOperands;
-	}
+	@Property
+	protected IQueryBuilderExtension[] queryBuilderExtensions;
 
-	public void setRelatedEntityTypes(List<Class<?>> relatedEntityTypes)
-	{
-		this.relatedEntityTypes = relatedEntityTypes;
-	}
-
-	public void setRootOperand(IOperand rootOperand)
-	{
-		this.rootOperand = rootOperand;
-	}
-
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
-		this.serviceUtil = serviceUtil;
-	}
-
-	public void setStringQuery(IStringQuery stringQuery)
-	{
-		this.stringQuery = stringQuery;
-	}
-
-	public void setTableAliasHolder(ITableAliasHolder tableAliasHolder)
-	{
-		this.tableAliasHolder = tableAliasHolder;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
-
-	public void setTransactionalQuery(IQueryIntern<T> transactionalQuery)
-	{
-		this.transactionalQuery = transactionalQuery;
-	}
+	protected IQueryKey queryKey;
 
 	@Override
 	public void dispose()
@@ -189,7 +116,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		if (this.queryKey == null)
 		{
@@ -224,7 +151,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		return this.queryKey;
 	}
 
-	protected Object retrieveAsVersionsIntern(Map<Object, Object> nameToValueMapSrc, boolean versionOnly)
+	protected Object retrieveAsVersionsIntern(IMap<Object, Object> nameToValueMapSrc, boolean versionOnly)
 	{
 		if (!transaction.isActive())
 		{
@@ -236,16 +163,11 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 		if (nameToValueMapSrc == null)
 		{
-			nameToValueMapSrc = Collections.<Object, Object> emptyMap();
+			nameToValueMapSrc = EmptyMap.emptyMap();
 		}
 		else
 		{
-			Iterator<Entry<Object, Object>> iter = nameToValueMapSrc.entrySet().iterator();
-			while (iter.hasNext())
-			{
-				Entry<Object, Object> entry = iter.next();
-				nameToValueMap.put(entry.getKey(), entry.getValue());
-			}
+			nameToValueMap.putAll(nameToValueMapSrc);
 		}
 		if (containsSubQuery)
 		{
@@ -314,7 +236,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public String[] getSqlParts(Map<Object, Object> nameToValueMap, List<Object> parameters, List<String> additionalSelectColumnList)
+	public String[] getSqlParts(IMap<Object, Object> nameToValueMap, IList<Object> parameters, IList<String> additionalSelectColumnList)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 
@@ -323,7 +245,10 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		{
 			nameToValueMap.put(QueryConstants.USE_TABLE_ALIAS, Boolean.TRUE);
 		}
-
+		for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
+		{
+			queryBuilderExtension.applyOnQuery(nameToValueMap, parameters, additionalSelectColumnList);
+		}
 		String joinSql, whereSql;
 		boolean joinQuery = stringQuery.isJoinQuery();
 		if (!joinQuery)
@@ -338,7 +263,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 			joinSql = sqlParts[0];
 			whereSql = sqlParts[1];
 		}
-		StringBuilder orderBySB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder orderBySB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			fillOrderBySQL(additionalSelectColumnList, orderBySB, nameToValueMap, joinQuery, parameters);
@@ -353,8 +278,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		}
 	}
 
-	protected void fillOrderBySQL(List<String> additionalSelectColumnList, StringBuilder orderBySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			List<Object> parameters)
+	protected void fillOrderBySQL(List<String> additionalSelectColumnList, IAppendable orderBySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
+			IList<Object> parameters)
 	{
 		if (orderByOperands == null)
 		{
@@ -369,10 +294,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 				orderByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
 			}
 		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
 		finally
 		{
 			nameToValueMap.remove(QueryConstants.ADDITIONAL_SELECT_SQL_SB);
@@ -380,8 +301,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 		}
 	}
 
-	protected void fillAdditionalFieldsSQL(List<String> additionalSelectColumnList, Appendable querySB, Map<Object, Object> nameToValueMap, boolean joinQuery,
-			List<Object> parameters)
+	protected void fillAdditionalFieldsSQL(IList<String> additionalSelectColumnList, IAppendable querySB, IMap<Object, Object> nameToValueMap,
+			boolean joinQuery, IList<Object> parameters)
 	{
 		if (selectOperands == null)
 		{
@@ -394,10 +315,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 			{
 				selectOperands[a].expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 			}
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -412,7 +329,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return (IVersionCursor) retrieveAsVersionsIntern(nameToValueMap, true);
 	}
@@ -424,7 +341,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
 		return (IDataCursor) retrieveAsVersionsIntern(nameToValueMap, false);
 	}
@@ -436,7 +353,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 	}
 
 	@Override
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		IVersionCursor cursor = retrieveAsVersions(nameToValueMap);
 		return new EntityCursor<T>(cursor, this.entityType, this.serviceUtil);
@@ -450,7 +367,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, IInitializingBean, 
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IList<T> retrieve(Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(IMap<Object, Object> nameToValueMap)
 	{
 		IVersionCursor cursor = retrieveAsVersions(nameToValueMap);
 		if (cursor == null)

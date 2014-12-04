@@ -1,18 +1,17 @@
-package de.osthus.ambeth.xml.simple;
+package de.osthus.ambeth.appendable;
 
 import java.io.IOException;
+import java.io.Writer;
 
-import sun.nio.cs.StreamEncoder;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.xml.IAppendable;
 
-public class AppendableStreamEncoder implements IAppendable
+public class WriterAppendable implements IAppendable
 {
-	protected final StreamEncoder se;
+	protected final Writer target;
 
-	public AppendableStreamEncoder(StreamEncoder se)
+	public WriterAppendable(Writer target)
 	{
-		this.se = se;
+		this.target = target;
 	}
 
 	@Override
@@ -20,7 +19,7 @@ public class AppendableStreamEncoder implements IAppendable
 	{
 		try
 		{
-			se.append(value);
+			target.append(value);
 		}
 		catch (IOException e)
 		{
@@ -34,7 +33,7 @@ public class AppendableStreamEncoder implements IAppendable
 	{
 		try
 		{
-			se.append(value);
+			target.append(value);
 		}
 		catch (IOException e)
 		{
@@ -42,4 +41,5 @@ public class AppendableStreamEncoder implements IAppendable
 		}
 		return this;
 	}
+
 }

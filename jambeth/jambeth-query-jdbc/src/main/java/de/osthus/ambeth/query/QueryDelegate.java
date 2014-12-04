@@ -2,10 +2,10 @@ package de.osthus.ambeth.query;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
 
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -89,7 +89,7 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return query.getQueryKey(nameToValueMap);
 	}
@@ -108,14 +108,14 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IDataCursor retrieveAsData(Map<Object, Object> nameToValueMap)
+	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
 		return ((IQueryIntern<T>) query).retrieveAsData(nameToValueMap);
 	}
 
 	@Override
 	@Deprecated
-	public IVersionCursor retrieveAsVersions(Map<Object, Object> nameToValueMap)
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
 		return query.retrieveAsVersions(nameToValueMap);
 	}
@@ -128,7 +128,7 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 
 	@Override
 	@Deprecated
-	public IEntityCursor<T> retrieveAsCursor(Map<Object, Object> nameToValueMap)
+	public IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap)
 	{
 		return query.retrieveAsCursor(nameToValueMap);
 	}
@@ -152,7 +152,7 @@ public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryInt
 
 	@Override
 	@Deprecated
-	public IList<T> retrieve(final Map<Object, Object> nameToValueMap)
+	public IList<T> retrieve(final IMap<Object, Object> nameToValueMap)
 	{
 		if (transaction.isActive())
 		{

@@ -622,8 +622,9 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 	@Override
 	public void toString(StringBuilder sb)
 	{
-		sb.append(size()).append(" items: [");
-		for (int a = 0, size = size(); a < size; a++)
+		int size = size();
+		sb.append(size).append(" items: [");
+		for (int a = 0; a < size; a++)
 		{
 			if (a > 0)
 			{

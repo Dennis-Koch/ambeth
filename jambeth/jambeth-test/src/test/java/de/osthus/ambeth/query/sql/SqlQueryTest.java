@@ -1,6 +1,5 @@
 package de.osthus.ambeth.query.sql;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
@@ -12,6 +11,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.log.ILogger;
@@ -72,7 +73,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		return query.fillQuery(nameToValueMap, parameters);
 	}
 
-	protected String buildSimpleQuery(String paramName, Object value, IOperand rootOperand, List<Object> parameters)
+	protected String buildSimpleQuery(String paramName, Object value, IOperand rootOperand, IList<Object> parameters)
 	{
 		StringQuery query = beanContext.registerBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
 
@@ -85,7 +86,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		return query.fillQuery(nameToValueMap, parameters);
 	}
 
-	protected String buildCompositeQuery(String paramName1, Object value1, String paramName2, Object value2, IOperand rootOperand, List<Object> parameters)
+	protected String buildCompositeQuery(String paramName1, Object value1, String paramName2, Object value2, IOperand rootOperand, IList<Object> parameters)
 	{
 		StringQuery query = beanContext.registerBean(StringQuery.class).propertyValue("RootOperand", rootOperand).finish();
 

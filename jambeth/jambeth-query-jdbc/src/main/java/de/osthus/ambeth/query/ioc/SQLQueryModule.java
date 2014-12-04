@@ -5,6 +5,7 @@ import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.query.IQueryBuilderExtensionExtendable;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.sql.ITableAliasProvider;
 import de.osthus.ambeth.query.sql.ListToSqlUtil;
@@ -21,8 +22,8 @@ public class SQLQueryModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("sqlQueryBuilderFactory", SqlQueryBuilderFactory.class).autowireable(IQueryBuilderFactory.class);
-		beanContextFactory.registerBean("listToSqlUtil", ListToSqlUtil.class).autowireable(ListToSqlUtil.class);
-		beanContextFactory.registerBean("tableAliasProviderFactory", TableAliasProviderFactory.class).autowireable(ITableAliasProvider.class);
+		beanContextFactory.registerBean(SqlQueryBuilderFactory.class).autowireable(IQueryBuilderFactory.class, IQueryBuilderExtensionExtendable.class);
+		beanContextFactory.registerBean(ListToSqlUtil.class).autowireable(ListToSqlUtil.class);
+		beanContextFactory.registerBean(TableAliasProviderFactory.class).autowireable(ITableAliasProvider.class);
 	}
 }

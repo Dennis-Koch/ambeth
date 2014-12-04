@@ -95,6 +95,12 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 	@Override
 	public void registerFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware)
 	{
+		registerFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
+	}
+
+	@Override
+	public void registerFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name)
+	{
 		Reference<IWritableCache> firstLevelCacheR = createReferenceEntry(firstLevelCache);
 		Thread thread = Thread.currentThread();
 		Reference<Thread> owningThreadR = !foreignThreadAware ? createReferenceEntry(thread) : null;
@@ -120,42 +126,8 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 				}
 			}
 			firstLevelCache.setCacheId(cacheId);
-			if (log.isDebugEnabled())
-			{
-				String foreignThreadText;
-				if (foreignThreadAware)
-				{
-					foreignThreadText = ", multithreaded";
-				}
-				else
-				{
-					foreignThreadText = StringBuilderUtil.concat(objectCollector.getCurrent(), ", to thread ", thread.getId(), ":", thread.getName());
-				}
-				String privilegedText;
-				if (firstLevelCache.isPrivileged())
-				{
-					privilegedText = ", privileged";
-				}
-				else
-				{
-					privilegedText = ", non-privileged";
-				}
-				if (CacheFactoryDirective.SubscribeTransactionalDCE.equals(flcEntry.getCacheFactoryDirective()))
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
-							", transactional", foreignThreadText));
-				}
-				else if (CacheFactoryDirective.SubscribeGlobalDCE.equals(flcEntry.getCacheFactoryDirective()))
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
-							", non-transactional", foreignThreadText));
-				}
-				else
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Registered FLC with id: ", firstLevelCache.getCacheId(), privilegedText,
-							", traced"));
-				}
-			}
+
+			logFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, true);
 		}
 		finally
 		{
@@ -165,6 +137,12 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 
 	@Override
 	public void unregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware)
+	{
+		unregisterFirstLevelCache(firstLevelCache, cacheFactoryDirective, foreignThreadAware, null);
+	}
+
+	@Override
+	public void unregisterFirstLevelCache(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name)
 	{
 		// cacheFactoryDirective and foreignThreadAware will be intentionally ignored at unregister
 
@@ -191,45 +169,84 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 			allFLCs.remove(cacheId);
 			foreignThreadAware = flcEntry.isForeignThreadAware();
 			cacheFactoryDirective = flcEntry.getCacheFactoryDirective();
-			if (log.isDebugEnabled())
-			{
-				String foreignThreadText;
-				if (foreignThreadAware)
-				{
-					foreignThreadText = ", multithreaded";
-				}
-				else
-				{
-					Thread thread = flcEntry.getOwningThread();
-					if (thread == null)
-					{
-						foreignThreadText = ", from unknown thread";
-					}
-					else
-					{
-						foreignThreadText = ", from thread " + thread.getId() + ":" + thread.getName();
-					}
-				}
-				if (CacheFactoryDirective.SubscribeTransactionalDCE.equals(flcEntry.getCacheFactoryDirective()))
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Unregistered FLC with id: ", firstLevelCache.getCacheId(),
-							", transactional", foreignThreadText));
-				}
-				else if (CacheFactoryDirective.SubscribeGlobalDCE.equals(flcEntry.getCacheFactoryDirective()))
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Unregistered FLC with id: ", firstLevelCache.getCacheId(),
-							", non-transactional", foreignThreadText));
-				}
-				else
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Unregistered FLC with id: ", firstLevelCache.getCacheId(), " traced"));
-				}
-			}
+
+			logFLC(firstLevelCache, cacheFactoryDirective, foreignThreadAware, name, flcEntry, false);
 			firstLevelCache.setCacheId(0);
 		}
 		finally
 		{
 			unboundWriteLock.unlock();
+		}
+	}
+
+	protected void logFLC(IWritableCache firstLevelCache, CacheFactoryDirective cacheFactoryDirective, boolean foreignThreadAware, String name,
+			FlcEntry flcEntry, boolean isRegister)
+	{
+		if (!log.isDebugEnabled())
+		{
+			return;
+		}
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		StringBuilder sb = objectCollector.create(StringBuilder.class);
+		try
+		{
+			if (isRegister)
+			{
+				sb.append("Registered");
+			}
+			else
+			{
+				sb.append("Unregistered");
+			}
+			sb.append(" FLC");
+			if (name != null)
+			{
+				sb.append(" '").append(name).append("'");
+			}
+			sb.append(" with id: ").append(firstLevelCache.getCacheId());
+			if (firstLevelCache.isPrivileged())
+			{
+				sb.append(", privileged");
+			}
+			else
+			{
+				sb.append(", non-privileged");
+			}
+			if (CacheFactoryDirective.SubscribeTransactionalDCE.equals(flcEntry.getCacheFactoryDirective()))
+			{
+				sb.append(", transactional");
+				if (foreignThreadAware)
+				{
+					sb.append(", multithreaded");
+				}
+				else
+				{
+					Thread thread = flcEntry.getOwningThread();
+					sb.append(", to thread ").append(thread.getId()).append(':').append(thread.getName());
+				}
+			}
+			else if (CacheFactoryDirective.SubscribeGlobalDCE.equals(flcEntry.getCacheFactoryDirective()))
+			{
+				sb.append(", non-transactional");
+				if (foreignThreadAware)
+				{
+					sb.append(", multithreaded");
+				}
+				else
+				{
+					Thread thread = flcEntry.getOwningThread();
+					sb.append(", to thread ").append(thread.getId()).append(':').append(thread.getName());
+				}
+			}
+			else
+			{
+				sb.append(", traced");
+			}
+			log.debug(sb.toString());
+		}
+		finally
+		{
+			objectCollector.dispose(sb);
 		}
 	}
 

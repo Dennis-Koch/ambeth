@@ -50,7 +50,7 @@ public class MultiEventTest extends AbstractPersistenceTest
 	@Test
 	public void testMultipleSaveCallsInOneMethod() throws Exception
 	{
-		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
 		List<MultiEventEntity> multiEventEntities = cache.getObjects(MultiEventEntity.class, Arrays.asList(1, 2, 3));
 		assertEquals(3, multiEventEntities.size());
 
@@ -62,7 +62,7 @@ public class MultiEventTest extends AbstractPersistenceTest
 		}
 		multiEventService.doMultipleThings(multiEventEntities);
 
-		cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE);
+		cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
 		multiEventEntities = cache.getObjects(MultiEventEntity.class, Arrays.asList(1, 2, 3));
 		for (MultiEventEntity entity : multiEventEntities)
 		{
@@ -74,7 +74,7 @@ public class MultiEventTest extends AbstractPersistenceTest
 	@Test
 	public void testChangeAndResaveInOneMethod() throws Exception
 	{
-		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		List<MultiEventEntity> multiEventEntities = cache.getObjects(MultiEventEntity.class, Arrays.asList(1, 2, 3));
 		assertEquals(3, multiEventEntities.size());
 
@@ -86,7 +86,7 @@ public class MultiEventTest extends AbstractPersistenceTest
 		}
 		multiEventService.doMultipleThings2(multiEventEntities);
 
-		cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 		multiEventEntities = cache.getObjects(MultiEventEntity.class, Arrays.asList(1, 2, 3));
 		for (MultiEventEntity entity : multiEventEntities)
 		{

@@ -55,6 +55,9 @@ namespace De.Osthus.Ambeth.Cache
         [Property]
         public override bool Privileged { get; set; }
 
+        [Property(Mandatory = false)]
+	    public String Name { protected get; set; }
+
         protected int cacheId;
 
         [Property(CacheConfigurationConstants.FirstLevelCacheWeakActive, DefaultValue = "true")]
@@ -97,7 +100,7 @@ namespace De.Osthus.Ambeth.Cache
         {
             if (CacheId != 0)
             {
-                FirstLevelCacheExtendable.UnregisterFirstLevelCache(this, CacheFactoryDirective.NoDCE, false);
+                FirstLevelCacheExtendable.UnregisterFirstLevelCache(this, CacheFactoryDirective.NoDCE, false, Name);
             }
             EntityFactory = null;
             FirstLevelCacheExtendable = null;

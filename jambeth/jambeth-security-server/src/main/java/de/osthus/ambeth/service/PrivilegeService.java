@@ -7,8 +7,8 @@ import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
-import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
+import de.osthus.ambeth.cache.interceptor.SingleCacheOnDemandProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
@@ -170,13 +170,25 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 	}
 
+	protected SingleCacheOnDemandProvider createCacheProvider()
+	{
+		return new SingleCacheOnDemandProvider()
+		{
+			@Override
+			protected ICache resolveCurrentCache()
+			{
+				return cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "Privilege.ORIGINAL");
+			}
+		};
+	}
+
 	@Override
 	public List<IPrivilegeOfService> getPrivileges(final IObjRef[] objRefs, final ISecurityScope[] securityScopes)
 	{
-		IDisposableCache cacheForSecurityChecks = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try
 		{
-			return cacheContext.executeWithCache(cacheForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
+			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new PrivilegeServiceCall(objRefs, securityScopes, this));
 		}
 		catch (Throwable e)
 		{
@@ -184,17 +196,17 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 		finally
 		{
-			cacheForSecurityChecks.dispose();
+			cacheProviderForSecurityChecks.dispose();
 		}
 	}
 
 	@Override
 	public List<ITypePrivilegeOfService> getPrivilegesOfTypes(final Class<?>[] entityTypes, final ISecurityScope[] securityScopes)
 	{
-		IDisposableCache cacheForSecurityChecks = cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE);
+		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try
 		{
-			return cacheContext.executeWithCache(cacheForSecurityChecks, new ISingleCacheRunnable<List<ITypePrivilegeOfService>>()
+			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new ISingleCacheRunnable<List<ITypePrivilegeOfService>>()
 			{
 				@Override
 				public List<ITypePrivilegeOfService> run() throws Throwable
@@ -209,7 +221,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 		finally
 		{
-			cacheForSecurityChecks.dispose();
+			cacheProviderForSecurityChecks.dispose();
 		}
 	}
 
@@ -307,21 +319,57 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		{
 			requestedTypesArray = requestedTypes.toArray(Class.class);
 		}
-		@SuppressWarnings("unused")
-		IPrefetchState prefetchState;
-		IPrefetchConfig prefetchConfig = prefetchHelper.createPrefetch();
+		HashSet<Class<?>> entityTypeWithPermissionRule = HashSet.<Class<?>> create(requestedTypesArray.length);
+		boolean hasAnEntityTypeWithoutPermissionRule = false;
+		IPrefetchConfig prefetchConfig = null;
 		for (Class<?> requestedType : requestedTypesArray)
 		{
 			IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(requestedType);
+			if (extensions.size() == 0)
+			{
+				hasAnEntityTypeWithoutPermissionRule = true;
+				continue;
+			}
+			entityTypeWithPermissionRule.add(requestedType);
+			if (prefetchConfig == null)
+			{
+				prefetchConfig = prefetchHelper.createPrefetch();
+			}
 			for (int a = 0, size = extensions.size(); a < size; a++)
 			{
 				IEntityPermissionRule extension = extensions.get(a);
 				extension.buildPrefetchConfig(requestedType, prefetchConfig);
 			}
 		}
-		IList<Object> entitiesToCheck = cache.getObjects(objRefs, CacheDirective.returnMisses());
-		IPrefetchHandle prefetchHandle = prefetchConfig.build();
-		prefetchState = prefetchHandle.prefetch(entitiesToCheck);
+		boolean isObjRefsToCheckEmpty = false;
+		IObjRef[] objRefsToCheck = objRefs;
+		if (hasAnEntityTypeWithoutPermissionRule)
+		{
+			// filter all objRefs which makes no sense to load them here because there is no rule configured working on this entity instance
+			// this means there is neither a row-level nor cell-level security necessary
+			// this optimization here can result in a major performance boost
+			objRefsToCheck = new IObjRef[objRefs.length];
+			isObjRefsToCheckEmpty = true;
+			for (int a = objRefs.length; a-- > 0;)
+			{
+				IObjRef objRef = objRefs[a];
+				if (!entityTypeWithPermissionRule.contains(objRef.getRealType()))
+				{
+					continue;
+				}
+				objRefsToCheck[a] = objRef;
+				isObjRefsToCheckEmpty = false;
+			}
+		}
+		@SuppressWarnings("unused")
+		IPrefetchState prefetchState = null;
+		IList<Object> entitiesToCheck = null;
+		if (!isObjRefsToCheckEmpty)
+		{
+			entitiesToCheck = cache.getObjects(objRefsToCheck, CacheDirective.returnMisses());
+			IPrefetchHandle prefetchHandle = prefetchConfig.build();
+			prefetchState = prefetchHandle.prefetch(entitiesToCheck);
+		}
 		ArrayList<IPrivilegeOfService> privilegeResults = new ArrayList<IPrivilegeOfService>();
 
 		IAuthorization authorization = securityContextHolder.getCreateContext().getAuthorization();
@@ -337,23 +385,27 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 				continue;
 			}
 			Class<?> entityType = objRef.getRealType();
-			Object entity = entitiesToCheck.get(a);
 
 			pe.reset();
 			applyEntityTypePermission(pe, authorization, entityType, securityScopes);
-			if (entity != null)
+
+			if (objRefsToCheck[a] != null)
 			{
-				IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(entityType);
-				for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+				Object entity = entitiesToCheck.get(a);
+				if (entity != null)
 				{
-					IEntityPermissionRule extension = extensions.get(c);
-					extension.evaluatePermissionOnInstance(objRef, entity, authorization, securityScopes, pe);
+					IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(entityType);
+					for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
+					{
+						IEntityPermissionRule extension = extensions.get(c);
+						extension.evaluatePermissionOnInstance(objRef, entity, authorization, securityScopes, pe);
+					}
 				}
-			}
-			else
-			{
-				// an entity which can not be read even without active security is not valid
-				pe.denyEach();
+				else
+				{
+					// an entity which can not be read even without active security is not valid
+					pe.denyEach();
+				}
 			}
 			if (securityScopes.length > 1)
 			{
