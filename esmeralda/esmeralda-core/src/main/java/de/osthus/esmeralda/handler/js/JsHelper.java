@@ -3,14 +3,16 @@ package de.osthus.esmeralda.handler.js;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
 
 import com.sun.source.tree.Tree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
@@ -32,7 +34,14 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
+import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.FieldInfo;
@@ -45,6 +54,8 @@ public class JsHelper implements IJsHelper
 	private static final String NUMBER = "Number";
 	private static final String OBJECT = "Object";
 	private static final String STRING = "String";
+
+	private static final Pattern GENERIC_NAME = Pattern.compile("[A-Z]");
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
 
@@ -89,7 +100,6 @@ public class JsHelper implements IJsHelper
 		// put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "Ambeth.util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
-		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "Ambeth.collections.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
 		put(java.util.Map.Entry.class.getName(), "Ambeth.collections.Entry");
 	}
@@ -111,6 +121,12 @@ public class JsHelper implements IJsHelper
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IStatementHandlerRegistry statementHandlerRegistry;
+
+	@Autowired
+	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Override
 	public void newLineIndent()
@@ -238,6 +254,16 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public void writeSimpleName(final JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String className = classInfo.getName().split("<", 2)[0];
+		writer.append(className);
+	}
+
+	@Override
 	public void writeType(String typeName)
 	{
 		writeTypeIntern(typeName, false);
@@ -247,6 +273,36 @@ public class JsHelper implements IJsHelper
 	public void writeTypeDirect(String typeName)
 	{
 		writeTypeIntern(typeName, true);
+	}
+
+	@Override
+	public void startDocumentation()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndent();
+		writer.append("/**");
+	}
+
+	@Override
+	public void newLineIndentDocumentation()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndent();
+		writer.append(" * ");
+	}
+
+	@Override
+	public void endDocumentation()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndent();
+		writer.append(" */");
 	}
 
 	@Override
@@ -365,29 +421,6 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeDocumentation(String... doc)
-	{
-		writeDocumentation(Arrays.asList(doc));
-	}
-
-	@Override
-	public void writeDocumentation(List<String> doc)
-	{
-		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
-
-		newLineIndent();
-		writer.append("/**");
-		for (String line : doc)
-		{
-			newLineIndent();
-			writer.append(" * ").append(line);
-		}
-		newLineIndent();
-		writer.append(" */");
-	}
-
-	@Override
 	public void writeGenericTypeArguments(List<Type> genericTypeArguments)
 	{
 	}
@@ -403,8 +436,55 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeExpressionTree(Tree expressionTree)
+	public void writeExpressionTree(Tree expression)
 	{
+		if (expression == null)
+		{
+			return;
+		}
+
+		Kind kind = expression.getKind();
+		IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+		if (expressionHandler != null)
+		{
+			expressionHandler.handleExpression(expression);
+			return;
+		}
+		handleChildStatement(expression);
+	}
+
+	protected void handleChildStatement(Tree statement)
+	{
+		handleChildStatement(statement, true);
+	}
+
+	protected <T extends Tree> void handleChildStatement(T statement, boolean standalone)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ISnippetManager snippetManager = context.getSnippetManager();
+
+		Kind kind = statement.getKind();
+		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
+		{
+			stmtHandler.handle(statement, standalone);
+		}
+		else if (stmtHandler != null)
+		{
+			context.incremetIndentationLevel();
+			stmtHandler.handle(statement, standalone);
+			context.decremetIndentationLevel();
+		}
+		else if (standalone)
+		{
+			String statementString = statement.toString();
+			List<String> untranslatableStatements = Collections.singletonList(statementString);
+			snippetManager.writeSnippet(untranslatableStatements);
+		}
+		else
+		{
+			throw new IllegalArgumentException("Cannot handle embedded statement " + statement.toString());
+		}
 	}
 
 	@Override
@@ -447,22 +527,14 @@ public class JsHelper implements IJsHelper
 		{
 			usedTypes.add(new TypeUsing(mappedTypeName[0], false));
 		}
-		// TODO think: Always full name in JS?
-		// else
-		// {
-		// Map<String, String> imports = context.getImports();
-		// if (imports != null)
-		// {
-		// String nameFromImplicitImport = imports.get(mappedTypeName[0]);
-		// if (nameFromImplicitImport != null)
-		// {
-		// mappedTypeName = new String[] { nameFromImplicitImport };
-		// }
-		// }
-		//
-		// }
 
-		return mappedTypeName[0];
+		String convertedType = mappedTypeName[0];
+		if (GENERIC_NAME.matcher(convertedType).matches())
+		{
+			convertedType = OBJECT;
+		}
+
+		return convertedType;
 	}
 
 	protected void writeTypeIntern(String typeName, boolean direct)

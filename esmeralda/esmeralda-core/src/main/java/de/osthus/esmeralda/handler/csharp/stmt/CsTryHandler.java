@@ -76,7 +76,7 @@ public class CsTryHandler extends AbstractStatementHandler<JCTry> implements ISt
 
 			languageHelper.newLineIndent();
 			writer.append("catch (");
-			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + parameter.getKind());
+			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + parameter.getKind());
 			stmtHandler.handle(parameter, false);
 			writer.append(')');
 			handleChildStatement(catchStatement.getBlock());

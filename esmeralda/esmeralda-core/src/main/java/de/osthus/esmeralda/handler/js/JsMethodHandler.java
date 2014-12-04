@@ -4,7 +4,6 @@ import javax.lang.model.element.VariableElement;
 
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -34,9 +33,7 @@ public class JsMethodHandler implements IJsMethodHandler
 
 		Method method = context.getMethod();
 
-		ArrayList<String> doc = new ArrayList<>();
-		StringBuilder sb = new StringBuilder();
-
+		languageHelper.startDocumentation();
 		IList<VariableElement> parameters = method.getParameters();
 		for (VariableElement param : parameters)
 		{
@@ -44,26 +41,23 @@ public class JsMethodHandler implements IJsMethodHandler
 			String type = var.type.toString();
 			String convertedType = languageHelper.convertType(type, false);
 			String name = var.name.toString();
-			sb.append("@param {").append(convertedType).append("} ").append(name);
-			doc.add(sb.toString());
-			sb.setLength(0);
+
+			languageHelper.newLineIndentDocumentation();
+			writer.append("@param {").append(convertedType).append("} ").append(name);
 		}
 		String returnType = method.getReturnType();
 		if (!"void".equals(returnType))
 		{
 			String convertedType = languageHelper.convertType(returnType, false);
-			sb.append("@return {").append(convertedType).append("}");
-			doc.add(sb.toString());
-			sb.setLength(0);
+			languageHelper.newLineIndentDocumentation();
+			writer.append("@return {").append(convertedType).append("}");
 		}
 		if (method.isPrivate())
 		{
-			doc.add("@private");
+			languageHelper.newLineIndentDocumentation();
+			writer.append("@private");
 		}
-		if (!doc.isEmpty())
-		{
-			languageHelper.writeDocumentation(doc);
-		}
+		languageHelper.endDocumentation();
 
 		languageHelper.newLineIndent();
 		writer.append(method.getName()).append(": function(");

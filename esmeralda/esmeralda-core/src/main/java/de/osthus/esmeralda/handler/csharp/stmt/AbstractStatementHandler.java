@@ -48,7 +48,7 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 		ISnippetManager snippetManager = context.getSnippetManager();
 
 		Kind kind = statement.getKind();
-		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + kind);
+		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
 		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);

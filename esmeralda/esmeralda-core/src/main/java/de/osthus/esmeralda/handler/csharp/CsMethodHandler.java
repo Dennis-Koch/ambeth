@@ -213,7 +213,7 @@ public class CsMethodHandler implements ICsMethodHandler
 		try
 		{
 			BlockTree methodBodyBlock = methodTree.getBody();
-			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.get(Lang.C_SHARP + methodBodyBlock.getKind());
+			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + methodBodyBlock.getKind());
 
 			if (method.isConstructor())
 			{
