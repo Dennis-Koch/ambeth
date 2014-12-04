@@ -11,6 +11,7 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IDatabaseDisposeHook;
 import de.osthus.ambeth.persistence.IDatabasePool;
 import de.osthus.ambeth.persistence.ILink;
+import de.osthus.ambeth.persistence.IPermissionGroup;
 import de.osthus.ambeth.persistence.ISavepoint;
 import de.osthus.ambeth.persistence.ITable;
 
@@ -124,6 +125,12 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
+	public IPermissionGroup getPermissionGroupOfTable(String tableName)
+	{
+		return null;
+	}
+
+	@Override
 	public ITable mapTable(String tableName, Class<?> entityType)
 	{
 		return null;
@@ -133,6 +140,11 @@ public class DatabaseDummy implements IDatabase
 	public ITable mapArchiveTable(String tableName, Class<?> entityType)
 	{
 		return null;
+	}
+
+	@Override
+	public void mapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable)
+	{
 	}
 
 	@Override
