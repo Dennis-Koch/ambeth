@@ -1,14 +1,13 @@
 package de.osthus.ambeth.orm;
 
-import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.IDatabaseMapper;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IField;
 import de.osthus.ambeth.persistence.ITable;
-import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
@@ -21,44 +20,14 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 
 	protected String versionName = "Version";
 
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePrefix, defaultValue = "")
-	protected String tablePrefix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseTablePostfix, defaultValue = "")
-	protected String tablePostfix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePrefix, defaultValue = "")
-	protected String archiveTablePrefix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseArchiveTablePostfix, defaultValue = "")
-	protected String archiveTablePostfix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, defaultValue = "")
-	protected String fieldPrefix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseFieldPostfix, defaultValue = "")
-	protected String fieldPostfix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePrefix, defaultValue = "")
-	protected String sequencePrefix;
-
-	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePostfix, defaultValue = "")
-	protected String sequencePostfix = "";
+	@Autowired
+	protected IOrmPatternMatcher ormPatternMatcher;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(idName, "idName");
 		ParamChecker.assertNotNull(versionName, "versionName");
-
-		if (this.archiveTablePrefix.isEmpty() && this.archiveTablePostfix.isEmpty())
-		{
-			this.archiveTablePostfix = "_ARC";
-		}
-		if (this.sequencePrefix.isEmpty() && this.sequencePostfix.isEmpty())
-		{
-			this.sequencePostfix = "_SEQ";
-		}
 	}
 
 	/**

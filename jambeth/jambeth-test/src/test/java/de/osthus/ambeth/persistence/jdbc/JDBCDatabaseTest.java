@@ -124,8 +124,8 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 		});
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
 
-		IDisposableCache cache1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
-		IDisposableCache cache2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		IDisposableCache cache1 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		IDisposableCache cache2 = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 		try
 		{
 			Material material = cache1.getObject(Material.class, 1);
@@ -172,7 +172,7 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 	public void testChildReferenceEquals() throws Throwable
 	{
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class);
-		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		ICache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 
 		Material material = cache.getObject(Material.class, 1);
 		Material material2 = cache.getObject(Material.class, 1);
@@ -243,7 +243,7 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 		ICacheFactory cacheFactory = beanContext.getService(ICacheFactory.class, true);
 		ICache cache = beanContext.getService(ICache.class);
 
-		ICache childCache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		ICache childCache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 
 		List<Material> allMaterials = materialService.getAllMaterials();
 		Assert.assertTrue("Materials count is 0", allMaterials.size() > 0);

@@ -83,6 +83,7 @@
     <Compile Include="ambeth\persistence\ILinkCursorItem.cs" />
     <Compile Include="ambeth\persistence\ILinqFinder.cs" />
     <Compile Include="ambeth\persistence\IllegalResultException.cs" />
+    <Compile Include="ambeth\persistence\IPermissionGroup.cs" />
     <Compile Include="ambeth\persistence\ISavepoint.cs" />
     <Compile Include="ambeth\persistence\ITable.cs" />
     <Compile Include="ambeth\util\IAlreadyLoadedCache.cs" />

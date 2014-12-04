@@ -97,7 +97,7 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		ICascadedInterceptor inter = (ICascadedInterceptor) proxy.getCallbacks()[0];
 		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
-		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE);
+		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
 	}
 
 	@Test

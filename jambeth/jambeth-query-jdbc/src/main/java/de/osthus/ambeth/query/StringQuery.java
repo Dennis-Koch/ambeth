@@ -1,10 +1,10 @@
 package de.osthus.ambeth.query;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -63,24 +63,20 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	}
 
 	@Override
-	public String fillQuery(List<Object> parameters)
+	public String fillQuery(IList<Object> parameters)
 	{
 		return fillQuery(null, parameters);
 	}
 
 	@Override
-	public String fillQuery(Map<Object, Object> nameToValueMap, List<Object> parameters)
+	public String fillQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			rootOperand.expandQuery(whereSB, nameToValueMap, false, parameters);
 			return whereSB.toString();
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{
@@ -89,25 +85,23 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	}
 
 	@Override
-	public String[] fillJoinQuery(Map<Object, Object> nameToValueMap, List<Object> parameters)
+	public String[] fillJoinQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
-		StringBuilder joinSB = tlObjectCollector.create(StringBuilder.class);
+		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		AppendableStringBuilder joinSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
-			joinClauses.get(0).expandQuery(joinSB, nameToValueMap, true, parameters);
-			for (int i = 1; i < joinClauses.size(); i++)
+			for (int i = 0; i < joinClauses.size(); i++)
 			{
-				joinSB.append(' ');
+				if (i > 0)
+				{
+					joinSB.append(' ');
+				}
 				joinClauses.get(i).expandQuery(joinSB, nameToValueMap, true, parameters);
 			}
 			return new String[] { joinSB.toString(), whereSB.toString() };
-		}
-		catch (IOException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
 		}
 		finally
 		{

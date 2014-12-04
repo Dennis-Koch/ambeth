@@ -10,11 +10,15 @@ public interface IConnectionTestDialect
 {
 	void dropAllSchemaContent(Connection conn, String schemaName);
 
-	String createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
+	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
+
+	String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException;
+
+	List<String> getTablesWithoutPermissionGroup(Connection conn) throws SQLException;
+
+	String[] createPermissionGroup(Connection conn, String tableName) throws SQLException;
 
 	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException;
-
-	List<String> getTablesWithoutOptimisticLockTrigger(Connection connection) throws SQLException;
 
 	boolean isEmptySchema(Connection connection) throws SQLException;
 

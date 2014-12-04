@@ -64,6 +64,10 @@
     <Compile Include="ambeth\annotation\QueryResultType.cs" />
     <Compile Include="ambeth\annotation\RemoveAttribute.cs" />
     <Compile Include="ambeth\annotation\XmlTypeAttribute.cs" />
+    <Compile Include="ambeth\appendable\AppendableStreamEncoder.cs" />
+    <Compile Include="ambeth\appendable\AppendableStringBuilder.cs" />
+    <Compile Include="ambeth\appendable\IAppendable.cs" />
+    <Compile Include="ambeth\appendable\StreamWriterAppendable.cs" />
     <Compile Include="ambeth\collections\AbstractHashSet.cs" />
     <Compile Include="ambeth\collections\AbstractLinkedSet.cs" />
     <Compile Include="ambeth\collections\AbstractTuple3KeyHashMap.cs" />

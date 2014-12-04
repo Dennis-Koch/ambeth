@@ -87,6 +87,11 @@ public class OrmXmlReaderLegathy implements IOrmXmlReader
 				String specifiedTableName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.TABLE).get(0), XmlConstants.NAME);
 				entityConfig.setTableName(specifiedTableName);
 			}
+			if (entityDefs.containsKey(XmlConstants.PERMISSION_GROUP))
+			{
+				String permissionGroupName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.PERMISSION_GROUP).get(0), XmlConstants.NAME);
+				entityConfig.setPermissionGroupName(permissionGroupName);
+			}
 			if (entityDefs.containsKey(XmlConstants.SEQ))
 			{
 				String sequenceName = xmlConfigUtil.getRequiredAttribute(entityDefs.get(XmlConstants.SEQ).get(0), XmlConstants.NAME);

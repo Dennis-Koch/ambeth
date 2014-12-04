@@ -3,6 +3,8 @@ package de.osthus.ambeth.persistence.jdbc.synonym;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -15,17 +17,18 @@ import de.osthus.ambeth.testutil.category.ReminderTests;
 @SQLTableSynonyms("S_CHILD")
 public class SynonymTest extends AbstractPersistenceTest
 {
+	@LogInstance
+	private ILogger log;
+
 	@Test
 	public void test1()
 	{
-		System.out.println();
-		System.out.println("test1");
+		log.info("test1");
 	}
 
 	@Test
 	public void test2()
 	{
-		System.out.println();
-		System.out.println("test2");
+		log.info("test2");
 	}
 }

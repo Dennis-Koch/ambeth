@@ -8,6 +8,7 @@ public final class XmlConstants
 	public static final String TYPE = "type";
 	public static final String EXTERN = "external";
 	public static final String TABLE = "table";
+	public static final String PERMISSION_GROUP = "permission-group";
 	public static final String SEQ = "sequence-generator";
 	public static final String ATTR = "attributes";
 	public static final String ID = "id";

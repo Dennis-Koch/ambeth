@@ -1,7 +1,6 @@
 package de.osthus.ambeth.filter;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.query.IQueryKey;
@@ -11,7 +10,7 @@ public interface IPagingQuery<T> extends IDisposable
 {
 	IPagingRequest createRequest(int pageNumber, int sizePerPage);
 
-	IQueryKey getQueryKey(Map<Object, Object> nameToValueMap);
+	IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap);
 
 	IPagingResponse<T> retrieveRefs(IPagingRequest pagingRequest);
 

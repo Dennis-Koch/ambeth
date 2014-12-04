@@ -79,7 +79,7 @@ public class Link implements ILink, IInitializingBean
 	@Override
 	public boolean isNullable()
 	{
-		return this.nullable;
+		return nullable;
 	}
 
 	@Override

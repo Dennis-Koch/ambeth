@@ -1,7 +1,6 @@
 package de.osthus.ambeth.filter;
 
-import java.util.Map;
-
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.filter.model.IPagingRequest;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.query.IQueryKey;
@@ -42,7 +41,7 @@ public class PagingQueryWeakReference<T> implements IPagingQuery<T>
 	}
 
 	@Override
-	public IQueryKey getQueryKey(Map<Object, Object> nameToValueMap)
+	public IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap)
 	{
 		return pagingQuery.getQueryKey(nameToValueMap);
 	}

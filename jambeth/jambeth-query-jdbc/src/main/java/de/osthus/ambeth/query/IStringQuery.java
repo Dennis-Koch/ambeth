@@ -1,15 +1,15 @@
 package de.osthus.ambeth.query;
 
-import java.util.List;
-import java.util.Map;
+import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 
 public interface IStringQuery
 {
 	boolean isJoinQuery();
 
-	String fillQuery(List<Object> parameters);
+	String fillQuery(IList<Object> parameters);
 
-	String fillQuery(Map<Object, Object> nameToValueMap, List<Object> parameters);
+	String fillQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters);
 
-	String[] fillJoinQuery(Map<Object, Object> nameToValueMap, List<Object> parameters);
+	String[] fillJoinQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters);
 }

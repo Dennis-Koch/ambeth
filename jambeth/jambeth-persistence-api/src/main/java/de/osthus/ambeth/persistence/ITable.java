@@ -195,9 +195,14 @@ public interface ITable
 	Class<?> getEntityType();
 
 	/**
-	 * @return True if this is an archive Table, otherwise false.
+	 * @return True if this is an archive table, otherwise false.
 	 */
 	boolean isArchive();
+
+	/**
+	 * @return True if this is an permission group table, otherwise false.
+	 */
+	boolean isPermissionGroup();
 
 	/**
 	 * Getter for the ID field of this table.

@@ -150,6 +150,15 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	ITable getArchiveTableByType(Class<?> entityType);
 
 	/**
+	 * Getter for a permission group table table identified by either an entity table or a link table.
+	 * 
+	 * @param tableName
+	 *            name of either an entity table or a link table
+	 * @return The permission group table
+	 */
+	IPermissionGroup getPermissionGroupOfTable(String tableName);
+
+	/**
 	 * Maps a table identified by name to a given entity type.
 	 * 
 	 * @param tableName
@@ -170,6 +179,16 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 * @return Mapped table.
 	 */
 	ITable mapArchiveTable(String tableName, Class<?> entityType);
+
+	/**
+	 * Maps a table identified by name as permission group table to a given entity type.
+	 * 
+	 * @param tableName
+	 *            Name of the table to map.
+	 * @param entityType
+	 *            Type to map to a table.
+	 */
+	void mapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable);
 
 	/**
 	 * Getter for a table identified by name.

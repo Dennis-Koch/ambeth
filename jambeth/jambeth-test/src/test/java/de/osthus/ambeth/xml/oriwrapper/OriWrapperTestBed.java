@@ -83,7 +83,7 @@ public class OriWrapperTestBed implements IDisposableBean
 			cache.dispose();
 			cache = null;
 		}
-		cache = cacheFactory.create(CacheFactoryDirective.NoDCE);
+		cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
 	}
 
 	public TestData getSimpleEntityTestData()

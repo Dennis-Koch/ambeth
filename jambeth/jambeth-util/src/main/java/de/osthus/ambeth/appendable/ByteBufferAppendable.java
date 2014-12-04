@@ -1,11 +1,10 @@
-package de.osthus.ambeth.xml.appendable;
+package de.osthus.ambeth.appendable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.xml.IAppendable;
 
 public class ByteBufferAppendable implements IAppendable
 {
