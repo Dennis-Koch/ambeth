@@ -45,6 +45,7 @@
 		<module>../jambeth-query-jdbc-test</module>
 		<module>../jambeth-security-test</module>
 		<module>../jambeth-security-bytecode-test</module>
+		<module>../jambeth-security-persistence-test</module>
 		<module>../jambeth-security-server-test</module>
 		<module>../jambeth-sensor-test</module>
 		<module>../jambeth-server-rest-test</module>
