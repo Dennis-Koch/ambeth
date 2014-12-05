@@ -2,7 +2,7 @@ package de.osthus.esmeralda.handler;
 
 public interface IExpressionHandlerExtendable
 {
-	void register(IExpressionHandler expressionHandler, Class<?> expressionType);
+	void register(IExpressionHandler expressionHandler, String key);
 
-	void unregister(IExpressionHandler expressionHandler, Class<?> expressionType);
+	void unregister(IExpressionHandler expressionHandler, String key);
 }

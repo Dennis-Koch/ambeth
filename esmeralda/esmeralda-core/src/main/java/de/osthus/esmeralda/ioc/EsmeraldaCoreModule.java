@@ -1,22 +1,6 @@
 package de.osthus.esmeralda.ioc;
 
 import com.sun.source.tree.Tree.Kind;
-import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
-import com.sun.tools.javac.tree.JCTree.JCAssign;
-import com.sun.tools.javac.tree.JCTree.JCAssignOp;
-import com.sun.tools.javac.tree.JCTree.JCBinary;
-import com.sun.tools.javac.tree.JCTree.JCConditional;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
-import com.sun.tools.javac.tree.JCTree.JCLiteral;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCNewArray;
-import com.sun.tools.javac.tree.JCTree.JCNewClass;
-import com.sun.tools.javac.tree.JCTree.JCParens;
-import com.sun.tools.javac.tree.JCTree.JCTypeCast;
-import com.sun.tools.javac.tree.JCTree.JCUnary;
 
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -32,6 +16,7 @@ import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
+import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
@@ -73,12 +58,12 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsIfHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSkipHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSwitchHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsSynchronizedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsWhileHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.ICsBlockHandler;
-import de.osthus.esmeralda.handler.csharp.stmt.SynchronizedHandler;
 import de.osthus.esmeralda.handler.csharp.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
@@ -141,7 +126,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
 
 		beanContextFactory.registerBean(ClassInfoFactory.class).autowireable(IClassInfoFactory.class);
-		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class, IExpressionHandlerExtendable.class);
+		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 
 		// language elements
@@ -174,24 +159,34 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP + Kind.TRY);
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);
 		registerStatementHandler(beanContextFactory, CsWhileHandler.class, Lang.C_SHARP + Kind.WHILE_LOOP);
-		registerStatementHandler(beanContextFactory, SynchronizedHandler.class, Lang.C_SHARP + Kind.SYNCHRONIZED);
+		registerStatementHandler(beanContextFactory, CsSynchronizedHandler.class, Lang.C_SHARP + Kind.SYNCHRONIZED);
 
 		// expressions
-		registerExpressionHandler(beanContextFactory, ArrayAccessExpressionHandler.class, JCArrayAccess.class);
-		registerExpressionHandler(beanContextFactory, ArrayTypeExpressionHandler.class, JCArrayTypeTree.class);
-		registerExpressionHandler(beanContextFactory, AssignExpressionHandler.class, JCAssign.class);
-		registerExpressionHandler(beanContextFactory, AssignOpExpressionHandler.class, JCAssignOp.class);
-		registerExpressionHandler(beanContextFactory, BinaryExpressionHandler.class, JCBinary.class);
-		registerExpressionHandler(beanContextFactory, ConditionalExpressionHandler.class, JCConditional.class);
-		registerExpressionHandler(beanContextFactory, FieldAccessExpressionHandler.class, JCFieldAccess.class);
-		registerExpressionHandler(beanContextFactory, LiteralExpressionHandler.class, JCLiteral.class, JCIdent.class);
-		registerExpressionHandler(beanContextFactory, InstanceOfExpressionHandler.class, JCInstanceOf.class);
-		registerExpressionHandler(beanContextFactory, MethodInvocationExpressionHandler.class, JCMethodInvocation.class);
-		registerExpressionHandler(beanContextFactory, NewArrayExpressionHandler.class, JCNewArray.class);
-		registerExpressionHandler(beanContextFactory, NewClassExpressionHandler.class, JCNewClass.class);
-		registerExpressionHandler(beanContextFactory, ParensExpressionHandler.class, JCParens.class);
-		registerExpressionHandler(beanContextFactory, TypeCastExpressionHandler.class, JCTypeCast.class);
-		registerExpressionHandler(beanContextFactory, UnaryExpressionHandler.class, JCUnary.class);
+		beanContextFactory.registerBean(ExtendableBean.class) //
+				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IExpressionHandlerExtendable.class) //
+				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IExpressionHandlerRegistry.class) //
+				.autowireable(IExpressionHandlerExtendable.class, IExpressionHandlerRegistry.class);
+
+		registerExpressionHandler(beanContextFactory, ArrayAccessExpressionHandler.class, Kind.ARRAY_ACCESS);
+		registerExpressionHandler(beanContextFactory, ArrayTypeExpressionHandler.class, Kind.ARRAY_TYPE);
+		registerExpressionHandler(beanContextFactory, AssignExpressionHandler.class, Kind.ASSIGNMENT);
+		registerExpressionHandler(beanContextFactory, AssignOpExpressionHandler.class, Kind.AND_ASSIGNMENT, Kind.DIVIDE_ASSIGNMENT, Kind.LEFT_SHIFT_ASSIGNMENT,
+				Kind.MINUS_ASSIGNMENT, Kind.MULTIPLY_ASSIGNMENT, Kind.OR_ASSIGNMENT, Kind.PLUS_ASSIGNMENT, Kind.RIGHT_SHIFT_ASSIGNMENT, Kind.XOR_ASSIGNMENT);
+		registerExpressionHandler(beanContextFactory, BinaryExpressionHandler.class, Kind.DIVIDE, Kind.REMAINDER, Kind.LEFT_SHIFT, Kind.RIGHT_SHIFT,
+				Kind.MINUS, Kind.MULTIPLY, Kind.AND, Kind.OR, Kind.XOR, Kind.CONDITIONAL_AND, Kind.CONDITIONAL_OR, Kind.PLUS, Kind.EQUAL_TO, Kind.NOT_EQUAL_TO,
+				Kind.GREATER_THAN, Kind.LESS_THAN, Kind.GREATER_THAN_EQUAL, Kind.LESS_THAN_EQUAL, Kind.UNSIGNED_RIGHT_SHIFT);
+		registerExpressionHandler(beanContextFactory, ConditionalExpressionHandler.class, Kind.CONDITIONAL_EXPRESSION);
+		registerExpressionHandler(beanContextFactory, FieldAccessExpressionHandler.class, Kind.MEMBER_SELECT);
+		registerExpressionHandler(beanContextFactory, LiteralExpressionHandler.class, Kind.INT_LITERAL, Kind.LONG_LITERAL, Kind.FLOAT_LITERAL,
+				Kind.DOUBLE_LITERAL, Kind.BOOLEAN_LITERAL, Kind.CHAR_LITERAL, Kind.STRING_LITERAL, Kind.NULL_LITERAL, Kind.IDENTIFIER);
+		registerExpressionHandler(beanContextFactory, InstanceOfExpressionHandler.class, Kind.INSTANCE_OF);
+		registerExpressionHandler(beanContextFactory, MethodInvocationExpressionHandler.class, Kind.METHOD_INVOCATION);
+		registerExpressionHandler(beanContextFactory, NewArrayExpressionHandler.class, Kind.NEW_ARRAY);
+		registerExpressionHandler(beanContextFactory, NewClassExpressionHandler.class, Kind.NEW_CLASS);
+		registerExpressionHandler(beanContextFactory, ParensExpressionHandler.class, Kind.PARENTHESIZED);
+		registerExpressionHandler(beanContextFactory, TypeCastExpressionHandler.class, Kind.TYPE_CAST);
+		registerExpressionHandler(beanContextFactory, UnaryExpressionHandler.class, Kind.BITWISE_COMPLEMENT, Kind.LOGICAL_COMPLEMENT, Kind.POSTFIX_DECREMENT,
+				Kind.POSTFIX_INCREMENT, Kind.PREFIX_DECREMENT, Kind.PREFIX_INCREMENT, Kind.UNARY_MINUS, Kind.UNARY_PLUS);
 	}
 
 	public static IBeanConfiguration registerMethodTransformerExtension(IBeanContextFactory beanContextFactory,
@@ -212,12 +207,14 @@ public class EsmeraldaCoreModule implements IInitializingModule
 	}
 
 	public static IBeanConfiguration registerExpressionHandler(IBeanContextFactory beanContextFactory,
-			Class<? extends IExpressionHandler> expressionHandlerType, Class<?>... expressionTypes)
+			Class<? extends IExpressionHandler> expressionHandlerType, Kind... kinds)
 	{
 		IBeanConfiguration expressionHandler = beanContextFactory.registerBean(expressionHandlerType);
-		for (Class<?> expressionType : expressionTypes)
+		for (Kind kind : kinds)
 		{
-			beanContextFactory.link(expressionHandler).to(IExpressionHandlerExtendable.class).with(expressionType);
+			String name = kind.name();
+			beanContextFactory.link(expressionHandler).to(IExpressionHandlerExtendable.class).with(Lang.C_SHARP + name);
+			beanContextFactory.link(expressionHandler).to(IExpressionHandlerExtendable.class).with(Lang.JS + name);
 		}
 		return expressionHandler;
 	}

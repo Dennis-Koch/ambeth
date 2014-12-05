@@ -4,5 +4,5 @@ import com.sun.source.tree.Tree;
 
 public interface IStatementHandlerRegistry
 {
-	<T extends Tree> IStatementHandlerExtension<T> get(String key);
+	<T extends Tree> IStatementHandlerExtension<T> getExtension(String key);
 }
