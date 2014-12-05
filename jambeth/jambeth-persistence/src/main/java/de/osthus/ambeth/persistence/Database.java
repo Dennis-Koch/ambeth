@@ -106,6 +106,10 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 
 	protected void handleTable(ITable table)
 	{
+		if (table.isPermissionGroup())
+		{
+			return;
+		}
 		ArrayList<IField> alternateIdMembers = new ArrayList<IField>();
 		Class<?> fromType = table.getEntityType();
 		if (fromType == null)
@@ -119,10 +123,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		if (table.isArchive())
 		{
 			typeToArchiveTableDict.put(fromType, table);
-			return;
-		}
-		else if (table.isPermissionGroup())
-		{
 			return;
 		}
 		else
@@ -492,12 +492,71 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 		IField userField = tableInst.getFieldByName(PermissionGroup.userIdName);
 		IField permissionGroupField = tableInst.getFieldByName(PermissionGroup.permGroupIdName);
 		IField readPermissionField = tableInst.getFieldByName(PermissionGroup.readPermColumName);
+		IField updatePermissionField = tableInst.getFieldByName(PermissionGroup.updatePermColumName);
+		IField deletePermissionField = tableInst.getFieldByName(PermissionGroup.deletePermColumName);
 		IField permissionGroupFieldOnTarget = targetTable.getFieldByName(PermissionGroup.permGroupIdNameOfData);
 
+		if (userField == null)
+		{
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "." + PermissionGroup.userIdName
+						+ ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
+		if (permissionGroupField == null)
+		{
+
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
+						+ PermissionGroup.permGroupIdName + ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
+		if (readPermissionField == null)
+		{
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
+						+ PermissionGroup.readPermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
+		if (updatePermissionField == null)
+		{
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
+						+ PermissionGroup.updatePermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
+		if (deletePermissionField == null)
+		{
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
+						+ PermissionGroup.deletePermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
+		if (permissionGroupFieldOnTarget == null)
+		{
+			if (log.isWarnEnabled())
+			{
+				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + targetTable.getName() + "."
+						+ PermissionGroup.permGroupIdNameOfData + ": SQL based security is deactivated for table " + targetTable.getName());
+			}
+			return;
+		}
 		PermissionGroup permissionGroup = serviceContext.registerBean(PermissionGroup.class)//
 				.propertyValue("UserField", userField)//
 				.propertyValue("PermissionGroupField", permissionGroupField)//
 				.propertyValue("ReadPermissionField", readPermissionField)//
+				.propertyValue("UpdatePermissionField", updatePermissionField)//
+				.propertyValue("DeletePermissionField", deletePermissionField)//
 				.propertyValue("PermissionGroupFieldOnTarget", permissionGroupFieldOnTarget)//
 				.propertyValue("Table", permissionGroupTable)//
 				.propertyValue("TargetTable", targetTable)//

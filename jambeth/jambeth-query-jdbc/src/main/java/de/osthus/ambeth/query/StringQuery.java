@@ -92,7 +92,8 @@ public class StringQuery implements IStringQuery, IInitializingBean
 		AppendableStringBuilder joinSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
-			rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
+			nameToValueMap.put("JoinSB", joinSB);
+
 			for (int i = 0; i < joinClauses.size(); i++)
 			{
 				if (i > 0)
@@ -101,10 +102,13 @@ public class StringQuery implements IStringQuery, IInitializingBean
 				}
 				joinClauses.get(i).expandQuery(joinSB, nameToValueMap, true, parameters);
 			}
+			rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
 			return new String[] { joinSB.toString(), whereSB.toString() };
 		}
 		finally
 		{
+			nameToValueMap.remove("JoinSB");
+			tlObjectCollector.dispose(joinSB);
 			tlObjectCollector.dispose(whereSB);
 		}
 	}

@@ -8,39 +8,42 @@ import java.util.List;
 
 import org.junit.Test;
 
-import de.osthus.ambeth.cache.imc.IInMemoryConfig;
-import de.osthus.ambeth.cache.imc.InMemoryCacheRetriever;
+import de.osthus.ambeth.audit.Password;
+import de.osthus.ambeth.audit.Signature;
+import de.osthus.ambeth.audit.User;
+import de.osthus.ambeth.audit.UserIdentifierProvider;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
-import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.xml.Relations20WithSecurityTest.Relations20WithSecurityTestModule;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.security.Password;
-import de.osthus.ambeth.security.Passwords;
+import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.SecurityTest;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestModule;
 import de.osthus.ambeth.security.TestAuthentication;
-import de.osthus.ambeth.security.User;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
+import de.osthus.ambeth.security.model.ISignature;
+import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.testutil.SQLStructure;
+import de.osthus.ambeth.testutil.SQLStructureList;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.util.setup.IDatasetBuilderExtensionExtendable;
 
-@SQLStructure("Relations_structure_with_security.sql")
+@SQLStructureList({ @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("de/osthus/ambeth/audit/security-structure.sql") })
 @TestFrameworkModule(Relations20WithSecurityTestModule.class)
 @TestPropertiesList({
-		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml;de/osthus/ambeth/security/orm.xml"),
+		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm20.xml;de/osthus/ambeth/audit/security-orm.xml"),
 		@TestProperties(name = SecurityConfigurationConstants.SecurityActive, value = "true"),
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestAuthentication(name = SecurityTest.userName1, password = SecurityTest.userPass1)
@@ -53,6 +56,12 @@ public class Relations20WithSecurityTest extends Relations20Test
 		{
 			beanContextFactory.registerBean(SecurityTestModule.class);
 
+			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+
+			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
+			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);
+			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
+
 			IBeanConfiguration dataSetBuilder = beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
 			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtensionExtendable.class);
 		}
@@ -63,30 +72,6 @@ public class Relations20WithSecurityTest extends Relations20Test
 
 	@Autowired
 	protected IDatabase database;
-
-	@Autowired(SecurityTest.IN_MEMORY_CACHE_RETRIEVER)
-	protected InMemoryCacheRetriever inMemoryCacheRetriever;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		char[] salt = "abcdef=".toCharArray();
-		char[] value = Base64.encodeBytes(
-				Passwords.hashPassword(SecurityTest.userPass1.toCharArray(), Base64.decode(salt), Passwords.ALGORITHM, Passwords.ITERATION_COUNT,
-						Passwords.KEY_SIZE)).toCharArray();
-
-		IInMemoryConfig password10 = inMemoryCacheRetriever.add(Password.class, 10)//
-				.primitive(IPassword.Salt, salt)//
-				.primitive(IPassword.Algorithm, Passwords.ALGORITHM)//
-				.primitive(IPassword.IterationCount, Passwords.ITERATION_COUNT)//
-				.primitive(IPassword.KeySize, Passwords.KEY_SIZE)//
-				.primitive(IPassword.Value, value);
-		inMemoryCacheRetriever.add(User.class, 1)//
-				.primitive(User.SID, SecurityTest.userName1.toLowerCase())//
-				.addRelation(User.Password, password10);
-	}
 
 	@Override
 	@Test
@@ -99,7 +84,7 @@ public class Relations20WithSecurityTest extends Relations20Test
 		{
 			IQueryBuilder<Employee> qb = queryBuilderFactory.create(Employee.class);
 			IQuery<Employee> query = qb.build(qb.isIn(qb.property("AllProjects.Employees.Name"), qb.value(names)));
-			List<Employee> actual = query.retrieve();// businessService.retrieve(names);
+			List<Employee> actual = query.retrieve();
 			assertEquals(1, actual.size());
 		}
 		finally

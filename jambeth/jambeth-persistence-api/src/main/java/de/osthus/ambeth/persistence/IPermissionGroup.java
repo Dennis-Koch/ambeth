@@ -13,4 +13,8 @@ public interface IPermissionGroup
 	IField getPermissionGroupField();
 
 	IField getReadPermissionField();
+
+	IField getUpdatePermissionField();
+
+	IField getDeletePermissionField();
 }
