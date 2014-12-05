@@ -1,6 +1,6 @@
 package de.osthus.ambeth.security;
 
-
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -9,7 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IOperator;
-import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.query.ISqlJoin;
 
 public class SqlPermissionOperand implements IOperator
 {
@@ -37,6 +37,9 @@ public class SqlPermissionOperand implements IOperator
 	protected IOperand[] readPermissionOperands;
 
 	@Autowired
+	protected ISqlJoin[] permissionGroupJoins;
+
+	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
 
 	@Override
@@ -54,6 +57,16 @@ public class SqlPermissionOperand implements IOperator
 		{
 			return;
 		}
+		AppendableStringBuilder joinSB = (AppendableStringBuilder) nameToValueMap.get("JoinSB");
+		for (int i = 0; i < permissionGroupJoins.length; i++)
+		{
+			if (i > 0)
+			{
+				joinSB.append(' ');
+			}
+			permissionGroupJoins[i].expandQuery(joinSB, nameToValueMap, true, parameters);
+		}
+
 		IOperand firstUserIdOperand = userIdOperands[0];
 		IOperand firstValueOperand = readPermissionOperands[0];
 

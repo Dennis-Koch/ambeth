@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<or-mappings xmlns="http://osthus.de/ambeth/ambeth_orm_2_0">
+
+	<link-mappings>
+		<link alias="User-Password" source="USER_FK_PASSWORD_ID"/>
+		<link alias="User-PasswordHistory" source="PASSWORD_FK_USER_ID"/>
+	</link-mappings>
+
+	<entity-mappings>		
+		<entity class="de.osthus.ambeth.audit.User">
+			<attributes>
+				<relation name="Password" link="User-Password"/>
+				<relation name="PasswordHistory" link="User-PasswordHistory"/>
+			</attributes>
+		</entity>
+		
+		<entity class="de.osthus.ambeth.audit.Password">
+			<attributes>
+				<relation name="User" link="User-Password"/>
+				<relation name="HistoryUser" link="User-PasswordHistory"/>
+			</attributes>
+		</entity>
+		
+		<entity class="de.osthus.ambeth.audit.Signature"/>
+	</entity-mappings>	
+</or-mappings>

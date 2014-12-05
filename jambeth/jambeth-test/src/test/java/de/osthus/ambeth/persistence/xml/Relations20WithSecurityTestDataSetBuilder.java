@@ -1,21 +1,17 @@
 package de.osthus.ambeth.persistence.xml;
 
 import java.sql.Connection;
-import java.sql.Statement;
 import java.util.Collection;
 
-import de.osthus.ambeth.appendable.AppendableStringBuilder;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.audit.Password;
+import de.osthus.ambeth.audit.User;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.IPermissionGroup;
-import de.osthus.ambeth.persistence.ITable;
-import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
+import de.osthus.ambeth.security.IPasswordUtil;
 import de.osthus.ambeth.security.SecurityTest;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.util.setup.AbstractDatasetBuilder;
@@ -40,68 +36,22 @@ public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBu
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
+	protected IPasswordUtil passwordUtil;
+
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
 	@Override
 	protected void buildDatasetInternal()
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
-		Statement stm = null;
-		try
-		{
-			stm = connection.createStatement();
+		User user = createEntity(User.class);
+		user.setSID(SecurityTest.userName1);
+		user.setName(SecurityTest.userName1);
+		user.setActive(true);
 
-			for (ITable table : database.getTables())
-			{
-				Class<?> entityType = table.getEntityType();
-				if (entityType == null)
-				{
-					continue;
-				}
-				IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(table.getName());
-				if (permissionGroup == null)
-				{
-					continue;
-				}
-				String tableName = permissionGroup.getTable().getName();
-
-				String permissionGroupId = "1";
-
-				sb.reset();
-				sb.append("INSERT INTO ");
-				sqlBuilder.escapeName(tableName, sb).append(" (");
-				sqlBuilder.escapeName(permissionGroup.getUserField().getName(), sb).append(',');
-				sqlBuilder.escapeName(permissionGroup.getPermissionGroupField().getName(), sb).append(',');
-				sqlBuilder.escapeName(permissionGroup.getReadPermissionField().getName(), sb).append(") VALUES ('").append(SecurityTest.userName1).append("',")
-						.append(permissionGroupId).append(",1)");
-
-				stm.execute(sb.toString());
-
-				IField versionField = table.getVersionField();
-
-				sb.reset();
-				sb.append("UPDATE ");
-				sqlBuilder.escapeName(table.getName(), sb).append(" SET ");
-				sqlBuilder.escapeName(permissionGroup.getPermissionGroupFieldOnTarget().getName(), sb).append("=").append(permissionGroupId);
-
-				if (versionField != null)
-				{
-					sb.append(',');
-					sqlBuilder.escapeName(versionField.getName(), sb).append('=');
-					sqlBuilder.escapeName(versionField.getName(), sb).append("+1");
-				}
-				stm.executeUpdate(sb.toString());
-			}
-		}
-		catch (Throwable e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
-		finally
-		{
-			JdbcUtil.close(stm);
-		}
+		Password password = createEntity(Password.class);
+		passwordUtil.assignNewPassword(SecurityTest.userPass1.toCharArray(), password, user);
+		user.setPassword(password);
 	}
 
 	@Override

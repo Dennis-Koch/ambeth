@@ -175,10 +175,17 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 
 		for (String fqTableName : fqDataTableNames)
 		{
+			boolean isPermissionGroupTable = ormPatternMatcher.matchesPermissionGroupPattern(fqTableName);
 			if (log.isDebugEnabled())
 			{
-				PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName
-						+ " as data table waiting for entity mapping");
+				if (isPermissionGroupTable)
+				{
+					PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName + " as permission group table");
+				}
+				else
+				{
+					PersistenceWarnUtil.logDebugOnce(log, loggerHistory, connection, "Recognizing table " + fqTableName + " as entity table waiting");
+				}
 			}
 			JdbcTable table = new JdbcTable();
 			table.setInitialVersion(Integer.valueOf(1));
@@ -196,7 +203,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			SqlField[] pkFields = new SqlField[pkFieldNames.size()];
 			handleTechnicalFields(table, pkFieldNames, fields, pkFields);
 
-			if (pkFields.length > 1 && log.isWarnEnabled())
+			if (pkFields.length > 1 && !isPermissionGroupTable && log.isWarnEnabled())
 			{
 				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "Table '" + table.getName()
 						+ "' has a composite primary key which is currently not supported.");
@@ -301,6 +308,10 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		}
 		for (ITable table : getTables())
 		{
+			if (table.isPermissionGroup())
+			{
+				continue;
+			}
 			ITable permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName()));
 			if (permissionGroupTable != null)
 			{
@@ -480,11 +491,21 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 					{
 						continue; // this is not a table we are interested in
 					}
+					String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(fqTableName);
+					if (ignoredTables.contains(schemaAndName[1])) // look with the soft name
+					{
+						continue; // this is not a table we are interested in
+					}
 					fqTableNames.add(fqTableName);
 				}
 				for (String fqViewName : fqViewNamesList)
 				{
 					if (ignoredTables.contains(fqViewName))
+					{
+						continue; // this is not a table we are interested in
+					}
+					String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(fqViewName);
+					if (ignoredTables.contains(schemaAndName[1])) // look with the soft name
 					{
 						continue; // this is not a table we are interested in
 					}
