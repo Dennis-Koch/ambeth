@@ -8,7 +8,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class SynchronizedHandler extends AbstractStatementHandler<JCSynchronized> implements IStatementHandlerExtension<JCSynchronized>
+public class CsSynchronizedHandler extends AbstractStatementHandler<JCSynchronized> implements IStatementHandlerExtension<JCSynchronized>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

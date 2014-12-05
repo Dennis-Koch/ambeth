@@ -31,6 +31,14 @@ public interface ILanguageHelper
 
 	boolean writeStringIfFalse(String value, boolean condition);
 
+	void startDocumentation();
+
+	void newLineIndentDocumentation();
+
+	void endDocumentation();
+
+	void writeSimpleName(JavaClassInfo classInfo);
+
 	void writeType(String typeName);
 
 	void writeTypeDirect(String typeName);
@@ -42,10 +50,6 @@ public interface ILanguageHelper
 	void writeAnnotations(BaseJavaClassModel handle);
 
 	void writeAnnotation(Annotation annotation);
-
-	void writeDocumentation(String... doc);
-
-	void writeDocumentation(List<String> doc);
 
 	void writeExpressionTree(Tree expressionTree);
 

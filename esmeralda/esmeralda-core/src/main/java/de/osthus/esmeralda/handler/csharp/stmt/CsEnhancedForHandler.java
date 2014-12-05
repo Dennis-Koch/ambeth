@@ -24,7 +24,7 @@ public class CsEnhancedForHandler extends AbstractStatementHandler<JCEnhancedFor
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		IStatementHandlerExtension<JCVariableDecl> varHandler = statementHandlerRegistry.get(Lang.C_SHARP + Kind.VARIABLE);
+		IStatementHandlerExtension<JCVariableDecl> varHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + Kind.VARIABLE);
 
 		languageHelper.newLineIndent();
 		writer.append("foreach (");

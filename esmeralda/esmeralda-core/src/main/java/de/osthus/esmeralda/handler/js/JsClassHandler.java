@@ -110,7 +110,6 @@ public class JsClassHandler implements IJsClassHandler
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String className = classInfo.getName();
 		String namespace = languageHelper.createNamespace();
 
 		writer.append("'");
@@ -118,7 +117,8 @@ public class JsClassHandler implements IJsClassHandler
 		{
 			writer.append(namespace).append(".");
 		}
-		writer.append(className).append("'");
+		languageHelper.writeSimpleName(classInfo);
+		writer.append("'");
 	}
 
 	protected void writeData(final JavaClassInfo classInfo)
@@ -126,9 +126,9 @@ public class JsClassHandler implements IJsClassHandler
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
 
-		String className = classInfo.getName();
-
-		writer.append("function(").append(className).append(") ");
+		writer.append("function(");
+		languageHelper.writeSimpleName(classInfo);
+		writer.append(") ");
 
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{

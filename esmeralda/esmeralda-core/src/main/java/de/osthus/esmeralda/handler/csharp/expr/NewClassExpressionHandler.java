@@ -171,12 +171,12 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 		for (JCVariableDecl parameter : delegateMethod.getParameters())
 		{
 			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.get(Lang.C_SHARP + parameter.getKind());
+			IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + parameter.getKind());
 			stmtHandler.handle(parameter, false);
 		}
 		writer.append(')');
 
-		IStatementHandlerExtension<JCBlock> blockHandler = statementHandlerRegistry.get(Lang.C_SHARP + Kind.BLOCK);
+		IStatementHandlerExtension<JCBlock> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + Kind.BLOCK);
 		blockHandler.handle(delegateMethod.getBody());
 		writer.append(')');
 
