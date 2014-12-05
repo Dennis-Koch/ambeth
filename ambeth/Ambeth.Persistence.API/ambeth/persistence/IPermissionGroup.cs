@@ -15,5 +15,9 @@ namespace De.Osthus.Ambeth.Persistence
         IField PermissionGroupField { get; }
 
         IField ReadPermissionField { get; }
+
+        IField UpdatePermissionField { get; }
+
+        IField DeletePermissionField { get; }
     }
 }
