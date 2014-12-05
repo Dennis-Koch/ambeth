@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.29</version>
+		<version>0.0.30</version>
 	</parent>
 
 	<properties>
@@ -505,12 +505,12 @@
 				<scope>test</scope>
 			</dependency>
 
-
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security-persistence</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security-persistence-test</artifactId>
@@ -671,18 +671,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<forkCount>1C</forkCount>
-					<reuseForks>true</reuseForks>
-					<argLine>-XX:MaxPermSize=128m</argLine>
-					<systemPropertyVariables>
-						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

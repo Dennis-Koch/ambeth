@@ -1,5 +1,7 @@
 package de.osthus.ambeth.security;
 
+import java.util.List;
+
 import javax.persistence.criteria.JoinType;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -48,53 +50,64 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 			return null;
 		}
 		IDatabase database = this.database.getCurrent();
-		int size = joinClauses.size();
 		IOperand userIdCriteriaOperand = queryBuilder.valueName(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
 		IOperand valueCriteriaOperand = queryBuilder.value(Boolean.TRUE);
+		ArrayList<ISqlJoin> permissionGroupJoins = new ArrayList<ISqlJoin>();
 		ArrayList<IOperand> readPermissionValueColumns = new ArrayList<IOperand>();
 		ArrayList<IOperand> readPermissionUserIdColumns = new ArrayList<IOperand>();
 		{
 			ITable tableOfEntity = database.getTableByType(queryBuilder.getEntityType());
-			IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(tableOfEntity.getName());
-			String tableName = permissionGroup.getTable().getName();
-			IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName());
-			IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName());
-			ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.INNER, queryBeanContextFactory);
-			joinClauses.add(join);
-			readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join));
-			readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), join));
+			ISqlJoin join = createJoin(tableOfEntity.getName(), queryBuilder, readPermissionValueColumns, readPermissionUserIdColumns, queryBeanContextFactory,
+					null);
+			if (join != null)
+			{
+				permissionGroupJoins.add(join);
+				joinClauses.add(join);
+			}
 		}
-		for (int i = 0; i < size; i++)
+		for (int i = 0, size = joinClauses.size(); i < size; i++)
 		{
 			ISqlJoin entityJoin = joinClauses.get(i);
 			String tableNameOfJoin = entityJoin.getTableName();
 
-			// ITable tableOfJoin = database.getTableByName(tableNameOfJoin);
-			// IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(entityJoin.getTableName());
-			IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(tableNameOfJoin);
-			if (permissionGroup == null)
+			ISqlJoin join = createJoin(tableNameOfJoin, queryBuilder, readPermissionValueColumns, readPermissionUserIdColumns, queryBeanContextFactory,
+					entityJoin);
+			if (join != null)
 			{
-				if (database.getTableByName(tableNameOfJoin) == null)
-				{
-					// this join is a link-table join which has (currently) no permission group
-					continue;
-				}
-				throw new IllegalStateException("No permission group mapped to table " + tableNameOfJoin);
+				permissionGroupJoins.add(join);
+				joinClauses.add(join);
 			}
-			String tableName = permissionGroup.getTable().getName();
-			IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), entityJoin);
-			IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), entityJoin);
-			ISqlJoin permissionJoin = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.INNER, queryBeanContextFactory);
-			joinClauses.add(permissionJoin);
-			readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), permissionJoin));
-			readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), permissionJoin));
+		}
+		if (permissionGroupJoins.size() == 0)
+		{
+			return null;
 		}
 		return queryBeanContextFactory.registerBean(SqlPermissionOperand.class)//
 				.propertyValue("Operand", whereClause)//
 				.propertyValue("UserIdCriteriaOperand", userIdCriteriaOperand)//
 				.propertyValue("ValueCriteriaOperand", valueCriteriaOperand)//
+				.propertyValue("PermissionGroupJoins", permissionGroupJoins.toArray(ISqlJoin.class))//
 				.propertyValue("ReadPermissionOperands", readPermissionValueColumns.toArray(IOperand.class))//
 				.propertyValue("UserIdOperands", readPermissionUserIdColumns.toArray(IOperand.class));
+	}
+
+	protected ISqlJoin createJoin(String tableNameOfJoin, IQueryBuilderIntern<?> queryBuilder, List<IOperand> readPermissionValueColumns,
+			List<IOperand> readPermissionUserIdColumns, IBeanContextFactory queryBeanContextFactory, ISqlJoin baseJoin)
+	{
+		IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(tableNameOfJoin);
+		if (permissionGroup == null)
+		{
+			// this join is a either link-table join which has (currently) no permission group
+			// or it is an entity table but we have already logged a warning in the connection startup for this
+			return null;
+		}
+		String tableName = permissionGroup.getTable().getName();
+		IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), baseJoin);
+		IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), baseJoin);
+		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.INNER, queryBeanContextFactory);
+		readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join));
+		readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), join));
+		return join;
 	}
 
 	@Override

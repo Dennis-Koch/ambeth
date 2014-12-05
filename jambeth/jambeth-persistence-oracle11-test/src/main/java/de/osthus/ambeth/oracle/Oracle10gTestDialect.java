@@ -266,15 +266,17 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		}
 		ArrayList<String> sql = new ArrayList<String>();
 
-		sql.add("CREATE TABLE " + permissionGroupName//
-				+ "(" + PermissionGroup.userIdName + " VARCHAR2(64 CHAR) NOT NULL,"//
-				+ PermissionGroup.permGroupIdName + " NUMBER(18,0) NOT NULL,"//
-				+ PermissionGroup.readPermColumName + " NUMBER(1,0),"//
-				+ "CONSTRAINT " + pkName + " PRIMARY KEY ("//
-				+ PermissionGroup.userIdName + "," + PermissionGroup.permGroupIdName//
+		sql.add("CREATE TABLE \"" + permissionGroupName + "\" "//
+				+ "(\"" + PermissionGroup.userIdName + "\" VARCHAR2(64 CHAR) NOT NULL,"//
+				+ "\"" + PermissionGroup.permGroupIdName + "\" NUMBER(18,0) NOT NULL,"//
+				+ "\"" + PermissionGroup.readPermColumName + "\" NUMBER(1,0),"//
+				+ "\"" + PermissionGroup.updatePermColumName + "\" NUMBER(1,0),"//
+				+ "\"" + PermissionGroup.deletePermColumName + "\" NUMBER(1,0),"//
+				+ "CONSTRAINT \"" + pkName + "\" PRIMARY KEY ("//
+				+ "\"" + PermissionGroup.userIdName + "\",\"" + PermissionGroup.permGroupIdName + "\""//
 				+ ") USING INDEX )");
 
-		sql.add("CREATE INDEX " + permissionGroupName + "_IDX" + " ON " + permissionGroupName + " (" + PermissionGroup.permGroupIdName + ")");
+		sql.add("CREATE INDEX \"" + permissionGroupName + "_IDX\"" + " ON \"" + permissionGroupName + "\" (\"" + PermissionGroup.permGroupIdName + "\")");
 
 		// PreparedStatement pstm = null;
 		// ResultSet rs = null;

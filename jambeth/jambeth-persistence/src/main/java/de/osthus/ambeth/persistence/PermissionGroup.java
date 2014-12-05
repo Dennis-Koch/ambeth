@@ -20,6 +20,10 @@ public class PermissionGroup implements IPermissionGroup
 
 	public static final String readPermColumName = "READ";
 
+	public static final String updatePermColumName = "UPDATE";
+
+	public static final String deletePermColumName = "DELETE";
+
 	public static final String userIdName = "USER_ID";
 
 	@SuppressWarnings("unused")
@@ -28,6 +32,12 @@ public class PermissionGroup implements IPermissionGroup
 
 	@Property
 	protected IField readPermissionField;
+
+	@Property
+	protected IField updatePermissionField;
+
+	@Property
+	protected IField deletePermissionField;
 
 	@Property
 	protected IField permissionGroupField;
@@ -80,4 +90,15 @@ public class PermissionGroup implements IPermissionGroup
 		return readPermissionField;
 	}
 
+	@Override
+	public IField getUpdatePermissionField()
+	{
+		return updatePermissionField;
+	}
+
+	@Override
+	public IField getDeletePermissionField()
+	{
+		return deletePermissionField;
+	}
 }
