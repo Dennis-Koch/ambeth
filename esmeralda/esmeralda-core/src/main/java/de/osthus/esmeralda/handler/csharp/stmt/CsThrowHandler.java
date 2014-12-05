@@ -8,7 +8,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsThrowHandler extends AbstractStatementHandler<JCThrow> implements IStatementHandlerExtension<JCThrow>
+public class CsThrowHandler extends AbstractCsStatementHandler<JCThrow> implements IStatementHandlerExtension<JCThrow>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

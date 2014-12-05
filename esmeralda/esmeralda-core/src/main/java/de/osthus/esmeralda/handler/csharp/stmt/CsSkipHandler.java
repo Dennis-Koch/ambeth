@@ -8,7 +8,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsSkipHandler extends AbstractStatementHandler<JCSkip> implements IStatementHandlerExtension<JCSkip>
+public class CsSkipHandler extends AbstractCsStatementHandler<JCSkip> implements IStatementHandlerExtension<JCSkip>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
