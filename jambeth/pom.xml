@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.osthus.ambeth</groupId>
@@ -9,7 +10,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.29</version>
+		<version>0.0.30</version>
 	</parent>
 
 	<properties>
@@ -52,7 +53,6 @@
 		<module>jambeth-rdf</module>
 		<module>jambeth-security</module>
 		<module>jambeth-security-bytecode</module>
-		<module>jambeth-security-persistence</module>
 		<module>jambeth-security-server</module>
 		<module>jambeth-sensor</module>
 		<module>jambeth-server-helloworld</module>
@@ -505,19 +505,6 @@
 				<scope>test</scope>
 			</dependency>
 
-
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-security-persistence</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>de.osthus.ambeth</groupId>
-				<artifactId>jambeth-security-persistence-test</artifactId>
-				<version>${project.version}</version>
-				<scope>test</scope>
-			</dependency>
-
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security-server</artifactId>
@@ -671,18 +658,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<forkCount>1C</forkCount>
-					<reuseForks>true</reuseForks>
-					<argLine>-XX:MaxPermSize=128m</argLine>
-					<systemPropertyVariables>
-						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
