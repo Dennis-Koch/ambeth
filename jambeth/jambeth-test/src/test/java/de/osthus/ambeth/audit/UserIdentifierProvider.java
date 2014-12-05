@@ -14,6 +14,12 @@ public class UserIdentifierProvider implements IUserIdentifierProvider
 	@Override
 	public String getSID(IUser user)
 	{
-		return ((User) user).getName();
+		return ((User) user).getSID();
+	}
+
+	@Override
+	public String getPropertyNameOfSID()
+	{
+		return User.SID;
 	}
 }

@@ -1203,10 +1203,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							IOperand currWhereClause = whereClause;
 
 							IBeanConfiguration whereClauseConf = null;
+							ArrayList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
 							for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
 							{
 								IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(childContextFactory, self, currWhereClause,
-										joinClauses, queryType);
+										allJoinClauses, queryType);
 								if (currWhereClauseConf == null)
 								{
 									continue;
@@ -1214,9 +1215,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 								currWhereClause = (IOperand) currWhereClauseConf.getInstance();
 								whereClauseConf = currWhereClauseConf;
 							}
-							for (int i = 0; i < joinClauses.size(); i++)
+							for (int i = 0; i < allJoinClauses.size(); i++)
 							{
-								((SqlJoinOperator) joinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
+								((SqlJoinOperator) allJoinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
 							}
 							IBeanConfiguration stringQuery = childContextFactory.registerBean(StringQuery.class)//
 									.propertyValue("EntityType", SqlQueryBuilder.this.entityType)//
