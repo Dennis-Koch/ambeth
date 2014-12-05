@@ -12,7 +12,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.TypeResolveException;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -22,6 +24,16 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	public CsBlockHandler()
+	{
+		language = Lang.C_SHARP;
+	}
+
+	public void setLanguageHelper(ICsHelper languageHelper)
+	{
+		this.languageHelper = languageHelper;
+	}
 
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
@@ -46,7 +58,8 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		ArrayList<String> untranslatableStatements = new ArrayList<>();
 
 		List<? extends StatementTree> statements = blockTree.getStatements();
-		if (!context.isDryRun())
+		boolean noDryRun = !context.isDryRun();
+		if (noDryRun)
 		{
 			metric.setStatements(metric.getStatements() + statements.size());
 		}
@@ -58,7 +71,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 			{
 				StatementTree statement = statements.get(a);
 				Kind kind = statement.getKind();
-				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+				final IStatementHandlerExtension<StatementTree> stmtHandler = getStatementHandler(kind);
 				if (stmtHandler != null)
 				{
 					// Important to check here to keep the code in order
@@ -83,16 +96,12 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 					}
 					catch (TypeResolveException e)
 					{
-						if (log.isInfoEnabled() && !context.isDryRun())
-						{
-							log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": "
-									+ statement.toString());
-						}
-
-						String untranslatableStatement = statement.toString();
-						untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
-						untranslatableStatements.add(untranslatableStatement);
+						addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
 					}
+				}
+				else
+				{
+					addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
 				}
 			}
 			checkUntranslatableList(untranslatableStatements, snippetManager);
@@ -101,6 +110,25 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		{
 			context.setSkipFirstBlockStatement(skipFirstBlockStatement);
 		}
+	}
+
+	protected IStatementHandlerExtension<StatementTree> getStatementHandler(Kind kind)
+	{
+		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+		return stmtHandler;
+	}
+
+	protected void addToUntranslatableList(ArrayList<String> untranslatableStatements, StatementTree statement, boolean noDryRun, IConversionContext context,
+			Kind kind)
+	{
+		if (log.isInfoEnabled() && noDryRun)
+		{
+			log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": " + statement.toString());
+		}
+
+		String untranslatableStatement = statement.toString();
+		untranslatableStatement = untranslatableStatement.endsWith(";") ? untranslatableStatement : untranslatableStatement + ";";
+		untranslatableStatements.add(untranslatableStatement);
 	}
 
 	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager)

@@ -51,6 +51,8 @@ public interface ILanguageHelper
 
 	void writeAnnotation(Annotation annotation);
 
+	void writeVariableName(String varName);
+
 	void writeExpressionTree(Tree expressionTree);
 
 	void writeGenericTypeArguments(List<Type> genericTypeArguments);

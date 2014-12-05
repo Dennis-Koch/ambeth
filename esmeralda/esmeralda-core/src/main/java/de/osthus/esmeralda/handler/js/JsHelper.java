@@ -3,6 +3,7 @@ package de.osthus.esmeralda.handler.js;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
@@ -56,6 +58,13 @@ public class JsHelper implements IJsHelper
 	private static final String STRING = "String";
 
 	private static final Pattern GENERIC_NAME = Pattern.compile("[A-Z]");
+
+	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("abstract", "arguments", "boolean", "break", "byte", "case", "catch",
+			"char", "class", "const", "continue", "debugger", "default", "delete", "do", "double", "else", "enum", "eval", "export", "extends", "false",
+			"final", "finally", "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", "long",
+			"native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", "switch", "synchronized", "this",
+			"throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", "while", "with", "yield", "Infinity", "isFinite", "isNaN",
+			"isPrototypeOf", "length", "Math", "NaN", "name", "Number", "Object", "prototype", "String", "toString", "undefined", "valueOf"));
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
 
@@ -433,6 +442,20 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void writeMethodArguments(JCExpression methodInvocation)
 	{
+	}
+
+	@Override
+	public void writeVariableName(String varName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		if (RESERVED_WORDS.contains(varName))
+		{
+			varName += "_";
+		}
+
+		writer.append(varName);
 	}
 
 	@Override

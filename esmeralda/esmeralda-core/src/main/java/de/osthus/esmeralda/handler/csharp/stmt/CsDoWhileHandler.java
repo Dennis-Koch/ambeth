@@ -10,7 +10,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsDoWhileHandler extends AbstractStatementHandler<JCDoWhileLoop> implements IStatementHandlerExtension<JCDoWhileLoop>
+public class CsDoWhileHandler extends AbstractCsStatementHandler<JCDoWhileLoop> implements IStatementHandlerExtension<JCDoWhileLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

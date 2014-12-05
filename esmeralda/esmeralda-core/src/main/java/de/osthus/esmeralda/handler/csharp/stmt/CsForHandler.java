@@ -13,7 +13,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsForHandler extends AbstractStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
+public class CsForHandler extends AbstractCsStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
