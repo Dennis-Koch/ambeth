@@ -8,7 +8,6 @@ import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
 public abstract class AbstractStatementHandler<T extends StatementTree> implements IStatementHandlerExtension<T>
@@ -24,9 +23,12 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;
 
-	protected ILanguageHelper languageHelper;
-
 	protected String language;
+
+	protected AbstractStatementHandler(String language)
+	{
+		this.language = language;
+	}
 
 	@Override
 	public void handle(T tree)

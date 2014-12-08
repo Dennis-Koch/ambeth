@@ -8,6 +8,8 @@ import com.sun.tools.javac.tree.JCTree.JCNewArray;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewArray>
@@ -20,7 +22,9 @@ public class NewArrayExpressionHandler extends AbstractExpressionHandler<JCNewAr
 	protected void handleExpressionIntern(JCNewArray newArray)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
 		int dimensionCount = 0;
 		Type currType = newArray.type;
 		String currTypeName = null;

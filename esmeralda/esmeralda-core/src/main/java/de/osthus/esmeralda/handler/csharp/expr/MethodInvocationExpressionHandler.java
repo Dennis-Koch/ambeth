@@ -32,10 +32,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.ASTHelper;
-import de.osthus.esmeralda.handler.IMethodTransformer;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.ITransformedMethod;
+import de.osthus.esmeralda.handler.csharp.ICsMethodTransformer;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -48,13 +50,14 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 	private ILogger log;
 
 	@Autowired
-	protected IMethodTransformer methodTransformer;
+	protected ICsMethodTransformer methodTransformer;
 
 	@Override
 	protected void handleExpressionIntern(JCMethodInvocation methodInvocation)
 	{
 		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
+		final ILanguageHelper languageHelper = context.getLanguageHelper();
+
 		Method method = context.getMethod();
 
 		if (methodInvocation.meth == null)

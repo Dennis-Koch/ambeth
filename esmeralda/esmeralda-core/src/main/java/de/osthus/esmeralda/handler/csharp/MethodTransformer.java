@@ -15,17 +15,17 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IASTHelper;
-import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
+import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class MethodTransformer implements IMethodTransformer, IMethodTransformerExtensionExtendable
+public class MethodTransformer implements ICsMethodTransformer, IMethodTransformerExtensionExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance

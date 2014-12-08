@@ -11,10 +11,10 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -27,17 +27,15 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 
 	public CsBlockHandler()
 	{
-		language = Lang.C_SHARP;
-	}
-
-	public void setLanguageHelper(ICsHelper languageHelper)
-	{
-		this.languageHelper = languageHelper;
+		super(Lang.C_SHARP);
 	}
 
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
 	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -71,12 +69,9 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 			{
 				StatementTree statement = statements.get(a);
 				Kind kind = statement.getKind();
-				final IStatementHandlerExtension<StatementTree> stmtHandler = getStatementHandler(kind);
+				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(language + kind);
 				if (stmtHandler != null)
 				{
-					// Important to check here to keep the code in order
-					checkUntranslatableList(untranslatableStatements, snippetManager);
-
 					final StatementTree fstatement = statement;
 					try
 					{
@@ -110,12 +105,6 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		{
 			context.setSkipFirstBlockStatement(skipFirstBlockStatement);
 		}
-	}
-
-	protected IStatementHandlerExtension<StatementTree> getStatementHandler(Kind kind)
-	{
-		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
-		return stmtHandler;
 	}
 
 	protected void addToUntranslatableList(ArrayList<String> untranslatableStatements, StatementTree statement, boolean noDryRun, IConversionContext context,

@@ -5,6 +5,8 @@ import com.sun.tools.javac.tree.JCTree.JCAssignOp;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class AssignOpExpressionHandler extends AbstractExpressionHandler<JCAssignOp>
@@ -17,7 +19,9 @@ public class AssignOpExpressionHandler extends AbstractExpressionHandler<JCAssig
 	protected void handleExpressionIntern(JCAssignOp assignOp)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
 		switch (assignOp.getKind())
 		{
 			case AND_ASSIGNMENT:

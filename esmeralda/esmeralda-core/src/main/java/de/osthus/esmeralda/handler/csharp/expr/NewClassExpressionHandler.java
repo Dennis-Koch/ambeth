@@ -19,6 +19,8 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
@@ -98,6 +100,7 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 	protected void handleExpressionIntern(JCNewClass newClass)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		List<JCExpression> arguments = newClass.args;
@@ -125,6 +128,7 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 	protected void writeAnonymousInstantiation(String owner, JCClassDecl def)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		owner = NewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
@@ -146,7 +150,9 @@ public class NewClassExpressionHandler extends AbstractExpressionHandler<JCNewCl
 	protected void writeDelegate(String owner, JCClassDecl def)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
 		owner = getFqNameFromAnonymousName(owner);
 
 		if (def.defs.size() != 2)

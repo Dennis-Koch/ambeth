@@ -4,8 +4,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.handler.ITransformedMethod;
+import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMethod;
-import de.osthus.esmeralda.handler.csharp.MethodKey;
 
 public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 {
