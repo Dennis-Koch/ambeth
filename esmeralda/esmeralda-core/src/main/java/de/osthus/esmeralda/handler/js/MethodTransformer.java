@@ -8,7 +8,6 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
-import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
@@ -16,17 +15,18 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
-import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
+import de.osthus.esmeralda.handler.IMethodTransformerExtensionRegistry;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
+import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class MethodTransformer implements IJsMethodTransformer, IMethodTransformerExtensionExtendable
+public class MethodTransformer implements IJsMethodTransformer
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -47,8 +47,8 @@ public class MethodTransformer implements IJsMethodTransformer, IMethodTransform
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
-	protected final MapExtendableContainer<String, IMethodTransformerExtension> methodTransformerExtensions = new MapExtendableContainer<String, IMethodTransformerExtension>(
-			"methodTransformerExtension", "fqTypeName");
+	@Autowired
+	protected IMethodTransformerExtensionRegistry methodTransformerExtensionRegistry;
 
 	@Override
 	public ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes)
@@ -89,7 +89,7 @@ public class MethodTransformer implements IJsMethodTransformer, IMethodTransform
 		String currOwner = owner;
 		while (currOwner != null)
 		{
-			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensions.getExtension(currOwner);
+			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + currOwner);
 			if (methodTransformerExtension != null)
 			{
 				MethodKey methodKey = new MethodKey(currOwner, methodName, argTypes);
@@ -98,7 +98,7 @@ public class MethodTransformer implements IJsMethodTransformer, IMethodTransform
 			String nonGenericOwner = astHelper.extractNonGenericType(currOwner);
 			if (!nonGenericOwner.equals(currOwner))
 			{
-				methodTransformerExtension = methodTransformerExtensions.getExtension(nonGenericOwner);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + nonGenericOwner);
 				if (methodTransformerExtension != null)
 				{
 					MethodKey methodKey = new MethodKey(nonGenericOwner, methodName, argTypes);
@@ -112,7 +112,7 @@ public class MethodTransformer implements IJsMethodTransformer, IMethodTransform
 			}
 			for (String interfaceName : classInfo.getNameOfInterfaces())
 			{
-				methodTransformerExtension = methodTransformerExtensions.getExtension(interfaceName);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + interfaceName);
 				if (methodTransformerExtension == null)
 				{
 					continue;
@@ -159,17 +159,5 @@ public class MethodTransformer implements IJsMethodTransformer, IMethodTransform
 			}
 		});
 		return argTypes;
-	}
-
-	@Override
-	public void registerMethodTransformerExtension(IMethodTransformerExtension methodTransformerExtension, String fqClassType)
-	{
-		methodTransformerExtensions.register(methodTransformerExtension, fqClassType);
-	}
-
-	@Override
-	public void unregisterMethodTransformerExtension(IMethodTransformerExtension methodTransformerExtension, String fqClassType)
-	{
-		methodTransformerExtensions.unregister(methodTransformerExtension, fqClassType);
 	}
 }

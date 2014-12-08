@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.expr;
+package de.osthus.esmeralda.handler;
 
 public interface IOwnerWriter
 {

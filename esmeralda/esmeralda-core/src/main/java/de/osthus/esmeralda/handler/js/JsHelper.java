@@ -62,9 +62,9 @@ public class JsHelper implements IJsHelper
 	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("abstract", "arguments", "boolean", "break", "byte", "case", "catch",
 			"char", "class", "const", "continue", "debugger", "default", "delete", "do", "double", "else", "enum", "eval", "export", "extends", "false",
 			"final", "finally", "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", "long",
-			"native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", "switch", "synchronized", "this",
-			"throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", "while", "with", "yield", "Infinity", "isFinite", "isNaN",
-			"isPrototypeOf", "length", "Math", "NaN", "name", "Number", "Object", "prototype", "String", "toString", "undefined", "valueOf"));
+			"native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", "switch", "synchronized", "throw",
+			"throws", "transient", "true", "try", "typeof", "var", "void", "volatile", "while", "with", "yield", "Infinity", "isFinite", "isNaN",
+			"isPrototypeOf", "Math", "NaN", "Number", "Object", "prototype", "String", "toString", "undefined", "valueOf"));
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
 
