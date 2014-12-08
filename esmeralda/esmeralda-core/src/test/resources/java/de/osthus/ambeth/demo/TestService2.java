@@ -1,6 +1,5 @@
 package de.osthus.ambeth.demo;
 
-import de.osthus.ambeth.demo.ITestInterface;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -25,6 +24,7 @@ public class TestService2 implements IInitializingBean
 		ParamChecker.assertNotNull(conversionHelper, "conversionHelper");
 		boolean check = true;
 		int var = check ? 1 : 0;
+		ParamChecker.assertTrue(var == 1, "var");
 	}
 
 	public void setConversionHelper(IConversionHelper conversionHelper)
@@ -61,6 +61,8 @@ public class TestService2 implements IInitializingBean
 			System.out.println("neg.");
 		}
 		else
+		{
 			System.out.println(intParam);
+		}
 	}
 }

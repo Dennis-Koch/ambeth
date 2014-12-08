@@ -9,7 +9,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsIfHandler extends AbstractStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
+public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

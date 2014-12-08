@@ -81,6 +81,9 @@ import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.handler.js.JsMethodHandler;
+import de.osthus.esmeralda.handler.js.stmt.JsBlockHandler;
+import de.osthus.esmeralda.handler.js.stmt.JsReturnHandler;
+import de.osthus.esmeralda.handler.js.stmt.JsVariableHandler;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
@@ -160,6 +163,10 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP + Kind.VARIABLE);
 		registerStatementHandler(beanContextFactory, CsWhileHandler.class, Lang.C_SHARP + Kind.WHILE_LOOP);
 		registerStatementHandler(beanContextFactory, CsSynchronizedHandler.class, Lang.C_SHARP + Kind.SYNCHRONIZED);
+
+		registerStatementHandler(beanContextFactory, JsBlockHandler.class, Lang.JS + Kind.BLOCK);
+		registerStatementHandler(beanContextFactory, JsReturnHandler.class, Lang.JS + Kind.RETURN);
+		registerStatementHandler(beanContextFactory, JsVariableHandler.class, Lang.JS + Kind.VARIABLE);
 
 		// expressions
 		beanContextFactory.registerBean(ExtendableBean.class) //

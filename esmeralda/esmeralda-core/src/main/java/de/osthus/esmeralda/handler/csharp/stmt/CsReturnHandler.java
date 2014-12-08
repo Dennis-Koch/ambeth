@@ -13,7 +13,7 @@ import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsReturnHandler extends AbstractStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
+public class CsReturnHandler extends AbstractCsStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

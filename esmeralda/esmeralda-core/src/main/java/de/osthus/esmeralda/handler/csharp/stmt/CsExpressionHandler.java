@@ -9,7 +9,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsExpressionHandler extends AbstractStatementHandler<JCExpressionStatement> implements IStatementHandlerExtension<JCExpressionStatement>
+public class CsExpressionHandler extends AbstractCsStatementHandler<JCExpressionStatement> implements IStatementHandlerExtension<JCExpressionStatement>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
