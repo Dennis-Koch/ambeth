@@ -36,6 +36,7 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
+import de.osthus.esmeralda.handler.IOwnerWriter;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.csharp.ICsMethodTransformer;
 import de.osthus.esmeralda.misc.IWriter;
