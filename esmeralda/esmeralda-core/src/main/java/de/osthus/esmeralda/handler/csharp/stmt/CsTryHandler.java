@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -33,6 +34,7 @@ public class CsTryHandler extends AbstractCsStatementHandler<JCTry> implements I
 	public void handle(JCTry tryStatement, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		ArrayList<JCCatch> catches = new ArrayList<JCCatch>(tryStatement.getCatches());

@@ -4,6 +4,9 @@ import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 
 public class ArrayTypeExpressionHandler extends AbstractExpressionHandler<JCArrayTypeTree>
 {
@@ -14,6 +17,9 @@ public class ArrayTypeExpressionHandler extends AbstractExpressionHandler<JCArra
 	@Override
 	protected void handleExpressionIntern(JCArrayTypeTree arrayType)
 	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+
 		languageHelper.writeType(arrayType.type.toString());
 	}
 }

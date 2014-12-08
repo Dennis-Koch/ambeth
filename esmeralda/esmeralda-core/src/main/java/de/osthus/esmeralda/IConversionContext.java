@@ -34,6 +34,8 @@ public interface IConversionContext
 
 	void setWriter(IWriter writer);
 
+	ILanguageHelper getLanguageHelper();
+
 	boolean isDryRun();
 
 	void setDryRun(boolean dryRun);

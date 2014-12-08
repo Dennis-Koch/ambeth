@@ -36,7 +36,8 @@ public class TestService1 extends BaseClass implements ITestInterface
 	@Override
 	public String testMethod3()
 	{
-		return " ";
+		Object string = " ";
+		return (String) string;
 	}
 
 	@Override

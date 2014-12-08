@@ -467,7 +467,7 @@ public class JsHelper implements IJsHelper
 		}
 
 		Kind kind = expression.getKind();
-		IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+		IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.JS + kind);
 		if (expressionHandler != null)
 		{
 			expressionHandler.handleExpression(expression);
@@ -487,7 +487,7 @@ public class JsHelper implements IJsHelper
 		ISnippetManager snippetManager = context.getSnippetManager();
 
 		Kind kind = statement.getKind();
-		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.JS + kind);
 		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);

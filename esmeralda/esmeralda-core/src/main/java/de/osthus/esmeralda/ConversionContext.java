@@ -60,6 +60,8 @@ public class ConversionContext implements IConversionContext
 
 	private IASTHelper astHelper;
 
+	private ILanguageHelper languageHelper;
+
 	private ISnippetManager snippetManager;
 
 	private final ArrayList<IPostProcess> postProcesses = new ArrayList<IPostProcess>();
@@ -155,6 +157,16 @@ public class ConversionContext implements IConversionContext
 	public void setDryRun(boolean dryRun)
 	{
 		this.dryRun = dryRun;
+	}
+
+	public ILanguageHelper getLanguageHelper()
+	{
+		return languageHelper;
+	}
+
+	public void setLanguageHelper(ILanguageHelper languageHelper)
+	{
+		this.languageHelper = languageHelper;
 	}
 
 	protected String getResolveGenericFqTypeName(String fqTypeName)

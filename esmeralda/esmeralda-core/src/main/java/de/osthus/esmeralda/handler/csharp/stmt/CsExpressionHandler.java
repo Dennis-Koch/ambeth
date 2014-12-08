@@ -6,6 +6,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -19,6 +20,7 @@ public class CsExpressionHandler extends AbstractCsStatementHandler<JCExpression
 	public void handle(final JCExpressionStatement tree, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
+		final ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		String stash = astHelper.writeToStash(new IBackgroundWorkerDelegate()

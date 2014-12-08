@@ -6,6 +6,7 @@ import com.sun.tools.javac.tree.JCTree.JCStatement;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -19,6 +20,7 @@ public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements ISt
 	public void handle(JCIf ifStatement, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		if (standalone)

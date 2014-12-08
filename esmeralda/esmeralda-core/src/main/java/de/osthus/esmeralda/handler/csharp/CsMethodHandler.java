@@ -33,7 +33,6 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
-import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.ITransformedMethod;
@@ -60,7 +59,7 @@ public class CsMethodHandler implements ICsMethodHandler
 	protected ICsHelper languageHelper;
 
 	@Autowired
-	protected IMethodTransformer methodTransformer;
+	protected ICsMethodTransformer methodTransformer;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;

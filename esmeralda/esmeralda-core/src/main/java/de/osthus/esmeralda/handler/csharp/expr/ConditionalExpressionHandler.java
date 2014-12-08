@@ -5,6 +5,8 @@ import com.sun.tools.javac.tree.JCTree.JCConditional;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class ConditionalExpressionHandler extends AbstractExpressionHandler<JCConditional>
@@ -17,6 +19,7 @@ public class ConditionalExpressionHandler extends AbstractExpressionHandler<JCCo
 	protected void handleExpressionIntern(JCConditional expression)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeExpressionTree(expression.getCondition());
