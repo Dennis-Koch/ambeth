@@ -64,7 +64,14 @@ public class JsClassHandler implements IJsClassHandler
 			writer.append("Ext.define(");
 			writeName(classInfo);
 			writer.append(", ");
-			writeData(classInfo);
+			if (!classInfo.isInterface())
+			{
+				writeData(classInfo);
+			}
+			else
+			{
+				writer.append("{}");
+			}
 			if (fieldsToInit != null && !fieldsToInit.isEmpty())
 			{
 				writer.append(", ");

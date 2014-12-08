@@ -18,7 +18,7 @@ import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 
-public class CsTryHandler extends AbstractStatementHandler<JCTry> implements IStatementHandlerExtension<JCTry>
+public class CsTryHandler extends AbstractCsStatementHandler<JCTry> implements IStatementHandlerExtension<JCTry>
 {
 	public static final Pattern redundantCatchPattern = Pattern.compile("\\s*throw\\s+RuntimeExceptionUtil\\.mask\\(\\s*(\\S+)\\s*\\)\\s*;\\s*");
 
@@ -61,7 +61,7 @@ public class CsTryHandler extends AbstractStatementHandler<JCTry> implements ISt
 			}
 			if (catches.size() == 0)
 			{
-				// we have no finally block (or at least none with a non-zero content) and no catch block remaining. so the whole try statement inlcuding the
+				// we have no finally block (or at least none with a non-zero content) and no catch block remaining. so the whole try statement including the
 				// internal block is obsolete now
 				blockHandler.writeBlockContentWithoutIntendation(tryStatement.getBlock());
 				return;

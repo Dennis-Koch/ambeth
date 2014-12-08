@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.js.stmt;
 
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -9,7 +9,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsVariableHandler extends AbstractCsStatementHandler<JCVariableDecl> implements IStatementHandlerExtension<JCVariableDecl>
+public class JsVariableHandler extends AbstractJsStatementHandler<JCVariableDecl> implements IStatementHandlerExtension<JCVariableDecl>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -26,8 +26,7 @@ public class CsVariableHandler extends AbstractCsStatementHandler<JCVariableDecl
 			languageHelper.newLineIndent();
 		}
 
-		languageHelper.writeType(variableStatement.type.toString());
-		writer.append(' ');
+		writer.append("var ");
 		languageHelper.writeVariableName(variableStatement.getName().toString());
 
 		JCExpression initializer = variableStatement.getInitializer();

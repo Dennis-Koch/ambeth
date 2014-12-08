@@ -12,7 +12,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsSwitchHandler extends AbstractStatementHandler<JCSwitch> implements IStatementHandlerExtension<JCSwitch>
+public class CsSwitchHandler extends AbstractCsStatementHandler<JCSwitch> implements IStatementHandlerExtension<JCSwitch>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

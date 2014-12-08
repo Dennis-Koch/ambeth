@@ -8,7 +8,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsBreakHandler extends AbstractStatementHandler<JCBreak> implements IStatementHandlerExtension<JCBreak>
+public class CsBreakHandler extends AbstractCsStatementHandler<JCBreak> implements IStatementHandlerExtension<JCBreak>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

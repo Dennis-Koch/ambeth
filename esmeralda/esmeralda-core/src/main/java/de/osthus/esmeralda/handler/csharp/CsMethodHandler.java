@@ -63,10 +63,10 @@ public class CsMethodHandler implements ICsMethodHandler
 	protected IMethodTransformer methodTransformer;
 
 	@Autowired
-	protected IStatementHandlerRegistry statementHandlerRegistry;
+	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected IThreadLocalObjectCollector objectCollector;
+	protected IStatementHandlerRegistry statementHandlerRegistry;
 
 	@Autowired
 	protected ISnippetManagerFactory snippetManagerFactory;
@@ -208,6 +208,7 @@ public class CsMethodHandler implements ICsMethodHandler
 			writer.append(" : ");
 			languageHelper.writeExpressionTree(superOrThisStatement);
 		}
+
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
 		context.setSnippetManager(snippetManager);
 		try

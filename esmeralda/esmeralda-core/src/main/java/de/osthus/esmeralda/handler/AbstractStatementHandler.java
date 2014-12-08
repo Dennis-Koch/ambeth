@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler;
 
 import java.util.Collections;
 import java.util.List;
@@ -8,11 +8,7 @@ import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.handler.IASTHelper;
-import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.ICsHelper;
-import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
 public abstract class AbstractStatementHandler<T extends StatementTree> implements IStatementHandlerExtension<T>
@@ -26,10 +22,11 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 	protected IASTHelper astHelper;
 
 	@Autowired
-	protected ICsHelper languageHelper;
-
-	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;
+
+	protected ILanguageHelper languageHelper;
+
+	protected String language;
 
 	@Override
 	public void handle(T tree)
@@ -48,8 +45,8 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 		ISnippetManager snippetManager = context.getSnippetManager();
 
 		Kind kind = statement.getKind();
-		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
-		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
+		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(language + kind);
+		if (stmtHandler != null && stmtHandler.getClass().getSimpleName().endsWith("BlockHandler"))
 		{
 			stmtHandler.handle(statement, standalone);
 		}
