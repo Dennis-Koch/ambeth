@@ -16,6 +16,7 @@ import de.osthus.ambeth.database.DatabaseCallback;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
@@ -55,9 +56,10 @@ import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.setup.IDataSetup;
 
-public class DataSetupExecutor implements IStartingBean
+public class DataSetupExecutor implements IInitializingBean, IStartingBean
 {
 	private static final ThreadLocal<Boolean> autoRebuildDataTL = new ThreadLocal<Boolean>();
 
@@ -106,9 +108,6 @@ public class DataSetupExecutor implements IStartingBean
 	@Autowired
 	protected IQueryBuilderFactory queryBuilderFactory;
 
-	@Autowired(optional = true)
-	protected IUserResolver userResolver;
-
 	@Autowired
 	protected ISecurityActivation securityActivation;
 
@@ -127,8 +126,20 @@ public class DataSetupExecutor implements IStartingBean
 	@Autowired
 	protected ITransaction transaction;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IUserIdentifierProvider userIdentifierProvider;
+
+	@Autowired(optional = true)
+	protected IUserResolver userResolver;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		if (userResolver != null)
+		{
+			ParamChecker.assertNotNull(userIdentifierProvider, "userIdentifierProvider");
+		}
+	}
 
 	@Override
 	public void afterStarted() throws Throwable
