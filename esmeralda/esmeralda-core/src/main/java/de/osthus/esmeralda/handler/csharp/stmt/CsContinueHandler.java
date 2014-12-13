@@ -5,6 +5,7 @@ import com.sun.tools.javac.tree.JCTree.JCContinue;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -22,7 +23,9 @@ public class CsContinueHandler extends AbstractCsStatementHandler<JCContinue> im
 			log.warn("Continue with label is not yet supported: " + continueStatement);
 			return;
 		}
+
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		languageHelper.newLineIndent();

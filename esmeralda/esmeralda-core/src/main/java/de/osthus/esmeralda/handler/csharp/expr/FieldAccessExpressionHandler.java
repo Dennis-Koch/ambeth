@@ -11,8 +11,10 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.handler.IMethodTransformer;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
+import de.osthus.esmeralda.handler.csharp.ICsMethodTransformer;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -24,13 +26,15 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 	private ILogger log;
 
 	@Autowired
-	protected IMethodTransformer methodTransformer;
+	protected ICsMethodTransformer methodTransformer;
 
 	@Override
 	protected void handleExpressionIntern(JCFieldAccess fieldAccess)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
 		JCExpression expression = fieldAccess.getExpression();
 		String name = fieldAccess.name.toString();
 		if ("class".equals(name))

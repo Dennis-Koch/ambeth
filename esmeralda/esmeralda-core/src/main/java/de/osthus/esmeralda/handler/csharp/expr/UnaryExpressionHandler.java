@@ -6,6 +6,8 @@ import com.sun.tools.javac.tree.JCTree.JCUnary;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
@@ -78,6 +80,7 @@ public class UnaryExpressionHandler extends AbstractExpressionHandler<JCUnary>
 	protected void writeSimpleUnary(String prefix, JCUnary unary, String postfix)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		writer.append(prefix);

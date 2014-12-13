@@ -1,15 +1,13 @@
 package de.osthus.esmeralda.handler.js.stmt;
 
 import com.sun.source.tree.BlockTree;
-import com.sun.source.tree.StatementTree;
-import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
-import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.Lang;
 
 public class JsBlockHandler extends CsBlockHandler
@@ -20,17 +18,16 @@ public class JsBlockHandler extends CsBlockHandler
 
 	public JsBlockHandler()
 	{
+		// Overwrite CS from super constructor
 		language = Lang.JS;
-	}
-
-	public void setLanguageHelper(IJsHelper languageHelper)
-	{
-		this.languageHelper = languageHelper;
 	}
 
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
 	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -39,12 +36,5 @@ public class JsBlockHandler extends CsBlockHandler
 				writeBlockContentWithoutIntendation(blockTree);
 			}
 		});
-	}
-
-	@Override
-	protected IStatementHandlerExtension<StatementTree> getStatementHandler(Kind kind)
-	{
-		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(Lang.JS + kind);
-		return stmtHandler;
 	}
 }

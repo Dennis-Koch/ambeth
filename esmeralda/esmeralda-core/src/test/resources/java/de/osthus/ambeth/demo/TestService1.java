@@ -1,5 +1,8 @@
 package de.osthus.ambeth.demo;
 
+import java.util.Arrays;
+import java.util.List;
+
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
@@ -36,7 +39,8 @@ public class TestService1 extends BaseClass implements ITestInterface
 	@Override
 	public String testMethod3()
 	{
-		return " ";
+		Object string = " ";
+		return (String) string;
 	}
 
 	@Override
@@ -47,11 +51,19 @@ public class TestService1 extends BaseClass implements ITestInterface
 		{
 			data[i] = stringParam;
 		}
+
 		StringBuilder sb = new StringBuilder();
 		for (String str : data)
 		{
 			sb.append(str);
 		}
+
+		List<String> strings = Arrays.asList(data);
+		for (String str : strings)
+		{
+			sb.append(str);
+		}
+
 		String value = sb.toString();
 		System.out.println(value);
 	}

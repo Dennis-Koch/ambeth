@@ -6,8 +6,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IMethodParameterProcessor;
+import de.osthus.esmeralda.handler.IOwnerWriter;
 import de.osthus.esmeralda.handler.ITransformedMethod;
-import de.osthus.esmeralda.handler.csharp.expr.IOwnerWriter;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class JavaLangClassTransformer extends AbstractMethodTransformerExtension
