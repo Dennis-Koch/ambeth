@@ -9,6 +9,8 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -27,9 +29,11 @@ public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpres
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		writer.append(expression.toString());
 		if (expression instanceof JCIdent)
 		{
+			ILanguageHelper languageHelper = context.getLanguageHelper();
+			languageHelper.writeVariableName(((JCIdent) expression).name.toString());
+
 			Type identType = ((JCIdent) expression).type;
 			if (identType == null)
 			{
@@ -40,7 +44,10 @@ public class LiteralExpressionHandler extends AbstractExpressionHandler<JCExpres
 			context.setTypeOnStack(identType.toString());
 			return;
 		}
+
 		JCLiteral literal = (JCLiteral) expression;
+		writer.append(literal.toString());
+
 		if (literal.type != null)
 		{
 			context.setTypeOnStack(((JCLiteral) expression).type.toString());

@@ -10,9 +10,9 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IMethodParameterProcessor;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.ITransformedMethod;
+import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMethod;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
-import de.osthus.esmeralda.handler.csharp.MethodKey;
 
 public abstract class AbstractMethodTransformerExtension implements IMethodTransformerExtension, IInitializingBean
 {

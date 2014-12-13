@@ -9,6 +9,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
@@ -22,6 +23,7 @@ public class CsSwitchHandler extends AbstractCsStatementHandler<JCSwitch> implem
 	public void handle(JCSwitch switchStatement, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		languageHelper.newLineIndent();
@@ -44,6 +46,7 @@ public class CsSwitchHandler extends AbstractCsStatementHandler<JCSwitch> implem
 	protected void handleCaseStatement(JCCase caseItem)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		final List<JCStatement> statements = caseItem.getStatements();

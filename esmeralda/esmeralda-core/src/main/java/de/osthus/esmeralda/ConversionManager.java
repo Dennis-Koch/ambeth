@@ -29,7 +29,9 @@ import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
+import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
+import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -58,6 +60,12 @@ public class ConversionManager implements IStartingBean
 
 	@Autowired
 	protected IJsClassHandler jsClassHandler;
+
+	@Autowired
+	protected ICsHelper csHelper;
+
+	@Autowired
+	protected IJsHelper jsHelper;
 
 	@Autowired
 	protected IEsmeFileUtil fileUtil;
@@ -155,6 +163,7 @@ public class ConversionManager implements IStartingBean
 			csContext.setClassInfo(classInfo);
 			csContext.setAstHelper(astHelper);
 			csContext.setClassInfoFactory(classInfoFactory);
+			csContext.setLanguageHelper(csHelper);
 
 			invokeClassHandler(csClassHandler, csContext);
 
@@ -169,6 +178,7 @@ public class ConversionManager implements IStartingBean
 			jsContext.setClassInfo(classInfo);
 			jsContext.setAstHelper(astHelper);
 			jsContext.setClassInfoFactory(classInfoFactory);
+			jsContext.setLanguageHelper(jsHelper);
 
 			invokeClassHandler(jsClassHandler, jsContext);
 

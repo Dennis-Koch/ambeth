@@ -8,7 +8,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.ASTHelper;
+import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
@@ -29,7 +31,9 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	protected void handleExpressionIntern(final JCBinary binary)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+
 		switch (binary.getKind())
 		{
 			case DIVIDE:
@@ -157,6 +161,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	protected void handleEquals(final JCBinary binary, boolean notEquals)
 	{
 		IConversionContext context = this.context.getCurrent();
+		final ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], Object>()
@@ -179,11 +184,11 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 		{
 			if (!notEquals)
 			{
-				writeSimpleBinary(" != ", binary);
+				writeSimpleBinary(" == ", binary);
 			}
 			else
 			{
-				writeSimpleBinary(" == ", binary);
+				writeSimpleBinary(" != ", binary);
 			}
 		}
 		else
@@ -205,6 +210,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	protected void writeSimpleBinary(String operator, JCBinary binary)
 	{
 		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeExpressionTree(binary.lhs);
