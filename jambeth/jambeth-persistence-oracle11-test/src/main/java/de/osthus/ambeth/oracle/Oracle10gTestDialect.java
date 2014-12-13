@@ -208,7 +208,8 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			stmt = connection.createStatement();
 
 			HashSet<String> existingPermissionGroups = new HashSet<String>();
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB WHERE TABTYPE='TABLE'");
+			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='"
+					+ PermissionGroup.permGroupIdNameOfData + "'");
 			ArrayList<String> tableNames = new ArrayList<String>();
 			while (rs.next())
 			{
@@ -233,6 +234,14 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 					continue;
 				}
 				tableNames.add(tableName);
+			}
+			JdbcUtil.close(rs);
+			rs = stmt.executeQuery("SELECT TNAME FROM TAB T WHERE TNAME LIKE ('" + PermissionGroup.permGroupPrefix + "%" + PermissionGroup.permGroupSuffix
+					+ "')");
+			while (rs.next())
+			{
+				String tableName = rs.getString("TNAME");
+				existingPermissionGroups.add(tableName);
 			}
 			for (int a = tableNames.size(); a-- > 0;)
 			{
