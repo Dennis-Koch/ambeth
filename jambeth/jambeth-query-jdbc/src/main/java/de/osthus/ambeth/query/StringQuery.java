@@ -3,13 +3,15 @@ package de.osthus.ambeth.query;
 import java.util.List;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.util.ParamChecker;
 
 public class StringQuery implements IStringQuery, IInitializingBean
 {
@@ -17,43 +19,27 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Property
 	protected IOperand rootOperand;
 
+	@Property
 	protected Class<?> entityType;
 
-	protected List<ISqlJoin> joinClauses;
+	@Property(mandatory = false)
+	protected List<ISqlJoin> joinClauses = EmptyList.getInstance();
 
-	protected boolean join = false;
+	@Property(mandatory = false)
+	protected List<ISqlJoin> allJoinClauses = EmptyList.getInstance();
+
+	protected boolean join;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-		ParamChecker.assertNotNull(rootOperand, "rootOperand");
-
-		join = joinClauses != null && !joinClauses.isEmpty();
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setRootOperand(IOperand rootOperand)
-	{
-		this.rootOperand = rootOperand;
-	}
-
-	public void setEntityType(Class<?> entityType)
-	{
-		this.entityType = entityType;
-	}
-
-	public void setJoinClauses(List<ISqlJoin> joinClauses)
-	{
-		this.joinClauses = joinClauses;
+		join = allJoinClauses != null && !allJoinClauses.isEmpty();
 	}
 
 	@Override
