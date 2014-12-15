@@ -1100,25 +1100,37 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		return buildSubQuery(all());
 	}
 
+	protected IList<ISqlJoin> getJoins()
+	{
+		if (joinMap.size() == 0)
+		{
+			return EmptyList.getInstance();
+		}
+		else
+		{
+			return joinMap.values();
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public IQuery<T> build(IOperand whereClause)
 	{
-		return (IQuery<T>) build(whereClause, this.joinMap.values(), QueryType.DEFAULT);
+		return (IQuery<T>) build(whereClause, getJoins(), QueryType.DEFAULT);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public IPagingQuery<T> buildPaging(IOperand whereClause)
 	{
-		return (IPagingQuery<T>) build(whereClause, this.joinMap.values(), QueryType.PAGING);
+		return (IPagingQuery<T>) build(whereClause, getJoins(), QueryType.PAGING);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public ISubQuery<T> buildSubQuery(IOperand whereClause)
 	{
-		return (ISubQuery<T>) build(whereClause, this.joinMap.values(), QueryType.SUBQUERY);
+		return (ISubQuery<T>) build(whereClause, getJoins(), QueryType.SUBQUERY);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1203,7 +1215,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							IOperand currWhereClause = whereClause;
 
 							IBeanConfiguration whereClauseConf = null;
-							ArrayList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
+							IList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
 							for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
 							{
 								IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(childContextFactory, self, currWhereClause,
@@ -1215,13 +1227,18 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 								currWhereClause = (IOperand) currWhereClauseConf.getInstance();
 								whereClauseConf = currWhereClauseConf;
 							}
+							if (allJoinClauses.size() == 0)
+							{
+								allJoinClauses = EmptyList.getInstance();
+							}
 							for (int i = 0; i < allJoinClauses.size(); i++)
 							{
 								((SqlJoinOperator) allJoinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
 							}
 							IBeanConfiguration stringQuery = childContextFactory.registerBean(StringQuery.class)//
 									.propertyValue("EntityType", SqlQueryBuilder.this.entityType)//
-									.propertyValue("JoinClauses", joinClauses);
+									.propertyValue("JoinClauses", joinClauses)//
+									.propertyValue("AllJoinClauses", allJoinClauses);
 
 							IBeanConfiguration query = childContextFactory.registerBean(queryName, Query.class)//
 									.propertyValue("EntityType", entityType)//
@@ -1262,7 +1279,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					case SUBQUERY:
 						ISubQuery<T> subQuery = localContext.getService("query", ISubQuery.class);
 						SubQueryWeakReference<T> weakReference = new SubQueryWeakReference<T>(subQuery);
-						weakReference.setJoinOperands(joinMap.values());
+						weakReference.setJoinOperands(joinClauses);
 						weakReference.setSubQueries(subQueries);
 						return weakReference;
 					default:

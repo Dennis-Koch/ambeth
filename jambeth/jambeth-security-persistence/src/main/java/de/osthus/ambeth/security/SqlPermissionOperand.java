@@ -66,7 +66,6 @@ public class SqlPermissionOperand implements IOperator
 			}
 			permissionGroupJoins[i].expandQuery(joinSB, nameToValueMap, true, parameters);
 		}
-
 		IOperand firstUserIdOperand = userIdOperands[0];
 		IOperand firstValueOperand = readPermissionOperands[0];
 
