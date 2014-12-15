@@ -55,6 +55,9 @@ import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
+import de.osthus.ambeth.security.ISecurityScopeChangeListenerExtendable;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityScopeProvider;
 import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
 import de.osthus.ambeth.typeinfo.RelationProvider;
@@ -83,6 +86,8 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerAutowireableBean(CompositeIdMixin.class, CompositeIdMixin.class);
 		beanContextFactory.registerAutowireableBean(ObjRefMixin.class, ObjRefMixin.class);
+
+		beanContextFactory.registerBean(SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
 
 		// if (isNetworkClientMode)
 		// {

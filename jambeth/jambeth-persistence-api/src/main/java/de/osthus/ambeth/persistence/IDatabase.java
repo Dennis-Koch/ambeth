@@ -118,6 +118,11 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	String[] getSchemaNames();
 
 	/**
+	 * @return Maximum characters this database instance supports as a symbol name
+	 */
+	int getMaxNameLength();
+
+	/**
 	 * Getter for alle tables in this database.
 	 * 
 	 * @return List of all tables in this database.

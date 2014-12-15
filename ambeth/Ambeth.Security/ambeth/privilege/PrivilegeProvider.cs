@@ -209,7 +209,8 @@ namespace De.Osthus.Ambeth.Privilege
 
         public IList<IPrivilege> GetPrivilegesByObjRef<V>(IEnumerable<V> objRefs, params ISecurityScope[] securityScopes) where V : IObjRef
         {
-            IAuthorization authorization = SecurityScopeProvider.Authorization;
+            ISecurityContext context = SecurityContextHolder.Context;
+            IAuthorization authorization = context != null ? context.Authorization : null;
             if (authorization == null)
             {
                 throw new SecurityException("User must be authenticated to be able to check for privileges");

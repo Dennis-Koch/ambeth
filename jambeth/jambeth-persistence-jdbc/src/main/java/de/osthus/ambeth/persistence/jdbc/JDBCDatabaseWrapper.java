@@ -1,6 +1,5 @@
 package de.osthus.ambeth.persistence.jdbc;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -306,13 +305,14 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		{
 			objects.get(a).mapLinks(this);
 		}
+		int maxNameLength = getMaxNameLength();
 		for (ITable table : getTables())
 		{
 			if (table.isPermissionGroup())
 			{
 				continue;
 			}
-			ITable permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName()));
+			ITable permissionGroupTable = getTableByName(ormPatternMatcher.buildPermissionGroupFromTableName(table.getName(), maxNameLength));
 			if (permissionGroupTable != null)
 			{
 				mapPermissionGroupTable(permissionGroupTable, table);
@@ -380,11 +380,6 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 	public void setLinkType(Class<? extends SqlLink> linkType)
 	{
 		this.linkType = linkType;
-	}
-
-	public void setJdbcDatabase(Connection jdbcDatabase)
-	{
-		connection = jdbcDatabase;
 	}
 
 	@Override

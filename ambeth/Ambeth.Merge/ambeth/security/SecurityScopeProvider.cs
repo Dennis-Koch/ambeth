@@ -56,20 +56,6 @@ namespace De.Osthus.Ambeth.Security
             }
         }
 
-        public IAuthorization Authorization
-        {
-            get
-            {
-                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
-                return securityScopeHandle.authorization;
-            }
-            set
-            {
-                SecurityScopeHandle securityScopeHandle = securityScopeTL.Value;
-                securityScopeHandle.authorization = value;
-            }
-        }
-
         public R ExecuteWithSecurityScopes<R>(IResultingBackgroundWorkerDelegate<R> runnable, params ISecurityScope[] securityScopes)
         {
             ISecurityScope[] oldSecurityScopes = SecurityScopes;
@@ -88,7 +74,7 @@ namespace De.Osthus.Ambeth.Security
         {
 	        foreach (ISecurityScopeChangeListener securityScopeChangeListener in securityScopeChangeListeners.GetExtensions())
 	        {
-		        securityScopeChangeListener.SecurityScopeChanged(securityScopeHandle.authorization, securityScopeHandle.securityScopes);
+		        securityScopeChangeListener.SecurityScopeChanged(securityScopeHandle.securityScopes);
 	        }
         }
 

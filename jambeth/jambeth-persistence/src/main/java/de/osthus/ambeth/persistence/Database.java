@@ -13,6 +13,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.database.IDatabaseProvider;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -275,6 +276,19 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	public List<Class<?>> getHandledEntities()
 	{
 		return handledEntities;
+	}
+
+	@Override
+	public int getMaxNameLength()
+	{
+		try
+		{
+			return connection.getMetaData().getMaxProcedureNameLength();
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

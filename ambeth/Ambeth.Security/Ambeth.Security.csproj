@@ -70,10 +70,8 @@
     <Compile Include="ambeth\privilege\PrivilegeProvider.cs" />
     <Compile Include="ambeth\security\CallPermission.cs" />
     <Compile Include="ambeth\security\config\SecurityConfigurationConstants.cs" />
-    <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
     <Compile Include="ambeth\security\IActionPermission.cs" />
     <Compile Include="ambeth\security\PermissionApplyType.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
@@ -82,7 +80,6 @@
     <Compile Include="ambeth\security\IAuthorization.cs" />
     <Compile Include="ambeth\security\IAuthorizationManager.cs" />
     <Compile Include="ambeth\security\SecurityActivation.cs" />
-    <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\service\IPrivilegeService.cs" />
     <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
@@ -127,10 +124,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\security\ISecurityActivation.cs" />

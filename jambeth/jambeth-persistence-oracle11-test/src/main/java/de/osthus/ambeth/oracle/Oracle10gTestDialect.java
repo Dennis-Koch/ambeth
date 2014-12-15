@@ -33,8 +33,6 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
 
-	protected static final String triggerNamePrefix = "TR_", triggerNamePostfix = "_OL";
-
 	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)
 	protected String ignoredTableProperty;
 
@@ -131,14 +129,10 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		{
 			return new String[0];
 		}
-		int maxNameLength = connection.getMetaData().getMaxProcedureNameLength();
+		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		StringBuilder sb = new StringBuilder();
-		String forTriggerName = tableName;
-		if (forTriggerName.length() >= maxNameLength - 3 - 3) // Substract 3 chars 'TR_' and 3 chars '_OL'
-		{
-			forTriggerName = forTriggerName.substring(0, maxNameLength - 3 - 3);
-		}
-		sb.append("create or replace TRIGGER \"").append(triggerNamePrefix).append(forTriggerName).append(triggerNamePostfix);
+		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(tableName, maxProcedureNameLength);
+		sb.append("create or replace TRIGGER \"").append(triggerName);
 		sb.append("\"	BEFORE UPDATE ON \"").append(tableName).append("\" FOR EACH ROW");
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
@@ -158,20 +152,10 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		{
 			stmt = connection.createStatement();
 
-			String expTriggerName = "EXPECTED_TRIGGER_NAME";
-			String sqlFoundTableNamePrefix = "SELECT T.TNAME as TNAME";
-			String sqlFoundTableNamePostfix = " FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'";
-			String expectedTriggerNameColumn = ", concat('" + triggerNamePrefix + "', concat(T.TNAME, '" + triggerNamePostfix + "')) as " + expTriggerName;
-
-			String sqlExpectedTriggerNames = sqlFoundTableNamePrefix + expectedTriggerNameColumn + sqlFoundTableNamePostfix;
-			String sqlFoundTableNames = sqlFoundTableNamePrefix + sqlFoundTableNamePostfix;
-
-			String foundTriggerNames = "SELECT TR.TRIGGER_NAME FROM ALL_TRIGGERS TR WHERE TR.TABLE_NAME IN (" + sqlFoundTableNames + ")";
-
-			String sql = "SELECT TNAME FROM (" + sqlExpectedTriggerNames + ") where " + expTriggerName + " NOT IN (" + foundTriggerNames + ")";
-
-			rs = stmt.executeQuery(sql);
-			ArrayList<String> tableNames = new ArrayList<String>();
+			HashSet<String> existingOptimisticLockTriggers = new HashSet<String>();
+			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='" + "VERSION"
+					+ "'");
+			ArrayList<String> tableNamesWhichNeedOptimisticLockTrigger = new ArrayList<String>();
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
@@ -183,14 +167,69 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 				{
 					continue;
 				}
-				String tableNameLower = tableName.toLowerCase();
-				if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
+				if (ormPatternMatcher.matchesArchivePattern(tableName))
 				{
+					// archive tables do not need an optimistic lock trigger
 					continue;
 				}
-				tableNames.add(tableName);
+				tableNamesWhichNeedOptimisticLockTrigger.add(tableName);
 			}
-			return tableNames;
+			JdbcUtil.close(rs);
+			rs = stmt.executeQuery("SELECT TRIGGER_NAME FROM ALL_TRIGGERS");
+			while (rs.next())
+			{
+				String triggerName = rs.getString("TRIGGER_NAME");
+				if (ormPatternMatcher.matchesOptimisticLockTriggerPattern(triggerName))
+				{
+					existingOptimisticLockTriggers.add(triggerName);
+				}
+			}
+			int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+			for (int a = tableNamesWhichNeedOptimisticLockTrigger.size(); a-- > 0;)
+			{
+				String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNamesWhichNeedOptimisticLockTrigger.get(a),
+						maxProcedureNameLength);
+				if (existingOptimisticLockTriggers.contains(permissionGroupName))
+				{
+					tableNamesWhichNeedOptimisticLockTrigger.removeAtIndex(a);
+				}
+			}
+			return tableNamesWhichNeedOptimisticLockTrigger;
+			// HashSet<String> existingPermissionGroups = new HashSet<String>();
+			//
+			// String expTriggerName = "EXPECTED_TRIGGER_NAME";
+			// String sqlFoundTableNamePrefix = "SELECT T.TNAME as TNAME";
+			// String sqlFoundTableNamePostfix = " FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'";
+			// String expectedTriggerNameColumn = ", concat('" + triggerNamePrefix + "', concat(T.TNAME, '" + triggerNamePostfix + "')) as " + expTriggerName;
+			//
+			// String sqlExpectedTriggerNames = sqlFoundTableNamePrefix + expectedTriggerNameColumn + sqlFoundTableNamePostfix;
+			// String sqlFoundTableNames = sqlFoundTableNamePrefix + sqlFoundTableNamePostfix;
+			//
+			// String foundTriggerNames = "SELECT TR.TRIGGER_NAME FROM ALL_TRIGGERS TR WHERE TR.TABLE_NAME IN (" + sqlFoundTableNames + ")";
+			//
+			// String sql = "SELECT TNAME FROM (" + sqlExpectedTriggerNames + ") where " + expTriggerName + " NOT IN (" + foundTriggerNames + ")";
+			//
+			// rs = stmt.executeQuery(sql);
+			// ArrayList<String> tableNames = new ArrayList<String>();
+			// while (rs.next())
+			// {
+			// String tableName = rs.getString("TNAME");
+			// if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+			// {
+			// continue;
+			// }
+			// if (ignoredTables.contains(tableName))
+			// {
+			// continue;
+			// }
+			// String tableNameLower = tableName.toLowerCase();
+			// if (tableNameLower.startsWith("link_") || tableNameLower.startsWith("l_"))
+			// {
+			// continue;
+			// }
+			// tableNames.add(tableName);
+			// }
+			// return tableNames;
 		}
 		finally
 		{
@@ -210,7 +249,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			HashSet<String> existingPermissionGroups = new HashSet<String>();
 			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='"
 					+ PermissionGroup.permGroupIdNameOfData + "'");
-			ArrayList<String> tableNames = new ArrayList<String>();
+			ArrayList<String> tableNamesWhichNeedPermissionGroup = new ArrayList<String>();
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
@@ -233,25 +272,29 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 					existingPermissionGroups.add(tableName);
 					continue;
 				}
-				tableNames.add(tableName);
+				tableNamesWhichNeedPermissionGroup.add(tableName);
 			}
 			JdbcUtil.close(rs);
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T WHERE TNAME LIKE ('" + PermissionGroup.permGroupPrefix + "%" + PermissionGroup.permGroupSuffix
-					+ "')");
+			rs = stmt.executeQuery("SELECT TNAME FROM TAB T");
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
-				existingPermissionGroups.add(tableName);
-			}
-			for (int a = tableNames.size(); a-- > 0;)
-			{
-				String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNames.get(a));
-				if (existingPermissionGroups.contains(permissionGroupName))
+				if (ormPatternMatcher.matchesPermissionGroupPattern(tableName))
 				{
-					tableNames.removeAtIndex(a);
+					existingPermissionGroups.add(tableName);
 				}
 			}
-			return tableNames;
+			int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+			for (int a = tableNamesWhichNeedPermissionGroup.size(); a-- > 0;)
+			{
+				String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableNamesWhichNeedPermissionGroup.get(a),
+						maxProcedureNameLength);
+				if (existingPermissionGroups.contains(permissionGroupName))
+				{
+					tableNamesWhichNeedPermissionGroup.removeAtIndex(a);
+				}
+			}
+			return tableNamesWhichNeedPermissionGroup;
 		}
 		finally
 		{
@@ -260,9 +303,10 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	}
 
 	@Override
-	public String[] createPermissionGroup(Connection conn, String tableName) throws SQLException
+	public String[] createPermissionGroup(Connection connection, String tableName) throws SQLException
 	{
-		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName);
+		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
+		String permissionGroupName = ormPatternMatcher.buildPermissionGroupFromTableName(tableName, maxProcedureNameLength);
 		String pkName;
 		Matcher matcher = Pattern.compile("(?:.*\\.)?([^\\.]+)").matcher(permissionGroupName);
 		if (matcher.matches())
@@ -316,14 +360,14 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	}
 
 	@Override
-	public void dropAllSchemaContent(Connection conn, String schemaName)
+	public void dropAllSchemaContent(Connection connection, String schemaName)
 	{
 		Statement stmt = null, stmt2 = null;
 		ResultSet rs = null;
 		try
 		{
-			stmt = conn.createStatement();
-			stmt2 = conn.createStatement();
+			stmt = connection.createStatement();
+			stmt2 = connection.createStatement();
 			stmt.execute("SELECT TNAME, TABTYPE FROM TAB");
 			rs = stmt.getResultSet();
 			while (rs.next())

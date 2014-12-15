@@ -218,6 +218,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			handleExternalEntities();
 		}
+		int maxNameLength = database.getMaxNameLength();
 		Iterator<EntityConfig> iter = localEntities.iterator();
 		while (iter.hasNext())
 		{
@@ -231,7 +232,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			ITable table = tryResolveTable(database, entityConfig.getTableName(), realType.getSimpleName());
 			table = database.mapTable(table.getName(), entityType);
 
-			ITable archiveTable = database.getTableByName(ormPatternMatcher.buildArchiveFromTableName(table.getName()));
+			ITable archiveTable = database.getTableByName(ormPatternMatcher.buildArchiveFromTableName(table.getName(), maxNameLength));
 			if (archiveTable != null)
 			{
 				database.mapArchiveTable(archiveTable.getName(), entityType);
@@ -240,7 +241,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 
 			if (sequenceName == null)
 			{
-				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName());
+				sequenceName = ormPatternMatcher.buildSequenceFromTableName(table.getName(), maxNameLength);
 			}
 			sequenceName = getFqObjectName(table, sequenceName);
 			if (table instanceof Table)
@@ -309,7 +310,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 				{
 					continue;
 				}
-				addToUcPropertyMap(memberName, propertyInfo, ucPropertyMap);
+				addToUcPropertyMap(memberName, propertyInfo, ucPropertyMap, maxNameLength);
 			}
 			List<IField> fields = table.getAllFields();
 			ArrayList<IField> fieldsCopy = new ArrayList<IField>(fields);
@@ -361,7 +362,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			// No config source was set
 			return;
 		}
-
+		int maxNameLength = database.getMaxNameLength();
 		IConfigurableDatabase confDatabase = (IConfigurableDatabase) database;
 		List<ILink> allLinks = database.getLinks();
 		for (int i = allLinks.size(); i-- > 0;)
@@ -369,7 +370,7 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 			ILink link = allLinks.get(i);
 			if (link.getName().equals(link.getTableName()))
 			{
-				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName());
+				String archiveTableName = ormPatternMatcher.buildArchiveFromTableName(link.getName(), maxNameLength);
 				if (confDatabase.isLinkArchiveTable(archiveTableName))
 				{
 					((Link) link).setArchiveTableName(archiveTableName);
@@ -431,7 +432,8 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		{
 			throw new IllegalArgumentException("No table name specified");
 		}
-		String assumedName = ormPatternMatcher.buildTableNameFromSoftName(softName);
+		int maxProcedureNameLength = database.getMaxNameLength();
+		String assumedName = ormPatternMatcher.buildTableNameFromSoftName(softName, maxProcedureNameLength);
 
 		ITable table = null;
 		{
@@ -517,12 +519,12 @@ public class XmlDatabaseMapper extends DefaultDatabaseMapper implements IStartin
 		}
 	}
 
-	protected void addToUcPropertyMap(String memberName, IPropertyInfo propertyInfo, IMap<String, IPropertyInfo> ucPropertyMap)
+	protected void addToUcPropertyMap(String memberName, IPropertyInfo propertyInfo, IMap<String, IPropertyInfo> ucPropertyMap, int maxNameLength)
 	{
 		ISet<String> producedNameCandidates = produceNameCandidates(memberName);
 		for (String name : producedNameCandidates)
 		{
-			String assumedFieldName1 = ormPatternMatcher.buildFieldNameFromSoftName(name);
+			String assumedFieldName1 = ormPatternMatcher.buildFieldNameFromSoftName(name, maxNameLength);
 			String assumedFieldName2 = assumedFieldName1 + "_ID";
 
 			if (!ucPropertyMap.putIfNotExists(assumedFieldName1, propertyInfo))
