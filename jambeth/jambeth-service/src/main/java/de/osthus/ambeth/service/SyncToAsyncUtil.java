@@ -139,7 +139,7 @@ public final class SyncToAsyncUtil
 		serviceDescription.setParamTypes(syncMethod.getParameterTypes());
 		serviceDescription.setArguments(syncArguments);
 		ISecurityScope[] securityScopesWeb = new ISecurityScope[securityScopes.length];
-		System.arraycopy(securityScopesWeb, 0, securityScopesWeb, 0, securityScopes.length);
+		System.arraycopy(securityScopes, 0, securityScopesWeb, 0, securityScopes.length);
 		serviceDescription.setSecurityScopes(securityScopesWeb);
 		return serviceDescription;
 	}

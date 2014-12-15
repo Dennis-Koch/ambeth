@@ -21,6 +21,7 @@ using System.Threading;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Security;
 
 namespace De.Osthus.Ambeth.Merge.Interceptor
 {
@@ -45,6 +46,9 @@ namespace De.Osthus.Ambeth.Merge.Interceptor
 
         [Autowired(Optional = true)]
         public IProcessService ProcessService { protected get; set; }
+
+        [Autowired]
+        public ISecurityScopeProvider SecurityScopeProvider { protected get; set; }
 
         [Property]
         public String ServiceName { protected get; set; }
@@ -114,7 +118,8 @@ namespace De.Osthus.Ambeth.Merge.Interceptor
             {
                 return base.InterceptApplication(invocation, annotation, isAsyncBegin);
             }
-            IServiceDescription serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, invocation.Method, invocation.Arguments);
+            ISecurityScope[] securityScopes = SecurityScopeProvider.SecurityScopes;
+            IServiceDescription serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, invocation.Method, invocation.Arguments, securityScopes);
             processServiceActiveTL.Value = true;
             try
             {

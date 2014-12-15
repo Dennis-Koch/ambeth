@@ -135,6 +135,11 @@
     <Compile Include="ambeth\proxy\IEntityMetaDataHolder.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
     <Compile Include="ambeth\proxy\IObjRefContainer.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
+    <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
+    <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
+    <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\service\IMergeService.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
     <Compile Include="ambeth\service\IMergeServiceWCF.cs" />

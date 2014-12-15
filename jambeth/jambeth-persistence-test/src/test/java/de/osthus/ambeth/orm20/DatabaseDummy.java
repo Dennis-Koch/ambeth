@@ -56,6 +56,12 @@ public class DatabaseDummy implements IDatabase
 	}
 
 	@Override
+	public int getMaxNameLength()
+	{
+		return Integer.MAX_VALUE;
+	}
+
+	@Override
 	public Collection<Class<?>> getHandledEntities()
 	{
 		return null;

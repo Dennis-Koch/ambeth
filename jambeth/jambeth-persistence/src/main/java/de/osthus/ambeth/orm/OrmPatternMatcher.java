@@ -45,6 +45,10 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	@Property(name = PersistenceConfigurationConstants.DatabaseSequencePostfix, defaultValue = "")
 	protected String sequencePostfix = "";
 
+	protected String triggerNamePrefix = "TR_";
+
+	protected String triggerNamePostfix = "_OL";
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -58,6 +62,15 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 		}
 	}
 
+	protected String buildNameWithMaxLength(String tableName, String prefix, String postFix, int maxNameLength)
+	{
+		if (tableName.length() >= maxNameLength - prefix.length() - postFix.length())
+		{
+			return prefix + tableName.substring(0, maxNameLength - prefix.length() - postFix.length()) + postFix;
+		}
+		return prefix + tableName + postFix;
+	}
+
 	@Override
 	public boolean matchesSequencePattern(String potentialSequenceName)
 	{
@@ -65,16 +78,14 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	}
 
 	@Override
-	public String buildSequenceFromTableName(String tableName)
+	public String buildSequenceFromTableName(String tableName, int maxNameLength)
 	{
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
 		if (matcher.matches())
 		{
 			tableName = matcher.group(2);
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(sequencePrefix).append(tableName).append(sequencePostfix);
-		return sb.toString();
+		return buildNameWithMaxLength(tableName, sequencePrefix, sequencePostfix, maxNameLength);
 	}
 
 	@Override
@@ -90,16 +101,20 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	}
 
 	@Override
-	public String buildPermissionGroupFromTableName(String tableName)
+	public boolean matchesOptimisticLockTriggerPattern(String potentialOptimisticLockTriggerName)
+	{
+		return potentialOptimisticLockTriggerName.startsWith(triggerNamePrefix) && potentialOptimisticLockTriggerName.endsWith(triggerNamePostfix);
+	}
+
+	@Override
+	public String buildPermissionGroupFromTableName(String tableName, int maxNameLength)
 	{
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
 		if (matcher.matches())
 		{
 			tableName = matcher.group(2);
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(permissionGroupPrefix).append(tableName).append(permissionGroupPostfix);
-		return sb.toString();
+		return buildNameWithMaxLength(tableName, permissionGroupPrefix, permissionGroupPostfix, maxNameLength);
 	}
 
 	@Override
@@ -109,32 +124,37 @@ public class OrmPatternMatcher implements IInitializingBean, IOrmPatternMatcher
 	}
 
 	@Override
-	public String buildTableNameFromSoftName(String softName)
+	public String buildTableNameFromSoftName(String softName, int maxNameLength)
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(tablePrefix).append(softName).append(tablePostfix);
-		return sb.toString();
+		return buildNameWithMaxLength(softName, tablePrefix, tablePostfix, maxNameLength);
 	}
 
 	@Override
-	public String buildFieldNameFromSoftName(String softName)
+	public String buildFieldNameFromSoftName(String softName, int maxNameLength)
 	{
-		StringBuilder sb = new StringBuilder();
-		sb.append(fieldPrefix).append(softName).append(fieldPostfix);
-		return sb.toString();
+		return buildNameWithMaxLength(softName, fieldPrefix, fieldPostfix, maxNameLength);
 	}
 
 	@Override
-	public String buildArchiveFromTableName(String tableName)
+	public String buildArchiveFromTableName(String tableName, int maxNameLength)
 	{
 		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
 		if (matcher.matches())
 		{
 			tableName = matcher.group(2);
 		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(archiveTablePrefix).append(tableName).append(archiveTablePostfix);
-		return sb.toString();
+		return buildNameWithMaxLength(tableName, archiveTablePrefix, archiveTablePostfix, maxNameLength);
+	}
+
+	@Override
+	public String buildOptimisticLockTriggerFromTableName(String tableName, int maxNameLength)
+	{
+		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
+		if (matcher.matches())
+		{
+			tableName = matcher.group(2);
+		}
+		return buildNameWithMaxLength(tableName, triggerNamePrefix, triggerNamePostfix, maxNameLength);
 	}
 
 	@Override

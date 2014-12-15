@@ -22,22 +22,24 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.model.IServiceDescription;
 import de.osthus.ambeth.proxy.AbstractInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.ServiceClient;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.util.IConversionHelper;
 
 public class MergeInterceptor extends AbstractInterceptor
 {
+	// Intentionally no SensitiveThreadLocal
+	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<Boolean>();
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	// Intentionally no SensitiveThreadLocal
-	protected static final ThreadLocal<Boolean> processServiceActive = new ThreadLocal<Boolean>();
 
 	@Autowired
 	protected IMethodLevelBehavior<Annotation> behavior;
@@ -53,6 +55,9 @@ public class MergeInterceptor extends AbstractInterceptor
 
 	@Autowired(optional = true)
 	protected IProcessService processService;
+
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
 
 	protected boolean isCloneCacheControllerActive;
 
@@ -127,7 +132,8 @@ public class MergeInterceptor extends AbstractInterceptor
 		{
 			return super.interceptApplication(obj, method, args, proxy, annotation, isAsyncBegin);
 		}
-		IServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args);
+		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+		IServiceDescription serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
 		processServiceActive.set(Boolean.TRUE);
 		try
 		{

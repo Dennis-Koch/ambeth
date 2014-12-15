@@ -83,7 +83,8 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 		    }
 		    if (cached == null)
 		    {
-			    serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, method, args);
+                ISecurityScope[] securityScopes = SecurityScopeProvider.SecurityScopes;
+			    serviceDescription = SyncToAsyncUtil.CreateServiceDescription(ServiceName, method, args, securityScopes);
                 serviceResult = CacheService.GetORIsForServiceRequest(serviceDescription);
                 return CreateResultObject(serviceResult, returnType, args);
 		    }

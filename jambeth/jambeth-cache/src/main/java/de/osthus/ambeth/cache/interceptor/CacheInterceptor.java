@@ -25,6 +25,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -70,7 +71,8 @@ public class CacheInterceptor extends MergeInterceptor
 		}
 		if (cached == null)
 		{
-			serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args);
+			ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+			serviceDescription = SyncToAsyncUtil.createServiceDescription(serviceName, method, args, securityScopes);
 			serviceResult = cacheService.getORIsForServiceRequest(serviceDescription);
 			return createResultObject(serviceResult, returnType, args);
 		}

@@ -518,7 +518,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				TestAuthentication authentication = method.getAnnotation(TestAuthentication.class);
 				if (authentication == null)
 				{
-					authentication = method.getMethod().getDeclaringClass().getAnnotation(TestAuthentication.class);
+					Class<?> testClass = getTestClass().getJavaClass();
+					authentication = testClass.getAnnotation(TestAuthentication.class);
 				}
 				if (authentication == null)
 				{

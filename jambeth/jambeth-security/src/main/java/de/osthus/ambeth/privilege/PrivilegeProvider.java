@@ -235,7 +235,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		IAuthorization authorization = context != null ? context.getAuthorization() : null;
 		if (authorization == null)
 		{
-			throw new SecurityException("User must be authorized to be able to check for privileges");
+			throw new SecurityException("User must be authenticated to be able to check for privileges");
 		}
 		if (securityScopes.length == 0)
 		{

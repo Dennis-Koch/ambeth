@@ -110,9 +110,6 @@
     <Compile Include="ambeth\security\ISecurityContext.cs" />
     <Compile Include="ambeth\security\ISecurityContextHolder.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeChangeListener.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeChangeListenerExtendable.cs" />
-    <Compile Include="ambeth\security\ISecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\IServiceFilter.cs" />
     <Compile Include="ambeth\security\IServiceFilterExtendable.cs" />
     <Compile Include="ambeth\security\IServicePermission.cs" />
@@ -124,8 +121,6 @@
     <Compile Include="ambeth\security\SecurityContextHolder.cs" />
     <Compile Include="ambeth\security\SecurityContextImpl.cs" />
     <Compile Include="ambeth\security\SecurityContextType.cs" />
-    <Compile Include="ambeth\security\SecurityScopeHandle.cs" />
-    <Compile Include="ambeth\security\SecurityScopeProvider.cs" />
     <Compile Include="ambeth\security\transfer\Country.cs" />
     <Compile Include="ambeth\security\transfer\Observable.cs" />
     <Compile Include="ambeth\security\transfer\Role.cs" />

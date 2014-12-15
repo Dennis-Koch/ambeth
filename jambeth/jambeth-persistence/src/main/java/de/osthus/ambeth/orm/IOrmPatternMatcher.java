@@ -2,25 +2,27 @@ package de.osthus.ambeth.orm;
 
 public interface IOrmPatternMatcher
 {
-
 	boolean matchesSequencePattern(String potentialSequenceName);
-
-	String buildSequenceFromTableName(String tableName);
 
 	boolean matchesFieldPattern(String potentialFieldName);
 
 	boolean matchesPermissionGroupPattern(String potentialPermissionGroupName);
 
-	String buildPermissionGroupFromTableName(String tableName);
+	boolean matchesOptimisticLockTriggerPattern(String potentialOptimisticLockTriggerName);
 
 	boolean matchesArchivePattern(String potentialArchiveName);
 
-	String buildArchiveFromTableName(String tableName);
-
 	boolean matchesTablePattern(String potentialTableName);
 
-	String buildTableNameFromSoftName(String softName);
+	String buildSequenceFromTableName(String tableName, int maxNameLength);
 
-	String buildFieldNameFromSoftName(String softName);
+	String buildPermissionGroupFromTableName(String tableName, int maxNameLength);
 
+	String buildOptimisticLockTriggerFromTableName(String tableName, int maxNameLength);
+
+	String buildArchiveFromTableName(String tableName, int maxNameLength);
+
+	String buildTableNameFromSoftName(String softName, int maxNameLength);
+
+	String buildFieldNameFromSoftName(String softName, int maxNameLength);
 }

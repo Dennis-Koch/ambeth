@@ -5,11 +5,8 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.security.IAuthorizationChangeListenerExtendable;
 import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityContextHolder;
-import de.osthus.ambeth.security.ISecurityScopeChangeListenerExtendable;
-import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.security.SecurityActivation;
 import de.osthus.ambeth.security.SecurityContextHolder;
-import de.osthus.ambeth.security.SecurityScopeProvider;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.MultithreadingHelper;
 
@@ -22,8 +19,6 @@ public class SecurityModule implements IInitializingModule
 		beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class);
 
 		beanContextFactory.registerBean(SecurityActivation.class).autowireable(ISecurityActivation.class);
-
-		beanContextFactory.registerBean(SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
 
 		beanContextFactory.registerBean(SecurityContextHolder.class).autowireable(ISecurityContextHolder.class, IAuthorizationChangeListenerExtendable.class);
 	}

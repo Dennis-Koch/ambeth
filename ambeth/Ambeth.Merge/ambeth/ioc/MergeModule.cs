@@ -22,6 +22,7 @@ using De.Osthus.Ambeth.Util.Xml;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Objrefstore;
 using De.Osthus.Ambeth.Copy;
+using De.Osthus.Ambeth.Security;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -56,6 +57,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterAutowireableBean<CompositeIdMixin, CompositeIdMixin>();
             beanContextFactory.RegisterAutowireableBean<ObjRefMixin, ObjRefMixin>();
+
+            beanContextFactory.RegisterBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
 
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
