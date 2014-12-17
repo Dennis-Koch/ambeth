@@ -155,7 +155,6 @@
     <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
     <Compile Include="ambeth\util\INamedRunnable.cs" />
     <Compile Include="ambeth\util\MultithreadingHelper.cs" />
-    <Compile Include="ambeth\util\Runnable.cs" />
     <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

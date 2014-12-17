@@ -8,14 +8,18 @@ using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Ioc.Annotation;
 
 namespace De.Osthus.Ambeth.Copy
 {
     /// <summary>
     /// Reference implementation for the <code>IObjectCopier</code> interface. Provides an extension point to customize to copy behavior on specific object types.
     /// </summary>
-    public class ObjectCopier : IInitializingBean, IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean
+    public class ObjectCopier : IObjectCopier, IObjectCopierExtendable, IThreadLocalCleanupBean
     {
+        [Autowired]
+        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
+
         /// <summary>
         /// Save an instance of ObjectCopierState per-thread for performance reasons
         /// </summary>
@@ -27,13 +31,6 @@ namespace De.Osthus.Ambeth.Copy
         protected readonly ThreadLocal<ObjectCopierState> usedOcStateTL = new ThreadLocal<ObjectCopierState>();
 
         protected readonly ClassExtendableContainer<IObjectCopierExtension> extensions = new ClassExtendableContainer<IObjectCopierExtension>("objectCopierExtension", "type");
-
-        public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
-
-        public void AfterPropertiesSet()
-        {
-            ParamChecker.AssertNotNull(PropertyInfoProvider, "PropertyInfoProvider");
-        }
 
         public void CleanupThreadLocal()
         {

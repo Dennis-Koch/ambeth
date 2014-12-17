@@ -1,6 +1,7 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -10,6 +11,7 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 {
 	public static final ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
 
+	@Forkable
 	protected final ThreadLocal<SecurityScopeHandle> securityScopeTL = new SensitiveThreadLocal<SecurityScopeHandle>();
 
 	protected final DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners = new DefaultExtendableContainer<ISecurityScopeChangeListener>(

@@ -63,7 +63,6 @@
     <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
     <Compile Include="ambeth\cache\ICacheIntern.cs" />
     <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
-    <Compile Include="ambeth\cache\PendingValueHolders.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
     <Compile Include="ambeth\cache\ServiceResultCache.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />

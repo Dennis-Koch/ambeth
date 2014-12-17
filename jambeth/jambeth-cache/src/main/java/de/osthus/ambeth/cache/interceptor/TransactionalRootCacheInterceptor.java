@@ -13,6 +13,7 @@ import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.security.ISecurityActivation;
@@ -37,10 +38,13 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
+	@Forkable
 	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new SensitiveThreadLocal<RootCache>();
 
+	@Forkable
 	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
 
+	@Forkable
 	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new SensitiveThreadLocal<Boolean>();
 
 	@Override

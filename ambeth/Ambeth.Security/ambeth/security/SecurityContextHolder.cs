@@ -14,6 +14,7 @@ namespace De.Osthus.Ambeth.Security
     {
         protected readonly DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>("authorizationChangeListener");
 
+        [Forkable]
         protected readonly ThreadLocal<ISecurityContext> contextTL = new ThreadLocal<ISecurityContext>();
 
         public void NotifyAuthorizationChangeListeners(IAuthorization authorization)

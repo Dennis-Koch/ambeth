@@ -9,7 +9,7 @@ import de.osthus.ambeth.threading.SensitiveThreadLocal;
 public class ServiceResultHolder implements IServiceResultHolder, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
-	@LogInstance(ServiceResultHolder.class)
+	@LogInstance
 	private ILogger log;
 
 	public static class ServiceResultHolderItem

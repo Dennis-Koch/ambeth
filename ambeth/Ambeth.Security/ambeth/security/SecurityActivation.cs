@@ -4,23 +4,32 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Security.Config;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 #if SILVERLIGHT
 using De.Osthus.Ambeth.Util;
 #endif
 
 namespace De.Osthus.Ambeth.Security
 {
-    public class SecurityActivation : ISecurityActivation
+    public class SecurityActivation : ISecurityActivation, IThreadLocalCleanupBean
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Forkable]
         protected readonly ThreadLocal<bool?> securityActiveTL = new ThreadLocal<bool?>();
 
+        [Forkable]
         protected readonly ThreadLocal<bool?> filterActiveTL = new ThreadLocal<bool?>();
 
         [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
 	    public bool SecurityActive { protected get; set; }
+
+        public void CleanupThreadLocal()
+        {
+            securityActiveTL.Value = null;
+            filterActiveTL.Value = null;
+        }
 
         public bool Secured
         {

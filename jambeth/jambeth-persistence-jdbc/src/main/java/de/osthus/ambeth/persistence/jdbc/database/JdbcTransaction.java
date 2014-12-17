@@ -25,6 +25,7 @@ import de.osthus.ambeth.event.DatabasePreCommitEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -95,6 +96,7 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 	@Autowired(optional = true)
 	protected UserTransaction userTransaction;
 
+	@Forkable
 	protected final ThreadLocal<ThreadLocalItem> tliTL = new SensitiveThreadLocal<ThreadLocalItem>();
 
 	protected ThreadLocalItem getEnsureTLI()

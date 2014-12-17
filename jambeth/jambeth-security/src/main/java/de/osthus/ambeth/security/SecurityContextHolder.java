@@ -1,6 +1,7 @@
 package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -10,6 +11,7 @@ public class SecurityContextHolder implements IAuthorizationChangeListenerExtend
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
+	@Forkable
 	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)

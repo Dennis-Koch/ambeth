@@ -1,12 +1,17 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
+import java.lang.reflect.Field;
+import java.util.concurrent.locks.Lock;
+
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class ThreadLocalCleanupController implements IInitializingBean, IDisposableBean, IThreadLocalCleanupBeanExtendable, IThreadLocalCleanupController
 {
@@ -14,8 +19,10 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 	@LogInstance
 	private ILogger log;
 
-	protected final IExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<IThreadLocalCleanupBean>(
+	protected final DefaultExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<IThreadLocalCleanupBean>(
 			IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
+
+	protected ForkStateEntry[] cachedForkStateEntries;
 
 	protected ThreadLocalObjectCollector objectCollector;
 
@@ -50,16 +57,117 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
+	protected ForkStateEntry[] getForkStateEntries()
+	{
+		ForkStateEntry[] cachedForkStateEntries = this.cachedForkStateEntries;
+		if (cachedForkStateEntries != null)
+		{
+			return cachedForkStateEntries;
+		}
+		Lock writeLock = listeners.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			// check again: concurrent thread might have been faster
+			cachedForkStateEntries = this.cachedForkStateEntries;
+			if (cachedForkStateEntries != null)
+			{
+				return cachedForkStateEntries;
+			}
+			IThreadLocalCleanupBean[] extensions = listeners.getExtensions();
+			ArrayList<ForkStateEntry> forkStateEntries = new ArrayList<ForkStateEntry>(extensions.length);
+			for (int a = 0, size = extensions.length; a < size; a++)
+			{
+				IThreadLocalCleanupBean extension = extensions[a];
+				Field[] fields = ReflectUtil.getDeclaredFieldsInHierarchy(extension.getClass());
+				for (Field field : fields)
+				{
+					Forkable forkable = field.getAnnotation(Forkable.class);
+					if (forkable == null)
+					{
+						continue;
+					}
+					ThreadLocal<?> valueTL = (ThreadLocal<?>) field.get(extension);
+					if (valueTL == null)
+					{
+						continue;
+					}
+					forkStateEntries.add(new ForkStateEntry(extension, valueTL, forkable.value()));
+				}
+			}
+			cachedForkStateEntries = forkStateEntries.toArray(ForkStateEntry.class);
+			this.cachedForkStateEntries = cachedForkStateEntries;
+			return cachedForkStateEntries;
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
+	@Override
+	public IForkState createForkState()
+	{
+		ForkStateEntry[] forkStateEntries = getForkStateEntries();
+
+		IForkedValueResolver[] oldValues = new IForkedValueResolver[forkStateEntries.length];
+		for (int a = 0, size = forkStateEntries.length; a < size; a++)
+		{
+			ForkStateEntry forkStateEntry = forkStateEntries[a];
+			Object value = forkStateEntry.valueTL.get();
+			if (value != null && ForkableType.SHALLOW_COPY.equals(forkStateEntry.forkableType))
+			{
+				if (value instanceof Cloneable)
+				{
+					oldValues[a] = new ShallowCopyValueResolver(value);
+				}
+				else
+				{
+					throw new IllegalStateException("Could not clone " + value);
+				}
+			}
+			else
+			{
+				oldValues[a] = new ReferenceValueResolver(value);
+			}
+		}
+		return new ForkState(forkStateEntries, oldValues);
+	}
+
 	@Override
 	public void registerThreadLocalCleanupBean(IThreadLocalCleanupBean threadLocalCleanupBean)
 	{
-		listeners.register(threadLocalCleanupBean);
+		Lock writeLock = listeners.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			listeners.register(threadLocalCleanupBean);
+			cachedForkStateEntries = null;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
 	public void unregisterThreadLocalCleanupBean(IThreadLocalCleanupBean threadLocalCleanupBean)
 	{
-		listeners.unregister(threadLocalCleanupBean);
+		Lock writeLock = listeners.getWriteLock();
+		writeLock.lock();
+		try
+		{
+			listeners.unregister(threadLocalCleanupBean);
+			cachedForkStateEntries = null;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 		// clear this threadlocal a last time before letting the bean alone...
 		threadLocalCleanupBean.cleanupThreadLocal();
 	}

@@ -7,5 +7,9 @@ namespace De.Osthus.Ambeth.Util
         void InvokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount);
 
         void InvokeInParallel(IServiceContext serviceContext, params Runnable[] runnables);
+
+      	void InvokeInParallel(IServiceContext serviceContext, bool inheritThreadLocals, Runnable runnable, int workerCount);
+
+    	void InvokeInParallel(IServiceContext serviceContext, bool inheritThreadLocals, params Runnable[] runnables);
     }
 }

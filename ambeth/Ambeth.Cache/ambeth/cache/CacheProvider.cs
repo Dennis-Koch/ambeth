@@ -35,8 +35,10 @@ namespace De.Osthus.Ambeth.Cache
 
         protected volatile ICache privilegedSingletonCache;
 
+        [Forkable]
         protected ThreadLocal<IDisposableCache> cacheTL;
 
+        [Forkable]
         protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
         protected readonly Lock writeLock = new ReadWriteLock().WriteLock;

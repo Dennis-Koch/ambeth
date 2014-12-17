@@ -28,6 +28,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -119,10 +120,13 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected final MapExtendableContainer<Integer, IAuditEntryWriter> auditEntryWriters = new MapExtendableContainer<Integer, IAuditEntryWriter>(
 			"auditEntryWriter", "auditEntryProtocol");
 
+	@Forkable
 	protected final ThreadLocal<IAuditEntry> auditEntryTL = new ThreadLocal<IAuditEntry>();
 
+	@Forkable
 	protected final ThreadLocal<Boolean> ownAuditMergeActiveTL = new ThreadLocal<Boolean>();
 
+	@Forkable
 	protected final ThreadLocal<char[]> clearTextPasswordTL = new ThreadLocal<char[]>();
 
 	protected IPrefetchHandle prefetchAuditEntries;
