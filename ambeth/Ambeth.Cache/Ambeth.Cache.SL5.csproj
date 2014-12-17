@@ -124,7 +124,6 @@
     <Compile Include="ambeth\cache\interceptor\CacheContextInterceptor.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheProviderInterceptor.cs" />
     <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
-    <Compile Include="ambeth\cache\PendingValueHolders.cs" />
     <Compile Include="ambeth\cache\EntityCallback.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
     <Compile Include="ambeth\cache\IServiceResultCache.cs" />

@@ -120,7 +120,6 @@
     <Compile Include="minerva\command\UndoNotPersistedChangesCommand.cs" />
     <Compile Include="minerva\command\UndoNotPersistedCommand.cs" />
     <Compile Include="minerva\config\MinervaCoreConfigurationConstants.cs" />
-    <Compile Include="minerva\core\AbstractClientEntityInterceptor.cs" />
     <Compile Include="minerva\core\AbstractPagingRefresher.cs" />
     <Compile Include="minerva\core\AbstractRefresher.cs" />
     <Compile Include="minerva\core\ClientEntityFactory.cs" />

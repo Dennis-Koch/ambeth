@@ -26,6 +26,11 @@ namespace De.Osthus.Ambeth.Ioc{
             writeLock = rwLock.WriteLock;
         }
 
+        public Lock GetWriteLock()
+        {
+            return writeLock;
+        }
+
         public void Register(V listener)
         {
             ParamChecker.AssertParamNotNull(listener, message);

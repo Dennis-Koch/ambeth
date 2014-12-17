@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -23,7 +24,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
  * @param <V>
  *            Typ der Values
  */
-public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
+public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable, Cloneable
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -285,6 +286,31 @@ public abstract class AbstractHashSet<K> implements ISet<K>, IPrintable
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>HashSet</tt> instance: the keys themselves are not cloned.
+	 * 
+	 * @return a shallow copy of this set
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object clone()
+	{
+		AbstractHashSet<K> result = null;
+		try
+		{
+			result = (AbstractHashSet<K>) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		for (K key : this)
+		{
+			result.add(key);
+		}
+		return result;
 	}
 
 	/**

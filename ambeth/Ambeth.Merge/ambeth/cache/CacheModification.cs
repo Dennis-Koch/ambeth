@@ -4,27 +4,37 @@ using System.Threading;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 #if SILVERLIGHT
 using De.Osthus.Ambeth.Util;
 #endif
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class CacheModification : ICacheModification
+    public class CacheModification : ICacheModification, IThreadLocalCleanupBean
     {
         private const int NOT_ACTIVE = 0, ACTIVE = 1, FLUSHING = 2;
 
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        [Forkable]
         protected readonly ThreadLocal<int> activeTL = new ThreadLocal<int>();
 
+        [Forkable]
         protected readonly ThreadLocal<bool> internalUpdateTL = new ThreadLocal<bool>();
 
         protected readonly ThreadLocal<List<IBackgroundWorkerDelegate>> queuedEventsTL = new ThreadLocal<List<IBackgroundWorkerDelegate>>();
 
         [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
+
+	    public void CleanupThreadLocal()
+	    {
+            activeTL.Value = default(int);
+		    internalUpdateTL.Value = default(bool);
+		    queuedEventsTL.Value = null;
+	    }
 
         public bool ActiveOrFlushing
         {

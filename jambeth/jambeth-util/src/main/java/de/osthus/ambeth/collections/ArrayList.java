@@ -5,15 +5,17 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
+public class ArrayList<V> implements IList<V>, Externalizable, IPrintable, Cloneable
 {
 	public static class FastIterator<V> implements ListIterator<V>
 	{
@@ -246,6 +248,28 @@ public class ArrayList<V> implements IList<V>, Externalizable, IPrintable
 			array[a] = null;
 		}
 		this.size = index;
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>ArrayList</tt> instance. (The elements themselves are not copied.)
+	 * 
+	 * @return a clone of this <tt>ArrayList</tt> instance
+	 */
+	@Override
+	public Object clone()
+	{
+		try
+		{
+			@SuppressWarnings("unchecked")
+			ArrayList<V> v = (ArrayList<V>) super.clone();
+			v.array = Arrays.copyOf(array, size);
+			v.size = size;
+			return v;
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
 	}
 
 	@Override

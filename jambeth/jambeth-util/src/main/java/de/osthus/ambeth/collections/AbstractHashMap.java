@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -22,7 +23,7 @@ import de.osthus.ambeth.util.StringBuilderUtil;
  * @param <V>
  *            Typ der Values
  */
-public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable
+public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPrintable, Cloneable
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -244,6 +245,31 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and values themselves are not cloned.
+	 * 
+	 * @return a shallow copy of this map
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object clone()
+	{
+		AbstractHashMap<WrappedK, K, V> result = null;
+		try
+		{
+			result = (AbstractHashMap<WrappedK, K, V>) super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		for (Entry<K, V> entry : this)
+		{
+			result.put(entry.getKey(), entry.getValue());
+		}
+		return result;
 	}
 
 	/**

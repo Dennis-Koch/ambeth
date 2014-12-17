@@ -93,7 +93,6 @@
     <Compile Include="minerva\config\MinervaCoreConfigurationConstants.cs" />
     <Compile Include="minerva\converter\IFilterDescriptorConverter.cs" />
     <Compile Include="minerva\converter\ISortDescriptorConverter.cs" />
-    <Compile Include="minerva\core\AbstractClientEntityInterceptor.cs" />
     <Compile Include="minerva\core\AbstractPagingRefresher.cs" />
     <Compile Include="minerva\core\AbstractRefresher.cs" />
     <Compile Include="minerva\core\ClientEntityFactory.cs" />

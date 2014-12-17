@@ -89,7 +89,6 @@
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
     <Compile Include="ambeth\ioc\SecurityModule.cs" />
-    <Compile Include="ambeth\util\Runnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

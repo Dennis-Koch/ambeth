@@ -32,6 +32,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 
         protected readonly Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
 
+        [Forkable(ForkableType.SHALLOW_COPY)]
         protected readonly ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new ThreadLocal<Stack<ICacheProvider>>();
 
         [Autowired]

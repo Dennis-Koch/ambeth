@@ -185,9 +185,17 @@
     <Compile Include="ambeth\ioc\proxy\InterfaceBean.cs" />
     <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\Forkable.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkableType.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkState.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkStateEntry.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkedValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkState.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBean.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBeanExtendable.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupController.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ReferenceValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ShallowCopyValueResolver.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ThreadLocalCleanupController.cs" />
     <Compile Include="ambeth\log\ILoggerCache.cs" />
     <Compile Include="ambeth\log\LoggerHistory.cs" />

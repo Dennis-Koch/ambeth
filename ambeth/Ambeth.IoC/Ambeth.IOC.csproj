@@ -234,6 +234,16 @@
   <ItemGroup>
     <Compile Include="ambeth\ioc\link\AutoLinkPreProcessor.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\threadlocal\Forkable.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkableType.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkState.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkStateEntry.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkedValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkState.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ReferenceValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ShallowCopyValueResolver.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

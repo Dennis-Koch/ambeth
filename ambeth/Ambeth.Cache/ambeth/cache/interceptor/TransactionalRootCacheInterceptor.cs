@@ -35,10 +35,13 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
+        [Forkable]
         protected readonly ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
 
+        [Forkable]
         protected readonly ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
+        [Forkable]
         protected readonly ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<Boolean>();
 
         public override void CleanupThreadLocal()

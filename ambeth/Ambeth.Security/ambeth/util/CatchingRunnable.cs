@@ -10,8 +10,11 @@ using System.Threading;
 
 namespace De.Osthus.Ambeth.Util
 {
-    public class CatchingRunnable : Runnable, IInitializingBean
+    public class CatchingRunnable : Runnable
     {
+        [Property]
+        public IForkState ForkState { protected get; set; }
+
         [Property]
         public Runnable Runnable { protected get; set; }
 
@@ -25,28 +28,8 @@ namespace De.Osthus.Ambeth.Util
         public ISecurityContextHolder securityContextHolder { protected get; set; }
 
         [Autowired]
-        public ISecurityScopeProvider securityScopeProvider { protected get; set; }
-
-        [Autowired]
         public IThreadLocalCleanupController threadLocalCleanupController { protected get; set; }
-
-        protected IAuthentication authentication;
-
-        protected IAuthorization authorization;
-
-        protected ISecurityScope[] securityScopes;
-
-        public void AfterPropertiesSet()
-        {
-            ISecurityContext securityContext = securityContextHolder.Context;
-            if (securityContext != null)
-            {
-                authentication = securityContext.Authentication;
-                authorization = securityContext.Authorization;
-            }
-            securityScopes = securityScopeProvider.SecurityScopes;
-        }
-
+       
         public void Run()
         {
             Thread currentThread = Thread.CurrentThread;
@@ -57,23 +40,16 @@ namespace De.Osthus.Ambeth.Util
             }
             try
             {
-                if (authentication != null)
-                {
-                    ISecurityContext contextOfThread = securityContextHolder.GetCreateContext();
-                    contextOfThread.Authentication = authentication;
-                }
-                if (authorization != null)
-                {
-                    ISecurityContext contextOfThread = securityContextHolder.GetCreateContext();
-                    contextOfThread.Authorization = authorization;
-                }
                 try
                 {
-                    securityScopeProvider.ExecuteWithSecurityScopes<Object>(delegate()
+                    if (ForkState != null)
+                    {
+                        ForkState.Use(Runnable);
+                    }
+                    else
                     {
                         Runnable.Run();
-                        return null;
-                    }, securityScopes);
+                    }
                 }
                 catch (Exception e)
                 {

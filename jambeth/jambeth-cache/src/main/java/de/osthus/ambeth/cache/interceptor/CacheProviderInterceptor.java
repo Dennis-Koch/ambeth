@@ -15,6 +15,8 @@ import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.ForkableType;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -46,6 +48,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 
 	protected final Stack<ICacheProvider> cacheProviderStack = new Stack<ICacheProvider>();
 
+	@Forkable(ForkableType.SHALLOW_COPY)
 	protected final ThreadLocal<Stack<ICacheProvider>> cacheProviderStackTL = new SensitiveThreadLocal<Stack<ICacheProvider>>();
 
 	@Autowired

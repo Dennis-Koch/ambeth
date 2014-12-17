@@ -6,6 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -38,8 +39,10 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 
 	protected volatile ICache privilegedSingletonCache;
 
+	@Forkable
 	protected ThreadLocal<IDisposableCache> cacheTL;
 
+	@Forkable
 	protected ThreadLocal<IDisposableCache> privilegedCacheTL;
 
 	protected final Lock lock = new ReentrantLock();

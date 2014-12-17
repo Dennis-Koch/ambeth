@@ -64,7 +64,7 @@ namespace De.Osthus.Ambeth.Config
 
         protected IDictionary<String, Object> dictionary;
 
-        protected ThreadLocal<ISet<String>> cyclicKeyCheckTL = new ThreadLocal<ISet<String>>(
+        protected readonly ThreadLocal<ISet<String>> cyclicKeyCheckTL = new ThreadLocal<ISet<String>>(
             delegate()
             {
                 return new HashSet<String>();

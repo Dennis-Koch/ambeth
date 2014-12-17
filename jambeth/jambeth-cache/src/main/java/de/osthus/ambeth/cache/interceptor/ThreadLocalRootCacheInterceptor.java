@@ -6,6 +6,7 @@ import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.RootCache;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
@@ -21,6 +22,7 @@ public class ThreadLocalRootCacheInterceptor extends AbstractRootCacheAwareInter
 	@Property(defaultValue = "false")
 	protected boolean privileged;
 
+	@Forkable
 	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
 
 	protected IRootCache getCurrentRootCache()

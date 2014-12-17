@@ -54,8 +54,8 @@ public class SecurityServerModule implements IInitializingModule
 
 			beanContextFactory.registerBean(AuthenticationManager.class).autowireable(IAuthenticationManager.class);
 
-			beanContextFactory.registerBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class,
-					IMergeSecurityManager.class, IServiceFilterExtendable.class);
+			beanContextFactory.registerBean(de.osthus.ambeth.security.SecurityManager.class).autowireable(ISecurityManager.class, IMergeSecurityManager.class,
+					IServiceFilterExtendable.class);
 
 			registerAndLinkPermissionRule(beanContextFactory, ActionPermissionRule.class, IActionPermission.class);
 

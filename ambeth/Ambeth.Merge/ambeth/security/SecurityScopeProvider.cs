@@ -18,6 +18,7 @@ namespace De.Osthus.Ambeth.Security
     {
         public static readonly ISecurityScope[] defaultSecurityScopes = new ISecurityScope[0];
 
+        [Forkable]
         protected ThreadLocal<SecurityScopeHandle> securityScopeTL = new ThreadLocal<SecurityScopeHandle>();
 
         protected readonly DefaultExtendableContainer<ISecurityScopeChangeListener> securityScopeChangeListeners = new DefaultExtendableContainer<ISecurityScopeChangeListener>(

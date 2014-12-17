@@ -209,7 +209,6 @@
     <Compile Include="minerva\core\AbstractPagingRefresher.cs" />
     <Compile Include="minerva\core\ChangedItemsStyleSelector.cs" />
     <Compile Include="minerva\core\ClientEntityFactory.cs" />
-    <Compile Include="minerva\core\AbstractClientEntityInterceptor.cs" />
     <Compile Include="minerva\core\ISelfRegisteringControlBean.cs" />
     <Compile Include="minerva\core\INotifyClientFilterChanged.cs" />
     <Compile Include="minerva\core\INotifyDataAvailable.cs" />
