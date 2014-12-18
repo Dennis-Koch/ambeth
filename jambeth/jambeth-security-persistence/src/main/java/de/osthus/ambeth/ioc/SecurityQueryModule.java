@@ -30,13 +30,12 @@ public class SecurityQueryModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
+		IBeanConfiguration permissionGroupUpdater = beanContextFactory.registerBean(PermissionGroupUpdater.class).autowireable(IPermissionGroupUpdater.class);
+		beanContextFactory.link(permissionGroupUpdater, "handleEntityMetaDataEvent").to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
+		beanContextFactory.link(permissionGroupUpdater, "handleClearAllCachesEvent").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
+
 		if (securityActive)
 		{
-			IBeanConfiguration permissionGroupUpdater = beanContextFactory.registerBean(PermissionGroupUpdater.class).autowireable(
-					IPermissionGroupUpdater.class);
-			beanContextFactory.link(permissionGroupUpdater, "handleEntityMetaDataEvent").to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
-			beanContextFactory.link(permissionGroupUpdater, "handleClearAllCachesEvent").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
-
 			IBeanConfiguration securityQueryBuilderExtension = beanContextFactory.registerBean(SecurityQueryBuilderExtension.class);
 			beanContextFactory.link(securityQueryBuilderExtension).to(IQueryBuilderExtensionExtendable.class);
 

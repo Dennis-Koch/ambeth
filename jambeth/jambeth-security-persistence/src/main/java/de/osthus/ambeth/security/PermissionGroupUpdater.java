@@ -11,6 +11,7 @@ import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.SmartCopyMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEntityMetaDataEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
@@ -40,6 +41,7 @@ import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.impl.SkipAllTypePrivilege;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
@@ -111,6 +113,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Autowired(optional = true)
 	protected IUserResolver userResolver;
 
+	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
+
 	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery = new SmartCopyMap<Class<?>, IQuery<?>>();
 
 	protected IQuery<IUser> allUsersQuery;
@@ -145,6 +150,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Override
 	public void insertPermissionGroups()
 	{
+		if (!securityActive)
+		{
+			return;
+		}
 		if (userResolver == null)
 		{
 			return;
