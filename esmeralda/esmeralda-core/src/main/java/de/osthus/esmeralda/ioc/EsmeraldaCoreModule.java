@@ -53,6 +53,7 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsDoWhileHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsEnhancedForHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsForHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsIfHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSkipHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSwitchHandler;
@@ -144,8 +145,9 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, CsContinueHandler.class, Lang.C_SHARP + Kind.CONTINUE);
 		registerStatementHandler(beanContextFactory, CsDoWhileHandler.class, Lang.C_SHARP + Kind.DO_WHILE_LOOP);
 		registerStatementHandler(beanContextFactory, CsEnhancedForHandler.class, Lang.C_SHARP + Kind.ENHANCED_FOR_LOOP);
-		registerStatementHandler(beanContextFactory, CsForHandler.class, Lang.C_SHARP + Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsExpressionHandler.class, Lang.C_SHARP + Kind.EXPRESSION_STATEMENT);
+		registerStatementHandler(beanContextFactory, CsForHandler.class, Lang.C_SHARP + Kind.FOR_LOOP);
+		registerStatementHandler(beanContextFactory, CsIfHandler.class, Lang.C_SHARP + Kind.IF);
 		registerStatementHandler(beanContextFactory, CsReturnHandler.class, Lang.C_SHARP + Kind.RETURN);
 		registerStatementHandler(beanContextFactory, CsSkipHandler.class, Lang.C_SHARP + Kind.EMPTY_STATEMENT);
 		registerStatementHandler(beanContextFactory, CsSwitchHandler.class, Lang.C_SHARP + Kind.SWITCH);
