@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Threading;
@@ -15,36 +16,96 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
             this.forkedValueResolvers = forkedValueResolvers;
         }
 
+        protected Object[] SetThreadLocals()
+	    {
+		    ForkStateEntry[] forkStateEntries = this.forkStateEntries;
+		    IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
+		    Object[] oldValues = new Object[forkedValueResolvers.Length];
+            for (int a = 0, size = forkStateEntries.Length; a < size; a++)
+		    {
+			    ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntries[a].valueTL;
+			    oldValues[a] = tlHandle.Value;
+			    Object forkedValue = forkedValueResolvers[a].GetForkedValue();
+			    tlHandle.Value = forkedValue;
+		    }
+		    return oldValues;
+	    }
+
+	    protected void RestoreThreadLocals(Object[] oldValues)
+	    {
+		    ForkStateEntry[] forkStateEntries = this.forkStateEntries;
+		    for (int a = 0, size = forkStateEntries.Length; a < size; a++)
+		    {
+			    ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntries[a].valueTL;
+			    Object oldValue = oldValues[a];
+				tlHandle.Value = oldValue;
+		    }
+	    }
+
+
         public void Use(Runnable runnable)
         {
-            ForkStateEntry[] forkStateEntries = this.forkStateEntries;
-            IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
-
-            Object[][] oldValues = new Object[forkedValueResolvers.Length][];
-            for (int a = 0, size = forkStateEntries.Length; a < size; a++)
-            {
-                ForkStateEntry forkStateEntry = forkStateEntries[a];
-                Object tlHandle = forkStateEntry.valueTL;
-                Object oldValue = forkStateEntry.getValueMI.Invoke(tlHandle, ForkStateEntry.EMPTY_ARGS);
-                Object forkedValue = forkedValueResolvers[a].GetForkedValue();
-                Object[] args = new Object[] { forkedValue };
-                forkStateEntry.setValueMI.Invoke(tlHandle, args);
-                args[0] = oldValue;
-                oldValues[a] = args;
-            }
+            Object[] oldValues = SetThreadLocals();
             try
             {
                 runnable.Run();
             }
             finally
             {
-                for (int a = 0, size = forkStateEntries.Length; a < size; a++)
-                {
-                    ForkStateEntry forkStateEntry = forkStateEntries[a];
-                    Object tlHandle = forkStateEntry.valueTL;
-                    forkStateEntry.setValueMI.Invoke(tlHandle, oldValues[a]);
-                }
+                RestoreThreadLocals(oldValues);
             }
         }
+
+	    public void Use(IBackgroundWorkerDelegate runnable)
+	    {
+		    Object[] oldValues = SetThreadLocals();
+		    try
+		    {
+			    runnable();
+		    }
+		    finally
+		    {
+			    RestoreThreadLocals(oldValues);
+		    }
+	    }
+
+	    public void Use<V>(IBackgroundWorkerParamDelegate<V> runnable, V arg)
+	    {
+		    Object[] oldValues = SetThreadLocals();
+		    try
+		    {
+			    runnable(arg);
+		    }
+		    finally
+		    {
+			    RestoreThreadLocals(oldValues);
+		    }
+	    }
+
+	    public R Use<R>(IResultingBackgroundWorkerDelegate<R> runnable)
+	    {
+		    Object[] oldValues = SetThreadLocals();
+		    try
+		    {
+			    return runnable();
+		    }
+		    finally
+		    {
+			    RestoreThreadLocals(oldValues);
+		    }
+	    }
+
+        public R Use<R, V>(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V arg)
+	    {
+		    Object[] oldValues = SetThreadLocals();
+		    try
+		    {
+			    return runnable(arg);
+		    }
+		    finally
+		    {
+			    RestoreThreadLocals(oldValues);
+		    }
+	    }
     }
 }

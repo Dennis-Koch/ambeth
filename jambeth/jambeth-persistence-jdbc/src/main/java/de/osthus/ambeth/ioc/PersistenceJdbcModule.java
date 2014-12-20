@@ -84,7 +84,7 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerAutowireableBean(ITransaction.class, JdbcTransaction.class).autowireable(ITransactionState.class);
+		beanContextFactory.registerBean(JdbcTransaction.class).autowireable(ITransaction.class, ITransactionState.class);
 
 		if (integratedConnectionPool)
 		{
@@ -113,8 +113,7 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 				.propertyValue("AdditionalModules", connectionModuleTypes.toArray(new Class<?>[connectionModuleTypes.size()]))
 				.autowireable(IDatabaseFactory.class, IDatabaseMapperExtendable.class);
 
-		beanContextFactory.registerBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class,
-				IConnectionHolderExtendable.class);
+		beanContextFactory.registerBean(ConnectionHolderRegistry.class).autowireable(IConnectionHolderRegistry.class, IConnectionHolderExtendable.class);
 
 		MethodInterceptor chInterceptor = (MethodInterceptor) beanContextFactory.registerBean(ConnectionHolderInterceptor.class)
 				.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();

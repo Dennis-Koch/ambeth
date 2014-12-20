@@ -15,6 +15,11 @@ namespace De.Osthus.Ambeth.Threading
             m_event = new ManualResetEvent(false);
         }
 
+        public int GetCount()
+        {
+            return m_remain;
+        }
+
         public void CountDown()
         {
             // The last thread to signal also sets the event.

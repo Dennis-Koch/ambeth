@@ -7,8 +7,6 @@ namespace De.Osthus.Ambeth.Ioc.Link
 {
     public class LinkConfiguration<D> : BeanConfiguration, ILinkConfiguration, ILinkRegistryNeededConfiguration<D>
     {
-        protected bool f_optional;
-
         public LinkConfiguration(Type beanType, IProxyFactory proxyFactory, IProperties props)
             : base(beanType, null, proxyFactory, props)
         {
@@ -23,11 +21,6 @@ namespace De.Osthus.Ambeth.Ioc.Link
 
         public ILinkConfiguration Optional()
         {
-            if (f_optional)
-            {
-                // Already configured as optional
-                return this;
-            }
             PropertyValue(LinkContainer.PROPERTY_OPTIONAL, true);
             return this;
         }

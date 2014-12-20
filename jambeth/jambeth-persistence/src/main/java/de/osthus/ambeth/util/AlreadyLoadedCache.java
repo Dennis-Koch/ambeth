@@ -1,6 +1,7 @@
 package de.osthus.ambeth.util;
 
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.collections.LinkedHashMap;
@@ -24,6 +25,8 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 
 	protected final LinkedHashMap<IdTypeTuple, IObjRef> keyToRefMap = new LinkedHashMap<IdTypeTuple, IObjRef>();
 
+	protected final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -39,14 +42,30 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void clear()
 	{
-		this.keyToObjectMap.clear();
-		this.keyToRefMap.clear();
+		writeLock.lock();
+		try
+		{
+			keyToObjectMap.clear();
+			keyToRefMap.clear();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
 	public int size()
 	{
-		return this.keyToRefMap.size();
+		writeLock.lock();
+		try
+		{
+			return keyToRefMap.size();
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
@@ -62,25 +81,33 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void copyTo(IAlreadyLoadedCache targetAlCache)
 	{
-		AlreadyLoadedCache realTargetAlCache = (AlreadyLoadedCache) targetAlCache;
-		LinkedHashMap<IdTypeTuple, ILoadContainer> realKeyToObjectMap = realTargetAlCache.keyToObjectMap;
-		LinkedHashMap<IdTypeTuple, IObjRef> realKeyToRefMap = realTargetAlCache.keyToRefMap;
-		for (Entry<IdTypeTuple, ILoadContainer> entry : keyToObjectMap)
+		writeLock.lock();
+		try
 		{
-			if (!realKeyToObjectMap.putIfNotExists(entry.getKey(), entry.getValue()))
+			AlreadyLoadedCache realTargetAlCache = (AlreadyLoadedCache) targetAlCache;
+			LinkedHashMap<IdTypeTuple, ILoadContainer> realKeyToObjectMap = realTargetAlCache.keyToObjectMap;
+			LinkedHashMap<IdTypeTuple, IObjRef> realKeyToRefMap = realTargetAlCache.keyToRefMap;
+			for (Entry<IdTypeTuple, ILoadContainer> entry : keyToObjectMap)
 			{
-				throw new IllegalStateException("LoadContainer already in map. This must never happen - Parallel EntityLoader still buggy?");
-			}
-		}
-		for (Entry<IdTypeTuple, IObjRef> entry : keyToRefMap)
-		{
-			if (!realKeyToRefMap.putIfNotExists(entry.getKey(), entry.getValue()))
-			{
-				if (log.isWarnEnabled())
+				if (!realKeyToObjectMap.putIfNotExists(entry.getKey(), entry.getValue()))
 				{
-					log.warn("ObjRef " + entry.getKey() + " already instantiated. This may be a bug and should be further analyzed");
+					throw new IllegalStateException("LoadContainer already in map. This must never happen - Parallel EntityLoader still buggy?");
 				}
 			}
+			for (Entry<IdTypeTuple, IObjRef> entry : keyToRefMap)
+			{
+				if (!realKeyToRefMap.putIfNotExists(entry.getKey(), entry.getValue()))
+				{
+					if (log.isWarnEnabled())
+					{
+						log.warn("ObjRef " + entry.getKey() + " already instantiated. This may be a bug and should be further analyzed");
+					}
+				}
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 
@@ -93,7 +120,15 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public ILoadContainer getObject(IdTypeTuple idTypeTuple)
 	{
-		return keyToObjectMap.get(idTypeTuple);
+		writeLock.lock();
+		try
+		{
+			return keyToObjectMap.get(idTypeTuple);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
@@ -105,7 +140,15 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public IObjRef getRef(IdTypeTuple idTypeTuple)
 	{
-		return this.keyToRefMap.get(idTypeTuple);
+		writeLock.lock();
+		try
+		{
+			return keyToRefMap.get(idTypeTuple);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
@@ -117,9 +160,17 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void add(IdTypeTuple idTypeTuple, IObjRef objRef)
 	{
-		if (!this.keyToRefMap.putIfNotExists(idTypeTuple, objRef))
+		writeLock.lock();
+		try
 		{
-			throw new RuntimeException();
+			if (!keyToRefMap.putIfNotExists(idTypeTuple, objRef))
+			{
+				throw new RuntimeException();
+			}
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 
@@ -132,8 +183,16 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void add(IdTypeTuple idTypeTuple, IObjRef objRef, ILoadContainer loadContainer)
 	{
-		this.keyToRefMap.putIfNotExists(idTypeTuple, objRef);
-		this.keyToObjectMap.put(idTypeTuple, loadContainer);
+		writeLock.lock();
+		try
+		{
+			keyToRefMap.putIfNotExists(idTypeTuple, objRef);
+			keyToObjectMap.put(idTypeTuple, loadContainer);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
@@ -145,7 +204,16 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void replace(IdTypeTuple idTypeTuple, ILoadContainer loadContainer)
 	{
-		this.keyToRefMap.putIfNotExists(idTypeTuple, objRefFactory.createObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null));
-		this.keyToObjectMap.put(idTypeTuple, loadContainer);
+		IObjRef objRef = objRefFactory.createObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null);
+		writeLock.lock();
+		try
+		{
+			keyToRefMap.putIfNotExists(idTypeTuple, objRef);
+			keyToObjectMap.put(idTypeTuple, loadContainer);
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 }

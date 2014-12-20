@@ -207,6 +207,18 @@ public class EmptyList<V> implements IList<V>, IPrintable
 	}
 
 	@Override
+	public V peek()
+	{
+		return null;
+	}
+
+	@Override
+	public V popLastElement()
+	{
+		return null;
+	}
+
+	@Override
 	public V remove(int index)
 	{
 		throw new UnsupportedOperationException();

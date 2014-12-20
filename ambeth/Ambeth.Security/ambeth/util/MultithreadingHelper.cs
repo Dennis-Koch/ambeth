@@ -5,6 +5,7 @@ using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Threading;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace De.Osthus.Ambeth.Util
@@ -15,6 +16,9 @@ namespace De.Osthus.Ambeth.Util
 
         [Autowired]
         public IServiceContext BeanContext { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public IThreadPool ThreadPool { protected get; set; }
 
         [Autowired]
         public IThreadLocalCleanupController ThreadLocalCleanupController { protected get; set; }
@@ -82,5 +86,71 @@ namespace De.Osthus.Ambeth.Util
                 throw RuntimeExceptionUtil.Mask(throwableHolder.Value, "Error occured while invoking runnables");
             }
         }
+
+#if !SILVERLIGHT
+        public void InvokeAndWait<R, V>(IList<V> items, IResultingBackgroundWorkerParamDelegate<R, V> itemHandler,
+            IAggregrateResultHandler<R, V> aggregateResultHandler)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+            if (items.Count == 1 || ThreadPool == null)
+            {
+                for (int a = items.Count; a-- > 0; )
+                {
+                    V item = items[a];
+                    items.RemoveAt(items.Count - 1);
+                    R result = itemHandler(item);
+                    aggregateResultHandler(result, item);
+                }
+                return;
+            }
+            RunnableHandle<R, V> runnableHandle = new RunnableHandle<R, V>(itemHandler, aggregateResultHandler, items, ThreadLocalCleanupController);
+
+            Runnable parallelRunnable = new ParallelRunnable<R, V>(runnableHandle, true);
+            Runnable mainRunnable = new ParallelRunnable<R, V>(runnableHandle, false);
+
+            // for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
+            for (int a = items.Count - 1; a-- > 0; )
+            {
+                ThreadPool.Queue(delegate()
+                {
+                    parallelRunnable.Run();
+                });
+            }
+            // consume items with the "main thread" as long as there is one in the queue
+            mainRunnable.Run();
+
+            // wait till the forked threads have finished, too
+            WaitForLatch(runnableHandle.latch, runnableHandle.exHolder);
+        }
+
+        protected void WaitForLatch(CountDownLatch latch, IParamHolder<Exception> exHolder)
+        {
+            while (true)
+            {
+                if (exHolder.Value != null)
+                {
+                    // A parallel exception will be thrown here
+
+                    Exception ex = exHolder.Value;
+                    throw ex;
+                }
+                try
+                {
+                    latch.Await();
+                    if (latch.GetCount() == 0)
+                    {
+                        return;
+                    }
+                }
+                catch (ThreadInterruptedException)
+                {
+                    // intended blank
+                }
+            }
+        }
+#endif
     }
 }
