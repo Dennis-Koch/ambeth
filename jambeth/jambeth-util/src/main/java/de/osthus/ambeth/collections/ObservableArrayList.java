@@ -283,6 +283,7 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 		return (V) array[index];
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final V peek()
 	{
@@ -297,6 +298,7 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 		}
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public final V popLastElement()
 	{

@@ -37,18 +37,19 @@ import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.persistence.parallel.IEntityLoaderParallelInvoker;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadCascadeItem;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadItem;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IInterningFeature;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.IdTypeTuple;
 
 public class EntityLoader implements IEntityLoader, ILoadContainerProvider, IStartingBean
@@ -76,10 +77,10 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	protected IEntityFactory entityFactory;
 
 	@Autowired
-	protected IEntityLoaderParallelInvoker entityLoaderParallelInvoker;
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IEntityMetaDataProvider entityMetaDataProvider;
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Autowired
 	protected IObjRefFactory objRefFactory;
@@ -615,13 +616,20 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		{
 			return;
 		}
-		entityLoaderParallelInvoker.invokeAndWait(parallelPendingItems, new IBackgroundWorkerParamDelegate<ParallelLoadItem>()
+		multithreadingHelper.invokeAndWait(parallelPendingItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>()
 		{
-
 			@Override
-			public void invoke(ParallelLoadItem state) throws Throwable
+			public Object invoke(ParallelLoadItem state) throws Throwable
 			{
 				initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
+				return null;
+			}
+		}, new IAggregrateResultHandler<Object, ParallelLoadItem>()
+		{
+			@Override
+			public void aggregateResult(Object resultOfFork, ParallelLoadItem itemOfFork)
+			{
+				writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
 			}
 		});
 	}
@@ -670,6 +678,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	{
 		ArrayList<Object> realNeededIds = new ArrayList<Object>(ids.size());
 		IDatabase database = this.database.getCurrent();
+		IObjRefFactory objRefFactory = this.objRefFactory;
 		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
 
 		for (Object id : ids)
@@ -695,10 +704,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		String givenIdMemberName = givenIdField.getMember().getName();
 		Class<?> givenIdType = givenIdField.getFieldType();
 		Class<?> versionTypeOfObject = table.getVersionField().getMember().getElementType();
-		IVersionCursor cursor = null;
+		IVersionCursor cursor = table.selectVersion(givenIdMemberName, realNeededIds);
 		try
 		{
-			cursor = table.selectVersion(givenIdMemberName, realNeededIds);
 			while (cursor.moveNext())
 			{
 				IVersionItem item = cursor.getCurrent();
@@ -716,11 +724,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		finally
 		{
-			if (cursor != null)
-			{
-				cursor.dispose();
-				cursor = null;
-			}
+			cursor.dispose();
 		}
 	}
 
@@ -1018,13 +1022,21 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		if (parallelLinkItems.size() > 0)
 		{
-			entityLoaderParallelInvoker.invokeAndWait(parallelLinkItems, new IBackgroundWorkerParamDelegate<ParallelLoadCascadeItem>()
+			multithreadingHelper.invokeAndWait(parallelLinkItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadCascadeItem>()
 			{
 
 				@Override
-				public void invoke(ParallelLoadCascadeItem state) throws Throwable
+				public Object invoke(ParallelLoadCascadeItem state) throws Throwable
 				{
 					cascadeLoadEagerVersion(state.entityType, state.link, state.splittedIds, state.relationIndex, state.cascadeTypeToPendingInit);
+					return null;
+				}
+			}, new IAggregrateResultHandler<Object, ParallelLoadCascadeItem>()
+			{
+				@Override
+				public void aggregateResult(Object resultOfFork, ParallelLoadCascadeItem itemOfFork)
+				{
+					writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
 				}
 			});
 		}

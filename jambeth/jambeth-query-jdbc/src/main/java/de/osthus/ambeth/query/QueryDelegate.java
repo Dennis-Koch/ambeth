@@ -1,6 +1,5 @@
 package de.osthus.ambeth.query;
 
-import java.sql.Connection;
 import java.util.List;
 
 import de.osthus.ambeth.collections.ILinkedMap;
@@ -8,8 +7,8 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDataCursor;
@@ -17,58 +16,24 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class QueryDelegate<T> implements IInitializingBean, IQuery<T>, IQueryIntern<T>
+public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
-	protected Connection connection;
-
-	protected IQuery<T> query;
-
-	protected IQuery<T> transactionalQuery;
-
+	@Autowired
 	protected ITransaction transaction;
 
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(beanContext, "BeanContext");
-		ParamChecker.assertNotNull(connection, "Connection");
-		ParamChecker.assertNotNull(query, "Query");
-		ParamChecker.assertNotNull(transaction, "transaction");
-		ParamChecker.assertNotNull(transactionalQuery, "TransactionalQuery");
-	}
+	@Autowired
+	protected IQuery<T> query;
 
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setQuery(IQuery<T> query)
-	{
-		this.query = query;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
-
-	public void setTransactionalQuery(IQuery<T> transactionalQuery)
-	{
-		this.transactionalQuery = transactionalQuery;
-	}
+	@Autowired
+	protected IQuery<T> transactionalQuery;
 
 	@Override
 	public void dispose()

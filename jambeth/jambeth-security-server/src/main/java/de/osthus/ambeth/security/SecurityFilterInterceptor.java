@@ -45,8 +45,8 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 	@Autowired
 	protected IAuthorizationManager authorizationManager;
 
-	@Property
-	protected boolean checkMethodAccess = true;
+	@Property(defaultValue = "true")
+	protected boolean checkMethodAccess;
 
 	@Override
 	protected Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable

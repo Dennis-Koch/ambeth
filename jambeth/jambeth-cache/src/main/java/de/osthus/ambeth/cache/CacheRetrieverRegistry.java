@@ -1,6 +1,5 @@
 package de.osthus.ambeth.cache;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -26,7 +25,10 @@ import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 import de.osthus.ambeth.service.ICacheService;
 import de.osthus.ambeth.service.ICacheServiceByNameExtendable;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IDisposable;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverExtendable, ICacheServiceByNameExtendable
@@ -46,6 +48,9 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Override
 	public void registerCacheRetriever(ICacheRetriever cacheRetriever, Class<?> handledType)
@@ -214,28 +219,39 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 		return serviceToAssignedObjRefsDict;
 	}
 
-	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, List<R> result, GetDataDelegate<V, R> getDataDelegate)
+	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, final List<R> result, final GetDataDelegate<V, R> getDataDelegate)
 	{
 		// Serialize GetEntities() requests
-		Iterator<Entry<ICacheRetriever, IList<V>>> iter = assignedArguments.iterator();
+		ArrayList<CacheRetrieverRegistryForkItem<V>> forkItems = new ArrayList<CacheRetrieverRegistryForkItem<V>>(assignedArguments.size());
 
-		while (iter.hasNext())
+		for (Entry<ICacheRetriever, IList<V>> entry : assignedArguments)
 		{
-			Entry<ICacheRetriever, IList<V>> entry = iter.next();
-			ICacheRetriever cacheRetriever = entry.getKey();
-			IList<V> paramList = entry.getValue();
-			iter.remove();
-
-			List<R> partResult = getDataDelegate.invoke(cacheRetriever, paramList);
-			for (int a = 0, size = partResult.size(); a < size; a++)
-			{
-				R partItem = partResult.get(a);
-				result.add(partItem);
-			}
-			if (partResult instanceof IDisposable)
-			{
-				((IDisposable) partResult).dispose();
-			}
+			forkItems.add(new CacheRetrieverRegistryForkItem<V>(entry.getKey(), entry.getValue()));
 		}
+		assignedArguments.clear();
+
+		multithreadingHelper.invokeAndWait(forkItems, new IResultingBackgroundWorkerParamDelegate<List<R>, CacheRetrieverRegistryForkItem<V>>()
+		{
+			@Override
+			public List<R> invoke(CacheRetrieverRegistryForkItem<V> item) throws Throwable
+			{
+				return getDataDelegate.invoke(item.cacheRetriever, item.paramList);
+			}
+		}, new IAggregrateResultHandler<List<R>, CacheRetrieverRegistryForkItem<V>>()
+		{
+			@Override
+			public void aggregateResult(List<R> resultOfFork, CacheRetrieverRegistryForkItem<V> itemOfFork)
+			{
+				for (int a = 0, size = resultOfFork.size(); a < size; a++)
+				{
+					R partItem = resultOfFork.get(a);
+					result.add(partItem);
+				}
+				if (resultOfFork instanceof IDisposable)
+				{
+					((IDisposable) resultOfFork).dispose();
+				}
+			}
+		});
 	}
 }

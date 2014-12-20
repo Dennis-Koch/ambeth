@@ -38,6 +38,7 @@ import de.osthus.ambeth.testutil.SQLStructureList;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.setup.IDatasetBuilderExtensionExtendable;
 
 @SQLStructureList({ @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("de/osthus/ambeth/audit/security-structure.sql") })
@@ -86,6 +87,15 @@ public class Relations20WithSecurityTest extends Relations20Test
 			IQuery<Employee> query = qb.build(qb.isIn(qb.property("AllProjects.Employees.Name"), qb.value(names)));
 			List<Employee> actual = query.retrieve();
 			assertEquals(1, actual.size());
+
+			beanContext.getService(IPrefetchHelper.class).createPrefetch().add(Employee.class, "AllProjects")//
+					.add(Employee.class, "Boat")//
+					.add(Employee.class, "PrimaryAddress")//
+					.add(Employee.class, "Supervisor")//
+					.add(Employee.class, "PrimaryProject")//
+					.add(Employee.class, "SecondaryProject")//
+
+					.build().prefetch(actual);
 		}
 		finally
 		{

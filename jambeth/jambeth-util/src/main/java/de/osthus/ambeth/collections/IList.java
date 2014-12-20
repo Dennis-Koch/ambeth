@@ -12,4 +12,8 @@ public interface IList<V> extends List<V>
 	IList<V> subList(int fromIndex, int toIndex);
 
 	<T> T[] toArray(Class<T> componentType);
+
+	V peek();
+
+	V popLastElement();
 }

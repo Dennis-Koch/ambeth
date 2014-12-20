@@ -52,6 +52,7 @@
 		<module>jambeth-rdf</module>
 		<module>jambeth-security</module>
 		<module>jambeth-security-bytecode</module>
+		<module>jambeth-security-job</module>
 		<module>jambeth-security-persistence</module>
 		<module>jambeth-security-server</module>
 		<module>jambeth-sensor</module>
@@ -501,6 +502,18 @@
 			<dependency>
 				<groupId>de.osthus.ambeth</groupId>
 				<artifactId>jambeth-security-bytecode-test</artifactId>
+				<version>${project.version}</version>
+				<scope>test</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-job</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>de.osthus.ambeth</groupId>
+				<artifactId>jambeth-security-job-test</artifactId>
 				<version>${project.version}</version>
 				<scope>test</scope>
 			</dependency>

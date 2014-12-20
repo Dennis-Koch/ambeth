@@ -2,8 +2,10 @@ package de.osthus.ambeth.ioc.link;
 
 import java.util.Arrays;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.config.IDeclarationStackTraceAware;
 import de.osthus.ambeth.ioc.exception.LinkException;
@@ -35,28 +37,40 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 
 	protected static final Object[] emptyArgs = new Object[0];
 
+	@Property(mandatory = false)
 	protected Object listener;
 
+	@Property(mandatory = false)
 	protected IBeanConfiguration listenerBean;
 
+	@Property(mandatory = false)
 	protected String listenerBeanName;
 
+	@Property(mandatory = false)
 	protected String listenerMethodName;
 
+	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
 	protected IDelegateFactory delegateFactory;
 
+	@Property(mandatory = false)
 	protected Object registry;
 
+	@Property(mandatory = false)
 	protected Class<?> registryBeanAutowiredType;
 
+	@Property(mandatory = false)
 	protected String registryBeanName;
 
+	@Property(mandatory = false)
 	protected String registryPropertyName;
 
+	@Property(mandatory = false)
 	protected Object[] arguments;
 
+	@Property(mandatory = false)
 	protected boolean optional;
 
 	protected Object resolvedListener;
@@ -70,8 +84,6 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 				"either property 'RegistryBeanAutowiredType', 'RegistryBeanName' or 'Registry' must be valid");
 		ParamChecker.assertTrue(listener != null || listenerBean != null || listenerBeanName != null,
 				"either property 'Listener' or 'ListenerBean' or 'ListenerBeanName' must be valid");
-		ParamChecker.assertParamNotNull(beanContext, "BeanContext");
-		ParamChecker.assertParamNotNull(delegateFactory, "DelegateFactory");
 		if (arguments == null)
 		{
 			arguments = emptyArgs;
@@ -82,66 +94,6 @@ public abstract class AbstractLinkContainer implements ILinkContainer, IInitiali
 	public void setDeclarationStackTrace(StackTraceElement[] declarationStackTrace)
 	{
 		this.declarationStackTrace = declarationStackTrace;
-	}
-
-	public void setArguments(Object[] arguments)
-	{
-		this.arguments = arguments;
-	}
-
-	public void setBeanContext(IServiceContext beanContext)
-	{
-		this.beanContext = beanContext;
-	}
-
-	public void setDelegateFactory(IDelegateFactory delegateFactory)
-	{
-		this.delegateFactory = delegateFactory;
-	}
-
-	public void setListener(Object listener)
-	{
-		this.listener = listener;
-	}
-
-	public void setListenerBean(IBeanConfiguration listenerBean)
-	{
-		this.listenerBean = listenerBean;
-	}
-
-	public void setListenerBeanName(String listenerBeanName)
-	{
-		this.listenerBeanName = listenerBeanName;
-	}
-
-	public void setListenerMethodName(String listenerMethodName)
-	{
-		this.listenerMethodName = listenerMethodName;
-	}
-
-	public void setOptional(boolean optional)
-	{
-		this.optional = optional;
-	}
-
-	public void setRegistry(Object registry)
-	{
-		this.registry = registry;
-	}
-
-	public void setRegistryBeanAutowiredType(Class<?> registryBeanAutowiredType)
-	{
-		this.registryBeanAutowiredType = registryBeanAutowiredType;
-	}
-
-	public void setRegistryBeanName(String registryBeanName)
-	{
-		this.registryBeanName = registryBeanName;
-	}
-
-	public void setRegistryPropertyName(String registryPropertyName)
-	{
-		this.registryPropertyName = registryPropertyName;
 	}
 
 	protected Object resolveRegistry()

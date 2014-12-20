@@ -45,6 +45,7 @@ import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.ParamChecker;
@@ -174,10 +175,21 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				@Override
 				public Object invoke() throws Throwable
 				{
-					ArrayList<Runnable> runnables = new ArrayList<Runnable>();
+					ArrayList<PermissionGroupUpdateForkItem> runnables = new ArrayList<PermissionGroupUpdateForkItem>();
 					insertPermissionGroupsIntern(runnables);
 
-					multithreadingHelper.invokeInParallel(beanContext, true, runnables.toArray(Runnable.class));
+					multithreadingHelper.invokeAndWait(runnables, new IResultingBackgroundWorkerParamDelegate<Object, PermissionGroupUpdateForkItem>()
+					{
+						@Override
+						public Object invoke(PermissionGroupUpdateForkItem state) throws Throwable
+						{
+							IList<IObjRef> objRefs = loadAllObjRefsOfEntityTable(state.fTable);
+							Object[] permissionGroupIds = createPermissionGroupIds(objRefs, state.fPermissionGroup);
+							updateEntityRows(objRefs, permissionGroupIds, state.fPermissionGroup, state.fTable);
+							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, state.allSids, state.fPermissionGroup);
+							return null;
+						}
+					}, null);
 					return null;
 				}
 			}, securityScopes);
@@ -283,7 +295,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return allSids;
 	}
 
-	protected void insertPermissionGroupsIntern(List<Runnable> runnables) throws Throwable
+	protected void insertPermissionGroupsIntern(List<PermissionGroupUpdateForkItem> runnables) throws Throwable
 	{
 		IDatabase database = this.database.getCurrent();
 		final String[] allSids = getAllSids();
@@ -300,26 +312,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			{
 				continue;
 			}
-			final ITable fTable = table;
-			final IPermissionGroup fPermissionGroup = permissionGroup;
-			Runnable runnable = new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					try
-					{
-						IList<IObjRef> objRefs = loadAllObjRefsOfEntityTable(fTable);
-						Object[] permissionGroupIds = createPermissionGroupIds(objRefs, fPermissionGroup);
-						updateEntityRows(objRefs, permissionGroupIds, fPermissionGroup, fTable);
-						insertPermissionGroupsForUsers(objRefs, permissionGroupIds, allSids, fPermissionGroup);
-					}
-					catch (Throwable e)
-					{
-						throw RuntimeExceptionUtil.mask(e);
-					}
-				}
-			};
+			PermissionGroupUpdateForkItem runnable = new PermissionGroupUpdateForkItem(allSids, permissionGroup, table);
 			runnables.add(runnable);
 		}
 	}
