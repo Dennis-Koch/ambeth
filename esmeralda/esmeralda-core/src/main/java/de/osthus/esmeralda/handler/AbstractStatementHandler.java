@@ -23,11 +23,28 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 	@Autowired
 	protected IStatementHandlerRegistry statementHandlerRegistry;
 
-	protected String language;
+	private String language;
+
+	public AbstractStatementHandler()
+	{
+		// Intended blank
+	}
 
 	protected AbstractStatementHandler(String language)
 	{
 		this.language = language;
+	}
+
+	public String getLanguage()
+	{
+		if (language != null)
+		{
+			return language;
+		}
+		else
+		{
+			return context.getLanguage();
+		}
 	}
 
 	@Override
@@ -47,7 +64,7 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 		ISnippetManager snippetManager = context.getSnippetManager();
 
 		Kind kind = statement.getKind();
-		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(language + kind);
+		IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(getLanguage() + kind);
 		if (stmtHandler != null && stmtHandler.getClass().getSimpleName().endsWith("BlockHandler"))
 		{
 			stmtHandler.handle(statement, standalone);

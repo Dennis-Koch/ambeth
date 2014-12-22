@@ -47,7 +47,7 @@ public class JsEnhancedForHandler extends AbstractJsStatementHandler<JCEnhancedF
 			languageHelper.writeVariableName(variable.name.toString());
 			writer.append(" = ");
 			languageHelper.writeExpressionTree(expression);
-			writer.append("[").append(forIndexName).append("++])");
+			writer.append("[").append(forIndexName).append("++]) ");
 		}
 		else
 		{
@@ -60,7 +60,7 @@ public class JsEnhancedForHandler extends AbstractJsStatementHandler<JCEnhancedF
 			languageHelper.writeVariableName(variable.name.toString());
 			writer.append("; ").append(forIterName).append(".hasNext(); ");
 			languageHelper.writeVariableName(variable.name.toString());
-			writer.append(" = ").append(forIterName).append(".next())");
+			writer.append(" = ").append(forIterName).append(".next()) ");
 		}
 
 		StatementTree statement = tree.getStatement();
