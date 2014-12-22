@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import java.util.List;
 
@@ -15,20 +15,14 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
-public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>, ICsBlockHandler
+public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	public CsBlockHandler()
-	{
-		super(Lang.C_SHARP);
-	}
 
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
@@ -46,10 +40,9 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 		});
 	}
 
-	@Override
 	public void writeBlockContentWithoutIntendation(BlockTree blockTree)
 	{
-		IConversionContext context = CsBlockHandler.this.context.getCurrent();
+		IConversionContext context = UniversalBlockHandler.this.context.getCurrent();
 		ISnippetManager snippetManager = context.getSnippetManager();
 		StatementCount metric = context.getMetric();
 
@@ -69,7 +62,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 			{
 				StatementTree statement = statements.get(a);
 				Kind kind = statement.getKind();
-				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(language + kind);
+				final IStatementHandlerExtension<StatementTree> stmtHandler = statementHandlerRegistry.getExtension(getLanguage() + kind);
 				if (stmtHandler != null)
 				{
 					final StatementTree fstatement = statement;
@@ -129,7 +122,7 @@ public class CsBlockHandler extends AbstractStatementHandler<BlockTree> implemen
 
 		if (!context.isDryRun())
 		{
-			IConversionContext context = CsBlockHandler.this.context.getCurrent();
+			IConversionContext context = UniversalBlockHandler.this.context.getCurrent();
 			StatementCount metric = context.getMetric();
 
 			metric.setUntranslatableStatements(metric.getUntranslatableStatements() + untranslatableStatements.size());

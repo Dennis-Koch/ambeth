@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import com.sun.source.tree.StatementTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
@@ -13,9 +13,10 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsForHandler extends AbstractCsStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
+public class UniversalForHandler extends AbstractCsStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -66,7 +67,8 @@ public class CsForHandler extends AbstractCsStatementHandler<JCForLoop> implemen
 			handleChildStatement(statement, false);
 		}
 
-		writer.append(')');
+		writer.append(")");
+		languageHelper.postBlockWhiteSpaces();
 
 		StatementTree statement = tree.getStatement();
 		handleChildStatement(statement);

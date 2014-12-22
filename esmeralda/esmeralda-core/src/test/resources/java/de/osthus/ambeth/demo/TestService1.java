@@ -3,6 +3,7 @@ package de.osthus.ambeth.demo;
 import java.util.Arrays;
 import java.util.List;
 
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
@@ -19,8 +20,19 @@ public class TestService1 extends BaseClass implements ITestInterface
 	{
 		String str1 = hello;
 		String str2 = WORLD;
-		String msg = str1 + testMethod3() + str2;
-		System.out.println(msg);
+		String msg = "";
+		try
+		{
+			msg = str1 + testMethod3() + str2;
+		}
+		catch (Exception e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			System.out.println(msg);
+		}
 	}
 
 	@Override
@@ -66,5 +78,29 @@ public class TestService1 extends BaseClass implements ITestInterface
 
 		String value = sb.toString();
 		System.out.println(value);
+	}
+
+	protected void testMethod5()
+	{
+		long millis = System.currentTimeMillis();
+		int rest = (int) (millis % 3);
+		switch (rest)
+		{
+			case 1:
+			{
+				System.out.println("1");
+				break;
+			}
+			case 2:
+			{
+				System.out.println("2");
+				break;
+			}
+			default:
+			{
+				System.out.println("ok");
+				break;
+			}
+		}
 	}
 }
