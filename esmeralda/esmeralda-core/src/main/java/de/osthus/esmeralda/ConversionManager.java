@@ -33,6 +33,7 @@ import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.helper.ClassInfoDataSetter;
@@ -154,6 +155,7 @@ public class ConversionManager implements IStartingBean
 
 			ConversionContext csContext = new ConversionContext();
 			csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+			csContext.setLanguage(Lang.C_SHARP);
 			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
 			csContext.setLanguagePath("csharp");
@@ -169,6 +171,7 @@ public class ConversionManager implements IStartingBean
 
 			ConversionContext jsContext = new ConversionContext();
 			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+			jsContext.setLanguage(Lang.JS);
 			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
 			jsContext.setLanguagePath("js");

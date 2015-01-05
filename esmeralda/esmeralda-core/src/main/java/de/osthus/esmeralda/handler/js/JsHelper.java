@@ -40,7 +40,7 @@ import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
+import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -173,6 +173,24 @@ public class JsHelper implements IJsHelper
 			newLineIndent();
 		}
 		return false;
+	}
+
+	@Override
+	public void preBlockWhiteSpaces()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append(' ');
+	}
+
+	@Override
+	public void postBlockWhiteSpaces()
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append(' ');
 	}
 
 	@Override
@@ -488,7 +506,7 @@ public class JsHelper implements IJsHelper
 
 		Kind kind = statement.getKind();
 		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.JS + kind);
-		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
+		if (stmtHandler != null && stmtHandler.getClass().equals(UniversalBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);
 		}

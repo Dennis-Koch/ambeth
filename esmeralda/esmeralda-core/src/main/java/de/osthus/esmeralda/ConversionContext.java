@@ -30,6 +30,8 @@ public class ConversionContext implements IConversionContext
 	@LogInstance
 	private ILogger log;
 
+	private String language;
+
 	private File targetPath;
 
 	private String languagePath;
@@ -112,6 +114,17 @@ public class ConversionContext implements IConversionContext
 	}
 
 	@Override
+	public String getLanguage()
+	{
+		return language;
+	}
+
+	public void setLanguage(String language)
+	{
+		this.language = language;
+	}
+
+	@Override
 	public File getTargetPath()
 	{
 		return targetPath;
@@ -159,6 +172,7 @@ public class ConversionContext implements IConversionContext
 		this.dryRun = dryRun;
 	}
 
+	@Override
 	public ILanguageHelper getLanguageHelper()
 	{
 		return languageHelper;

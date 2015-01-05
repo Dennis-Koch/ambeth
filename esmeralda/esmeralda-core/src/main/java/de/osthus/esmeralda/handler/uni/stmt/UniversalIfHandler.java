@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import com.sun.tools.javac.tree.JCTree.JCIf;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
@@ -8,9 +8,10 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
+public class UniversalIfHandler extends AbstractCsStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -30,6 +31,7 @@ public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements ISt
 
 		writer.append("if ");
 		languageHelper.writeExpressionTree(ifStatement.getCondition());
+		languageHelper.preBlockWhiteSpaces();
 
 		JCStatement thenStatement = ifStatement.getThenStatement();
 		handleChildStatement(thenStatement);
@@ -37,7 +39,7 @@ public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements ISt
 		JCStatement elseStatement = ifStatement.getElseStatement();
 		if (elseStatement != null)
 		{
-			languageHelper.newLineIndent();
+			languageHelper.postBlockWhiteSpaces();
 			writer.append("else");
 			if (elseStatement instanceof JCIf)
 			{
@@ -46,6 +48,7 @@ public class CsIfHandler extends AbstractCsStatementHandler<JCIf> implements ISt
 			}
 			else
 			{
+				languageHelper.preBlockWhiteSpaces();
 				handleChildStatement(elseStatement);
 			}
 		}

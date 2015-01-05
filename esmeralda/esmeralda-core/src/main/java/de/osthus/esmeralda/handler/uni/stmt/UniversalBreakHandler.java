@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import com.sun.tools.javac.tree.JCTree.JCBreak;
 
@@ -6,10 +6,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsBreakHandler extends AbstractCsStatementHandler<JCBreak> implements IStatementHandlerExtension<JCBreak>
+public class UniversalBreakHandler extends AbstractStatementHandler<JCBreak> implements IStatementHandlerExtension<JCBreak>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

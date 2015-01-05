@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import java.util.List;
 
@@ -11,10 +11,11 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsReturnHandler extends AbstractCsStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
+public class UniversalReturnHandler extends AbstractCsStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
