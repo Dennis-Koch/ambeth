@@ -72,8 +72,11 @@ import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.SecurityContext;
 import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.EqualsUtil;
+import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IConversionHelper;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.OptimisticLockUtil;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -107,6 +110,9 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 
 	@Autowired(optional = true)
 	protected IMergeSecurityManager mergeSecurityManager;
+
+	@Autowired
+	protected IMultithreadingHelper multithreadingHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -290,12 +296,11 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 
 	protected void convertChangeContainersToCommands(IDatabase database, List<IChangeContainer> allChanges, IMap<String, ITableChange> tableChangeMap,
 			ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap, ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands,
-			IMap<IObjRef, Object> toDeleteMap)
+			final IMap<IObjRef, Object> toDeleteMap)
 	{
 		IObjRefHelper oriHelper = this.oriHelper;
-		IRelationMergeService relationMergeService = this.relationMergeService;
 
-		FastList<IChangeContainer> changeQueue = new FastList<IChangeContainer>();
+		final FastList<IChangeContainer> changeQueue = new FastList<IChangeContainer>();
 
 		changeQueue.pushAllFrom(allChanges);
 
@@ -303,8 +308,8 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 		LinkedHashMap<IncomingRelationKey, IList<IObjRef>> incomingRelationToReferenceMap = new LinkedHashMap<IncomingRelationKey, IList<IObjRef>>();
 		LinkedHashMap<OutgoingRelationKey, IList<IObjRef>> outgoingRelationToReferenceMap = new LinkedHashMap<OutgoingRelationKey, IList<IObjRef>>();
 		HashSet<IObjRef> allAddedORIs = new HashSet<IObjRef>();
-		HashSet<EntityLinkKey> alreadyHandled = new HashSet<EntityLinkKey>();
-		HashSet<Object> alreadyPrefetched = new HashSet<Object>();
+		final HashSet<EntityLinkKey> alreadyHandled = new HashSet<EntityLinkKey>();
+		final HashSet<Object> alreadyPrefetched = new HashSet<Object>();
 
 		findAllNewlyReferencedORIs(allChanges, allAddedORIs);
 
@@ -399,37 +404,66 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension,
 
 				tableChange.addChangeCommand(changeCommand);
 			}
-			{
-				for (Entry<CheckForPreviousParentKey, IList<IObjRef>> entry : previousParentToMovedOrisMap)
-				{
-					CheckForPreviousParentKey key = entry.getKey();
-					IList<IObjRef> value = entry.getValue();
-					IList<IChangeContainer> newChanges = relationMergeService.checkForPreviousParent(value, key.entityType, key.memberName);
-					changeQueue.pushAllFrom(newChanges);
-				}
-				previousParentToMovedOrisMap.clear();
-			}
-			{
-				for (Entry<IncomingRelationKey, IList<IObjRef>> entry : incomingRelationToReferenceMap)
-				{
-					IncomingRelationKey key = entry.getKey();
-					IList<IObjRef> value = entry.getValue();
-					IList<IChangeContainer> newChanges = relationMergeService.handleIncomingRelation(value, key.idIndex, key.table, key.link, toDeleteMap);
-					changeQueue.pushAllFrom(newChanges);
-				}
-				incomingRelationToReferenceMap.clear();
-			}
-			{
-				for (Entry<OutgoingRelationKey, IList<IObjRef>> entry : outgoingRelationToReferenceMap)
-				{
-					OutgoingRelationKey key = entry.getKey();
-					IList<IObjRef> value = entry.getValue();
-					IList<IChangeContainer> newChanges = relationMergeService.handleOutgoingRelation(value, key.idIndex, key.table, key.link, toDeleteMap,
-							alreadyHandled, alreadyPrefetched);
-					changeQueue.pushAllFrom(newChanges);
-				}
-				incomingRelationToReferenceMap.clear();
-			}
+			multithreadingHelper.invokeAndWait(previousParentToMovedOrisMap,
+					new IResultingBackgroundWorkerParamDelegate<IList<IChangeContainer>, Entry<CheckForPreviousParentKey, IList<IObjRef>>>()
+					{
+						@Override
+						public IList<IChangeContainer> invoke(Entry<CheckForPreviousParentKey, IList<IObjRef>> itemOfFork) throws Throwable
+						{
+							CheckForPreviousParentKey key = itemOfFork.getKey();
+							IList<IObjRef> value = itemOfFork.getValue();
+							return relationMergeService.checkForPreviousParent(value, key.entityType, key.memberName);
+						}
+					}, new IAggregrateResultHandler<IList<IChangeContainer>, Entry<CheckForPreviousParentKey, IList<IObjRef>>>()
+					{
+						@Override
+						public void aggregateResult(IList<IChangeContainer> resultOfFork, Entry<CheckForPreviousParentKey, IList<IObjRef>> itemOfFork)
+						{
+							changeQueue.pushAllFrom(resultOfFork);
+						}
+					});
+			previousParentToMovedOrisMap.clear();
+
+			multithreadingHelper.invokeAndWait(incomingRelationToReferenceMap,
+					new IResultingBackgroundWorkerParamDelegate<IList<IChangeContainer>, Entry<IncomingRelationKey, IList<IObjRef>>>()
+					{
+						@Override
+						public IList<IChangeContainer> invoke(Entry<IncomingRelationKey, IList<IObjRef>> itemOfFork) throws Throwable
+						{
+							IncomingRelationKey key = itemOfFork.getKey();
+							IList<IObjRef> value = itemOfFork.getValue();
+							return relationMergeService.handleIncomingRelation(value, key.idIndex, key.table, key.link, toDeleteMap);
+						}
+					}, new IAggregrateResultHandler<IList<IChangeContainer>, Entry<IncomingRelationKey, IList<IObjRef>>>()
+					{
+						@Override
+						public void aggregateResult(IList<IChangeContainer> resultOfFork, Entry<IncomingRelationKey, IList<IObjRef>> itemOfFork)
+						{
+							changeQueue.pushAllFrom(resultOfFork);
+						}
+					});
+			incomingRelationToReferenceMap.clear();
+
+			multithreadingHelper.invokeAndWait(outgoingRelationToReferenceMap,
+					new IResultingBackgroundWorkerParamDelegate<IList<IChangeContainer>, Entry<OutgoingRelationKey, IList<IObjRef>>>()
+					{
+						@Override
+						public IList<IChangeContainer> invoke(Entry<OutgoingRelationKey, IList<IObjRef>> itemOfFork) throws Throwable
+						{
+							OutgoingRelationKey key = itemOfFork.getKey();
+							IList<IObjRef> value = itemOfFork.getValue();
+							return relationMergeService.handleOutgoingRelation(value, key.idIndex, key.table, key.link, toDeleteMap, alreadyHandled,
+									alreadyPrefetched);
+						}
+					}, new IAggregrateResultHandler<IList<IChangeContainer>, Entry<OutgoingRelationKey, IList<IObjRef>>>()
+					{
+						@Override
+						public void aggregateResult(IList<IChangeContainer> resultOfFork, Entry<OutgoingRelationKey, IList<IObjRef>> itemOfFork)
+						{
+							changeQueue.pushAllFrom(resultOfFork);
+						}
+					});
+			incomingRelationToReferenceMap.clear();
 			if (changeQueue.isEmpty())
 			{
 				break;

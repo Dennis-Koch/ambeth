@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.IProperties;
@@ -26,6 +27,7 @@ import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.sql.ISqlBuilder;
 
 public class Oracle10gTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
 {
@@ -38,6 +40,9 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 
 	@Autowired
 	protected IOrmPatternMatcher ormPatternMatcher;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
 
 	@Property(name = ROOT_DATABASE_USER, defaultValue = "sys as sysdba")
 	protected String rootDatabaseUser;
@@ -129,15 +134,47 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		{
 			return new String[0];
 		}
+		String[] names = sqlBuilder.getSchemaAndTableName(tableName);
+		ArrayList<String> tableColumns = new ArrayList<String>();
+		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
+		try
+		{
+			while (tableColumnsRS.next())
+			{
+				String columnName = tableColumnsRS.getString("COLUMN_NAME");
+				if (columnName.equalsIgnoreCase(PermissionGroup.permGroupIdNameOfData))
+				{
+					continue;
+				}
+				tableColumns.add(columnName);
+			}
+		}
+		finally
+		{
+			JdbcUtil.close(tableColumnsRS);
+		}
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
-		StringBuilder sb = new StringBuilder();
+		AppendableStringBuilder sb = new AppendableStringBuilder();
 		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(tableName, maxProcedureNameLength);
 		sb.append("create or replace TRIGGER \"").append(triggerName);
-		sb.append("\"	BEFORE UPDATE ON \"").append(tableName).append("\" FOR EACH ROW");
+		sb.append("\" BEFORE UPDATE");
+		if (tableColumns.size() > 0)
+		{
+			sb.append(" OF ");
+			for (int a = 0, size = tableColumns.size(); a < size; a++)
+			{
+				if (a > 0)
+				{
+					sb.append(',');
+				}
+				sqlBuilder.escapeName(tableColumns.get(a), sb);
+			}
+		}
+		sb.append(" ON \"").append(tableName).append("\" FOR EACH ROW");
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
-		sb.append(Oracle10gDialect.getOptimisticLockErrorCode()).append(", 'Optimistic Lock Exception');");
+		sb.append(Integer.toString(Oracle10gDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
 		return new String[] { sb.toString() };

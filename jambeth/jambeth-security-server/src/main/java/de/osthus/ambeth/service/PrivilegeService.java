@@ -1,6 +1,8 @@
 package de.osthus.ambeth.service;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 
 import de.osthus.ambeth.cache.CacheDirective;
 import de.osthus.ambeth.cache.CacheFactoryDirective;
@@ -11,9 +13,12 @@ import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.interceptor.SingleCacheOnDemandProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
@@ -27,10 +32,14 @@ import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.ISecurityScope;
+import de.osthus.ambeth.privilege.EntityPermissionRuleAddedEvent;
+import de.osthus.ambeth.privilege.EntityPermissionRuleRemovedEvent;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityPermissionRuleProvider;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRuleExtendable;
+import de.osthus.ambeth.privilege.IEntityTypePermissionRuleProvider;
 import de.osthus.ambeth.privilege.evaluation.impl.EntityPermissionEvaluation;
 import de.osthus.ambeth.privilege.evaluation.impl.ScopedEntityPermissionEvaluation;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
@@ -57,7 +66,8 @@ import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
 
-public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable
+public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable,
+		IEntityPermissionRuleProvider, IEntityTypePermissionRuleProvider
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -66,7 +76,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	protected final ClassExtendableListContainer<IEntityPermissionRule<?>> entityPermissionRules = new ClassExtendableListContainer<IEntityPermissionRule<?>>(
 			"entityPermissionRule", "entityType");
 
-	protected final ClassExtendableListContainer<IEntityTypePermissionRule<?>> entityTypePermissionRules = new ClassExtendableListContainer<IEntityTypePermissionRule<?>>(
+	protected final ClassExtendableListContainer<IEntityTypePermissionRule> entityTypePermissionRules = new ClassExtendableListContainer<IEntityTypePermissionRule>(
 			"entityTypePermissionRule", "entityType");
 
 	@Autowired
@@ -80,6 +90,9 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected IEventDispatcher eventDispatcher;
 
 	@Autowired
 	protected IInterningFeature interningFeature;
@@ -324,7 +337,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		IPrefetchConfig prefetchConfig = null;
 		for (Class<?> requestedType : requestedTypesArray)
 		{
-			IList<IEntityPermissionRule<?>> extensions = entityPermissionRules.getExtensions(requestedType);
+			IList<IEntityPermissionRule<?>> extensions = getEntityPermissionRules(requestedType);
 			if (extensions.size() == 0)
 			{
 				hasAnEntityTypeWithoutPermissionRule = true;
@@ -445,7 +458,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 			}
 			pe.reset();
 			applyEntityTypePermission(pe, authorization, entityType, securityScopes);
-			IList<IEntityTypePermissionRule<?>> extensions = entityTypePermissionRules.getExtensions(entityType);
+			IList<IEntityTypePermissionRule> extensions = entityTypePermissionRules.getExtensions(entityType);
 			for (int c = 0, sizeC = extensions.size(); c < sizeC; c++)
 			{
 				IEntityTypePermissionRule extension = extensions.get(c);
@@ -638,6 +651,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void registerEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType)
 	{
 		entityPermissionRules.register(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(new EntityPermissionRuleAddedEvent(entityPermissionRule, entityType));
 	}
 
 	@Override
@@ -645,19 +659,52 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	public <T> void unregisterEntityPermissionRule(IEntityPermissionRule<? super T> entityPermissionRule, Class<T> entityType)
 	{
 		entityPermissionRules.unregister(entityPermissionRule, entityType);
+		eventDispatcher.dispatchEvent(new EntityPermissionRuleRemovedEvent(entityPermissionRule, entityType));
+	}
+
+	@Override
+	public IList<IEntityPermissionRule<?>> getEntityPermissionRules(Class<?> entityType)
+	{
+		return entityPermissionRules.getExtensions(entityType);
+	}
+
+	@Override
+	public ILinkedMap<Class<?>, IList<IEntityPermissionRule<?>>> getAllEntityPermissionRules()
+	{
+		LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>> allEntityPermissionRules = new LinkedHashMap<Class<?>, IList<IEntityPermissionRule<?>>>();
+		for (Entry<Class<?>, Object> entry : entityPermissionRules)
+		{
+			Class<?> entityType = entry.getKey();
+			Object value = entry.getValue();
+			if (value instanceof Collection)
+			{
+				allEntityPermissionRules.put(entityType, new ArrayList<IEntityPermissionRule<?>>((Collection) value));
+			}
+			else
+			{
+				allEntityPermissionRules.put(entityType, new ArrayList<IEntityPermissionRule<?>>(new Object[] { value }));
+			}
+		}
+		return allEntityPermissionRules;
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public <T> void registerEntityTypePermissionRule(IEntityTypePermissionRule<? super T> entityTypePermissionRule, Class<T> entityType)
+	public void registerEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule, Class<?> entityType)
 	{
 		entityTypePermissionRules.register(entityTypePermissionRule, entityType);
 	}
 
 	@Override
 	@SecurityContext(SecurityContextType.NOT_REQUIRED)
-	public <T> void unregisterEntityTypePermissionRule(IEntityTypePermissionRule<? super T> entityTypePermissionRule, Class<T> entityType)
+	public void unregisterEntityTypePermissionRule(IEntityTypePermissionRule entityTypePermissionRule, Class<?> entityType)
 	{
 		entityTypePermissionRules.unregister(entityTypePermissionRule, entityType);
+	}
+
+	@Override
+	public IList<IEntityTypePermissionRule> getEntityTypePermissionRules(Class<?> entityType)
+	{
+		return entityTypePermissionRules.getExtensions(entityType);
 	}
 }

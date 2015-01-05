@@ -16,6 +16,11 @@ namespace De.Osthus.Ambeth.Util
 		    this.cachePathHelper = cachePathHelper;
 	    }
 
+        public ILinkedMap<Type, CachePath[]> GetEntityTypeToPrefetchSteps()
+	    {
+		    return entityTypeToPrefetchSteps;
+	    }
+
 	    public IPrefetchState Prefetch(Object objects)
 	    {
 		    return cachePathHelper.EnsureInitializedRelations(objects, entityTypeToPrefetchSteps);

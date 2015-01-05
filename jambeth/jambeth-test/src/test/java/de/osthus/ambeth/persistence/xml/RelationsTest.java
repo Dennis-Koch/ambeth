@@ -33,6 +33,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.Boat;
@@ -40,6 +41,11 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
 import de.osthus.ambeth.persistence.xml.model.Project;
+import de.osthus.ambeth.security.IAuthentication;
+import de.osthus.ambeth.security.IAuthorization;
+import de.osthus.ambeth.security.ISecurityContext;
+import de.osthus.ambeth.security.ISecurityContextHolder;
+import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -64,6 +70,15 @@ public class RelationsTest extends AbstractPersistenceTest
 
 	@Autowired
 	protected IEmployeeService employeeService;
+
+	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Autowired
+	protected ISecurityScopeProvider securityScopeProvider;
+
+	@Autowired
+	protected IThreadLocalCleanupController threadLocalCleanupController;
 
 	@Test
 	public void testNullableToOne() throws Throwable
@@ -497,6 +512,11 @@ public class RelationsTest extends AbstractPersistenceTest
 
 		final ICacheContext cacheContext = beanContext.getService(ICacheContext.class);
 
+		ISecurityContext context = securityContextHolder.getContext();
+		final ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+		final IAuthentication authentication = context != null ? context.getAuthentication() : null;
+		final IAuthorization authorization = context != null ? context.getAuthorization() : null;
+
 		Thread savingThread = new Thread(new Runnable()
 		{
 			@Override
@@ -509,6 +529,14 @@ public class RelationsTest extends AbstractPersistenceTest
 						@Override
 						public Object run() throws Throwable
 						{
+							if (authentication != null || authorization != null)
+							{
+								ISecurityContext context = securityContextHolder.getCreateContext();
+								context.setAuthentication(authentication);
+								context.setAuthorization(authorization);
+							}
+							securityScopeProvider.setSecurityScopes(securityScopes);
+
 							List<Employee> employees = employeeService.getAll();
 
 							barrier1.await();
@@ -571,6 +599,14 @@ public class RelationsTest extends AbstractPersistenceTest
 						@Override
 						public Object run() throws Throwable
 						{
+							if (authentication != null || authorization != null)
+							{
+								ISecurityContext context = securityContextHolder.getCreateContext();
+								context.setAuthentication(authentication);
+								context.setAuthorization(authorization);
+							}
+							securityScopeProvider.setSecurityScopes(securityScopes);
+
 							List<Employee> employees = employeeService.getAll();
 
 							barrier1.await();

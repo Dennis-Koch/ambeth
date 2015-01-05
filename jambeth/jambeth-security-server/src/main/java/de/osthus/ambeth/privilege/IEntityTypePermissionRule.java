@@ -4,7 +4,7 @@ import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.privilege.evaluation.IEntityPermissionEvaluation;
 import de.osthus.ambeth.security.IAuthorization;
 
-public interface IEntityTypePermissionRule<T> extends IPermissionRule
+public interface IEntityTypePermissionRule extends IPermissionRule
 {
 	/**
 	 * Use this to implement per-entity-type security (in SQL-terminology: table-level-security) and/or per-property security (in SQL: column-level security)
@@ -14,5 +14,5 @@ public interface IEntityTypePermissionRule<T> extends IPermissionRule
 	 * @param securityScopes
 	 * @param pe
 	 */
-	void evaluatePermissionOnType(Class<? extends T> entityType, IAuthorization currentUser, ISecurityScope[] securityScopes, IEntityPermissionEvaluation pe);
+	void evaluatePermissionOnType(Class<?> entityType, IAuthorization currentUser, ISecurityScope[] securityScopes, IEntityPermissionEvaluation pe);
 }

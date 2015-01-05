@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -607,13 +608,13 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 	@Override
 	public ISet<K> keySet()
 	{
-		final LinkedHashSet<K> keySet = LinkedHashSet.create(size());
+		LinkedHashSet<K> keySet = LinkedHashSet.create(size());
 		keySet(keySet);
 		return keySet;
 	}
 
 	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		IMapEntry<K, V>[] table = this.table;
 		for (int a = table.length; a-- > 0;)
@@ -625,6 +626,14 @@ public abstract class AbstractHashMap<WrappedK, K, V> implements IMap<K, V>, IPr
 				entry = entry.getNextEntry();
 			}
 		}
+	}
+
+	@Override
+	public IList<K> keyList()
+	{
+		ArrayList<K> keySet = new ArrayList<K>(size());
+		keySet(keySet);
+		return keySet;
 	}
 
 	@Override

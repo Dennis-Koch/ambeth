@@ -1,7 +1,11 @@
 package de.osthus.ambeth.util;
 
+import java.util.Map.Entry;
+
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
 public interface IMultithreadingHelper
@@ -25,6 +29,13 @@ public interface IMultithreadingHelper
 	 *            and the current threads).
 	 */
 	<R, V> void invokeAndWait(IList<V> items, IResultingBackgroundWorkerParamDelegate<R, V> itemHandler, IAggregrateResultHandler<R, V> aggregateResultHandler);
+
+	<R, K, V> void invokeAndWait(IMap<K, V> items, IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
+			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler);
+
+	<V> void invokeAndWait(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler);
+
+	<K, V> void invokeAndWait(IMap<K, V> items, IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler);
 
 	void invokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount);
 

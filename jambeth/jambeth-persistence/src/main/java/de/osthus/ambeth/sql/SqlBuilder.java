@@ -14,6 +14,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -129,6 +130,12 @@ public class SqlBuilder implements ISqlBuilder, IInitializingBean, ISqlKeywordRe
 		// sb.append(name);
 		// }
 		return sb;
+	}
+
+	@Override
+	public String[] getSchemaAndTableName(String tableName)
+	{
+		return XmlDatabaseMapper.splitSchemaAndName(tableName);
 	}
 
 	@Override

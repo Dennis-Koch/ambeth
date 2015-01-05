@@ -17,11 +17,11 @@ public class UpdatePermissionGroupEventListener
 
 	public void handleDataChangeOfSession(IDataChangeOfSession dataChangeOfSession) throws Throwable
 	{
-		final IDataChange dataChange = dataChangeOfSession.getDataChange();
+		IDataChange dataChange = dataChangeOfSession.getDataChange();
 		if (dataChange.isEmpty())
 		{
 			return;
 		}
-		permissionGroupUpdater.insertPermissionGroups();
+		permissionGroupUpdater.updatePermissionGroups(dataChange);
 	}
 }

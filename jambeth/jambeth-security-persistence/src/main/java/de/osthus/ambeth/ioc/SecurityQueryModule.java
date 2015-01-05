@@ -10,6 +10,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.privilege.IEntityPermissionRuleEvent;
 import de.osthus.ambeth.query.IQueryBuilderExtensionExtendable;
 import de.osthus.ambeth.security.IPermissionGroupUpdater;
 import de.osthus.ambeth.security.PermissionGroupUpdater;
@@ -32,6 +33,8 @@ public class SecurityQueryModule implements IInitializingModule
 	{
 		IBeanConfiguration permissionGroupUpdater = beanContextFactory.registerBean(PermissionGroupUpdater.class).autowireable(IPermissionGroupUpdater.class);
 		beanContextFactory.link(permissionGroupUpdater, "handleEntityMetaDataEvent").to(IEventListenerExtendable.class).with(IEntityMetaDataEvent.class);
+		beanContextFactory.link(permissionGroupUpdater, "handleEntityPermissionRuleEvent").to(IEventListenerExtendable.class)
+				.with(IEntityPermissionRuleEvent.class);
 		beanContextFactory.link(permissionGroupUpdater, "handleClearAllCachesEvent").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 		if (securityActive)

@@ -1,16 +1,20 @@
 package de.osthus.ambeth.util;
 
+import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
 public class MultithreadingHelper implements IMultithreadingHelper
@@ -114,9 +118,12 @@ public class MultithreadingHelper implements IMultithreadingHelper
 			{
 				for (int a = items.size(); a-- > 0;)
 				{
-					V item = items.remove(a);
+					V item = items.get(a);
 					R result = itemHandler.invoke(item);
-					aggregateResultHandler.aggregateResult(result, item);
+					if (aggregateResultHandler != null)
+					{
+						aggregateResultHandler.aggregateResult(result, item);
+					}
 				}
 				return;
 			}
@@ -125,13 +132,131 @@ public class MultithreadingHelper implements IMultithreadingHelper
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		RunnableHandle<R, V> runnableHandle = new RunnableHandle<R, V>(itemHandler, aggregateResultHandler, items, threadLocalCleanupController);
+		ResultingRunnableHandle<R, V> runnableHandle = new ResultingRunnableHandle<R, V>(itemHandler, aggregateResultHandler, new ArrayList<V>(items),
+				threadLocalCleanupController);
 
-		Runnable parallelRunnable = new ParallelRunnable<R, V>(runnableHandle, true);
-		Runnable mainRunnable = new ParallelRunnable<R, V>(runnableHandle, false);
+		Runnable parallelRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, true);
+		Runnable mainRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, false);
 
+		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <R, K, V> void invokeAndWait(IMap<K, V> items, IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler,
+			IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler)
+	{
+		if (items.size() == 0)
+		{
+			return;
+		}
+		ExecutorService executor = this.executor;
+		if (items.size() == 1 || executor == null)
+		{
+			try
+			{
+				for (Entry<K, V> item : items)
+				{
+					R result = itemHandler.invoke(item);
+					if (aggregateResultHandler != null)
+					{
+						aggregateResultHandler.aggregateResult(result, item);
+					}
+				}
+				return;
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		ArrayList<Entry<K, V>> itemsList = new ArrayList<Entry<K, V>>(items.size());
+		for (Entry<K, V> item : items)
+		{
+			itemsList.add(item);
+		}
+		ResultingRunnableHandle<R, Entry<K, V>> runnableHandle = new ResultingRunnableHandle<R, Entry<K, V>>(itemHandler, aggregateResultHandler, itemsList,
+				threadLocalCleanupController);
+
+		Runnable parallelRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, true);
+		Runnable mainRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, false);
+
+		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+	}
+
+	@Override
+	public <V> void invokeAndWait(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler)
+	{
+		if (items.size() == 0)
+		{
+			return;
+		}
+		ExecutorService executor = this.executor;
+		if (items.size() == 1 || executor == null)
+		{
+			try
+			{
+				for (int a = items.size(); a-- > 0;)
+				{
+					V item = items.get(a);
+					itemHandler.invoke(item);
+				}
+				return;
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		RunnableHandle<V> runnableHandle = new RunnableHandle<V>(itemHandler, new ArrayList<V>(items), threadLocalCleanupController);
+
+		Runnable parallelRunnable = new ParallelRunnable<V>(runnableHandle, true);
+		Runnable mainRunnable = new ParallelRunnable<V>(runnableHandle, false);
+
+		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <K, V> void invokeAndWait(IMap<K, V> items, IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler)
+	{
+		if (items.size() == 0)
+		{
+			return;
+		}
+		ExecutorService executor = this.executor;
+		if (items.size() == 1 || executor == null)
+		{
+			try
+			{
+				for (Entry<K, V> item : items)
+				{
+					itemHandler.invoke(item);
+				}
+				return;
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		ArrayList<Entry<K, V>> itemsList = new ArrayList<Entry<K, V>>(items.size());
+		for (Entry<K, V> item : items)
+		{
+			itemsList.add(item);
+		}
+		RunnableHandle<Entry<K, V>> runnableHandle = new RunnableHandle<Entry<K, V>>(itemHandler, itemsList, threadLocalCleanupController);
+
+		Runnable parallelRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, true);
+		Runnable mainRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, false);
+
+		QueueAndWait(items.size() - 1, parallelRunnable, mainRunnable, runnableHandle);
+	}
+
+	protected <V> void QueueAndWait(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle)
+	{
 		// for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
-		for (int a = items.size() - 1; a-- > 0;)
+		for (int a = forkCount; a-- > 0;)
 		{
 			executor.execute(parallelRunnable);
 		}

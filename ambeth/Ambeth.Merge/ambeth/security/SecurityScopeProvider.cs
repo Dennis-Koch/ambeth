@@ -71,6 +71,20 @@ namespace De.Osthus.Ambeth.Security
             }
         }
 
+        public void ExecuteWithSecurityScopes(IBackgroundWorkerDelegate runnable, params ISecurityScope[] securityScopes)
+	    {
+		    ISecurityScope[] oldSecurityScopes = SecurityScopes;
+		    try
+		    {
+			    SecurityScopes = securityScopes;
+			    runnable();
+		    }
+		    finally
+		    {
+			    SecurityScopes = oldSecurityScopes;
+		    }
+	    }
+
         protected void NotifySecurityScopeChangeListeners(SecurityScopeHandle securityScopeHandle)
         {
 	        foreach (ISecurityScopeChangeListener securityScopeChangeListener in securityScopeChangeListeners.GetExtensions())
