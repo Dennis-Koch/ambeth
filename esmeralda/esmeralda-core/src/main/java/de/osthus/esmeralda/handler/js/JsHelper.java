@@ -429,13 +429,14 @@ public class JsHelper implements IJsHelper
 		{
 			writer.append("{'");
 			writeType(annotation.getType());
-			writer.append("': ").append(value.getValue().toString());
+			writer.append("': '").append(value.getValue().toString());
+			writer.append("'}");
 		}
 		else
 		{
 			writer.append("{'");
 			writeType(annotation.getType());
-			writer.append("': {").append(value.toString());
+			writer.append("': {");
 			boolean firstProperty = true;
 			for (Entry<String, AnnotationValue> entry : properties)
 			{
@@ -443,7 +444,7 @@ public class JsHelper implements IJsHelper
 				String propertyName = entry.getKey();
 				writer.append(propertyName).append(": ").append(entry.getValue().toString());
 			}
-			writer.append(']');
+			writer.append("}}");
 		}
 	}
 
