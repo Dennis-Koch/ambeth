@@ -97,16 +97,6 @@ namespace De.Osthus.Ambeth.Collections
             }
         }
 
-        public void ToKeysList(IList<K> list)
-        {
-            IListElem<E> pointer = fastIterationList.First;
-            while (pointer != null)
-            {
-                list.Add(pointer.ElemValue.Key);
-                pointer = pointer.Next;
-            }
-        }
-
         protected override void SetNextEntry(E entry, E nextEntry)
         {
             entry.NextEntry = nextEntry;
@@ -117,7 +107,7 @@ namespace De.Osthus.Ambeth.Collections
             return entry.SetValue(value);
         }
      
-        public override void KeySet(IISet<K> targetKeySet)
+        public override void KeySet(ICollection<K> targetKeySet)
         {
             Iterator<Entry<K, V>> iter = Iterator();
             while (iter.MoveNext())

@@ -23,13 +23,18 @@ namespace De.Osthus.Ambeth.Collections
 
             public IISet<K> KeySet()
             {
-                throw new NotImplementedException();
+                return EmptySet.Empty<K>();
             }
 
-            public void KeySet(IISet<K> targetKeySet)
+            public void KeySet(ICollection<K> targetKeySet)
             {
-                throw new NotImplementedException();
+                // intended blank
             }
+
+            public IList<K> KeyList()
+	        {
+		        return EmptyList.Empty<K>();
+	        }
 
             public int Count
             {
@@ -46,7 +51,7 @@ namespace De.Osthus.Ambeth.Collections
 
             public IList<V> Values()
             {
-                throw new NotImplementedException();
+                return EmptyList.Empty<V>();
             }
 
             public bool ContainsKey(K key)

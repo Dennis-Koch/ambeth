@@ -12,5 +12,7 @@ namespace De.Osthus.Ambeth.Security
         ISecurityScope[] SecurityScopes { get; set; }
 
         R ExecuteWithSecurityScopes<R>(IResultingBackgroundWorkerDelegate<R> runnable, params ISecurityScope[] securityScopes);
+
+        void ExecuteWithSecurityScopes(IBackgroundWorkerDelegate runnable, params ISecurityScope[] securityScopes);
     }
 }

@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Exceptions;
 using De.Osthus.Ambeth.Ioc;
@@ -100,19 +101,104 @@ namespace De.Osthus.Ambeth.Util
                 for (int a = items.Count; a-- > 0; )
                 {
                     V item = items[a];
-                    items.RemoveAt(items.Count - 1);
                     R result = itemHandler(item);
                     aggregateResultHandler(result, item);
                 }
                 return;
             }
-            RunnableHandle<R, V> runnableHandle = new RunnableHandle<R, V>(itemHandler, aggregateResultHandler, items, ThreadLocalCleanupController);
+            ResultingRunnableHandle<R, V> runnableHandle = new ResultingRunnableHandle<R, V>(itemHandler, aggregateResultHandler, items, ThreadLocalCleanupController);
 
-            Runnable parallelRunnable = new ParallelRunnable<R, V>(runnableHandle, true);
-            Runnable mainRunnable = new ParallelRunnable<R, V>(runnableHandle, false);
+            Runnable parallelRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, true);
+            Runnable mainRunnable = new ResultingParallelRunnable<R, V>(runnableHandle, false);
 
+            QueueAndWait(items.Count - 1, parallelRunnable, mainRunnable, runnableHandle);
+        }
+
+        public void InvokeAndWait<R, K, V>(IMap<K, V> items, IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler, IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+            if (items.Count == 1 || ThreadPool == null)
+            {
+                foreach (Entry<K, V> item in items)
+				{
+					R result = itemHandler(item);
+					if (aggregateResultHandler != null)
+					{
+						aggregateResultHandler(result, item);
+					}
+				}
+                return;
+            }
+            List<Entry<K, V>> itemsList = new List<Entry<K, V>>(items.Count);
+		    foreach (Entry<K, V> item in items)
+		    {
+			    itemsList.Add(item);
+		    }
+            ResultingRunnableHandle<R, Entry<K, V>> runnableHandle = new ResultingRunnableHandle<R, Entry<K, V>>(itemHandler, aggregateResultHandler, itemsList, ThreadLocalCleanupController);
+
+            Runnable parallelRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, true);
+            Runnable mainRunnable = new ResultingParallelRunnable<R, Entry<K, V>>(runnableHandle, false);
+
+            QueueAndWait(items.Count - 1, parallelRunnable, mainRunnable, runnableHandle);
+        }
+
+        public void InvokeAndWait<V>(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler)
+	    {
+            if (items.Count == 0)
+            {
+                return;
+            }
+            if (items.Count == 1 || ThreadPool == null)
+            {
+                for (int a = items.Count; a-- > 0; )
+                {
+                    V item = items[a];
+                    itemHandler(item);
+                }
+                return;
+            }
+            RunnableHandle<V> runnableHandle = new RunnableHandle<V>(itemHandler, items, ThreadLocalCleanupController);
+
+            Runnable parallelRunnable = new ParallelRunnable<V>(runnableHandle, true);
+            Runnable mainRunnable = new ParallelRunnable<V>(runnableHandle, false);
+
+            QueueAndWait(items.Count - 1, parallelRunnable, mainRunnable, runnableHandle);
+        }
+
+        public void InvokeAndWait<K, V>(IMap<K, V> items, IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler)
+	    {
+            if (items.Count == 0)
+            {
+                return;
+            }
+            if (items.Count == 1 || ThreadPool == null)
+            {
+                foreach (Entry<K, V> item in items)
+                {
+                    itemHandler(item);
+                }
+                return;
+            }
+            List<Entry<K, V>> itemsList = new List<Entry<K, V>>(items.Count);
+            foreach (Entry<K, V> item in items)
+            {
+                itemsList.Add(item);
+            }
+            RunnableHandle<Entry<K, V>> runnableHandle = new RunnableHandle<Entry<K, V>>(itemHandler, itemsList, ThreadLocalCleanupController);
+
+            Runnable parallelRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, true);
+            Runnable mainRunnable = new ParallelRunnable<Entry<K, V>>(runnableHandle, false);
+
+            QueueAndWait(items.Count - 1, parallelRunnable, mainRunnable, runnableHandle);
+        }
+
+        protected void QueueAndWait<V>(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle)
+        {
             // for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
-            for (int a = items.Count - 1; a-- > 0; )
+            for (int a = forkCount; a-- > 0; )
             {
                 ThreadPool.Queue(delegate()
                 {

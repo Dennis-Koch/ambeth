@@ -18,6 +18,11 @@ public class PrefetchHandle implements IPrefetchHandle
 		this.cachePathHelper = cachePathHelper;
 	}
 
+	public ILinkedMap<Class<?>, CachePath[]> getEntityTypeToPrefetchSteps()
+	{
+		return entityTypeToPrefetchSteps;
+	}
+
 	@Override
 	public IPrefetchState prefetch(Object objects)
 	{

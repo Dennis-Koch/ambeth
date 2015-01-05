@@ -5,14 +5,15 @@ import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
-public class ParallelRunnable<V> implements Runnable
+public class ResultingParallelRunnable<R, V> implements Runnable
 {
-	protected final RunnableHandle<V> runnableHandle;
+	protected final ResultingRunnableHandle<R, V> runnableHandle;
 
 	protected final boolean buildThreadLocals;
 
-	public ParallelRunnable(RunnableHandle<V> runnableHandle, boolean buildThreadLocals)
+	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle, boolean buildThreadLocals)
 	{
 		this.runnableHandle = runnableHandle;
 		this.buildThreadLocals = buildThreadLocals;
@@ -37,6 +38,28 @@ public class ParallelRunnable<V> implements Runnable
 				IForkState forkState = runnableHandle.forkState;
 				ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
 				CountDownLatch latch = runnableHandle.latch;
+
+				IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>()
+				{
+					@Override
+					public void invoke(V item) throws Throwable
+					{
+						R result = runnableHandle.run.invoke(item);
+						IAggregrateResultHandler<R, V> aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
+						if (aggregrateResultHandler != null)
+						{
+							parallelLock.lock();
+							try
+							{
+								aggregrateResultHandler.aggregateResult(result, item);
+							}
+							finally
+							{
+								parallelLock.unlock();
+							}
+						}
+					}
+				};
 
 				while (true)
 				{
@@ -65,11 +88,11 @@ public class ParallelRunnable<V> implements Runnable
 					{
 						if (buildThreadLocals)
 						{
-							forkState.use(runnableHandle.run, item);
+							forkState.use(run, item);
 						}
 						else
 						{
-							runnableHandle.run.invoke(item);
+							run.invoke(item);
 						}
 					}
 					catch (Throwable e)

@@ -1,5 +1,6 @@
 package de.osthus.ambeth.collections;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,7 +34,9 @@ public interface IMap<K, V> extends Map<K, V>, Iterable<Entry<K, V>>
 	@Override
 	ISet<K> keySet();
 
-	void keySet(ISet<K> targetKeySet);
+	void keySet(Collection<K> targetKeySet);
+
+	IList<K> keyList();
 
 	@Override
 	V put(K key, V value);
