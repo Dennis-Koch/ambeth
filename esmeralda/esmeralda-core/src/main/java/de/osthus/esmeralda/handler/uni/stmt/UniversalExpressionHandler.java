@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 
@@ -7,10 +7,11 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsExpressionHandler extends AbstractCsStatementHandler<JCExpressionStatement> implements IStatementHandlerExtension<JCExpressionStatement>
+public class UniversalExpressionHandler extends AbstractStatementHandler<JCExpressionStatement> implements IStatementHandlerExtension<JCExpressionStatement>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

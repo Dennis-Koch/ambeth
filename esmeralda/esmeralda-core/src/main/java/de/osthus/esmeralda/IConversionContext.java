@@ -20,6 +20,8 @@ public interface IConversionContext
 
 	void setCurrent(IConversionContext current);
 
+	String getLanguage();
+
 	File getTargetPath();
 
 	void setTargetPath(File targetPath);

@@ -47,7 +47,7 @@ import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
-import de.osthus.esmeralda.handler.csharp.stmt.CsBlockHandler;
+import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -183,6 +183,18 @@ public class CsHelper implements ICsHelper
 		{
 			writer.append('\t');
 		}
+	}
+
+	@Override
+	public void preBlockWhiteSpaces()
+	{
+		// Intended blank
+	}
+
+	@Override
+	public void postBlockWhiteSpaces()
+	{
+		newLineIndent();
 	}
 
 	@Override
@@ -693,7 +705,7 @@ public class CsHelper implements ICsHelper
 
 		Kind kind = statement.getKind();
 		IStatementHandlerExtension<Tree> stmtHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + kind);
-		if (stmtHandler != null && stmtHandler.getClass().equals(CsBlockHandler.class))
+		if (stmtHandler != null && stmtHandler.getClass().equals(UniversalBlockHandler.class))
 		{
 			stmtHandler.handle(statement, standalone);
 		}

@@ -19,6 +19,10 @@ public interface ILanguageHelper
 
 	boolean newLineIndentIfFalse(boolean firstLine);
 
+	void preBlockWhiteSpaces();
+
+	void postBlockWhiteSpaces();
+
 	void scopeIntend(IBackgroundWorkerDelegate run);
 
 	File createTargetFile();

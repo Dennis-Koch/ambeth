@@ -1,6 +1,6 @@
-package de.osthus.esmeralda.handler.csharp.stmt;
+package de.osthus.esmeralda.handler.js.stmt;
 
-import com.sun.tools.javac.tree.JCTree.JCContinue;
+import com.sun.tools.javac.tree.JCTree.JCThrow;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -9,26 +9,29 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class CsContinueHandler extends AbstractCsStatementHandler<JCContinue> implements IStatementHandlerExtension<JCContinue>
+public class JsThrowHandler extends AbstractJsStatementHandler<JCThrow> implements IStatementHandlerExtension<JCThrow>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void handle(JCContinue continueStatement, boolean standalone)
+	public void handle(JCThrow throwStatement, boolean standalone)
 	{
-		if (continueStatement.label != null)
-		{
-			log.warn("Continue with label is not yet supported: " + continueStatement);
-			return;
-		}
-
 		IConversionContext context = this.context.getCurrent();
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		languageHelper.newLineIndent();
-		writer.append("continue;");
+		if (standalone)
+		{
+			languageHelper.newLineIndent();
+		}
+		writer.append("throw ");
+		languageHelper.writeExpressionTree(throwStatement.getExpression());
+
+		if (standalone)
+		{
+			writer.append(';');
+		}
 	}
 }
