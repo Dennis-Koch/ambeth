@@ -88,7 +88,8 @@ public class Relations20WithSecurityTest extends Relations20Test
 			List<Employee> actual = query.retrieve();
 			assertEquals(1, actual.size());
 
-			beanContext.getService(IPrefetchHelper.class).createPrefetch().add(Employee.class, "AllProjects")//
+			beanContext.getService(IPrefetchHelper.class).createPrefetch()//
+					.add(Employee.class, "AllProjects")//
 					.add(Employee.class, "Boat")//
 					.add(Employee.class, "PrimaryAddress")//
 					.add(Employee.class, "Supervisor")//

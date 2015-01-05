@@ -10,7 +10,9 @@ namespace De.Osthus.Ambeth.Collections
 
         IISet<K> KeySet();
 
-        void KeySet(IISet<K> targetKeySet);
+        void KeySet(ICollection<K> targetKeySet);
+
+        IList<K> KeyList();
 
         int Count { get; }
 

@@ -28,6 +28,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.proxy.Self;
 import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -83,6 +84,9 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
+
+	@Autowired
+	protected ILoggerHistory loggerHistory;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -534,8 +538,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		{
 			if (log.isDebugEnabled())
 			{
-				log.debug("No column '" + columnName + "' found on table '" + table.getName() + "'. This may be a configuration error or usage of deprecated "
-						+ IQuery.class.getSimpleName() + " functionality");
+				loggerHistory.debugOnce(log, this, "No column '" + columnName + "' found on table '" + table.getName()
+						+ "'. This may be a configuration error or usage of deprecated " + IQuery.class.getSimpleName() + " functionality");
 			}
 		}
 		return columnIntern(columnName, field, joinClause);

@@ -1,3 +1,4 @@
+using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Threading;
 using System.Collections.Generic;
@@ -26,6 +27,12 @@ namespace De.Osthus.Ambeth.Util
 	 *            and the current threads).
 	 */
         void InvokeAndWait<R, V>(IList<V> items, IResultingBackgroundWorkerParamDelegate<R, V> itemHandler, IAggregrateResultHandler<R, V> aggregateResultHandler);
+
+        void InvokeAndWait<R, K, V>(IMap<K, V> items, IResultingBackgroundWorkerParamDelegate<R, Entry<K, V>> itemHandler, IAggregrateResultHandler<R, Entry<K, V>> aggregateResultHandler);
+
+	    void InvokeAndWait<V>(IList<V> items, IBackgroundWorkerParamDelegate<V> itemHandler);
+
+        void InvokeAndWait<K, V>(IMap<K, V> items, IBackgroundWorkerParamDelegate<Entry<K, V>> itemHandler);
 #endif
 
         void InvokeInParallel(IServiceContext serviceContext, Runnable runnable, int workerCount);

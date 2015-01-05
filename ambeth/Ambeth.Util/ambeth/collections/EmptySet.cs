@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Collections
 {
-    public static class EmptySet<V>
+    public static class EmptySet
     {
         public static IISet<T> Empty<T>()
         {

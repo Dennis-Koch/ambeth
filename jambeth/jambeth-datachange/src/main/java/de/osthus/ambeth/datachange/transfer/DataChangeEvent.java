@@ -147,6 +147,36 @@ public class DataChangeEvent implements IDataChange
 	}
 
 	@Override
+	public boolean isEmptyByType(Class<?> entityType)
+	{
+		List<IDataChangeEntry> entries = inserts;
+		for (int a = entries.size(); a-- > 0;)
+		{
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
+			{
+				return false;
+			}
+		}
+		entries = updates;
+		for (int a = entries.size(); a-- > 0;)
+		{
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
+			{
+				return false;
+			}
+		}
+		entries = deletes;
+		for (int a = entries.size(); a-- > 0;)
+		{
+			if (entries.get(a).getEntityType().isAssignableFrom(entityType))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public boolean isLocalSource()
 	{
 		return isLocalSource;

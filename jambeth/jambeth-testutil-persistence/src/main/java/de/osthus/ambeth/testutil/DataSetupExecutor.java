@@ -88,11 +88,20 @@ public class DataSetupExecutor implements IStartingBean
 							@Override
 							public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
 							{
-								Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
-								if (dataSet.size() > 0)
+								permissionGroupUpdater.executeWithoutPermissionGroupUpdate(new IResultingBackgroundWorkerDelegate<Object>()
 								{
-									mergeProcess.process(dataSet, null, null, null, false);
-								}
+									@Override
+									public Object invoke() throws Throwable
+									{
+										final Collection<Object> dataSet = dataSetup.executeDatasetBuilders();
+										if (dataSet.size() > 0)
+										{
+											mergeProcess.process(dataSet, null, null, null, false);
+										}
+										return null;
+									}
+								});
+								permissionGroupUpdater.fillEmptyPermissionGroups();
 							}
 						});
 						return null;

@@ -21,6 +21,8 @@ namespace De.Osthus.Ambeth.Datachange.Model
 
         bool IsEmpty { get; }
 
+        bool IsEmptyByType(Type entityType);
+
         bool IsLocalSource { get; }
 
         IDataChange Derive(params Type[] interestedEntityTypes);

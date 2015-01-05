@@ -5,8 +5,9 @@ import java.util.regex.Pattern;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.util.IPrintable;
 
-public class PermissionGroup implements IPermissionGroup
+public class PermissionGroup implements IPermissionGroup, IPrintable
 {
 	public static final String permGroupPrefix = "";
 
@@ -100,5 +101,20 @@ public class PermissionGroup implements IPermissionGroup
 	public IField getDeletePermissionField()
 	{
 		return deletePermissionField;
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		sb.append(getClass().getSimpleName()).append(": ").append(getTable().getName()).append(" applied to ").append(getTargetTable().getName()).append('.')
+				.append(getPermissionGroupFieldOnTarget().getName());
 	}
 }

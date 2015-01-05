@@ -526,16 +526,6 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		}
 	}
 
-	protected String[] getSchemaAndTableName(String tableName)
-	{
-		Matcher matcher = XmlDatabaseMapper.fqToSoftTableNamePattern.matcher(tableName);
-		if (!matcher.matches())
-		{
-			throw new IllegalStateException("Must never happen");
-		}
-		return new String[] { matcher.group(1), matcher.group(2) };
-	}
-
 	protected void loadTableFields(Set<String> tableNames, Map<String, List<SqlField>> tableNameToFields) throws SQLException
 	{
 		for (String tableName : tableNames)
@@ -589,7 +579,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			ColumnEntry rowIdEntry = new ColumnEntry("ROWID", -1, Types.ROWID, null, false, 0, 0, 0);
 			cachedFieldValues.put(rowIdEntry.getFieldName(), rowIdEntry);
 
-			String[] names = getSchemaAndTableName(tableName);
+			String[] names = sqlBuilder.getSchemaAndTableName(tableName);
 			ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 			try
 			{
@@ -649,7 +639,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 			while (iter.hasNext())
 			{
 				String tableName = iter.next();
-				String[] names = getSchemaAndTableName(tableName);
+				String[] names = sqlBuilder.getSchemaAndTableName(tableName);
 				ResultSet allPrimaryKeysRS = connection.getMetaData().getPrimaryKeys(null, names[0], names[1]);
 				try
 				{
@@ -815,7 +805,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		Integer count = primaryKeyCounts.get(tableName);
 		if (count == null)
 		{
-			String[] names = getSchemaAndTableName(tableName);
+			String[] names = sqlBuilder.getSchemaAndTableName(tableName);
 			ResultSet allPrimaryKeysRS = connection.getMetaData().getPrimaryKeys(null, names[0], names[1]);
 			count = 0;
 			try
@@ -886,7 +876,7 @@ public class JDBCDatabaseWrapper extends Database implements IDatabaseMappedList
 		LinkedHashMap<String, String[]> uniqueNameToFieldsMap = tableToUniqueConstraints.get(table.getName());
 		if (uniqueNameToFieldsMap == null)
 		{
-			String[] names = getSchemaAndTableName(table.getName());
+			String[] names = sqlBuilder.getSchemaAndTableName(table.getName());
 			ResultSet allUniqueKeysRS = connectionDialect.getIndexInfo(connection, names[0], names[1], true);
 			try
 			{
