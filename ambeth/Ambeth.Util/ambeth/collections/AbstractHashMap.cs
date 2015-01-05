@@ -438,7 +438,7 @@ namespace De.Osthus.Ambeth.Collections
             return keySet;
         }
 
-        public virtual void KeySet(IISet<K> targetKeySet)
+        public virtual void KeySet(ICollection<K> targetKeySet)
         {
             for (int a = table.Length; a-- > 0; )
             {
@@ -449,6 +449,13 @@ namespace De.Osthus.Ambeth.Collections
                     entry = GetNextEntry(entry);
                 }
             }
+        }
+
+        public virtual IList<K> KeyList()
+        {
+            List<K> keySet = new List<K>(Count);
+            KeySet(keySet);
+            return keySet;
         }
 
         public virtual IList<V> Values()

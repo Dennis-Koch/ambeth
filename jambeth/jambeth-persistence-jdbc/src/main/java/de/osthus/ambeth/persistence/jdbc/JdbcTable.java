@@ -455,9 +455,8 @@ public class JdbcTable extends SqlTable
 		IConversionHelper conversionHelper = this.conversionHelper;
 		boolean exactVersionForOptimisticLockingRequired = this.exactVersionForOptimisticLockingRequired;
 		Class<?> idFieldType = getIdField().getFieldType();
-		ArrayList<Object> persistedIdsForArray = new ArrayList<Object>();
 
-		persistedIdToVersionMap.toKeysList(persistedIdsForArray);
+		List<Object> persistedIdsForArray = persistedIdToVersionMap.keyList();
 
 		Class<?> versionFieldType = getVersionField() != null ? getVersionField().getFieldType() : null;
 		IResultSet selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray);

@@ -23,4 +23,6 @@ public interface ISqlBuilder
 	IAppendable escapeValue(CharSequence value, IAppendable sb);
 
 	boolean isUnescapedType(Class<?> type);
+
+	String[] getSchemaAndTableName(String tableName);
 }

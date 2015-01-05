@@ -1,5 +1,6 @@
 package de.osthus.ambeth.collections;
 
+import java.util.Collection;
 import java.util.List;
 
 import de.osthus.ambeth.util.StringBuilderUtil;
@@ -104,17 +105,6 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public void toKeysList(final List<K> list)
-	{
-		MapLinkedEntry<K, V> pointer = fastIterationList.getFirstElem();
-		while (pointer != null)
-		{
-			list.add(pointer.getKey());
-			pointer = pointer.getNext();
-		}
-	}
-
-	@Override
 	protected void setNextEntry(final IMapEntry<K, V> e, final IMapEntry<K, V> nextEntry)
 	{
 		((MapLinkedEntry<K, V>) e).setNextEntry((MapLinkedEntry<K, V>) nextEntry);
@@ -152,7 +142,7 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashMap<K, K, V> i
 	}
 
 	@Override
-	public void keySet(ISet<K> targetKeySet)
+	public void keySet(Collection<K> targetKeySet)
 	{
 		MapLinkedIterator<K, V> iter = iterator();
 		while (iter.hasNext())
