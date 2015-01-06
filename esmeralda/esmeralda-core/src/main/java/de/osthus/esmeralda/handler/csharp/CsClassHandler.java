@@ -3,6 +3,8 @@ package de.osthus.esmeralda.handler.csharp;
 import java.util.Collections;
 import java.util.List;
 
+import com.sun.source.tree.StatementTree;
+
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -282,6 +284,20 @@ public class CsClassHandler implements ICsClassHandler
 
 		for (Method method : classInfo.getMethods())
 		{
+			if (method.isConstructor() && method.getParameters().size() == 0)
+			{
+				List<? extends StatementTree> statements = method.getMethodTree().getBody().getStatements();
+				if (statements.size() == 0)
+				{
+					continue;
+				}
+				if (statements.size() == 1 && "super()".equals(statements.toString()))
+				{
+					// default constructor without a single statement in its body can be omitted
+					// the single statement is the mandatory call to
+					continue;
+				}
+			}
 			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
