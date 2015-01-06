@@ -298,7 +298,7 @@ public class JsClassHandler implements IJsClassHandler
 
 		Collections.sort(interfaceNames);
 
-		context.incremetIndentationLevel();
+		context.incrementIndentationLevel();
 		try
 		{
 			boolean additional = false;
@@ -320,7 +320,7 @@ public class JsClassHandler implements IJsClassHandler
 		}
 		finally
 		{
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 
 		languageHelper.newLineIndent();
@@ -342,36 +342,44 @@ public class JsClassHandler implements IJsClassHandler
 		IList<String> requires = new ArrayList<>(importsMap.keySet());
 		Collections.sort(requires);
 
-		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
-		languageHelper.newLineIndent();
-		writer.append("requires: [");
-
-		context.incremetIndentationLevel();
+		boolean firstRequires = true;
 		try
 		{
-			boolean additional = false;
+			String convertedSuperClass = languageHelper.convertType(classInfo.getNameOfSuperClass(), false);
 			for (String className : requires)
 			{
-				if (additional)
+				if (className.equals(convertedSuperClass))
 				{
-					writer.append(",");
+					// extends already implies the requires
+					continue;
+				}
+				if (firstRequires)
+				{
+					languageHelper.newLineIndent();
+					writer.append("requires: [");
+					context.incrementIndentationLevel();
+					languageHelper.newLineIndent();
+					firstRequires = false;
 				}
 				else
 				{
-					additional = true;
+					firstRequires = languageHelper.newLineIntendWithCommaIfFalse(firstRequires);
 				}
-				languageHelper.newLineIndent();
 				writer.append("'").append(className).append("'");
 			}
 		}
 		finally
 		{
-			context.decremetIndentationLevel();
+			if (!firstRequires)
+			{
+				context.decrementIndentationLevel();
+			}
 		}
-
-		languageHelper.newLineIndent();
-		writer.append("]");
-
+		if (!firstRequires)
+		{
+			languageHelper.newLineIndent();
+			writer.append("]");
+		}
 		return firstLine;
 	}
 
@@ -407,15 +415,14 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (T element : elements)
 		{
-			if (checkPrivate != null && !checkPrivate.equals(element.isPrivate()))
+			if (checkPrivate != null && !checkPrivate.booleanValue() == element.isPrivate())
 			{
 				continue;
 			}
-			if (checkStatic != null && !checkStatic.equals(element.isStatic()))
+			if (checkStatic != null && !checkStatic.booleanValue() == element.isStatic())
 			{
 				continue;
 			}
-
 			view.add(element);
 		}
 
@@ -490,7 +497,25 @@ public class JsClassHandler implements IJsClassHandler
 	protected boolean writeFields(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonPrivateNonStaticFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.FALSE);
-		nonPrivateNonStaticFields = createView(nonPrivateNonStaticFields, Boolean.FALSE, null);
+		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		for (Field field : classInfo.getFields())
+		{
+			languageHelper.newLineIndent();
+			context.setField(field);
+			fieldHandler.handle();
+		}
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			FieldInfo field = new FieldInfo();
+			field.setPrivateFlag(true);
+			field.setFieldType(usedVariable.getType());
+			field.setName(usedVariable.getName());
+
+			languageHelper.newLineIndent();
+			context.setField(field);
+			fieldHandler.handle();
+		}
 		if (nonPrivateNonStaticFields.isEmpty())
 		{
 			return firstLine;
@@ -578,6 +603,12 @@ public class JsClassHandler implements IJsClassHandler
 		IWriter writer = context.getWriter();
 		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
 
+		for (Field field : classInfo.getFields())
+		{
+			languageHelper.newLineIndent();
+			context.setField(field);
+			fieldHandler.handle();
+		}
 		for (IVariable usedVariable : allUsedVariables)
 		{
 			languageHelper.newLineIndent();
@@ -619,7 +650,17 @@ public class JsClassHandler implements IJsClassHandler
 				}
 			}
 		});
-		writeClassBody(classInfo);
+		for (Method method : classInfo.getMethods())
+		{
+			if (method.isConstructor())
+			{
+				// skip the constructors defined in anonymous classes. we already created our single necessary constructor explicitly
+				continue;
+			}
+			languageHelper.newLineIndent();
+			context.setMethod(method);
+			methodHandler.handle();
+		}
 	}
 
 	protected void writeClassBody(JavaClassInfo classInfo)

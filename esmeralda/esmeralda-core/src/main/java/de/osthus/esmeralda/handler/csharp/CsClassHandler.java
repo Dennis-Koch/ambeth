@@ -208,6 +208,12 @@ public class CsClassHandler implements ICsClassHandler
 		IWriter writer = context.getWriter();
 		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
 
+		for (Field field : classInfo.getFields())
+		{
+			languageHelper.newLineIndent();
+			context.setField(field);
+			fieldHandler.handle();
+		}
 		for (IVariable usedVariable : allUsedVariables)
 		{
 			languageHelper.newLineIndent();
@@ -249,8 +255,17 @@ public class CsClassHandler implements ICsClassHandler
 				}
 			}
 		});
-
-		writeClassBody(classInfo);
+		for (Method method : classInfo.getMethods())
+		{
+			if (method.isConstructor())
+			{
+				// skip the constructors defined in anonymous classes. we already created our single necessary constructor explicitly
+				continue;
+			}
+			languageHelper.newLineIndent();
+			context.setMethod(method);
+			methodHandler.handle();
+		}
 	}
 
 	protected void writeClassBody(JavaClassInfo classInfo)

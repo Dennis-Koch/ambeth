@@ -199,7 +199,7 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		writer.append('{');
-		context.incremetIndentationLevel();
+		context.incrementIndentationLevel();
 		try
 		{
 			run.invoke();
@@ -210,7 +210,7 @@ public class JsHelper implements IJsHelper
 		}
 		finally
 		{
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 		newLineIndent();
 		writer.append('}');
@@ -513,9 +513,9 @@ public class JsHelper implements IJsHelper
 		}
 		else if (stmtHandler != null)
 		{
-			context.incremetIndentationLevel();
+			context.incrementIndentationLevel();
 			stmtHandler.handle(statement, standalone);
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 		else if (standalone)
 		{

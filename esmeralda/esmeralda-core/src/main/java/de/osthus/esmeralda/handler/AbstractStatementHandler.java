@@ -71,9 +71,9 @@ public abstract class AbstractStatementHandler<T extends StatementTree> implemen
 		}
 		else if (stmtHandler != null)
 		{
-			context.incremetIndentationLevel();
+			context.incrementIndentationLevel();
 			stmtHandler.handle(statement, standalone);
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 		else if (standalone)
 		{

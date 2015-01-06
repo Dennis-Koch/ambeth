@@ -496,14 +496,14 @@ public class ConversionContext implements IConversionContext
 	}
 
 	@Override
-	public int incremetIndentationLevel()
+	public int incrementIndentationLevel()
 	{
 		indentationLevel++;
 		return indentationLevel;
 	}
 
 	@Override
-	public int decremetIndentationLevel()
+	public int decrementIndentationLevel()
 	{
 		indentationLevel--;
 		return indentationLevel;

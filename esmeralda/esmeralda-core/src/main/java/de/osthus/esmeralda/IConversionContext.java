@@ -64,9 +64,9 @@ public interface IConversionContext
 
 	void setIndentationLevel(int indentationLevel);
 
-	int incremetIndentationLevel();
+	int incrementIndentationLevel();
 
-	int decremetIndentationLevel();
+	int decrementIndentationLevel();
 
 	JavaClassInfo getClassInfo();
 
