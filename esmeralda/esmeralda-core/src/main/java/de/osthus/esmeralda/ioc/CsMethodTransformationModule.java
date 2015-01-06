@@ -7,7 +7,6 @@ import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.csharp.ICsMethodTransformer;
 import de.osthus.esmeralda.handler.csharp.MethodTransformer;
-import de.osthus.esmeralda.handler.csharp.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransformer;
@@ -16,6 +15,7 @@ import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.StackTraceElementTransformer;
+import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.misc.Lang;
 
 public class CsMethodTransformationModule implements IInitializingModule

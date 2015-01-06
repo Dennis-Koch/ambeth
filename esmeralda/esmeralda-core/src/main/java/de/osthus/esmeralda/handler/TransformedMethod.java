@@ -4,25 +4,28 @@ import java.util.Arrays;
 
 public class TransformedMethod implements ITransformedMethod
 {
-	protected String owner;
+	protected final String owner;
 
-	protected String name;
+	protected final String name;
 
 	protected String[] argTypes;
 
-	protected boolean isPropertyInvocation;
+	protected final boolean isPropertyInvocation;
 
-	protected boolean isStatic;
+	protected final boolean isStatic;
 
-	private IMethodParameterProcessor parameterProcessor;
+	protected IMethodParameterProcessor parameterProcessor;
 
-	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic)
+	protected final Boolean writeOwner;
+
+	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic, Boolean writeOwner)
 	{
 		this.owner = owner;
 		this.name = name;
 		this.argTypes = argTypes;
 		this.isPropertyInvocation = isPropertyInvocation;
 		this.isStatic = isStatic;
+		this.writeOwner = writeOwner;
 	}
 
 	@Override
@@ -47,6 +50,12 @@ public class TransformedMethod implements ITransformedMethod
 	public boolean isStatic()
 	{
 		return isStatic;
+	}
+
+	@Override
+	public Boolean isWriteOwner()
+	{
+		return writeOwner;
 	}
 
 	@Override
