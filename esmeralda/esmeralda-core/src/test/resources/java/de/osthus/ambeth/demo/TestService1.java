@@ -103,4 +103,17 @@ public class TestService1 extends BaseClass implements ITestInterface
 			}
 		}
 	}
+
+	@Override
+	public void overridableMethod()
+	{
+		System.out.println("call me");
+	}
+
+	public void callAnotherSuperMethod()
+	{
+		overridableMethod();
+		this.overridableMethod();
+		super.overridableMethod();
+	}
 }

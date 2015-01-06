@@ -6,6 +6,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMethod;
+import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 
 public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 {
@@ -29,7 +30,7 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 		{
 			methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
 		}
-		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false, false);
+		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false, false, null);
 		transformedMethod.setParameterProcessor(defaultMethodParameterProcessor);
 		return transformedMethod;
 	}

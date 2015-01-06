@@ -68,4 +68,16 @@ public class TestService2 implements IInitializingBean
 			System.out.println(intParam);
 		}
 	}
+
+	public void anonymousClassInstance()
+	{
+		new AbstractObject()
+		{
+			@Override
+			public void method2()
+			{
+				System.out.println("hello");
+			}
+		}.method2();
+	}
 }
