@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.js.transformer;
+package de.osthus.esmeralda.handler.uni.transformer;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -12,7 +12,6 @@ import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMethod;
-import de.osthus.esmeralda.handler.js.IJsHelper;
 
 public abstract class AbstractMethodTransformerExtension implements IMethodTransformerExtension, IInitializingBean
 {
@@ -27,9 +26,6 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 
 	@Autowired
 	protected IMethodParameterProcessor defaultMethodParameterProcessor;
-
-	@Autowired
-	protected IJsHelper languageHelper;
 
 	@Autowired
 	protected IMethodTransformerExtension defaultMethodTransformerExtension;
@@ -69,12 +65,18 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
 			Class<?>... parameterTypes)
 	{
+		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, isProperty, null, parameterTypes);
+	}
+
+	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
+			Boolean writeOwner, Class<?>... parameterTypes)
+	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			parameters[a] = parameterTypes[a].getName();
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false, writeOwner);
 		tm.setParameterProcessor(defaultMethodParameterProcessor);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
@@ -84,12 +86,18 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
 			Class<?>... parameterTypes)
 	{
+		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, null, parameterTypes);
+	}
+
+	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
+			Boolean writeOwner, Class<?>... parameterTypes)
+	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			parameters[a] = parameterTypes[a].getName();
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, false);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, false, writeOwner);
 		tm.setParameterProcessor(mpp);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
