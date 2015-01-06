@@ -1,6 +1,6 @@
-package de.osthus.esmeralda.handler.csharp.expr;
+package de.osthus.esmeralda.handler.uni.expr;
 
-import com.sun.tools.javac.tree.JCTree.JCInstanceOf;
+import com.sun.tools.javac.tree.JCTree.JCParens;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -9,22 +9,21 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class InstanceOfExpressionHandler extends AbstractExpressionHandler<JCInstanceOf>
+public class ParensExpressionHandler extends AbstractExpressionHandler<JCParens>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	protected void handleExpressionIntern(JCInstanceOf instanceofExpr)
+	protected void handleExpressionIntern(JCParens parens)
 	{
 		IConversionContext context = this.context.getCurrent();
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		languageHelper.writeExpressionTree(instanceofExpr.expr);
-		writer.append(" is ");
-		languageHelper.writeExpressionTree(instanceofExpr.clazz);
-		context.setTypeOnStack(Boolean.TYPE.getName());
+		writer.append('(');
+		languageHelper.writeExpressionTree(parens.getExpression());
+		writer.append(')');
 	}
 }

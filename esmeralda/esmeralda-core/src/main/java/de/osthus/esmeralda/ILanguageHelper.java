@@ -33,6 +33,10 @@ public interface ILanguageHelper
 
 	String createNamespace();
 
+	String createNamespace(String packageName);
+
+	String createMethodName(String methodName);
+
 	boolean writeStringIfFalse(String value, boolean condition);
 
 	void startDocumentation();

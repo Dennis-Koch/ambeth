@@ -17,5 +17,9 @@ public class JavaIoPrintstreamTransformer extends AbstractMethodTransformerExten
 
 		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, String.class);
 		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, String.class);
+		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, int.class);
+		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, int.class);
+		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, Integer.class);
+		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, Integer.class);
 	}
 }
