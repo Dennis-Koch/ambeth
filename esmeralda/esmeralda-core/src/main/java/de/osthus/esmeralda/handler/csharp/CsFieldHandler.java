@@ -45,9 +45,10 @@ public class CsFieldHandler implements ICsFieldHandler
 
 		boolean annotatedWithAutowired = astHelper.isAnnotatedWith(field, Autowired.class);
 		boolean annotatedWithProperty = astHelper.isAnnotatedWith(field, Property.class);
+		boolean annotatedWithLogInstance = astHelper.isAnnotatedWith(field, LogInstance.class);
 
 		boolean firstKeyWord;
-		if (annotatedWithAutowired || annotatedWithProperty)
+		if (annotatedWithAutowired || annotatedWithProperty || annotatedWithLogInstance)
 		{
 			writer.append("public");
 			firstKeyWord = false;
@@ -76,7 +77,7 @@ public class CsFieldHandler implements ICsFieldHandler
 			writer.append(name).append(" { protected get; set; }");
 			finishWithSemicolon = false;
 		}
-		else if (astHelper.isAnnotatedWith(field, LogInstance.class))
+		else if (annotatedWithLogInstance)
 		{
 			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
 			// TODO remind changed name of the field for later access to the property get/set
