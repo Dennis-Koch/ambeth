@@ -22,16 +22,19 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCPrimitiveTypeTree;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.esmeralda.CodeVisitor;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.Variable;
@@ -86,6 +89,7 @@ public class MethodInfoDataSetter
 			TreePath parentTreePath = path.getParentPath();
 			final ArrayList<Object> allVariables = new ArrayList<Object>();
 			final ArrayList<VariableTree> allVariablesFromMethodSignature = new ArrayList<VariableTree>();
+			IdentityHashSet<Tree> alreadyVisistedNodeSet = new IdentityHashSet<Tree>();
 			for (VariableTree parameter : methodTree.getParameters())
 			{
 				allVariablesFromMethodSignature.add(parameter);
@@ -93,6 +97,7 @@ public class MethodInfoDataSetter
 			while (!(parentTreePath.getLeaf() instanceof JCCompilationUnit))
 			{
 				Tree leaf = parentTreePath.getLeaf();
+				alreadyVisistedNodeSet.add(leaf);
 				if (leaf instanceof JCVariableDecl)
 				{
 					allVariables.add(leaf);
@@ -124,6 +129,24 @@ public class MethodInfoDataSetter
 					for (JCVariableDecl parameter : ((JCMethodDecl) leaf).getParameters())
 					{
 						allVariables.add(parameter);
+					}
+				}
+				else if (leaf instanceof JCBlock)
+				{
+					// may contain final variable declarations which are used in a method body of the anonymous class
+					for (JCStatement statement : ((JCBlock) leaf).getStatements())
+					{
+						if (statement instanceof JCVariableDecl && ((JCVariableDecl) statement).getModifiers().getFlags().contains(Modifier.FINAL))
+						{
+							allVariables.add(statement);
+						}
+						if (alreadyVisistedNodeSet.contains(statement))
+						{
+							// this is our child tree which we already visited. variables which are declared in this block but after the current child tree
+							// are not considered because their are not referrable from within the anonymous class
+							break;
+						}
+
 					}
 				}
 				parentTreePath = parentTreePath.getParentPath();

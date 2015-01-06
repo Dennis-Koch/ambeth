@@ -60,6 +60,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		final ILanguageHelper languageHelper = context.getLanguageHelper();
 
 		Method method = context.getMethod();
+		IWriter writer = context.getWriter();
 
 		if (methodInvocation.meth == null)
 		{
@@ -148,8 +149,12 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						return context.getTypeOnStack();
 					}
 				}, meth.selected);
+				if (meth.selected instanceof JCNewClass)
+				{
+					languageHelper.writeExpressionTree(meth.selected);
+					writer.append('.');
+				}
 				owner = null;
-				typeOfOwner = context.getTypeOnStack();
 				writeMethodDot = true;
 			}
 			else

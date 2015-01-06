@@ -57,14 +57,11 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class CsHelper implements ICsHelper
 {
-	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("abstract", "as", "base", "bool", "break", "byte", "case", "catch",
-			"char", "checked", "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern",
-			"false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock", "long",
-			"namespace", "new", "null", "object", "operator", "out", "override", "params", "private", "protected", "public", "readonly", "ref", "return",
-			"sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof", "uint",
-			"ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while", "add", "alias", "ascending", "async", "await",
-			"descending", "dynamic", "from", "get", "global", "group", "into", "join", "let", "orderby", "partial", "remove", "select", "set", "var", "where",
-			"yield"));
+	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("abstract", "as", "base", "bool", "checked", "const", "decimal",
+			"delegate", "event", "explicit", "extern", "fixed", "foreach", "goto", "implicit", "in", "internal", "is", "lock", "namespace", "object",
+			"operator", "out", "override", "params", "readonly", "ref", "sbyte", "sealed", "sizeof", "stackalloc", "string", "struct", "typeof", "uint",
+			"ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "alias", "ascending", "async", "await", "descending", "dynamic", "from", "get",
+			"global", "group", "into", "join", "let", "orderby", "partial", "select", "set", "var", "where", "yield"));
 
 	protected static final HashMap<String, String[]> javaTypeToCsharpMap = new HashMap<String, String[]>();
 
@@ -204,7 +201,7 @@ public class CsHelper implements ICsHelper
 		IWriter writer = context.getWriter();
 		newLineIndent();
 		writer.append('{');
-		context.incremetIndentationLevel();
+		context.incrementIndentationLevel();
 		try
 		{
 			run.invoke();
@@ -215,7 +212,7 @@ public class CsHelper implements ICsHelper
 		}
 		finally
 		{
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 		newLineIndent();
 		writer.append('}');
@@ -711,9 +708,9 @@ public class CsHelper implements ICsHelper
 		}
 		else if (stmtHandler != null)
 		{
-			context.incremetIndentationLevel();
+			context.incrementIndentationLevel();
 			stmtHandler.handle(statement, standalone);
-			context.decremetIndentationLevel();
+			context.decrementIndentationLevel();
 		}
 		else if (standalone)
 		{

@@ -71,12 +71,13 @@ public class TestService2 implements IInitializingBean
 
 	public void anonymousClassInstance()
 	{
+		final int hallo = 5;
 		new AbstractObject()
 		{
 			@Override
 			public void method2()
 			{
-				System.out.println("hello");
+				System.out.println("hello " + hallo);
 			}
 		}.method2();
 	}
