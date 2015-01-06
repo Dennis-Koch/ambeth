@@ -210,6 +210,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		}
 		ITransformedMethod transformedMethod = methodTransformer.transform(typeOfOwner, methodName, methodInvocation.getArguments());
 
+		context.addCalledMethod(transformedMethod);
+
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
 		final boolean fWriteOwnerAsTypeof = writeOwnerAsTypeof;

@@ -87,7 +87,7 @@ public class MethodTransformer implements ICsMethodTransformer
 		String currOwner = owner;
 		while (currOwner != null)
 		{
-			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + currOwner);
+			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + currOwner);
 			if (methodTransformerExtension != null)
 			{
 				MethodKey methodKey = new MethodKey(currOwner, methodName, argTypes);
@@ -96,7 +96,7 @@ public class MethodTransformer implements ICsMethodTransformer
 			String nonGenericOwner = astHelper.extractNonGenericType(currOwner);
 			if (!nonGenericOwner.equals(currOwner))
 			{
-				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + nonGenericOwner);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + nonGenericOwner);
 				if (methodTransformerExtension != null)
 				{
 					MethodKey methodKey = new MethodKey(nonGenericOwner, methodName, argTypes);
@@ -110,7 +110,7 @@ public class MethodTransformer implements ICsMethodTransformer
 			}
 			for (String interfaceName : classInfo.getNameOfInterfaces())
 			{
-				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.JS + interfaceName);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + interfaceName);
 				if (methodTransformerExtension == null)
 				{
 					continue;

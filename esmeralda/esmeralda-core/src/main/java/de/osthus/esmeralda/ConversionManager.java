@@ -1,6 +1,8 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -40,6 +42,20 @@ import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ConversionManager implements IStartingBean
 {
+	private static final Comparator<Object[]> METHOD_NAME_COUNT_COMPARATOR = new Comparator<Object[]>()
+	{
+		@Override
+		public int compare(Object[] o1, Object[] o2)
+		{
+			int result = ((Integer) o2[1]).compareTo((Integer) o1[1]);
+			if (result == 0)
+			{
+				result = ((String) o1[0]).compareTo((String) o2[0]);
+			}
+			return result;
+		}
+	};
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -140,6 +156,11 @@ public class ConversionManager implements IStartingBean
 
 		StatementCount csMetric = new StatementCount("C#");
 		StatementCount jsMetric = new StatementCount("JS");
+		HashMap<String, Integer> csCalledMethods = new HashMap<>();
+		HashSet<String> csDefinedMethods = new HashSet<>();
+		HashMap<String, Integer> jsCalledMethods = new HashMap<>();
+		HashSet<String> jsDefinedMethods = new HashSet<>();
+
 		int classInfoProgress = 0, classInfoCount = classInfos.size();
 		long lastLog = System.currentTimeMillis();
 
@@ -166,6 +187,8 @@ public class ConversionManager implements IStartingBean
 			csContext.setAstHelper(astHelper);
 			csContext.setClassInfoFactory(classInfoFactory);
 			csContext.setLanguageHelper(csHelper);
+			csContext.setCalledMethods(csCalledMethods);
+			csContext.setDefinedMethods(csDefinedMethods);
 
 			invokeClassHandler(csClassHandler, csContext);
 
@@ -182,6 +205,8 @@ public class ConversionManager implements IStartingBean
 			jsContext.setAstHelper(astHelper);
 			jsContext.setClassInfoFactory(classInfoFactory);
 			jsContext.setLanguageHelper(jsHelper);
+			jsContext.setCalledMethods(jsCalledMethods);
+			jsContext.setDefinedMethods(jsDefinedMethods);
 
 			invokeClassHandler(jsClassHandler, jsContext);
 
@@ -197,6 +222,11 @@ public class ConversionManager implements IStartingBean
 
 		if (log.isInfoEnabled())
 		{
+			// log.info("Missing methods in CS:");
+			// logMissingMethods(csCalledMethods, csDefinedMethods);
+			log.info("Missing methods in JS:");
+			logMissingMethods(jsCalledMethods, jsDefinedMethods);
+
 			log.info(csMetric.toString());
 			log.info(jsMetric.toString());
 		}
@@ -225,10 +255,9 @@ public class ConversionManager implements IStartingBean
 		}
 	}
 
-	public void invokeHandleMethod(final IClassHandler classHandler)
+	protected void invokeHandleMethod(final IClassHandler classHandler)
 	{
 		IConversionContext context = this.context.getCurrent();
-		final JavaClassInfo classInfo = context.getClassInfo();
 
 		ILanguageHelper languageHelper = classHandler.getLanguageHelper();
 
@@ -324,5 +353,29 @@ public class ConversionManager implements IStartingBean
 			context.setUsings(null);
 		}
 		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
+	}
+
+	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods)
+	{
+		HashMap<String, Integer> missingMethods = new HashMap<>(calledMethods);
+		for (String definedMethod : definedMethods)
+		{
+			missingMethods.remove(definedMethod);
+		}
+
+		Object[][] methodArray = new Object[missingMethods.size()][];
+		int index = 0;
+		for (Entry<String, Integer> missingMethod : missingMethods)
+		{
+			methodArray[index++] = new Object[] { missingMethod.getKey(), missingMethod.getValue() };
+		}
+		Arrays.sort(methodArray, METHOD_NAME_COUNT_COMPARATOR);
+
+		for (Object[] fullMethodNameCount : methodArray)
+		{
+			String fullMethodName = (String) fullMethodNameCount[0];
+			Integer count = (Integer) fullMethodNameCount[1];
+			log.info(count + "\t" + fullMethodName);
+		}
 	}
 }

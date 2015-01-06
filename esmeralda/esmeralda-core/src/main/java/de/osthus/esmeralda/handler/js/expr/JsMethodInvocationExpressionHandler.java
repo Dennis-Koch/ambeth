@@ -210,6 +210,8 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 		}
 		ITransformedMethod transformedMethod = methodTransformer.transform(typeOfOwner, methodName, methodInvocation.getArguments());
 
+		context.addCalledMethod(transformedMethod);
+
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
 		final boolean fWriteOwnerAsTypeof = writeOwnerAsTypeof;
