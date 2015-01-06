@@ -386,6 +386,16 @@ public class CsHelper implements ICsHelper
 		JavaClassInfo classInfo = context.getClassInfo();
 		String packageName = classInfo.getPackageName();
 
+		String namespace = createNamespace(packageName);
+
+		return namespace;
+	}
+
+	@Override
+	public String createNamespace(String packageName)
+	{
+		IConversionContext context = this.context.getCurrent();
+
 		String nsPrefixRemove = context.getNsPrefixRemove();
 		if (packageName.startsWith(nsPrefixRemove))
 		{
@@ -414,6 +424,13 @@ public class CsHelper implements ICsHelper
 			camelCase[a] = StringConversionHelper.upperCaseFirst(objectCollector, strings[a]);
 		}
 		return camelCase;
+	}
+
+	@Override
+	public String createMethodName(String methodName)
+	{
+		methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
+		return methodName;
 	}
 
 	@Override

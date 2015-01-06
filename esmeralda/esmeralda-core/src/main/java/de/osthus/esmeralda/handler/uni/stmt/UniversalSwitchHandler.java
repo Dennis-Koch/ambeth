@@ -64,7 +64,8 @@ public class UniversalSwitchHandler extends AbstractStatementHandler<JCSwitch> i
 		{
 			writer.append("default");
 		}
-		writer.append(": ");
+		writer.append(':');
+		languageHelper.preBlockWhiteSpaces();
 
 		List<JCStatement> statements = caseItem.getStatements();
 		for (JCStatement statement : statements)
