@@ -435,13 +435,13 @@ namespace De.Osthus.Ambeth.Mapping
                     }
                     else
                     {
-                        businessObject = EntityFactory.CreateEntity(boMetaData);
+                        businessObject = CreateBusinessObject(boMetaData, cache);
                         voToBoMap.Put(valueObject, businessObject);
                     }
                 }
                 else
                 {
-                    businessObject = EntityFactory.CreateEntity(boMetaData);
+                    businessObject = CreateBusinessObject(boMetaData, cache);
                     SetTempIdToValueObject(valueObject, boMetaData, boNameToVoMember, config);
                     bosToRemoveTempIdFrom.Add(businessObject);
                     id = GetIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
@@ -460,12 +460,22 @@ namespace De.Osthus.Ambeth.Mapping
                     {
                         IValueObjectConfig config = GetValueObjectConfig(valueObject.GetType());
                         IEntityMetaData boMetaData = entityMetaDataProvider.GetMetaData(config.EntityType);
-                        businessObject = EntityFactory.CreateEntity(boMetaData);
+                        businessObject = CreateBusinessObject(boMetaData, cache);
                     }
                     voToBoMap.Put(valueObject, businessObject);
                 }
             }
         }
+
+        protected Object CreateBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache)
+	    {
+		    Object businessObject = EntityFactory.CreateEntity(boMetaData);
+		    if (businessObject is IValueHolderContainer)
+		    {
+			    ((IValueHolderContainer) businessObject).__TargetCache = cache;
+		    }
+		    return businessObject;
+	    }
 
         protected void ResolvePrimitiveProperties(Object valueObject, ICacheIntern cache)
         {

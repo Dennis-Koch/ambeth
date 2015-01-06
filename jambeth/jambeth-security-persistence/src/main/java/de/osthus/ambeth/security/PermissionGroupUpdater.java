@@ -168,7 +168,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Override
 	public void afterStarted() throws Throwable
 	{
-		allUsersQuery = queryBuilderFactory.create(IUser.class).build();
+		if (securityActive)
+		{
+			allUsersQuery = queryBuilderFactory.create(IUser.class).build();
+		}
 	}
 
 	public void handleEntityMetaDataEvent(IEntityMetaDataEvent entityMetaDataEvent)

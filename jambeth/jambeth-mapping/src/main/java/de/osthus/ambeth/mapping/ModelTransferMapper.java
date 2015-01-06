@@ -520,13 +520,13 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				}
 				else
 				{
-					businessObject = entityFactory.createEntity(boMetaData);
+					businessObject = createBusinessObject(boMetaData, cache);
 					voToBoMap.put(valueObject, businessObject);
 				}
 			}
 			else
 			{
-				businessObject = entityFactory.createEntity(boMetaData);
+				businessObject = createBusinessObject(boMetaData, cache);
 				setTempIdToValueObject(valueObject, boMetaData, boNameToVoMember, config);
 				bosToRemoveTempIdFrom.add(businessObject);
 				id = getIdFromValueObject(valueObject, boMetaData, boNameToVoMember, config);
@@ -545,11 +545,21 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				{
 					IValueObjectConfig config = getValueObjectConfig(valueObject.getClass());
 					IEntityMetaData boMetaData = entityMetaDataProvider.getMetaData(config.getEntityType());
-					businessObject = entityFactory.createEntity(boMetaData);
+					businessObject = createBusinessObject(boMetaData, cache);
 				}
 				voToBoMap.put(valueObject, businessObject);
 			}
 		}
+	}
+
+	protected Object createBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache)
+	{
+		Object businessObject = entityFactory.createEntity(boMetaData);
+		if (businessObject instanceof IValueHolderContainer)
+		{
+			((IValueHolderContainer) businessObject).set__TargetCache(cache);
+		}
+		return businessObject;
 	}
 
 	protected void resolvePrimitiveProperties(Object valueObject, ICacheIntern cache) throws Exception

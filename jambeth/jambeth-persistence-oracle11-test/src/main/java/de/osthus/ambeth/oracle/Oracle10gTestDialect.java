@@ -146,6 +146,14 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 				{
 					continue;
 				}
+				int columnType = tableColumnsRS.getInt("DATA_TYPE");
+				if (java.sql.Types.CLOB == columnType || java.sql.Types.BLOB == columnType)
+				{
+					// ORA-25006: cannot specify this column in UPDATE OF clause
+					// lobs have a lob locator as a pointer to the internal technical lob storage. the lob locator is never changed when a lob is initialized or
+					// updated
+					continue;
+				}
 				tableColumns.add(columnName);
 			}
 		}
