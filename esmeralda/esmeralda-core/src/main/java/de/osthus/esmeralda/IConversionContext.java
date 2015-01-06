@@ -5,6 +5,7 @@ import java.io.File;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -95,6 +96,8 @@ public interface IConversionContext
 	ISnippetManager getSnippetManager();
 
 	void setSnippetManager(ISnippetManager snippetManager);
+
+	void addCalledMethod(ITransformedMethod method);
 
 	void queuePostProcess(IPostProcess postProcess);
 

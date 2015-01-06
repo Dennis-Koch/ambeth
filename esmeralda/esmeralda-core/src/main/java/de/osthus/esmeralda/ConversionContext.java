@@ -8,6 +8,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -15,6 +16,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
+import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.StatementCount;
@@ -65,6 +67,10 @@ public class ConversionContext implements IConversionContext
 	private ILanguageHelper languageHelper;
 
 	private ISnippetManager snippetManager;
+
+	protected HashMap<String, Integer> calledMethods;
+
+	protected HashSet<String> definedMethods;
 
 	private final ArrayList<IPostProcess> postProcesses = new ArrayList<IPostProcess>();
 
@@ -579,6 +585,7 @@ public class ConversionContext implements IConversionContext
 	public void setMethod(Method method)
 	{
 		this.method = method;
+		addDefinedMethod(classInfo, method);
 	}
 
 	@Override
@@ -591,6 +598,53 @@ public class ConversionContext implements IConversionContext
 	public void setSnippetManager(ISnippetManager snippetManager)
 	{
 		this.snippetManager = snippetManager;
+	}
+
+	public void setCalledMethods(HashMap<String, Integer> calledMethods)
+	{
+		this.calledMethods = calledMethods;
+	}
+
+	@Override
+	public void addCalledMethod(ITransformedMethod method)
+	{
+		String packageAndClassName = method.getOwner();
+		packageAndClassName = packageAndClassName.replaceAll("<.*>", "");
+		int lastDot = packageAndClassName.lastIndexOf(".");
+		if (lastDot != -1)
+		{
+			String packageName = packageAndClassName.substring(0, lastDot);
+			packageName = languageHelper.createNamespace(packageName);
+
+			String className = packageAndClassName.substring(lastDot + 1);
+
+			packageAndClassName = packageName + '.' + className;
+		}
+		String methodName = method.getName();
+
+		String fullMethodName = packageAndClassName + '.' + methodName;
+		Integer count = calledMethods.get(fullMethodName);
+		if (count == null)
+		{
+			count = Integer.valueOf(0);
+		}
+		count++;
+		calledMethods.put(fullMethodName, count);
+	}
+
+	public void setDefinedMethods(HashSet<String> definedMethods)
+	{
+		this.definedMethods = definedMethods;
+	}
+
+	protected void addDefinedMethod(JavaClassInfo classInfo, Method method)
+	{
+		String namespace = languageHelper.createNamespace();
+		String className = classInfo.getName();
+		String methodName = languageHelper.createMethodName(method.getName());
+		String fullMethodName = namespace + '.' + className + '.' + methodName;
+		fullMethodName = fullMethodName.replaceAll("<.*>", "");
+		definedMethods.add(fullMethodName);
 	}
 
 	@Override

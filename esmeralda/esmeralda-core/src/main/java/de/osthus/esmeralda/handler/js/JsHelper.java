@@ -259,12 +259,26 @@ public class JsHelper implements IJsHelper
 	{
 		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
-
 		String packageName = classInfo.getPackageName();
+
+		String namespace = createNamespace(packageName);
+
+		return namespace;
+	}
+
+	@Override
+	public String createNamespace(String packageName)
+	{
 		packageName = prefixModification(packageName, context);
 		String namespace = StringConversionHelper.upperCaseFirst(objectCollector, packageName);
 
 		return namespace;
+	}
+
+	@Override
+	public String createMethodName(String methodName)
+	{
+		return methodName;
 	}
 
 	@Override

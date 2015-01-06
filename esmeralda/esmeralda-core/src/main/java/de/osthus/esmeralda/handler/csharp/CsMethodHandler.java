@@ -113,7 +113,7 @@ public class CsMethodHandler implements ICsMethodHandler
 			languageHelper.writeType(method.getReturnType());
 			writer.append(' ');
 		}
-		String methodName = StringConversionHelper.upperCaseFirst(objectCollector, method.getName());
+		String methodName = languageHelper.createMethodName(method.getName());
 		// TODO: remind of the changed method name on all invocations
 
 		writer.append(methodName);
