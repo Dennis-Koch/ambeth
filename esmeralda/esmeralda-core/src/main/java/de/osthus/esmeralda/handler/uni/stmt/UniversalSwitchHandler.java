@@ -1,6 +1,7 @@
-package de.osthus.esmeralda.handler.js.stmt;
+package de.osthus.esmeralda.handler.uni.stmt;
 
 import com.sun.tools.javac.tree.JCTree.JCCase;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCSwitch;
 import com.sun.tools.javac.util.List;
@@ -10,10 +11,11 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class JsSwitchHandler extends AbstractJsStatementHandler<JCSwitch> implements IStatementHandlerExtension<JCSwitch>
+public class UniversalSwitchHandler extends AbstractStatementHandler<JCSwitch> implements IStatementHandlerExtension<JCSwitch>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -51,22 +53,23 @@ public class JsSwitchHandler extends AbstractJsStatementHandler<JCSwitch> implem
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		final List<JCStatement> statements = caseItem.getStatements();
-
 		languageHelper.newLineIndent();
-		writer.append("case ");
-		languageHelper.writeExpressionTree(caseItem.getExpression());
-		writer.append(':');
-		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		JCExpression expression = caseItem.getExpression();
+		if (expression != null)
 		{
-			@Override
-			public void invoke() throws Throwable
-			{
-				for (JCStatement statement : statements)
-				{
-					handleChildStatement(statement);
-				}
-			}
-		});
+			writer.append("case ");
+			languageHelper.writeExpressionTree(expression);
+		}
+		else
+		{
+			writer.append("default");
+		}
+		writer.append(": ");
+
+		List<JCStatement> statements = caseItem.getStatements();
+		for (JCStatement statement : statements)
+		{
+			handleChildStatement(statement);
+		}
 	}
 }

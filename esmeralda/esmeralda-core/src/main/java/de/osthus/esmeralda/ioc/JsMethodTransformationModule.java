@@ -7,10 +7,10 @@ import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.js.IJsMethodTransformer;
 import de.osthus.esmeralda.handler.js.MethodTransformer;
-import de.osthus.esmeralda.handler.js.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.js.transformer.JavaIoPrintstreamTransformer;
+import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.misc.Lang;
 
 public class JsMethodTransformationModule implements IInitializingModule

@@ -91,16 +91,28 @@ public class TestService1 extends BaseClass implements ITestInterface
 				System.out.println("1");
 				break;
 			}
+			// Intentionally not a block
 			case 2:
-			{
 				System.out.println("2");
 				break;
-			}
 			default:
 			{
 				System.out.println("ok");
 				break;
 			}
 		}
+	}
+
+	@Override
+	public void overridableMethod()
+	{
+		System.out.println("call me");
+	}
+
+	public void callAnotherSuperMethod()
+	{
+		overridableMethod();
+		this.overridableMethod();
+		super.overridableMethod();
 	}
 }

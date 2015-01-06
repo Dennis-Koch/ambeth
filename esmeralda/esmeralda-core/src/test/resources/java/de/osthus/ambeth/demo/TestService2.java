@@ -13,8 +13,11 @@ public class TestService2 implements IInitializingBean
 	@LogInstance
 	private ILogger log;
 
-	@Autowired
+	@Autowired(value = "test", optional = true)
 	protected ITestInterface testService;
+
+	@Autowired("test2")
+	protected ITestInterface testService2;
 
 	protected IConversionHelper conversionHelper;
 
@@ -64,5 +67,17 @@ public class TestService2 implements IInitializingBean
 		{
 			System.out.println(intParam);
 		}
+	}
+
+	public void anonymousClassInstance()
+	{
+		new AbstractObject()
+		{
+			@Override
+			public void method2()
+			{
+				System.out.println("hello");
+			}
+		}.method2();
 	}
 }

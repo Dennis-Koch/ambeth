@@ -16,4 +16,9 @@ public class BaseClass
 		String str = "BaseClass Hello";
 		System.out.println(str);
 	}
+
+	public void overridableMethod()
+	{
+		System.out.println("dont call me");
+	}
 }

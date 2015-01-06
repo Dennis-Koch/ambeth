@@ -8,6 +8,8 @@ public interface ITransformedMethod
 
 	String[] getArgumentTypes();
 
+	Boolean isWriteOwner();
+
 	boolean isStatic();
 
 	boolean isPropertyInvocation();

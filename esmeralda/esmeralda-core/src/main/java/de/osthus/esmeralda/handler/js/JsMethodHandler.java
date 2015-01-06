@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.js;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.BlockTree;
@@ -10,6 +11,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -60,6 +62,20 @@ public class JsMethodHandler implements IJsMethodHandler
 		writer.append(") ");
 
 		MethodTree methodTree = method.getMethodTree();
+
+		if (methodTree.getModifiers().getFlags().contains(Modifier.ABSTRACT))
+		{
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					languageHelper.newLineIndent();
+					writer.append("// TODO: throw exception if not implemented");
+				}
+			});
+			return;
+		}
 
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
 		context.setSnippetManager(snippetManager);
