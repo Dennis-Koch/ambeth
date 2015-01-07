@@ -5,7 +5,7 @@ import demo.codeanalyzer.common.model.BaseJavaClassModel;
 
 public interface IJsHelper extends ILanguageHelper
 {
-	boolean newLineIntendWithCommaIfFalse(boolean value);
+	boolean newLineIndentWithCommaIfFalse(boolean value);
 
 	void writeMetadata(BaseJavaClassModel model);
 

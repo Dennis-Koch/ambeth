@@ -269,7 +269,7 @@ public class JsClassHandler implements IJsClassHandler
 			return firstLine;
 		}
 
-		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
 		writer.append("extend: '");
 		languageHelper.writeType(nameOfSuperClass);
@@ -355,7 +355,9 @@ public class JsClassHandler implements IJsClassHandler
 				}
 				if (firstRequires)
 				{
-					languageHelper.newLineIndent();
+					languageHelper.newLineIndentIfFalse(!firstLine);
+					firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+
 					writer.append("requires: [");
 					context.incrementIndentationLevel();
 					languageHelper.newLineIndent();
@@ -363,7 +365,7 @@ public class JsClassHandler implements IJsClassHandler
 				}
 				else
 				{
-					firstRequires = languageHelper.newLineIntendWithCommaIfFalse(firstRequires);
+					firstRequires = languageHelper.newLineIndentWithCommaIfFalse(firstRequires);
 				}
 				writer.append("'").append(className).append("'");
 			}
@@ -392,7 +394,7 @@ public class JsClassHandler implements IJsClassHandler
 			return firstLine;
 		}
 
-		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
 		writer.append("static: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
@@ -439,7 +441,7 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (Field field : nonStaticPrivateFields)
 		{
-			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
 		}
@@ -457,7 +459,7 @@ public class JsClassHandler implements IJsClassHandler
 				continue;
 			}
 
-			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
 		}
@@ -473,7 +475,7 @@ public class JsClassHandler implements IJsClassHandler
 			return firstLine;
 		}
 
-		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
 		writer.append("privates: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
@@ -497,25 +499,6 @@ public class JsClassHandler implements IJsClassHandler
 	protected boolean writeFields(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonPrivateNonStaticFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.FALSE);
-		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
-
-		for (Field field : classInfo.getFields())
-		{
-			languageHelper.newLineIndent();
-			context.setField(field);
-			fieldHandler.handle();
-		}
-		for (IVariable usedVariable : allUsedVariables)
-		{
-			FieldInfo field = new FieldInfo();
-			field.setPrivateFlag(true);
-			field.setFieldType(usedVariable.getType());
-			field.setName(usedVariable.getName());
-
-			languageHelper.newLineIndent();
-			context.setField(field);
-			fieldHandler.handle();
-		}
 		if (nonPrivateNonStaticFields.isEmpty())
 		{
 			return firstLine;
@@ -523,7 +506,7 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (Field field : nonPrivateNonStaticFields)
 		{
-			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setField(field);
 			fieldHandler.handle();
 		}
@@ -533,7 +516,21 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeConfig(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
 	{
-		firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+		// TODO
+		// IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+		// for (IVariable usedVariable : allUsedVariables)
+		// {
+		// FieldInfo field = new FieldInfo();
+		// field.setPrivateFlag(true);
+		// field.setFieldType(usedVariable.getType());
+		// field.setName(usedVariable.getName());
+		//
+		// languageHelper.newLineIndent();
+		// context.setField(field);
+		// fieldHandler.handle();
+		// }
+
+		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
 		writer.append("config: ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
@@ -564,7 +561,7 @@ public class JsClassHandler implements IJsClassHandler
 				continue;
 			}
 
-			firstLine = languageHelper.newLineIntendWithCommaIfFalse(firstLine);
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
 		}
