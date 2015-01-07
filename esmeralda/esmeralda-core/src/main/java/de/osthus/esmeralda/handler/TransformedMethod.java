@@ -18,7 +18,15 @@ public class TransformedMethod implements ITransformedMethod
 
 	protected final Boolean writeOwner;
 
-	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic, Boolean writeOwner)
+	private boolean isOwnerAType;
+
+	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic)
+	{
+		this(owner, name, argTypes, isPropertyInvocation, isStatic, null, false);
+	}
+
+	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic, Boolean writeOwner,
+			boolean isOwnerAType)
 	{
 		this.owner = owner;
 		this.name = name;
@@ -26,6 +34,7 @@ public class TransformedMethod implements ITransformedMethod
 		this.isPropertyInvocation = isPropertyInvocation;
 		this.isStatic = isStatic;
 		this.writeOwner = writeOwner;
+		this.isOwnerAType = isOwnerAType;
 	}
 
 	@Override
@@ -56,6 +65,12 @@ public class TransformedMethod implements ITransformedMethod
 	public Boolean isWriteOwner()
 	{
 		return writeOwner;
+	}
+
+	@Override
+	public boolean isOwnerAType()
+	{
+		return isOwnerAType;
 	}
 
 	@Override

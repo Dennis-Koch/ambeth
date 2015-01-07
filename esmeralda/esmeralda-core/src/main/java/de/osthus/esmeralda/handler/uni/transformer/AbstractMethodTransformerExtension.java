@@ -65,43 +65,61 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
 			Class<?>... parameterTypes)
 	{
-		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, isProperty, null, parameterTypes);
+		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, isProperty, null, false, parameterTypes);
 	}
 
 	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
-			Boolean writeOwner, Class<?>... parameterTypes)
+			Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
 	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			parameters[a] = parameterTypes[a].getName();
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false, writeOwner);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false, writeOwner, isOwnerAType);
 		tm.setParameterProcessor(defaultMethodParameterProcessor);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
 				tm);
 	}
 
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
-			Class<?>... parameterTypes)
+	protected void mapTransformationOverloads(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, Boolean writeOwner,
+			boolean isOwnerAType, Class<?>... singleParameterTypes)
 	{
-		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, null, parameterTypes);
+		for (Class<?> singleParameterType : singleParameterTypes)
+		{
+			mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, false, writeOwner, isOwnerAType, singleParameterType);
+		}
 	}
 
 	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
-			Boolean writeOwner, Class<?>... parameterTypes)
+			Class<?>... parameterTypes)
+	{
+		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, null, false, parameterTypes);
+	}
+
+	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
+			Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
 	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			parameters[a] = parameterTypes[a].getName();
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, false, writeOwner);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, false, writeOwner, isOwnerAType);
 		tm.setParameterProcessor(mpp);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
 				tm);
+	}
+
+	protected void mapTransformationOverloads(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
+			IMethodParameterProcessor mpp, Boolean writeOwner, Class<?>... singleParameterTypes)
+	{
+		for (Class<?> singleParameterType : singleParameterTypes)
+		{
+			mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, singleParameterType);
+		}
 	}
 
 	protected MethodKey buildMethodKey(java.lang.reflect.Method method)

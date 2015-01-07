@@ -84,6 +84,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 					}
 					catch (TypeResolveException e)
 					{
+						log.warn(e);
 						addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
 					}
 				}

@@ -69,6 +69,8 @@ public class CsHelper implements ICsHelper
 
 	protected static final HashMap<String, String> annotationTargetMap = new HashMap<String, String>();
 
+	protected static final Pattern dotSplit = Pattern.compile(Pattern.quote("."));
+
 	static
 	{
 		put("void", "void");
@@ -272,7 +274,9 @@ public class CsHelper implements ICsHelper
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
-				mappedTypeName = camelCaseName(new String[] { typeName });
+				String[] typeNameSplit = dotSplit.split(createNamespace(typeName));
+				typeNameSplit = camelCaseName(typeNameSplit);
+				mappedTypeName = new String[] { StringConversionHelper.implode(objectCollector, typeNameSplit, ".") };
 			}
 			else
 			{
@@ -394,7 +398,7 @@ public class CsHelper implements ICsHelper
 		IConversionContext context = this.context.getCurrent();
 
 		String nsPrefixRemove = context.getNsPrefixRemove();
-		if (packageName.startsWith(nsPrefixRemove))
+		if (packageName.toLowerCase().startsWith(nsPrefixRemove.toLowerCase()))
 		{
 			int removeLength = nsPrefixRemove.length();
 			packageName = packageName.substring(removeLength);
@@ -406,7 +410,7 @@ public class CsHelper implements ICsHelper
 			packageName = nsPrefixAdd + packageName;
 		}
 
-		String[] packageSplit = packageName.split(Pattern.quote("."));
+		String[] packageSplit = dotSplit.split(packageName);
 		packageSplit = camelCaseName(packageSplit);
 		String namespace = StringConversionHelper.implode(objectCollector, packageSplit, ".");
 

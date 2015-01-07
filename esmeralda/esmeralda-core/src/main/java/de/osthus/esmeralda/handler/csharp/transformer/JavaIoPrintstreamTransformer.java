@@ -15,7 +15,11 @@ public class JavaIoPrintstreamTransformer extends AbstractMethodTransformerExten
 	{
 		super.afterPropertiesSet();
 
-		mapTransformation(java.io.PrintStream.class, "println", "System.Console", "WriteLine", false, String.class);
-		mapTransformation(java.io.PrintStream.class, "print", "System.Console", "Write", false, String.class);
+		mapTransformationOverloads(java.io.PrintStream.class, "println", "System.Console", "WriteLine", Boolean.TRUE, true, boolean.class, Boolean.class,
+				boolean[].class, double.class, Double.class, float.class, Float.class, Object.class, String.class, long.class, Long.class, int.class,
+				Integer.class);
+		mapTransformationOverloads(java.io.PrintStream.class, "print", "System.Console", "Write", Boolean.TRUE, true, boolean.class, Boolean.class,
+				boolean[].class, double.class, Double.class, float.class, Float.class, Object.class, String.class, long.class, Long.class, int.class,
+				Integer.class);
 	}
 }

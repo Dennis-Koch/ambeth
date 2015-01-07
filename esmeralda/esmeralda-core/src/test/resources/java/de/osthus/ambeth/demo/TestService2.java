@@ -81,4 +81,10 @@ public class TestService2 implements IInitializingBean
 			}
 		}.method2();
 	}
+
+	public void callToLog()
+	{
+		log.debug("Hello");
+		log.error(new RuntimeException());
+	}
 }

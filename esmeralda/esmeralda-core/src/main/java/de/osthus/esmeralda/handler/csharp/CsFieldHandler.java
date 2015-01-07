@@ -73,14 +73,14 @@ public class CsFieldHandler implements ICsFieldHandler
 		if (annotatedWithAutowired || annotatedWithProperty)
 		{
 			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
-			// TODO remind changed name of the field for later access to the property get/set
+			context.mapSymbolTransformation(field.getName(), name);
 			writer.append(name).append(" { protected get; set; }");
 			finishWithSemicolon = false;
 		}
 		else if (annotatedWithLogInstance)
 		{
 			String name = StringConversionHelper.upperCaseFirst(objectCollector, field.getName());
-			// TODO remind changed name of the field for later access to the property get/set
+			context.mapSymbolTransformation(field.getName(), name);
 			writer.append(name).append(" { private get; set; }");
 			finishWithSemicolon = false;
 		}
