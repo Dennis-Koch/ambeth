@@ -21,7 +21,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.exception.MaskingRuntimeException;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -247,7 +247,7 @@ public class ConversionManager implements IStartingBean
 		catch (Throwable e)
 		{
 			JavaClassInfo classInfo = newContext.getClassInfo();
-			log.error(new MaskingRuntimeException("Error occured while processing type '" + classInfo.getName() + "'", e));
+			log.error(RuntimeExceptionUtil.mask(e, "Error occured while processing type '" + classInfo.getName() + "'"));
 		}
 		finally
 		{

@@ -94,10 +94,15 @@ public class ClassInfoFactory implements IClassInfoFactory
 		{
 			return null;
 		}
-		classInfo.setName(type.getSimpleName());
 		if (type.getPackage() != null)
 		{
 			classInfo.setPackageName(type.getPackage().getName());
+			int packageNameLength = classInfo.getPackageName().length();
+			classInfo.setName(type.getName().substring(packageNameLength + 1));
+		}
+		else
+		{
+			classInfo.setName(type.getName());
 		}
 		if (type.getSuperclass() != null)
 		{

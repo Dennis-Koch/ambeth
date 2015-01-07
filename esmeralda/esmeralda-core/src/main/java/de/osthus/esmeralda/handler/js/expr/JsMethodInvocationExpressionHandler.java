@@ -2,6 +2,7 @@ package de.osthus.esmeralda.handler.js.expr;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -46,6 +47,8 @@ import demo.codeanalyzer.common.model.MethodInfo;
 
 public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandler<JCMethodInvocation>
 {
+	public static final Pattern trimCaptureOfPattern = Pattern.compile("capture#\\d+ of ");
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -256,7 +259,9 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 		transformedMethod.getParameterProcessor().processMethodParameters(methodInvocation, owner, transformedMethod, ownerWriter);
 		if (methodInvocation.type != null)
 		{
-			context.setTypeOnStack(methodInvocation.type.toString());
+			String returnType = methodInvocation.type.toString();
+			returnType = trimCaptureOfPattern.matcher(returnType).replaceAll("");
+			context.setTypeOnStack(returnType);
 			return;
 		}
 		String returnType = resolveMethodReturnType(typeOfOwner, methodName, argTypes);
