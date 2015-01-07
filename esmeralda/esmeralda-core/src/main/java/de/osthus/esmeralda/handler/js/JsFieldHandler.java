@@ -1,6 +1,7 @@
 package de.osthus.esmeralda.handler.js;
 
 import com.sun.source.tree.ExpressionTree;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -47,7 +48,7 @@ public class JsFieldHandler implements IJsFieldHandler
 	protected void writeJsonField(Field field, ExpressionTree initializer, IWriter writer)
 	{
 		writer.append(field.getName()).append(": ");
-		if (initializer != null)
+		if (initializer != null && initializer instanceof JCLiteral)
 		{
 			// TODO replace
 			writer.append(initializer.toString());

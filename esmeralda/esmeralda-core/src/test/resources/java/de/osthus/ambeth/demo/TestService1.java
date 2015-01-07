@@ -14,6 +14,10 @@ public class TestService1 extends BaseClass implements ITestInterface
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+	
+	protected int magicNumber = 42;
+	
+	protected String magicString = magicNumber + "";
 
 	@Override
 	public void testMethod1()
