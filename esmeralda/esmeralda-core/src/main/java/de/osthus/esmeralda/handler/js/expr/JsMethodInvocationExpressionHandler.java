@@ -214,7 +214,6 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
-		final boolean fWriteOwnerAsTypeof = writeOwnerAsTypeof;
 
 		if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && fWriteOwnerAsType))
 		{
@@ -234,7 +233,7 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 				{
 					if (fWriteOwnerAsType)
 					{
-						languageHelper.writeAsType(owner);
+						languageHelper.writeType(owner);
 					}
 					else
 					{
