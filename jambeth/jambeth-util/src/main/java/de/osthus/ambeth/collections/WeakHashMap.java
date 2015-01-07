@@ -76,10 +76,15 @@ public class WeakHashMap<K, V> extends AbstractHashMap<Reference<K>, K, V>
 	}
 
 	@Override
-	protected void entryRemoved(final IMapEntry<K, V> entry)
+	protected final void entryRemoved(IMapEntry<K, V> entry)
+	{
+		entryRemovedNoCleanup(entry);
+		checkForCleanup();
+	}
+
+	protected void entryRemovedNoCleanup(IMapEntry<K, V> entry)
 	{
 		size--;
-		checkForCleanup();
 	}
 
 	@Override
@@ -97,26 +102,12 @@ public class WeakHashMap<K, V> extends AbstractHashMap<Reference<K>, K, V>
 	@SuppressWarnings("unchecked")
 	public void checkForCleanup()
 	{
-		ArrayList<IMapEntry<K, V>> removes = null;
+		IMapEntry<K, V>[] table = this.table;
+		int tableLengthMinusOne = table.length - 1;
 		IMapEntry<K, V> removedEntry;
 		ReferenceQueue<Object> referenceQueue = this.referenceQueue;
 		while ((removedEntry = (WeakMapEntry<K, V>) referenceQueue.poll()) != null)
 		{
-			if (removes == null)
-			{
-				removes = new ArrayList<IMapEntry<K, V>>();
-			}
-			removes.add(removedEntry);
-		}
-		if (removes == null)
-		{
-			return;
-		}
-		for (int a = removes.size(); a-- > 0;)
-		{
-			removedEntry = removes.get(a);
-			IMapEntry<K, V>[] table = this.table;
-			int tableLengthMinusOne = table.length - 1;
 			int i = removedEntry.getHash() & tableLengthMinusOne;
 			IMapEntry<K, V> entry = table[i];
 			if (entry == null)
@@ -127,7 +118,7 @@ public class WeakHashMap<K, V> extends AbstractHashMap<Reference<K>, K, V>
 			if (entry == removedEntry)
 			{
 				table[i] = entry.getNextEntry();
-				entryRemoved(entry);
+				entryRemovedNoCleanup(entry);
 				continue;
 			}
 			IMapEntry<K, V> prevEntry = entry;
@@ -137,7 +128,7 @@ public class WeakHashMap<K, V> extends AbstractHashMap<Reference<K>, K, V>
 				if (entry == removedEntry)
 				{
 					setNextEntry(prevEntry, entry.getNextEntry());
-					entryRemoved(entry);
+					entryRemovedNoCleanup(entry);
 					break;
 				}
 				prevEntry = entry;
