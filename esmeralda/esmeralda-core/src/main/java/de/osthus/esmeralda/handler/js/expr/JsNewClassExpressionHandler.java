@@ -32,7 +32,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 {
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
 
-	// TODO
 	public static final String getFqNameFromAnonymousName(String fqName)
 	{
 		Matcher anonymousMatcher = JsNewClassExpressionHandler.anonymousPattern.matcher(fqName);
@@ -116,9 +115,24 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		JCClassDecl def = newClass.def;
 		if (def == null)
 		{
-			writer.append("new ");
+			writer.append("Ext.create('");
 			languageHelper.writeType(owner);
-			languageHelper.writeMethodArguments(arguments);
+			writer.append('\'');
+			if (!arguments.isEmpty())
+			{
+				writer.append(", { ");
+				boolean firstParameter = true;
+				int argNo = 0;
+				for (JCExpression argument : arguments)
+				{
+					firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
+					// FIXME Search config names in constructor decl.
+					writer.append("argument_").append(Integer.toString(argNo++)).append(" : ");
+					languageHelper.writeExpressionTree(argument);
+				}
+				writer.append(" }");
+			}
+			writer.append(')');
 			String typeOnStack = context.getClassInfo().getFqName();
 			if (newClass.type != null || newClass.clazz instanceof JCIdent)
 			{
@@ -128,7 +142,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 			return;
 		}
 		// this is an anonymous class instantiation
-		// writeDelegate(owner, def);
 		writeAnonymousInstantiation(owner, def);
 	}
 
@@ -141,7 +154,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		owner = JsNewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
 
-		// Ext.create('Ext.Button', { text: 'My Button' });
 		writer.append("Ext.create('");
 		languageHelper.writeType(owner);
 		writer.append("', { ");

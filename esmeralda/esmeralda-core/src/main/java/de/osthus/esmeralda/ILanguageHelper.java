@@ -47,6 +47,8 @@ public interface ILanguageHelper
 
 	void writeSimpleName(JavaClassInfo classInfo);
 
+	void writeAsType(String typeName);
+
 	void writeType(String typeName);
 
 	void writeTypeDirect(String typeName);
