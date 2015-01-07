@@ -234,15 +234,7 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 				{
 					if (fWriteOwnerAsType)
 					{
-						if (fWriteOwnerAsTypeof)
-						{
-							writer.append("typeof(");
-						}
-						languageHelper.writeType(owner);
-						if (fWriteOwnerAsTypeof)
-						{
-							writer.append(')');
-						}
+						languageHelper.writeAsType(owner);
 					}
 					else
 					{

@@ -50,8 +50,7 @@ public class JsFieldHandler implements IJsFieldHandler
 		writer.append(field.getName()).append(": ");
 		if (initializer != null && initializer instanceof JCLiteral)
 		{
-			// TODO replace
-			writer.append(initializer.toString());
+			languageHelper.writeExpressionTree(initializer);
 		}
 		else
 		{
