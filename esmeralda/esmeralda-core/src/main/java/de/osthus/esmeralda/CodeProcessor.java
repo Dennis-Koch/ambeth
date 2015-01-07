@@ -87,10 +87,15 @@ public class CodeProcessor extends AbstractProcessor
 			{
 				continue;
 			}
-			log.info("Parsed " + ((int) ((index * 10000) / (double) rootElements.size())) / 100.0 + "% of java source");
+			parseProgress(index / (double) rootElements.size());
 			lastLog = System.currentTimeMillis();
 		}
+		parseProgress(1);
 		throw new FastBreakException();
 	}
 
+	protected void parseProgress(double ratio)
+	{
+		log.info("Parsed " + ((int) (ratio * 10000) / 100.0) + "% of java source");
+	}
 }

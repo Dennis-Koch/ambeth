@@ -12,11 +12,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class UniversalForHandler extends AbstractCsStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
+public class UniversalForHandler extends AbstractStatementHandler<JCForLoop> implements IStatementHandlerExtension<JCForLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

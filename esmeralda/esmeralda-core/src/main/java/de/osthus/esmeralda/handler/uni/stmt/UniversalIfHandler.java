@@ -7,11 +7,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class UniversalIfHandler extends AbstractCsStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
+public class UniversalIfHandler extends AbstractStatementHandler<JCIf> implements IStatementHandlerExtension<JCIf>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
