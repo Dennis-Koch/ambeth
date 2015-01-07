@@ -59,12 +59,9 @@ public class JsHelper implements IJsHelper
 
 	private static final Pattern GENERIC_NAME = Pattern.compile("[A-Z]");
 
-	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("abstract", "arguments", "boolean", "break", "byte", "case", "catch",
-			"char", "class", "const", "continue", "debugger", "default", "delete", "do", "double", "else", "enum", "eval", "export", "extends", "false",
-			"final", "finally", "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", "long",
-			"native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", "switch", "synchronized", "throw",
-			"throws", "transient", "true", "try", "typeof", "var", "void", "volatile", "while", "with", "yield", "Infinity", "isFinite", "isNaN",
-			"isPrototypeOf", "Math", "NaN", "Number", "Object", "prototype", "String", "toString", "undefined", "valueOf"));
+	private static final HashSet<String> RESERVED_WORDS = new HashSet<>(Arrays.asList("arguments", "const", "debugger", "default", "delete", "eval", "export",
+			"function", "goto", "import", "in", "let", "native", "transient", "typeof", "var", "volatile", "with", "yield", "Infinity", "isFinite", "isNaN",
+			"isPrototypeOf", "NaN", "prototype", "undefined", "valueOf"));
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
 
@@ -162,7 +159,7 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public boolean newLineIntendWithCommaIfFalse(boolean value)
+	public boolean newLineIndentWithCommaIfFalse(boolean value)
 	{
 		if (!value)
 		{
@@ -369,7 +366,7 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		newLineIntendWithCommaIfFalse(false);
+		newLineIndentWithCommaIfFalse(false);
 		writer.append("m$_").append(model.getName()).append(": {");
 
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
