@@ -141,16 +141,17 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		owner = JsNewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
 
-		writer.append("new ");
+		// Ext.create('Ext.Button', { text: 'My Button' });
+		writer.append("Ext.create('");
 		languageHelper.writeType(owner);
-		writer.append('(');
+		writer.append("', { ");
 		boolean firstParameter = true;
 		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
 		{
 			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			writer.append(usedVariable.getName());
+			writer.append(usedVariable.getName()).append(" : ").append(usedVariable.getName());
 		}
-		writer.append(')');
+		writer.append(" })");
 		context.setTypeOnStack(owner);
 	}
 
