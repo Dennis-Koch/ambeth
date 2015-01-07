@@ -13,7 +13,7 @@ public class SecurityJobModule implements IInitializingModule
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
 		IBeanConfiguration threadPoolRefreshJob = beanContextFactory.registerBean(ThreadPoolRefreshJob.class)//
-				.propertyRef("ThreadPool", SecurityModule.THREAD_POOL_NAME);
+				.propertyRef("ThreadPool", IocModule.THREAD_POOL_NAME);
 		beanContextFactory.link(threadPoolRefreshJob).to(IJobExtendable.class).with("threadPool-refresh", "* * * * * *").optional();
 	}
 }

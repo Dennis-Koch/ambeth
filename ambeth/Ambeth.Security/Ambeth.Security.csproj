@@ -89,7 +89,6 @@
     <Compile Include="ambeth\service\SecurityServiceModelProvider.cs" />
     <Compile Include="ambeth\ioc\PrivilegeModule.cs" />
     <Compile Include="ambeth\ioc\SecurityModule.cs" />
-    <Compile Include="ambeth\util\AbstractRunnableHandle.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -174,23 +173,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\security\PasswordType.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\util\CatchingRunnable.cs" />
-    <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
-    <Compile Include="ambeth\util\INamedRunnable.cs" />
-    <Compile Include="ambeth\util\MultithreadingHelper.cs" />
-    <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
-    <Compile Include="ambeth\util\InterruptingParamHolder.cs" />
-    <Compile Include="ambeth\util\ParallelRunnable.cs" />
-    <Compile Include="ambeth\util\RunnableHandle.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\util\ResultingParallelRunnable.cs" />
-    <Compile Include="ambeth\util\ResultingRunnableHandle.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
