@@ -5,8 +5,7 @@ import com.sun.tools.javac.tree.JCTree.JCBinary;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.ASTHelper;
@@ -132,15 +131,16 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			}
 			case UNSIGNED_RIGHT_SHIFT:
 			{
-				astHelper.writeToStash(new IBackgroundWorkerDelegate()
+				String typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String>()
 				{
 					@Override
-					public void invoke() throws Throwable
+					public String invoke() throws Throwable
 					{
+						IConversionContext context = BinaryExpressionHandler.this.context.getCurrent();
 						writeSimpleBinary(" >> ", binary);
+						return context.getTypeOnStack();
 					}
 				});
-				String typeOnStack = context.getTypeOnStack();
 				if (Integer.TYPE.getName().equals(typeOnStack))
 				{
 					writer.append("(int)((uint)");
@@ -164,10 +164,10 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 		final ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String[], Object>()
+		String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String[]>()
 		{
 			@Override
-			public String[] invoke(Object state) throws Throwable
+			public String[] invoke() throws Throwable
 			{
 				IConversionContext context = BinaryExpressionHandler.this.context;
 				String[] resultTypes = new String[2];
@@ -177,7 +177,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 				resultTypes[1] = context.getTypeOnStack();
 				return resultTypes;
 			}
-		}, null);
+		});
 
 		if (typeOnStack[0] == null || typeOnStack[1] == null || referenceEqualsTypeSet.contains(typeOnStack[0])
 				|| referenceEqualsTypeSet.contains(typeOnStack[1]))
