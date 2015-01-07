@@ -102,10 +102,9 @@ public class SnippetManager implements ISnippetManager, IInitializingBean
 	}
 
 	// TODO think about adding the parameters to the name.
-	// TODOInclude a "dryRun" flag in the ConversionContext
 	protected void createFileNameParts()
 	{
-		String methodName = method.getName().split("<", 2)[0]; // FIXME dirty hack to cut the generic type parameters off
+		String methodName = method.getName().replaceAll("<.*>", "");
 		String targetFileName = languageHelper.createTargetFileName(classInfo);
 		int lastDot = targetFileName.lastIndexOf(".");
 		fileNameParts[0] = targetFileName.substring(0, lastDot) + "." + methodName;

@@ -586,9 +586,7 @@ public class JsClassHandler implements IJsClassHandler
 					{
 						languageHelper.newLineIndent();
 						writer.append("this.").append(field.getName()).append(" = ");
-						// TODO replace
-						writer.append(initializer.toString());
-						// languageHelper.writeExpressionTree(initializer);
+						languageHelper.writeExpressionTree(initializer);
 						writer.append(";");
 					}
 				}

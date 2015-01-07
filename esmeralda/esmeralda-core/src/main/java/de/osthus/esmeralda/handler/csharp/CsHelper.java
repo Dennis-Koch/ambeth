@@ -221,6 +221,17 @@ public class CsHelper implements ICsHelper
 	}
 
 	@Override
+	public void writeAsType(String typeName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append("typeof(");
+		writeTypeIntern(typeName, false);
+		writer.append(')');
+	}
+
+	@Override
 	public void writeType(String typeName)
 	{
 		writeTypeIntern(typeName, false);
@@ -235,6 +246,7 @@ public class CsHelper implements ICsHelper
 	protected void writeTypeIntern(String typeName, boolean direct)
 	{
 		ParamChecker.assertParamNotNullOrEmpty(typeName, "typeName");
+
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		typeName = typeName.trim();
