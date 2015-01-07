@@ -15,11 +15,9 @@ public class JavaIoPrintstreamTransformer extends AbstractMethodTransformerExten
 	{
 		super.afterPropertiesSet();
 
-		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, String.class);
-		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, String.class);
-		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, int.class);
-		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, int.class);
-		mapTransformation(java.io.PrintStream.class, "println", "console", "log", false, Boolean.TRUE, Integer.class);
-		mapTransformation(java.io.PrintStream.class, "print", "console", "log", false, Boolean.TRUE, Integer.class);
+		mapTransformationOverloads(java.io.PrintStream.class, "println", "console", "log", Boolean.TRUE, false, boolean.class, Boolean.class, boolean[].class,
+				double.class, Double.class, float.class, Float.class, Object.class, String.class, long.class, Long.class, int.class, Integer.class);
+		mapTransformationOverloads(java.io.PrintStream.class, "print", "console", "log", Boolean.TRUE, false, boolean.class, Boolean.class, boolean[].class,
+				double.class, Double.class, float.class, Float.class, Object.class, String.class, long.class, Long.class, int.class, Integer.class);
 	}
 }

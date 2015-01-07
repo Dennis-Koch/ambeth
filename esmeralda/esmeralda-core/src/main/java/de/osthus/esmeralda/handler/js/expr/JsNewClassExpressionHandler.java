@@ -11,6 +11,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
@@ -118,7 +119,12 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 			writer.append("new ");
 			languageHelper.writeType(owner);
 			languageHelper.writeMethodArguments(arguments);
-			context.setTypeOnStack(newClass.type != null ? owner : context.getClassInfo().getPackageName() + "." + context.getClassInfo().getName());
+			String typeOnStack = context.getClassInfo().getFqName();
+			if (newClass.type != null || newClass.clazz instanceof JCIdent)
+			{
+				typeOnStack = owner;
+			}
+			context.setTypeOnStack(typeOnStack);
 			return;
 		}
 		// this is an anonymous class instantiation

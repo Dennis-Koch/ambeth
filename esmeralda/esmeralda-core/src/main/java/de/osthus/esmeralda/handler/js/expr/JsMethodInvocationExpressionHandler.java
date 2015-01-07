@@ -220,6 +220,8 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 		{
 			owner = transformedMethod.getOwner();
 		}
+		writeOwnerAsType |= transformedMethod.isOwnerAType();
+
 		final IOwnerWriter ownerWriter = new IOwnerWriter()
 		{
 			@Override
@@ -244,6 +246,7 @@ public class JsMethodInvocationExpressionHandler extends AbstractExpressionHandl
 					}
 					else
 					{
+						owner = context.getTransformedSymbol(owner);
 						writer.append(owner);
 					}
 				}

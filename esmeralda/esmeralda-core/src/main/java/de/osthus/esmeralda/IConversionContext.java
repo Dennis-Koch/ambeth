@@ -114,4 +114,12 @@ public interface IConversionContext
 	void setSkipFirstBlockStatement(boolean skipFirstBlockStatement);
 
 	boolean isSkipFirstBlockStatement();
+
+	void mapSymbolTransformation(String sourceSymbol, String targetSymbol);
+
+	String getTransformedSymbol(String sourceSymbol);
+
+	void startWriteToStash();
+
+	void endWriteToStash();
 }

@@ -267,6 +267,7 @@ public class ASTHelper implements IASTHelper
 		IConversionContext context = this.context.getCurrent();
 		StringWriter stringWriter = new StringWriter();
 		IWriter oldWriter = context.getWriter();
+		context.startWriteToStash();
 		context.setWriter(new EsmeraldaWriter(stringWriter));
 		try
 		{
@@ -280,6 +281,7 @@ public class ASTHelper implements IASTHelper
 		finally
 		{
 			context.setWriter(oldWriter);
+			context.endWriteToStash();
 		}
 	}
 
@@ -288,6 +290,7 @@ public class ASTHelper implements IASTHelper
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter oldWriter = context.getWriter();
+		context.startWriteToStash();
 		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
 		try
 		{
@@ -300,6 +303,7 @@ public class ASTHelper implements IASTHelper
 		finally
 		{
 			context.setWriter(oldWriter);
+			context.endWriteToStash();
 		}
 	}
 }

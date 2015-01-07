@@ -10,6 +10,8 @@ public interface ITransformedMethod
 
 	Boolean isWriteOwner();
 
+	boolean isOwnerAType();
+
 	boolean isStatic();
 
 	boolean isPropertyInvocation();

@@ -581,7 +581,7 @@ public class JsHelper implements IJsHelper
 		ISet<TypeUsing> usedTypes = context.getUsedTypes();
 		if (usedTypes != null)
 		{
-			usedTypes.add(new TypeUsing(mappedTypeName[0], false));
+			usedTypes.add(new TypeUsing(createNamespace(mappedTypeName[0]), false));
 		}
 
 		String convertedType = mappedTypeName[0];

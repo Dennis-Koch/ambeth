@@ -76,8 +76,6 @@ public class ConversionContext implements IConversionContext
 
 	private boolean dryRun = false;
 
-	private String typeOnStack;
-
 	private StatementCount metric;
 
 	protected IClassInfoFactory classInfoFactory;
@@ -85,6 +83,15 @@ public class ConversionContext implements IConversionContext
 	private boolean isGenericTypeSupported;
 
 	private boolean skipFirstBlockStatement;
+
+	private final ArrayList<HashMap<String, String>> sourceToTargetSymbolMapStack = new ArrayList<HashMap<String, String>>();
+
+	private final ArrayList<String> typeOnStack = new ArrayList<String>();
+
+	public ConversionContext()
+	{
+		startWriteToStash();
+	}
 
 	public void setClassInfoFactory(IClassInfoFactory classInfoFactory)
 	{
@@ -662,7 +669,7 @@ public class ConversionContext implements IConversionContext
 	@Override
 	public String getTypeOnStack()
 	{
-		return typeOnStack;
+		return typeOnStack.peek();
 	}
 
 	@Override
@@ -672,7 +679,7 @@ public class ConversionContext implements IConversionContext
 		{
 			typeOnStack = null;
 		}
-		this.typeOnStack = typeOnStack;
+		this.typeOnStack.set(this.typeOnStack.size() - 1, typeOnStack);
 	}
 
 	@Override
@@ -707,5 +714,44 @@ public class ConversionContext implements IConversionContext
 	public void setSkipFirstBlockStatement(boolean skipFirstBlockStatement)
 	{
 		this.skipFirstBlockStatement = skipFirstBlockStatement;
+	}
+
+	@Override
+	public void startWriteToStash()
+	{
+		sourceToTargetSymbolMapStack.add(new HashMap<String, String>());
+		typeOnStack.add(typeOnStack.peek());
+	}
+
+	@Override
+	public void endWriteToStash()
+	{
+		sourceToTargetSymbolMapStack.popLastElement();
+		typeOnStack.popLastElement();
+	}
+
+	@Override
+	public void mapSymbolTransformation(String sourceSymbol, String targetSymbol)
+	{
+		HashMap<String, String> sourceToTargetSymbolMap = sourceToTargetSymbolMapStack.peek();
+		if (!sourceToTargetSymbolMap.putIfNotExists(sourceSymbol, targetSymbol))
+		{
+			throw new IllegalStateException("Duplicate symbol definition on same stack level");
+		}
+	}
+
+	@Override
+	public String getTransformedSymbol(String sourceSymbol)
+	{
+		for (int a = sourceToTargetSymbolMapStack.size(); a-- > 0;)
+		{
+			HashMap<String, String> sourceToTargetSymbolMap = sourceToTargetSymbolMapStack.get(a);
+			String targetSymbol = sourceToTargetSymbolMap.get(sourceSymbol);
+			if (targetSymbol != null)
+			{
+				return targetSymbol;
+			}
+		}
+		return sourceSymbol;
 	}
 }

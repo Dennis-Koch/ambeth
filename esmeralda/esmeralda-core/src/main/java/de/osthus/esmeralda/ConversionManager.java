@@ -288,7 +288,6 @@ public class ConversionManager implements IStartingBean
 			context.setUsedTypes(null);
 			context.setDryRun(false);
 		}
-
 		// PHASE 2: scan all usedTypes to decide if its simple name reference is ambiguous or not
 		HashMap<String, Set<String>> simpleNameToPackagesMap = new HashMap<String, Set<String>>();
 		for (TypeUsing usedType : usedTypes)

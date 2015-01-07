@@ -212,6 +212,12 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 
 		context.addCalledMethod(transformedMethod);
 
+		if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
+		{
+			owner = transformedMethod.getOwner();
+		}
+		writeOwnerAsType |= transformedMethod.isOwnerAType();
+
 		final boolean fWriteOwnerAsType = writeOwnerAsType;
 		final boolean fWriteMethodDot = writeMethodDot;
 		final boolean fWriteOwnerAsTypeof = writeOwnerAsTypeof;
@@ -240,6 +246,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 					}
 					else
 					{
+						owner = context.getTransformedSymbol(owner);
 						writer.append(owner);
 					}
 				}
