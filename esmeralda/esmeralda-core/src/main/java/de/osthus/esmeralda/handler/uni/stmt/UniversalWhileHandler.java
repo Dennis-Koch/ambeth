@@ -8,11 +8,11 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class UniversalWhileHandler extends AbstractCsStatementHandler<JCWhileLoop> implements IStatementHandlerExtension<JCWhileLoop>
+public class UniversalWhileHandler extends AbstractStatementHandler<JCWhileLoop> implements IStatementHandlerExtension<JCWhileLoop>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

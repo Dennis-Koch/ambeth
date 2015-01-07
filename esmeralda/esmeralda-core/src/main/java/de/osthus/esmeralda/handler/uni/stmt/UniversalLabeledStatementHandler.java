@@ -1,8 +1,6 @@
 package de.osthus.esmeralda.handler.uni.stmt;
 
-import javax.lang.model.element.Name;
-
-import com.sun.source.tree.ContinueTree;
+import com.sun.tools.javac.tree.JCTree.JCLabeledStatement;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -12,27 +10,21 @@ import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 
-public class UniversalContinueHandler extends AbstractStatementHandler<ContinueTree> implements IStatementHandlerExtension<ContinueTree>
+public class UniversalLabeledStatementHandler extends AbstractStatementHandler<JCLabeledStatement> implements IStatementHandlerExtension<JCLabeledStatement>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Override
-	public void handle(ContinueTree continueStatement, boolean standalone)
+	public void handle(JCLabeledStatement tree, boolean standalone)
 	{
 		IConversionContext context = this.context.getCurrent();
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
-		Name label = continueStatement.getLabel();
 
 		languageHelper.newLineIndent();
-		writer.append("continue");
-		if (label != null)
-		{
-			writer.append(' ');
-			writer.append(label);
-		}
-		writer.append(';');
+		writer.append(tree.getLabel()).append(": ");
+		languageHelper.writeExpressionTree(tree.getStatement());
 	}
 }

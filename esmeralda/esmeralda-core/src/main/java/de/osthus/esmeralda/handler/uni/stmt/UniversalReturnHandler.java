@@ -10,12 +10,12 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
-import de.osthus.esmeralda.handler.csharp.stmt.AbstractCsStatementHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Method;
 
-public class UniversalReturnHandler extends AbstractCsStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
+public class UniversalReturnHandler extends AbstractStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
