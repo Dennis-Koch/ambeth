@@ -3,6 +3,7 @@ package de.osthus.esmeralda.handler.js;
 import java.util.Collections;
 
 import com.sun.source.tree.ExpressionTree;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -14,7 +15,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IVariable;
-import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
@@ -24,15 +24,15 @@ import demo.codeanalyzer.common.model.Method;
 
 public class JsClassHandler implements IJsClassHandler
 {
+	@SuppressWarnings("rawtypes")
+	private static final ArrayList EMPTY_ARRAY_LIST = new ArrayList();
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IConversionContext context;
-
-	@Autowired
-	protected IEsmeFileUtil fileUtil;
 
 	@Autowired
 	protected IJsHelper languageHelper;
@@ -72,7 +72,7 @@ public class JsClassHandler implements IJsClassHandler
 			{
 				writer.append("{}");
 			}
-			if (fieldsToInit != null && !fieldsToInit.isEmpty())
+			if (!fieldsToInit.isEmpty())
 			{
 				writer.append(", ");
 				writeCreateFunction(fieldsToInit, writer);
@@ -96,14 +96,16 @@ public class JsClassHandler implements IJsClassHandler
 		fields.removeAll(privateStaticFields);
 		if (fields.isEmpty())
 		{
-			return null;
+			@SuppressWarnings("unchecked")
+			ArrayList<Field> emptyArrayList = EMPTY_ARRAY_LIST;
+			return emptyArrayList;
 		}
 
 		ArrayList<Field> fieldsToInit = new ArrayList<>();
 		for (Field field : fields)
 		{
 			ExpressionTree initializer = ((FieldInfo) field).getInitializer();
-			if (initializer != null)
+			if (initializer != null && !(initializer instanceof JCLiteral))
 			{
 				fieldsToInit.add(field);
 			}
@@ -516,19 +518,11 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeConfig(JavaClassInfo classInfo, final IWriter writer, boolean firstLine)
 	{
-		// TODO
-		// IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
-		// for (IVariable usedVariable : allUsedVariables)
-		// {
-		// FieldInfo field = new FieldInfo();
-		// field.setPrivateFlag(true);
-		// field.setFieldType(usedVariable.getType());
-		// field.setName(usedVariable.getName());
-		//
-		// languageHelper.newLineIndent();
-		// context.setField(field);
-		// fieldHandler.handle();
-		// }
+		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+		if (allUsedVariables.isEmpty())
+		{
+			return firstLine;
+		}
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
@@ -538,8 +532,16 @@ public class JsClassHandler implements IJsClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				languageHelper.newLineIndent();
-				writer.append("// ...");
+				for (IVariable usedVariable : allUsedVariables)
+				{
+					FieldInfo field = new FieldInfo();
+					field.setPrivateFlag(true);
+					field.setFieldType(usedVariable.getType());
+					field.setName(usedVariable.getName());
+
+					context.setField(field);
+					fieldHandler.handle();
+				}
 			}
 		});
 
