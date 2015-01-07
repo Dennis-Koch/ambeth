@@ -302,6 +302,17 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
+	public void writeAsType(String typeName)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		writer.append("Ambeth.type('");
+		writeTypeIntern(typeName, false);
+		writer.append("')");
+	}
+
+	@Override
 	public void writeType(String typeName)
 	{
 		writeTypeIntern(typeName, false);
