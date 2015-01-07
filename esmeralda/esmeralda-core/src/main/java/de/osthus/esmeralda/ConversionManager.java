@@ -223,9 +223,9 @@ public class ConversionManager implements IStartingBean
 		if (log.isInfoEnabled())
 		{
 			// log.info("Missing methods in CS:");
-			// logMissingMethods(csCalledMethods, csDefinedMethods);
+			// logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
 			log.info("Missing methods in JS:");
-			logMissingMethods(jsCalledMethods, jsDefinedMethods);
+			logMissingMethods(jsCalledMethods, jsDefinedMethods, IClasspathManager.EXISTING_METHODS_JS);
 
 			log.info(csMetric.toString());
 			log.info(jsMetric.toString());
@@ -354,12 +354,16 @@ public class ConversionManager implements IStartingBean
 		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
 	}
 
-	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods)
+	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods, HashSet<String> classpathMethods)
 	{
 		HashMap<String, Integer> missingMethods = new HashMap<>(calledMethods);
-		for (String definedMethod : definedMethods)
+		HashSet<String> existingMethods = new HashSet<>();
+		existingMethods.addAll(definedMethods);
+		existingMethods.addAll(classpathMethods);
+
+		for (String existingMethod : existingMethods)
 		{
-			missingMethods.remove(definedMethod);
+			missingMethods.remove(existingMethod);
 		}
 
 		Object[][] methodArray = new Object[missingMethods.size()][];
@@ -373,6 +377,11 @@ public class ConversionManager implements IStartingBean
 		for (Object[] fullMethodNameCount : methodArray)
 		{
 			String fullMethodName = (String) fullMethodNameCount[0];
+			if (fullMethodName.startsWith("Ambeth."))
+			{
+				continue;
+			}
+
 			Integer count = (Integer) fullMethodNameCount[1];
 			log.info(count + "\t" + fullMethodName);
 		}
