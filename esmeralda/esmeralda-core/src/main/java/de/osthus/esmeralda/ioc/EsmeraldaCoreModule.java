@@ -77,6 +77,7 @@ import de.osthus.esmeralda.handler.uni.stmt.UniversalDoWhileHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalExpressionHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalForHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalIfHandler;
+import de.osthus.esmeralda.handler.uni.stmt.UniversalLabeledStatementHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalReturnHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSkipHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSwitchHandler;
@@ -142,6 +143,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, UniversalExpressionHandler.class, Kind.EXPRESSION_STATEMENT);
 		registerStatementHandler(beanContextFactory, UniversalForHandler.class, Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, UniversalIfHandler.class, Kind.IF);
+		registerStatementHandler(beanContextFactory, UniversalLabeledStatementHandler.class, Kind.LABELED_STATEMENT);
 		registerStatementHandler(beanContextFactory, UniversalReturnHandler.class, Kind.RETURN);
 		registerStatementHandler(beanContextFactory, UniversalSkipHandler.class, Kind.EMPTY_STATEMENT);
 		registerStatementHandler(beanContextFactory, UniversalSwitchHandler.class, Kind.SWITCH);

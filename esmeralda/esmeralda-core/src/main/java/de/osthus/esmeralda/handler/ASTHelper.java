@@ -18,6 +18,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.esmeralda.IConversionContext;
@@ -273,6 +274,28 @@ public class ASTHelper implements IASTHelper
 		{
 			run.invoke();
 			return stringWriter.toString();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			context.setWriter(oldWriter);
+			context.endWriteToStash();
+		}
+	}
+
+	@Override
+	public <R> R writeToStash(IResultingBackgroundWorkerDelegate<R> run)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter oldWriter = context.getWriter();
+		context.startWriteToStash();
+		context.setWriter(new EsmeraldaWriter(new NoOpWriter()));
+		try
+		{
+			return run.invoke();
 		}
 		catch (Throwable e)
 		{
