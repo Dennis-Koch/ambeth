@@ -701,14 +701,24 @@ public class CsHelper implements ICsHelper
 		{
 			return;
 		}
-		Kind kind = expression.getKind();
-		IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.C_SHARP + kind);
-		if (expressionHandler != null)
+		IConversionContext context = this.context.getCurrent();
+		Tree previousTree = context.getCurrentTree();
+		context.setCurrentTree(expression);
+		try
 		{
-			expressionHandler.handleExpression(expression);
-			return;
+			Kind kind = expression.getKind();
+			IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(Lang.C_SHARP + kind);
+			if (expressionHandler != null)
+			{
+				expressionHandler.handleExpression(expression);
+				return;
+			}
+			handleChildStatement(expression);
 		}
-		handleChildStatement(expression);
+		finally
+		{
+			context.setCurrentTree(previousTree);
+		}
 	}
 
 	protected void handleChildStatement(Tree statement)

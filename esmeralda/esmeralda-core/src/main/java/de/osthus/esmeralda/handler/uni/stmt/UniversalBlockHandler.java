@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -66,6 +67,8 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 				if (stmtHandler != null)
 				{
 					final StatementTree fstatement = statement;
+					Tree previousTree = context.getCurrentTree();
+					context.setCurrentTree(statement);
 					try
 					{
 						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
@@ -86,6 +89,10 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 					{
 						log.warn(e);
 						addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
+					}
+					finally
+					{
+						context.setCurrentTree(previousTree);
 					}
 				}
 				else
