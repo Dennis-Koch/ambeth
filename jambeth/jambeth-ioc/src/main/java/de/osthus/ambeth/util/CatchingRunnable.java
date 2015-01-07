@@ -2,31 +2,30 @@ package de.osthus.ambeth.util;
 
 import java.util.concurrent.CountDownLatch;
 
-import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
-import de.osthus.ambeth.security.ISecurityContextHolder;
 
 public class CatchingRunnable implements Runnable
 {
-	@Property
-	protected IForkState forkState;
+	protected final IForkState forkState;
 
-	@Property
-	protected Runnable runnable;
+	protected final Runnable runnable;
 
-	@Property
-	protected CountDownLatch latch;
+	protected final CountDownLatch latch;
 
-	@Property
-	protected IParamHolder<Throwable> throwableHolder;
+	protected final IParamHolder<Throwable> throwableHolder;
 
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
+	protected final IThreadLocalCleanupController threadLocalCleanupController;
 
-	@Autowired
-	protected IThreadLocalCleanupController threadLocalCleanupController;
+	public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch, IParamHolder<Throwable> throwableHolder,
+			IThreadLocalCleanupController threadLocalCleanupController)
+	{
+		this.forkState = forkState;
+		this.runnable = runnable;
+		this.latch = latch;
+		this.throwableHolder = throwableHolder;
+		this.threadLocalCleanupController = threadLocalCleanupController;
+	}
 
 	@Override
 	public void run()
@@ -58,7 +57,6 @@ public class CatchingRunnable implements Runnable
 			{
 				threadLocalCleanupController.cleanupThreadLocal();
 				latch.countDown();
-				securityContextHolder.clearContext();
 			}
 		}
 		finally

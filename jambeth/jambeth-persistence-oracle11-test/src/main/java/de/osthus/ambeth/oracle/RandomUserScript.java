@@ -20,7 +20,7 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
@@ -113,7 +113,7 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(props);
 		try
 		{
-			bootstrapContext.createService("randomUser", RandomUserModule.class, IocBootstrapModule.class);
+			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
 		finally
 		{
