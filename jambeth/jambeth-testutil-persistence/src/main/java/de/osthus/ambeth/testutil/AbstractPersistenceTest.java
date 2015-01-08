@@ -16,6 +16,7 @@ import de.osthus.ambeth.ioc.CacheServerModule;
 import de.osthus.ambeth.ioc.EventDataChangeModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.EventServerModule;
+import de.osthus.ambeth.ioc.ExprModule;
 import de.osthus.ambeth.ioc.MappingModule;
 import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.MergeModule;
@@ -43,7 +44,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 @TestFrameworkModule({ BytecodeModule.class, CacheBytecodeModule.class, MergeBytecodeModule.class, ServiceModule.class, MergeModule.class, MappingModule.class,
 		MergeServerModule.class, CacheModule.class, CacheServerModule.class, CacheDataChangeModule.class, EventModule.class, EventServerModule.class,
-		EventDataChangeModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
+		EventDataChangeModule.class, ExprModule.class, ObjectCopierModule.class, PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class,
 		PrivilegeServerModule.class, SecurityModule.class, SecurityBytecodeModule.class, SecurityServerModule.class, SecurityQueryModule.class,
 		SQLQueryModule.class, FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)

@@ -5,7 +5,7 @@ import de.osthus.ambeth.util.ReflectUtil;
 
 public class ShallowCopyValueResolver implements IForkedValueResolver
 {
-	protected final Object forkedValue;
+	private final Object forkedValue;
 
 	public ShallowCopyValueResolver(Object forkedValue)
 	{
@@ -13,7 +13,7 @@ public class ShallowCopyValueResolver implements IForkedValueResolver
 	}
 
 	@Override
-	public Object getForkedValue()
+	public Object createForkedValue()
 	{
 		try
 		{
@@ -23,5 +23,11 @@ public class ShallowCopyValueResolver implements IForkedValueResolver
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	@Override
+	public Object getOriginalValue()
+	{
+		return forkedValue;
 	}
 }
