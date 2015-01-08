@@ -25,6 +25,8 @@
 		<module>../jambeth-event-datachange-test</module>
 		<module>../jambeth-event-server-test</module>
 		<module>../jambeth-examples-test</module>
+		<module>../jambeth-expr-test</module>
+		<module>../jambeth-expr-exp4j-test</module>
 		<module>../jambeth-filter-test</module>
 		<module>../jambeth-ioc-test</module>
 		<module>../jambeth-job-test</module>

@@ -13,6 +13,7 @@ import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.expr.PropertyExpression;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
@@ -63,6 +64,11 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 				// look for abstract definition of the setter
 				setter = ReflectUtil.getDeclaredMethod(true, getState().getCurrentType(), void.class, "set" + propertyInfo.getName(),
 						propertyInfo.getPropertyType());
+			}
+			if (getter != null && getter.isAnnotationPresent(PropertyExpression.class))
+			{
+				// this member will be handled by another visitor
+				continue;
 			}
 			MethodInstance m_getterTemplate = getter != null ? new MethodInstance(getter) : null;
 			MethodInstance m_setterTemplate = setter != null ? new MethodInstance(setter) : null;
