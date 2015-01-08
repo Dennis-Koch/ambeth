@@ -47,7 +47,7 @@ namespace De.Osthus.Ambeth.Collections
                 Object target = p.Target;
                 if (target == null)
                 {
-                    removeItemFromList(hashKey, list, a);
+                    RemoveItemFromList(hashKey, list, a);
                     continue;
                 }
                 if (AreKeysEqual((K)target, key))
@@ -94,7 +94,7 @@ namespace De.Osthus.Ambeth.Collections
             return false;
         }
 
-        protected void removeItemFromList(int hashKey, List<WeakReference> list, int index)
+        protected void RemoveItemFromList(int hashKey, List<WeakReference> list, int index)
         {
             list.RemoveAt(index);
             if (list.Count == 0)
@@ -118,12 +118,12 @@ namespace De.Osthus.Ambeth.Collections
                 Object target = p.Target;
                 if (target == null)
                 {
-                    removeItemFromList(hashKey, list, a);
+                    RemoveItemFromList(hashKey, list, a);
                     continue;
                 }
                 if (AreKeysEqual((K)target, key))
                 {
-                    removeItemFromList(hashKey, list, a);
+                    RemoveItemFromList(hashKey, list, a);
                     return true;
                 }
             }

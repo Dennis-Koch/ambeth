@@ -15,9 +15,6 @@ namespace De.Osthus.Ambeth.Util
     {
         public const String TIMEOUT = "ambeth.mth.timeout";
 
-        [Autowired]
-        public IServiceContext BeanContext { protected get; set; }
-
         [Autowired(Optional = true)]
         public IThreadPool ThreadPool { protected get; set; }
 
@@ -64,11 +61,7 @@ namespace De.Osthus.Ambeth.Util
             Thread[] threads = new Thread[runnables.Length];
             for (int a = runnables.Length; a-- > 0; )
             {
-                Runnable catchingRunnable = BeanContext.RegisterBean<CatchingRunnable>()//
-                    .PropertyValue("Runnable", runnables[a])//
-                    .PropertyValue("Latch", latch)//
-                    .PropertyValue("ForkState", forkState)//
-                    .PropertyValue("ThrowableHolder", throwableHolder).Finish();
+                Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch, throwableHolder, ThreadLocalCleanupController);
 
                 Thread thread = new Thread(delegate()
                     {

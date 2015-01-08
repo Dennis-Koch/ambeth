@@ -207,10 +207,22 @@
     <Compile Include="ambeth\typeinfo\MethodPropertyInfoASM2.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoEntry.cs" />
     <Compile Include="ambeth\typeinfo\PropertyInfoProvider.cs" />
+    <Compile Include="ambeth\util\AbstractRunnableHandle.cs" />
+    <Compile Include="ambeth\util\CatchingRunnable.cs" />
     <Compile Include="ambeth\util\DedicatedConverterUtil.cs" />
     <Compile Include="ambeth\util\Def2Entry.cs" />
+    <Compile Include="ambeth\util\IAggregrateResultHandler.cs" />
+    <Compile Include="ambeth\util\IMultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\INamedRunnable.cs" />
+    <Compile Include="ambeth\util\InterruptingParamHolder.cs" />
     <Compile Include="ambeth\util\ModuleUtil.cs" />
+    <Compile Include="ambeth\util\MultithreadingHelper.cs" />
+    <Compile Include="ambeth\util\ParallelRunnable.cs" />
+    <Compile Include="ambeth\util\ResultingParallelRunnable.cs" />
+    <Compile Include="ambeth\util\ResultingRunnableHandle.cs" />
+    <Compile Include="ambeth\util\RunnableHandle.cs" />
     <Compile Include="ambeth\util\Strong2Key.cs" />
+    <Compile Include="ambeth\util\WrappingNamedRunnable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

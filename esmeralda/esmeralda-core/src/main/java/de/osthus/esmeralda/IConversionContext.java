@@ -2,6 +2,8 @@ package de.osthus.esmeralda;
 
 import java.io.File;
 
+import com.sun.source.tree.Tree;
+
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
@@ -122,4 +124,8 @@ public interface IConversionContext
 	void startWriteToStash();
 
 	void endWriteToStash();
+
+	Tree getCurrentTree();
+
+	void setCurrentTree(Tree currentTree);
 }

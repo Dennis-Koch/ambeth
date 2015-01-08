@@ -3,7 +3,6 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using De.Osthus.Ambeth.Model;
-using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Threading;
 using System;
 using System.Threading;
@@ -12,43 +11,45 @@ namespace De.Osthus.Ambeth.Util
 {
     public class CatchingRunnable : Runnable
     {
-        [Property]
-        public IForkState ForkState { protected get; set; }
+        protected readonly IForkState forkState;
 
-        [Property]
-        public Runnable Runnable { protected get; set; }
+	    protected readonly Runnable runnable;
 
-        [Property]
-        public CountDownLatch latch { protected get; set; }
+	    protected readonly CountDownLatch latch;
 
-        [Property]
-        public IParamHolder<Exception> throwableHolder { protected get; set; }
+	    protected readonly IParamHolder<Exception> throwableHolder;
 
-        [Autowired]
-        public ISecurityContextHolder securityContextHolder { protected get; set; }
+        protected readonly IThreadLocalCleanupController threadLocalCleanupController;
 
-        [Autowired]
-        public IThreadLocalCleanupController threadLocalCleanupController { protected get; set; }
+        public CatchingRunnable(IForkState forkState, Runnable runnable, CountDownLatch latch, IParamHolder<Exception> throwableHolder,
+			    IThreadLocalCleanupController threadLocalCleanupController)
+	    {
+		    this.forkState = forkState;
+		    this.runnable = runnable;
+		    this.latch = latch;
+		    this.throwableHolder = throwableHolder;
+		    this.threadLocalCleanupController = threadLocalCleanupController;
+	    }
        
         public void Run()
         {
             Thread currentThread = Thread.CurrentThread;
             String oldName = currentThread.Name;
-            if (Runnable is INamedRunnable)
+            if (runnable is INamedRunnable)
             {
-                currentThread.Name = ((INamedRunnable)Runnable).Name;
+                currentThread.Name = ((INamedRunnable)runnable).Name;
             }
             try
             {
                 try
                 {
-                    if (ForkState != null)
+                    if (forkState != null)
                     {
-                        ForkState.Use(Runnable);
+                        forkState.Use(runnable);
                     }
                     else
                     {
-                        Runnable.Run();
+                        runnable.Run();
                     }
                 }
                 catch (Exception e)
@@ -57,12 +58,8 @@ namespace De.Osthus.Ambeth.Util
                 }
                 finally
                 {
-                    if (threadLocalCleanupController != null)
-                    {
-                        threadLocalCleanupController.CleanupThreadLocal();
-                    }
+                    threadLocalCleanupController.CleanupThreadLocal();
                     latch.CountDown();
-                    securityContextHolder.ClearContext();
                 }
             }
             finally

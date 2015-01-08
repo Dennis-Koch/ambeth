@@ -3,7 +3,7 @@ package de.osthus.ambeth.testutil;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IPropertyLoadingBean;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.orm.OrmPatternMatcher;
@@ -37,7 +37,7 @@ public class AmbethPersistenceSchemaModule implements IInitializingModule, IProp
 	@Override
 	public void afterPropertiesSet(final IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean(IocBootstrapModule.class);
+		beanContextFactory.registerBean(IocModule.class);
 		beanContextFactory.registerBean(DialectSelectorSchemaModule.class);
 		beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
 		beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
