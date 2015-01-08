@@ -21,9 +21,6 @@ public class MultithreadingHelper implements IMultithreadingHelper
 {
 	public static final String TIMEOUT = "ambeth.mth.timeout";
 
-	@Autowired
-	protected IServiceContext beanContext;
-
 	@Autowired(optional = true)
 	protected ExecutorService executor;
 
@@ -74,11 +71,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		Thread[] threads = new Thread[runnables.length];
 		for (int a = runnables.length; a-- > 0;)
 		{
-			Runnable catchingRunnable = beanContext.registerBean(CatchingRunnable.class)//
-					.propertyValue("Runnable", runnables[a])//
-					.propertyValue("Latch", latch)//
-					.propertyValue("ForkState", forkState)//
-					.propertyValue("ThrowableHolder", throwableHolder).finish();
+			Runnable catchingRunnable = new CatchingRunnable(forkState, runnables[a], latch, throwableHolder, threadLocalCleanupController);
 
 			Thread thread = new Thread(catchingRunnable);
 			thread.setContextClassLoader(Thread.currentThread().getContextClassLoader());

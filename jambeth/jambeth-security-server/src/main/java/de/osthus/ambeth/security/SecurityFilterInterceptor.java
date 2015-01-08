@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.exceptions.InvalidUserException;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -89,7 +90,7 @@ public class SecurityFilterInterceptor extends CascadedInterceptor
 				String userName = authentication != null ? authentication.getUserName() : null;
 				String sid = authorization != null ? authorization.getSID() : null;
 
-				throw new SecurityException("User is not a valid user. '" + userName + "' with SID '" + sid + "'");
+				throw new InvalidUserException(userName, sid);
 			}
 		}
 		ISecurityScope[] oldSecurityScopes = securityScopeProvider.getSecurityScopes();

@@ -17,7 +17,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.oracle.RandomUserScript.RandomUserModule;
@@ -83,7 +83,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
 		try
 		{
-			bootstrapContext.createService("randomUser", RandomUserModule.class, IocBootstrapModule.class);
+			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
 		}
 		finally
 		{

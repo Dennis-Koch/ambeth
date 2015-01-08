@@ -1,7 +1,10 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -28,6 +31,8 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ConversionContext implements IConversionContext
 {
+	protected static final Pattern extendsFromPattern = Pattern.compile("\\s*\\?\\s+extends\\s+(.+)\\s*");
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -86,7 +91,11 @@ public class ConversionContext implements IConversionContext
 
 	private final ArrayList<HashMap<String, String>> sourceToTargetSymbolMapStack = new ArrayList<HashMap<String, String>>();
 
+	private final HashMap<AlreadyTriedKey, JavaClassInfo> alreadyTriedAndFailedMap = new HashMap<AlreadyTriedKey, JavaClassInfo>();
+
 	private final ArrayList<String> typeOnStack = new ArrayList<String>();
+
+	private Tree currentTree;
 
 	public ConversionContext()
 	{
@@ -233,22 +242,37 @@ public class ConversionContext implements IConversionContext
 		return resolveClassInfo(fqTypeName, tryOnly, true);
 	}
 
+	protected JavaClassInfo classInfoResolved(String fqTypeName, JavaClassInfo resolvedClassInfo)
+	{
+		AlreadyTriedKey alreadyTriedKey = new AlreadyTriedKey(getClassInfo().getTreePath(), fqTypeName);
+		alreadyTriedAndFailedMap.put(alreadyTriedKey, resolvedClassInfo);
+		return resolvedClassInfo;
+	}
+
 	protected JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly, boolean cascadeSearch)
 	{
-		if ("<none>".equals(fqTypeName))
+		if (fqTypeName == null || fqTypeName.length() == 0 || "<none>".equals(fqTypeName))
 		{
 			return null;
 		}
-		if ("?".equals(fqTypeName))
+		TreePath treePath = getClassInfo().getTreePath();
+		AlreadyTriedKey alreadyTriedKey = new AlreadyTriedKey(treePath, fqTypeName);
+		JavaClassInfo scopedClassInfo = alreadyTriedAndFailedMap.get(alreadyTriedKey);
+		if (scopedClassInfo != null)
 		{
-			return resolveClassInfo(Object.class.getName(), false, false);
+			return scopedClassInfo;
 		}
+		if (alreadyTriedAndFailedMap.containsKey(alreadyTriedKey))
+		{
+			return null;
+		}
+		String originalFqTypeName = fqTypeName;
 		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);
 		fqTypeName = getResolveGenericFqTypeName(fqTypeName);
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
 		if (classInfo != null)
 		{
-			return classInfo;
+			return classInfoResolved(originalFqTypeName, classInfo);
 		}
 		boolean isSimpleName = (fqTypeName.indexOf('.') == -1);
 		if (isSimpleName && cascadeSearch)
@@ -269,15 +293,17 @@ public class ConversionContext implements IConversionContext
 				}
 			}
 		}
-		classInfo = fqNameToClassInfoMap.get("java.lang." + fqTypeName);
+		String javaLangFqTypeName = "java.lang." + fqTypeName;
+		classInfo = fqNameToClassInfoMap.get(javaLangFqTypeName);
 		if (classInfo != null)
 		{
-			return classInfo;
+			return classInfoResolved(originalFqTypeName, classInfo);
 		}
-		if (fqTypeName.equals(ClassLoader.class.getName()))
-		{
-			throw new SkipGenerationException();
-		}
+		// TODO ClassLoader skip generation?
+		// if (fqTypeName.equals(ClassLoader.class.getName()))
+		// {
+		// throw new SkipGenerationException();
+		// }
 		String[] parsedGenericType = parseGenericType(fqTypeName);
 		if (parsedGenericType.length == 2)
 		{
@@ -286,19 +312,19 @@ public class ConversionContext implements IConversionContext
 			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
 			if (nonGenericClassInfo == null)
 			{
-				return null;
+				return classInfoResolved(originalFqTypeName, nonGenericClassInfo);
 			}
-			return makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments);
+			return classInfoResolved(originalFqTypeName, makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments));
 		}
 		classInfo = classInfoFactory.createClassInfo(fqTypeName);
 		if (classInfo == null && isSimpleName && cascadeSearch)
 		{
-			TreePath treePath = getClassInfo().getTreePath();
-			while (!(treePath.getLeaf() instanceof JCCompilationUnit))
+			TreePath currTreePath = treePath;
+			while (!(currTreePath.getLeaf() instanceof JCCompilationUnit))
 			{
-				treePath = treePath.getParentPath();
+				currTreePath = currTreePath.getParentPath();
 			}
-			for (JCImport importItem : ((JCCompilationUnit) treePath.getLeaf()).getImports())
+			for (JCImport importItem : ((JCCompilationUnit) currTreePath.getLeaf()).getImports())
 			{
 				JCFieldAccess fa = (JCFieldAccess) importItem.getQualifiedIdentifier();
 				String simpleNameOfImport = fa.getIdentifier().toString();
@@ -308,7 +334,7 @@ public class ConversionContext implements IConversionContext
 					classInfo = resolveClassInfo(fa.getExpression().toString() + "." + fqTypeName, true, false);
 					if (classInfo != null)
 					{
-						return classInfo;
+						return classInfoResolved(originalFqTypeName, classInfo);
 					}
 				}
 				else if (fqTypeName.equals(simpleNameOfImport))
@@ -316,7 +342,7 @@ public class ConversionContext implements IConversionContext
 					classInfo = resolveClassInfo(fa.toString(), true, false);
 					if (classInfo != null)
 					{
-						return classInfo;
+						return classInfoResolved(originalFqTypeName, classInfo);
 					}
 				}
 			}
@@ -325,7 +351,7 @@ public class ConversionContext implements IConversionContext
 		{
 			if (tryOnly)
 			{
-				return null;
+				return classInfoResolved(originalFqTypeName, null);
 			}
 			throw new TypeResolveException(fqTypeName);
 		}
@@ -334,7 +360,8 @@ public class ConversionContext implements IConversionContext
 			log.warn("Duplicate type registration: " + fqTypeName);
 			classInfo = fqNameToClassInfoMap.get(fqTypeName);
 		}
-		return classInfo;
+		fqNameToClassInfoMap.putIfNotExists(classInfo.getFqName(), classInfo); // may be duplicated intentionally
+		return classInfoResolved(originalFqTypeName, classInfo);
 	}
 
 	protected String[] parseGenericType(String fqTypeName)
@@ -406,8 +433,36 @@ public class ConversionContext implements IConversionContext
 			{
 				sb.append(',');
 			}
-			JavaClassInfo typeArgumentCI = resolveClassInfo(typeArgumentsSplit[a]);
-			typeArgumentCIs[a] = resolveClassInfo(typeArgumentsSplit[a]);
+			String typeArgumentSplit = typeArgumentsSplit[a];
+
+			JavaClassInfo typeArgumentCI = null;
+			if ("?".equals(typeArgumentSplit))
+			{
+				typeArgumentCI = resolveClassInfo(Object.class.getName(), false, false);
+			}
+			if (typeArgumentCI == null)
+			{
+				Matcher extendsFromMatcher = extendsFromPattern.matcher(typeArgumentSplit);
+				if (extendsFromMatcher.matches())
+				{
+					String extendsFromType = extendsFromMatcher.group(1);
+					typeArgumentCI = resolveClassInfo(extendsFromType);
+				}
+			}
+			if (typeArgumentCI == null)
+			{
+				typeArgumentCI = resolveClassInfo(typeArgumentSplit);
+			}
+			if (typeArgumentCI == null)
+			{
+				// it may be a generic type argument of an enclosing class:
+
+			}
+			if (typeArgumentCI == null)
+			{
+				throw new TypeResolveException(typeArgumentSplit);
+			}
+			typeArgumentCIs[a] = typeArgumentCI;
 			sb.append(typeArgumentCI.getFqName());
 		}
 		if (!first)
@@ -753,5 +808,17 @@ public class ConversionContext implements IConversionContext
 			}
 		}
 		return sourceSymbol;
+	}
+
+	@Override
+	public Tree getCurrentTree()
+	{
+		return currentTree;
+	}
+
+	@Override
+	public void setCurrentTree(Tree currentTree)
+	{
+		this.currentTree = currentTree;
 	}
 }

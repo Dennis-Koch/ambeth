@@ -63,6 +63,8 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<InterningFeature>("interningFeature").Autowireable<IInterningFeature>();
 
             beanContextFactory.RegisterBean<GuiThreadHelper>("guiThreadHelper").Autowireable<IGuiThreadHelper>();
+            
+            beanContextFactory.RegisterBean<MultithreadingHelper>().Autowireable<IMultithreadingHelper>();
         }
     }
 }

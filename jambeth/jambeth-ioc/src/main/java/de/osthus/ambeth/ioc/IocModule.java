@@ -21,18 +21,23 @@ import de.osthus.ambeth.objectcollector.AppendableStringBuilderCollectableContro
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 import de.osthus.ambeth.proxy.CgLibUtil;
 import de.osthus.ambeth.proxy.ICgLibUtil;
+import de.osthus.ambeth.threading.FastThreadPool;
 import de.osthus.ambeth.threading.GuiThreadHelper;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.util.DedicatedConverterUtil;
 import de.osthus.ambeth.util.IInterningFeature;
+import de.osthus.ambeth.util.IMultithreadingHelper;
 import de.osthus.ambeth.util.InterningFeature;
+import de.osthus.ambeth.util.MultithreadingHelper;
 import de.osthus.ambeth.util.converter.BooleanArrayConverter;
 import de.osthus.ambeth.util.converter.ByteArrayConverter;
 import de.osthus.ambeth.util.converter.CharArrayConverter;
 
 @FrameworkModule
-public class IocBootstrapModule implements IInitializingModule
+public class IocModule implements IInitializingModule
 {
+	public static final String THREAD_POOL_NAME = "threadPool";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -83,5 +88,25 @@ public class IocBootstrapModule implements IInitializingModule
 		beanContextFactory.registerBean("cgLibUtil", CgLibUtil.class).autowireable(ICgLibUtil.class);
 
 		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).autowireable(IGuiThreadHelper.class);
+
+		FastThreadPool fastThreadPool = new FastThreadPool(0, Integer.MAX_VALUE, 60000)
+		{
+			@Override
+			public void refreshThreadCount()
+			{
+				if (variableThreads)
+				{
+					int processors = Runtime.getRuntime().availableProcessors();
+					setMaxThreadCount(processors * 2);
+				}
+			}
+		};
+		fastThreadPool.setName("MTH");
+
+		IBeanConfiguration fastThreadPoolBean = beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
+
+		beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class)//
+				.propertyRef(fastThreadPoolBean);
+
 	}
 }

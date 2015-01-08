@@ -22,7 +22,7 @@ import de.osthus.ambeth.ioc.CacheDataChangeModule;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.EventModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.IocBootstrapModule;
+import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.MappingModule;
 import de.osthus.ambeth.ioc.MergeBytecodeModule;
 import de.osthus.ambeth.ioc.MergeModule;
@@ -71,7 +71,7 @@ public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
 
 		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(baseProps);
 		IServiceContext beanContext = bootstrapContext.createService(BytecodeModule.class, CacheModule.class, CacheBytecodeModule.class,
-				CacheDataChangeModule.class, EventModule.class, IocBootstrapModule.class, MappingModule.class, MergeBytecodeModule.class, MergeModule.class,
+				CacheDataChangeModule.class, EventModule.class, IocModule.class, MappingModule.class, MergeBytecodeModule.class, MergeModule.class,
 				ServiceModule.class);
 
 		return beanContext;
