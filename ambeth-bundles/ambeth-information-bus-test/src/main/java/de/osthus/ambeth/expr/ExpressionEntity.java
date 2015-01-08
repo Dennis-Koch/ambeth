@@ -18,5 +18,5 @@ public interface ExpressionEntity
 	void setMyExpressionProp(String myExpressionProp);
 
 	@PropertyExpression("${MyExpressionProp}")
-	double getValueForDynamicExpression();
+	double calcValueForDynamicExpression();
 }

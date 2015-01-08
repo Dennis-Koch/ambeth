@@ -78,7 +78,7 @@ public abstract class BaseExpressionTest extends AbstractInformationBusTest
 		entity.setMyProp1(value);
 		entity.setMyExpressionProp("${MyProp1} * " + factor);
 
-		double result = entity.getValueForDynamicExpression();
+		double result = entity.calcValueForDynamicExpression();
 		Assert.assertEquals(value * factor, result, 0.00000001);
 	}
 }
