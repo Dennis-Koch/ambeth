@@ -12,7 +12,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
-import de.osthus.ambeth.typeinfo.MethodPropertyInfo;
 
 public class PropertyExpressionClassVisitor extends ClassGenerator
 {
@@ -53,15 +52,20 @@ public class PropertyExpressionClassVisitor extends ClassGenerator
 
 		PropertyInstance p_propertyExpressionMixin = null;
 
-		for (IPropertyInfo propertyInfo : propertyInfos)
+		Method[] methods = getState().getCurrentType().getMethods();
+
+		for (Method method : methods)
 		{
-			Method getter = ((MethodPropertyInfo) propertyInfo).getGetter();
-			PropertyExpression propertyExpression = getter.getAnnotation(PropertyExpression.class);
+			PropertyExpression propertyExpression = method.getAnnotation(PropertyExpression.class);
 			if (propertyExpression == null)
 			{
 				continue;
 			}
-			MethodInstance m_getterTemplate = new MethodInstance(getter);
+			if (method.getParameterTypes().length != 0)
+			{
+				continue;
+			}
+			MethodInstance m_getterTemplate = new MethodInstance(method);
 			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 			if (m_getter != null)
 			{
