@@ -126,7 +126,7 @@ namespace De.Osthus.Ambeth.Typeinfo
                 PutAnnotations(Getter);
                 if (Setter != null)
                 {
-                    if (Setter.GetParameters().Length != 1 || !Setter.GetParameters()[0].ParameterType.Equals(PropertyType))
+                    if (Setter.GetParameters().Length != 1 || !PropertyType.IsAssignableFrom(Setter.GetParameters()[0].ParameterType))
                     {
                         throw new Exception("Misfitting property methods for property '" + Name + "' on class '" + EntityType.Name + "'");
                     }
