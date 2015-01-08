@@ -1,7 +1,8 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
-
 public interface IForkedValueResolver
 {
-	Object getForkedValue();
+	Object createForkedValue();
+
+	Object getOriginalValue();
 }

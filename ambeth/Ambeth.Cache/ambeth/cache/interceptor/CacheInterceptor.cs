@@ -48,7 +48,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         }
 
         [LogInstance]
-	    public ILogger Log { private get; set; }
+	    public new ILogger Log { private get; set; }
 
         protected readonly CachedAnnotationCache cachedAnnotationCache = new CachedAnnotationCache();
 
