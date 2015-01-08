@@ -15,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.ILinkedMap;
@@ -61,7 +62,6 @@ import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
-import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.CachePath;
@@ -218,7 +218,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected IMap<Class<?>, PgUpdateEntry> createPgUpdateMap(IDataChange dataChange)
 	{
-		HashMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = HashMap.<Class<?>, PgUpdateEntry> create(metaDataAvailableSet.size());
+		HashMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = null;
 		IDatabase database = this.database.getCurrent();
 		for (Class<?> entityType : metaDataAvailableSet)
 		{
@@ -229,7 +229,15 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				continue;
 			}
 			PgUpdateEntry pgUpdateEntry = new PgUpdateEntry(entityType, permissionGroup);
+			if (entityToPgUpdateMap == null)
+			{
+				entityToPgUpdateMap = HashMap.<Class<?>, PgUpdateEntry> create(metaDataAvailableSet.size());
+			}
 			entityToPgUpdateMap.put(entityType, pgUpdateEntry);
+		}
+		if (entityToPgUpdateMap == null)
+		{
+			return EmptyMap.<Class<?>, PgUpdateEntry> emptyMap();
 		}
 		evaluateEntityPermissionRules(dataChange, entityToPgUpdateMap);
 		return entityToPgUpdateMap;
@@ -267,6 +275,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected void evaluateEntityPermissionRules(IDataChange dataChange, IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap)
 	{
+		if (entityToPgUpdateMap.size() == 0)
+		{
+			return;
+		}
 		HashMap<Class<?>, IDataChange> entityTypeToDataChangeMap = HashMap.<Class<?>, IDataChange> create(entityToPgUpdateMap.size());
 		HashMap<Class<?>, Boolean> entityTypeToEmptyFlagMap = HashMap.<Class<?>, Boolean> create(entityToPgUpdateMap.size());
 
@@ -390,6 +402,10 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		{
 			return;
 		}
+		if (metaDataAvailableSet.size() == 0)
+		{
+			return;
+		}
 		long start = System.currentTimeMillis();
 		ISecurityScope[] securityScopes = new ISecurityScope[] { new ISecurityScope()
 		{
@@ -402,15 +418,22 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 		try
 		{
-			securityScopeProvider.executeWithSecurityScopes(new IBackgroundWorkerDelegate()
+			Boolean pgUpdated = securityScopeProvider.executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Boolean>()
 			{
 				@Override
-				public void invoke() throws Throwable
+				public Boolean invoke() throws Throwable
 				{
 					IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
+					if (entityToPgUpdateMap.size() == 0)
+					{
+						return Boolean.FALSE;
+					}
 					ArrayList<PermissionGroupUpdateForkItem> forkItems = new ArrayList<PermissionGroupUpdateForkItem>();
 					insertPermissionGroupsIntern(entityToPgUpdateMap, forkItems, dataChange != null);
-
+					if (forkItems.size() == 0)
+					{
+						return Boolean.TRUE;
+					}
 					multithreadingHelper.invokeAndWait(forkItems, new IBackgroundWorkerParamDelegate<PermissionGroupUpdateForkItem>()
 					{
 						@Override
@@ -444,10 +467,14 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.allSids, permissionGroup);
 						}
 					});
+					return Boolean.TRUE;
 				}
 			}, securityScopes);
-			long end = System.currentTimeMillis();
-			log.info((end - start) + "ms");
+			if (pgUpdated.booleanValue() && log.isDebugEnabled())
+			{
+				long spent = System.currentTimeMillis() - start;
+				log.debug(spent + "ms");
+			}
 		}
 		catch (Throwable e)
 		{

@@ -5,7 +5,9 @@ import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurityScopeProvider, ISecurityScopeChangeListenerExtendable
@@ -53,6 +55,22 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 	}
 
 	@Override
+	public <R, V> R executeWithSecurityScopes(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V state, ISecurityScope... securityScopes)
+			throws Throwable
+	{
+		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
+		try
+		{
+			setSecurityScopes(securityScopes);
+			return runnable.invoke(state);
+		}
+		finally
+		{
+			setSecurityScopes(oldSecurityScopes);
+		}
+	}
+
+	@Override
 	public <R> R executeWithSecurityScopes(IResultingBackgroundWorkerDelegate<R> runnable, ISecurityScope... securityScopes) throws Throwable
 	{
 		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
@@ -60,6 +78,21 @@ public class SecurityScopeProvider implements IThreadLocalCleanupBean, ISecurity
 		{
 			setSecurityScopes(securityScopes);
 			return runnable.invoke();
+		}
+		finally
+		{
+			setSecurityScopes(oldSecurityScopes);
+		}
+	}
+
+	@Override
+	public <V> void executeWithSecurityScopes(IBackgroundWorkerParamDelegate<V> runnable, V state, ISecurityScope... securityScopes) throws Throwable
+	{
+		ISecurityScope[] oldSecurityScopes = getSecurityScopes();
+		try
+		{
+			setSecurityScopes(securityScopes);
+			runnable.invoke(state);
 		}
 		finally
 		{
