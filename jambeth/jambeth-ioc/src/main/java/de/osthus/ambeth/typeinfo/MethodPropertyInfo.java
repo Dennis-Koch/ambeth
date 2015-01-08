@@ -104,7 +104,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 			putAnnotations(getter);
 			if (setter != null)
 			{
-				if (setter.getParameterTypes().length != 1 || !propertyType.isAssignableFrom(setter.getParameterTypes()[0]))
+				if (setter.getParameterTypes().length != 1 || !setter.getParameterTypes()[0].equals(propertyType))
 				{
 					throw new RuntimeException("Misfitting property methods for property '" + name + "' on class '" + entityType.getName() + "'");
 				}
