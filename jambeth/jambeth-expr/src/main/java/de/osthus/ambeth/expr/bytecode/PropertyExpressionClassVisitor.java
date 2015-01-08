@@ -11,7 +11,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.ClassVisitor;
-import de.osthus.ambeth.typeinfo.IPropertyInfo;
 
 public class PropertyExpressionClassVisitor extends ClassGenerator
 {
@@ -37,12 +36,9 @@ public class PropertyExpressionClassVisitor extends ClassGenerator
 	@LogInstance
 	private ILogger log;
 
-	protected IPropertyInfo[] propertyInfos;
-
-	public PropertyExpressionClassVisitor(ClassVisitor cv, IPropertyInfo[] propertyInfos)
+	public PropertyExpressionClassVisitor(ClassVisitor cv)
 	{
 		super(cv);
-		this.propertyInfos = propertyInfos;
 	}
 
 	@Override
