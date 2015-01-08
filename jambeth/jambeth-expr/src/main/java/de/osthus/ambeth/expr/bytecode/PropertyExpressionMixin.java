@@ -20,7 +20,7 @@ public class PropertyExpressionMixin
 	@Autowired(optional = true)
 	protected IEntityPropertyExpressionResolver entityPropertyExpressionResolver;
 
-	protected boolean firstUsage true;
+	protected boolean firstUsage = true;
 
 	public Object evaluate(IEntityMetaDataHolder entity, String expression, Class<?> expectedType)
 	{
