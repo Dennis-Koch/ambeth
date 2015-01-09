@@ -33,6 +33,7 @@ import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.csharp.ICsMethodHandler;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.BinaryExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.expr.InstanceOfExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.MethodInvocationExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewArrayExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
@@ -44,15 +45,18 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
+import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsFieldHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsMethodHandler;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
+import de.osthus.esmeralda.handler.js.JsClasspathManager;
 import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.handler.js.JsMethodHandler;
 import de.osthus.esmeralda.handler.js.expr.JsArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsBinaryExpressionHandler;
+import de.osthus.esmeralda.handler.js.expr.JsInstanceOfExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsMethodInvocationExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsNewArrayExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsNewClassExpressionHandler;
@@ -68,7 +72,6 @@ import de.osthus.esmeralda.handler.uni.expr.AssignExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.AssignOpExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.ConditionalExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.FieldAccessExpressionHandler;
-import de.osthus.esmeralda.handler.uni.expr.InstanceOfExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.LiteralExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.ParensExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.UnaryExpressionHandler;
@@ -113,6 +116,8 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(ClassInfoFactory.class).autowireable(IClassInfoFactory.class);
 		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
+		// TODO C# version
+		beanContextFactory.registerBean(JsClasspathManager.class).autowireable(IJsClasspathManager.class);
 
 		// Method transformation
 		beanContextFactory.registerBean(ExtendableBean.class) //
@@ -177,7 +182,6 @@ public class EsmeraldaCoreModule implements IInitializingModule
 				Kind.MINUS_ASSIGNMENT, Kind.MULTIPLY_ASSIGNMENT, Kind.OR_ASSIGNMENT, Kind.PLUS_ASSIGNMENT, Kind.RIGHT_SHIFT_ASSIGNMENT, Kind.XOR_ASSIGNMENT);
 		registerExpressionHandler(beanContextFactory, ConditionalExpressionHandler.class, Kind.CONDITIONAL_EXPRESSION);
 		registerExpressionHandler(beanContextFactory, FieldAccessExpressionHandler.class, Kind.MEMBER_SELECT);
-		registerExpressionHandler(beanContextFactory, InstanceOfExpressionHandler.class, Kind.INSTANCE_OF);
 		registerExpressionHandler(beanContextFactory, LiteralExpressionHandler.class, Kind.INT_LITERAL, Kind.LONG_LITERAL, Kind.FLOAT_LITERAL,
 				Kind.DOUBLE_LITERAL, Kind.BOOLEAN_LITERAL, Kind.CHAR_LITERAL, Kind.STRING_LITERAL, Kind.NULL_LITERAL, Kind.IDENTIFIER);
 		registerExpressionHandler(beanContextFactory, ParensExpressionHandler.class, Kind.PARENTHESIZED);
@@ -188,6 +192,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerExpressionHandler(beanContextFactory, BinaryExpressionHandler.class, Lang.C_SHARP, Kind.DIVIDE, Kind.REMAINDER, Kind.LEFT_SHIFT,
 				Kind.RIGHT_SHIFT, Kind.MINUS, Kind.MULTIPLY, Kind.AND, Kind.OR, Kind.XOR, Kind.CONDITIONAL_AND, Kind.CONDITIONAL_OR, Kind.PLUS, Kind.EQUAL_TO,
 				Kind.NOT_EQUAL_TO, Kind.GREATER_THAN, Kind.LESS_THAN, Kind.GREATER_THAN_EQUAL, Kind.LESS_THAN_EQUAL, Kind.UNSIGNED_RIGHT_SHIFT);
+		registerExpressionHandler(beanContextFactory, InstanceOfExpressionHandler.class, Lang.C_SHARP, Kind.INSTANCE_OF);
 		registerExpressionHandler(beanContextFactory, MethodInvocationExpressionHandler.class, Lang.C_SHARP, Kind.METHOD_INVOCATION);
 		registerExpressionHandler(beanContextFactory, NewArrayExpressionHandler.class, Lang.C_SHARP, Kind.NEW_ARRAY);
 		registerExpressionHandler(beanContextFactory, NewClassExpressionHandler.class, Lang.C_SHARP, Kind.NEW_CLASS);
@@ -197,6 +202,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerExpressionHandler(beanContextFactory, JsBinaryExpressionHandler.class, Lang.JS, Kind.DIVIDE, Kind.REMAINDER, Kind.LEFT_SHIFT, Kind.RIGHT_SHIFT,
 				Kind.MINUS, Kind.MULTIPLY, Kind.AND, Kind.OR, Kind.XOR, Kind.CONDITIONAL_AND, Kind.CONDITIONAL_OR, Kind.PLUS, Kind.EQUAL_TO, Kind.NOT_EQUAL_TO,
 				Kind.GREATER_THAN, Kind.LESS_THAN, Kind.GREATER_THAN_EQUAL, Kind.LESS_THAN_EQUAL, Kind.UNSIGNED_RIGHT_SHIFT);
+		registerExpressionHandler(beanContextFactory, JsInstanceOfExpressionHandler.class, Lang.JS, Kind.INSTANCE_OF);
 		registerExpressionHandler(beanContextFactory, JsMethodInvocationExpressionHandler.class, Lang.JS, Kind.METHOD_INVOCATION);
 		registerExpressionHandler(beanContextFactory, JsNewArrayExpressionHandler.class, Lang.JS, Kind.NEW_ARRAY);
 		registerExpressionHandler(beanContextFactory, JsNewClassExpressionHandler.class, Lang.JS, Kind.NEW_CLASS);
