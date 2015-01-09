@@ -12,7 +12,7 @@ import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
+public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 {
 	@LogInstance
 	private ILogger log;
@@ -21,13 +21,13 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtensionExtendable
 			"TestBedBuilders");
 
 	@Override
-	public void registerTestBedBuilderExtension(IDatasetBuilder testBedBuilder)
+	public void registerDatasetBuilder(IDatasetBuilder testBedBuilder)
 	{
 		datasetBuilderContainer.register(testBedBuilder);
 	}
 
 	@Override
-	public void unregisterTestBedBuilderExtension(IDatasetBuilder testBedBuilder)
+	public void unregisterDatasetBuilder(IDatasetBuilder testBedBuilder)
 	{
 		datasetBuilderContainer.unregister(testBedBuilder);
 	}
