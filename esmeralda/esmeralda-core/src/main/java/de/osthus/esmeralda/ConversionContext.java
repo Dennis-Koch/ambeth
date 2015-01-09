@@ -6,9 +6,14 @@ import java.util.regex.Pattern;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
+import com.sun.tools.javac.util.List;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -255,8 +260,10 @@ public class ConversionContext implements IConversionContext
 		{
 			return null;
 		}
-		TreePath treePath = getClassInfo().getTreePath();
-		AlreadyTriedKey alreadyTriedKey = new AlreadyTriedKey(treePath, fqTypeName);
+		Method method = getMethod();
+		TreePath classTreePath = getClassInfo().getTreePath();
+		TreePath keyTreePath = method != null ? method.getPath() : classTreePath;
+		AlreadyTriedKey alreadyTriedKey = new AlreadyTriedKey(keyTreePath, fqTypeName);
 		JavaClassInfo scopedClassInfo = alreadyTriedAndFailedMap.get(alreadyTriedKey);
 		if (scopedClassInfo != null)
 		{
@@ -267,6 +274,82 @@ public class ConversionContext implements IConversionContext
 			return null;
 		}
 		String originalFqTypeName = fqTypeName;
+		String[] parsedGenericType = parseGenericType(fqTypeName);
+		if (parsedGenericType.length == 2)
+		{
+			String nonGenericType = parsedGenericType[0];
+			String genericTypeArguments = parsedGenericType[1];
+			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
+			if (nonGenericClassInfo == null)
+			{
+				return classInfoResolved(originalFqTypeName, nonGenericClassInfo);
+			}
+			return classInfoResolved(originalFqTypeName, makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments));
+		}
+		if (method != null)
+		{
+			TreePath methodTreePath = method.getPath();
+			for (JCTypeParameter typeParameter : ((JCMethodDecl) methodTreePath.getLeaf()).typarams)
+			{
+				String typeName = typeParameter.type.tsym.name.toString();
+				if (typeName.equals(fqTypeName))
+				{
+					List<JCExpression> bounds = typeParameter.bounds;
+					if (bounds.size() == 0)
+					{
+						// extends from java.lang.Object
+						JavaClassInfo boundClassInfo = resolveClassInfo(Object.class.getName());
+						JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+						return classInfoResolved(fqTypeName, classInfo);
+					}
+					if (bounds.size() != 1)
+					{
+						throw new IllegalStateException(typeParameter.toString());
+					}
+					JCExpression bound = bounds.get(0);
+					JavaClassInfo boundClassInfo;
+					this.method = null;
+					try
+					{
+						boundClassInfo = resolveClassInfo(bound.type.toString());
+					}
+					finally
+					{
+						this.method = method;
+					}
+					JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+					return classInfoResolved(fqTypeName, classInfo);
+				}
+			}
+		}
+		for (JCTypeParameter typeParameter : ((JCClassDecl) classTreePath.getLeaf()).getTypeParameters())
+		{
+			String typeName = typeParameter.type.tsym.name.toString();
+			if (typeName.equals(fqTypeName))
+			{
+				List<JCExpression> bounds = typeParameter.bounds;
+				if (bounds.size() == 0)
+				{
+					// extends from java.lang.Object
+					JavaClassInfo boundClassInfo = resolveClassInfo(Object.class.getName());
+					JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+					return classInfoResolved(fqTypeName, classInfo);
+				}
+				JCExpression bound = bounds.get(0);
+				JavaClassInfo boundClassInfo;
+				this.method = null;
+				try
+				{
+					boundClassInfo = resolveClassInfo(bound.type.toString());
+				}
+				finally
+				{
+					this.method = method;
+				}
+				JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+				return classInfoResolved(fqTypeName, classInfo);
+			}
+		}
 		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);
 		fqTypeName = getResolveGenericFqTypeName(fqTypeName);
 		JavaClassInfo classInfo = fqNameToClassInfoMap.get(fqTypeName);
@@ -304,22 +387,10 @@ public class ConversionContext implements IConversionContext
 		// {
 		// throw new SkipGenerationException();
 		// }
-		String[] parsedGenericType = parseGenericType(fqTypeName);
-		if (parsedGenericType.length == 2)
-		{
-			String nonGenericType = parsedGenericType[0];
-			String genericTypeArguments = parsedGenericType[1];
-			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
-			if (nonGenericClassInfo == null)
-			{
-				return classInfoResolved(originalFqTypeName, nonGenericClassInfo);
-			}
-			return classInfoResolved(originalFqTypeName, makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments));
-		}
 		classInfo = classInfoFactory.createClassInfo(fqTypeName);
 		if (classInfo == null && isSimpleName && cascadeSearch)
 		{
-			TreePath currTreePath = treePath;
+			TreePath currTreePath = classTreePath;
 			while (!(currTreePath.getLeaf() instanceof JCCompilationUnit))
 			{
 				currTreePath = currTreePath.getParentPath();
@@ -415,8 +486,30 @@ public class ConversionContext implements IConversionContext
 		return new String[] { nonGenericType, genericTypeArguments };
 	}
 
+	protected JavaClassInfo makeGenericClassInfoExtendsFrom(JavaClassInfo extendsFromClassInfo, String symbolName)
+	{
+		JavaClassInfo classInfo = new JavaClassInfo(extendsFromClassInfo.context);
+		classInfo.setName(symbolName);
+		classInfo.setPackageName(null);
+		classInfo.setExtendsFrom(extendsFromClassInfo);
+
+		classInfo.setPrivateFlag(extendsFromClassInfo.isPrivate());
+		classInfo.setProtectedFlag(extendsFromClassInfo.isProtected());
+		classInfo.setPublicFlag(extendsFromClassInfo.isPublic());
+		classInfo.setFinalFlag(extendsFromClassInfo.isFinal());
+		classInfo.setNameOfSuperClass(null);
+
+		return classInfo;
+	}
+
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
 	{
+		JavaClassInfo superClassInfo = null;
+		String nameOfSuperClass = classInfo.getNameOfSuperClass();
+		if (nameOfSuperClass != null)
+		{
+			superClassInfo = resolveClassInfo(nameOfSuperClass);
+		}
 		String[] typeArgumentsSplit = astHelper.splitTypeArgument(genericTypeArguments);
 		JavaClassInfo[] typeArgumentCIs = new JavaClassInfo[typeArgumentsSplit.length];
 		StringBuilder sb = new StringBuilder();
@@ -451,12 +544,15 @@ public class ConversionContext implements IConversionContext
 			}
 			if (typeArgumentCI == null)
 			{
-				typeArgumentCI = resolveClassInfo(typeArgumentSplit);
+				typeArgumentCI = resolveClassInfo(typeArgumentSplit, true);
 			}
 			if (typeArgumentCI == null)
 			{
-				// it may be a generic type argument of an enclosing class:
-
+				if (!typeArgumentSplit.contains("."))
+				{
+					sb.append(typeArgumentSplit);
+					continue;
+				}
 			}
 			if (typeArgumentCI == null)
 			{

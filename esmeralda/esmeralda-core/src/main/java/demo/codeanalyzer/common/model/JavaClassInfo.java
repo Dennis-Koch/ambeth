@@ -43,6 +43,8 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 
 	public IConversionContext context;
 
+	private JavaClassInfo extendsFrom;
+
 	private TreePath treePath;
 	private ClassTree classTree;
 	private JavaClassInfo[] typeArguments;
@@ -352,17 +354,26 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	@Override
 	public String getFqName()
 	{
+		StringBuilder sb = new StringBuilder();
 		if (getPackageName() != null)
 		{
-			return getPackageName() + "." + getName();
+			sb.append(getPackageName()).append('.');
 		}
-		return getName();
+		sb.append(getName());
+		return sb.toString();
 	}
 
 	@Override
 	public String toString()
 	{
-		return getFqName();
+		String fqName = getFqName();
+
+		JavaClassInfo extendsFrom = getExtendsFrom();
+		if (extendsFrom == null)
+		{
+			return fqName;
+		}
+		return fqName + " extends " + extendsFrom.getFqName();
 	}
 
 	public boolean isAnonymous()
@@ -421,5 +432,15 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setTypeArguments(JavaClassInfo[] typeArguments)
 	{
 		this.typeArguments = typeArguments;
+	}
+
+	public JavaClassInfo getExtendsFrom()
+	{
+		return extendsFrom;
+	}
+
+	public void setExtendsFrom(JavaClassInfo extendsFrom)
+	{
+		this.extendsFrom = extendsFrom;
 	}
 }

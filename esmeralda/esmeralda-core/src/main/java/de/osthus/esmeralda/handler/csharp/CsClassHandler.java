@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sun.source.tree.StatementTree;
+import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -180,6 +181,24 @@ public class CsClassHandler implements ICsClassHandler
 				writer.append(", ");
 			}
 			languageHelper.writeType(nameOfInterface);
+		}
+		boolean firstTypeArgument = true;
+		for (TypeParameterTree typeParameter : classInfo.getClassTree().getTypeParameters())
+		{
+			JavaClassInfo typeParameterCI = context.resolveClassInfo(typeParameter.getName().toString());
+			JavaClassInfo extendsFrom = typeParameterCI.getExtendsFrom();
+			if (Object.class.getName().equals(extendsFrom.getFqName()))
+			{
+				continue;
+			}
+			if (firstTypeArgument)
+			{
+				writer.append(" where ");
+			}
+			firstTypeArgument = languageHelper.writeStringIfFalse(",", firstTypeArgument);
+			writer.append(typeParameter.getName());
+			writer.append(" : ");
+			languageHelper.writeType(extendsFrom.getFqName());
 		}
 
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()

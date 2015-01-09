@@ -3,6 +3,7 @@ package demo.codeanalyzer.common.model;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.IList;
 
@@ -19,6 +20,8 @@ public interface Method extends BaseJavaClassModel
 	ClassFile getOwningClass();
 
 	MethodTree getMethodTree();
+
+	TreePath getPath();
 
 	/**
 	 * @return the internal names of the method's exception classes. May be null.

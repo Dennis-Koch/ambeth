@@ -244,7 +244,7 @@ public class CsMethodHandler implements ICsMethodHandler
 
 	protected boolean writeOverrideVirtual(Method method, ITransformedMethod transformedMethod, boolean firstKeyWord)
 	{
-		if (method.isConstructor())
+		if (method.isConstructor() || method.isAbstract())
 		{
 			return firstKeyWord;
 		}
