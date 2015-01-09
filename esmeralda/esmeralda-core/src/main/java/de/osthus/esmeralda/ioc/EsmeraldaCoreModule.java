@@ -37,6 +37,7 @@ import de.osthus.esmeralda.handler.csharp.expr.MethodInvocationExpressionHandler
 import de.osthus.esmeralda.handler.csharp.expr.NewArrayExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.TypeCastExpressionHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsAssertHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsEnhancedForHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSynchronizedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
@@ -56,6 +57,7 @@ import de.osthus.esmeralda.handler.js.expr.JsMethodInvocationExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsNewArrayExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsNewClassExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsTypeCastExpressionHandler;
+import de.osthus.esmeralda.handler.js.stmt.JsAssertHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsEnhancedForHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsSynchronizedHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsThrowHandler;
@@ -149,12 +151,14 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, UniversalSwitchHandler.class, Kind.SWITCH);
 		registerStatementHandler(beanContextFactory, UniversalWhileHandler.class, Kind.WHILE_LOOP);
 
+		registerStatementHandler(beanContextFactory, CsAssertHandler.class, Lang.C_SHARP, Kind.ASSERT);
 		registerStatementHandler(beanContextFactory, CsEnhancedForHandler.class, Lang.C_SHARP, Kind.ENHANCED_FOR_LOOP);
 		registerStatementHandler(beanContextFactory, CsThrowHandler.class, Lang.C_SHARP, Kind.THROW);
 		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP, Kind.TRY);
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP, Kind.VARIABLE);
 		registerStatementHandler(beanContextFactory, CsSynchronizedHandler.class, Lang.C_SHARP, Kind.SYNCHRONIZED);
 
+		registerStatementHandler(beanContextFactory, JsAssertHandler.class, Lang.JS, Kind.ASSERT);
 		registerStatementHandler(beanContextFactory, JsEnhancedForHandler.class, Lang.JS, Kind.ENHANCED_FOR_LOOP);
 		registerStatementHandler(beanContextFactory, JsThrowHandler.class, Lang.JS, Kind.THROW);
 		registerStatementHandler(beanContextFactory, JsTryHandler.class, Lang.JS, Kind.TRY);

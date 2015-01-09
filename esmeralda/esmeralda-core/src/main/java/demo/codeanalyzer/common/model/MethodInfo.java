@@ -3,6 +3,7 @@ package demo.codeanalyzer.common.model;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.util.TreePath;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
@@ -21,6 +22,7 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	ArrayList<String> exceptions = new ArrayList<String>();
 	private ArrayList<Integer> parameterIndexToEraseGenericType = new ArrayList<Integer>();
 	private ArrayList<Integer> parameterIndexToDelete = new ArrayList<Integer>();
+	private TreePath path;
 
 	@Override
 	public boolean isConstructor()
@@ -122,5 +124,16 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	public void addParameterIndexToDelete(int parameterIndex)
 	{
 		parameterIndexToDelete.add(parameterIndex);
+	}
+
+	public void setPath(TreePath path)
+	{
+		this.path = path;
+	}
+
+	@Override
+	public TreePath getPath()
+	{
+		return path;
 	}
 }

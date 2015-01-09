@@ -70,8 +70,8 @@ public class MethodInfoDataSetter
 	 */
 	public static void populateMethodInfo(JavaClassInfo clazzInfo, MethodTree methodTree, TreePath path, Trees trees)
 	{
-
 		final MethodInfo methodInfo = new MethodInfo();
+		methodInfo.setPath(path);
 		methodInfo.setMethodTree(methodTree);
 		String methodName = methodTree.getName().toString();
 		methodInfo.setOwningClass(clazzInfo);
