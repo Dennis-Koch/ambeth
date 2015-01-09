@@ -1,11 +1,17 @@
 package de.osthus.esmeralda.handler.js;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -35,6 +41,9 @@ public class JsClassHandler implements IJsClassHandler
 	protected IConversionContext context;
 
 	@Autowired
+	protected IJsClasspathManager jsClasspathManager;
+
+	@Autowired
 	protected IJsHelper languageHelper;
 
 	@Autowired
@@ -55,6 +64,23 @@ public class JsClassHandler implements IJsClassHandler
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 		JavaClassInfo classInfo = context.getClassInfo();
+
+		String namespace = languageHelper.createNamespace();
+		String fullClassName = namespace + "." + classInfo.getName().split("<", 2)[0];
+		if (jsClasspathManager.isInClasspath(fullClassName))
+		{
+			Path source = jsClasspathManager.getFullPath(fullClassName);
+			try
+			{
+				byte[] allBytes = Files.readAllBytes(source);
+				writer.append(new String(allBytes));
+			}
+			catch (IOException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			return;
+		}
 
 		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
 
@@ -114,6 +140,40 @@ public class JsClassHandler implements IJsClassHandler
 		return fieldsToInit;
 	}
 
+	protected HashMap<String, ArrayList<Method>> findOverloadMethods(IList<Method> methods)
+	{
+		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
+		for (Method method : methods)
+		{
+			if (method.isConstructor())
+			{
+				continue;
+			}
+
+			String name = method.getName();
+			ArrayList<Method> bucket = buckets.get(name);
+			if (bucket == null)
+			{
+				bucket = new ArrayList<>();
+				buckets.put(name, bucket);
+			}
+			bucket.add(method);
+		}
+
+		Iterator<Entry<String, ArrayList<Method>>> iter = buckets.iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, ArrayList<Method>> entry = iter.next();
+			ArrayList<Method> bucket = entry.getValue();
+			if (bucket.size() == 1)
+			{
+				iter.remove();
+			}
+		}
+
+		return buckets;
+	}
+
 	protected void writeName(JavaClassInfo classInfo)
 	{
 		IConversionContext context = this.context.getCurrent();
@@ -168,9 +228,9 @@ public class JsClassHandler implements IJsClassHandler
 						firstLine = writeFields(classInfo, writer, firstLine);
 
 						firstLine = writeConfig(classInfo, writer, firstLine);
-						firstLine = writerAccessors(firstLine);
+						firstLine = writeAccessors(firstLine);
 
-						firstLine = writerMethods(classInfo, writer, firstLine);
+						firstLine = writeMethods(classInfo, writer, firstLine);
 					}
 				});
 				writer.append(";");
@@ -268,7 +328,7 @@ public class JsClassHandler implements IJsClassHandler
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
 		if (nameOfSuperClass == null || nameOfSuperClass.isEmpty() || Object.class.getName().equals(nameOfSuperClass) || "<none>".equals(nameOfSuperClass))
 		{
-			return firstLine;
+			nameOfSuperClass = "Ambeth.Base";
 		}
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
@@ -341,7 +401,12 @@ public class JsClassHandler implements IJsClassHandler
 			return firstLine;
 		}
 
+		String namespace = languageHelper.createNamespace();
+		String name = classInfo.getName().replaceAll("<.*>", "");
+		String fullName = namespace + "." + name;
+
 		IList<String> requires = new ArrayList<>(importsMap.keySet());
+		requires.remove(fullName); // Do not require yourself
 		Collections.sort(requires);
 
 		boolean firstRequires = true;
@@ -350,7 +415,7 @@ public class JsClassHandler implements IJsClassHandler
 			String convertedSuperClass = languageHelper.convertType(classInfo.getNameOfSuperClass(), false);
 			for (String className : requires)
 			{
-				if (className.equals(convertedSuperClass))
+				if (className.equals(convertedSuperClass) || className.equals("Ambeth.Base"))
 				{
 					// extends already implies the requires
 					continue;
@@ -453,6 +518,8 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writePublicStaticMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
+		HashMap<String, ArrayList<Method>> overloadMethods = new HashMap<>(); // TODO
+
 		IList<Method> methods = classInfo.getMethods();
 		for (Method method : methods)
 		{
@@ -463,7 +530,7 @@ public class JsClassHandler implements IJsClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			methodHandler.handle(overloadMethods);
 		}
 
 		return firstLine;
@@ -548,14 +615,17 @@ public class JsClassHandler implements IJsClassHandler
 		return firstLine;
 	}
 
-	protected boolean writerAccessors(boolean firstLine)
+	protected boolean writeAccessors(boolean firstLine)
 	{
 		return firstLine;
 	}
 
-	protected boolean writerMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
+	protected boolean writeMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		IList<Method> nonStaticMethods = createView(classInfo.getMethods(), null, Boolean.FALSE);
+
+		HashMap<String, ArrayList<Method>> overloadMethods = findOverloadMethods(nonStaticMethods);
+
 		for (Method method : nonStaticMethods)
 		{
 			if (method.isConstructor())
@@ -565,7 +635,57 @@ public class JsClassHandler implements IJsClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			methodHandler.handle(overloadMethods);
+		}
+
+		firstLine = writeOverloadHubMethods(classInfo, overloadMethods, writer, firstLine);
+
+		return firstLine;
+	}
+
+	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadMethodsMap, final IWriter writer,
+			boolean firstLine)
+	{
+		Iterator<Entry<String, ArrayList<Method>>> iter = overloadMethodsMap.iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, ArrayList<Method>> entry = iter.next();
+			String methodName = entry.getKey();
+			ArrayList<Method> methods = entry.getValue();
+
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+			languageHelper.newLineIndent();
+
+			// Documentation
+			languageHelper.startDocumentation();
+			languageHelper.newLineIndentDocumentation();
+			writer.append("Hub for overloaded method '").append(methodName).append("()'.");
+			languageHelper.newLineIndentDocumentation();
+			writer.append("@param {JSON} parameters");
+			String returnType = methods.get(0).getReturnType();
+			if (!"void".equals(returnType))
+			{
+				String convertedType = languageHelper.convertType(returnType, false);
+				languageHelper.newLineIndentDocumentation();
+				writer.append("@return {").append(convertedType).append("}");
+			}
+			languageHelper.endDocumentation();
+
+			// Signature
+			languageHelper.newLineIndent();
+			writer.append(methodName).append(": function(parameters)");
+			languageHelper.preBlockWhiteSpaces();
+
+			// Body
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					languageHelper.newLineIndent();
+					writer.append("// TODO create hub method to delegate to correct overload");
+				}
+			});
 		}
 
 		return firstLine;

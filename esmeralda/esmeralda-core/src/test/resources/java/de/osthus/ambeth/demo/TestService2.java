@@ -36,7 +36,7 @@ public class TestService2 implements IInitializingBean
 		overloadedMethod((String) null);
 	}
 
-	public void overloadedMethod(String stringParam)
+	public boolean overloadedMethod(String stringParam)
 	{
 		boolean print = true;
 		while (print)
@@ -51,10 +51,13 @@ public class TestService2 implements IInitializingBean
 			print = false;
 		}
 		while (print);
+		
+		return print;
 	}
 
-	public void overloadedMethod(Integer intParam)
+	public boolean overloadedMethod(Integer intParam)
 	{
+		boolean ok = false;
 		if (intParam == null)
 		{
 			System.out.println(0);
@@ -66,7 +69,10 @@ public class TestService2 implements IInitializingBean
 		else
 		{
 			System.out.println(intParam);
+			ok = true;
 		}
+		
+		return ok;
 	}
 
 	public void anonymousClassInstance()
