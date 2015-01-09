@@ -33,6 +33,7 @@ import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
+import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
@@ -65,6 +66,9 @@ public class ConversionManager implements IStartingBean
 
 	@Autowired
 	protected IClassInfoFactory classInfoFactory;
+
+	@Autowired
+	protected IJsClasspathManager jsClasspathManager;
 
 	@Autowired
 	protected CodeProcessor codeProcessor;
@@ -225,7 +229,7 @@ public class ConversionManager implements IStartingBean
 			// log.info("Missing methods in CS:");
 			// logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
 			log.info("Missing methods in JS:");
-			logMissingMethods(jsCalledMethods, jsDefinedMethods, IClasspathManager.EXISTING_METHODS_JS);
+			logMissingMethods(jsCalledMethods, jsDefinedMethods, jsClasspathManager);
 
 			log.info(csMetric.toString());
 			log.info(jsMetric.toString());
@@ -354,12 +358,12 @@ public class ConversionManager implements IStartingBean
 		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
 	}
 
-	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods, HashSet<String> classpathMethods)
+	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods, IClasspathManager classpathManager)
 	{
 		HashMap<String, Integer> missingMethods = new HashMap<>(calledMethods);
 		HashSet<String> existingMethods = new HashSet<>();
 		existingMethods.addAll(definedMethods);
-		existingMethods.addAll(classpathMethods);
+		existingMethods.addAll(classpathManager.getClasspathMethods());
 
 		for (String existingMethod : existingMethods)
 		{

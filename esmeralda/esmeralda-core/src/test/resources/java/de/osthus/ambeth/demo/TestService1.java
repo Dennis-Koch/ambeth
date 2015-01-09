@@ -22,6 +22,8 @@ public class TestService1 extends BaseClass implements ITestInterface
 	@Override
 	public void testMethod1()
 	{
+		magicNumber = Integer.parseInt(magicString);
+		
 		final String str1 = hello;
 		String str2 = WORLD;
 		String msg = "";
