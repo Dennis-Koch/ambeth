@@ -16,7 +16,6 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.service.IServiceExtendable;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.EqualsUtil;
 
 public class CachePostProcessor extends MergePostProcessor
@@ -66,7 +65,7 @@ public class CachePostProcessor extends MergePostProcessor
 	{
 		if (serviceName == null || serviceName.length() == 0)
 		{
-			serviceName = beanContext.getService(ITypeInfoProvider.class).getTypeInfo(type).getSimpleName();
+			serviceName = type.getSimpleName();
 			if (serviceName.endsWith("Proxy"))
 			{
 				serviceName = serviceName.substring(0, serviceName.length() - 5);

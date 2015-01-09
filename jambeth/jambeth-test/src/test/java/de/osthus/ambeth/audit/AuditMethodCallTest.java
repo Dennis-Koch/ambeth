@@ -46,7 +46,7 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 
 @TestFrameworkModule({ AuditModule.class, AuditMethodCallTestFrameworkModule.class })
 @TestModule(AuditMethodCallTestModule.class)
-@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml"),
+@TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "AuditMethodCall_orm.xml;security-orm.xml"),
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
@@ -127,7 +127,8 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 	{
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
-		user.setName("MyUserName");
+		user.setName("MyName");
+		// user.setSID("MySID");
 
 		Password password = entityFactory.createEntity(Password.class);
 		passwordUtil.assignNewPassword(passwordOfUser, password, user);
