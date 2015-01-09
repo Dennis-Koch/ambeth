@@ -39,7 +39,7 @@ import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.util.IPrefetchHelper;
-import de.osthus.ambeth.util.setup.IDatasetBuilderExtensionExtendable;
+import de.osthus.ambeth.util.setup.IDatasetBuilderExtendable;
 
 @SQLStructureList({ @SQLStructure("Relations_structure_with_security.sql"), @SQLStructure("de/osthus/ambeth/audit/security-structure.sql") })
 @TestFrameworkModule(Relations20WithSecurityTestModule.class)
@@ -64,7 +64,7 @@ public class Relations20WithSecurityTest extends Relations20Test
 			beanContextFactory.link(IPassword.class).to(ITechnicalEntityTypeExtendable.class).with(Password.class);
 
 			IBeanConfiguration dataSetBuilder = beanContextFactory.registerBean(Relations20WithSecurityTestDataSetBuilder.class);
-			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtensionExtendable.class);
+			beanContextFactory.link(dataSetBuilder).to(IDatasetBuilderExtendable.class);
 		}
 	}
 

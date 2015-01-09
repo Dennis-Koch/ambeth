@@ -128,13 +128,14 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	}
 
 	@Override
-	public String[] createOptimisticLockTrigger(Connection connection, String tableName) throws SQLException
+	public String[] createOptimisticLockTrigger(Connection connection, String fullyQualifiedTableName) throws SQLException
 	{
-		if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches() || Oracle10gDialect.IDX_TABLE_NAME.matcher(tableName).matches())
+		if (Oracle10gDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches()
+				|| Oracle10gDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
 		{
 			return new String[0];
 		}
-		String[] names = sqlBuilder.getSchemaAndTableName(tableName);
+		String[] names = sqlBuilder.getSchemaAndTableName(fullyQualifiedTableName);
 		ArrayList<String> tableColumns = new ArrayList<String>();
 		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
 		try
@@ -163,7 +164,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		}
 		int maxProcedureNameLength = connection.getMetaData().getMaxProcedureNameLength();
 		AppendableStringBuilder sb = new AppendableStringBuilder();
-		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(tableName, maxProcedureNameLength);
+		String triggerName = ormPatternMatcher.buildOptimisticLockTriggerFromTableName(fullyQualifiedTableName, maxProcedureNameLength);
 		sb.append("create or replace TRIGGER \"").append(triggerName);
 		sb.append("\" BEFORE UPDATE");
 		if (tableColumns.size() > 0)
@@ -178,7 +179,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 				sqlBuilder.escapeName(tableColumns.get(a), sb);
 			}
 		}
-		sb.append(" ON \"").append(tableName).append("\" FOR EACH ROW");
+		sb.append(" ON \"").append(names[1]).append("\" FOR EACH ROW");
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
@@ -198,12 +199,12 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			stmt = connection.createStatement();
 
 			HashSet<String> existingOptimisticLockTriggers = new HashSet<String>();
-			rs = stmt.executeQuery("SELECT TNAME FROM TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='" + "VERSION"
-					+ "'");
+			rs = stmt
+					.executeQuery("SELECT USER || '.' || TNAME FULL_NAME FROM DUAL, TAB T JOIN COLS C ON T.TNAME = C.TABLE_NAME WHERE T.TABTYPE='TABLE' AND C.COLUMN_NAME='VERSION'");
 			ArrayList<String> tableNamesWhichNeedOptimisticLockTrigger = new ArrayList<String>();
 			while (rs.next())
 			{
-				String tableName = rs.getString("TNAME");
+				String tableName = rs.getString("FULL_NAME");
 				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;

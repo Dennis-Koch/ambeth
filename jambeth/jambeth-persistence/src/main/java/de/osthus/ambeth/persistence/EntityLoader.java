@@ -37,7 +37,6 @@ import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.persistence.parallel.ParallelLoadCascadeItem;
 import de.osthus.ambeth.persistence.parallel.ParallelLoadItem;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperator;
@@ -463,10 +462,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	{
 		IDatabase database = this.database.getCurrent();
 		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
-		if (0 < alCache.size())
-		{
-			throw new RuntimeException();
-		}
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ILinkedMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		for (int a = orisWithoutVersion.size(); a-- > 0;)
@@ -977,69 +972,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		{
 			log.debug("Retrieved " + cursorCount + " row(s)");
 		}
-		ArrayList<ParallelLoadCascadeItem> parallelLinkItems = new ArrayList<ParallelLoadCascadeItem>(standaloneDirectedLinks.length);
-
-		for (int relationIndex = standaloneDirectedLinks.length; relationIndex-- > 0;)
-		{
-			IDirectedLink link = standaloneDirectedLinks[relationIndex];
-			if (link == null)
-			{
-				continue;
-			}
-			switch (link.getCascadeLoadMode())
-			{
-				case LAZY:
-				{
-					if (supportsValueHolderContainer)
-					{
-						continue;
-					}
-					RelationMember member = link.getMember();
-					if (!member.getRealType().equals(member.getElementType()))
-					{
-						continue;
-					}
-					// To-One-relations may NOT be lazy, because otherwise we would have a non-null valueholder
-					// objects consisting of a null-relation
-					// after initialization
-					// If we have no reverse mapped member it is currently impossible on a later request to resolve the
-					// related members
-					// So we still have to eager fetch them
-					// Fall through intended
-				}
-				case EAGER_VERSION:
-				case EAGER:
-				{
-					ArrayList<Object> directedLinkQueue = directedLinkQueues[relationIndex];
-
-					ParallelLoadCascadeItem pli = new ParallelLoadCascadeItem(entityType, link, directedLinkQueue, relationIndex, cascadeTypeToPendingInit);
-					parallelLinkItems.add(pli);
-					continue;
-				}
-				default:
-					throw RuntimeExceptionUtil.createEnumNotSupportedException(link.getCascadeLoadMode());
-			}
-		}
-		if (parallelLinkItems.size() > 0)
-		{
-			multithreadingHelper.invokeAndWait(parallelLinkItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadCascadeItem>()
-			{
-
-				@Override
-				public Object invoke(ParallelLoadCascadeItem state) throws Throwable
-				{
-					cascadeLoadEagerVersion(state.entityType, state.link, state.splittedIds, state.relationIndex, state.cascadeTypeToPendingInit);
-					return null;
-				}
-			}, new IAggregrateResultHandler<Object, ParallelLoadCascadeItem>()
-			{
-				@Override
-				public void aggregateResult(Object resultOfFork, ParallelLoadCascadeItem itemOfFork)
-				{
-					writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
-				}
-			});
-		}
 		for (int index = idList.size(); index-- > 0;)
 		{
 			Object splittedId = idList.get(index);
@@ -1296,7 +1228,12 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		for (int idNameIndex = alternateIds.length; idNameIndex-- > 0;)
 		{
-			alreadyLoadedCache.replace((byte) idNameIndex, alternateIds[idNameIndex], type, loadContainer);
+			Object alternateId = alternateIds[idNameIndex];
+			if (alternateId == null)
+			{
+				continue;
+			}
+			alreadyLoadedCache.replace((byte) idNameIndex, alternateId, type, loadContainer);
 		}
 		return loadContainer;
 	}
