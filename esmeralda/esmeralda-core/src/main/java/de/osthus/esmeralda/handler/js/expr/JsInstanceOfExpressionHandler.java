@@ -7,7 +7,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
-import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.misc.IWriter;
 
 public class JsInstanceOfExpressionHandler extends AbstractExpressionHandler<JCInstanceOf>
@@ -26,9 +25,8 @@ public class JsInstanceOfExpressionHandler extends AbstractExpressionHandler<JCI
 		writer.append("Ambeth.instanceof(");
 		languageHelper.writeExpressionTree(instanceofExpr.expr);
 		writer.append(", \"");
-		String javaTypeName = instanceofExpr.clazz.type.toString();
-		String jsTypeName = ((JsHelper) languageHelper).convertType(javaTypeName, false);
-		languageHelper.writeType(jsTypeName);
+		String javaTypeName = instanceofExpr.clazz.toString();
+		languageHelper.writeType(javaTypeName);
 		writer.append("\")");
 		context.setTypeOnStack(Boolean.TYPE.getName());
 	}

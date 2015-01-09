@@ -74,6 +74,7 @@ public class JsMethodHandler implements IJsMethodHandler
 			{
 				VarSymbol var = (VarSymbol) param;
 				String paramTypeName = var.type.toString();
+				paramTypeName = paramTypeName.replaceAll("<.*>", "");
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
 				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
