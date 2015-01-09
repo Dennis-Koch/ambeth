@@ -17,6 +17,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.ITransformedMethod;
@@ -35,7 +36,7 @@ public class ConversionContext implements IConversionContext
 
 	@SuppressWarnings("unused")
 	@LogInstance
-	private ILogger log;
+	private ILogger log = LoggerFactory.getLogger(ConversionContext.class);
 
 	private String language;
 
@@ -451,12 +452,25 @@ public class ConversionContext implements IConversionContext
 			}
 			if (typeArgumentCI == null)
 			{
-				typeArgumentCI = resolveClassInfo(typeArgumentSplit);
+				// FIXME remove try catch and replace with content of called internal method when the "resolving generics classes" problem is solved
+				try
+				{
+					typeArgumentCI = resolveClassInfo(typeArgumentSplit);
+				}
+				catch (Exception e)
+				{
+					log.error("Exception catched and droped when resolving a (presumably generic) class name: " + typeArgumentSplit);
+				}
 			}
 			if (typeArgumentCI == null)
 			{
 				// it may be a generic type argument of an enclosing class:
-
+				// FIXME JH: temporary fix
+				if (typeArgumentSplit.length() == 1)
+				{
+					log.error("No clue when resolving a (presumably generic) class name, substituting 'java.lang.Object': " + typeArgumentSplit);
+					typeArgumentCI = resolveClassInfo("java.lang.Object");
+				}
 			}
 			if (typeArgumentCI == null)
 			{
