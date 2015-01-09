@@ -12,5 +12,7 @@ namespace De.Osthus.Ambeth.Cache
         public Type Type { get; set; }
 
         public String AlternateIdName { get; set; }
+
+        public bool ReturnMisses { get; set; }
     }
 }

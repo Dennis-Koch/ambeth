@@ -14,7 +14,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
-			<version>${project.version}</version>
 			<scope>provided</scope>
 			<type>pom</type>
 		</dependency>
@@ -65,6 +64,12 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-expr-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
 
@@ -125,6 +130,12 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-stream-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

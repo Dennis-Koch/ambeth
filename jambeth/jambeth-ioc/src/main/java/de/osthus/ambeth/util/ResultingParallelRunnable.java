@@ -1,135 +1,86 @@
 package de.osthus.ambeth.util;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.threadlocal.IForkState;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 
-public class ResultingParallelRunnable<R, V> implements Runnable
+public class ResultingParallelRunnable<R, V> extends AbstractParallelRunnable<V>
 {
-	protected final ResultingRunnableHandle<R, V> runnableHandle;
-
-	protected final boolean buildThreadLocals;
-
-	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle, boolean buildThreadLocals)
+	public static class Invocation<R, V> implements IBackgroundWorkerParamDelegate<V>
 	{
-		this.runnableHandle = runnableHandle;
-		this.buildThreadLocals = buildThreadLocals;
+		protected final IResultingBackgroundWorkerParamDelegate<R, V> run;
+
+		public Invocation(ResultingRunnableHandle<R, V> runnableHandle)
+		{
+			run = runnableHandle.run;
+		}
+
+		@Override
+		public void invoke(V item) throws Throwable
+		{
+			run.invoke(item);
+		}
 	}
 
-	@Override
-	public void run()
+	public static class InvocationWithAggregate<R, V> extends Invocation<R, V>
 	{
-		try
+		private final IAggregrateResultHandler<R, V> aggregrateResultHandler;
+		private final Lock parallelLock;
+
+		public InvocationWithAggregate(ResultingRunnableHandle<R, V> runnableHandle)
 		{
-			Thread currentThread = Thread.currentThread();
-			String oldName = currentThread.getName();
-			if (buildThreadLocals)
-			{
-				String name = runnableHandle.createdThread.getName();
-				currentThread.setName(name + " " + oldName);
-			}
+			super(runnableHandle);
+			aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
+			parallelLock = runnableHandle.parallelLock;
+		}
+
+		@Override
+		public void invoke(V item) throws Throwable
+		{
+			R result = run.invoke(item);
+			Lock parallelLock = this.parallelLock;
+			parallelLock.lock();
 			try
 			{
-				final Lock parallelLock = runnableHandle.parallelLock;
-				IList<V> items = runnableHandle.items;
-				IForkState forkState = runnableHandle.forkState;
-				ParamHolder<Throwable> exHolder = runnableHandle.exHolder;
-				CountDownLatch latch = runnableHandle.latch;
-
-				IBackgroundWorkerParamDelegate<V> run = new IBackgroundWorkerParamDelegate<V>()
-				{
-					@Override
-					public void invoke(V item) throws Throwable
-					{
-						R result = runnableHandle.run.invoke(item);
-						IAggregrateResultHandler<R, V> aggregrateResultHandler = runnableHandle.aggregrateResultHandler;
-						if (aggregrateResultHandler != null)
-						{
-							parallelLock.lock();
-							try
-							{
-								aggregrateResultHandler.aggregateResult(result, item);
-							}
-							finally
-							{
-								parallelLock.unlock();
-							}
-						}
-					}
-				};
-
-				while (true)
-				{
-					V item;
-					parallelLock.lock();
-					try
-					{
-						if (exHolder.getValue() != null)
-						{
-							// an uncatched error occurred somewhere
-							return;
-						}
-						// pop the last item of the queue
-						item = items.popLastElement();
-					}
-					finally
-					{
-						parallelLock.unlock();
-					}
-					if (item == null)
-					{
-						// queue finished
-						return;
-					}
-					try
-					{
-						if (buildThreadLocals)
-						{
-							forkState.use(run, item);
-						}
-						else
-						{
-							run.invoke(item);
-						}
-					}
-					catch (Throwable e)
-					{
-						parallelLock.lock();
-						try
-						{
-							if (exHolder.getValue() == null)
-							{
-								exHolder.setValue(e);
-							}
-						}
-						finally
-						{
-							parallelLock.unlock();
-						}
-					}
-					finally
-					{
-						latch.countDown();
-					}
-				}
+				aggregrateResultHandler.aggregateResult(result, item);
 			}
 			finally
 			{
-				if (buildThreadLocals)
-				{
-					currentThread.setName(oldName);
-				}
+				parallelLock.unlock();
 			}
 		}
-		finally
+	}
+
+	private final Invocation<R, V> run;
+
+	private final IForkState forkState;
+
+	public ResultingParallelRunnable(ResultingRunnableHandle<R, V> runnableHandle, boolean buildThreadLocals)
+	{
+		super(runnableHandle, buildThreadLocals);
+		forkState = runnableHandle.forkState;
+		if (runnableHandle.aggregrateResultHandler != null)
 		{
-			if (buildThreadLocals)
-			{
-				runnableHandle.threadLocalCleanupController.cleanupThreadLocal();
-			}
+			run = new InvocationWithAggregate<R, V>(runnableHandle);
+		}
+		else
+		{
+			run = new Invocation<R, V>(runnableHandle);
+		}
+	}
+
+	@Override
+	protected void runIntern(V item) throws Throwable
+	{
+		if (buildThreadLocals)
+		{
+			forkState.use(run, item);
+		}
+		else
+		{
+			run.invoke(item);
 		}
 	}
 }

@@ -26,6 +26,10 @@
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-expr</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-merge-bytecode</artifactId>
 		</dependency>
 		<dependency>

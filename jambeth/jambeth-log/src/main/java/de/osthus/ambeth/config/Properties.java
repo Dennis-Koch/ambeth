@@ -255,7 +255,12 @@ public class Properties implements IProperties, Iterable<Entry<String, Object>>
 	@Override
 	public String getString(String key)
 	{
-		return (String) get(key);
+		Object value = get(key);
+		if (value == null)
+		{
+			return null;
+		}
+		return value.toString();
 	}
 
 	/*

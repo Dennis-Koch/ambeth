@@ -5,6 +5,8 @@ import de.osthus.ambeth.merge.model.IObjRef;
 
 public interface IAlreadyLoadedCache
 {
+	IAlreadyLoadedCache getCurrent();
+
 	void clear();
 
 	int size();

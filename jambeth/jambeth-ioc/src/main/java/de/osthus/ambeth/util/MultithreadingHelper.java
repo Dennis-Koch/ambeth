@@ -257,18 +257,17 @@ public class MultithreadingHelper implements IMultithreadingHelper
 		mainRunnable.run();
 
 		// wait till the forked threads have finished, too
-		waitForLatch(runnableHandle.latch, runnableHandle.exHolder);
+		waitForLatch(runnableHandle.latch, runnableHandle);
 	}
 
-	protected void waitForLatch(CountDownLatch latch, IParamHolder<Throwable> exHolder)
+	protected void waitForLatch(CountDownLatch latch, InterruptingParamHolder exHolder)
 	{
 		while (true)
 		{
-			if (exHolder.getValue() != null)
+			Throwable ex = exHolder.getValue();
+			if (ex != null)
 			{
 				// A parallel exception will be thrown here
-
-				Throwable ex = exHolder.getValue();
 				throw RuntimeExceptionUtil.mask(ex);
 			}
 			try
@@ -282,6 +281,7 @@ public class MultithreadingHelper implements IMultithreadingHelper
 			catch (InterruptedException e)
 			{
 				// intended blank
+				// will be thrown if a foreign thread throws an exception an is stored in the paramHolder
 			}
 		}
 	}
