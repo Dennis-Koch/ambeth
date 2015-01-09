@@ -87,7 +87,13 @@ public final class StringConversionHelper
 
 	public static String underscoreToCamelCase(IObjectCollector objectCollector, String value)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		String[] parts = value.split("_");
+		for (int i = 1, length = parts.length; i < length; i++)
+		{
+			parts[i] = upperCaseFirst(objectCollector, parts[i]);
+		}
+		String camelCased = implode(objectCollector, parts, "");
+		return camelCased;
 	}
 
 	public static String insertUnderscoreBeforeUppercaseLetter(IObjectCollector objectCollector, String value)

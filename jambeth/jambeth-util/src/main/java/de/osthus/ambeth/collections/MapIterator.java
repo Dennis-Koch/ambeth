@@ -44,7 +44,7 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>>
 	@Override
 	public Entry<K, V> next()
 	{
-		IMapEntry<K, V> currEntry = nextEntry;
+		currEntry = nextEntry;
 		IMapEntry<K, V> nextEntry = currEntry != null ? currEntry.getNextEntry() : null;
 		if (nextEntry != null)
 		{
@@ -65,6 +65,6 @@ public class MapIterator<WrappedK, K, V> extends AbstractIterator<Entry<K, V>>
 			throw new UnsupportedOperationException();
 		}
 		hashMap.remove(currEntry.getKey());
-		currEntry = currEntry.getNextEntry();
+		currEntry = null;
 	}
 }
