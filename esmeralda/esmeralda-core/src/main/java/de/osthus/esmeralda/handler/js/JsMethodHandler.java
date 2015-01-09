@@ -7,11 +7,15 @@ import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -34,6 +38,9 @@ public class JsMethodHandler implements IJsMethodHandler
 	protected IJsHelper languageHelper;
 
 	@Autowired
+	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
 	protected ISnippetManagerFactory snippetManagerFactory;
 
 	@Autowired
@@ -42,6 +49,12 @@ public class JsMethodHandler implements IJsMethodHandler
 	@Override
 	public void handle()
 	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void handle(HashMap<String, ArrayList<Method>> overloadedMethods)
+	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
 
@@ -49,15 +62,32 @@ public class JsMethodHandler implements IJsMethodHandler
 
 		IList<VariableElement> parameters = writeDocumentation(method, writer);
 
+		String methodName = method.getName();
+
 		languageHelper.newLineIndent();
-		writer.append(method.getName()).append(": function(");
+		writer.append(methodName);
+		if (overloadedMethods.containsKey(methodName))
+		{
+			// Add parameter type names to function name
+			// TODO change names at method calls
+			for (VariableElement param : parameters)
+			{
+				VarSymbol var = (VarSymbol) param;
+				String paramTypeName = var.type.toString();
+				paramTypeName = paramTypeName.replaceAll("\\.", "_");
+				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
+				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
+				writer.append('_').append(paramTypeName);
+			}
+		}
+		writer.append(": function(");
 		boolean firstParam = true;
 		for (VariableElement param : parameters)
 		{
 			firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
 			VarSymbol var = (VarSymbol) param;
-			String name = var.name.toString();
-			writer.append(name);
+			String paramName = var.name.toString();
+			writer.append(paramName);
 		}
 		writer.append(") ");
 

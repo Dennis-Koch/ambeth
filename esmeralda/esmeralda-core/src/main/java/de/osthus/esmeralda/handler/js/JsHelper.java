@@ -77,14 +77,14 @@ public class JsHelper implements IJsHelper
 		put("float", NUMBER);
 		put("double", NUMBER);
 		put(java.lang.Void.class.getName(), "void");
-		put(java.lang.Boolean.class.getName(), BOOLEAN);
-		put(java.lang.Character.class.getName(), STRING);
-		put(java.lang.Byte.class.getName(), NUMBER);
-		put(java.lang.Short.class.getName(), NUMBER);
-		put(java.lang.Integer.class.getName(), NUMBER);
-		put(java.lang.Long.class.getName(), NUMBER);
-		put(java.lang.Float.class.getName(), NUMBER);
-		put(java.lang.Double.class.getName(), NUMBER);
+		// put(java.lang.Boolean.class.getName(), BOOLEAN);
+		// put(java.lang.Character.class.getName(), STRING);
+		// put(java.lang.Byte.class.getName(), NUMBER);
+		// put(java.lang.Short.class.getName(), NUMBER);
+		// put(java.lang.Integer.class.getName(), NUMBER);
+		// put(java.lang.Long.class.getName(), NUMBER);
+		// put(java.lang.Float.class.getName(), NUMBER);
+		// put(java.lang.Double.class.getName(), NUMBER);
 		put(java.lang.String.class.getName(), STRING);
 
 		// put(java.io.InputStream.class.getName(), "System.IO.Stream");

@@ -22,6 +22,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.LoggerFactory;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.ITransformedMethod;
@@ -40,7 +41,7 @@ public class ConversionContext implements IConversionContext
 
 	@SuppressWarnings("unused")
 	@LogInstance
-	private ILogger log;
+	private ILogger log = LoggerFactory.getLogger(ConversionContext.class);
 
 	private String language;
 
