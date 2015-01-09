@@ -8,6 +8,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
@@ -23,6 +24,8 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			IThreadLocalCleanupBean.class, "threadLocalCleanupBean");
 
 	protected ForkStateEntry[] cachedForkStateEntries;
+
+	protected IServiceContext beanContext;
 
 	protected ThreadLocalObjectCollector objectCollector;
 
@@ -43,6 +46,11 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		this.objectCollector = objectCollector;
 	}
 
+	public void setBeanContext(IServiceContext beanContext)
+	{
+		this.beanContext = beanContext;
+	}
+
 	@Override
 	public void cleanupThreadLocal()
 	{
@@ -57,6 +65,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	protected ForkStateEntry[] getForkStateEntries()
 	{
 		ForkStateEntry[] cachedForkStateEntries = this.cachedForkStateEntries;
@@ -92,7 +101,13 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 					{
 						continue;
 					}
-					forkStateEntries.add(new ForkStateEntry(extension, valueTL, forkable.value()));
+					Class<? extends IForkProcessor> forkProcessorType = forkable.processor();
+					IForkProcessor forkProcessor = null;
+					if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType))
+					{
+						forkProcessor = beanContext.registerBean(forkProcessorType).finish();
+					}
+					forkStateEntries.add(new ForkStateEntry(extension, field.getName(), valueTL, forkable.value(), forkProcessor));
 				}
 			}
 			cachedForkStateEntries = forkStateEntries.toArray(ForkStateEntry.class);
@@ -109,6 +124,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		}
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public IForkState createForkState()
 	{
@@ -118,6 +134,13 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		for (int a = 0, size = forkStateEntries.length; a < size; a++)
 		{
 			ForkStateEntry forkStateEntry = forkStateEntries[a];
+			IForkProcessor forkProcessor = forkStateEntry.forkProcessor;
+			if (forkProcessor != null)
+			{
+				Object value = forkProcessor.resolveOriginalValue(forkStateEntry.tlBean, forkStateEntry.fieldName, forkStateEntry.valueTL);
+				oldValues[a] = new ForkProcessorValueResolver(value, forkProcessor);
+				continue;
+			}
 			Object value = forkStateEntry.valueTL.get();
 			if (value != null && ForkableType.SHALLOW_COPY.equals(forkStateEntry.forkableType))
 			{
@@ -132,7 +155,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 			}
 			else
 			{
-				oldValues[a] = new ReferenceValueResolver(value);
+				oldValues[a] = new ReferenceValueResolver(value, value);
 			}
 		}
 		return new ForkState(forkStateEntries, oldValues);

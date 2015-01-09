@@ -1,7 +1,5 @@
 package de.osthus.ambeth.objectcollector;
 
-import java.nio.ByteBuffer;
-
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 
 public class AppendableStringBuilderCollectableController implements ICollectableController
@@ -23,7 +21,7 @@ public class AppendableStringBuilderCollectableController implements ICollectabl
 	{
 		if (object != null)
 		{
-			((ByteBuffer) object).clear();
+			((AppendableStringBuilder) object).reset();
 		}
 	}
 }

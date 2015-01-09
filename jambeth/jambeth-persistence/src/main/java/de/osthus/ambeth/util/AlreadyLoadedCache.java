@@ -1,36 +1,70 @@
 package de.osthus.ambeth.util;
 
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReentrantLock;
-
 import de.osthus.ambeth.cache.model.ILoadContainer;
-import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.IDisposableBean;
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
+import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBean, IDisposableBean
+public class AlreadyLoadedCache implements IAlreadyLoadedCache, IDisposableBean, IThreadLocalCleanupBean
 {
+	public static class ForkProcessor implements IForkProcessor
+	{
+		@Override
+		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
+		{
+			return ((AlreadyLoadedCache) bean).get();
+		}
+
+		@Override
+		public Object createForkedValue(Object value)
+		{
+			return ((AlreadyLoadedCacheIntern) value).createChild();
+		}
+
+		@Override
+		public void returnForkedValue(Object value, Object forkedValue)
+		{
+			((AlreadyLoadedCacheIntern) value).applyContentFrom((AlreadyLoadedCacheIntern) forkedValue);
+		}
+	}
+
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IObjRefFactory objRefFactory;
 
-	protected final LinkedHashMap<IdTypeTuple, ILoadContainer> keyToObjectMap = new LinkedHashMap<IdTypeTuple, ILoadContainer>();
+	@Forkable(processor = ForkProcessor.class)
+	protected final ThreadLocal<AlreadyLoadedCacheIntern> alreadyLoadedCacheTL = new SensitiveThreadLocal<AlreadyLoadedCacheIntern>();
 
-	protected final LinkedHashMap<IdTypeTuple, IObjRef> keyToRefMap = new LinkedHashMap<IdTypeTuple, IObjRef>();
-
-	protected final java.util.concurrent.locks.Lock writeLock = new ReentrantLock();
+	protected IAlreadyLoadedCache get()
+	{
+		AlreadyLoadedCacheIntern alreadyLoadedCache = alreadyLoadedCacheTL.get();
+		if (alreadyLoadedCache == null)
+		{
+			alreadyLoadedCache = new AlreadyLoadedCacheIntern(log, objRefFactory);
+			alreadyLoadedCacheTL.set(alreadyLoadedCache);
+		}
+		return alreadyLoadedCache;
+	}
 
 	@Override
-	public void afterPropertiesSet() throws Throwable
+	public void cleanupThreadLocal()
 	{
-		// Intended blank
+		alreadyLoadedCacheTL.remove();
+	}
+
+	@Override
+	public IAlreadyLoadedCache getCurrent()
+	{
+		return get();
 	}
 
 	@Override
@@ -42,178 +76,85 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IInitializingBea
 	@Override
 	public void clear()
 	{
-		writeLock.lock();
-		try
-		{
-			keyToObjectMap.clear();
-			keyToRefMap.clear();
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		getCurrent().clear();
 	}
 
 	@Override
 	public int size()
 	{
-		writeLock.lock();
-		try
-		{
-			return keyToRefMap.size();
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		return getCurrent().size();
+
 	}
 
 	@Override
 	public IAlreadyLoadedCache snapshot()
 	{
-		// Intentionally a POJO
-		AlreadyLoadedCache targetAlCache = new AlreadyLoadedCache();
-		targetAlCache.log = log;
-		copyTo(targetAlCache);
-		return targetAlCache;
+		return getCurrent().snapshot();
 	}
 
 	@Override
 	public void copyTo(IAlreadyLoadedCache targetAlCache)
 	{
-		writeLock.lock();
-		try
-		{
-			AlreadyLoadedCache realTargetAlCache = (AlreadyLoadedCache) targetAlCache;
-			LinkedHashMap<IdTypeTuple, ILoadContainer> realKeyToObjectMap = realTargetAlCache.keyToObjectMap;
-			LinkedHashMap<IdTypeTuple, IObjRef> realKeyToRefMap = realTargetAlCache.keyToRefMap;
-			for (Entry<IdTypeTuple, ILoadContainer> entry : keyToObjectMap)
-			{
-				if (!realKeyToObjectMap.putIfNotExists(entry.getKey(), entry.getValue()))
-				{
-					throw new IllegalStateException("LoadContainer already in map. This must never happen - Parallel EntityLoader still buggy?");
-				}
-			}
-			for (Entry<IdTypeTuple, IObjRef> entry : keyToRefMap)
-			{
-				if (!realKeyToRefMap.putIfNotExists(entry.getKey(), entry.getValue()))
-				{
-					if (log.isWarnEnabled())
-					{
-						log.warn("ObjRef " + entry.getKey() + " already instantiated. This may be a bug and should be further analyzed");
-					}
-				}
-			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		getCurrent().copyTo(targetAlCache);
 	}
 
 	@Override
 	public ILoadContainer getObject(byte idNameIndex, Object id, Class<?> type)
 	{
-		return getObject(new IdTypeTuple(type, idNameIndex, id));
+		return getCurrent().getObject(idNameIndex, id, type);
 	}
 
 	@Override
 	public ILoadContainer getObject(IdTypeTuple idTypeTuple)
 	{
-		writeLock.lock();
-		try
-		{
-			return keyToObjectMap.get(idTypeTuple);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		return getCurrent().getObject(idTypeTuple);
 	}
 
 	@Override
 	public IObjRef getRef(byte idNameIndex, Object id, Class<?> type)
 	{
-		return getRef(new IdTypeTuple(type, idNameIndex, id));
+		return getCurrent().getRef(idNameIndex, id, type);
 	}
 
 	@Override
 	public IObjRef getRef(IdTypeTuple idTypeTuple)
 	{
-		writeLock.lock();
-		try
-		{
-			return keyToRefMap.get(idTypeTuple);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		return getCurrent().getRef(idTypeTuple);
 	}
 
 	@Override
 	public void add(byte idNameIndex, Object id, Class<?> type, IObjRef objRef)
 	{
-		add(new IdTypeTuple(type, idNameIndex, id), objRef);
+		getCurrent().add(idNameIndex, id, type, objRef);
 	}
 
 	@Override
 	public void add(IdTypeTuple idTypeTuple, IObjRef objRef)
 	{
-		writeLock.lock();
-		try
-		{
-			if (!keyToRefMap.putIfNotExists(idTypeTuple, objRef))
-			{
-				throw new RuntimeException();
-			}
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		getCurrent().add(idTypeTuple, objRef);
 	}
 
 	@Override
 	public void add(byte idNameIndex, Object persistentId, Class<?> type, IObjRef objRef, ILoadContainer loadContainer)
 	{
-		add(new IdTypeTuple(type, idNameIndex, persistentId), objRef, loadContainer);
+		getCurrent().add(idNameIndex, persistentId, type, objRef, loadContainer);
 	}
 
 	@Override
 	public void add(IdTypeTuple idTypeTuple, IObjRef objRef, ILoadContainer loadContainer)
 	{
-		writeLock.lock();
-		try
-		{
-			keyToRefMap.putIfNotExists(idTypeTuple, objRef);
-			keyToObjectMap.put(idTypeTuple, loadContainer);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		getCurrent().add(idTypeTuple, objRef, loadContainer);
 	}
 
 	@Override
 	public void replace(byte idNameIndex, Object persistentId, Class<?> type, ILoadContainer loadContainer)
 	{
-		replace(new IdTypeTuple(type, idNameIndex, persistentId), loadContainer);
+		getCurrent().replace(idNameIndex, persistentId, type, loadContainer);
 	}
 
 	@Override
 	public void replace(IdTypeTuple idTypeTuple, ILoadContainer loadContainer)
 	{
-		IObjRef objRef = objRefFactory.createObjRef(idTypeTuple.type, idTypeTuple.idNameIndex, idTypeTuple.persistentId, null);
-		writeLock.lock();
-		try
-		{
-			keyToRefMap.putIfNotExists(idTypeTuple, objRef);
-			keyToObjectMap.put(idTypeTuple, loadContainer);
-		}
-		finally
-		{
-			writeLock.unlock();
-		}
+		getCurrent().replace(idTypeTuple, loadContainer);
 	}
 }

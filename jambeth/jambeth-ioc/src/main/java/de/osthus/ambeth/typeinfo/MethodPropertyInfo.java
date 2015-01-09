@@ -26,7 +26,7 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	public MethodPropertyInfo(Class<?> entityType, String propertyName, Method getter, Method setter, IThreadLocalObjectCollector objectCollector)
 	{
 		super(entityType, objectCollector);
-		this.name = propertyName;
+		name = propertyName;
 		if (name.isEmpty())
 		{
 			throw new RuntimeException("Not a property method: " + entityType.getName() + "." + getter.getName());
@@ -178,8 +178,8 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 			getter = ReflectUtil.getDeclaredMethod(true, realType, getPropertyType(), "is" + getName());
 		}
 		setter = ReflectUtil.getDeclaredMethod(true, realType, null, "set" + getName(), getPropertyType());
-		writable = this.setter != null && (Modifier.isPublic(this.setter.getModifiers()) || Modifier.isProtected(this.setter.getModifiers()));
-		readable = this.getter != null && (Modifier.isPublic(this.getter.getModifiers()) || Modifier.isProtected(this.getter.getModifiers()));
+		writable = setter != null && (Modifier.isPublic(setter.getModifiers()) || Modifier.isProtected(setter.getModifiers()));
+		readable = getter != null && (Modifier.isPublic(getter.getModifiers()) || Modifier.isProtected(getter.getModifiers()));
 		refreshDeclaringType();
 	}
 
@@ -197,24 +197,24 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 
 	public Method getGetter()
 	{
-		return this.getter;
+		return getter;
 	}
 
 	public Method getSetter()
 	{
-		return this.setter;
+		return setter;
 	}
 
 	@Override
 	public Object getValue(Object obj)
 	{
-		if (this.getter == null)
+		if (getter == null)
 		{
 			return null;
 		}
 		try
 		{
-			return this.getter.invoke(obj, EMPTY_ARGS);
+			return getter.invoke(obj, EMPTY_ARGS);
 		}
 		catch (Throwable e)
 		{
@@ -226,14 +226,14 @@ public class MethodPropertyInfo extends AbstractPropertyInfo
 	@Override
 	public void setValue(Object obj, Object value)
 	{
-		if (this.setter == null)
+		if (setter == null)
 		{
 			throw new UnsupportedOperationException("No setter configure for property " + name);
 		}
 		Object[] args = { value };
 		try
 		{
-			this.setter.invoke(obj, args);
+			setter.invoke(obj, args);
 		}
 		catch (Throwable e)
 		{

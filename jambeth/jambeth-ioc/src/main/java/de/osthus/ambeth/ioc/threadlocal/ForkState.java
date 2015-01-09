@@ -28,19 +28,21 @@ public class ForkState implements IForkState
 		{
 			ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntries[a].valueTL;
 			oldValues[a] = tlHandle.get();
-			Object forkedValue = forkedValueResolvers[a].getForkedValue();
+			Object forkedValue = forkedValueResolvers[a].createForkedValue();
 			tlHandle.set(forkedValue);
 		}
 		return oldValues;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected void restoreThreadLocals(Object[] oldValues)
 	{
 		ForkStateEntry[] forkStateEntries = this.forkStateEntries;
+		IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
 		for (int a = 0, size = forkStateEntries.length; a < size; a++)
 		{
 			ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntries[a].valueTL;
+			Object forkedValue = tlHandle.get();
 			Object oldValue = oldValues[a];
 			if (oldValue == null)
 			{
@@ -50,6 +52,13 @@ public class ForkState implements IForkState
 			{
 				tlHandle.set(oldValue);
 			}
+			IForkedValueResolver forkedValueResolver = forkedValueResolvers[a];
+			if (!(forkedValueResolver instanceof ForkProcessorValueResolver))
+			{
+				continue;
+			}
+			IForkProcessor forkProcessor = ((ForkProcessorValueResolver) forkedValueResolver).getForkProcessor();
+			forkProcessor.returnForkedValue(forkedValueResolver.getOriginalValue(), forkedValue);
 		}
 	}
 

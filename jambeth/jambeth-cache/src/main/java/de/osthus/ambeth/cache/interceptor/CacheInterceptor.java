@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -110,12 +109,13 @@ public class CacheInterceptor extends MergeInterceptor
 							+ " is not configured as an alternate ID member. There must be a single-column unique constraint on the respective table column. Please check your "
 							+ Cached.class.toString() + " annotation on method " + method.toString(), e);
 		}
+		boolean returnMisses = cached.returnMisses();
 		ArrayList<IObjRef> orisToGet = new ArrayList<IObjRef>();
-		fillOrisToGet(orisToGet, args, entityType, idIndex);
-		return createResultObject(orisToGet, returnType);
+		fillOrisToGet(orisToGet, args, entityType, idIndex, returnMisses);
+		return createResultObject(orisToGet, returnType, returnMisses);
 	}
 
-	protected void fillOrisToGet(List<IObjRef> orisToGet, Object[] args, Class<?> entityType, byte idIndex)
+	protected void fillOrisToGet(List<IObjRef> orisToGet, Object[] args, Class<?> entityType, byte idIndex, boolean returnMisses)
 	{
 		Object argument = args[0];
 		if (argument instanceof List)
@@ -124,6 +124,17 @@ public class CacheInterceptor extends MergeInterceptor
 			for (int a = 0, size = list.size(); a < size; a++)
 			{
 				Object id = list.get(a);
+				if (id == null)
+				{
+					if (returnMisses)
+					{
+						orisToGet.add(null);
+					}
+					else
+					{
+						continue;
+					}
+				}
 				ObjRef objRef = new ObjRef(entityType, idIndex, id, null);
 				orisToGet.add(objRef);
 			}
@@ -134,6 +145,17 @@ public class CacheInterceptor extends MergeInterceptor
 			while (iter.hasNext())
 			{
 				Object id = iter.next();
+				if (id == null)
+				{
+					if (returnMisses)
+					{
+						orisToGet.add(null);
+					}
+					else
+					{
+						continue;
+					}
+				}
 				ObjRef objRef = new ObjRef(entityType, idIndex, id, null);
 				orisToGet.add(objRef);
 			}
@@ -141,10 +163,20 @@ public class CacheInterceptor extends MergeInterceptor
 
 		else if (argument.getClass().isArray())
 		{
-			Object[] array = (Object[]) argument;
-			for (int a = 0, size = array.length; a < size; a++)
+			for (int a = 0, size = Array.getLength(argument); a < size; a++)
 			{
-				Object id = array[a];
+				Object id = Array.get(argument, a);
+				if (id == null)
+				{
+					if (returnMisses)
+					{
+						orisToGet.add(null);
+					}
+					else
+					{
+						continue;
+					}
+				}
 				ObjRef objRef = new ObjRef(entityType, idIndex, id, null);
 				orisToGet.add(objRef);
 			}
@@ -159,13 +191,13 @@ public class CacheInterceptor extends MergeInterceptor
 	protected Object createResultObject(IServiceResult serviceResult, Class<?> expectedType, Object[] originalArgs)
 	{
 		List<IObjRef> objRefs = serviceResult.getObjRefs();
-		IList<Object> syncObjects = cache.getObjects(objRefs, Collections.<CacheDirective> emptySet());
+		IList<Object> syncObjects = cache.getObjects(objRefs, CacheDirective.none());
 		return postProcessCacheResult(syncObjects, expectedType, serviceResult, originalArgs);
 	}
 
-	protected Object createResultObject(List<IObjRef> objRefs, Class<?> expectedType)
+	protected Object createResultObject(List<IObjRef> objRefs, Class<?> expectedType, boolean returnMisses)
 	{
-		IList<Object> syncObjects = cache.getObjects(objRefs, Collections.<CacheDirective> emptySet());
+		IList<Object> syncObjects = cache.getObjects(objRefs, returnMisses ? CacheDirective.returnMisses() : CacheDirective.none());
 		return postProcessCacheResult(syncObjects, expectedType, null, null);
 	}
 

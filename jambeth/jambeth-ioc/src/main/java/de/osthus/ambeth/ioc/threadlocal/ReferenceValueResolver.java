@@ -1,17 +1,25 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
-
 public class ReferenceValueResolver implements IForkedValueResolver
 {
-	protected final Object forkedValue;
+	private Object forkedValue;
 
-	public ReferenceValueResolver(Object forkedValue)
+	private final Object originalValue;
+
+	public ReferenceValueResolver(Object originalValue, Object forkedValue)
 	{
+		this.originalValue = originalValue;
 		this.forkedValue = forkedValue;
 	}
 
 	@Override
-	public Object getForkedValue()
+	public Object getOriginalValue()
+	{
+		return originalValue;
+	}
+
+	@Override
+	public Object createForkedValue()
 	{
 		return forkedValue;
 	}

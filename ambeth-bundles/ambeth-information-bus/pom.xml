@@ -58,6 +58,11 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-event-datachange</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-expr</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

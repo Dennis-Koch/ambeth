@@ -30,8 +30,6 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 {
     public class CacheInterceptor : MergeInterceptor
     {
-        private static ILogger LOG = LoggerFactory.GetLogger(typeof(CacheInterceptor));
-
         public static readonly MethodInfo GetORIsForServiceRequestMethod = typeof(ICacheService).GetMethod("GetORIsForServiceRequest", new Type[] { typeof(IServiceDescription) });
 
         protected static readonly Type listType = typeof(List<Object>).GetGenericTypeDefinition();
@@ -48,6 +46,9 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                 return Object.Equals(left.Type, right.Type) && Object.Equals(left.AlternateIdName, right.AlternateIdName);
             }
         }
+
+        [LogInstance]
+	    public new ILogger Log { private get; set; }
 
         protected readonly CachedAnnotationCache cachedAnnotationCache = new CachedAnnotationCache();
 
@@ -122,12 +123,13 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
                                 + " is not configured as an alternate ID member. There must be a single-column unique contraint on the respective table column. Please check your "
                                 + typeof(CachedAttribute).FullName + " annotation on method " + method.ToString(), e);
             }
+            bool returnMisses = cached.ReturnMisses;
 		    List<IObjRef> orisToGet = new List<IObjRef>();
-            FillOrisToGet(orisToGet, args, entityType, idIndex);
-			return CreateResultObject(orisToGet, returnType);
+            FillOrisToGet(orisToGet, args, entityType, idIndex, returnMisses);
+            return CreateResultObject(orisToGet, returnType, returnMisses);
         }
 
-        protected virtual void FillOrisToGet(IList<IObjRef> orisToGet, Object[] args, Type entityType, sbyte idIndex)
+        protected virtual void FillOrisToGet(IList<IObjRef> orisToGet, Object[] args, Type entityType, sbyte idIndex, bool returnMisses)
 	    {
 		    Object argument = args[0];
 		    if (argument is IList)
@@ -136,10 +138,18 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 			    for (int a = 0, size = list.Count; a < size; a++)
 			    {
 				    Object id = list[a];
-				    ObjRef objRef = new ObjRef();
-				    objRef.RealType = entityType;
-				    objRef.Id = id;
-				    objRef.IdNameIndex = idIndex;
+                    if (id == null)
+                    {
+                        if (returnMisses)
+                        {
+                            orisToGet.Add(null);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    ObjRef objRef = new ObjRef(entityType, idIndex, id, null);
 				    orisToGet.Add(objRef);
 			    }
 		    }
@@ -149,19 +159,24 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 			    while (enumerator.MoveNext())
 			    {
 				    Object id = enumerator.Current;
-				    ObjRef objRef = new ObjRef();
-				    objRef.RealType = entityType;
-				    objRef.Id = id;
-				    objRef.IdNameIndex = idIndex;
+                    if (id == null)
+                    {
+                        if (returnMisses)
+                        {
+                            orisToGet.Add(null);
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    ObjRef objRef = new ObjRef(entityType, idIndex, id, null);
 				    orisToGet.Add(objRef);
 			    }
 		    }
 		    else
 		    {
-			    ObjRef objRef = new ObjRef();
-                objRef.RealType = entityType;
-                objRef.Id = argument;
-                objRef.IdNameIndex = idIndex;
+                ObjRef objRef = new ObjRef(entityType, idIndex, argument, null);
                 orisToGet.Add(objRef);
             }
 	    }
@@ -173,9 +188,9 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
 		    return PostProcessCacheResult(syncObjects, expectedType, serviceResult, originalArgs);
 	    }
 
-        protected virtual Object CreateResultObject(IList<IObjRef> oris, Type expectedType)
+        protected virtual Object CreateResultObject(IList<IObjRef> oris, Type expectedType, bool returnMisses)
 	    {
-		    IList<Object> syncObjects = Cache.GetObjects(oris, CacheDirective.None);
+            IList<Object> syncObjects = Cache.GetObjects(oris, returnMisses ? CacheDirective.ReturnMisses : CacheDirective.None);
 		    return PostProcessCacheResult(syncObjects, expectedType, null, null);
 	    }
 
