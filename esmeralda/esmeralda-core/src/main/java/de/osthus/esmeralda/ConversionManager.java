@@ -377,6 +377,7 @@ public class ConversionManager implements IStartingBean
 		for (Object[] fullMethodNameCount : methodArray)
 		{
 			String fullMethodName = (String) fullMethodNameCount[0];
+			// Workaround since interface methods are not known as 'defined'
 			if (fullMethodName.startsWith("Ambeth."))
 			{
 				continue;
