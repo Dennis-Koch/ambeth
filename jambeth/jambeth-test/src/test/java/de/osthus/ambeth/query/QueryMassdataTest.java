@@ -13,20 +13,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 import javax.persistence.PessimisticLockException;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
-import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.IProperties;
@@ -34,7 +33,6 @@ import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IFilterToQueryBuilder;
 import de.osthus.ambeth.filter.IPagingQuery;
@@ -44,22 +42,20 @@ import de.osthus.ambeth.filter.model.ISortDescriptor;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.filter.model.SortDescriptor;
 import de.osthus.ambeth.filter.model.SortDirection;
-import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.IConnectionExtension;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
-import de.osthus.ambeth.privilege.transfer.TypePropertyPrivilegeOfService;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.testutil.AbstractPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
+import de.osthus.ambeth.testutil.TestFrameworkModule;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -69,9 +65,8 @@ import de.osthus.ambeth.util.MeasurementUtil;
 import de.osthus.ambeth.util.ParamHolder;
 
 @Category(PerformanceTests.class)
-@TestModule({ TestServicesModule.class, QueryMassDataModule.class })
-// @SQLDataRebuild(false)
-// @SQLData("QueryMassdata_data.sql")
+@TestFrameworkModule({ QueryMassDataModule.class })
+@TestModule({ TestServicesModule.class })
 @SQLStructure("QueryMassdata_structure.sql")
 @TestPropertiesList({ @TestProperties(name = IocConfigurationConstants.TrackDeclarationTrace, value = "false"),
 		@TestProperties(name = IocConfigurationConstants.MonitorBeansActive, value = "false"),
@@ -79,8 +74,8 @@ import de.osthus.ambeth.util.ParamHolder;
 		@TestProperties(name = QueryMassdataTest.THREAD_COUNT, value = "10"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUnused, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabasePoolMaxUsed, value = "${" + QueryMassdataTest.THREAD_COUNT + "}"),
-		@TestProperties(name = QueryMassdataTest.ROW_COUNT, value = "5000"),
-		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassdataTest.ROW_COUNT + "}"),
+		@TestProperties(name = QueryMassDataModule.ROW_COUNT, value = "5000"),
+		@TestProperties(name = CacheConfigurationConstants.CacheLruThreshold, value = "${" + QueryMassDataModule.ROW_COUNT + "}"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/QueryMassdata_orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.SecondLevelCacheActive, value = "false"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
@@ -98,15 +93,13 @@ import de.osthus.ambeth.util.ParamHolder;
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.proxy.AbstractCascadePostProcessor", value = "INFO"),
 		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.PersistenceMergeServiceExtension", value = "INFO") })
-public class QueryMassdataTest extends AbstractPersistenceTest implements IStartingBean
+public class QueryMassdataTest extends AbstractPersistenceTest
 {
 	public static final String THREAD_COUNT = "QueryMassdataTest.threads";
 
 	public static final String DURATION_PER_TEST = "QueryMassdataTest.duration.pertest";
 
 	public static final String QUERY_PAGE_SIZE = "QueryMassdataTest.query.pagesize";
-
-	public static final String ROW_COUNT = "QueryMassdataTest.rowcount";
 
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";
@@ -135,24 +128,10 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 	@Property(name = QUERY_PAGE_SIZE)
 	protected int size;
 
-	@Property(name = ROW_COUNT)
+	@Property(name = QueryMassDataModule.ROW_COUNT)
 	protected int dataCount;
 
 	protected HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
-
-	@Override
-	public void afterStarted() throws Throwable
-	{
-		ArrayList<QueryEntity> entities = new ArrayList<QueryEntity>();
-		for (int a = 0; a < dataCount; a++)
-		{
-			QueryEntity qe = entityFactory.createEntity(QueryEntity.class);
-			entities.add(qe);
-		}
-		beanContext.getService(IMergeProcess.class).process(entities, null, null, null);
-		beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
-	}
 
 	@Test
 	public void massDataReadFalseFalseFalse() throws Exception
@@ -223,9 +202,8 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 		System.out.println(all.size());
 	}
 
-	protected void massDataReadIntern() throws Exception
+	protected void flushSharedPool()
 	{
-		TypePropertyPrivilegeOfService.create(true, null, false, null);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
@@ -237,12 +215,26 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 				{
 					stm.execute("alter system flush shared_pool");
 				}
+				catch (PersistenceException e)
+				{
+					if (e.getCause() instanceof SQLException && "42000".equals(((SQLException) e.getCause()).getSQLState()))
+					{
+						return;
+					}
+					throw e;
+				}
 				finally
 				{
 					JdbcUtil.close(stm);
 				}
 			}
 		});
+	}
+
+	protected void massDataReadIntern() throws Exception
+	{
+		flushSharedPool();
+
 		final boolean useSecondLevelCache = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(
 				CacheConfigurationConstants.SecondLevelCacheActive));
 
@@ -549,6 +541,8 @@ public class QueryMassdataTest extends AbstractPersistenceTest implements IStart
 
 	protected void massDataWriteIntern() throws Exception
 	{
+		flushSharedPool();
+
 		final boolean useSecondLevelCache = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(
 				CacheConfigurationConstants.SecondLevelCacheActive));
 
