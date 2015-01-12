@@ -136,4 +136,22 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 
 		mergeProcess.process(user, null, null, null);
 	}
+
+	@Test
+	public void testNotAuditedServiceCall()
+	{
+		Assert.assertEquals("5", testAuditService.notAuditedServiceCall(new Integer(5)));
+	}
+
+	@Test
+	public void testAuditedAnnotatedServiceCall_NoAudit()
+	{
+		Assert.assertEquals("5", testAuditService.auditedAnnotatedServiceCall_NoAudit(new Integer(5)));
+	}
+
+	@Test
+	public void testAuditedServiceCallWithAuditedArgument()
+	{
+		Assert.assertEquals("5", testAuditService.auditedServiceCallWithAuditedArgument(new Integer(5), "secret_not_audited"));
+	}
 }

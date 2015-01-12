@@ -1,5 +1,8 @@
 package de.osthus.ambeth.audit;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -32,12 +35,34 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor i
 		}
 	};
 
-	protected final IBehaviorTypeExtractor<Audited, Audited> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, Audited>()
+	protected final IBehaviorTypeExtractor<Audited, AuditInfo> auditMethodExtractor = new IBehaviorTypeExtractor<Audited, AuditInfo>()
 	{
 		@Override
-		public Audited extractBehaviorType(Audited annotation)
+		public AuditInfo extractBehaviorType(Audited annotation, AnnotatedElement annotatedElement)
 		{
-			return annotation;
+			AuditInfo auditInfo = new AuditInfo(annotation);
+
+			if (annotatedElement instanceof Method)
+			{
+				Method method = (Method) annotatedElement;
+				Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+				AuditedArg[] auditedArgs = new AuditedArg[parameterAnnotations.length];
+				for (int i = 0; i < parameterAnnotations.length; i++)
+				{
+					AuditedArg aaa = null;
+					for (Annotation parameterAnnotation : parameterAnnotations[i])
+					{
+						if (parameterAnnotation instanceof AuditedArg)
+						{
+							aaa = (AuditedArg) parameterAnnotation;
+							break;
+						}
+					}
+					auditedArgs[i] = aaa;
+				}
+				auditInfo.setAuditedArgs(auditedArgs);
+			}
+			return auditInfo;
 		}
 	};
 
@@ -45,7 +70,7 @@ public class AuditMethodCallPostProcessor extends AbstractCascadePostProcessor i
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,
 			IBeanConfiguration beanConfiguration, Class<?> type, Set<Class<?>> requestedTypes)
 	{
-		IMethodLevelBehavior<Audited> behaviour = MethodLevelBehavior.create(type, annotationCache, Audited.class, auditMethodExtractor,
+		IMethodLevelBehavior<AuditInfo> behaviour = MethodLevelBehavior.create(type, annotationCache, AuditInfo.class, auditMethodExtractor,
 				beanContextFactory, beanContext);
 		if (behaviour == null)
 		{

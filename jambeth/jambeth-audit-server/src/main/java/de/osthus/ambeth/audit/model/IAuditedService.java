@@ -20,6 +20,10 @@ public interface IAuditedService
 
 	void setMethodName(String methodName);
 
+	void setArguments(String[] parameters);
+
+	String[] getArguments();
+
 	long getSpentTime();
 
 	void setSpentTime(long spentTime);

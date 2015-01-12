@@ -1,5 +1,6 @@
 package de.osthus.ambeth.security.proxy;
 
+import java.lang.reflect.AnnotatedElement;
 import java.util.Set;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -39,7 +40,7 @@ public class SecurityPostProcessor extends AbstractCascadePostProcessor implemen
 	protected final IBehaviorTypeExtractor<SecurityContext, SecurityContextType> btExtractor = new IBehaviorTypeExtractor<SecurityContext, SecurityContextType>()
 	{
 		@Override
-		public SecurityContextType extractBehaviorType(SecurityContext annotation)
+		public SecurityContextType extractBehaviorType(SecurityContext annotation, AnnotatedElement annotatedElement)
 		{
 			return annotation.value();
 		}
