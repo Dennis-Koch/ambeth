@@ -655,6 +655,10 @@ public class JsHelper implements IJsHelper
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
 				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
+				while (paramTypeName.endsWith("[]"))
+				{
+					paramTypeName = "ArrayOf" + paramTypeName.substring(0, paramTypeName.length() - 2);
+				}
 				sb.append('_').append(paramTypeName);
 			}
 			return sb.toString();
