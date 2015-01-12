@@ -143,7 +143,7 @@ public class JsClassHandler implements IJsClassHandler
 		return fieldsToInit;
 	}
 
-	protected HashMap<String, ArrayList<Method>> findOverloadMethods(IList<Method> methods)
+	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods)
 	{
 		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
 		for (Method method : methods)
@@ -521,20 +521,31 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writePublicStaticMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
-		HashMap<String, ArrayList<Method>> overloadMethods = new HashMap<>(); // TODO
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
 
-		IList<Method> methods = classInfo.getMethods();
-		for (Method method : methods)
+		IList<Method> publicStaticMethods = createView(classInfo.getMethods(), Boolean.FALSE, Boolean.TRUE);
+
+		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(publicStaticMethods);
+		languageSpecific.setOverloadedMethods(overloadedMethods);
+		try
 		{
-			if (!method.isStatic())
+			for (Method method : publicStaticMethods)
 			{
-				continue;
-			}
+				if (!method.isStatic())
+				{
+					continue;
+				}
 
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setMethod(method);
-			methodHandler.handle(overloadMethods);
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+				context.setMethod(method);
+				methodHandler.handle();
+			}
 		}
+		finally
+		{
+			languageSpecific.setOverloadedMethods(null);
+		}
+		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
 
 		return firstLine;
 	}
@@ -625,33 +636,41 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+
 		IList<Method> nonStaticMethods = createView(classInfo.getMethods(), null, Boolean.FALSE);
 
-		HashMap<String, ArrayList<Method>> overloadMethods = findOverloadMethods(nonStaticMethods);
-
-		for (Method method : nonStaticMethods)
+		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(nonStaticMethods);
+		languageSpecific.setOverloadedMethods(overloadedMethods);
+		try
 		{
-			if (method.isConstructor())
+			for (Method method : nonStaticMethods)
 			{
-				continue;
+				if (method.isConstructor())
+				{
+					continue;
+				}
+
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+				context.setMethod(method);
+				methodHandler.handle();
 			}
-
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setMethod(method);
-			methodHandler.handle(overloadMethods);
 		}
-
-		firstLine = writeOverloadHubMethods(classInfo, overloadMethods, firstLine);
+		finally
+		{
+			languageSpecific.setOverloadedMethods(null);
+		}
+		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
 
 		return firstLine;
 	}
 
-	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadMethodsMap, boolean firstLine)
+	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadedMethods, boolean firstLine)
 	{
 		final IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
 
-		Iterator<Entry<String, ArrayList<Method>>> iter = overloadMethodsMap.iterator();
+		Iterator<Entry<String, ArrayList<Method>>> iter = overloadedMethods.iterator();
 		while (iter.hasNext())
 		{
 			Entry<String, ArrayList<Method>> entry = iter.next();
@@ -661,7 +680,6 @@ public class JsClassHandler implements IJsClassHandler
 			final ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			languageHelper.newLineIndent();
 
 			// Documentation
 			languageHelper.startDocumentation();

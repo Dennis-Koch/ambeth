@@ -11,6 +11,16 @@ public class TestService1 extends BaseClass implements ITestInterface
 {
 	private static final String WORLD = "World";
 
+	public static void staticTestMethod()
+	{
+		staticTestMethod("world");
+	}
+
+	public static void staticTestMethod(String name)
+	{
+		System.out.println("Hello " + name + "!");
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;

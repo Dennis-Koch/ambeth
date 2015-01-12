@@ -48,14 +48,10 @@ public class JsMethodHandler implements IJsMethodHandler
 	@Override
 	public void handle()
 	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void handle(HashMap<String, ArrayList<Method>> overloadedMethods)
-	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+		HashMap<String, ArrayList<Method>> overloadedMethods = languageSpecific.getOverloadedMethods();
 
 		Method method = context.getMethod();
 
