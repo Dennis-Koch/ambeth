@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.lang.reflect.Method;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -194,19 +195,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public IMethodCallHandle logMethodCallStart(Method method)
+	public IMethodCallHandle logMethodCallStart(Method method, Object[] args)
 	{
-		Audited audited = method.getAnnotation(Audited.class);
-		if (audited == null)
-		{
-			audited = method.getDeclaringClass().getAnnotation(Audited.class);
-		}
-		boolean auditMethod = audited != null ? audited.value() : auditedServiceDefaultModeActive;
-		if (!auditMethod)
-		{
-			// do not audit this specific method
-			return null;
-		}
+		log.debug("logMethodCallStart: " + method.getName() + " --> " + Arrays.asList(args));
+
 		IAuditEntry auditEntry = ensureAuditEntry();
 
 		List<IAuditedService> services = (List<IAuditedService>) auditEntry.getServices();
@@ -218,7 +210,27 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		auditedService.setServiceType(method.getDeclaringClass().getName());
 		auditedService.setMethodName(method.getName());
 
+		auditedService.setArguments(convertObjectArrayToStringArray(args));
+
 		return new MethodCallHandle(auditedService, System.currentTimeMillis());
+	}
+
+	private String[] convertObjectArrayToStringArray(Object[] args)
+	{
+		if (args == null)
+		{
+			return null;
+		}
+		String[] sValues = new String[args.length];
+		for (int i = 0; i < args.length; i++)
+		{
+			Object value = args[i];
+			if (value != null)
+			{
+				sValues[i] = value.toString();
+			}
+		}
+		return sValues;
 	}
 
 	@Override
