@@ -43,6 +43,8 @@ public class ConversionContext implements IConversionContext
 	@LogInstance
 	private ILogger log = LoggerFactory.getLogger(ConversionContext.class);
 
+	private ILanguageSpecific languageSpecific;
+
 	private String language;
 
 	private File targetPath;
@@ -122,6 +124,17 @@ public class ConversionContext implements IConversionContext
 	public IConversionContext getCurrent()
 	{
 		return this;
+	}
+
+	@Override
+	public ILanguageSpecific getLanguageSpecific()
+	{
+		return languageSpecific;
+	}
+
+	public void setLanguageSpecific(ILanguageSpecific languageSpecific)
+	{
+		this.languageSpecific = languageSpecific;
 	}
 
 	@Override
@@ -263,7 +276,7 @@ public class ConversionContext implements IConversionContext
 		}
 		Method method = getMethod();
 		TreePath classTreePath = getClassInfo().getTreePath();
-		TreePath keyTreePath = method != null ? method.getPath() : classTreePath;
+		TreePath keyTreePath = (method != null && method.getPath() != null) ? method.getPath() : classTreePath;
 		AlreadyTriedKey alreadyTriedKey = new AlreadyTriedKey(keyTreePath, fqTypeName);
 		JavaClassInfo scopedClassInfo = alreadyTriedAndFailedMap.get(alreadyTriedKey);
 		if (scopedClassInfo != null)

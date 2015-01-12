@@ -8,6 +8,9 @@ import demo.codeanalyzer.common.model.BaseJavaClassModel;
 
 public interface IJsHelper extends ILanguageHelper
 {
+	@Override
+	JsSpecific getLanguageSpecific();
+
 	boolean newLineIndentWithCommaIfFalse(boolean value);
 
 	void writeMetadata(BaseJavaClassModel model);
