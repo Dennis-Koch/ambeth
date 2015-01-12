@@ -15,7 +15,6 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
-import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -70,16 +69,8 @@ public class JsMethodHandler implements IJsMethodHandler
 		{
 			// Add parameter type names to function name
 			// TODO change names at method calls
-			for (VariableElement param : parameters)
-			{
-				VarSymbol var = (VarSymbol) param;
-				String paramTypeName = var.type.toString();
-				paramTypeName = paramTypeName.replaceAll("<.*>", "");
-				paramTypeName = paramTypeName.replaceAll("\\.", "_");
-				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
-				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
-				writer.append('_').append(paramTypeName);
-			}
+			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);
+			writer.append(methodNamePostfix);
 		}
 		writer.append(": function(");
 		boolean firstParam = true;

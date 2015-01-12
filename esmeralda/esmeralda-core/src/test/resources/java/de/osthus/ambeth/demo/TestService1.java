@@ -14,16 +14,16 @@ public class TestService1 extends BaseClass implements ITestInterface
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-	
+
 	protected int magicNumber = 42;
-	
+
 	protected String magicString = magicNumber + "";
 
 	@Override
 	public void testMethod1()
 	{
 		magicNumber = Integer.parseInt(magicString);
-		
+
 		final String str1 = hello;
 		String str2 = WORLD;
 		String msg = "";
@@ -120,5 +120,18 @@ public class TestService1 extends BaseClass implements ITestInterface
 		overridableMethod();
 		this.overridableMethod();
 		super.overridableMethod();
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		toString(sb);
+		return sb.toString();
+	}
+
+	public void toString(StringBuilder sb)
+	{
+		sb.append(TestService1.class.getSimpleName());
 	}
 }
