@@ -11,9 +11,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 
@@ -625,5 +627,29 @@ public class JsHelper implements IJsHelper
 			name = nsPrefixAdd + name;
 		}
 		return name;
+	}
+
+	@Override
+	public String createOverloadedMethodNamePostfix(IList<VariableElement> parameters)
+	{
+		if (parameters.isEmpty())
+		{
+			return "_none";
+		}
+		else
+		{
+			StringBuilder sb = new StringBuilder();
+			for (VariableElement param : parameters)
+			{
+				VarSymbol var = (VarSymbol) param;
+				String paramTypeName = var.type.toString();
+				paramTypeName = paramTypeName.replaceAll("<.*>", "");
+				paramTypeName = paramTypeName.replaceAll("\\.", "_");
+				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
+				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
+				sb.append('_').append(paramTypeName);
+			}
+			return sb.toString();
+		}
 	}
 }

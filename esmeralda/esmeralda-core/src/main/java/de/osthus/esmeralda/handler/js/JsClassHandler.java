@@ -7,7 +7,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import javax.lang.model.element.VariableElement;
+
 import com.sun.source.tree.ExpressionTree;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -638,20 +641,24 @@ public class JsClassHandler implements IJsClassHandler
 			methodHandler.handle(overloadMethods);
 		}
 
-		firstLine = writeOverloadHubMethods(classInfo, overloadMethods, writer, firstLine);
+		firstLine = writeOverloadHubMethods(classInfo, overloadMethods, firstLine);
 
 		return firstLine;
 	}
 
-	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadMethodsMap, final IWriter writer,
-			boolean firstLine)
+	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadMethodsMap, boolean firstLine)
 	{
+		final IConversionContext context = this.context.getCurrent();
+		final IWriter writer = context.getWriter();
+
 		Iterator<Entry<String, ArrayList<Method>>> iter = overloadMethodsMap.iterator();
 		while (iter.hasNext())
 		{
 			Entry<String, ArrayList<Method>> entry = iter.next();
 			String methodName = entry.getKey();
 			ArrayList<Method> methods = entry.getValue();
+
+			final ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			languageHelper.newLineIndent();
@@ -683,12 +690,91 @@ public class JsClassHandler implements IJsClassHandler
 				public void invoke() throws Throwable
 				{
 					languageHelper.newLineIndent();
-					writer.append("// TODO create hub method to delegate to correct overload");
+					writer.append("var methods = [");
+					boolean firstBucket = true;
+					context.incrementIndentationLevel();
+					for (final ArrayList<Method> bucket : methodBuckets)
+					{
+						if (bucket == null)
+						{
+							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+							languageHelper.newLineIndent();
+							writer.append("null");
+						}
+						else
+						{
+							boolean singleMethod = bucket.size() == 1;
+							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+							languageHelper.newLineIndent();
+							writer.append("[");
+							boolean firstMethod = true;
+							context.incrementIndentationLevel();
+							for (Method method : bucket)
+							{
+								String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
+								firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
+								languageHelper.newLineIndentIfFalse(singleMethod);
+								writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
+								if (!singleMethod)
+								{
+									writer.append(", 'paramNames': [");
+									IList<VariableElement> parameters = method.getParameters();
+									boolean firstParam = true;
+									for (VariableElement param : parameters)
+									{
+										firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
+										VarSymbol var = (VarSymbol) param;
+										String paramName = var.name.toString();
+										writer.append('"').append(paramName).append('"');
+									}
+									writer.append(']');
+								}
+								writer.append(" }");
+							}
+							context.decrementIndentationLevel();
+							languageHelper.newLineIndentIfFalse(singleMethod);
+							writer.append(']');
+						}
+					}
+					context.decrementIndentationLevel();
+					languageHelper.newLineIndent();
+					writer.append("];");
+					languageHelper.newLineIndent();
+					writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
 				}
 			});
 		}
 
 		return firstLine;
+	}
+
+	protected ArrayList<Method>[] bucketSortMethods(ArrayList<Method> methods)
+	{
+		int maxParams = 0;
+		for (Method method : methods)
+		{
+			int size = method.getParameters().size();
+			if (size > maxParams)
+			{
+				maxParams = size;
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		ArrayList<Method>[] methodBuckets = new ArrayList[maxParams + 1];
+		for (Method method : methods)
+		{
+			int size = method.getParameters().size();
+			ArrayList<Method> bucket = methodBuckets[size];
+			if (bucket == null)
+			{
+				bucket = new ArrayList<Method>();
+				methodBuckets[size] = bucket;
+			}
+			bucket.add(method);
+		}
+
+		return methodBuckets;
 	}
 
 	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final IWriter writer)
