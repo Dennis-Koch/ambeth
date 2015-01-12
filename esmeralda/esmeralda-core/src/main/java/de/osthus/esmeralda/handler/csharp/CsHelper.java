@@ -172,6 +172,14 @@ public class CsHelper implements ICsHelper
 	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Override
+	public CsSpecific getLanguageSpecific()
+	{
+		IConversionContext context = this.context.getCurrent();
+		CsSpecific csSpecific = (CsSpecific) context.getLanguageSpecific();
+		return csSpecific;
+	}
+
+	@Override
 	public void newLineIndent()
 	{
 		IConversionContext context = this.context.getCurrent();

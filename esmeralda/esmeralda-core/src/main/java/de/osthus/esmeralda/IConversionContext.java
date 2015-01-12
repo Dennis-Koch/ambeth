@@ -19,6 +19,8 @@ public interface IConversionContext
 {
 	IConversionContext getCurrent();
 
+	ILanguageSpecific getLanguageSpecific();
+
 	boolean isGenericTypeSupported();
 
 	void setCurrent(IConversionContext current);

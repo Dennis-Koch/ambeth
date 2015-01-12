@@ -15,6 +15,8 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public interface ILanguageHelper
 {
+	ILanguageSpecific getLanguageSpecific();
+
 	void newLineIndent();
 
 	boolean newLineIndentIfFalse(boolean firstLine);

@@ -137,6 +137,14 @@ public class JsHelper implements IJsHelper
 	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Override
+	public JsSpecific getLanguageSpecific()
+	{
+		IConversionContext context = this.context.getCurrent();
+		JsSpecific jsSpecific = (JsSpecific) context.getLanguageSpecific();
+		return jsSpecific;
+	}
+
+	@Override
 	public void newLineIndent()
 	{
 		IConversionContext context = this.context.getCurrent();

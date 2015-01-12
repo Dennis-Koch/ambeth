@@ -30,11 +30,13 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
+import de.osthus.esmeralda.handler.csharp.CsSpecific;
 import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsHelper;
+import de.osthus.esmeralda.handler.js.JsSpecific;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
@@ -158,6 +160,8 @@ public class ConversionManager implements IStartingBean
 			}
 		}
 
+		ILanguageSpecific csSpecific = new CsSpecific();
+		ILanguageSpecific jsSpecific = new JsSpecific();
 		StatementCount csMetric = new StatementCount("C#");
 		StatementCount jsMetric = new StatementCount("JS");
 		HashMap<String, Integer> csCalledMethods = new HashMap<>();
@@ -179,6 +183,7 @@ public class ConversionManager implements IStartingBean
 			}
 
 			ConversionContext csContext = new ConversionContext();
+			csContext.setLanguageSpecific(csSpecific);
 			csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 			csContext.setLanguage(Lang.C_SHARP);
 			csContext.setSnippetPath(snippetPath);
@@ -197,6 +202,7 @@ public class ConversionManager implements IStartingBean
 			invokeClassHandler(csClassHandler, csContext);
 
 			ConversionContext jsContext = new ConversionContext();
+			jsContext.setLanguageSpecific(jsSpecific);
 			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 			jsContext.setLanguage(Lang.JS);
 			jsContext.setSnippetPath(snippetPath);
