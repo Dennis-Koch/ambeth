@@ -19,9 +19,23 @@ public class TestAuditService implements ITestAuditService
 		return myArg.toString();
 	}
 
+	@Audited(false)
+	@Override
+	public String auditedAnnotatedServiceCall_NoAudit(Integer myArg)
+	{
+		return myArg.toString();
+	}
+
 	@Override
 	public String notAuditedServiceCall(Integer myArg)
 	{
 		return myArg.toString();
+	}
+
+	@Audited
+	@Override
+	public String auditedServiceCallWithAuditedArgument(@AuditedArg Integer myAuditedArg, @AuditedArg(false) String myNotAuditedPassword)
+	{
+		return myAuditedArg.toString();
 	}
 }
