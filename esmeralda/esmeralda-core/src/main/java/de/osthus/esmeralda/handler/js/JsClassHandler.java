@@ -3,6 +3,7 @@ package de.osthus.esmeralda.handler.js;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -23,6 +24,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IToDoWriter;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
@@ -54,6 +56,9 @@ public class JsClassHandler implements IJsClassHandler
 
 	@Autowired
 	protected IJsMethodHandler methodHandler;
+
+	@Autowired
+	protected IToDoWriter toDoWriter;
 
 	@Override
 	public IJsHelper getLanguageHelper()
@@ -667,8 +672,8 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadedMethods, boolean firstLine)
 	{
-		final IConversionContext context = this.context.getCurrent();
-		final IWriter writer = context.getWriter();
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 
 		Iterator<Entry<String, ArrayList<Method>>> iter = overloadedMethods.iterator();
 		while (iter.hasNext())
@@ -702,68 +707,95 @@ public class JsClassHandler implements IJsClassHandler
 			languageHelper.preBlockWhiteSpaces();
 
 			// Body
-			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-			{
-				@Override
-				public void invoke() throws Throwable
-				{
-					languageHelper.newLineIndent();
-					writer.append("var methods = [");
-					boolean firstBucket = true;
-					context.incrementIndentationLevel();
-					for (final ArrayList<Method> bucket : methodBuckets)
-					{
-						if (bucket == null)
-						{
-							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-							languageHelper.newLineIndent();
-							writer.append("null");
-						}
-						else
-						{
-							boolean singleMethod = bucket.size() == 1;
-							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-							languageHelper.newLineIndent();
-							writer.append("[");
-							boolean firstMethod = true;
-							context.incrementIndentationLevel();
-							for (Method method : bucket)
-							{
-								String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
-								firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
-								languageHelper.newLineIndentIfFalse(singleMethod);
-								writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
-								if (!singleMethod)
-								{
-									writer.append(", 'paramNames': [");
-									IList<VariableElement> parameters = method.getParameters();
-									boolean firstParam = true;
-									for (VariableElement param : parameters)
-									{
-										firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
-										VarSymbol var = (VarSymbol) param;
-										String paramName = var.name.toString();
-										writer.append('"').append(paramName).append('"');
-									}
-									writer.append(']');
-								}
-								writer.append(" }");
-							}
-							context.decrementIndentationLevel();
-							languageHelper.newLineIndentIfFalse(singleMethod);
-							writer.append(']');
-						}
-					}
-					context.decrementIndentationLevel();
-					languageHelper.newLineIndent();
-					writer.append("];");
-					languageHelper.newLineIndent();
-					writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
-				}
-			});
+			writeOverloadHubMethodBody(methodBuckets);
 		}
 
 		return firstLine;
+	}
+
+	protected void writeOverloadHubMethodBody(final ArrayList<Method>[] methodBuckets)
+	{
+		final IConversionContext context = this.context.getCurrent();
+		final IWriter writer = context.getWriter();
+
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				languageHelper.newLineIndent();
+				writer.append("var methods = [");
+				boolean firstBucket = true;
+				context.incrementIndentationLevel();
+				for (int i = 0, length = methodBuckets.length; i < length; i++)
+				{
+					final ArrayList<Method> bucket = methodBuckets[i];
+					if (bucket == null)
+					{
+						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+						languageHelper.newLineIndent();
+						writer.append("null");
+					}
+					else
+					{
+						HashMap<String, Method> paramNamesMaps = new HashMap<>();
+
+						boolean singleMethod = bucket.size() == 1;
+						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+						languageHelper.newLineIndent();
+						writer.append("[");
+						boolean firstMethod = true;
+						context.incrementIndentationLevel();
+						for (Method method : bucket)
+						{
+							String[] paramNames = new String[i];
+
+							String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
+							firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
+							languageHelper.newLineIndentIfFalse(singleMethod);
+							writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
+							if (!singleMethod)
+							{
+								writer.append(", 'paramNames': [");
+								IList<VariableElement> parameters = method.getParameters();
+								boolean firstParam = true;
+								for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+								{
+									VariableElement param = parameters.get(j);
+									firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
+									VarSymbol var = (VarSymbol) param;
+									String paramName = var.name.toString();
+									writer.append('"').append(paramName).append('"');
+									paramNames[j] = paramName;
+								}
+								writer.append(']');
+							}
+							writer.append(" }");
+
+							if (!singleMethod)
+							{
+								Arrays.sort(paramNames);
+								Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
+								if (existing != null)
+								{
+									StringBuilder sb = new StringBuilder();
+									sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName()).append("()");
+									toDoWriter.write("Ambiguous parameter names", sb.toString());
+								}
+							}
+						}
+						context.decrementIndentationLevel();
+						languageHelper.newLineIndentIfFalse(singleMethod);
+						writer.append(']');
+					}
+				}
+				context.decrementIndentationLevel();
+				languageHelper.newLineIndent();
+				writer.append("];");
+				languageHelper.newLineIndent();
+				writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
+			}
+		});
 	}
 
 	protected ArrayList<Method>[] bucketSortMethods(ArrayList<Method> methods)
