@@ -347,6 +347,7 @@ public class MethodInfoDataSetter
 		targetMethod.setProtectedFlag(sourceMethod.isProtected());
 		targetMethod.setPublicFlag(sourceMethod.isPublic());
 		targetMethod.setMethodTree(sourceMethod.getMethodTree());
+		targetMethod.setPath(sourceMethod.getPath());
 		for (Annotation annotation : sourceMethod.getAnnotations())
 		{
 			targetMethod.addAnnotation(annotation);
