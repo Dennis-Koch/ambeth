@@ -48,14 +48,10 @@ public class JsMethodHandler implements IJsMethodHandler
 	@Override
 	public void handle()
 	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void handle(HashMap<String, ArrayList<Method>> overloadedMethods)
-	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+		HashMap<String, ArrayList<Method>> overloadedMethods = languageSpecific.getOverloadedMethods();
 
 		Method method = context.getMethod();
 
@@ -104,28 +100,36 @@ public class JsMethodHandler implements IJsMethodHandler
 		try
 		{
 			BlockTree methodBodyBlock = methodTree.getBody();
-			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.JS + methodBodyBlock.getKind());
-
-			if (method.isConstructor())
+			if (methodBodyBlock != null)
 			{
-				boolean oldSkip = context.isSkipFirstBlockStatement();
-				context.setSkipFirstBlockStatement(true);
-				try
+				IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.JS + methodBodyBlock.getKind());
+
+				if (method.isConstructor())
+				{
+					boolean oldSkip = context.isSkipFirstBlockStatement();
+					context.setSkipFirstBlockStatement(true);
+					try
+					{
+						blockHandler.handle(methodBodyBlock);
+					}
+					finally
+					{
+						context.setSkipFirstBlockStatement(oldSkip);
+					}
+				}
+				else
 				{
 					blockHandler.handle(methodBodyBlock);
 				}
-				finally
-				{
-					context.setSkipFirstBlockStatement(oldSkip);
-				}
+
+				// Starts check for unused (old) snippet files for this method
+				snippetManager.finished();
 			}
 			else
 			{
-				blockHandler.handle(methodBodyBlock);
+				// FIXME Annotation methods have no body code
+				writer.append("{}");
 			}
-
-			// Starts check for unused (old) snippet files for this method
-			snippetManager.finished();
 		}
 		finally
 		{
