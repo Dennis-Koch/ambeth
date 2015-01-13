@@ -50,12 +50,15 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 
 		// filter the args by audit configuration
 		final List<Object> auditedArgs = new ArrayList<Object>();
-		for (int i = 0; i < auditInfo.getAuditedArgs().length; i++)
+		if (auditInfo.getAuditedArgs() != null)
 		{
-			AuditedArg auditedArg = auditInfo.auditedArgs[i];
-			if ((auditedArg == null && auditedServiceDefaultModeActive) || (auditedArg != null && auditedArg.value()))
+			for (int i = 0; i < auditInfo.getAuditedArgs().length; i++)
 			{
-				auditedArgs.add(args[i]);
+				AuditedArg auditedArg = auditInfo.auditedArgs[i];
+				if ((auditedArg == null && auditedServiceDefaultModeActive) || (auditedArg != null && auditedArg.value()))
+				{
+					auditedArgs.add(args[i]);
+				}
 			}
 		}
 
