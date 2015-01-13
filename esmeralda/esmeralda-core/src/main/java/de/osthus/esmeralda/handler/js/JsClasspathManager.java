@@ -7,7 +7,6 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -15,20 +14,24 @@ import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
 public class JsClasspathManager implements IJsClasspathManager, IInitializingBean
 {
-	// FIXME temp.
-	private static final Path EXTERNAL_PATH = Paths
-			.get("C:\\dev\\legacy\\osthus-extensions\\osthus-ambeth_jsAmbeth\\jsambeth\\jsambeth-esmeraldaextend\\src\\main\\js");
-
 	private static final Pattern JS_METHOD_NAME = Pattern.compile("\\s*\"?(\\w+)\"?\\: function ?\\(.*\\) \\{");
 
-	private final FileVisitor<Path> jsFileVisitor = new FileVisitor<Path>()
+	private final class JsFileVisitor implements FileVisitor<Path>
 	{
+		protected Path contextPath;
+
+		public JsFileVisitor(Path contextPath)
+		{
+			this.contextPath = contextPath;
+		}
+
 		/**
 		 * {@inheritDoc}
 		 */
@@ -46,7 +49,7 @@ public class JsClasspathManager implements IJsClasspathManager, IInitializingBea
 				return FileVisitResult.CONTINUE;
 			}
 
-			Path relativePath = EXTERNAL_PATH.relativize(file);
+			Path relativePath = contextPath.relativize(file);
 			String relativeName = relativePath.toString();
 			relativeName = relativeName.substring(0, relativeName.length() - 3);
 			String fullClassName = relativeName.replaceAll("\\" + File.separator, ".");
@@ -88,12 +91,23 @@ public class JsClasspathManager implements IJsClasspathManager, IInitializingBea
 
 	private final HashSet<String> methodsInPath = new HashSet<>();
 
+	@Property(name = "context-path", mandatory = false)
+	protected File[] contextPaths;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		methodsInPath.add("console.log");
 
-		Files.walkFileTree(EXTERNAL_PATH, jsFileVisitor);
+		if (contextPaths != null)
+		{
+			for (File contextPath : contextPaths)
+			{
+				Path path = contextPath.toPath();
+				JsFileVisitor jsFileVisitor = new JsFileVisitor(path);
+				Files.walkFileTree(path, jsFileVisitor);
+			}
+		}
 	}
 
 	@Override

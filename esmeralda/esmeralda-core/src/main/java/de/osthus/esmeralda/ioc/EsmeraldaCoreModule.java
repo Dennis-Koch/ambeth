@@ -10,6 +10,8 @@ import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IToDoWriter;
+import de.osthus.esmeralda.ToDoWriter;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.ClassInfoFactory;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -112,6 +114,8 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(SnippetManagerFactory.class).autowireable(ISnippetManagerFactory.class);
 
 		beanContextFactory.registerBean(EsmeFileUtil.class).autowireable(IEsmeFileUtil.class);
+
+		beanContextFactory.registerBean(ToDoWriter.class).autowireable(IToDoWriter.class);
 
 		beanContextFactory.registerBean(ClassInfoFactory.class).autowireable(IClassInfoFactory.class);
 		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class);

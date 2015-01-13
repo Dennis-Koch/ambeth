@@ -3,6 +3,7 @@ package de.osthus.esmeralda.handler.js;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -23,6 +24,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.IToDoWriter;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
@@ -54,6 +56,9 @@ public class JsClassHandler implements IJsClassHandler
 
 	@Autowired
 	protected IJsMethodHandler methodHandler;
+
+	@Autowired
+	protected IToDoWriter toDoWriter;
 
 	@Override
 	public IJsHelper getLanguageHelper()
@@ -143,7 +148,7 @@ public class JsClassHandler implements IJsClassHandler
 		return fieldsToInit;
 	}
 
-	protected HashMap<String, ArrayList<Method>> findOverloadMethods(IList<Method> methods)
+	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods)
 	{
 		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
 		for (Method method : methods)
@@ -521,20 +526,31 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writePublicStaticMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
-		HashMap<String, ArrayList<Method>> overloadMethods = new HashMap<>(); // TODO
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
 
-		IList<Method> methods = classInfo.getMethods();
-		for (Method method : methods)
+		IList<Method> publicStaticMethods = createView(classInfo.getMethods(), Boolean.FALSE, Boolean.TRUE);
+
+		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(publicStaticMethods);
+		languageSpecific.setOverloadedMethods(overloadedMethods);
+		try
 		{
-			if (!method.isStatic())
+			for (Method method : publicStaticMethods)
 			{
-				continue;
-			}
+				if (!method.isStatic())
+				{
+					continue;
+				}
 
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setMethod(method);
-			methodHandler.handle(overloadMethods);
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+				context.setMethod(method);
+				methodHandler.handle();
+			}
 		}
+		finally
+		{
+			languageSpecific.setOverloadedMethods(null);
+		}
+		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
 
 		return firstLine;
 	}
@@ -625,33 +641,41 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+
 		IList<Method> nonStaticMethods = createView(classInfo.getMethods(), null, Boolean.FALSE);
 
-		HashMap<String, ArrayList<Method>> overloadMethods = findOverloadMethods(nonStaticMethods);
-
-		for (Method method : nonStaticMethods)
+		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(nonStaticMethods);
+		languageSpecific.setOverloadedMethods(overloadedMethods);
+		try
 		{
-			if (method.isConstructor())
+			for (Method method : nonStaticMethods)
 			{
-				continue;
+				if (method.isConstructor())
+				{
+					continue;
+				}
+
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+				context.setMethod(method);
+				methodHandler.handle();
 			}
-
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setMethod(method);
-			methodHandler.handle(overloadMethods);
 		}
-
-		firstLine = writeOverloadHubMethods(classInfo, overloadMethods, firstLine);
+		finally
+		{
+			languageSpecific.setOverloadedMethods(null);
+		}
+		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
 
 		return firstLine;
 	}
 
-	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadMethodsMap, boolean firstLine)
+	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadedMethods, boolean firstLine)
 	{
-		final IConversionContext context = this.context.getCurrent();
-		final IWriter writer = context.getWriter();
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
 
-		Iterator<Entry<String, ArrayList<Method>>> iter = overloadMethodsMap.iterator();
+		Iterator<Entry<String, ArrayList<Method>>> iter = overloadedMethods.iterator();
 		while (iter.hasNext())
 		{
 			Entry<String, ArrayList<Method>> entry = iter.next();
@@ -661,7 +685,6 @@ public class JsClassHandler implements IJsClassHandler
 			final ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			languageHelper.newLineIndent();
 
 			// Documentation
 			languageHelper.startDocumentation();
@@ -684,68 +707,99 @@ public class JsClassHandler implements IJsClassHandler
 			languageHelper.preBlockWhiteSpaces();
 
 			// Body
-			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-			{
-				@Override
-				public void invoke() throws Throwable
-				{
-					languageHelper.newLineIndent();
-					writer.append("var methods = [");
-					boolean firstBucket = true;
-					context.incrementIndentationLevel();
-					for (final ArrayList<Method> bucket : methodBuckets)
-					{
-						if (bucket == null)
-						{
-							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-							languageHelper.newLineIndent();
-							writer.append("null");
-						}
-						else
-						{
-							boolean singleMethod = bucket.size() == 1;
-							firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-							languageHelper.newLineIndent();
-							writer.append("[");
-							boolean firstMethod = true;
-							context.incrementIndentationLevel();
-							for (Method method : bucket)
-							{
-								String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
-								firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
-								languageHelper.newLineIndentIfFalse(singleMethod);
-								writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
-								if (!singleMethod)
-								{
-									writer.append(", 'paramNames': [");
-									IList<VariableElement> parameters = method.getParameters();
-									boolean firstParam = true;
-									for (VariableElement param : parameters)
-									{
-										firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
-										VarSymbol var = (VarSymbol) param;
-										String paramName = var.name.toString();
-										writer.append('"').append(paramName).append('"');
-									}
-									writer.append(']');
-								}
-								writer.append(" }");
-							}
-							context.decrementIndentationLevel();
-							languageHelper.newLineIndentIfFalse(singleMethod);
-							writer.append(']');
-						}
-					}
-					context.decrementIndentationLevel();
-					languageHelper.newLineIndent();
-					writer.append("];");
-					languageHelper.newLineIndent();
-					writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
-				}
-			});
+			writeOverloadHubMethodBody(methodBuckets);
 		}
 
 		return firstLine;
+	}
+
+	protected void writeOverloadHubMethodBody(final ArrayList<Method>[] methodBuckets)
+	{
+		final IConversionContext context = this.context.getCurrent();
+		final IWriter writer = context.getWriter();
+
+		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				boolean ambiguousParameterNames = false;
+
+				languageHelper.newLineIndent();
+				writer.append("var methods = [");
+				boolean firstBucket = true;
+				context.incrementIndentationLevel();
+				for (int i = 0, length = methodBuckets.length; i < length; i++)
+				{
+					final ArrayList<Method> bucket = methodBuckets[i];
+					if (bucket == null)
+					{
+						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+						languageHelper.newLineIndent();
+						writer.append("null");
+					}
+					else
+					{
+						HashMap<String, Method> paramNamesMaps = new HashMap<>();
+
+						boolean singleMethod = bucket.size() == 1;
+						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
+						languageHelper.newLineIndent();
+						writer.append("[");
+						boolean firstMethod = true;
+						context.incrementIndentationLevel();
+						for (Method method : bucket)
+						{
+							String[] paramNames = new String[i];
+
+							String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
+							firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
+							languageHelper.newLineIndentIfFalse(singleMethod);
+							writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
+							if (!singleMethod)
+							{
+								writer.append(", 'paramNames': [");
+								IList<VariableElement> parameters = method.getParameters();
+								boolean firstParam = true;
+								for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+								{
+									VariableElement param = parameters.get(j);
+									firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
+									VarSymbol var = (VarSymbol) param;
+									String paramName = var.name.toString();
+									writer.append('"').append(paramName).append('"');
+									paramNames[j] = paramName;
+								}
+								writer.append(']');
+
+								if (!ambiguousParameterNames)
+								{
+									Arrays.sort(paramNames);
+									Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
+									if (existing != null)
+									{
+										ambiguousParameterNames = true;
+										StringBuilder sb = new StringBuilder();
+										sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName())
+												.append("()");
+										toDoWriter.write("Ambiguous parameter names", sb.toString());
+									}
+								}
+							}
+							writer.append(" }");
+						}
+						context.decrementIndentationLevel();
+						languageHelper.newLineIndentIfFalse(singleMethod);
+						writer.append(']');
+					}
+				}
+				context.decrementIndentationLevel();
+				languageHelper.newLineIndent();
+				writer.append("];");
+				languageHelper.newLineIndent();
+				writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
+			}
+		});
 	}
 
 	protected ArrayList<Method>[] bucketSortMethods(ArrayList<Method> methods)

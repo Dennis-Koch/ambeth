@@ -518,12 +518,12 @@ public class ConversionContext implements IConversionContext
 
 	protected JavaClassInfo makeGenericClassInfo(JavaClassInfo classInfo, String genericTypeArguments)
 	{
-		JavaClassInfo superClassInfo = null;
-		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass != null)
-		{
-			superClassInfo = resolveClassInfo(nameOfSuperClass);
-		}
+		// JavaClassInfo superClassInfo = null;
+		// String nameOfSuperClass = classInfo.getNameOfSuperClass();
+		// if (nameOfSuperClass != null)
+		// {
+		// superClassInfo = resolveClassInfo(nameOfSuperClass);
+		// }
 		String[] typeArgumentsSplit = astHelper.splitTypeArgument(genericTypeArguments);
 		JavaClassInfo[] typeArgumentCIs = new JavaClassInfo[typeArgumentsSplit.length];
 		StringBuilder sb = new StringBuilder();
