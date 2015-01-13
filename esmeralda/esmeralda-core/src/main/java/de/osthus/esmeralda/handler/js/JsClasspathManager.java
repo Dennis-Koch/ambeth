@@ -99,11 +99,14 @@ public class JsClasspathManager implements IJsClasspathManager, IInitializingBea
 	{
 		methodsInPath.add("console.log");
 
-		for (File contextPath : contextPaths)
+		if (contextPaths != null)
 		{
-			Path path = contextPath.toPath();
-			JsFileVisitor jsFileVisitor = new JsFileVisitor(path);
-			Files.walkFileTree(path, jsFileVisitor);
+			for (File contextPath : contextPaths)
+			{
+				Path path = contextPath.toPath();
+				JsFileVisitor jsFileVisitor = new JsFileVisitor(path);
+				Files.walkFileTree(path, jsFileVisitor);
+			}
 		}
 	}
 
