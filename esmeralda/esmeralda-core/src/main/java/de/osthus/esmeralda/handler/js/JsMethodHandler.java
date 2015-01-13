@@ -7,8 +7,6 @@ import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 
-import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -39,6 +37,12 @@ public class JsMethodHandler implements IJsMethodHandler
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired(value = IJsOverloadManager.STATIC)
+	protected IJsOverloadManager overloadManagerStatic;
+
+	@Autowired(value = IJsOverloadManager.NON_STATIC)
+	protected IJsOverloadManager overloadManagerNonStatic;
+
 	@Autowired
 	protected ISnippetManagerFactory snippetManagerFactory;
 
@@ -50,8 +54,6 @@ public class JsMethodHandler implements IJsMethodHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
-		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
-		HashMap<String, ArrayList<Method>> overloadedMethods = languageSpecific.getOverloadedMethods();
 
 		Method method = context.getMethod();
 
@@ -59,12 +61,13 @@ public class JsMethodHandler implements IJsMethodHandler
 
 		String methodName = method.getName();
 
+		IJsOverloadManager overloadManager = method.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
+
 		languageHelper.newLineIndent();
 		writer.append(methodName);
-		if (overloadedMethods.containsKey(methodName))
+		if (overloadManager.hasOverloads(method))
 		{
 			// Add parameter type names to function name
-			// TODO change names at method calls
 			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);
 			writer.append(methodNamePostfix);
 		}
