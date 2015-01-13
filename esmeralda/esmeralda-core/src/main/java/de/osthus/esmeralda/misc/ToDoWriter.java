@@ -1,4 +1,4 @@
-package de.osthus.esmeralda;
+package de.osthus.esmeralda.misc;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,6 +15,7 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.IConversionContext;
 
 public class ToDoWriter implements IToDoWriter
 {

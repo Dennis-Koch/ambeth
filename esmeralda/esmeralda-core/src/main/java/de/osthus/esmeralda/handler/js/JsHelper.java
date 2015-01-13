@@ -646,9 +646,11 @@ public class JsHelper implements IJsHelper
 		}
 		else
 		{
+			int length = parameters.size();
 			StringBuilder sb = new StringBuilder();
-			for (VariableElement param : parameters)
+			for (int i = 0; i < length; i++)
 			{
+				VariableElement param = parameters.get(i);
 				VarSymbol var = (VarSymbol) param;
 				String paramTypeName = var.type.toString();
 				paramTypeName = paramTypeName.replaceAll("<.*>", "");

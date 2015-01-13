@@ -98,6 +98,7 @@ public class JsClasspathManager implements IJsClasspathManager, IInitializingBea
 	public void afterPropertiesSet() throws Throwable
 	{
 		methodsInPath.add("console.log");
+		methodsInPath.add("String.length");
 
 		if (contextPaths != null)
 		{
