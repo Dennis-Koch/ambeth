@@ -96,24 +96,30 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	{
 		IList<VariableElement> paramsList = new ArrayList<VariableElement>();
 
-		if (methodInvocation.meth != null)
+		if (methodInvocation.meth == null)
 		{
-			if (methodInvocation.meth instanceof JCIdent)
+			return paramsList;
+		}
+
+		if (methodInvocation.meth instanceof JCIdent)
+		{
+			JCIdent meth = (JCIdent) methodInvocation.meth;
+			if (meth.sym != null)
 			{
-				JCIdent meth = (JCIdent) methodInvocation.meth;
-				if (meth.sym != null)
-				{
-					getParamsList(paramsList, (MethodSymbol) meth.sym);
-				}
+				getParamsList(paramsList, (MethodSymbol) meth.sym);
 			}
-			else if (methodInvocation.meth instanceof JCFieldAccess)
+		}
+		else if (methodInvocation.meth instanceof JCFieldAccess)
+		{
+			JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
+			if (meth.sym != null)
 			{
-				JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
-				if (meth.sym != null)
-				{
-					getParamsList(paramsList, (MethodSymbol) meth.sym);
-				}
+				getParamsList(paramsList, (MethodSymbol) meth.sym);
 			}
+		}
+		else
+		{
+			throw new RuntimeException("Have not yet thought of that one...");
 		}
 
 		return paramsList;

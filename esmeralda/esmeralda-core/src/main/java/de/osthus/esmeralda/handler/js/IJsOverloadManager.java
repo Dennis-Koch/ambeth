@@ -7,9 +7,9 @@ import demo.codeanalyzer.common.model.Method;
 
 public interface IJsOverloadManager
 {
-	public static final String STATIC = "JsOverloadManager_static";
+	public static final String STATIC = "jsOverloadManager_static";
 
-	public static final String NON_STATIC = "JsOverloadManager_non-static";
+	public static final String NON_STATIC = "jsOverloadManager_non-static";
 
 	void registerOverloads(String fqClassName, HashMap<String, ArrayList<Method>> overloadedMethods);
 
