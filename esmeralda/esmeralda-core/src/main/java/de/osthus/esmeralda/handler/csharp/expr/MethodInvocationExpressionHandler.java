@@ -387,7 +387,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			String parameterTypeName;
 			if (parameterType instanceof TypeVar)
 			{
-				parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
+				parameterTypeName = ((TypeVar) parameterType).toString();
 			}
 			else
 			{

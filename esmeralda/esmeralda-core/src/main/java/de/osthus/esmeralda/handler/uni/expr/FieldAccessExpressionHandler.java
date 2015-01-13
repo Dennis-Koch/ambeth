@@ -36,6 +36,17 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 		IWriter writer = context.getWriter();
 
 		JCExpression expression = fieldAccess.getExpression();
+
+		if (fieldAccess.sym instanceof ClassSymbol)
+		{
+			String fqTypeName = fieldAccess.toString();
+			JavaClassInfo classInfo = context.resolveClassInfo(fqTypeName);
+			fqTypeName = classInfo.getFqName();
+			languageHelper.writeType(fqTypeName);
+			context.setTypeOnStack(fqTypeName);
+			return;
+		}
+
 		String name = fieldAccess.name.toString();
 		if ("class".equals(name))
 		{
