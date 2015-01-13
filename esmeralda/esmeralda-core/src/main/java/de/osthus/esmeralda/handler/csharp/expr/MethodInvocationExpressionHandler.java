@@ -422,6 +422,15 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			{
 				return true;
 			}
+			if (parameterTypeName.equals(nonGenericParameterTypeName))
+			{
+				// parameterTypeName is not a generic type. If that is the case we check whether we match against the non generic type of argType
+				String nonGenericArgType = astHelper.extractNonGenericType(argType);
+				if (nonGenericArgType.equals(nonGenericParameterTypeName))
+				{
+					return true;
+				}
+			}
 			JavaClassInfo argClassInfo = context.resolveClassInfo(argType);
 			if (argClassInfo == null)
 			{
