@@ -38,6 +38,7 @@ import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.JsSpecific;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.StatementCount;
 import demo.codeanalyzer.common.model.JavaClassInfo;

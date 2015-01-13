@@ -28,6 +28,8 @@ public class TestService2 implements IInitializingBean
 		boolean check = true;
 		int var = check ? 1 : 0;
 		ParamChecker.assertTrue(var == 1, "var");
+
+		TestService1.staticTestMethod();
 	}
 
 	public void setConversionHelper(IConversionHelper conversionHelper)
@@ -51,7 +53,7 @@ public class TestService2 implements IInitializingBean
 			print = false;
 		}
 		while (print);
-		
+
 		return print;
 	}
 
@@ -71,7 +73,7 @@ public class TestService2 implements IInitializingBean
 			System.out.println(intParam);
 			ok = true;
 		}
-		
+
 		return ok;
 	}
 

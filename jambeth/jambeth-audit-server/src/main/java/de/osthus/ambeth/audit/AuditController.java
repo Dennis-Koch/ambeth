@@ -197,7 +197,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public IMethodCallHandle logMethodCallStart(Method method, Object[] args)
 	{
-		log.debug("logMethodCallStart: " + method.getName() + " --> " + Arrays.asList(args));
+		if (log.isDebugEnabled())
+		{
+			log.debug("logMethodCallStart: " + method.getName() + " --> " + Arrays.asList(args));
+		}
 
 		IAuditEntry auditEntry = ensureAuditEntry();
 

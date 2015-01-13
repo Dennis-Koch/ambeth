@@ -10,8 +10,6 @@ import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IToDoWriter;
-import de.osthus.esmeralda.ToDoWriter;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.ClassInfoFactory;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -51,11 +49,13 @@ import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsFieldHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsMethodHandler;
+import de.osthus.esmeralda.handler.js.IJsOverloadManager;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsClasspathManager;
 import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.handler.js.JsMethodHandler;
+import de.osthus.esmeralda.handler.js.JsOverloadManager;
 import de.osthus.esmeralda.handler.js.expr.JsArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsBinaryExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsInstanceOfExpressionHandler;
@@ -91,7 +91,9 @@ import de.osthus.esmeralda.handler.uni.stmt.UniversalSwitchHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalWhileHandler;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.misc.ToDoWriter;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import de.osthus.esmeralda.snippet.SnippetManagerFactory;
 
@@ -122,6 +124,8 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 		// TODO C# version
 		beanContextFactory.registerBean(JsClasspathManager.class).autowireable(IJsClasspathManager.class);
+		beanContextFactory.registerBean(IJsOverloadManager.STATIC, JsOverloadManager.class);
+		beanContextFactory.registerBean(IJsOverloadManager.NON_STATIC, JsOverloadManager.class);
 
 		// Method transformation
 		beanContextFactory.registerBean(ExtendableBean.class) //

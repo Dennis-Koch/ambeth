@@ -10,6 +10,8 @@ import de.osthus.esmeralda.handler.js.MethodTransformer;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.js.transformer.JavaIoPrintstreamTransformer;
+import de.osthus.esmeralda.handler.js.transformer.JavaLangCharSequenceTransformer;
+import de.osthus.esmeralda.handler.js.transformer.JavaLangStringTransformer;
 import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.misc.Lang;
 
@@ -33,12 +35,9 @@ public class JsMethodTransformationModule implements IInitializingModule
 				.propertyRef(defaultMethodTransformer)//
 				.autowireable(IJsMethodTransformer.class);
 
-		// registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
-		// registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
-		// registerMethodTransformerExtension(beanContextFactory, JavaLangReflectFieldTransformer.class, java.lang.reflect.Field.class);
-		// registerMethodTransformerExtension(beanContextFactory, JavaUtilListTransformer.class, java.util.List.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaIoPrintstreamTransformer.class, java.io.PrintStream.class);
-		// registerMethodTransformerExtension(beanContextFactory, StackTraceElementTransformer.class, java.lang.StackTraceElement.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangStringTransformer.class, java.lang.String.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangCharSequenceTransformer.class, java.lang.CharSequence.class);
 	}
 
 	protected static IBeanConfiguration registerMethodTransformerExtension(IBeanContextFactory beanContextFactory,
