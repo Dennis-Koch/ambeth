@@ -1,15 +1,16 @@
 package de.osthus.esmeralda;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -24,12 +25,25 @@ public class ToDoWriter implements IToDoWriter
 	@Autowired
 	protected IConversionContext context;
 
+	@Property(name = "todo-path", mandatory = false)
+	protected File todoPath;
+
 	@Override
-	public void clearToDoFolder()
+	public void clearToDoFolder(String languagePathName)
 	{
+		if (todoPath == null)
+		{
+			return;
+		}
+
+		Path path = createToDoPath(languagePathName);
+		if (!Files.exists(path))
+		{
+			return;
+		}
+
 		try
 		{
-			Path path = createToDoPath();
 			DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path);
 			Iterator<Path> iter = directoryStream.iterator();
 			while (iter.hasNext())
@@ -50,9 +64,22 @@ public class ToDoWriter implements IToDoWriter
 	@Override
 	public void write(String topic, String todo)
 	{
+		if (todoPath == null)
+		{
+			return;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		if (context.isDryRun())
+		{
+			return;
+		}
+
 		try
 		{
 			Path todoPath = createToDoPath();
+			Files.createDirectories(todoPath);
+
 			Path path = todoPath.resolve(topic + ".txt");
 			try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND))
 			{
@@ -66,16 +93,18 @@ public class ToDoWriter implements IToDoWriter
 		}
 	}
 
-	protected Path createToDoPath() throws IOException
+	protected Path createToDoPath()
 	{
 		IConversionContext context = this.context.getCurrent();
 
-		Path srcPath = context.getTargetPath().toPath();
-		Path targetPath = srcPath.getParent();
 		String languagePathName = context.getLanguagePath();
-		Path relativeTodoPath = Paths.get("todos", languagePathName);
-		Path todoPath = targetPath.resolve(relativeTodoPath);
-		Files.createDirectories(todoPath);
+		Path todoPath = createToDoPath(languagePathName);
+		return todoPath;
+	}
+
+	protected Path createToDoPath(String languagePathName)
+	{
+		Path todoPath = this.todoPath.toPath().resolve(languagePathName);
 		return todoPath;
 	}
 }

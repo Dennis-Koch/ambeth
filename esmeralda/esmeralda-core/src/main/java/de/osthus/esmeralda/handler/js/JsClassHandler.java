@@ -723,6 +723,8 @@ public class JsClassHandler implements IJsClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
+				boolean ambiguousParameterNames = false;
+
 				languageHelper.newLineIndent();
 				writer.append("var methods = [");
 				boolean firstBucket = true;
@@ -769,20 +771,22 @@ public class JsClassHandler implements IJsClassHandler
 									paramNames[j] = paramName;
 								}
 								writer.append(']');
-							}
-							writer.append(" }");
 
-							if (!singleMethod)
-							{
-								Arrays.sort(paramNames);
-								Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
-								if (existing != null)
+								if (!ambiguousParameterNames)
 								{
-									StringBuilder sb = new StringBuilder();
-									sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName()).append("()");
-									toDoWriter.write("Ambiguous parameter names", sb.toString());
+									Arrays.sort(paramNames);
+									Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
+									if (existing != null)
+									{
+										ambiguousParameterNames = true;
+										StringBuilder sb = new StringBuilder();
+										sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName())
+												.append("()");
+										toDoWriter.write("Ambiguous parameter names", sb.toString());
+									}
 								}
 							}
+							writer.append(" }");
 						}
 						context.decrementIndentationLevel();
 						languageHelper.newLineIndentIfFalse(singleMethod);
