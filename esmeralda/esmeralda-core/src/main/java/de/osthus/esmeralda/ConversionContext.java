@@ -390,11 +390,24 @@ public class ConversionContext implements IConversionContext
 				}
 			}
 		}
-		String javaLangFqTypeName = "java.lang." + fqTypeName;
-		classInfo = fqNameToClassInfoMap.get(javaLangFqTypeName);
-		if (classInfo != null)
+		if (cascadeSearch)
 		{
-			return classInfoResolved(originalFqTypeName, classInfo);
+			String currentClassInfoFqName = getClassInfo().getFqName();
+			if (!fqTypeName.startsWith(currentClassInfoFqName))
+			{
+				String internClassFqTypeName = currentClassInfoFqName + "$" + fqTypeName;
+				classInfo = resolveClassInfo(internClassFqTypeName, true, false);
+				if (classInfo != null)
+				{
+					return classInfo;
+				}
+			}
+			String javaLangFqTypeName = "java.lang." + fqTypeName;
+			classInfo = resolveClassInfo(javaLangFqTypeName, true, false);
+			if (classInfo != null)
+			{
+				return classInfoResolved(originalFqTypeName, classInfo);
+			}
 		}
 		// TODO ClassLoader skip generation?
 		// if (fqTypeName.equals(ClassLoader.class.getName()))
