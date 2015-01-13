@@ -45,6 +45,12 @@ import demo.codeanalyzer.helper.ClassInfoDataSetter;
 
 public class ConversionManager implements IStartingBean
 {
+	private static final String LANGUAGE_PATH_CSHARP = "csharp";
+
+	private static final String LANGUAGE_PATH_JS = "js";
+
+	private static final String NS_PREFIX_OSTHUS = "de.osthus.";
+
 	private static final Comparator<Object[]> METHOD_NAME_COUNT_COMPARATOR = new Comparator<Object[]>()
 	{
 		@Override
@@ -92,6 +98,9 @@ public class ConversionManager implements IStartingBean
 
 	@Autowired
 	protected IEsmeFileUtil fileUtil;
+
+	@Autowired
+	protected IToDoWriter todoWriter;
 
 	@Property(name = "source-path")
 	protected File[] sourcePath;
@@ -172,6 +181,9 @@ public class ConversionManager implements IStartingBean
 		int classInfoProgress = 0, classInfoCount = classInfos.size();
 		long lastLog = System.currentTimeMillis();
 
+		todoWriter.clearToDoFolder(LANGUAGE_PATH_CSHARP);
+		todoWriter.clearToDoFolder(LANGUAGE_PATH_JS);
+
 		for (JavaClassInfo classInfo : classInfos)
 		{
 			String packageName = classInfo.getPackageName();
@@ -188,10 +200,10 @@ public class ConversionManager implements IStartingBean
 			csContext.setLanguage(Lang.C_SHARP);
 			csContext.setSnippetPath(snippetPath);
 			csContext.setTargetPath(targetPath);
-			csContext.setLanguagePath("csharp");
+			csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
 			csContext.setGenericTypeSupported(true);
 			csContext.setMetric(csMetric);
-			csContext.setNsPrefixRemove("de.osthus.");
+			csContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
 			csContext.setClassInfo(classInfo);
 			csContext.setAstHelper(astHelper);
 			csContext.setClassInfoFactory(classInfoFactory);
@@ -207,10 +219,10 @@ public class ConversionManager implements IStartingBean
 			jsContext.setLanguage(Lang.JS);
 			jsContext.setSnippetPath(snippetPath);
 			jsContext.setTargetPath(targetPath);
-			jsContext.setLanguagePath("js");
+			jsContext.setLanguagePath(LANGUAGE_PATH_JS);
 			jsContext.setGenericTypeSupported(false);
 			jsContext.setMetric(jsMetric);
-			jsContext.setNsPrefixRemove("de.osthus.");
+			jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
 			jsContext.setClassInfo(classInfo);
 			jsContext.setAstHelper(astHelper);
 			jsContext.setClassInfoFactory(classInfoFactory);
