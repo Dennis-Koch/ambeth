@@ -24,8 +24,8 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.IToDoWriter;
 import de.osthus.esmeralda.handler.IVariable;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
@@ -56,6 +56,12 @@ public class JsClassHandler implements IJsClassHandler
 
 	@Autowired
 	protected IJsMethodHandler methodHandler;
+
+	@Autowired(value = IJsOverloadManager.STATIC)
+	protected IJsOverloadManager overloadManagerStatic;
+
+	@Autowired(value = IJsOverloadManager.NON_STATIC)
+	protected IJsOverloadManager overloadManagerNonStatic;
 
 	@Autowired
 	protected IToDoWriter toDoWriter;
@@ -148,12 +154,12 @@ public class JsClassHandler implements IJsClassHandler
 		return fieldsToInit;
 	}
 
-	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods)
+	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods, boolean staticOnly)
 	{
 		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
 		for (Method method : methods)
 		{
-			if (method.isConstructor())
+			if (method.isConstructor() || (method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
 			{
 				continue;
 			}
@@ -202,6 +208,13 @@ public class JsClassHandler implements IJsClassHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
+
+		IList<Method> methods = classInfo.getMethods();
+
+		HashMap<String, ArrayList<Method>> overloadedMethodsStatic = findOverloadedMethods(methods, true);
+		overloadManagerStatic.registerOverloads(classInfo.getFqName(), overloadedMethodsStatic);
+		HashMap<String, ArrayList<Method>> overloadedMethodsNonStatic = findOverloadedMethods(methods, false);
+		overloadManagerNonStatic.registerOverloads(classInfo.getFqName(), overloadedMethodsNonStatic);
 
 		writer.append("function(");
 		languageHelper.writeSimpleName(classInfo);
@@ -526,31 +539,20 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writePublicStaticMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
-		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
-
 		IList<Method> publicStaticMethods = createView(classInfo.getMethods(), Boolean.FALSE, Boolean.TRUE);
 
-		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(publicStaticMethods);
-		languageSpecific.setOverloadedMethods(overloadedMethods);
-		try
+		for (Method method : publicStaticMethods)
 		{
-			for (Method method : publicStaticMethods)
+			if (!method.isStatic())
 			{
-				if (!method.isStatic())
-				{
-					continue;
-				}
-
-				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-				context.setMethod(method);
-				methodHandler.handle();
+				continue;
 			}
+
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+			context.setMethod(method);
+			methodHandler.handle();
 		}
-		finally
-		{
-			languageSpecific.setOverloadedMethods(null);
-		}
-		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
+		firstLine = writeOverloadHubMethods(classInfo, true, firstLine);
 
 		return firstLine;
 	}
@@ -641,39 +643,31 @@ public class JsClassHandler implements IJsClassHandler
 
 	protected boolean writeMethods(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
-		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
-
 		IList<Method> nonStaticMethods = createView(classInfo.getMethods(), null, Boolean.FALSE);
 
-		HashMap<String, ArrayList<Method>> overloadedMethods = findOverloadedMethods(nonStaticMethods);
-		languageSpecific.setOverloadedMethods(overloadedMethods);
-		try
+		for (Method method : nonStaticMethods)
 		{
-			for (Method method : nonStaticMethods)
+			if (method.isConstructor())
 			{
-				if (method.isConstructor())
-				{
-					continue;
-				}
-
-				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-				context.setMethod(method);
-				methodHandler.handle();
+				continue;
 			}
+
+			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+			context.setMethod(method);
+			methodHandler.handle();
 		}
-		finally
-		{
-			languageSpecific.setOverloadedMethods(null);
-		}
-		firstLine = writeOverloadHubMethods(classInfo, overloadedMethods, firstLine);
+		firstLine = writeOverloadHubMethods(classInfo, false, firstLine);
 
 		return firstLine;
 	}
 
-	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, HashMap<String, ArrayList<Method>> overloadedMethods, boolean firstLine)
+	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, boolean staticOnly, boolean firstLine)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
+		IJsOverloadManager overloadManager = staticOnly ? overloadManagerStatic : overloadManagerNonStatic;
+		HashMap<String, ArrayList<Method>> overloadedMethods = overloadManager.getOverloadedMethods(classInfo.getFqName());
 
 		Iterator<Entry<String, ArrayList<Method>>> iter = overloadedMethods.iterator();
 		while (iter.hasNext())

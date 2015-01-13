@@ -98,12 +98,16 @@ public class JsClasspathManager implements IJsClasspathManager, IInitializingBea
 	public void afterPropertiesSet() throws Throwable
 	{
 		methodsInPath.add("console.log");
+		methodsInPath.add("String.length");
 
-		for (File contextPath : contextPaths)
+		if (contextPaths != null)
 		{
-			Path path = contextPath.toPath();
-			JsFileVisitor jsFileVisitor = new JsFileVisitor(path);
-			Files.walkFileTree(path, jsFileVisitor);
+			for (File contextPath : contextPaths)
+			{
+				Path path = contextPath.toPath();
+				JsFileVisitor jsFileVisitor = new JsFileVisitor(path);
+				Files.walkFileTree(path, jsFileVisitor);
+			}
 		}
 	}
 
