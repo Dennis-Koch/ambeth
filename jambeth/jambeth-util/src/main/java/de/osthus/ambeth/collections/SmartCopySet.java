@@ -38,6 +38,18 @@ public class SmartCopySet<K> extends HashSet<K>
 		super(initialCapacity, 0.5f);
 	}
 
+	public SmartCopySet(Collection<? extends K> sourceCollection)
+	{
+		this((int) (sourceCollection.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		addAll(sourceCollection);
+	}
+
+	public SmartCopySet(K[] sourceArray)
+	{
+		this((int) (sourceArray.length / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_LOAD_FACTOR);
+		addAll(sourceArray);
+	}
+
 	public Lock getWriteLock()
 	{
 		return writeLock;
@@ -48,7 +60,7 @@ public class SmartCopySet<K> extends HashSet<K>
 		final SmartCopySet<K> This = this;
 		ISetEntry<K>[] table = this.table;
 		// Copy existing data in FULLY NEW STRUCTURE
-		HashSet<K> backupMap = new HashSet<K>(table.length, this.loadFactor)
+		HashSet<K> backupMap = new HashSet<K>(table.length, loadFactor)
 		{
 			@Override
 			protected boolean equalKeys(K key, ISetEntry<K> entry)
