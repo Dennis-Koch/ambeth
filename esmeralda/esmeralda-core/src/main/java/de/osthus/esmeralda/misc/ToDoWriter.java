@@ -71,14 +71,21 @@ public class ToDoWriter implements IToDoWriter
 		}
 
 		IConversionContext context = this.context.getCurrent();
-		if (context.isDryRun())
+		String languagePathName = context.getLanguagePath();
+		write(topic, todo, languagePathName, context.isDryRun());
+	}
+
+	@Override
+	public void write(String topic, String todo, String languagePathName, boolean dryRun)
+	{
+		if (todoPath == null || dryRun)
 		{
 			return;
 		}
 
 		try
 		{
-			Path todoPath = createToDoPath();
+			Path todoPath = createToDoPath(languagePathName);
 			Files.createDirectories(todoPath);
 
 			Path path = todoPath.resolve(topic + ".txt");
@@ -92,15 +99,6 @@ public class ToDoWriter implements IToDoWriter
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-	}
-
-	protected Path createToDoPath()
-	{
-		IConversionContext context = this.context.getCurrent();
-
-		String languagePathName = context.getLanguagePath();
-		Path todoPath = createToDoPath(languagePathName);
-		return todoPath;
 	}
 
 	protected Path createToDoPath(String languagePathName)
