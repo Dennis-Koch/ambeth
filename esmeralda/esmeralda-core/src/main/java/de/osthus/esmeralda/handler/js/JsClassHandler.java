@@ -13,6 +13,7 @@ import javax.lang.model.element.VariableElement;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
+import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -115,7 +116,7 @@ public class JsClassHandler implements IJsClassHandler
 			if (!fieldsToInit.isEmpty())
 			{
 				writer.append(", ");
-				writeCreateFunction(fieldsToInit, writer);
+				writeCreateFunction(fieldsToInit, classInfo, writer);
 			}
 			writer.append(");");
 		}
@@ -829,8 +830,10 @@ public class JsClassHandler implements IJsClassHandler
 		return methodBuckets;
 	}
 
-	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final IWriter writer)
+	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, JavaClassInfo classInfo, final IWriter writer)
 	{
+		final boolean enumType = classInfo.isEnum();
+
 		writer.append("function() ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
@@ -844,12 +847,27 @@ public class JsClassHandler implements IJsClassHandler
 					{
 						languageHelper.newLineIndent();
 						writer.append("this.").append(field.getName()).append(" = ");
-						languageHelper.writeExpressionTree(initializer);
+						if (enumType && initializer instanceof JCNewClass)
+						{
+							writeEnumConstruction((JCNewClass) initializer, field.getName(), writer);
+						}
+						else
+						{
+							languageHelper.writeExpressionTree(initializer);
+						}
 						writer.append(";");
 					}
 				}
 			}
 		});
+	}
+
+	protected void writeEnumConstruction(JCNewClass newClass, String name, IWriter writer)
+	{
+		String owner = newClass.clazz.toString();
+		writer.append("Ext.create('");
+		languageHelper.writeType(owner);
+		writer.append("', { 'name_' : \"").append(name).append("\" })");
 	}
 
 	protected void writeAnonymousClassBody(JavaClassInfo classInfo)
