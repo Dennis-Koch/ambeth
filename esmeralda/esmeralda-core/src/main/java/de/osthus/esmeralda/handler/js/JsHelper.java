@@ -584,11 +584,10 @@ public class JsHelper implements IJsHelper
 				return convertedType;
 			}
 
-			typeName = prefixModification(typeName, context);
-
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
+				typeName = prefixModification(typeName, context);
 				mappedTypeName = new String[] { StringConversionHelper.upperCaseFirst(objectCollector, typeName) };
 			}
 			else
