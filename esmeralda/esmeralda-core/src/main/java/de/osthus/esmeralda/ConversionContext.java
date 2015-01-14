@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.lang.model.element.VariableElement;
+
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -27,13 +29,16 @@ import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
+import de.osthus.esmeralda.handler.uni.expr.SynthVariableElement;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.StatementCount;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.Field;
+import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
+import demo.codeanalyzer.common.model.MethodInfo;
 
 public class ConversionContext implements IConversionContext
 {
@@ -288,19 +293,23 @@ public class ConversionContext implements IConversionContext
 			return null;
 		}
 		String originalFqTypeName = fqTypeName;
-		String[] parsedGenericType = parseGenericType(fqTypeName);
+		String[] parsedGenericType = astHelper.parseGenericType(fqTypeName);
 		if (parsedGenericType.length == 2)
 		{
 			String nonGenericType = parsedGenericType[0];
 			String genericTypeArguments = parsedGenericType[1];
-			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, tryOnly);
+			JavaClassInfo nonGenericClassInfo = resolveClassInfo(nonGenericType, true);
 			if (nonGenericClassInfo == null)
 			{
 				return classInfoResolved(originalFqTypeName, nonGenericClassInfo);
 			}
+			if (nonGenericClassInfo.getFqName().equals(fqTypeName))
+			{
+				return nonGenericClassInfo;
+			}
 			return classInfoResolved(originalFqTypeName, makeGenericClassInfo(nonGenericClassInfo, genericTypeArguments));
 		}
-		if (method != null)
+		if (method != null && method.getPath() != null)
 		{
 			TreePath methodTreePath = method.getPath();
 			for (JCTypeParameter typeParameter : ((JCMethodDecl) methodTreePath.getLeaf()).typarams)
@@ -462,57 +471,6 @@ public class ConversionContext implements IConversionContext
 		return classInfoResolved(originalFqTypeName, classInfo);
 	}
 
-	protected String[] parseGenericType(String fqTypeName)
-	{
-		int genericBracketCounter = 0;
-		int lastBracketOpening = -1;
-		int lastBracketClosing = -1;
-		for (int a = 0, size = fqTypeName.length(); a < size; a++)
-		{
-			char oneChar = fqTypeName.charAt(a);
-			if (oneChar == '<')
-			{
-				if (genericBracketCounter == 0)
-				{
-					lastBracketOpening = a;
-					lastBracketClosing = -1;
-				}
-				genericBracketCounter++;
-				continue;
-			}
-			else if (oneChar == '>')
-			{
-				genericBracketCounter--;
-				if (genericBracketCounter == 0)
-				{
-					lastBracketClosing = a;
-				}
-				continue;
-			}
-			else if (oneChar == '.')
-			{
-				if (genericBracketCounter == 0)
-				{
-					// reset the bracket index
-					lastBracketOpening = -1;
-					lastBracketClosing = -1;
-					continue;
-				}
-			}
-		}
-		if (genericBracketCounter != 0)
-		{
-			throw new IllegalArgumentException(fqTypeName);
-		}
-		if (lastBracketOpening == -1)
-		{
-			return new String[] { fqTypeName };
-		}
-		String nonGenericType = fqTypeName.substring(0, lastBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
-		String genericTypeArguments = fqTypeName.substring(lastBracketOpening + 1, lastBracketClosing);
-		return new String[] { nonGenericType, genericTypeArguments };
-	}
-
 	protected JavaClassInfo makeGenericClassInfoExtendsFrom(JavaClassInfo extendsFromClassInfo, String symbolName)
 	{
 		JavaClassInfo classInfo = new JavaClassInfo(extendsFromClassInfo.context);
@@ -525,7 +483,6 @@ public class ConversionContext implements IConversionContext
 		classInfo.setPublicFlag(extendsFromClassInfo.isPublic());
 		classInfo.setFinalFlag(extendsFromClassInfo.isFinal());
 		classInfo.setNameOfSuperClass(null);
-
 		return classInfo;
 	}
 
@@ -540,7 +497,10 @@ public class ConversionContext implements IConversionContext
 		String[] typeArgumentsSplit = astHelper.splitTypeArgument(genericTypeArguments);
 		JavaClassInfo[] typeArgumentCIs = new JavaClassInfo[typeArgumentsSplit.length];
 		StringBuilder sb = new StringBuilder();
-		sb.append(astHelper.extractNonGenericType(classInfo.getName()));
+		String[] genericTypeOfClassInfo = astHelper.parseGenericType(classInfo.getFqName());
+		String[] typeArgumentsOfClassInfo = genericTypeOfClassInfo.length == 2 ? astHelper.splitTypeArgument(genericTypeOfClassInfo[1]) : null;
+		HashMap<String, String> templateToTypeInstanceMap = new HashMap<String, String>();
+		sb.append(classInfo.getName());
 		boolean first = true;
 		for (int a = typeArgumentsSplit.length; a-- > 0;)
 		{
@@ -578,6 +538,10 @@ public class ConversionContext implements IConversionContext
 				if (!typeArgumentSplit.contains("."))
 				{
 					sb.append(typeArgumentSplit);
+					if (typeArgumentsOfClassInfo != null)
+					{
+						templateToTypeInstanceMap.put(typeArgumentsOfClassInfo[a], typeArgumentSplit);
+					}
 					continue;
 				}
 			}
@@ -587,6 +551,10 @@ public class ConversionContext implements IConversionContext
 			}
 			typeArgumentCIs[a] = typeArgumentCI;
 			sb.append(typeArgumentCI.getFqName());
+			if (typeArgumentsOfClassInfo != null)
+			{
+				templateToTypeInstanceMap.put(typeArgumentsOfClassInfo[a], typeArgumentCI.getFqName());
+			}
 		}
 		if (!first)
 		{
@@ -601,7 +569,8 @@ public class ConversionContext implements IConversionContext
 		genericClassInfo.setProtectedFlag(classInfo.isProtected());
 		genericClassInfo.setPublicFlag(classInfo.isPublic());
 		genericClassInfo.setFinalFlag(classInfo.isFinal());
-		genericClassInfo.setNameOfSuperClass(classInfo.getNameOfSuperClass());
+		genericClassInfo.setNameOfSuperClass(replaceTypeInstances(classInfo.getNameOfSuperClass(), templateToTypeInstanceMap));
+
 		for (String nameOfInterface : classInfo.getNameOfInterfaces())
 		{
 			genericClassInfo.addNameOfInterface(nameOfInterface);
@@ -612,13 +581,117 @@ public class ConversionContext implements IConversionContext
 		}
 		for (Field field : classInfo.getFields())
 		{
-			genericClassInfo.addField(field);
+			genericClassInfo.addField(makeGenericFieldInfo((FieldInfo) field, genericClassInfo, templateToTypeInstanceMap));
 		}
 		for (Method method : classInfo.getMethods())
 		{
-			genericClassInfo.addMethod(method);
+			genericClassInfo.addMethod(makeGenericMethodInfo((MethodInfo) method, genericClassInfo, templateToTypeInstanceMap));
 		}
 		return genericClassInfo;
+	}
+
+	protected Field makeGenericFieldInfo(FieldInfo fieldTemplate, JavaClassInfo classInstance, HashMap<String, String> templateToTypeInstanceMap)
+	{
+		FieldInfo field = new FieldInfo();
+		field.setName(fieldTemplate.getName());
+		field.setAbstractFlag(fieldTemplate.isAbstract());
+		field.setFieldType(replaceTypeInstances(fieldTemplate.getFieldType(), templateToTypeInstanceMap));
+
+		field.setFinalFlag(fieldTemplate.isFinal());
+		field.setLocationInfo(fieldTemplate.getLocationInfo());
+		field.setModuleType(fieldTemplate.getModuleType());
+		field.setNativeFlag(fieldTemplate.isNative());
+		field.setOwningClass(classInstance);
+		field.setPrivateFlag(fieldTemplate.isPrivate());
+		field.setProtectedFlag(fieldTemplate.isProtected());
+		field.setPublicFlag(fieldTemplate.isPublic());
+		field.setStaticFlag(fieldTemplate.isStatic());
+		for (Annotation annotation : fieldTemplate.getAnnotations())
+		{
+			field.addAnnotation(annotation);
+		}
+		return field;
+	}
+
+	protected Method makeGenericMethodInfo(MethodInfo methodTemplate, JavaClassInfo classInstance, HashMap<String, String> templateToTypeInstanceMap)
+	{
+		MethodInfo method = new MethodInfo();
+		method.setName(methodTemplate.getName());
+		method.setAbstractFlag(methodTemplate.isAbstract());
+		method.setFinalFlag(methodTemplate.isFinal());
+		method.setLocationInfo(methodTemplate.getLocationInfo());
+		method.setMethodTree(methodTemplate.getMethodTree());
+		method.setModuleType(methodTemplate.getModuleType());
+		method.setNativeFlag(methodTemplate.isNative());
+		method.setOwningClass(classInstance);
+		method.setPath(methodTemplate.getPath());
+		method.setPrivateFlag(methodTemplate.isPrivate());
+		method.setProtectedFlag(methodTemplate.isProtected());
+		method.setPublicFlag(methodTemplate.isPublic());
+		method.setReturnType(replaceTypeInstances(methodTemplate.getReturnType(), templateToTypeInstanceMap));
+		method.setStaticFlag(methodTemplate.isStatic());
+		for (Annotation annotation : methodTemplate.getAnnotations())
+		{
+			method.addAnnotation(annotation);
+		}
+		for (String exception : methodTemplate.getExceptions())
+		{
+			method.addException(exception);
+		}
+		for (VariableElement parameter : methodTemplate.getParameters())
+		{
+			String parameterTypeName = replaceTypeInstances(parameter.asType().toString(), templateToTypeInstanceMap);
+
+			method.addParameters(new SynthVariableElement(parameter, parameterTypeName));
+		}
+		return method;
+	}
+
+	protected String replaceTypeInstances(String fqTypeName, IMap<String, String> templateToTypeInstanceMap)
+	{
+		if (fqTypeName == null)
+		{
+			return null;
+		}
+		return replaceTypeInstancesIntern(fqTypeName, templateToTypeInstanceMap).toString();
+	}
+
+	protected CharSequence replaceTypeInstancesIntern(String fqTypeName, IMap<String, String> templateToTypeInstanceMap)
+	{
+		String[] parsedFqTypeName = astHelper.parseGenericType(fqTypeName);
+		if (parsedFqTypeName.length == 1)
+		{
+			String typeInstanceName = templateToTypeInstanceMap.get(parsedFqTypeName[0]);
+			if (typeInstanceName != null)
+			{
+				return typeInstanceName;
+			}
+			return parsedFqTypeName[0];
+		}
+		String[] typeArgumentsOfFqTypeName = astHelper.splitTypeArgument(parsedFqTypeName[1]);
+		CharSequence[] replacements = new CharSequence[typeArgumentsOfFqTypeName.length];
+		for (int a = typeArgumentsOfFqTypeName.length; a-- > 0;)
+		{
+			replacements[a] = replaceTypeInstances(typeArgumentsOfFqTypeName[a], templateToTypeInstanceMap);
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(parsedFqTypeName[0]);
+		sb.append('<');
+		boolean firstGenericArgument = true;
+		for (CharSequence replacement : replacements)
+		{
+			if (firstGenericArgument)
+			{
+				firstGenericArgument = false;
+			}
+			else
+			{
+				sb.append(',');
+			}
+			sb.append(replacement);
+		}
+		sb.append('>');
+		return sb;
 	}
 
 	@Override

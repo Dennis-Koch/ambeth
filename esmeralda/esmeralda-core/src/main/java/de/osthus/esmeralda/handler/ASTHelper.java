@@ -79,6 +79,58 @@ public class ASTHelper implements IASTHelper
 	}
 
 	@Override
+	public String[] parseGenericType(String fqTypeName)
+	{
+		int genericBracketCounter = 0;
+		int lastBracketOpening = -1;
+		int lastBracketClosing = -1;
+		for (int a = 0, size = fqTypeName.length(); a < size; a++)
+		{
+			char oneChar = fqTypeName.charAt(a);
+			if (oneChar == '<')
+			{
+				if (genericBracketCounter == 0)
+				{
+					lastBracketOpening = a;
+					lastBracketClosing = -1;
+				}
+				genericBracketCounter++;
+				continue;
+			}
+			else if (oneChar == '>')
+			{
+				genericBracketCounter--;
+				if (genericBracketCounter == 0)
+				{
+					lastBracketClosing = a;
+				}
+				continue;
+			}
+			else if (oneChar == '.')
+			{
+				if (genericBracketCounter == 0)
+				{
+					// reset the bracket index
+					lastBracketOpening = -1;
+					lastBracketClosing = -1;
+					continue;
+				}
+			}
+		}
+		if (genericBracketCounter != 0)
+		{
+			throw new IllegalArgumentException(fqTypeName);
+		}
+		if (lastBracketOpening == -1)
+		{
+			return new String[] { fqTypeName };
+		}
+		String nonGenericType = fqTypeName.substring(0, lastBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
+		String genericTypeArguments = fqTypeName.substring(lastBracketOpening + 1, lastBracketClosing);
+		return new String[] { nonGenericType, genericTypeArguments };
+	}
+
+	@Override
 	public String extractNonGenericType(String typeName)
 	{
 		Matcher paramGenericTypeMatcher = genericTypePattern.matcher(typeName);
@@ -204,6 +256,11 @@ public class ASTHelper implements IASTHelper
 		JavaClassInfo resolvedClassInfo = context.resolveClassInfo(typeName, true);
 		if (resolvedClassInfo != null)
 		{
+			if (parseGenericType(typeName)[0].equals(typeName))
+			{
+				// trim the default generic that may exist
+				return extractNonGenericType(resolvedClassInfo.getFqName());
+			}
 			return resolvedClassInfo.getFqName();
 		}
 		if (context.isGenericTypeSupported())
