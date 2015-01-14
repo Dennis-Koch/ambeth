@@ -12,7 +12,6 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
-import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -316,19 +315,28 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 				{
 					continue;
 				}
-				if (matchParametersByInheritance(argTypes, parameters))
+				Method oldMethod = context.getMethod();
+				context.setMethod(method);
+				try
 				{
-					return method;
+					if (matchParametersByInheritance(argTypes, parameters))
+					{
+						return method;
+					}
+					if (methodWithBoxing != null)
+					{
+						// we already found our auto-box candidate
+						continue;
+					}
+					// we check if the current method might match for auto-boxing
+					if (matchParametersByBoxing(argTypes, parameters))
+					{
+						methodWithBoxing = method;
+					}
 				}
-				if (methodWithBoxing != null)
+				finally
 				{
-					// we already found our auto-box candidate
-					continue;
-				}
-				// we check if the current method might match for auto-boxing
-				if (matchParametersByBoxing(argTypes, parameters))
-				{
-					methodWithBoxing = method;
+					context.setMethod(oldMethod);
 				}
 			}
 			if (methodOnInterface == null)
@@ -357,15 +365,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		{
 			String argType = argTypes[a];
 			TypeMirror parameterType = parameters.get(a).asType();
-			String parameterTypeName;
-			if (parameterType instanceof TypeVar)
-			{
-				parameterTypeName = ((TypeVar) parameterType).getUpperBound().toString();
-			}
-			else
-			{
-				parameterTypeName = parameterType.toString();
-			}
+			String parameterTypeName = parameterType.toString();
 			if (matchParameterByInheritance(argType, parameterTypeName))
 			{
 				continue;
@@ -384,15 +384,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		{
 			String argType = argTypes[a];
 			TypeMirror parameterType = parameters.get(a).asType();
-			String parameterTypeName;
-			if (parameterType instanceof TypeVar)
-			{
-				parameterTypeName = ((TypeVar) parameterType).toString();
-			}
-			else
-			{
-				parameterTypeName = parameterType.toString();
-			}
+			String parameterTypeName = parameterType.toString();
 			if (!matchParameterByInheritance(argType, parameterTypeName))
 			{
 				return false;
@@ -413,25 +405,58 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		return (unboxedArgType != null && parameterTypeName.equals(unboxedArgType));
 	}
 
-	protected boolean matchParameterByInheritance(String argType, String parameterTypeName)
+	protected boolean matchParameterByInheritance(String argTypeName, String parameterTypeName)
 	{
-		String nonGenericParameterTypeName = astHelper.extractNonGenericType(parameterTypeName);
-		while (argType != null)
+		if (parameterTypeName.equals(argTypeName))
 		{
-			if (parameterTypeName.equals(argType) || nonGenericParameterTypeName.equals(argType))
+			// early match
+			return true;
+		}
+		while (argTypeName.endsWith("[]") && parameterTypeName.endsWith("[]"))
+		{
+			// trim the array information if BOTH parameter types are an array
+			argTypeName = argTypeName.substring(0, argTypeName.length() - 2);
+			parameterTypeName = parameterTypeName.substring(0, parameterTypeName.length() - 2);
+		}
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo parameterType = context.resolveClassInfo(parameterTypeName);
+		JavaClassInfo currExtendsFromType = parameterType.getExtendsFrom();
+		while (currExtendsFromType != null)
+		{
+			if (currExtendsFromType.getName().equals(argTypeName) || currExtendsFromType.getFqName().equals(argTypeName))
+			{
+				return true;
+			}
+			currExtendsFromType = currExtendsFromType.getExtendsFrom();
+		}
+		JavaClassInfo argType = context.resolveClassInfo(argTypeName);
+		currExtendsFromType = argType.getExtendsFrom();
+		while (currExtendsFromType != null)
+		{
+			if (currExtendsFromType.getName().equals(parameterTypeName) || currExtendsFromType.getFqName().equals(parameterTypeName))
+			{
+				return true;
+			}
+			currExtendsFromType = currExtendsFromType.getExtendsFrom();
+		}
+		String nonGenericParameterTypeName = astHelper.extractNonGenericType(parameterTypeName);
+
+		while (argTypeName != null)
+		{
+			if (parameterTypeName.equals(argTypeName) || nonGenericParameterTypeName.equals(argTypeName))
 			{
 				return true;
 			}
 			if (parameterTypeName.equals(nonGenericParameterTypeName))
 			{
 				// parameterTypeName is not a generic type. If that is the case we check whether we match against the non generic type of argType
-				String nonGenericArgType = astHelper.extractNonGenericType(argType);
+				String nonGenericArgType = astHelper.extractNonGenericType(argTypeName);
 				if (nonGenericArgType.equals(nonGenericParameterTypeName))
 				{
 					return true;
 				}
 			}
-			JavaClassInfo argClassInfo = context.resolveClassInfo(argType);
+			JavaClassInfo argClassInfo = context.resolveClassInfo(argTypeName);
 			if (argClassInfo == null)
 			{
 				return false;
@@ -443,7 +468,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 					return true;
 				}
 			}
-			argType = argClassInfo.getNameOfSuperClass();
+			argTypeName = argClassInfo.getNameOfSuperClass();
 		}
 		return false;
 	}

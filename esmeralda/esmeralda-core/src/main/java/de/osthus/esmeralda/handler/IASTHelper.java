@@ -26,6 +26,8 @@ public interface IASTHelper
 
 	String[] splitTypeArgument(String typeArguments);
 
+	String[] parseGenericType(String fqTypeName);
+
 	String writeToStash(IBackgroundWorkerDelegate run);
 
 	<R> R writeToStash(IResultingBackgroundWorkerDelegate<R> run);
