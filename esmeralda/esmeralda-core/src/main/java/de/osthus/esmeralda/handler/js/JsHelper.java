@@ -587,6 +587,11 @@ public class JsHelper implements IJsHelper
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
+				genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
+				if (genericTypeMatcher.matches())
+				{
+					typeName = genericTypeMatcher.group(1);
+				}
 				typeName = prefixModification(typeName, context);
 				mappedTypeName = new String[] { StringConversionHelper.upperCaseFirst(objectCollector, typeName) };
 			}
