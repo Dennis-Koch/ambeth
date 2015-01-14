@@ -13,8 +13,8 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
+import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
-import de.osthus.esmeralda.handler.csharp.ICsMethodTransformer;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -26,7 +26,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 	private ILogger log;
 
 	@Autowired
-	protected ICsMethodTransformer methodTransformer;
+	protected IMethodTransformer methodTransformer;
 
 	@Override
 	protected void handleExpressionIntern(JCFieldAccess fieldAccess)
