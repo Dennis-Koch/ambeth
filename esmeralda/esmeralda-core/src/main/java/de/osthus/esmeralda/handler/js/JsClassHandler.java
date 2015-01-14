@@ -347,15 +347,19 @@ public class JsClassHandler implements IJsClassHandler
 	protected boolean writeExtend(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		if (nameOfSuperClass == null || nameOfSuperClass.isEmpty() || Object.class.getName().equals(nameOfSuperClass) || "<none>".equals(nameOfSuperClass))
-		{
-			nameOfSuperClass = "Ambeth.Base";
-		}
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
 		writer.append("extend: '");
-		languageHelper.writeType(nameOfSuperClass);
+		if (nameOfSuperClass == null || nameOfSuperClass.isEmpty() || Object.class.getName().equals(nameOfSuperClass) || "<none>".equals(nameOfSuperClass))
+		{
+			nameOfSuperClass = "Ambeth.Base";
+			languageHelper.writeTypeDirect(nameOfSuperClass);
+		}
+		else
+		{
+			languageHelper.writeType(nameOfSuperClass);
+		}
 		writer.append("'");
 
 		return firstLine;
