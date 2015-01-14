@@ -245,10 +245,8 @@ public class ConversionManager implements IStartingBean
 
 		if (log.isInfoEnabled())
 		{
-			// log.info("Missing methods in CS:");
-			// logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
-			log.info("Missing methods in JS:");
-			logMissingMethods(jsCalledMethods, jsDefinedMethods, jsClasspathManager);
+			// TODO logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
+			logMissingMethods(LANGUAGE_PATH_JS, jsCalledMethods, jsDefinedMethods, jsClasspathManager);
 
 			log.info(csMetric.toString());
 			log.info(jsMetric.toString());
@@ -377,7 +375,8 @@ public class ConversionManager implements IStartingBean
 		fileUtil.updateFile(newFileContent, languageHelper.createTargetFile());
 	}
 
-	protected void logMissingMethods(HashMap<String, Integer> calledMethods, HashSet<String> definedMethods, IClasspathManager classpathManager)
+	protected void logMissingMethods(String languagePath, HashMap<String, Integer> calledMethods, HashSet<String> definedMethods,
+			IClasspathManager classpathManager)
 	{
 		HashMap<String, Integer> missingMethods = new HashMap<>(calledMethods);
 		HashSet<String> existingMethods = new HashSet<>();
@@ -407,7 +406,7 @@ public class ConversionManager implements IStartingBean
 			}
 
 			Integer count = (Integer) fullMethodNameCount[1];
-			log.info(count + "\t" + fullMethodName);
+			todoWriter.write("Missing methods", count + "\t" + fullMethodName, languagePath, false);
 		}
 	}
 }

@@ -111,7 +111,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		{
 			owner = newClass.clazz.toString();
 		}
-		owner = astHelper.resolveFqTypeFromTypeName(owner);
 		JCClassDecl def = newClass.def;
 		if (def == null)
 		{
