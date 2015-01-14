@@ -13,7 +13,9 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.IMethodTransformerExtensionRegistry;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
@@ -25,7 +27,7 @@ import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class MethodTransformer implements ICsMethodTransformer
+public class MethodTransformer implements IMethodTransformer
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -39,9 +41,6 @@ public class MethodTransformer implements ICsMethodTransformer
 
 	@Autowired
 	protected IMethodTransformerExtension defaultMethodTransformerExtension;
-
-	@Autowired
-	protected ICsHelper languageHelper;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -147,6 +146,8 @@ public class MethodTransformer implements ICsMethodTransformer
 			@Override
 			public void invoke() throws Throwable
 			{
+				IConversionContext context = MethodTransformer.this.context.getCurrent();
+				ILanguageHelper languageHelper = context.getLanguageHelper();
 				for (int a = 0, size = parameterTypes.size(); a < size; a++)
 				{
 					JCExpression arg = parameterTypes.get(a);

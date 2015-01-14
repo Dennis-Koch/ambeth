@@ -33,6 +33,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.ITransformedMethod;
@@ -59,7 +60,7 @@ public class CsMethodHandler implements ICsMethodHandler
 	protected ICsHelper languageHelper;
 
 	@Autowired
-	protected ICsMethodTransformer methodTransformer;
+	protected IMethodTransformer methodTransformer;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -159,6 +160,10 @@ public class CsMethodHandler implements ICsMethodHandler
 					if (typeParamsOfParameter instanceof WildcardType)
 					{
 						continue;
+					}
+					if (!(typeParamsOfParameter instanceof TypeVar))
+					{
+						System.out.println();
 					}
 					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
 				}
