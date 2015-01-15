@@ -3,20 +3,17 @@ package de.osthus.esmeralda.handler.js;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.lang.model.element.VariableElement;
-
 import com.sun.source.tree.ExpressionTree;
-import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -26,7 +23,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IVariable;
-import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
@@ -63,9 +59,6 @@ public class JsClassHandler implements IJsClassHandler
 
 	@Autowired(value = IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
-
-	@Autowired
-	protected IToDoWriter toDoWriter;
 
 	@Override
 	public IJsHelper getLanguageHelper()
@@ -160,7 +153,7 @@ public class JsClassHandler implements IJsClassHandler
 		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
 		for (Method method : methods)
 		{
-			if (method.isConstructor() || (method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
+			if ((method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
 			{
 				continue;
 			}
@@ -652,11 +645,6 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (Method method : nonStaticMethods)
 		{
-			if (method.isConstructor())
-			{
-				continue;
-			}
-
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
@@ -669,7 +657,7 @@ public class JsClassHandler implements IJsClassHandler
 	protected boolean writeOverloadHubMethods(JavaClassInfo classInfo, boolean staticOnly, boolean firstLine)
 	{
 		IConversionContext context = this.context.getCurrent();
-		IWriter writer = context.getWriter();
+		final IWriter writer = context.getWriter();
 
 		IJsOverloadManager overloadManager = staticOnly ? overloadManagerStatic : overloadManagerNonStatic;
 		HashMap<String, ArrayList<Method>> overloadedMethods = overloadManager.getOverloadedMethods(classInfo.getFqName());
@@ -681,7 +669,9 @@ public class JsClassHandler implements IJsClassHandler
 			String methodName = entry.getKey();
 			ArrayList<Method> methods = entry.getValue();
 
-			final ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
+			String returnType = findReturnType(methods);
+
+			Method firstMethod = methods.get(0);
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 
@@ -691,143 +681,53 @@ public class JsClassHandler implements IJsClassHandler
 			writer.append("Hub for overloaded method '").append(methodName).append("()'.");
 			languageHelper.newLineIndentDocumentation();
 			writer.append("@param {JSON} parameters");
-			String returnType = methods.get(0).getReturnType();
-			if (!"void".equals(returnType))
-			{
-				String convertedType = languageHelper.convertType(returnType, false);
-				languageHelper.newLineIndentDocumentation();
-				writer.append("@return {").append(convertedType).append("}");
-			}
+			languageHelper.newLineIndentDocumentation();
+			writer.append("@return {");
+			languageHelper.writeType(returnType);
+			writer.append("}");
 			languageHelper.endDocumentation();
 
 			// Signature
+			final String signatureMethodName = firstMethod.isConstructor() ? "constructor" : firstMethod.getName();
 			languageHelper.newLineIndent();
-			writer.append(methodName).append(": function(parameters)");
+			writer.append(signatureMethodName).append(": function(parameters)");
 			languageHelper.preBlockWhiteSpaces();
 
 			// Body
-			writeOverloadHubMethodBody(methodBuckets);
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					languageHelper.newLineIndent();
+					writer.append("return Ambeth.util.OverloadUtil.handle(this, this.m$f_").append(signatureMethodName).append(".overloads, parameters);");
+				}
+			});
+
+			languageHelper.writeMetadata(signatureMethodName, returnType, methods);
 		}
 
 		return firstLine;
 	}
 
-	protected void writeOverloadHubMethodBody(final ArrayList<Method>[] methodBuckets)
+	private String findReturnType(ArrayList<Method> methods)
 	{
-		final IConversionContext context = this.context.getCurrent();
-		final IWriter writer = context.getWriter();
-
-		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-		{
-			@Override
-			public void invoke() throws Throwable
-			{
-				boolean ambiguousParameterNames = false;
-
-				languageHelper.newLineIndent();
-				writer.append("var methods = [");
-				boolean firstBucket = true;
-				context.incrementIndentationLevel();
-				for (int i = 0, length = methodBuckets.length; i < length; i++)
-				{
-					final ArrayList<Method> bucket = methodBuckets[i];
-					if (bucket == null)
-					{
-						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-						languageHelper.newLineIndent();
-						writer.append("null");
-					}
-					else
-					{
-						HashMap<String, Method> paramNamesMaps = new HashMap<>();
-
-						boolean singleMethod = bucket.size() == 1;
-						firstBucket = languageHelper.writeStringIfFalse(",", firstBucket);
-						languageHelper.newLineIndent();
-						writer.append("[");
-						boolean firstMethod = true;
-						context.incrementIndentationLevel();
-						for (Method method : bucket)
-						{
-							String[] paramNames = new String[i];
-
-							String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(method.getParameters());
-							firstMethod = languageHelper.writeStringIfFalse(",", firstMethod);
-							languageHelper.newLineIndentIfFalse(singleMethod);
-							writer.append("{ 'method': this.").append(method.getName()).append(methodNamePostfix);
-							if (!singleMethod)
-							{
-								writer.append(", 'paramNames': [");
-								IList<VariableElement> parameters = method.getParameters();
-								boolean firstParam = true;
-								for (int j = 0, jLength = parameters.size(); j < jLength; j++)
-								{
-									VariableElement param = parameters.get(j);
-									firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
-									VarSymbol var = (VarSymbol) param;
-									String paramName = var.name.toString();
-									writer.append('"').append(paramName).append('"');
-									paramNames[j] = paramName;
-								}
-								writer.append(']');
-
-								if (!ambiguousParameterNames)
-								{
-									Arrays.sort(paramNames);
-									Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
-									if (existing != null)
-									{
-										ambiguousParameterNames = true;
-										StringBuilder sb = new StringBuilder();
-										sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName())
-												.append("()");
-										toDoWriter.write("Ambiguous parameter names", sb.toString());
-									}
-								}
-							}
-							writer.append(" }");
-						}
-						context.decrementIndentationLevel();
-						languageHelper.newLineIndentIfFalse(singleMethod);
-						writer.append(']');
-					}
-				}
-				context.decrementIndentationLevel();
-				languageHelper.newLineIndent();
-				writer.append("];");
-				languageHelper.newLineIndent();
-				writer.append("Ambeth.util.OverloadUtil.handle(this, methods, parameters);");
-			}
-		});
-	}
-
-	protected ArrayList<Method>[] bucketSortMethods(ArrayList<Method> methods)
-	{
-		int maxParams = 0;
+		HashSet<String> returnTypes = new HashSet<>();
 		for (Method method : methods)
 		{
-			int size = method.getParameters().size();
-			if (size > maxParams)
-			{
-				maxParams = size;
-			}
+			String returnType = method.getReturnType();
+			returnTypes.add(returnType);
 		}
-
-		@SuppressWarnings("unchecked")
-		ArrayList<Method>[] methodBuckets = new ArrayList[maxParams + 1];
-		for (Method method : methods)
+		if (returnTypes.size() == 1)
 		{
-			int size = method.getParameters().size();
-			ArrayList<Method> bucket = methodBuckets[size];
-			if (bucket == null)
-			{
-				bucket = new ArrayList<Method>();
-				methodBuckets[size] = bucket;
-			}
-			bucket.add(method);
+			return returnTypes.iterator(false).next();
 		}
-
-		return methodBuckets;
+		returnTypes.remove("void");
+		if (returnTypes.size() == 1)
+		{
+			return returnTypes.iterator(false).next();
+		}
+		return "java.lang.Object";
 	}
 
 	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, JavaClassInfo classInfo, final IWriter writer)

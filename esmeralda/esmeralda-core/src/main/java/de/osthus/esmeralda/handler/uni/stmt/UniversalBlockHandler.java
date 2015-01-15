@@ -17,6 +17,7 @@ import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.StatementCount;
+import de.osthus.esmeralda.snippet.CreateSnippetTrigger;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 
 public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>
@@ -85,7 +86,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 
 						context.getWriter().append(statementString);
 					}
-					catch (TypeResolveException e)
+					catch (CreateSnippetTrigger | TypeResolveException e)
 					{
 						log.warn(e);
 						addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
