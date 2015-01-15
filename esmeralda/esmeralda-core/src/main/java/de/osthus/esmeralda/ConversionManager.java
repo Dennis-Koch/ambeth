@@ -30,13 +30,11 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
-import de.osthus.esmeralda.handler.csharp.CsSpecific;
 import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
 import de.osthus.esmeralda.handler.js.IJsClassHandler;
 import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsHelper;
-import de.osthus.esmeralda.handler.js.JsSpecific;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -170,8 +168,6 @@ public class ConversionManager implements IStartingBean
 			}
 		}
 
-		ILanguageSpecific csSpecific = new CsSpecific();
-		ILanguageSpecific jsSpecific = new JsSpecific();
 		StatementCount csMetric = new StatementCount("C#");
 		StatementCount jsMetric = new StatementCount("JS");
 		HashMap<String, Integer> csCalledMethods = new HashMap<>();
@@ -195,62 +191,59 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			ConversionContext csContext = new ConversionContext();
-			csContext.setLanguageSpecific(csSpecific);
-			csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
-			csContext.setLanguage(Lang.C_SHARP);
-			csContext.setSnippetPath(snippetPath);
-			csContext.setTargetPath(targetPath);
-			csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
-			csContext.setGenericTypeSupported(true);
-			csContext.setMetric(csMetric);
-			csContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
+			ConversionContext csContext = createDefaultCsContext(fqNameToClassInfoMap, csMetric, csCalledMethods, csDefinedMethods);
 			csContext.setClassInfo(classInfo);
-			csContext.setAstHelper(astHelper);
-			csContext.setClassInfoFactory(classInfoFactory);
-			csContext.setLanguageHelper(csHelper);
-			csContext.setCalledMethods(csCalledMethods);
-			csContext.setDefinedMethods(csDefinedMethods);
-
 			invokeClassHandler(csClassHandler, csContext);
 
-			ConversionContext jsContext = new ConversionContext();
-			jsContext.setLanguageSpecific(jsSpecific);
-			jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
-			jsContext.setLanguage(Lang.JS);
-			jsContext.setSnippetPath(snippetPath);
-			jsContext.setTargetPath(targetPath);
-			jsContext.setLanguagePath(LANGUAGE_PATH_JS);
-			jsContext.setGenericTypeSupported(false);
-			jsContext.setMetric(jsMetric);
-			jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
+			ConversionContext jsContext = createDefaultJsContext(fqNameToClassInfoMap, jsMetric, jsCalledMethods, jsDefinedMethods);
 			jsContext.setClassInfo(classInfo);
-			jsContext.setAstHelper(astHelper);
-			jsContext.setClassInfoFactory(classInfoFactory);
-			jsContext.setLanguageHelper(jsHelper);
-			jsContext.setCalledMethods(jsCalledMethods);
-			jsContext.setDefinedMethods(jsDefinedMethods);
-
 			invokeClassHandler(jsClassHandler, jsContext);
 
 			classInfoProgress++;
-			if (System.currentTimeMillis() - lastLog < 5000)
-			{
-				continue;
-			}
-			log.info("Handled " + ((int) ((classInfoProgress * 10000) / (double) classInfoCount)) / 100.0 + "% of java source. Last conversion '"
-					+ classInfo.toString() + "'");
-			lastLog = System.currentTimeMillis();
+			lastLog = logProgress(classInfoProgress, classInfoCount, lastLog, classInfo);
 		}
 
-		if (log.isInfoEnabled())
-		{
-			// TODO logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
-			logMissingMethods(LANGUAGE_PATH_JS, jsCalledMethods, jsDefinedMethods, jsClasspathManager);
+		logMetric(csMetric, jsMetric, jsCalledMethods, jsDefinedMethods);
+	}
 
-			log.info(csMetric.toString());
-			log.info(jsMetric.toString());
-		}
+	protected ConversionContext createDefaultCsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap, StatementCount csMetric,
+			HashMap<String, Integer> csCalledMethods, HashSet<String> csDefinedMethods)
+	{
+		ConversionContext csContext = new ConversionContext();
+		csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+		csContext.setLanguage(Lang.C_SHARP);
+		csContext.setSnippetPath(snippetPath);
+		csContext.setTargetPath(targetPath);
+		csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
+		csContext.setGenericTypeSupported(true);
+		csContext.setMetric(csMetric);
+		csContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
+		csContext.setAstHelper(astHelper);
+		csContext.setClassInfoFactory(classInfoFactory);
+		csContext.setLanguageHelper(csHelper);
+		csContext.setCalledMethods(csCalledMethods);
+		csContext.setDefinedMethods(csDefinedMethods);
+		return csContext;
+	}
+
+	protected ConversionContext createDefaultJsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap, StatementCount jsMetric,
+			HashMap<String, Integer> jsCalledMethods, HashSet<String> jsDefinedMethods)
+	{
+		ConversionContext jsContext = new ConversionContext();
+		jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
+		jsContext.setLanguage(Lang.JS);
+		jsContext.setSnippetPath(snippetPath);
+		jsContext.setTargetPath(targetPath);
+		jsContext.setLanguagePath(LANGUAGE_PATH_JS);
+		jsContext.setGenericTypeSupported(false);
+		jsContext.setMetric(jsMetric);
+		jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
+		jsContext.setAstHelper(astHelper);
+		jsContext.setClassInfoFactory(classInfoFactory);
+		jsContext.setLanguageHelper(jsHelper);
+		jsContext.setCalledMethods(jsCalledMethods);
+		jsContext.setDefinedMethods(jsDefinedMethods);
+		return jsContext;
 	}
 
 	protected void invokeClassHandler(IClassHandler classHandler, IConversionContext newContext)
@@ -407,6 +400,30 @@ public class ConversionManager implements IStartingBean
 
 			Integer count = (Integer) fullMethodNameCount[1];
 			todoWriter.write("Missing methods", count + "\t" + fullMethodName, languagePath, false);
+		}
+	}
+
+	protected long logProgress(int classInfoProgress, int classInfoCount, long lastLog, JavaClassInfo classInfo)
+	{
+		if (System.currentTimeMillis() - lastLog < 5000)
+		{
+			return lastLog;
+		}
+		log.info("Handled " + ((int) ((classInfoProgress * 10000) / (double) classInfoCount)) / 100.0 + "% of java source. Last conversion '"
+				+ classInfo.toString() + "'");
+		lastLog = System.currentTimeMillis();
+		return lastLog;
+	}
+
+	protected void logMetric(StatementCount csMetric, StatementCount jsMetric, HashMap<String, Integer> jsCalledMethods, HashSet<String> jsDefinedMethods)
+	{
+		if (log.isInfoEnabled())
+		{
+			// TODO logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
+			logMissingMethods(LANGUAGE_PATH_JS, jsCalledMethods, jsDefinedMethods, jsClasspathManager);
+
+			log.info(csMetric.toString());
+			log.info(jsMetric.toString());
 		}
 	}
 }

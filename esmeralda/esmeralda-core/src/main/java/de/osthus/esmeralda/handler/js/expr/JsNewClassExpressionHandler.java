@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.js.expr;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -7,6 +8,10 @@ import java.util.regex.Pattern;
 import com.sun.source.tree.StatementTree;
 import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -17,6 +22,7 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
@@ -31,6 +37,7 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
+	private static final String MethodSymbol = null;
 
 	public static final String getFqNameFromAnonymousName(String fqName)
 	{
@@ -104,7 +111,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
-		List<JCExpression> arguments = newClass.args;
 		// the type can be null in the case of the internal constructor of enums
 		String owner = newClass.type != null ? newClass.type.toString() : null;
 		if (owner == null || "<any>".equals(owner))
@@ -117,16 +123,17 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 			writer.append("Ext.create('");
 			languageHelper.writeType(owner);
 			writer.append('\'');
+			List<JCExpression> arguments = newClass.args;
 			if (!arguments.isEmpty())
 			{
+				Iterator<String> paramNames = extractParamNames(newClass);
 				writer.append(", { ");
 				boolean firstParameter = true;
-				int argNo = 0;
 				for (JCExpression argument : arguments)
 				{
 					firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-					// FIXME Search config names in constructor decl.
-					writer.append("argument_").append(Integer.toString(argNo++)).append(" : ");
+					String paramName = paramNames.next();
+					writer.append('\'').append(paramName).append("' : ");
 					languageHelper.writeExpressionTree(argument);
 				}
 				writer.append(" }");
@@ -142,6 +149,39 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		}
 		// this is an anonymous class instantiation
 		writeAnonymousInstantiation(owner, def);
+	}
+
+	// FIXME es muss unterschieden werden, ob die Namen verfügbar sind. Anderenfalls müssen wir uns noch was einfallen lassen.
+	protected Iterator<String> extractParamNames(JCNewClass newClass)
+	{
+		MethodSymbol constructor = (MethodSymbol) newClass.constructor;
+		ArrayList<String> paramNames = new ArrayList<>();
+		if (constructor != null && constructor.params != null)
+		{
+			for (VarSymbol param : constructor.params)
+			{
+				paramNames.add(param.name.toString());
+			}
+		}
+		else if (constructor != null && constructor.type != null)
+		{
+			for (Type param : ((MethodType) constructor.type).argtypes)
+			{
+				paramNames.add(param.toString());
+			}
+		}
+		else
+		{
+			if (log.isWarnEnabled())
+			{
+				log.warn("Guessing parameter names for " + newClass.toString());
+			}
+			for (int i = 0, length = newClass.args.length(); i < length; i++)
+			{
+				paramNames.add("argument_" + i);
+			}
+		}
+		return paramNames.iterator();
 	}
 
 	protected void writeAnonymousInstantiation(String owner, JCClassDecl def)

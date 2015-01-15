@@ -11,9 +11,10 @@ public class TestService1 extends BaseClass implements ITestInterface
 {
 	private static final String WORLD = "World";
 
-	public static void staticTestMethod()
+	public static String staticTestMethod()
 	{
 		staticTestMethod("world");
+		return "";
 	}
 
 	public static void staticTestMethod(String name)
@@ -28,6 +29,16 @@ public class TestService1 extends BaseClass implements ITestInterface
 	protected int magicNumber = 42;
 
 	protected String magicString = magicNumber + "";
+
+	public TestService1()
+	{
+		new Object();
+	}
+
+	public TestService1(int magicNumber)
+	{
+		this.magicNumber = magicNumber;
+	}
 
 	@Override
 	public void testMethod1()

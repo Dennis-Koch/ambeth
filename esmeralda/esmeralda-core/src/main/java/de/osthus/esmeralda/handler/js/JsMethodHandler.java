@@ -57,14 +57,32 @@ public class JsMethodHandler implements IJsMethodHandler
 
 		Method method = context.getMethod();
 
-		IList<VariableElement> parameters = writeDocumentation(method, writer);
+		IJsOverloadManager overloadManager = method.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
+
+		boolean isConstructor = method.isConstructor();
+		boolean hasOverloads = overloadManager.hasOverloads(method);
+
+		IList<VariableElement> parameters = method.getParameters();
+
+		if (isConstructor && !hasOverloads && parameters.isEmpty())
+		{
+			// Do not write the empty default constructor if not needed.
+			return;
+		}
+
+		writeDocumentation(method, writer);
 
 		String methodName = method.getName();
 
-		IJsOverloadManager overloadManager = method.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
-
 		languageHelper.newLineIndent();
-		writer.append(methodName);
+		if (!method.isConstructor())
+		{
+			writer.append(methodName);
+		}
+		else
+		{
+			writer.append("constructor");
+		}
 		if (overloadManager.hasOverloads(method))
 		{
 			// Add parameter type names to function name
@@ -138,9 +156,14 @@ public class JsMethodHandler implements IJsMethodHandler
 		{
 			context.setSnippetManager(null);
 		}
+
+		if (!hasOverloads)
+		{
+			languageHelper.writeMetadata(method);
+		}
 	}
 
-	private IList<VariableElement> writeDocumentation(Method method, final IWriter writer)
+	protected void writeDocumentation(Method method, final IWriter writer)
 	{
 		languageHelper.startDocumentation();
 		boolean hasContent = false;
@@ -175,6 +198,5 @@ public class JsMethodHandler implements IJsMethodHandler
 			languageHelper.newLineIndentDocumentation();
 		}
 		languageHelper.endDocumentation();
-		return parameters;
 	}
 }
