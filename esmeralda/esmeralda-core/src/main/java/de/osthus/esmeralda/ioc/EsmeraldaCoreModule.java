@@ -40,6 +40,7 @@ import de.osthus.esmeralda.handler.csharp.expr.NewClassExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.TypeCastExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsAssertHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsEnhancedForHandler;
+import de.osthus.esmeralda.handler.csharp.stmt.CsReturnHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsSynchronizedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
@@ -65,6 +66,7 @@ import de.osthus.esmeralda.handler.js.expr.JsNewClassExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsTypeCastExpressionHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsAssertHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsEnhancedForHandler;
+import de.osthus.esmeralda.handler.js.stmt.JsReturnHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsSynchronizedHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsThrowHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsTryHandler;
@@ -85,7 +87,6 @@ import de.osthus.esmeralda.handler.uni.stmt.UniversalExpressionHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalForHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalIfHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalLabeledStatementHandler;
-import de.osthus.esmeralda.handler.uni.stmt.UniversalReturnHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSkipHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSwitchHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalWhileHandler;
@@ -159,13 +160,13 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		registerStatementHandler(beanContextFactory, UniversalForHandler.class, Kind.FOR_LOOP);
 		registerStatementHandler(beanContextFactory, UniversalIfHandler.class, Kind.IF);
 		registerStatementHandler(beanContextFactory, UniversalLabeledStatementHandler.class, Kind.LABELED_STATEMENT);
-		registerStatementHandler(beanContextFactory, UniversalReturnHandler.class, Kind.RETURN);
 		registerStatementHandler(beanContextFactory, UniversalSkipHandler.class, Kind.EMPTY_STATEMENT);
 		registerStatementHandler(beanContextFactory, UniversalSwitchHandler.class, Kind.SWITCH);
 		registerStatementHandler(beanContextFactory, UniversalWhileHandler.class, Kind.WHILE_LOOP);
 
 		registerStatementHandler(beanContextFactory, CsAssertHandler.class, Lang.C_SHARP, Kind.ASSERT);
 		registerStatementHandler(beanContextFactory, CsEnhancedForHandler.class, Lang.C_SHARP, Kind.ENHANCED_FOR_LOOP);
+		registerStatementHandler(beanContextFactory, CsReturnHandler.class, Lang.C_SHARP, Kind.RETURN);
 		registerStatementHandler(beanContextFactory, CsThrowHandler.class, Lang.C_SHARP, Kind.THROW);
 		registerStatementHandler(beanContextFactory, CsTryHandler.class, Lang.C_SHARP, Kind.TRY);
 		registerStatementHandler(beanContextFactory, CsVariableHandler.class, Lang.C_SHARP, Kind.VARIABLE);
@@ -173,6 +174,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 
 		registerStatementHandler(beanContextFactory, JsAssertHandler.class, Lang.JS, Kind.ASSERT);
 		registerStatementHandler(beanContextFactory, JsEnhancedForHandler.class, Lang.JS, Kind.ENHANCED_FOR_LOOP);
+		registerStatementHandler(beanContextFactory, JsReturnHandler.class, Lang.JS, Kind.RETURN);
 		registerStatementHandler(beanContextFactory, JsThrowHandler.class, Lang.JS, Kind.THROW);
 		registerStatementHandler(beanContextFactory, JsTryHandler.class, Lang.JS, Kind.TRY);
 		registerStatementHandler(beanContextFactory, JsVariableHandler.class, Lang.JS, Kind.VARIABLE);

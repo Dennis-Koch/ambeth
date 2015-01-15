@@ -59,16 +59,9 @@ public class JsMethodHandler implements IJsMethodHandler
 
 		IJsOverloadManager overloadManager = method.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
 
-		boolean isConstructor = method.isConstructor();
 		boolean hasOverloads = overloadManager.hasOverloads(method);
 
 		IList<VariableElement> parameters = method.getParameters();
-
-		if (isConstructor && !hasOverloads && parameters.isEmpty())
-		{
-			// Do not write the empty default constructor if not needed.
-			return;
-		}
 
 		writeDocumentation(method, writer);
 
@@ -83,7 +76,7 @@ public class JsMethodHandler implements IJsMethodHandler
 		{
 			writer.append("constructor");
 		}
-		if (overloadManager.hasOverloads(method))
+		if (hasOverloads)
 		{
 			// Add parameter type names to function name
 			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);

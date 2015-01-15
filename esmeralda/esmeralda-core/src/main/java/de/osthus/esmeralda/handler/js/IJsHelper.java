@@ -17,8 +17,6 @@ public interface IJsHelper extends ILanguageHelper
 
 	void writeMetadata(BaseJavaClassModel model);
 
-	void writeMetadata(BaseJavaClassModel model, String access);
-
 	/**
 	 * Writes the meta data for overload hub methods.
 	 * 
