@@ -378,12 +378,6 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void writeMetadata(BaseJavaClassModel model)
 	{
-		writeMetadata(model, null);
-	}
-
-	@Override
-	public void writeMetadata(BaseJavaClassModel model, String access)
-	{
 		if (!(model instanceof FieldInfo) && !(model instanceof MethodInfo))
 		{
 			return;
@@ -400,10 +394,7 @@ public class JsHelper implements IJsHelper
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
 		writeMetadataType(type, writer);
 
-		if (access != null)
-		{
-			writer.append(", \"access\": \"").append(access).append('"');
-		}
+		// writer.append(", \"modifier\": \"").append(access).append('"');
 
 		writeAnnotations(model);
 

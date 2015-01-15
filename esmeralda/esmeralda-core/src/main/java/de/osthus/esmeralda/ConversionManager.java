@@ -183,6 +183,12 @@ public class ConversionManager implements IStartingBean
 
 		for (JavaClassInfo classInfo : classInfos)
 		{
+			// JH for debugging just one class conversion
+			// if (!"AbstractAccessor".equals(classInfo.getName()))
+			// {
+			// continue;
+			// }
+
 			String packageName = classInfo.getPackageName();
 			if (packageName == null)
 			{

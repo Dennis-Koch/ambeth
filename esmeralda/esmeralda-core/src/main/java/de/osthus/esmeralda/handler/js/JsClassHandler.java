@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import javax.lang.model.element.VariableElement;
+
 import com.sun.source.tree.ExpressionTree;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
@@ -645,6 +647,15 @@ public class JsClassHandler implements IJsClassHandler
 
 		for (Method method : nonStaticMethods)
 		{
+			boolean hasConstructor = method.isConstructor();
+			boolean hasOverloads = overloadManagerNonStatic.hasOverloads(method);
+			IList<VariableElement> parameters = method.getParameters();
+			if (hasConstructor && !hasOverloads && parameters.isEmpty())
+			{
+				// Do not write the empty default constructor if not needed.
+				continue;
+			}
+
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
 			methodHandler.handle();
@@ -710,7 +721,7 @@ public class JsClassHandler implements IJsClassHandler
 		return firstLine;
 	}
 
-	private String findReturnType(ArrayList<Method> methods)
+	protected String findReturnType(ArrayList<Method> methods)
 	{
 		HashSet<String> returnTypes = new HashSet<>();
 		for (Method method : methods)

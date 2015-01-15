@@ -120,9 +120,9 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		JCClassDecl def = newClass.def;
 		if (def == null)
 		{
-			writer.append("Ext.create('");
+			writer.append("Ext.create(\"");
 			languageHelper.writeType(owner);
-			writer.append('\'');
+			writer.append('"');
 			List<JCExpression> arguments = newClass.args;
 			if (!arguments.isEmpty())
 			{
@@ -133,7 +133,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 				{
 					firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
 					String paramName = paramNames.next();
-					writer.append('\'').append(paramName).append("' : ");
+					writer.append('"').append(paramName).append("\" : ");
 					languageHelper.writeExpressionTree(argument);
 				}
 				writer.append(" }");
@@ -193,14 +193,14 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		owner = JsNewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
 
-		writer.append("Ext.create('");
+		writer.append("Ext.create(\"");
 		languageHelper.writeType(owner);
-		writer.append("', { ");
+		writer.append("\", { ");
 		boolean firstParameter = true;
 		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
 		{
 			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			writer.append(usedVariable.getName()).append(" : ").append(usedVariable.getName());
+			writer.append('"').append(usedVariable.getName()).append("\" : \"").append(usedVariable.getName()).append('"');
 		}
 		writer.append(" })");
 		context.setTypeOnStack(owner);
