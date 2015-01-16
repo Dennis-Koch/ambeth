@@ -268,9 +268,9 @@ public class ConversionManager implements IStartingBean
 		context.setCalledMethods(defaultContext.getCalledMethods());
 		context.setDefinedMethods(defaultContext.getDefinedMethods());
 		context.setFqNameToClassInfoMap(defaultContext.getFqNameToClassInfoMap());
+		context.setLanguageHelper(defaultContext.getLanguageHelper());
 		context.setAstHelper(astHelper);
 		context.setClassInfoFactory(classInfoFactory);
-		context.setLanguageHelper(csHelper);
 
 		return context;
 	}

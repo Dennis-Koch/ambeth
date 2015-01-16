@@ -27,21 +27,26 @@ public class JsVariableHandler extends AbstractJsStatementHandler<JCVariableDecl
 		HashSet<String> methodScopeVars = ((JsSpecific) context.getLanguageSpecific()).getMethodScopeVars();
 
 		String name = variableStatement.getName().toString();
-		boolean newDefinition = methodScopeVars.add(name);
+		// #1: Removed for the moment. This can be used when var definitions are moved to the top of a method
+		// boolean newDefinition = methodScopeVars.add(name);
+		methodScopeVars.add(name);
 
 		JCExpression initializer = variableStatement.getInitializer();
 
-		if (!newDefinition && initializer == null)
-		{
-			return;
-		}
+		// see #1
+		// if (!newDefinition && initializer == null)
+		// {
+		// return;
+		// }
 
 		if (standalone)
 		{
 			languageHelper.newLineIndent();
 		}
 
-		languageHelper.writeStringIfFalse("var ", !newDefinition);
+		// see #1
+		// languageHelper.writeStringIfFalse("var ", !newDefinition);
+		writer.append("var ");
 		languageHelper.writeVariableName(name);
 
 		if (initializer != null)
