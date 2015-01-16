@@ -317,7 +317,7 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeAsType(String typeName)
+	public void writeAsTypeOf(String typeName)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -641,12 +641,19 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		varName = convertVariableName(varName);
+
+		writer.append(varName);
+	}
+
+	@Override
+	public String convertVariableName(String varName)
+	{
 		if (RESERVED_WORDS.contains(varName))
 		{
 			varName += "_";
 		}
-
-		writer.append(varName);
+		return varName;
 	}
 
 	@Override
