@@ -19,7 +19,7 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 		String methodName = methodKey.getMethodName();
 		if ("super".equals(methodName))
 		{
-			methodName = "base";
+			methodName = "super";
 		}
 		else if ("this".equals(methodName))
 		{

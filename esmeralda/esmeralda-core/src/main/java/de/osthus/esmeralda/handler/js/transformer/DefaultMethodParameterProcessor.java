@@ -35,10 +35,10 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	@Autowired
 	protected IJsHelper languageHelper;
 
-	@Autowired(value = IJsOverloadManager.STATIC)
+	@Autowired(IJsOverloadManager.STATIC)
 	protected IJsOverloadManager overloadManagerStatic;
 
-	@Autowired(value = IJsOverloadManager.NON_STATIC)
+	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
 
 	@Override
