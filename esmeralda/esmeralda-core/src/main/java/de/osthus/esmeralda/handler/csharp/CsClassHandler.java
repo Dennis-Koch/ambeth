@@ -16,6 +16,9 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.TypeUsing;
+import de.osthus.esmeralda.handler.IClassHandler;
+import de.osthus.esmeralda.handler.IFieldHandler;
+import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IWriter;
@@ -23,7 +26,7 @@ import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsClassHandler implements ICsClassHandler
+public class CsClassHandler implements IClassHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -41,11 +44,11 @@ public class CsClassHandler implements ICsClassHandler
 	@Autowired
 	protected ICsHelper languageHelper;
 
-	@Autowired
-	protected ICsFieldHandler fieldHandler;
+	@Autowired("csFieldHandler")
+	protected IFieldHandler fieldHandler;
 
-	@Autowired
-	protected ICsMethodHandler methodHandler;
+	@Autowired("csMethodHandler")
+	protected IMethodHandler methodHandler;
 
 	@Override
 	public void handle()

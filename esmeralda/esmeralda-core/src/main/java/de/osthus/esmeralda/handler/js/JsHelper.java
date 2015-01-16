@@ -322,7 +322,7 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		writer.append("Ambeth.type('");
+		writer.append("Ambeth.forName('");
 		writeTypeIntern(typeName, false);
 		writer.append("')");
 	}
@@ -387,9 +387,10 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		String prefix = model instanceof FieldInfo ? "m$p_" : "m$f_";
+		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append(prefix).append(model.getName()).append(": {");
+		writer.append(prefix).append(name).append(": {");
 
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
 		writeMetadataType(type, writer);
@@ -411,7 +412,7 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append("m$f_").append(methodName).append(": {\"type\": \"").append(returnType).append("\", \"overloads\" = [");
+		writer.append("m$f_").append(methodName).append(": {\"type\": \"").append(returnType).append("\", \"overloads\": [");
 
 		ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
 
@@ -449,26 +450,29 @@ public class JsHelper implements IJsHelper
 					writer.append(", ");
 					writeMetadataType(method.getReturnType(), writer);
 
-					writer.append(", \"paramTypes\": [");
 					IList<VariableElement> parameters = method.getParameters();
-					boolean firstParam = true;
-					for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+					if (!parameters.isEmpty())
 					{
-						VariableElement param = parameters.get(j);
-						firstParam = writeStringIfFalse(", ", firstParam);
-						VarSymbol var = (VarSymbol) param;
-						String paramType = var.type.toString();
-						writer.append('"');
-						writeType(paramType);
-						writer.append('"');
-						paramNames[j] = paramType;
+						writer.append(", \"paramTypes\": [");
+						boolean firstParam = true;
+						for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+						{
+							VariableElement param = parameters.get(j);
+							firstParam = writeStringIfFalse(", ", firstParam);
+							VarSymbol var = (VarSymbol) param;
+							String paramType = var.type.toString();
+							writer.append('"');
+							writeType(paramType);
+							writer.append('"');
+							paramNames[j] = paramType;
+						}
+						writer.append(']');
 					}
-					writer.append(']');
 
 					if (!singleMethod)
 					{
 						writer.append(", \"paramNames\": [");
-						firstParam = true;
+						boolean firstParam = true;
 						for (int j = 0, jLength = parameters.size(); j < jLength; j++)
 						{
 							VariableElement param = parameters.get(j);

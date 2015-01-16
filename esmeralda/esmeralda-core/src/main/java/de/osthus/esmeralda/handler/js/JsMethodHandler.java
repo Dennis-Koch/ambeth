@@ -1,10 +1,13 @@
 package de.osthus.esmeralda.handler.js;
 
+import java.util.List;
+
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.BlockTree;
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.StatementTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 
 import de.osthus.ambeth.collections.IList;
@@ -14,6 +17,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.misc.IWriter;
@@ -22,7 +26,7 @@ import de.osthus.esmeralda.snippet.ISnippetManager;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.Method;
 
-public class JsMethodHandler implements IJsMethodHandler
+public class JsMethodHandler implements IMethodHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -120,8 +124,11 @@ public class JsMethodHandler implements IJsMethodHandler
 
 				if (method.isConstructor())
 				{
+					// Skip only this() and super() calls without parameters
+					boolean newSkip = isFirstStatementToSkip(methodBodyBlock);
+
 					boolean oldSkip = context.isSkipFirstBlockStatement();
-					context.setSkipFirstBlockStatement(true);
+					context.setSkipFirstBlockStatement(newSkip);
 					try
 					{
 						blockHandler.handle(methodBodyBlock);
@@ -136,7 +143,7 @@ public class JsMethodHandler implements IJsMethodHandler
 					blockHandler.handle(methodBodyBlock);
 				}
 
-				// Starts check for unused (old) snippet files for this method
+				// Runs check for unused (old) snippet files for this method
 				snippetManager.finished();
 			}
 			else
@@ -148,6 +155,7 @@ public class JsMethodHandler implements IJsMethodHandler
 		finally
 		{
 			context.setSnippetManager(null);
+			languageHelper.getLanguageSpecific().getMethodScopeVars().clear();
 		}
 
 		if (!hasOverloads)
@@ -191,5 +199,21 @@ public class JsMethodHandler implements IJsMethodHandler
 			languageHelper.newLineIndentDocumentation();
 		}
 		languageHelper.endDocumentation();
+	}
+
+	protected boolean isFirstStatementToSkip(BlockTree methodBodyBlock)
+	{
+		List<? extends StatementTree> statements = methodBodyBlock.getStatements();
+		if (statements.isEmpty())
+		{
+			return true;
+		}
+
+		StatementTree statementTree = statements.get(0);
+		String firstStmtString = statementTree.toString();
+
+		boolean skipFirst = "this()".equals(firstStmtString) || "super()".equals(firstStmtString);
+
+		return skipFirst;
 	}
 }

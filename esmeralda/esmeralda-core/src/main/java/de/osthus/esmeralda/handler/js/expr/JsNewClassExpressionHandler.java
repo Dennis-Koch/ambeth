@@ -37,7 +37,6 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
-	private static final String MethodSymbol = null;
 
 	public static final String getFqNameFromAnonymousName(String fqName)
 	{
@@ -165,6 +164,10 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		}
 		else if (constructor != null && constructor.type != null)
 		{
+			if (log.isInfoEnabled())
+			{
+				log.info("Using parameter types instead of names for " + newClass.toString());
+			}
 			for (Type param : ((MethodType) constructor.type).argtypes)
 			{
 				paramNames.add(param.toString());

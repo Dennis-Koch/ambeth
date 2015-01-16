@@ -27,10 +27,7 @@ import de.osthus.esmeralda.handler.csharp.CsClassHandler;
 import de.osthus.esmeralda.handler.csharp.CsFieldHandler;
 import de.osthus.esmeralda.handler.csharp.CsHelper;
 import de.osthus.esmeralda.handler.csharp.CsMethodHandler;
-import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
-import de.osthus.esmeralda.handler.csharp.ICsFieldHandler;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
-import de.osthus.esmeralda.handler.csharp.ICsMethodHandler;
 import de.osthus.esmeralda.handler.csharp.expr.ArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.BinaryExpressionHandler;
 import de.osthus.esmeralda.handler.csharp.expr.InstanceOfExpressionHandler;
@@ -45,11 +42,7 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsSynchronizedHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsThrowHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
-import de.osthus.esmeralda.handler.js.IJsClassHandler;
-import de.osthus.esmeralda.handler.js.IJsClasspathManager;
-import de.osthus.esmeralda.handler.js.IJsFieldHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
-import de.osthus.esmeralda.handler.js.IJsMethodHandler;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsClasspathManager;
@@ -124,7 +117,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(CsHelper.class).autowireable(ICsHelper.class);
 		beanContextFactory.registerBean(JsHelper.class).autowireable(IJsHelper.class);
 		// TODO C# version
-		beanContextFactory.registerBean(JsClasspathManager.class).autowireable(IJsClasspathManager.class);
+		beanContextFactory.registerBean("jsClasspathManager", JsClasspathManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.STATIC, JsOverloadManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.NON_STATIC, JsOverloadManager.class);
 
@@ -138,13 +131,13 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean(JsMethodTransformationModule.class);
 
 		// language elements
-		beanContextFactory.registerBean(CsClassHandler.class).autowireable(ICsClassHandler.class);
-		beanContextFactory.registerBean(CsFieldHandler.class).autowireable(ICsFieldHandler.class);
-		beanContextFactory.registerBean(CsMethodHandler.class).autowireable(ICsMethodHandler.class);
+		beanContextFactory.registerBean("csClassHandler", CsClassHandler.class);
+		beanContextFactory.registerBean("csFieldHandler", CsFieldHandler.class);
+		beanContextFactory.registerBean("csMethodHandler", CsMethodHandler.class);
 
-		beanContextFactory.registerBean(JsClassHandler.class).autowireable(IJsClassHandler.class);
-		beanContextFactory.registerBean(JsFieldHandler.class).autowireable(IJsFieldHandler.class);
-		beanContextFactory.registerBean(JsMethodHandler.class).autowireable(IJsMethodHandler.class);
+		beanContextFactory.registerBean("jsClassHandler", JsClassHandler.class);
+		beanContextFactory.registerBean("jsFieldHandler", JsFieldHandler.class);
+		beanContextFactory.registerBean("jsMethodHandler", JsMethodHandler.class);
 
 		// statements
 		beanContextFactory.registerBean(ExtendableBean.class) //
