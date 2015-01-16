@@ -93,7 +93,7 @@ public class JsMethodHandler implements IMethodHandler
 			firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
 			VarSymbol var = (VarSymbol) param;
 			String paramName = var.name.toString();
-			writer.append(paramName);
+			languageHelper.writeVariableName(paramName);
 		}
 		writer.append(") ");
 
