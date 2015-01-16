@@ -1,7 +1,6 @@
 package de.osthus.esmeralda.handler.js.stmt;
 
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.sun.tools.javac.tree.JCTree.JCBlock;
@@ -40,30 +39,30 @@ public class JsTryHandler extends AbstractJsStatementHandler<JCTry> implements I
 		final List<JCCatch> catches = tryStatement.getCatches();
 
 		JCBlock finallyBlock = tryStatement.getFinallyBlock();
-		if (finallyBlock == null || finallyBlock.getStatements().size() == 0)
+		if ((finallyBlock == null || finallyBlock.getStatements().size() == 0) && catches.size() == 0)
 		{
-			if (catches.size() == 0)
-			{
-				// we have no finally block (or at least none with a non-zero content) and no catch block remaining. so the whole try statement including the
-				// internal block is obsolete now
-				blockHandler.writeBlockContentWithoutIntendation(tryStatement.getBlock());
-				return;
-			}
+			// we have no finally block (or at least none with a non-zero content) and no catch block remaining. so the whole try statement including the
+			// internal block is obsolete now
+			blockHandler.writeBlockContentWithoutIntendation(tryStatement.getBlock());
+			return;
 		}
 
 		languageHelper.newLineIndent();
 		writer.append("try ");
 		handleChildStatement(tryStatement.getBlock());
 
-		writer.append(" catch (e) ");
-		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+		if (!catches.isEmpty())
 		{
-			@Override
-			public void invoke() throws Throwable
+			writer.append(" catch (e) ");
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 			{
-				writeCatch(catches);
-			}
-		});
+				@Override
+				public void invoke() throws Throwable
+				{
+					writeCatch(catches);
+				}
+			});
+		}
 
 		if (finallyBlock != null)
 		{
@@ -78,39 +77,72 @@ public class JsTryHandler extends AbstractJsStatementHandler<JCTry> implements I
 		final ILanguageHelper languageHelper = context.getLanguageHelper();
 		final IWriter writer = context.getWriter();
 
-		languageHelper.newLineIndent();
-
-		boolean firstCatch = true;
+		boolean hasContent = false;
 		for (JCCatch catchStatement : catches)
 		{
-			JCVariableDecl parameter = catchStatement.getParameter();
-
-			firstCatch = languageHelper.writeStringIfFalse(" else ", firstCatch);
-			writer.append("if (Ambeth.instanceOf(e, \"");
-			languageHelper.writeType(parameter.vartype.toString());
-			writer.append("\")) ");
-
 			JCBlock blockOfCatchBlock = catchStatement.getBlock();
-			if (blockOfCatchBlock.getStatements().size() == 1)
+			if (!blockOfCatchBlock.getStatements().isEmpty())
 			{
-				String stringOfStatement = blockOfCatchBlock.getStatements().get(0).toString();
-				Matcher redundantCatchMatcher = RUNTIME_EXCEPTION_UTIL.matcher(stringOfStatement);
-				if (redundantCatchMatcher.matches())
-				{
-					languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-					{
-						@Override
-						public void invoke() throws Throwable
-						{
-							languageHelper.newLineIndent();
-							writer.append("throw e;");
-						}
-					});
-					continue;
-				}
+				hasContent = true;
+			}
+			break;
+		}
+		if (!hasContent)
+		{
+			return;
+		}
+
+		if (catches.size() == 1 && Throwable.class.getSimpleName().equals(catches.get(0).getParameter().vartype.toString()))
+		{
+			blockHandler.writeBlockContentWithoutIntendation(catches.get(0).getBlock());
+		}
+		else
+		{
+			languageHelper.newLineIndent();
+
+			boolean firstCatch = true;
+			for (JCCatch catchStatement : catches)
+			{
+				JCVariableDecl parameter = catchStatement.getParameter();
+
+				firstCatch = languageHelper.writeStringIfFalse(" else ", firstCatch);
+				writer.append("if (Ambeth.instanceOf(e, \"");
+				languageHelper.writeType(parameter.vartype.toString());
+				writer.append("\")) ");
+
+				JCBlock blockOfCatchBlock = catchStatement.getBlock();
+				// if (blockOfCatchBlock.getStatements().size() == 1)
+				// {
+				// String stringOfStatement = blockOfCatchBlock.getStatements().get(0).toString();
+				// Matcher redundantCatchMatcher = RUNTIME_EXCEPTION_UTIL.matcher(stringOfStatement);
+				// if (redundantCatchMatcher.matches())
+				// {
+				// languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+				// {
+				// @Override
+				// public void invoke() throws Throwable
+				// {
+				// languageHelper.newLineIndent();
+				// writer.append("throw e;");
+				// }
+				// });
+				// continue;
+				// }
+				// }
+
+				handleChildStatement(blockOfCatchBlock);
 			}
 
-			handleChildStatement(catchStatement.getBlock());
+			writer.append(" else ");
+			languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					languageHelper.newLineIndent();
+					writer.append("throw e;");
+				}
+			});
 		}
 	}
 }
