@@ -78,61 +78,70 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public Field getField(String fieldName, boolean tryOnly)
 	{
 		Field field = fields.get(fieldName);
-		if (field == null)
+		if (field != null)
 		{
-			if ("this".equals(fieldName))
+			return field;
+		}
+		if ("this".equals(fieldName))
+		{
+			FieldInfo thisField = new FieldInfo();
+			thisField.setOwningClass(this);
+			thisField.setName(fieldName);
+			thisField.setFieldType(getFqName());
+			thisField.setPublicFlag(true);
+			addField(thisField);
+			return thisField;
+		}
+		JavaClassInfo extendsFrom = getExtendsFrom();
+		if (extendsFrom != null)
+		{
+			field = extendsFrom.getField(fieldName, tryOnly);
+			if (field != null)
+			{
+				return field;
+			}
+		}
+		String nameOfSuperClass = getNameOfSuperClass();
+		if (nameOfSuperClass != null)
+		{
+			JavaClassInfo superClassInfo = context.resolveClassInfo(nameOfSuperClass);
+			if ("super".equals(fieldName))
 			{
 				FieldInfo thisField = new FieldInfo();
 				thisField.setOwningClass(this);
 				thisField.setName(fieldName);
-				thisField.setFieldType(getFqName());
+				thisField.setFieldType(superClassInfo.getFqName());
 				thisField.setPublicFlag(true);
 				addField(thisField);
 				return thisField;
 			}
-			String nameOfSuperClass = getNameOfSuperClass();
-			if (nameOfSuperClass != null)
+			if (superClassInfo != null)
 			{
-				JavaClassInfo superClassInfo = context.resolveClassInfo(nameOfSuperClass);
-				if ("super".equals(fieldName))
+				Field fieldFromSuper = superClassInfo.getField(fieldName, true);
+				if (fieldFromSuper != null)
 				{
-					FieldInfo thisField = new FieldInfo();
-					thisField.setOwningClass(this);
-					thisField.setName(fieldName);
-					thisField.setFieldType(superClassInfo.getFqName());
-					thisField.setPublicFlag(true);
-					addField(thisField);
-					return thisField;
-				}
-				if (superClassInfo != null)
-				{
-					Field fieldFromSuper = superClassInfo.getField(fieldName, true);
-					if (fieldFromSuper != null)
-					{
-						return fieldFromSuper;
-					}
+					return fieldFromSuper;
 				}
 			}
-			for (String interfaceName : getNameOfInterfaces())
-			{
-				JavaClassInfo interfaceCI = context.resolveClassInfo(interfaceName);
-				if (interfaceCI == null)
-				{
-					continue;
-				}
-				Field fieldFromInterface = interfaceCI.getField(fieldName, true);
-				if (fieldFromInterface != null)
-				{
-					return fieldFromInterface;
-				}
-			}
-			if (tryOnly)
-			{
-				return null;
-			}
-			throw new IllegalArgumentException("No field found: " + getFqName() + "." + fieldName);
 		}
-		return field;
+		for (String interfaceName : getNameOfInterfaces())
+		{
+			JavaClassInfo interfaceCI = context.resolveClassInfo(interfaceName);
+			if (interfaceCI == null)
+			{
+				continue;
+			}
+			Field fieldFromInterface = interfaceCI.getField(fieldName, true);
+			if (fieldFromInterface != null)
+			{
+				return fieldFromInterface;
+			}
+		}
+		if (tryOnly)
+		{
+			return null;
+		}
+		throw new IllegalArgumentException("No field found: " + getFqName() + "." + fieldName);
 	}
 
 	@Override
