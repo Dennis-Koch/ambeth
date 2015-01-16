@@ -194,7 +194,8 @@ public class CsMethodHandler implements IMethodHandler
 				writer.append(", ");
 			}
 			languageHelper.writeType(parameter.asType().toString());
-			writer.append(' ').append(parameter.getSimpleName());
+			writer.append(' ');
+			languageHelper.writeVariableName(parameter.getSimpleName().toString());
 		}
 		writer.append(')');
 
