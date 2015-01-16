@@ -1,27 +1,11 @@
 package de.osthus.esmeralda.handler;
 
-import java.lang.annotation.Annotation;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ElementVisitor;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVisitor;
-
-import de.osthus.ambeth.collections.EmptyList;
-import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.WeakHashMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -29,6 +13,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.uni.expr.MockVariableElement;
 import demo.codeanalyzer.common.model.BaseJavaClassModelInfo;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -240,125 +225,7 @@ public class ClassInfoFactory implements IClassInfoFactory
 			parameterTypeSB.insert(0, parameterType.getName());
 			final String parameterTypeToString = parameterTypeSB.toString();
 
-			VariableElement ve = new VariableElement()
-			{
-				@Override
-				public Name getSimpleName()
-				{
-					return new Name()
-					{
-						@Override
-						public CharSequence subSequence(int start, int end)
-						{
-							return parameterName.subSequence(start, end);
-						}
-
-						@Override
-						public int length()
-						{
-							return parameterName.length();
-						}
-
-						@Override
-						public char charAt(int index)
-						{
-							return parameterName.charAt(index);
-						}
-
-						@Override
-						public boolean contentEquals(CharSequence cs)
-						{
-							return parameterName.contentEquals(cs);
-						}
-
-						@Override
-						public String toString()
-						{
-							return parameterName;
-						}
-					};
-				}
-
-				@Override
-				public Set<Modifier> getModifiers()
-				{
-					return EmptySet.emptySet();
-				}
-
-				@Override
-				public ElementKind getKind()
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public Element getEnclosingElement()
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public List<? extends Element> getEnclosedElements()
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public List<? extends AnnotationMirror> getAnnotationMirrors()
-				{
-					return EmptyList.getInstance();
-				}
-
-				@Override
-				public <A extends Annotation> A getAnnotation(Class<A> annotationType)
-				{
-					return null;
-				}
-
-				@Override
-				public TypeMirror asType()
-				{
-					return new TypeMirror()
-					{
-						@Override
-						public TypeKind getKind()
-						{
-							throw new UnsupportedOperationException();
-						}
-
-						@Override
-						public <R, P> R accept(TypeVisitor<R, P> v, P p)
-						{
-							throw new UnsupportedOperationException();
-						}
-
-						@Override
-						public String toString()
-						{
-							return parameterTypeToString;
-						}
-					};
-				}
-
-				@Override
-				public <R, P> R accept(ElementVisitor<R, P> v, P p)
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public Object getConstantValue()
-				{
-					throw new UnsupportedOperationException();
-				}
-
-				@Override
-				public String toString()
-				{
-					return asType().toString() + " " + getSimpleName().toString();
-				}
-			};
-			mi.addParameters(ve);
+			mi.addParameters(new MockVariableElement(parameterName, parameterTypeToString));
 		}
 		return mi;
 	}
