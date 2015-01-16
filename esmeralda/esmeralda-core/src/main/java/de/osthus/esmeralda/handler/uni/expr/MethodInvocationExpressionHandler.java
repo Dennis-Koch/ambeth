@@ -233,12 +233,11 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 					{
 						if (fWriteOwnerAsTypeof)
 						{
-							writer.append("typeof(");
+							languageHelper.writeAsTypeOf(owner);
 						}
-						languageHelper.writeType(owner);
-						if (fWriteOwnerAsTypeof)
+						else
 						{
-							writer.append(')');
+							languageHelper.writeType(owner);
 						}
 					}
 					else

@@ -229,7 +229,7 @@ public class CsHelper implements ICsHelper
 	}
 
 	@Override
-	public void writeAsType(String typeName)
+	public void writeAsTypeOf(String typeName)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
@@ -706,12 +706,19 @@ public class CsHelper implements ICsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		varName = convertVariableName(varName);
+
+		writer.append(varName);
+	}
+
+	@Override
+	public String convertVariableName(String varName)
+	{
 		if (RESERVED_WORDS.contains(varName))
 		{
 			varName += "_";
 		}
-
-		writer.append(varName);
+		return varName;
 	}
 
 	@Override
