@@ -30,11 +30,10 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IClassInfoFactory;
-import de.osthus.esmeralda.handler.csharp.ICsClassHandler;
+import de.osthus.esmeralda.handler.csharp.CsSpecific;
 import de.osthus.esmeralda.handler.csharp.ICsHelper;
-import de.osthus.esmeralda.handler.js.IJsClassHandler;
-import de.osthus.esmeralda.handler.js.IJsClasspathManager;
 import de.osthus.esmeralda.handler.js.IJsHelper;
+import de.osthus.esmeralda.handler.js.JsSpecific;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -74,8 +73,8 @@ public class ConversionManager implements IStartingBean
 	@Autowired
 	protected IClassInfoFactory classInfoFactory;
 
-	@Autowired
-	protected IJsClasspathManager jsClasspathManager;
+	@Autowired("jsClasspathManager")
+	protected IClasspathManager jsClasspathManager;
 
 	@Autowired
 	protected CodeProcessor codeProcessor;
@@ -83,11 +82,11 @@ public class ConversionManager implements IStartingBean
 	@Autowired
 	protected IConversionContext context;
 
-	@Autowired
-	protected ICsClassHandler csClassHandler;
+	@Autowired("csClassHandler")
+	protected IClassHandler csClassHandler;
 
-	@Autowired
-	protected IJsClassHandler jsClassHandler;
+	@Autowired("jsClassHandler")
+	protected IClassHandler jsClassHandler;
 
 	@Autowired
 	protected ICsHelper csHelper;
@@ -168,12 +167,8 @@ public class ConversionManager implements IStartingBean
 			}
 		}
 
-		StatementCount csMetric = new StatementCount("C#");
-		StatementCount jsMetric = new StatementCount("JS");
-		HashMap<String, Integer> csCalledMethods = new HashMap<>();
-		HashSet<String> csDefinedMethods = new HashSet<>();
-		HashMap<String, Integer> jsCalledMethods = new HashMap<>();
-		HashSet<String> jsDefinedMethods = new HashSet<>();
+		ConversionContext csDefaultContext = createDefaultCsContext(fqNameToClassInfoMap);
+		ConversionContext jsDefaultContext = createDefaultJsContext(fqNameToClassInfoMap);
 
 		int classInfoProgress = 0, classInfoCount = classInfos.size();
 		long lastLog = System.currentTimeMillis();
@@ -183,12 +178,6 @@ public class ConversionManager implements IStartingBean
 
 		for (JavaClassInfo classInfo : classInfos)
 		{
-			// JH for debugging just one class conversion
-			// if (!"AbstractAccessor".equals(classInfo.getName()))
-			// {
-			// continue;
-			// }
-
 			String packageName = classInfo.getPackageName();
 			if (packageName == null)
 			{
@@ -197,11 +186,11 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			ConversionContext csContext = createDefaultCsContext(fqNameToClassInfoMap, csMetric, csCalledMethods, csDefinedMethods);
+			ConversionContext csContext = createClassScopeContext(csDefaultContext);
 			csContext.setClassInfo(classInfo);
 			invokeClassHandler(csClassHandler, csContext);
 
-			ConversionContext jsContext = createDefaultJsContext(fqNameToClassInfoMap, jsMetric, jsCalledMethods, jsDefinedMethods);
+			ConversionContext jsContext = createClassScopeContext(jsDefaultContext);
 			jsContext.setClassInfo(classInfo);
 			invokeClassHandler(jsClassHandler, jsContext);
 
@@ -209,12 +198,16 @@ public class ConversionManager implements IStartingBean
 			lastLog = logProgress(classInfoProgress, classInfoCount, lastLog, classInfo);
 		}
 
-		logMetric(csMetric, jsMetric, jsCalledMethods, jsDefinedMethods);
+		logMetric(csDefaultContext, jsDefaultContext);
 	}
 
-	protected ConversionContext createDefaultCsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap, StatementCount csMetric,
-			HashMap<String, Integer> csCalledMethods, HashSet<String> csDefinedMethods)
+	protected ConversionContext createDefaultCsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap)
 	{
+		ILanguageSpecific csSpecific = new CsSpecific();
+		StatementCount csMetric = new StatementCount("C#");
+		HashMap<String, Integer> csCalledMethods = new HashMap<>();
+		HashSet<String> csDefinedMethods = new HashSet<>();
+
 		ConversionContext csContext = new ConversionContext();
 		csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		csContext.setLanguage(Lang.C_SHARP);
@@ -222,6 +215,7 @@ public class ConversionManager implements IStartingBean
 		csContext.setTargetPath(targetPath);
 		csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
 		csContext.setGenericTypeSupported(true);
+		csContext.setLanguageSpecific(csSpecific);
 		csContext.setMetric(csMetric);
 		csContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
 		csContext.setAstHelper(astHelper);
@@ -229,12 +223,17 @@ public class ConversionManager implements IStartingBean
 		csContext.setLanguageHelper(csHelper);
 		csContext.setCalledMethods(csCalledMethods);
 		csContext.setDefinedMethods(csDefinedMethods);
+
 		return csContext;
 	}
 
-	protected ConversionContext createDefaultJsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap, StatementCount jsMetric,
-			HashMap<String, Integer> jsCalledMethods, HashSet<String> jsDefinedMethods)
+	protected ConversionContext createDefaultJsContext(HashMap<String, JavaClassInfo> fqNameToClassInfoMap)
 	{
+		ILanguageSpecific jsSpecific = new JsSpecific();
+		StatementCount jsMetric = new StatementCount("JS");
+		HashMap<String, Integer> jsCalledMethods = new HashMap<>();
+		HashSet<String> jsDefinedMethods = new HashSet<>();
+
 		ConversionContext jsContext = new ConversionContext();
 		jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		jsContext.setLanguage(Lang.JS);
@@ -242,6 +241,7 @@ public class ConversionManager implements IStartingBean
 		jsContext.setTargetPath(targetPath);
 		jsContext.setLanguagePath(LANGUAGE_PATH_JS);
 		jsContext.setGenericTypeSupported(false);
+		jsContext.setLanguageSpecific(jsSpecific);
 		jsContext.setMetric(jsMetric);
 		jsContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
 		jsContext.setAstHelper(astHelper);
@@ -249,7 +249,30 @@ public class ConversionManager implements IStartingBean
 		jsContext.setLanguageHelper(jsHelper);
 		jsContext.setCalledMethods(jsCalledMethods);
 		jsContext.setDefinedMethods(jsDefinedMethods);
+
 		return jsContext;
+	}
+
+	protected ConversionContext createClassScopeContext(ConversionContext defaultContext)
+	{
+		ConversionContext context = new ConversionContext();
+
+		context.setLanguage(defaultContext.getLanguage());
+		context.setSnippetPath(defaultContext.getSnippetPath());
+		context.setTargetPath(defaultContext.getTargetPath());
+		context.setLanguagePath(defaultContext.getLanguagePath());
+		context.setGenericTypeSupported(defaultContext.isGenericTypeSupported());
+		context.setLanguageSpecific(defaultContext.getLanguageSpecific());
+		context.setMetric(defaultContext.getMetric());
+		context.setNsPrefixRemove(defaultContext.getNsPrefixRemove());
+		context.setCalledMethods(defaultContext.getCalledMethods());
+		context.setDefinedMethods(defaultContext.getDefinedMethods());
+		context.setFqNameToClassInfoMap(defaultContext.getFqNameToClassInfoMap());
+		context.setAstHelper(astHelper);
+		context.setClassInfoFactory(classInfoFactory);
+		context.setLanguageHelper(csHelper);
+
+		return context;
 	}
 
 	protected void invokeClassHandler(IClassHandler classHandler, IConversionContext newContext)
@@ -421,13 +444,18 @@ public class ConversionManager implements IStartingBean
 		return lastLog;
 	}
 
-	protected void logMetric(StatementCount csMetric, StatementCount jsMetric, HashMap<String, Integer> jsCalledMethods, HashSet<String> jsDefinedMethods)
+	protected void logMetric(ConversionContext csContext, ConversionContext jsContext)
 	{
 		if (log.isInfoEnabled())
 		{
 			// TODO logMissingMethods(csCalledMethods, csDefinedMethods, IClassPathManager.EXISTING_METHODS_CS);
+
+			HashMap<String, Integer> jsCalledMethods = jsContext.getCalledMethods();
+			HashSet<String> jsDefinedMethods = jsContext.getDefinedMethods();
 			logMissingMethods(LANGUAGE_PATH_JS, jsCalledMethods, jsDefinedMethods, jsClasspathManager);
 
+			StatementCount csMetric = csContext.getMetric();
+			StatementCount jsMetric = jsContext.getMetric();
 			log.info(csMetric.toString());
 			log.info(jsMetric.toString());
 		}

@@ -33,6 +33,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.ITransformedMethod;
@@ -43,7 +44,7 @@ import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsMethodHandler implements ICsMethodHandler
+public class CsMethodHandler implements IMethodHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance

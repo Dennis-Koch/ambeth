@@ -23,7 +23,11 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.esmeralda.IClasspathManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IClassHandler;
+import de.osthus.esmeralda.handler.IFieldHandler;
+import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
@@ -32,7 +36,7 @@ import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class JsClassHandler implements IJsClassHandler
+public class JsClassHandler implements IClassHandler
 {
 	@SuppressWarnings("rawtypes")
 	private static final ArrayList EMPTY_ARRAY_LIST = new ArrayList();
@@ -44,22 +48,22 @@ public class JsClassHandler implements IJsClassHandler
 	@Autowired
 	protected IConversionContext context;
 
-	@Autowired
-	protected IJsClasspathManager jsClasspathManager;
+	@Autowired("jsClasspathManager")
+	protected IClasspathManager jsClasspathManager;
 
 	@Autowired
 	protected IJsHelper languageHelper;
 
-	@Autowired
-	protected IJsFieldHandler fieldHandler;
+	@Autowired("jsFieldHandler")
+	protected IFieldHandler fieldHandler;
 
-	@Autowired
-	protected IJsMethodHandler methodHandler;
+	@Autowired("jsMethodHandler")
+	protected IMethodHandler methodHandler;
 
-	@Autowired(value = IJsOverloadManager.STATIC)
+	@Autowired(IJsOverloadManager.STATIC)
 	protected IJsOverloadManager overloadManagerStatic;
 
-	@Autowired(value = IJsOverloadManager.NON_STATIC)
+	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
 
 	@Override
@@ -253,78 +257,6 @@ public class JsClassHandler implements IJsClassHandler
 				writer.append(";");
 			}
 		});
-
-		// languageHelper.writeAnnotations(classInfo);
-		// languageHelper.newLineIntend();
-		// boolean firstModifier = languageHelper.writeModifiers(classInfo);
-		// if (!classInfo.isPrivate() && !classInfo.isProtected() && !classInfo.isPublic())
-		// {
-		// // no visibility defined. so we default to "public"
-		// firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		// writer.append("public");
-		// }
-		// if (classInfo.isEnum())
-		// {
-		// // an enum in java can never be inherited from - we convert this as a sealed class
-		// firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		// writer.append("sealed");
-		// }
-		// if (!classInfo.isInterface())
-		// {
-		// firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		// writer.append("class");
-		// }
-		// else
-		// {
-		// firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		// writer.append("interface");
-		// }
-		// firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		// writer.append(classInfo.getName());
-		//
-		// boolean firstInterfaceName = true;
-		// String nameOfSuperClass = classInfo.getNameOfSuperClass();
-		// if (nameOfSuperClass != null && nameOfSuperClass.length() > 0 && !Object.class.getName().equals(nameOfSuperClass) &&
-		// !"<none>".equals(nameOfSuperClass))
-		// {
-		// writer.append(" : ");
-		// languageHelper.writeType(nameOfSuperClass);
-		// firstInterfaceName = false;
-		// }
-		// for (String nameOfInterface : classInfo.getNameOfInterfaces())
-		// {
-		// if (firstInterfaceName)
-		// {
-		// writer.append(" : ");
-		// firstInterfaceName = false;
-		// }
-		// else
-		// {
-		// writer.append(", ");
-		// }
-		// languageHelper.writeType(nameOfInterface);
-		// }
-		//
-		// languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
-		// {
-		// @Override
-		// public void invoke() throws Throwable
-		// {
-		// IConversionContext context = JsClassHandler.this.context.getCurrent();
-		// if (classInfo.isAnonymous())
-		// {
-		// writeAnonymousClassBody(classInfo);
-		// }
-		// else
-		// {
-		// writeClassBody(classInfo);
-		// }
-		// for (IPostProcess postProcess : context.getPostProcesses())
-		// {
-		// postProcess.postProcess();
-		// }
-		// }
-		// });
 	}
 
 	protected boolean writePrivateStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
@@ -576,7 +508,7 @@ public class JsClassHandler implements IJsClassHandler
 				boolean firstLine = true;
 				for (Field field : privateNonStaticFields)
 				{
-					firstLine = languageHelper.newLineIndentIfFalse(firstLine);
+					firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 					context.setField(field);
 					fieldHandler.handle();
 				}

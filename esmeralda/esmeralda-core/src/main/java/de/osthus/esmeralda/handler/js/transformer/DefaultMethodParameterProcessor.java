@@ -25,8 +25,6 @@ import de.osthus.esmeralda.misc.IWriter;
 
 public class DefaultMethodParameterProcessor implements IMethodParameterProcessor
 {
-	private static final JCExpression JCIdent = null;
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
