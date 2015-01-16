@@ -1,5 +1,6 @@
 package de.osthus.ambeth.demo;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -118,8 +119,8 @@ public class TestService1 extends BaseClass implements ITestInterface
 				System.out.println("1");
 				break;
 			}
-			// Intentionally not a block
 			case 2:
+				// Intentionally not a block
 				System.out.println("2");
 				break;
 			default:
@@ -127,6 +128,27 @@ public class TestService1 extends BaseClass implements ITestInterface
 				System.out.println("ok");
 				break;
 			}
+		}
+	}
+
+	public void testExceptions()
+	{
+		try
+		{
+			System.out.println();
+			throw new IOException();
+		}
+		catch (IOException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+		catch (RuntimeException e)
+		{
+			throw e;
+		}
+		catch (Exception e)
+		{
+			System.out.println();
 		}
 	}
 
