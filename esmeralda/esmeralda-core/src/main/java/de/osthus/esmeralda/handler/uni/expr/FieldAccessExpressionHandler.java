@@ -71,7 +71,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 			{
 				typeForTypeof = expression.toString();
 			}
-			languageHelper.writeAsType(typeForTypeof);
+			languageHelper.writeAsTypeOf(typeForTypeof);
 			context.setTypeOnStack(java.lang.Class.class.getName());
 			return;
 		}

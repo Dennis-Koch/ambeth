@@ -49,7 +49,7 @@ public interface ILanguageHelper
 
 	void writeSimpleName(JavaClassInfo classInfo);
 
-	void writeAsType(String typeName);
+	void writeAsTypeOf(String typeName);
 
 	void writeType(String typeName);
 
@@ -64,6 +64,8 @@ public interface ILanguageHelper
 	void writeAnnotation(Annotation annotation);
 
 	void writeVariableName(String varName);
+
+	String convertVariableName(String varName);
 
 	void writeExpressionTree(Tree expressionTree);
 

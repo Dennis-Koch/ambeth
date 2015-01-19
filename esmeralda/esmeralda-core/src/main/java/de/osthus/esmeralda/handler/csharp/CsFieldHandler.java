@@ -11,11 +11,12 @@ import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 
-public class CsFieldHandler implements ICsFieldHandler
+public class CsFieldHandler implements IFieldHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance

@@ -7,11 +7,12 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 
-public class JsFieldHandler implements IJsFieldHandler
+public class JsFieldHandler implements IFieldHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance
