@@ -412,7 +412,9 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append("m$f_").append(methodName).append(": {\"type\": \"").append(returnType).append("\", \"overloads\": [");
+		writer.append("m$f_").append(methodName).append(": {");
+		writeMetadataType(returnType, writer);
+		writer.append(", \"overloads\": [");
 
 		ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
 
@@ -446,7 +448,7 @@ public class JsHelper implements IJsHelper
 					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
-					writer.append("{ \"method\": this.").append(methodName).append(methodNamePostfix);
+					writer.append("{ \"methodInstance\": this.").append(methodName).append(methodNamePostfix);
 					writer.append(", ");
 					writeMetadataType(method.getReturnType(), writer);
 
@@ -540,7 +542,7 @@ public class JsHelper implements IJsHelper
 
 	protected void writeMetadataType(String type, IWriter writer)
 	{
-		writer.append("\"type\": \"");
+		writer.append("\"valueType\": \"");
 		writeType(type);
 		writer.append('"');
 	}
@@ -640,6 +642,12 @@ public class JsHelper implements IJsHelper
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
+
+		// TODO
+		// if (!getLanguageSpecific().getMethodScopeVars().contains(varName))
+		// {
+		// writer.append("this.");
+		// }
 
 		varName = convertVariableName(varName);
 
