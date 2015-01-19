@@ -10,6 +10,7 @@ import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.StatementTree;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -58,6 +59,7 @@ public class JsMethodHandler implements IMethodHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		final IWriter writer = context.getWriter();
+		HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
 		Method method = context.getMethod();
 
@@ -93,6 +95,7 @@ public class JsMethodHandler implements IMethodHandler
 			firstParam = languageHelper.writeStringIfFalse(", ", firstParam);
 			VarSymbol var = (VarSymbol) param;
 			String paramName = var.name.toString();
+			methodScopeVars.add(paramName);
 			languageHelper.writeVariableName(paramName);
 		}
 		writer.append(") ");
