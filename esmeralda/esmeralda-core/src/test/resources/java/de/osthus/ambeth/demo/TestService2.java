@@ -30,6 +30,9 @@ public class TestService2 implements IInitializingBean
 		ParamChecker.assertTrue(var == 1, "var");
 
 		TestService1.staticTestMethod();
+
+		TestService1 dummy = new TestService1(23);
+		dummy.testMethod1();
 	}
 
 	public void setConversionHelper(IConversionHelper conversionHelper)

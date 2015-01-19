@@ -858,6 +858,11 @@ public class ConversionContext implements IConversionContext
 		this.snippetManager = snippetManager;
 	}
 
+	public HashMap<String, Integer> getCalledMethods()
+	{
+		return calledMethods;
+	}
+
 	public void setCalledMethods(HashMap<String, Integer> calledMethods)
 	{
 		this.calledMethods = calledMethods;
@@ -888,6 +893,11 @@ public class ConversionContext implements IConversionContext
 		}
 		count++;
 		calledMethods.put(fullMethodName, count);
+	}
+
+	public HashSet<String> getDefinedMethods()
+	{
+		return definedMethods;
 	}
 
 	public void setDefinedMethods(HashSet<String> definedMethods)

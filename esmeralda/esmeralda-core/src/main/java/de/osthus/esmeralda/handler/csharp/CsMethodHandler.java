@@ -33,6 +33,7 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
@@ -44,7 +45,7 @@ import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
-public class CsMethodHandler implements ICsMethodHandler
+public class CsMethodHandler implements IMethodHandler
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -161,10 +162,6 @@ public class CsMethodHandler implements ICsMethodHandler
 					{
 						continue;
 					}
-					if (!(typeParamsOfParameter instanceof TypeVar))
-					{
-						System.out.println();
-					}
 					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
 				}
 			}
@@ -197,7 +194,8 @@ public class CsMethodHandler implements ICsMethodHandler
 				writer.append(", ");
 			}
 			languageHelper.writeType(parameter.asType().toString());
-			writer.append(' ').append(parameter.getSimpleName());
+			writer.append(' ');
+			languageHelper.writeVariableName(parameter.getSimpleName().toString());
 		}
 		writer.append(')');
 

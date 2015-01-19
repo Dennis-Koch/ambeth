@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.csharp;
+package de.osthus.esmeralda.handler.uni;
 
 import java.util.List;
 
@@ -22,7 +22,6 @@ import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
-import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -83,10 +82,12 @@ public class MethodTransformer implements IMethodTransformer
 			return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 		}
 		IConversionContext context = this.context.getCurrent();
+		String language = context.getLanguage();
+
 		String currOwner = owner;
 		while (currOwner != null)
 		{
-			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + currOwner);
+			IMethodTransformerExtension methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(language + currOwner);
 			if (methodTransformerExtension != null)
 			{
 				MethodKey methodKey = new MethodKey(currOwner, methodName, argTypes);
@@ -95,7 +96,7 @@ public class MethodTransformer implements IMethodTransformer
 			String nonGenericOwner = astHelper.extractNonGenericType(currOwner);
 			if (!nonGenericOwner.equals(currOwner))
 			{
-				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + nonGenericOwner);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(language + nonGenericOwner);
 				if (methodTransformerExtension != null)
 				{
 					MethodKey methodKey = new MethodKey(nonGenericOwner, methodName, argTypes);
@@ -109,7 +110,7 @@ public class MethodTransformer implements IMethodTransformer
 			}
 			for (String interfaceName : classInfo.getNameOfInterfaces())
 			{
-				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(Lang.C_SHARP + interfaceName);
+				methodTransformerExtension = methodTransformerExtensionRegistry.getExtension(language + interfaceName);
 				if (methodTransformerExtension == null)
 				{
 					continue;

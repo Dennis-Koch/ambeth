@@ -18,8 +18,9 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.IClasspathManager;
 
-public class JsClasspathManager implements IJsClasspathManager, IInitializingBean
+public class JsClasspathManager implements IClasspathManager, IInitializingBean
 {
 	private static final Pattern JS_METHOD_NAME = Pattern.compile("\\s*\"?(\\w+)\"?\\: function ?\\(.*\\) \\{");
 
