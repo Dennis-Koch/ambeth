@@ -33,6 +33,10 @@ public interface IAuditEntry
 
 	void setUserIdentifier(String userIdentifier);
 
+	String getReason();
+
+	void setReason(String reason);
+
 	ISignature getSignatureOfUser();
 
 	void setSignatureOfUser(ISignature signatureOfUser);

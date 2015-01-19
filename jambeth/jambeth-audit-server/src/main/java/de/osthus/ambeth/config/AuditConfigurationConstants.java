@@ -13,10 +13,16 @@ public final class AuditConfigurationConstants
 	public static final String AuditedEntityDefaultModeActive = "audit.entity.defaultmode.active";
 
 	@ConfigurationConstantDescription("TODO")
+	public static final String AuditReasonRequiredDefault = "audit.reason.required.default";
+
+	@ConfigurationConstantDescription("TODO")
 	public static final String AuditedEntityPropertyDefaultModeActive = "audit.entity.property.defaultmode.active";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String AuditedServiceDefaultModeActive = "audit.service.defaultmode.active";
+
+	@ConfigurationConstantDescription("TODO")
+	public static final String AuditedServiceArgDefaultModeActive = "audit.servicearg.defaultmode.active";
 
 	@ConfigurationConstantDescription("TODO")
 	public static final String AuditedInformationHashAlgorithm = "audit.hashalgorithm.name";
