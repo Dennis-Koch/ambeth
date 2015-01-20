@@ -222,25 +222,17 @@ public class CacheRetrieverRegistry implements ICacheRetriever, ICacheRetrieverE
 	protected <V, R> void getData(ILinkedMap<ICacheRetriever, IList<V>> assignedArguments, final List<R> result, final GetDataDelegate<V, R> getDataDelegate)
 	{
 		// Serialize GetEntities() requests
-		ArrayList<CacheRetrieverRegistryForkItem<V>> forkItems = new ArrayList<CacheRetrieverRegistryForkItem<V>>(assignedArguments.size());
-
-		for (Entry<ICacheRetriever, IList<V>> entry : assignedArguments)
-		{
-			forkItems.add(new CacheRetrieverRegistryForkItem<V>(entry.getKey(), entry.getValue()));
-		}
-		assignedArguments.clear();
-
-		multithreadingHelper.invokeAndWait(forkItems, new IResultingBackgroundWorkerParamDelegate<List<R>, CacheRetrieverRegistryForkItem<V>>()
+		multithreadingHelper.invokeAndWait(assignedArguments, new IResultingBackgroundWorkerParamDelegate<List<R>, Entry<ICacheRetriever, IList<V>>>()
 		{
 			@Override
-			public List<R> invoke(CacheRetrieverRegistryForkItem<V> item) throws Throwable
+			public List<R> invoke(Entry<ICacheRetriever, IList<V>> item) throws Throwable
 			{
-				return getDataDelegate.invoke(item.cacheRetriever, item.paramList);
+				return getDataDelegate.invoke(item.getKey(), item.getValue());
 			}
-		}, new IAggregrateResultHandler<List<R>, CacheRetrieverRegistryForkItem<V>>()
+		}, new IAggregrateResultHandler<List<R>, Entry<ICacheRetriever, IList<V>>>()
 		{
 			@Override
-			public void aggregateResult(List<R> resultOfFork, CacheRetrieverRegistryForkItem<V> itemOfFork)
+			public void aggregateResult(List<R> resultOfFork, Entry<ICacheRetriever, IList<V>> itemOfFork)
 			{
 				for (int a = 0, size = resultOfFork.size(); a < size; a++)
 				{
