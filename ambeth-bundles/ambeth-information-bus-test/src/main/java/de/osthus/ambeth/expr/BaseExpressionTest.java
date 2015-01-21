@@ -4,7 +4,6 @@ import org.junit.Assert;
 
 import de.osthus.ambeth.cache.imc.InMemoryCacheRetriever;
 import de.osthus.ambeth.config.IProperties;
-import de.osthus.ambeth.config.IPropertyWhitelister;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.expr.BaseExpressionTest.ExpressionTestModule;
@@ -37,7 +36,8 @@ public abstract class BaseExpressionTest extends AbstractInformationBusTest
 			IBeanConfiguration inMemoryCacheRetriever = beanContextFactory.registerBean(InMemoryCacheRetriever.class);
 			beanContextFactory.link(inMemoryCacheRetriever).to(ICacheRetrieverExtendable.class).with(ExpressionEntity.class);
 
-			beanContextFactory.link((Object) myFunnyProp).to(IPropertyWhitelister.class);
+			// FIXME
+			// beanContextFactory.link((Object) myFunnyProp).to(IPropertyWhitelister.class);
 		}
 	}
 

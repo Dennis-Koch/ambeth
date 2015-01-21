@@ -8,6 +8,7 @@ import de.osthus.ambeth.audit.IAuditConfigurationExtendable;
 import de.osthus.ambeth.audit.IAuditConfigurationProvider;
 import de.osthus.ambeth.audit.IAuditEntryVerifier;
 import de.osthus.ambeth.audit.IAuditEntryWriterExtendable;
+import de.osthus.ambeth.audit.IAuditReasonController;
 import de.osthus.ambeth.audit.IMethodCallLogger;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
@@ -41,11 +42,10 @@ public class AuditModule implements IInitializingModule
 		IBeanConfiguration auditEntryWriterV1 = beanContextFactory.registerBean(AuditEntryWriterV1.class);
 		beanContextFactory.link(auditEntryWriterV1).to(IAuditEntryWriterExtendable.class).with(Integer.valueOf(1));
 
-		beanContextFactory.registerBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class,
-				IAuditConfigurationExtendable.class);
+		beanContextFactory.registerBean(AuditConfigurationProvider.class).autowireable(IAuditConfigurationProvider.class, IAuditConfigurationExtendable.class);
 
 		IBeanConfiguration auditEntryController = beanContextFactory.registerBean(AuditController.class).autowireable(IMethodCallLogger.class,
-				IAuditEntryVerifier.class, IAuditEntryWriterExtendable.class);
+				IAuditEntryVerifier.class, IAuditEntryWriterExtendable.class, IAuditReasonController.class);
 		beanContextFactory.link(auditEntryController).to(ITransactionListenerExtendable.class);
 		beanContextFactory.link(auditEntryController).to(IMergeListenerExtendable.class);
 	}
