@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.lang.reflect.Method;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,6 +25,7 @@ import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransactionListener;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.exceptions.AuditReasonMissingException;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.MapExtendableContainer;
@@ -59,19 +59,22 @@ import de.osthus.ambeth.security.IUserResolver;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrefetchHandle;
 import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamHolder;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, IAuditEntryVerifier, ITransactionListener, IStartingBean,
-		IAuditEntryWriterExtendable
+		IAuditEntryWriterExtendable, IAuditReasonController
 {
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
 	protected IAuditConfigurationProvider auditConfigurationProvider;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IDatabase database;
@@ -131,6 +134,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected final ThreadLocal<char[]> clearTextPasswordTL = new ThreadLocal<char[]>();
 
 	protected IPrefetchHandle prefetchAuditEntries;
+
+	@Forkable
+	private final ThreadLocal<String> auditReasonTL = new ThreadLocal<String>();
 
 	@Override
 	public void afterStarted() throws Throwable
@@ -197,11 +203,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public IMethodCallHandle logMethodCallStart(Method method, Object[] args)
 	{
-		if (log.isDebugEnabled())
-		{
-			log.debug("logMethodCallStart: " + method.getName() + " --> " + Arrays.asList(args));
-		}
-
 		IAuditEntry auditEntry = ensureAuditEntry();
 
 		List<IAuditedService> services = (List<IAuditedService>) auditEntry.getServices();
@@ -228,10 +229,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		for (int i = 0; i < args.length; i++)
 		{
 			Object value = args[i];
-			if (value != null)
-			{
-				sValues[i] = value.toString();
-			}
+			sValues[i] = conversionHelper.convertValueToType(String.class, value);
 		}
 		return sValues;
 	}
@@ -263,39 +261,52 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void postMerge(ICUDResult cudResult)
 	{
-		if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
+		try
 		{
-			// ignore this dataChange because it is our own Audit merge
-			return;
-		}
-		ArrayList<IAuditedEntity> entities = new ArrayList<IAuditedEntity>(cudResult.getAllChanges().size());
-
-		for (IChangeContainer changeContainer : cudResult.getAllChanges())
-		{
-			auditChangeContainer(changeContainer, entities);
-
-			// IObjRef objRef = changeContainer.getReference();
-			// IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
-			// Audited audited = metaData.getEnhancedType().getAnnotation(Audited.class);
-			// boolean auditEntity = audited != null ? audited.value() : auditedEntityDefaultModeActive;
-			//
-			// if (!auditEntity)
-			// {
-			// continue;
-			// }
-		}
-		if (entities.size() > 0)
-		{
-			for (int a = entities.size(); a-- > 0;)
+			if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
 			{
-				entities.get(a).setOrder(a + 1);
+				// ignore this dataChange because it is our own Audit merge
+				return;
 			}
-			IAuditEntry auditEntry = ensureAuditEntry();
-			((Collection<IAuditedEntity>) auditEntry.getEntities()).addAll(entities);
+			ArrayList<IAuditedEntity> entities = new ArrayList<IAuditedEntity>(cudResult.getAllChanges().size());
+
+			List<Object> originalRefs = cudResult.getOriginalRefs();
+			List<IChangeContainer> allChanges = cudResult.getAllChanges();
+			for (int index = allChanges.size(); index-- > 0;)
+			{
+				IChangeContainer changeContainer = allChanges.get(index);
+				Object originalRef = originalRefs.get(index);
+				auditChangeContainer(originalRef, changeContainer, entities);
+
+				// IObjRef objRef = changeContainer.getReference();
+				// IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+				// Audited audited = metaData.getEnhancedType().getAnnotation(Audited.class);
+				// boolean auditEntity = audited != null ? audited.value() : auditedEntityDefaultModeActive;
+				//
+				// if (!auditEntity)
+				// {
+				// continue;
+				// }
+			}
+			if (entities.size() > 0)
+			{
+				for (int a = entities.size(); a-- > 0;)
+				{
+					entities.get(a).setOrder(a + 1);
+				}
+
+				IAuditEntry auditEntry = ensureAuditEntry();
+				auditEntry.setReason(auditReasonTL.get());
+				((Collection<IAuditedEntity>) auditEntry.getEntities()).addAll(entities);
+			}
+		}
+		finally
+		{
+			auditReasonTL.remove();
 		}
 	}
 
-	protected void auditChangeContainer(IChangeContainer changeContainer, List<IAuditedEntity> auditedEntities)
+	protected void auditChangeContainer(Object originalRef, IChangeContainer changeContainer, List<IAuditedEntity> auditedEntities)
 	{
 		IObjRef objRef = changeContainer.getReference();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
@@ -304,6 +315,13 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			return;
 		}
+
+		// test if audit reason is required and throw exception if its not set
+		if (auditConfiguration.isReasonRequired() && auditReasonTL.get() == null)
+		{
+			throw new AuditReasonMissingException("Audit reason is missing for " + originalRef.getClass() + "!");
+		}
+
 		IAuditedEntity auditedEntity = entityFactory.createEntity(IAuditedEntity.class);
 
 		if (changeContainer instanceof CreateContainer)
@@ -322,6 +340,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		{
 			auditedEntity.setChangeType(AuditedEntityChangeType.DELETE);
 		}
+
 		auditedEntity.setEntityType(objRef.getRealType());
 		auditedEntity.setEntityId(objRef.getId());
 		auditedEntity.setEntityVersion(objRef.getVersion());
@@ -574,6 +593,12 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			ownAuditMergeActiveTL.remove();
 			clearTextPasswordTL.remove();
 		}
+	}
+
+	@Override
+	public void setAuditReason(String auditReason)
+	{
+		auditReasonTL.set(auditReason);
 	}
 
 	@Override

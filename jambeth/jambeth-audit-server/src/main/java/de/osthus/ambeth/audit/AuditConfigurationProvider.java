@@ -25,6 +25,9 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	@Property(name = AuditConfigurationConstants.AuditedEntityDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityDefaultModeActive;
 
+	@Property(name = AuditConfigurationConstants.AuditReasonRequiredDefault, defaultValue = "false")
+	protected boolean auditReasonRequiredDefault;
+
 	@Property(name = AuditConfigurationConstants.AuditedEntityPropertyDefaultModeActive, defaultValue = "true")
 	protected boolean auditedEntityPropertyDefaultModeActive;
 
@@ -48,8 +51,14 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 	{
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 
-		Audited audited = metaData.getEnhancedType().getAnnotation(Audited.class);
+		// TODO: DM to DeK: You used "getEnhancedType" but Annotations are not inherited and so were not present at the enhanced classes. Is the usage of
+		// getEntityType correct?
+		Audited audited = metaData.getEntityType().getAnnotation(Audited.class);
+		AuditReasonRequired auditReasonRequired = metaData.getEntityType().getAnnotation(AuditReasonRequired.class);
+
 		boolean auditActive = audited != null ? audited.value() : auditedEntityDefaultModeActive;
+
+		boolean reasonRequired = auditReasonRequired != null ? auditReasonRequired.value() : auditReasonRequiredDefault;
 
 		IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap = new IdentityHashMap<Member, IAuditMemberConfiguration>(0.5f);
 		for (PrimitiveMember member : metaData.getPrimitiveMembers())
@@ -60,7 +69,7 @@ public class AuditConfigurationProvider implements IAuditConfigurationProvider, 
 		{
 			memberToConfigurationMap.put(member, resolveMemberConfiguration(member));
 		}
-		return new AuditConfiguration(auditActive, memberToConfigurationMap);
+		return new AuditConfiguration(auditActive, reasonRequired, memberToConfigurationMap);
 	}
 
 	protected IAuditMemberConfiguration resolveMemberConfiguration(Member member)
