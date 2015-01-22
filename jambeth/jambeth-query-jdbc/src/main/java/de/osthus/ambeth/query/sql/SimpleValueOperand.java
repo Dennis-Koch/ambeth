@@ -38,6 +38,9 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	@Property
 	protected String paramName;
 
+	@Property
+	protected boolean tryOnly;
+
 	@Override
 	public boolean isNull(Map<Object, Object> nameToValueMap)
 	{
@@ -68,7 +71,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 		Object value = nameToValueMap.get(paramName);
 		if (value == null)
 		{
-			if (!nameToValueMap.containsKey(paramName))
+			if (!tryOnly && !nameToValueMap.containsKey(paramName))
 			{
 				throw new IllegalArgumentException("No entry for paramName '" + paramName + "' found to expand query");
 			}

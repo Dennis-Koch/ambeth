@@ -1207,7 +1207,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
 			}
 
-			final IOperand limitOperand = limitIntern(valueName(QueryConstants.LIMIT_VALUE));
+			final IOperand limitOperand = limitIntern(getBeanContext().registerBean(SimpleValueOperand.class)
+					.propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish());
 			final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : null;
 			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : null;
 			final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
