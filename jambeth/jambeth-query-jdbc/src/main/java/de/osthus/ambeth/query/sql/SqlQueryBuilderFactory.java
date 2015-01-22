@@ -1,5 +1,6 @@
 package de.osthus.ambeth.query.sql;
 
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -23,6 +24,9 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IGarbageProxyFactory garbageProxyFactory;
+
 	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<IQueryBuilderExtension>(
 			IQueryBuilderExtension.class, "queryBuilderExtension");
 
@@ -32,11 +36,13 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	{
 		Class<?> realEntityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
 		IQueryBuilderExtension[] queryBuilderExtensions = this.queryBuilderExtensions.getExtensions();
-		return beanContext.registerBean(SqlQueryBuilder.class)//
+		IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)//
 				.propertyValue("EntityType", realEntityType)//
 				.propertyValue("DisposeContextOnDispose", Boolean.FALSE)//
 				.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
 				.finish();
+
+		return garbageProxyFactory.createGarbageProxy(sqlQueryBuilder, IQueryBuilder.class);
 	}
 
 	@Override

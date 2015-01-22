@@ -77,6 +77,10 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 
 	protected final IConnectionKeyHandle connectionKeyHandle;
 
+	protected Class<?>[] pstmInterfaces;
+
+	protected Class<?>[] stmInterfaces;
+
 	public LogConnectionInterceptor(IConnectionKeyHandle connectionKeyHandle)
 	{
 		this.connectionKeyHandle = connectionKeyHandle;
@@ -121,19 +125,32 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 				PreparedStatement pstm = (PreparedStatement) proxy.invoke(connection, args);
 
 				pstm.setFetchSize(fetchSize);
-				MethodInterceptor logPstmInterceptor = beanContext.registerBean(LogPreparedStatementInterceptor.class)
-						.propertyValue("PreparedStatement", pstm).propertyValue("Statement", pstm).propertyValue("Connection", obj)
-						.propertyValue("sql", args[0]).finish();
-				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class), logPstmInterceptor);
+				MethodInterceptor logPstmInterceptor = beanContext.registerBean(LogPreparedStatementInterceptor.class)//
+						.propertyValue("PreparedStatement", pstm)//
+						.propertyValue("Statement", pstm)//
+						.propertyValue("Connection", obj)//
+						.propertyValue("sql", args[0])//
+						.finish();
+				if (pstmInterfaces == null)
+				{
+					pstmInterfaces = cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class);
+				}
+				return proxyFactory.createProxy(pstmInterfaces, logPstmInterceptor);
 			}
 			else if (Statement.class.isAssignableFrom(method.getReturnType()))
 			{
 				Statement stm = (Statement) proxy.invoke(connection, args);
 
 				stm.setFetchSize(fetchSize);
-				MethodInterceptor logStmInterceptor = beanContext.registerBean(LogStatementInterceptor.class).propertyValue("Statement", stm)
-						.propertyValue("Connection", obj).finish();
-				return proxyFactory.createProxy(cgLibUtil.getAllInterfaces(stm, IPrintable.class), logStmInterceptor);
+				MethodInterceptor logStmInterceptor = beanContext.registerBean(LogStatementInterceptor.class)//
+						.propertyValue("Statement", stm)//
+						.propertyValue("Connection", obj)//
+						.finish();
+				if (stmInterfaces == null)
+				{
+					stmInterfaces = cgLibUtil.getAllInterfaces(stm, IPrintable.class);
+				}
+				return proxyFactory.createProxy(stmInterfaces, logStmInterceptor);
 			}
 			Object result = proxy.invoke(connection, args);
 

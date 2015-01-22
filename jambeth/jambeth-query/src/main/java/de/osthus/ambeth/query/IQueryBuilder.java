@@ -107,6 +107,8 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperator like(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
 
+	IQueryBuilder<T> limit(IOperand operand);
+
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);
