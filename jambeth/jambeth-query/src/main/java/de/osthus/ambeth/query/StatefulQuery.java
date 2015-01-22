@@ -125,4 +125,16 @@ public class StatefulQuery<T> implements IQuery<T>
 		}
 		return result.get(0);
 	}
+
+	@Override
+	public long count()
+	{
+		return query.count(paramMap);
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return query.isEmpty(paramMap);
+	}
 }

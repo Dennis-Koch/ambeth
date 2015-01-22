@@ -112,4 +112,28 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	{
 		return null;
 	}
+
+	@Override
+	public long count()
+	{
+		return 0;
+	}
+
+	@Override
+	public long count(IMap<Object, Object> paramNameToValueMap)
+	{
+		return 0;
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return true;
+	}
+
+	@Override
+	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap)
+	{
+		return true;
+	}
 }
