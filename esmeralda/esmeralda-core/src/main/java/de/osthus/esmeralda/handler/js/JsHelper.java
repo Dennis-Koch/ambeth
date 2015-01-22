@@ -446,10 +446,11 @@ public class JsHelper implements IJsHelper
 					String[] paramNames = new String[i];
 
 					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
+					String fullMethodName = methodName + methodNamePostfix;
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
-					writer.append("{ \"methodInstance\": this.").append(methodName).append(methodNamePostfix);
-					writer.append(", ");
+					writer.append("{ \"methodName\": \"").append(fullMethodName).append("\", ");
+					writer.append("{ \"methodInstance\": this.").append(fullMethodName).append(", ");
 					writeMetadataType(method.getReturnType(), writer);
 
 					IList<VariableElement> parameters = method.getParameters();
