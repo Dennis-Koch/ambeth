@@ -416,6 +416,25 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" NOT LIKE ? ESCAPE '\\')", queryString);
 	}
 
+	@Test
+	public void sqlRegexpLike() throws Exception
+	{
+		Object value1 = "testValue1";
+		Object value2 = "testValue2";
+
+		IOperand rootOperand = qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1));
+		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
+		Assert.assertEquals(value1, parameters.get(0));
+		Assert.assertEquals("Wrong query string", "REGEXP_LIKE(\"" + columnName1 + "\",?)", queryString);
+
+		parameters = new ArrayList<Object>();
+		rootOperand = qb.regexpLike(qb.property("Name1"), qb.valueName(paramName1), qb.valueName(paramName2));
+		queryString = buildCompositeQuery(paramName1, value1, paramName2, value2, rootOperand, parameters);
+		Assert.assertEquals(value1, parameters.get(0));
+		Assert.assertEquals(value2, parameters.get(1));
+		Assert.assertEquals("Wrong query string", "REGEXP_LIKE(\"" + columnName1 + "\",?,?)", queryString);
+	}
+
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlNotContains() throws Exception
