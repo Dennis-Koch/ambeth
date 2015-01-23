@@ -10,15 +10,18 @@ public class AuditConfiguration implements IAuditConfiguration
 {
 	protected final boolean auditActive;
 
+	protected final boolean reasonRequired;
+
 	protected final HashMap<String, IAuditMemberConfiguration> memberNameToConfigurationMap;
 
 	protected final IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap;
 
-	public AuditConfiguration(boolean auditActive, IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap)
+	public AuditConfiguration(boolean auditActive, boolean reasonRequired, IdentityHashMap<Member, IAuditMemberConfiguration> memberToConfigurationMap)
 	{
 		this.auditActive = auditActive;
+		this.reasonRequired = reasonRequired;
 		this.memberToConfigurationMap = memberToConfigurationMap;
-		this.memberNameToConfigurationMap = HashMap.create(memberToConfigurationMap.size(), 0.5f);
+		memberNameToConfigurationMap = HashMap.create(memberToConfigurationMap.size(), 0.5f);
 		for (Entry<Member, IAuditMemberConfiguration> entry : memberToConfigurationMap)
 		{
 			memberNameToConfigurationMap.put(entry.getKey().getName(), entry.getValue());
@@ -29,6 +32,12 @@ public class AuditConfiguration implements IAuditConfiguration
 	public boolean isAuditActive()
 	{
 		return auditActive;
+	}
+
+	@Override
+	public boolean isReasonRequired()
+	{
+		return reasonRequired;
 	}
 
 	@Override

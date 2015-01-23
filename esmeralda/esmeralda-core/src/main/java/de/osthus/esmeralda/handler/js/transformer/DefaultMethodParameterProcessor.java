@@ -25,8 +25,6 @@ import de.osthus.esmeralda.misc.IWriter;
 
 public class DefaultMethodParameterProcessor implements IMethodParameterProcessor
 {
-	private static final JCExpression JCIdent = null;
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -37,10 +35,10 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	@Autowired
 	protected IJsHelper languageHelper;
 
-	@Autowired(value = IJsOverloadManager.STATIC)
+	@Autowired(IJsOverloadManager.STATIC)
 	protected IJsOverloadManager overloadManagerStatic;
 
-	@Autowired(value = IJsOverloadManager.NON_STATIC)
+	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
 
 	@Override

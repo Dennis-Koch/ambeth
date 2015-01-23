@@ -43,6 +43,7 @@ import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -50,6 +51,7 @@ import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 import demo.codeanalyzer.common.model.MethodInfo;
 
 public class JsHelper implements IJsHelper
@@ -135,6 +137,9 @@ public class JsHelper implements IJsHelper
 
 	@Autowired
 	protected IExpressionHandlerRegistry expressionHandlerRegistry;
+
+	@Autowired
+	protected IToDoWriter toDoWriter;
 
 	@Override
 	public JsSpecific getLanguageSpecific()
@@ -312,12 +317,12 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public void writeAsType(String typeName)
+	public void writeAsTypeOf(String typeName)
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		writer.append("Ambeth.type('");
+		writer.append("Ambeth.forName('");
 		writeTypeIntern(typeName, false);
 		writer.append("')");
 	}
@@ -373,12 +378,6 @@ public class JsHelper implements IJsHelper
 	@Override
 	public void writeMetadata(BaseJavaClassModel model)
 	{
-		writeMetadata(model, null);
-	}
-
-	@Override
-	public void writeMetadata(BaseJavaClassModel model, String access)
-	{
 		if (!(model instanceof FieldInfo) && !(model instanceof MethodInfo))
 		{
 			return;
@@ -387,22 +386,166 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		String prefix = model instanceof FieldInfo ? "m$p_" : "m$f_";
+		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
+
 		newLineIndentWithCommaIfFalse(false);
-		writer.append("m$_").append(model.getName()).append(": {");
+		writer.append(prefix).append(name).append(": {");
 
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
-		writer.append("type: '");
-		writeType(type);
-		writer.append('\'');
+		writeMetadataType(type, writer);
 
-		if (access != null)
-		{
-			writer.append(", access: '").append(access).append('\'');
-		}
+		// writer.append(", \"modifier\": \"").append(access).append('"');
 
 		writeAnnotations(model);
 
 		writer.append('}');
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void writeMetadata(String methodName, String returnType, ArrayList<Method> methods)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		newLineIndentWithCommaIfFalse(false);
+		writer.append("m$f_").append(methodName).append(": {");
+		writeMetadataType(returnType, writer);
+		writer.append(", \"overloads\": [");
+
+		ArrayList<Method>[] methodBuckets = bucketSortMethods(methods);
+
+		boolean ambiguousParameterNames = false;
+
+		boolean firstBucket = true;
+		context.incrementIndentationLevel();
+		for (int i = 0, length = methodBuckets.length; i < length; i++)
+		{
+			final ArrayList<Method> bucket = methodBuckets[i];
+			if (bucket == null)
+			{
+				firstBucket = writeStringIfFalse(",", firstBucket);
+				newLineIndent();
+				writer.append("null");
+			}
+			else
+			{
+				HashMap<String, Method> paramNamesMaps = new HashMap<>();
+
+				boolean singleMethod = bucket.size() == 1;
+				firstBucket = writeStringIfFalse(",", firstBucket);
+				newLineIndent();
+				writer.append("[");
+				boolean firstMethod = true;
+				context.incrementIndentationLevel();
+				for (Method method : bucket)
+				{
+					String[] paramNames = new String[i];
+
+					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
+					String fullMethodName = methodName + methodNamePostfix;
+					firstMethod = writeStringIfFalse(",", firstMethod);
+					newLineIndentIfFalse(singleMethod);
+					writer.append("{ \"methodName\": \"").append(fullMethodName).append("\", ");
+					writer.append("{ \"methodInstance\": this.").append(fullMethodName).append(", ");
+					writeMetadataType(method.getReturnType(), writer);
+
+					IList<VariableElement> parameters = method.getParameters();
+					if (!parameters.isEmpty())
+					{
+						writer.append(", \"paramTypes\": [");
+						boolean firstParam = true;
+						for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+						{
+							VariableElement param = parameters.get(j);
+							firstParam = writeStringIfFalse(", ", firstParam);
+							VarSymbol var = (VarSymbol) param;
+							String paramType = var.type.toString();
+							writer.append('"');
+							writeType(paramType);
+							writer.append('"');
+							paramNames[j] = paramType;
+						}
+						writer.append(']');
+					}
+
+					if (!singleMethod)
+					{
+						writer.append(", \"paramNames\": [");
+						boolean firstParam = true;
+						for (int j = 0, jLength = parameters.size(); j < jLength; j++)
+						{
+							VariableElement param = parameters.get(j);
+							firstParam = writeStringIfFalse(", ", firstParam);
+							VarSymbol var = (VarSymbol) param;
+							String paramName = var.name.toString();
+							writer.append('"').append(paramName).append('"');
+							paramNames[j] = paramName;
+						}
+						writer.append(']');
+
+						if (!ambiguousParameterNames)
+						{
+							Arrays.sort(paramNames);
+							Method existing = paramNamesMaps.put(Arrays.deepToString(paramNames), method);
+							if (existing != null)
+							{
+								ambiguousParameterNames = true;
+								StringBuilder sb = new StringBuilder();
+								sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName()).append("()");
+								toDoWriter.write("Ambiguous parameter names", sb.toString());
+							}
+						}
+					}
+					writer.append(" }");
+				}
+				context.decrementIndentationLevel();
+				newLineIndentIfFalse(singleMethod);
+				writer.append(']');
+			}
+		}
+		context.decrementIndentationLevel();
+		newLineIndent();
+		writer.append("]}");
+	}
+
+	protected ArrayList<Method>[] bucketSortMethods(ArrayList<Method> methods)
+	{
+		int maxParams = 0;
+		for (Method method : methods)
+		{
+			int size = method.getParameters().size();
+			if (size > maxParams)
+			{
+				maxParams = size;
+			}
+		}
+
+		@SuppressWarnings("unchecked")
+		ArrayList<Method>[] methodBuckets = new ArrayList[maxParams + 1];
+		for (Method method : methods)
+		{
+			int size = method.getParameters().size();
+			ArrayList<Method> bucket = methodBuckets[size];
+			if (bucket == null)
+			{
+				bucket = new ArrayList<Method>();
+				methodBuckets[size] = bucket;
+			}
+			bucket.add(method);
+		}
+
+		return methodBuckets;
+	}
+
+	protected void writeMetadataType(String type, IWriter writer)
+	{
+		writer.append("\"valueType\": \"");
+		writeType(type);
+		writer.append('"');
 	}
 
 	@Override
@@ -417,7 +560,7 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		writer.append(", at: [");
+		writer.append(", \"at\": [");
 		for (int i = 0, size = annotations.size(); i < size; i++)
 		{
 			Annotation annotation = annotations.get(i);
@@ -452,29 +595,29 @@ public class JsHelper implements IJsHelper
 		AnnotationValue value = properties.get("value");
 		if (properties.size() == 0)
 		{
-			writer.append('\'');
+			writer.append('"');
 			writeType(annotation.getType());
-			writer.append('\'');
+			writer.append('"');
 			return;
 		}
 		else if (properties.size() == 1 && value != null)
 		{
-			writer.append("{'");
+			writer.append("{\"");
 			writeType(annotation.getType());
-			writer.append("': '").append(value.getValue().toString());
-			writer.append("'}");
+			writer.append("\": \"").append(value.getValue().toString());
+			writer.append("\"}");
 		}
 		else
 		{
-			writer.append("{'");
+			writer.append("{\"");
 			writeType(annotation.getType());
-			writer.append("': {");
+			writer.append("\": {");
 			boolean firstProperty = true;
 			for (Entry<String, AnnotationValue> entry : properties)
 			{
 				firstProperty = writeStringIfFalse(", ", firstProperty);
 				String propertyName = entry.getKey();
-				writer.append(propertyName).append(": ").append(entry.getValue().toString());
+				writer.append('"').append(propertyName).append("\": ").append(entry.getValue().toString());
 			}
 			writer.append("}}");
 		}
@@ -501,12 +644,25 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
+		// TODO
+		// if (!getLanguageSpecific().getMethodScopeVars().contains(varName))
+		// {
+		// writer.append("this.");
+		// }
+
+		varName = convertVariableName(varName);
+
+		writer.append(varName);
+	}
+
+	@Override
+	public String convertVariableName(String varName)
+	{
 		if (RESERVED_WORDS.contains(varName))
 		{
 			varName += "_";
 		}
-
-		writer.append(varName);
+		return varName;
 	}
 
 	@Override
@@ -670,4 +826,5 @@ public class JsHelper implements IJsHelper
 			return sb.toString();
 		}
 	}
+
 }
