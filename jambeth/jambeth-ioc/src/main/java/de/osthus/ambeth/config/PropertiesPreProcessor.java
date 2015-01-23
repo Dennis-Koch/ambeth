@@ -62,6 +62,25 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 			}
 			if (Property.DEFAULT_VALUE.equals(propertyAttribute.name()) && Property.DEFAULT_VALUE.equals(propertyAttribute.defaultValue()))
 			{
+				if (propertyAttribute.mandatory())
+				{
+					String propName = prop.getName();
+					boolean propertyInitialized = false;
+					// check if the mandatory property field has been initialized with a value
+					for (int a = propertyConfigs.size(); a-- > 0;)
+					{
+						IPropertyConfiguration propertyConfig = propertyConfigs.get(a);
+						if (propName.equals(propertyConfig.getPropertyName()))
+						{
+							propertyInitialized = true;
+							break;
+						}
+					}
+					if (!propertyInitialized)
+					{
+						throw new BeanContextInitException("Mandatory property '" + propName + "' not initialized");
+					}
+				}
 				continue;
 			}
 			Object value = props.get(propertyAttribute.name());
