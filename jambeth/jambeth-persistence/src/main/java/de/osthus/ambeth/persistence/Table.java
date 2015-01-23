@@ -503,24 +503,24 @@ public class Table implements ITable, IInitializingBean
 	@Override
 	public IVersionCursor selectVersionWhere(CharSequence whereSql)
 	{
-		return selectVersionWhere(null, whereSql, null, null);
+		return selectVersionWhere(null, whereSql, null, null, null);
 	}
 
 	@Override
-	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, CharSequence limitSql,
+	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
 			List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
+	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
 			CharSequence limitSql, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			List<Object> parameters, String tableAlias)
+	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters, String tableAlias)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -537,18 +537,19 @@ public class Table implements ITable, IInitializingBean
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public long selectCountJoin(CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters, String tableAlias)
+	public long selectCountJoin(CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, List<Object> parameters, String tableAlias)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters,
-			String tableAlias)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters, String tableAlias)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
