@@ -214,24 +214,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		auditedService.setServiceType(method.getDeclaringClass().getName());
 		auditedService.setMethodName(method.getName());
 
-		auditedService.setArguments(convertObjectArrayToStringArray(args));
+		auditedService.setArguments(conversionHelper.convertValueToType(String[].class, args));
 
 		return new MethodCallHandle(auditedService, System.currentTimeMillis());
-	}
-
-	private String[] convertObjectArrayToStringArray(Object[] args)
-	{
-		if (args == null)
-		{
-			return null;
-		}
-		String[] sValues = new String[args.length];
-		for (int i = 0; i < args.length; i++)
-		{
-			Object value = args[i];
-			sValues[i] = conversionHelper.convertValueToType(String.class, value);
-		}
-		return sValues;
 	}
 
 	@Override
