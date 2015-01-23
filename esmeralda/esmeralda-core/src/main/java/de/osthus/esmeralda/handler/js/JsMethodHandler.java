@@ -62,16 +62,12 @@ public class JsMethodHandler implements IMethodHandler
 		HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
 		Method method = context.getMethod();
-
 		IJsOverloadManager overloadManager = method.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
-
 		boolean hasOverloads = overloadManager.hasOverloads(method);
-
 		IList<VariableElement> parameters = method.getParameters();
+		String methodName = method.getName();
 
 		writeDocumentation(method, writer);
-
-		String methodName = method.getName();
 
 		languageHelper.newLineIndent();
 		writer.append('"');
@@ -181,7 +177,8 @@ public class JsMethodHandler implements IMethodHandler
 			String name = var.name.toString();
 
 			languageHelper.newLineIndentDocumentation();
-			writer.append("@param {").append(convertedType).append("} ").append(name);
+			writer.append("@param {").append(convertedType).append("} ");
+			languageHelper.writeVariableName(name);
 			hasContent = true;
 		}
 		String returnType = method.getReturnType();
