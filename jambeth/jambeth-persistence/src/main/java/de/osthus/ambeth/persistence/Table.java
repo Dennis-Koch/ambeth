@@ -503,17 +503,18 @@ public class Table implements ITable, IInitializingBean
 	@Override
 	public IVersionCursor selectVersionWhere(CharSequence whereSql)
 	{
-		return selectVersionWhere(null, whereSql, null);
+		return selectVersionWhere(null, whereSql, null, null);
 	}
 
 	@Override
-	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, List<Object> parameters)
+	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, CharSequence limitSql,
+			List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			List<Object> parameters)
+			CharSequence limitSql, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -525,13 +526,18 @@ public class Table implements ITable, IInitializingBean
 	}
 
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, List<Object> parameters)
+			CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, List<Object> parameters, String tableAlias)
+			CharSequence limitSql, int offset, int length, List<Object> parameters, String tableAlias)
+	{
+		throw new UnsupportedOperationException("Not implemented");
+	}
+
+	public long selectCountJoin(CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters, String tableAlias)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}
@@ -547,8 +553,8 @@ public class Table implements ITable, IInitializingBean
 		throw new UnsupportedOperationException("Not implemented");
 	}
 
-	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, int offset,
-			int length, List<Object> parameters)
+	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

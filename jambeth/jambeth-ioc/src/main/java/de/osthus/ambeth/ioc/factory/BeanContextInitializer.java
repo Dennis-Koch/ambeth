@@ -932,13 +932,20 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		{
 			IPropertyConfiguration propertyConf = propertyConfigurations.get(a);
 
-			String refBeanName = propertyConf.getBeanName();
-			if (refBeanName == null)
+			try
 			{
-				initializePrimitive(beanContextInit, bean, beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
-				continue;
+				String refBeanName = propertyConf.getBeanName();
+				if (refBeanName == null)
+				{
+					initializePrimitive(beanContextInit, bean, beanType, propertyConf, alreadySpecifiedPropertyNamesSet);
+					continue;
+				}
+				initializeRelation(beanContextInit, beanConfiguration, bean, beanType, propertyConf, propertyInfos, alreadySpecifiedPropertyNamesSet);
 			}
-			initializeRelation(beanContextInit, beanConfiguration, bean, beanType, propertyConf, propertyInfos, alreadySpecifiedPropertyNamesSet);
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e, "Error occurred while setting property '" + propertyConf.getPropertyName() + "'");
+			}
 		}
 	}
 

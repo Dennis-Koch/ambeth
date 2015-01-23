@@ -8,13 +8,12 @@ import java.util.regex.Pattern;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.proxy.CascadedInterceptor;
-import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
@@ -27,9 +26,6 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 	public static final Method addBatchMethod;
 
 	public static final HashSet<Method> setIndexMethods = new HashSet<Method>(0.5f);
-
-	// Important to load the foreign static field to this static field on startup because of potential unnecessary classloading issues on finalize()
-	private static final Method finalizeMethod = CascadedInterceptor.finalizeMethod;
 
 	static
 	{
@@ -64,31 +60,14 @@ public class LogPreparedStatementInterceptor extends LogStatementInterceptor imp
 	@LogInstance
 	private ILogger log;
 
+	@Property
 	protected PreparedStatement preparedStatement;
 
+	@Property
 	protected String sql;
 
 	@Autowired(optional = true)
 	protected IPreparedStatementParamLogger paramLogger; // optional for debugging
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		super.afterPropertiesSet();
-
-		ParamChecker.assertNotNull(preparedStatement, "preparedStatement");
-		ParamChecker.assertNotNull(sql, "sql");
-	}
-
-	public void setPreparedStatement(PreparedStatement preparedStatement)
-	{
-		this.preparedStatement = preparedStatement;
-	}
-
-	public void setSql(String sql)
-	{
-		this.sql = sql;
-	}
 
 	@Override
 	protected ILogger getLog()

@@ -111,6 +111,8 @@ public interface IQueryBuilder<T> extends IDisposable
 
 	IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter);
 
+	IQueryBuilder<T> limit(IOperand operand);
+
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand);
 
 	IOperator startsWith(IOperand leftOperand, IOperand rightOperand, Boolean caseSensitive);

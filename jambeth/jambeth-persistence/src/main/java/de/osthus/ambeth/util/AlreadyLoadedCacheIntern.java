@@ -52,12 +52,6 @@ public class AlreadyLoadedCacheIntern implements IAlreadyLoadedCache
 				keyToObjectMap.put(key, loadContainer);
 				continue;
 			}
-			if (existingLoadContainer == loadContainer)
-			{
-				continue;
-			}
-			// TODO:
-			throw new IllegalStateException("TODO");
 		}
 		for (Entry<IdTypeTuple, IObjRef> entry : forkedValue.keyToRefMap)
 		{
