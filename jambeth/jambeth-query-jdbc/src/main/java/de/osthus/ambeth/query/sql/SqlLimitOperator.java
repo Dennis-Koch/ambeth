@@ -29,8 +29,7 @@ public class SqlLimitOperator implements IOperand
 		{
 			return;
 		}
-		querySB.append(" LIMIT ");
+		querySB.append("ROWNUM<=");
 		querySB.append(value.toString());
-		// operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 	}
 }
