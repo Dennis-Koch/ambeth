@@ -536,7 +536,7 @@ namespace De.Osthus.Ambeth.Mapping
                     if (config.IsIgnoredMember(voMemberName))
                     {
                         // Nothing to collect
-                        Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                        Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                         boMember.SetValue(businessObject, convertedEmptyRelation);
                         continue;
                     }
@@ -583,7 +583,7 @@ namespace De.Osthus.Ambeth.Mapping
                 if (voValue == null)
                 {
                     // Nothing to collect
-                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                     boMember.SetValue(businessObject, convertedEmptyRelation);
                     continue;
                 }
@@ -595,7 +595,7 @@ namespace De.Osthus.Ambeth.Mapping
                 if (voList.Count == 0)
                 {
                     // Nothing to collect
-                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                     boMember.SetValue(businessObject, convertedEmptyRelation);
                     continue;
                 }
@@ -1134,7 +1134,7 @@ namespace De.Osthus.Ambeth.Mapping
                             {
                                 value = ListTypeHelper.UnpackListType(value);
                             }
-                            value = ConvertPrimitiveValue(value, voMember.RealType, boMember);
+                            value = ConvertPrimitiveValue(value, voMember.ElementType, boMember.RealType, boMember.ElementType);
                             // Do not 'kill' technical members except 'version' (for optimistic locking)
                             if (boMember.TechnicalMember && !boMember.Equals(businessObjectMetaData.VersionMember)
                                     && (value == null || value.Equals(boMember.NullEquivalentValue)))
@@ -1173,7 +1173,7 @@ namespace De.Osthus.Ambeth.Mapping
                                     value = ListTypeHelper.PackInListType((IEnumerable)value, voMember.RealType);
                                 }
                             }
-                            value = ConvertPrimitiveValue(value, boMember.ElementType, voMember);
+                            value = ConvertPrimitiveValue(value, boMember.ElementType, voMember.RealType, voMember.ElementType);
                             if (voMember.TechnicalMember && (value == null || value.Equals(voMember.NullEquivalentValue)))
                             {
                                 continue;
