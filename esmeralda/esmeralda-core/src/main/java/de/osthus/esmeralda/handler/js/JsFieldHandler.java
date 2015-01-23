@@ -48,7 +48,9 @@ public class JsFieldHandler implements IFieldHandler
 
 	protected void writeJsonField(Field field, ExpressionTree initializer, IWriter writer)
 	{
-		writer.append(field.getName()).append(": ");
+		writer.append('"');
+		languageHelper.writeVariableName(field.getName());
+		writer.append("\": ");
 		if (initializer != null && initializer instanceof JCLiteral)
 		{
 			languageHelper.writeExpressionTree(initializer);
