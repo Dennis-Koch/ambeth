@@ -1211,74 +1211,56 @@ namespace De.Osthus.Ambeth.Mapping
             return primitiveMembers;
         }
 
-        protected Object ConvertPrimitiveValue(Object value, Type sourceElementType, Member targetMember)
+        protected Object ConvertPrimitiveValue(Object value, Type sourceElementType, Type targetRealType, Type targetElementType)
         {
             if (value == null)
             {
                 return null;
             }
-            else if (value.GetType().IsArray && !typeof(String).Equals(targetMember.RealType)) // do not handle byte[]
+            else if (value.GetType().IsArray && !typeof(String).Equals(targetRealType)) // do not handle byte[]
             // or char[] to
             // String here
             {
-                return ConvertPrimitiveValue(ListUtil.AnyToList(value), sourceElementType, targetMember);
+                return ConvertPrimitiveValue(ListUtil.AnyToList(value), sourceElementType, targetRealType, targetElementType);
             }
-            else if (value is IEnumerable && !(value is String))
+            else if (!(value is IEnumerable) || (value is String))
             {
-                List<Object> result = new List<Object>();
-                Type targetElementType;
-                Type targetRealType = targetMember.RealType;
+                return ConversionHelper.ConvertValueToType(targetRealType, value);
+            }
+            IConversionHelper conversionHelper = this.ConversionHelper;
+            IEnumerable coll = (IEnumerable) value;
+            List<Object> result = new List<Object>();
 
-                if (targetRealType.IsArray)
-                {
-                    targetElementType = targetRealType.GetElementType();
-                }
-                else if (typeof(IEnumerable).IsAssignableFrom(targetMember.ElementType) && !typeof(String).IsAssignableFrom(targetMember.ElementType))
-                {
-                    targetElementType = sourceElementType;
-                }
-                else
-                {
-                    targetElementType = targetMember.ElementType;
-                }
-                foreach (Object item in (IEnumerable)value)
-                {
-                    Object convertedItem = ConversionHelper.ConvertValueToType(targetElementType, item);
-                    result.Add(convertedItem);
-                }
-                if (targetRealType.IsArray)
-                {
-                    Array array = Array.CreateInstance(targetRealType.GetElementType(), result.Count);
-                    for (int a = result.Count; a-- > 0; )
-                    {
-                        array.SetValue(result[a], a);
-                    }
-                    value = array;
-                }
-                else if (typeof(IEnumerable).IsAssignableFrom(targetRealType) && !typeof(String).Equals(targetRealType))
-                {
-                    value = ListUtil.CreateCollectionOfType(targetRealType, result.Count);
-                    ListUtil.FillList(value, result);
-                }
-                else if (result.Count == 0)
-                {
-                    return null;
-                }
-                else if (result.Count == 1)
-                {
-                    return result[0];
-                }
-                else
-                {
-                    throw new ArgumentException("Cannot map '" + value.GetType() + "' of '" + sourceElementType + "' to '" + targetMember.RealType
-                            + "' of '" + targetMember.ElementType + "'");
-                }
-            }
-            else
+            foreach (Object item in (IEnumerable)value)
             {
-                value = ConversionHelper.ConvertValueToType(targetMember.RealType, value);
+                Object convertedItem = ConversionHelper.ConvertValueToType(targetElementType, item);
+                result.Add(convertedItem);
             }
-            return value;
+            if (targetRealType.IsArray)
+            {
+                Array array = Array.CreateInstance(targetRealType.GetElementType(), result.Count);
+                for (int a = result.Count; a-- > 0; )
+                {
+                    array.SetValue(result[a], a);
+                }
+                return array;
+            }
+            else if (typeof(IEnumerable).IsAssignableFrom(targetRealType) && !typeof(String).Equals(targetRealType))
+            {
+                value = ListUtil.CreateCollectionOfType(targetRealType, result.Count);
+                ListUtil.FillList(value, result);
+                return value;
+            }
+            else if (result.Count == 0)
+            {
+                return null;
+            }
+            else if (result.Count == 1)
+            {
+                return result[0];
+            }
+            throw new ArgumentException("Cannot map '" + value.GetType() + "' of '" + sourceElementType + "' to '" + targetRealType
+                        + "' of '" + targetElementType + "'");
         }
 
         public Object GetMappedBusinessObject(IObjRef objRef)

@@ -169,22 +169,23 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, List<Object> parameters)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, CharSequence limitSql, List<Object> parameters)
 	{
-		return selectFields(tableName, fieldNamesSql, "", whereSql, parameters);
+		return selectFields(tableName, fieldNamesSql, "", whereSql, limitSql, parameters);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence limitSql,
+			List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, parameters, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, limitSql, parameters, tableAlias);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters,
-			String tableAlias)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence limitSql,
+			List<Object> parameters, String tableAlias)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector current = objectCollector.getCurrent();
@@ -200,15 +201,19 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			sqlBuilder.appendName(tableName, sb);
 			if (tableAlias != null)
 			{
-				sb.append(" ").append(tableAlias);
+				sb.append(' ').append(tableAlias);
 			}
 			if (join)
 			{
-				sb.append(" ").append(joinSql);
+				sb.append(' ').append(joinSql);
 			}
 			if (whereSql != null && whereSql.length() > 0)
 			{
 				sb.append(" WHERE ").append(whereSql);
+			}
+			if (limitSql != null && limitSql.length() > 0)
+			{
+				sb.append(' ').append(limitSql);
 			}
 			return sqlSelect(sb.toString(), parameters);
 		}
@@ -220,16 +225,18 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, offset, length, parameters, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters,
+				tableAlias);
 	}
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters, String tableAlias)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, CharSequence limitSql, int offset, int length, List<Object> parameters,
+			String tableAlias)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -353,7 +360,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			// whereSB.Append(" ORDER BY ");
 			// SqlBuilder.Append(idFieldName, whereSB);
 			// }
-			return selectFields(tableName, fieldsSQL, whereSB.toString(), parameters);
+			return selectFields(tableName, fieldsSQL, whereSB.toString(), null, parameters);
 		}
 		finally
 		{

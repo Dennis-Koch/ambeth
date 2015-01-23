@@ -42,9 +42,7 @@ import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -611,22 +609,29 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		{
 			return;
 		}
-		multithreadingHelper.invokeAndWait(parallelPendingItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>()
+		// FIXME: the is currently a "mysterious" threading issue with the internal maps of the AlreadyLoadedCache
+		// until this is consistently solved the solution remains sequential here
+		for (ParallelLoadItem pli : parallelPendingItems)
 		{
-			@Override
-			public Object invoke(ParallelLoadItem state) throws Throwable
-			{
-				initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
-				return null;
-			}
-		}, new IAggregrateResultHandler<Object, ParallelLoadItem>()
-		{
-			@Override
-			public void aggregateResult(Object resultOfFork, ParallelLoadItem itemOfFork)
-			{
-				writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
-			}
-		});
+			initInstances(pli.entityType, pli.idIndex, pli.ids, pli.cascadeTypeToPendingInit, pli.loadMode);
+			writePendingInitToShared(pli.cascadeTypeToPendingInit, pli.sharedCascadeTypeToPendingInit);
+		}
+		// multithreadingHelper.invokeAndWait(parallelPendingItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>()
+		// {
+		// @Override
+		// public Object invoke(ParallelLoadItem state) throws Throwable
+		// {
+		// initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
+		// return null;
+		// }
+		// }, new IAggregrateResultHandler<Object, ParallelLoadItem>()
+		// {
+		// @Override
+		// public void aggregateResult(Object resultOfFork, ParallelLoadItem itemOfFork)
+		// {
+		// writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
+		// }
+		// });
 	}
 
 	public void writePendingInitToShared(LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit,

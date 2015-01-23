@@ -133,6 +133,18 @@ public class QueryBean<T> implements IQuery<T>
 	}
 
 	@Override
+	public long count()
+	{
+		return getQuery().count();
+	}
+
+	@Override
+	public boolean isEmpty()
+	{
+		return getQuery().isEmpty();
+	}
+
+	@Override
 	public IQuery<T> param(Object paramKey, Object param)
 	{
 		return getQuery().param(paramKey, param);

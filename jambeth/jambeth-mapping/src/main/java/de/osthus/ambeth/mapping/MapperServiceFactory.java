@@ -1,5 +1,6 @@
 package de.osthus.ambeth.mapping;
 
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -14,11 +15,13 @@ public class MapperServiceFactory implements IMapperServiceFactory
 	@Autowired
 	protected IServiceContext beanContext;
 
+	@Autowired
+	protected IGarbageProxyFactory garbageProxyFactory;
+
 	@Override
 	public IMapperService create()
 	{
 		IMapperService mapperService = beanContext.registerBean(ModelTransferMapper.class).finish();
-		IMapperService mapperServiceReference = new MapperServiceWeakReference(mapperService);
-		return mapperServiceReference;
+		return garbageProxyFactory.createGarbageProxy(mapperService, IMapperService.class);
 	}
 }

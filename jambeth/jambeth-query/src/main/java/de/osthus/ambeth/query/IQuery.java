@@ -24,6 +24,10 @@ public interface IQuery<T> extends IDisposable
 
 	IDataCursor retrieveAsData();
 
+	long count();
+
+	boolean isEmpty();
+
 	/**
 	 * Please use param(Object, Object) instead
 	 * 

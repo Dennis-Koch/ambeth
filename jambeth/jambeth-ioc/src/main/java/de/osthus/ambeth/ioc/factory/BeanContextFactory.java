@@ -14,6 +14,8 @@ import de.osthus.ambeth.config.IocConfigurationConstants;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.PropertiesPreProcessor;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.garbageproxy.GarbageProxyFactory;
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -151,6 +153,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			LoggerHistory loggerHistory = new LoggerHistory();
 			AccessorTypeProvider accessorTypeProvider = new AccessorTypeProvider();
 			ExtendableRegistry extendableRegistry = new ExtendableRegistry();
+			GarbageProxyFactory garbageProxyFactory = new GarbageProxyFactory();
 			PropertyInfoProvider propertyInfoProvider = new PropertyInfoProvider();
 			BeanContextInitializer beanContextInitializer = new BeanContextInitializer();
 			CallingProxyPostProcessor callingProxyPostProcessor = new CallingProxyPostProcessor();
@@ -169,6 +172,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			beanContextInitializer.setConversionHelper(delegatingConversionHelper);
 			beanContextInitializer.setObjectCollector(tlObjectCollector);
 			beanContextInitializer.setPropertyInfoProvider(propertyInfoProvider);
+			garbageProxyFactory.setAccessorTypeProvider(accessorTypeProvider);
 			loggerInstancePreProcessor.setObjectCollector(tlObjectCollector);
 			propertyInfoProvider.setObjectCollector(tlObjectCollector);
 			threadLocalCleanupPreProcessor.setExtendableRegistry(extendableRegistry);
@@ -192,6 +196,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			callingProxyPostProcessor.afterPropertiesSet();
 			delegatingConversionHelper.afterPropertiesSet();
 			extendableRegistry.afterPropertiesSet();
+			garbageProxyFactory.afterPropertiesSet();
 			linkController.afterPropertiesSet();
 			loggerHistory.afterPropertiesSet();
 			beanContextInitializer.afterPropertiesSet();
@@ -235,6 +240,8 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			parentContextFactory.registerExternalBean(loggerInstancePreProcessor).autowireable(ILoggerCache.class);
 
 			parentContextFactory.registerWithLifecycle(extendableRegistry).autowireable(IExtendableRegistry.class);
+
+			parentContextFactory.registerWithLifecycle(garbageProxyFactory).autowireable(IGarbageProxyFactory.class);
 
 			parentContextFactory.registerWithLifecycle(callingProxyPostProcessor).autowireable(CallingProxyPostProcessor.class);
 
