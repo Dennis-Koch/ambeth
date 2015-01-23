@@ -57,7 +57,7 @@ public class SqlPermissionOperand implements IOperator
 		{
 			return;
 		}
-		AppendableStringBuilder joinSB = (AppendableStringBuilder) nameToValueMap.get("JoinSB");
+		AppendableStringBuilder joinSB = (AppendableStringBuilder) nameToValueMap.get("#JoinSB");
 		for (int i = 0; i < permissionGroupJoins.length; i++)
 		{
 			if (i > 0)

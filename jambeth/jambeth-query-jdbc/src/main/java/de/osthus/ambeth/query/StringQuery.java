@@ -91,7 +91,7 @@ public class StringQuery implements IStringQuery, IInitializingBean
 		}
 		finally
 		{
-			nameToValueMap.remove("JoinSB");
+			nameToValueMap.remove("#JoinSB");
 			tlObjectCollector.dispose(joinSB);
 			tlObjectCollector.dispose(whereSB);
 		}
