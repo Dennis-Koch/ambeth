@@ -18,6 +18,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
+import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.QueryEntity;
@@ -158,6 +159,13 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" LIKE ? ESCAPE '\\')", queryString);
 	}
 
+	@Test
+	public void sqlCount() throws Exception
+	{
+		IQuery<?> query = qb.build();
+		Assert.assertEquals(6, query.count());
+	}
+
 	@SuppressWarnings("deprecation")
 	@Test
 	public void sqlEndsWith() throws Exception
@@ -192,6 +200,13 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1 + "%", parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(LOWER(\"" + columnName1 + "\") LIKE LOWER(?) ESCAPE '\\')", queryString);
+	}
+
+	@Test
+	public void sqlIsEmpty() throws Exception
+	{
+		IQuery<?> query = qb.build();
+		Assert.assertFalse(query.isEmpty());
 	}
 
 	@SuppressWarnings("deprecation")

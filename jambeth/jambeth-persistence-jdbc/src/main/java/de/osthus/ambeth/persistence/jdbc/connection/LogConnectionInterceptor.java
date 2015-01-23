@@ -129,7 +129,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 						.propertyValue("PreparedStatement", pstm)//
 						.propertyValue("Statement", pstm)//
 						.propertyValue("Connection", obj)//
-						.propertyValue("sql", args[0])//
+						.propertyValue("Sql", args[0])//
 						.finish();
 				if (pstmInterfaces == null)
 				{

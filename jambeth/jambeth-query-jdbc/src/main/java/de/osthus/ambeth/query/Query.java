@@ -138,6 +138,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 			{
 				for (int i = 0; i < sqlParts.length; i++)
 				{
+					sb.append('#');
 					if (sqlParts[i] != null)
 					{
 						sb.append(sqlParts[i]);
@@ -161,8 +162,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 			throw new IllegalStateException(IQuery.class.getSimpleName() + ".retrieveAsVersions() can only be called from within a @"
 					+ PersistenceContext.class.getSimpleName() + ". This is because the IVersionCursor may hold active resources of underlying databases");
 		}
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-
 		HashMap<Object, Object> nameToValueMap = new HashMap<Object, Object>();
 		if (nameToValueMapSrc == null)
 		{
@@ -186,81 +185,46 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		}
 
 		ArrayList<String> additionalSelectColumnList = new ArrayList<String>();
-		StringBuilder whereSB = tlObjectCollector.create(StringBuilder.class);
 		ArrayList<Object> parameters = new ArrayList<Object>();
-		try
+		Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
+
+		String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
+		String joinSql = sqlParts[0];
+		String whereSql = sqlParts[1];
+		String orderBySql = sqlParts[2];
+		String limitSql = sqlParts[3];
+
+		String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery) ? tableAliasHolder.getTableAlias() : null;
+
+		Table table = (Table) this.database.getTableByType(this.entityType);
+
+		if (RetrievalType.DATA.equals(retrievalType))
 		{
-			Object pagingSizeObject = nameToValueMap.get(QueryConstants.PAGING_SIZE_OBJECT);
-
-			String[] sqlParts = getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
-			String joinSql = sqlParts[0];
-			String whereSql = sqlParts[1];
-			String orderBySql = sqlParts[2];
-			String limitSql = sqlParts[3];
-
-			String tableAlias = (stringQuery.isJoinQuery() || containsSubQuery) ? tableAliasHolder.getTableAlias() : null;
-
-			Table table = (Table) this.database.getTableByType(this.entityType);
-
-			if (RetrievalType.DATA.equals(retrievalType))
-			{
-				fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), parameters);
-			}
-			if (pagingSizeObject == null)
-			{
-				if (!orderBySql.isEmpty() || !limitSql.isEmpty())
-				{
-					whereSB.append(whereSql);
-					if (!orderBySql.isEmpty())
-					{
-						whereSB.append(' ').append(orderBySql);
-					}
-					if (!limitSql.isEmpty())
-					{
-						whereSB.append(' ').append(limitSql);
-					}
-					if (RetrievalType.VERSION.equals(retrievalType))
-					{
-						return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
-					}
-					else if (RetrievalType.COUNT.equals(retrievalType))
-					{
-						return Long.valueOf(table.selectCountJoin(joinSql, whereSB, parameters, tableAlias));
-					}
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSB, parameters, tableAlias);
-				}
-				else if (RetrievalType.VERSION.equals(retrievalType))
-				{
-					return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
-				}
-				else if (RetrievalType.COUNT.equals(retrievalType))
-				{
-					return Long.valueOf(table.selectCountJoin(joinSql, whereSql, parameters, tableAlias));
-				}
-				else
-				{
-					return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, parameters, tableAlias);
-				}
-			}
-			else
-			{
-				Object pagingIndexObject = nameToValueMap.get(QueryConstants.PAGING_INDEX_OBJECT);
-
-				int pagingLimit = conversionHelper.convertValueToType(Integer.TYPE, pagingSizeObject);
-				int pagingOffset = conversionHelper.convertValueToType(Integer.TYPE, pagingIndexObject);
-
-				if (RetrievalType.VERSION.equals(retrievalType))
-				{
-					return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit,
-							parameters, tableAlias);
-				}
-				return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters);
-			}
+			fillAdditionalFieldsSQL(additionalSelectColumnList, null, nameToValueMap, stringQuery.isJoinQuery(), parameters);
 		}
-		finally
+		if (pagingSizeObject == null)
 		{
-			tlObjectCollector.dispose(whereSB);
+			if (RetrievalType.VERSION.equals(retrievalType))
+			{
+				return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
+			}
+			else if (RetrievalType.COUNT.equals(retrievalType))
+			{
+				return Long.valueOf(table.selectCountJoin(joinSql, whereSql, orderBySql, parameters, tableAlias));
+			}
+			return table.selectDataJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
 		}
+		Object pagingIndexObject = nameToValueMap.get(QueryConstants.PAGING_INDEX_OBJECT);
+
+		int pagingLimit = conversionHelper.convertValueToType(Integer.TYPE, pagingSizeObject);
+		int pagingOffset = conversionHelper.convertValueToType(Integer.TYPE, pagingIndexObject);
+
+		if (RetrievalType.VERSION.equals(retrievalType))
+		{
+			return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters,
+					tableAlias);
+		}
+		return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters);
 	}
 
 	@Override
@@ -481,17 +445,15 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Override
 	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap)
 	{
-		return count(paramNameToValueMap) == 0;
-		// TODO: Improve performance e.g. with a "LIMIT 1" expression to skip counting ALL entries
-		// IDataCursor dataCursor = (IDataCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1);
-		// try
-		// {
-		// return !dataCursor.moveNext();
-		// }
-		// finally
-		// {
-		// dataCursor.dispose();
-		// }
+		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1);
+		try
+		{
+			return !versionCursor.moveNext();
+		}
+		finally
+		{
+			versionCursor.dispose();
+		}
 	}
 
 	@Override

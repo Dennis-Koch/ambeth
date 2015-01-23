@@ -44,6 +44,25 @@ namespace De.Osthus.Ambeth.Config
                 }
                 if (PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.Name) && PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.DefaultValue))
                 {
+                    if (propertyAttribute.Mandatory)
+                    {
+                        String propName = prop.Name;
+                        bool propertyInitialized = false;
+                        // check if the mandatory property field has been initialized with a value
+                        for (int a = propertyConfigs.Count; a-- > 0; )
+                        {
+                            IPropertyConfiguration propertyConfig = propertyConfigs[a];
+                            if (propName.Equals(propertyConfig.GetPropertyName()))
+                            {
+                                propertyInitialized = true;
+                                break;
+                            }
+                        }
+                        if (!propertyInitialized)
+                        {
+                            throw new BeanContextInitException("Mandatory property '" + propName + "' not initialized");
+                        }
+                    }
                     continue;
                 }
                 Object value = props != null ? props.GetString(propertyAttribute.Name) : null;
