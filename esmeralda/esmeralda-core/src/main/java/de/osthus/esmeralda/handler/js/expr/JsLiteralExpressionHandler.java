@@ -69,7 +69,7 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 		}
 
 		JCLiteral literal = (JCLiteral) expression;
-		String value = literal.value != null ? literal.value.toString() : literal.toString();
+		String value = literal.type != null && "float".equals(literal.type.toString()) ? literal.value.toString() : literal.toString();
 		writer.append(value);
 
 		if (literal.type != null)
