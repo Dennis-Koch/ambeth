@@ -1254,7 +1254,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 						{
 							value = listTypeHelper.unpackListType(value);
 						}
-						value = convertPrimitiveValue(value, voMember.getRealType(), boMember.getRealType(), boMember.getElementType());
+						value = convertPrimitiveValue(value, voMember.getElementType(), boMember.getRealType(), boMember.getElementType());
 						// Do not 'kill' technical members except 'version' (for optimistic locking)
 						if (boMember.isTechnicalMember() && !boMember.equals(businessObjectMetaData.getVersionMember())
 								&& (value == null || value.equals(boMember.getNullEquivalentValue())))

@@ -6,6 +6,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Util", "..\Ambeth.Util\Ambeth.Util.csproj", "{271E6992-6B52-41EE-9D4C-5A56FD173C2E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.IOC", "..\Ambeth.IOC\Ambeth.IOC.csproj", "{FB7182DA-BBB9-4434-A936-10A29635E6D3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33} = {E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Log", "..\Ambeth.Log\Ambeth.Log.csproj", "{E5A70D5C-EE4F-40FA-BE23-5352D40C7B33}"
 EndProject
@@ -51,6 +54,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Log.SL5", "..\Ambeth.Log\Ambeth.Log.SL5.csproj", "{2C44A82D-C27F-4B46-8700-DF4C130E9176}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.IOC.SL5", "..\Ambeth.IOC\Ambeth.IOC.SL5.csproj", "{19A96089-734E-47F9-983C-298DD17A4517}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2C44A82D-C27F-4B46-8700-DF4C130E9176} = {2C44A82D-C27F-4B46-8700-DF4C130E9176}
+		{AE8460D7-0819-4F8C-8578-9324859C6B96} = {AE8460D7-0819-4F8C-8578-9324859C6B96}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ambeth.Cache.SL5", "..\Ambeth.Cache\Ambeth.Cache.SL5.csproj", "{AABFCB0F-80E5-494A-90F9-5009CBB19121}"
 EndProject
