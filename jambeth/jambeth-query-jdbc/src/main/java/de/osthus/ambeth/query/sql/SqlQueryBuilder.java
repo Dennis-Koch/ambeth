@@ -786,6 +786,28 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
+	{
+		return regexpLike(sourceString, pattern, null);
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
+	{
+		ParamChecker.assertParamNotNull(sourceString, "sourceString");
+		ParamChecker.assertParamNotNull(pattern, "pattern");
+		try
+		{
+			return getBeanContext().registerBean(SqlRegexpLikeOperand.class).propertyValue("sourceString", sourceString).propertyValue("pattern", pattern)
+					.propertyValue("matchParameter", matchParameter).finish();
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+	}
+
+	@Override
 	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand)
 	{
 		return startsWith(leftOperand, rightOperand, null);

@@ -1,4 +1,4 @@
-package de.osthus.esmeralda.handler.uni.stmt;
+package de.osthus.esmeralda.handler.csharp.stmt;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.Method;
 
-public class UniversalReturnHandler extends AbstractStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
+public class CsReturnHandler extends AbstractStatementHandler<JCReturn> implements IStatementHandlerExtension<JCReturn>
 {
 	@SuppressWarnings("unused")
 	@LogInstance

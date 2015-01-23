@@ -13,6 +13,7 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
+import de.osthus.ambeth.exceptions.AuditReasonMissingException;
 import de.osthus.ambeth.ioc.AuditModule;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
@@ -103,9 +104,11 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		}
 	}
 
-	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IAuditReasonController auditController;
 
 	@Autowired
 	protected ITestAuditService testAuditService;
@@ -128,7 +131,23 @@ public class AuditMethodCallTest extends AbstractPersistenceTest
 		char[] passwordOfUser = "abc".toCharArray();
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
-		// user.setSID("MySID");
+
+		auditController.setAuditReason("junit test");
+
+		Password password = entityFactory.createEntity(Password.class);
+		passwordUtil.assignNewPassword(passwordOfUser, password, user);
+		user.setPassword(password);
+
+		mergeProcess.process(user, null, null, null);
+		Assert.assertTrue(user.getId() > 0);
+	}
+
+	@Test(expected = AuditReasonMissingException.class)
+	public void auditedEntity_NoReasonThrowsException()
+	{
+		char[] passwordOfUser = "abc".toCharArray();
+		User user = entityFactory.createEntity(User.class);
+		user.setName("MyName");
 
 		Password password = entityFactory.createEntity(Password.class);
 		passwordUtil.assignNewPassword(passwordOfUser, password, user);

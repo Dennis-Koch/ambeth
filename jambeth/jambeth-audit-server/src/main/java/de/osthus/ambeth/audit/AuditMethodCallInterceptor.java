@@ -1,8 +1,6 @@
 package de.osthus.ambeth.audit;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.collections.ILinkedMap;
@@ -39,6 +37,9 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	@Property(name = AuditConfigurationConstants.AuditedServiceDefaultModeActive, defaultValue = "true")
 	protected boolean auditedServiceDefaultModeActive;
 
+	@Property(name = AuditConfigurationConstants.AuditedServiceArgDefaultModeActive, defaultValue = "false")
+	protected boolean auditedServiceArgDefaultModeActive;
+
 	@Override
 	protected Object interceptIntern(final Object obj, final Method method, final Object[] args, final MethodProxy proxy) throws Throwable
 	{
@@ -49,23 +50,23 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 		}
 
 		// filter the args by audit configuration
-		final List<Object> auditedArgs = new ArrayList<Object>();
-		if (auditInfo.getAuditedArgs() != null)
+		AuditedArg[] auditedArgs = auditInfo.getAuditedArgs();
+		final Object[] filteredArgs = new Object[args.length];
+		for (int i = 0; i < filteredArgs.length; i++)
 		{
-			for (int i = 0; i < auditInfo.getAuditedArgs().length; i++)
+			AuditedArg auditedArg = auditedArgs != null ? auditedArgs[i] : null;
+			if ((auditedArg == null && auditedServiceArgDefaultModeActive) || (auditedArg != null && auditedArg.value()))
 			{
-				AuditedArg auditedArg = auditInfo.auditedArgs[i];
-				if ((auditedArg == null && auditedServiceDefaultModeActive) || (auditedArg != null && auditedArg.value()))
-				{
-					auditedArgs.add(args[i]);
-				}
+				filteredArgs[i] = args[i];
+			}
+			else
+			{
+				filteredArgs[i] = "n/a";
 			}
 		}
-
 		if (transactionState.isTransactionActive())
 		{
-
-			IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, auditedArgs.toArray());
+			IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
 			try
 			{
 				return invokeTarget(obj, method, args, proxy);
@@ -80,7 +81,7 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 			@Override
 			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
 			{
-				IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, auditedArgs.toArray());
+				IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
 				try
 				{
 					return invokeTarget(obj, method, args, proxy);

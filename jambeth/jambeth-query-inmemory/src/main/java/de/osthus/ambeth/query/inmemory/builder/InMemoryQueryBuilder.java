@@ -360,6 +360,18 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IQueryBuilder<T> limit(IOperand operand)
 	{
 		throw new UnsupportedOperationException();

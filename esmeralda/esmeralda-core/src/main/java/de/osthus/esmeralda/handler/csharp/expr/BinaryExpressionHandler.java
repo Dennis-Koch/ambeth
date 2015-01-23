@@ -30,7 +30,6 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 	protected void handleExpressionIntern(final JCBinary binary)
 	{
 		IConversionContext context = this.context.getCurrent();
-		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		switch (binary.getKind())
@@ -202,7 +201,7 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			languageHelper.writeExpressionTree(binary.lhs);
 			writer.append(", ");
 			languageHelper.writeExpressionTree(binary.rhs);
-			writer.append(");");
+			writer.append(")");
 		}
 		context.setTypeOnStack(boolean.class.getName());
 	}
