@@ -12,9 +12,9 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
-import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IASTHelper;
+import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IWriter;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
@@ -27,6 +27,9 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 	@Autowired
 	protected IASTHelper astHelper;
 
+	@Autowired
+	protected IJsHelper languageHelper;
+
 	@Override
 	protected void handleExpressionIntern(JCExpression expression)
 	{
@@ -35,7 +38,6 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 
 		if (expression instanceof JCIdent)
 		{
-			ILanguageHelper languageHelper = context.getLanguageHelper();
 			JCIdent identityExpression = (JCIdent) expression;
 
 			String expressionNameString = identityExpression.name.toString();
@@ -43,10 +45,14 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 			{
 				JavaClassInfo classInfo = context.getClassInfo();
 				Symbol owner = identityExpression.sym.owner;
-				boolean isOwnerCurrentClass = classInfo.getFqName().equals(owner.toString());
-				if (owner instanceof ClassSymbol && isOwnerCurrentClass)
+				if (owner instanceof ClassSymbol)
 				{
-					writer.append("this.");
+					String genericsFreeName = languageHelper.removeGenerics(classInfo.getFqName());
+					boolean isOwnerCurrentClass = genericsFreeName.equals(owner.toString());
+					if (isOwnerCurrentClass)
+					{
+						writer.append("this.");
+					}
 				}
 			}
 			languageHelper.writeVariableName(expressionNameString);
@@ -63,7 +69,8 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 		}
 
 		JCLiteral literal = (JCLiteral) expression;
-		writer.append(literal.toString());
+		String value = literal.value != null ? literal.value.toString() : literal.toString();
+		writer.append(value);
 
 		if (literal.type != null)
 		{
