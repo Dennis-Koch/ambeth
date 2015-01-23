@@ -84,8 +84,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				ITransformedMemberAccess transformedMemberAccess = methodTransformer.transformFieldAccess(identityExpression.sym.toString(), fieldAccess
 						.getIdentifier().toString());
 				languageHelper.writeType(transformedMemberAccess.getOwner());
-				writer.append('.');
-				writer.append(transformedMemberAccess.getName());
+				writer.append('.').append(transformedMemberAccess.getName());
 				context.setTypeOnStack(transformedMemberAccess.getReturnType());
 			}
 			else

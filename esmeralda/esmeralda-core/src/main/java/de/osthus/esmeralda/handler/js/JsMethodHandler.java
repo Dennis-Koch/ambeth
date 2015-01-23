@@ -74,6 +74,7 @@ public class JsMethodHandler implements IMethodHandler
 		String methodName = method.getName();
 
 		languageHelper.newLineIndent();
+		writer.append('"');
 		if (!method.isConstructor())
 		{
 			writer.append(methodName);
@@ -88,7 +89,7 @@ public class JsMethodHandler implements IMethodHandler
 			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);
 			writer.append(methodNamePostfix);
 		}
-		writer.append(": function(");
+		writer.append("\": function (");
 		boolean firstParam = true;
 		for (VariableElement param : parameters)
 		{
