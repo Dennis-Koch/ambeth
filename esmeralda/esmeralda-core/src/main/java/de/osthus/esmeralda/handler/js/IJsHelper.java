@@ -29,6 +29,8 @@ public interface IJsHelper extends ILanguageHelper
 	 */
 	void writeMetadata(String methodName, String returnType, ArrayList<Method> methods);
 
+	String removeGenerics(String name);
+
 	String convertType(String typeName, boolean direct);
 
 	String createOverloadedMethodNamePostfix(IList<VariableElement> parameters);

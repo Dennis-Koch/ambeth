@@ -390,7 +390,7 @@ public class JsHelper implements IJsHelper
 		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append(prefix).append(name).append(": {");
+		writer.append('"').append(prefix).append(name).append("\": {");
 
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
 		writeMetadataType(type, writer);
@@ -412,7 +412,7 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append("m$f_").append(methodName).append(": {");
+		writer.append("\"m$f_").append(methodName).append("\": {");
 		writeMetadataType(returnType, writer);
 		writer.append(", \"overloads\": [");
 
@@ -450,7 +450,7 @@ public class JsHelper implements IJsHelper
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
 					writer.append("{ \"methodName\": \"").append(fullMethodName).append("\", ");
-					writer.append("{ \"methodInstance\": this.").append(fullMethodName).append(", ");
+					writer.append("\"methodInstance\": this.").append(fullMethodName).append(", ");
 					writeMetadataType(method.getReturnType(), writer);
 
 					IList<VariableElement> parameters = method.getParameters();
@@ -813,7 +813,7 @@ public class JsHelper implements IJsHelper
 				VariableElement param = parameters.get(i);
 				VarSymbol var = (VarSymbol) param;
 				String paramTypeName = var.type.toString();
-				paramTypeName = paramTypeName.replaceAll("<.*>", "");
+				paramTypeName = removeGenerics(paramTypeName);
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
 				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
@@ -827,4 +827,9 @@ public class JsHelper implements IJsHelper
 		}
 	}
 
+	@Override
+	public String removeGenerics(String name)
+	{
+		return name.replaceAll("<.*>", "");
+	}
 }
