@@ -77,7 +77,6 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 		}
 		if (expression instanceof JCIdent)
 		{
-
 			JCIdent identityExpression = (JCIdent) expression;
 			if (identityExpression.sym instanceof ClassSymbol)
 			{
@@ -89,7 +88,25 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 			}
 			else
 			{
-				languageHelper.writeExpressionTree(identityExpression);
+				// TODO Check if ok in C#
+				try
+				{
+					JavaClassInfo classInfo = context.resolveClassInfo(identityExpression.toString(), true);
+					if (classInfo != null)
+					{
+						String fqName = classInfo.getFqName();
+						languageHelper.writeType(fqName);
+						context.setTypeOnStack(fqName);
+					}
+					else
+					{
+						languageHelper.writeExpressionTree(identityExpression);
+					}
+				}
+				catch (Throwable e)
+				{
+					languageHelper.writeExpressionTree(identityExpression);
+				}
 				String typeOnStack = context.getTypeOnStack();
 				JavaClassInfo classInfoOnStack = context.resolveClassInfo(typeOnStack);
 				Field fieldOfNameOfStack = classInfoOnStack.getField(name);
@@ -99,7 +116,9 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 			}
 			return;
 		}
+
 		languageHelper.writeExpressionTree(expression);
+		writer.append('.').append(name);
 
 		if (fieldAccess.type == null)
 		{

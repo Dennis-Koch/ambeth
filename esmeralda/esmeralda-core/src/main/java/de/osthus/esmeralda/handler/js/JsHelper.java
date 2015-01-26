@@ -494,9 +494,7 @@ public class JsHelper implements IJsHelper
 							if (existing != null)
 							{
 								ambiguousParameterNames = true;
-								StringBuilder sb = new StringBuilder();
-								sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName()).append("()");
-								toDoWriter.write("Ambiguous parameter names", sb.toString());
+								toDoWriter.write("Ambiguous parameter names", method);
 							}
 						}
 					}

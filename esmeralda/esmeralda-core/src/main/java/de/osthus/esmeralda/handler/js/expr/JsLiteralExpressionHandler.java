@@ -8,6 +8,8 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
+import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -16,7 +18,9 @@ import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpression>
 {
@@ -41,26 +45,18 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 			JCIdent identityExpression = (JCIdent) expression;
 
 			String expressionNameString = identityExpression.name.toString();
-			if (identityExpression.sym instanceof VarSymbol && !"this".equals(expressionNameString))
+			if (!"this".equals(expressionNameString))
 			{
-				JavaClassInfo classInfo = context.getClassInfo();
-				Symbol owner = identityExpression.sym.owner;
-				if (owner instanceof ClassSymbol)
-				{
-					String genericsFreeName = languageHelper.removeGenerics(classInfo.getFqName());
-					boolean isOwnerCurrentClass = genericsFreeName.equals(owner.toString());
-					if (isOwnerCurrentClass)
-					{
-						writer.append("this.");
-					}
-				}
+				String scopePrefix = calculateScopePrefix(identityExpression, expressionNameString, context, writer);
+				writer.append(scopePrefix);
 			}
+
 			languageHelper.writeVariableName(expressionNameString);
 
 			Type identType = identityExpression.type;
 			if (identType == null)
 			{
-				String typeName = astHelper.resolveTypeFromVariableName(((JCIdent) expression).getName().toString());
+				String typeName = astHelper.resolveTypeFromVariableName(expressionNameString);
 				context.setTypeOnStack(typeName);
 				return;
 			}
@@ -69,7 +65,11 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 		}
 
 		JCLiteral literal = (JCLiteral) expression;
-		String value = literal.value != null ? literal.value.toString() : literal.toString();
+		// To remove trailing 'F' and 'L'.
+		boolean valueIsNumber = literal.value != null && literal.value instanceof Number;
+		boolean valueMayContainLetter = literal.typetag == 5 || literal.typetag == 6 || literal.typetag == 7; // Long, Float, Double
+		boolean useValueField = valueIsNumber && valueMayContainLetter;
+		String value = useValueField ? literal.value.toString() : literal.toString();
 		writer.append(value);
 
 		if (literal.type != null)
@@ -122,5 +122,67 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 			default:
 				throw new RuntimeException("Kind not supported: " + literal.getKind());
 		}
+	}
+
+	protected String calculateScopePrefix(JCIdent identityExpression, String expressionNameString, IConversionContext context, IWriter writer)
+	{
+		if (identityExpression.sym instanceof VarSymbol)
+		{
+			JavaClassInfo classInfo = context.getClassInfo();
+			Symbol owner = identityExpression.sym.owner;
+			if (owner instanceof ClassSymbol)
+			{
+				Field field = checkHierarchy(expressionNameString, owner.toString(), classInfo, context);
+				if (field != null)
+				{
+					Method method = context.getMethod();
+
+					boolean staticContext = method != null ? context.getMethod().isStatic() : false;
+					if (field.isStatic())
+					{
+						if (staticContext)
+						{
+							return "this.";
+						}
+						else
+						{
+							return languageHelper.convertType(field.getOwningClass().getFqName(), false) + '.';
+						}
+					}
+					else
+					{
+						return "this.";
+					}
+				}
+			}
+		}
+		else if (identityExpression.sym == null && identityExpression.type == null)
+		{
+			HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
+			if (!methodScopeVars.contains(expressionNameString))
+			{
+				return "this.";
+			}
+		}
+		return "";
+	}
+
+	protected Field checkHierarchy(String fieldName, String ownerName, JavaClassInfo current, IConversionContext context)
+	{
+		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
+		String genericsFreeName;
+		while (current != null)
+		{
+			genericsFreeName = languageHelper.removeGenerics(current.getFqName());
+			if (genericsFreeName.equals(ownerName))
+			{
+				Field field = current.getField(fieldName);
+				return field;
+			}
+
+			String nameOfSuperClass = current.getNameOfSuperClass();
+			current = nameOfSuperClass != null ? fqNameToClassInfoMap.get(nameOfSuperClass) : null;
+		}
+		return null;
 	}
 }

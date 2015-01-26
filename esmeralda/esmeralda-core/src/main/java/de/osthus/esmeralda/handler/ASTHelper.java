@@ -44,6 +44,8 @@ public class ASTHelper implements IASTHelper
 
 	public static final HashMap<String, String> boxedToUnboxedTypeMap = new HashMap<String, String>();
 
+	public static final HashSet<String> numberTypeSet = new HashSet<String>();
+
 	static
 	{
 		addBoxMapping(Boolean.TYPE.getName(), Boolean.class.getName());
@@ -54,6 +56,10 @@ public class ASTHelper implements IASTHelper
 		addBoxMapping(Float.TYPE.getName(), Float.class.getName());
 		addBoxMapping(Long.TYPE.getName(), Long.class.getName());
 		addBoxMapping(Double.TYPE.getName(), Double.class.getName());
+
+		numberTypeSet.addAll(new String[] { byte.class.getName(), Byte.class.getName(), short.class.getName(), Short.class.getName(), int.class.getName(),
+				Integer.class.getName(), long.class.getName(), Long.class.getName(), float.class.getName(), Float.class.getName(), double.class.getName(),
+				Double.class.getName() });
 	}
 
 	protected static void addBoxMapping(String unboxedType, String boxedType)
@@ -139,6 +145,12 @@ public class ASTHelper implements IASTHelper
 			return paramGenericTypeMatcher.group(1);
 		}
 		return typeName;
+	}
+
+	@Override
+	public boolean isNumber(String typeName)
+	{
+		return numberTypeSet.contains(typeName);
 	}
 
 	@Override
