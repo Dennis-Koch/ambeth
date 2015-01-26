@@ -58,8 +58,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 		if (!transformedMethod.isPropertyInvocation())
 		{
-			IJsOverloadManager overloadManager = transformedMethod.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
-			if (overloadManager.hasOverloads(transformedMethod))
+			if (overloadManagerNonStatic.hasOverloads(transformedMethod) || overloadManagerStatic.hasOverloads(transformedMethod))
 			{
 				IList<VariableElement> paramsList = getParamsList(methodInvocation);
 				String overloadedMethodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(paramsList);
