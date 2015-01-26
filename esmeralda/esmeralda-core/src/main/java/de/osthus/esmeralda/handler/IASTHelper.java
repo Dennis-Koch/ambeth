@@ -14,6 +14,8 @@ public interface IASTHelper
 {
 	String extractNonGenericType(String typeName);
 
+	boolean isNumber(String typeName);
+
 	boolean isAnnotatedWith(BaseJavaClassModel model, Class<?> annotationType);
 
 	List<TypeParameterTree> resolveAllTypeParameters();
