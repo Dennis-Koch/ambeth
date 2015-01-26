@@ -4,6 +4,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCNewArray;
+import com.sun.tools.javac.util.List;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -48,30 +49,26 @@ public class JsNewArrayExpressionHandler extends AbstractExpressionHandler<JCNew
 			writer.append(']');
 			specifiedDimensions++;
 		}
-		while (specifiedDimensions < dimensionCount)
+		List<JCExpression> initializers = newArray.getInitializers();
+		if (initializers != null)
 		{
-			writer.append("[]");
+			boolean firstInit = true;
+			writer.append('[');
+			for (JCExpression initializer : initializers)
+			{
+				firstInit = languageHelper.writeStringIfFalse(", ", firstInit);
+				languageHelper.writeExpressionTree(initializer);
+			}
+			writer.append(']');
 			specifiedDimensions++;
 		}
-
-		// TODO
-		// if (newArray.getInitializers() != null)
-		// {
-		// writer.append(" { ");
-		// boolean firstInitializer = true;
-		// for (JCExpression initializer : newArray.getInitializers())
-		// {
-		// firstInitializer = languageHelper.writeStringIfFalse(", ", firstInitializer);
-		// languageHelper.writeExpressionTree(initializer);
-		// }
-		// writer.append(" }");
-		// }
-		// StringBuilder fullTypeNameSb = new StringBuilder();
-		// fullTypeNameSb.append(currTypeName);
-		// for (int a = dimensionCount; a-- > 0;)
-		// {
-		// fullTypeNameSb.append("[]");
-		// }
-		// context.setTypeOnStack(fullTypeNameSb.toString());
+		else
+		{
+			while (specifiedDimensions < dimensionCount)
+			{
+				writer.append("[]");
+				specifiedDimensions++;
+			}
+		}
 	}
 }

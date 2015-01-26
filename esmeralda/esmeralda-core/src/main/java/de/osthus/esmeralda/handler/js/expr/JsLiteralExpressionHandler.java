@@ -67,8 +67,8 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 		JCLiteral literal = (JCLiteral) expression;
 		// To remove trailing 'F' and 'L'.
 		boolean valueIsNumber = literal.value != null && literal.value instanceof Number;
-		boolean valueNotBoolean = literal.typetag != 8; // Boolean is counted as a Number
-		boolean useValueField = valueIsNumber && valueNotBoolean;
+		boolean valueMayContainLetter = literal.typetag == 5 || literal.typetag == 6 || literal.typetag == 7; // Long, Float, Double
+		boolean useValueField = valueIsNumber && valueMayContainLetter;
 		String value = useValueField ? literal.value.toString() : literal.toString();
 		writer.append(value);
 
