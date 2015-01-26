@@ -2,7 +2,7 @@ package de.osthus.ambeth.ioc.threadlocal;
 
 public class ReferenceValueResolver implements IForkedValueResolver
 {
-	private Object forkedValue;
+	private final Object forkedValue;
 
 	private final Object originalValue;
 

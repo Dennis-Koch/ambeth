@@ -1,5 +1,6 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -34,14 +35,15 @@ public class ForkState implements IForkState
 		return oldValues;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings("unchecked")
 	protected void restoreThreadLocals(Object[] oldValues)
 	{
 		ForkStateEntry[] forkStateEntries = this.forkStateEntries;
 		IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
 		for (int a = 0, size = forkStateEntries.length; a < size; a++)
 		{
-			ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntries[a].valueTL;
+			ForkStateEntry forkStateEntry = forkStateEntries[a];
+			ThreadLocal<Object> tlHandle = (ThreadLocal<Object>) forkStateEntry.valueTL;
 			Object forkedValue = tlHandle.get();
 			Object oldValue = oldValues[a];
 			if (oldValue == null)
@@ -57,8 +59,21 @@ public class ForkState implements IForkState
 			{
 				continue;
 			}
-			IForkProcessor forkProcessor = ((ForkProcessorValueResolver) forkedValueResolver).getForkProcessor();
-			forkProcessor.returnForkedValue(forkedValueResolver.getOriginalValue(), forkedValue);
+			forkStateEntry.lock();
+			try
+			{
+				ArrayList<Object> forkedValues = forkStateEntry.forkedValues;
+				if (forkedValues == null)
+				{
+					forkedValues = new ArrayList<Object>();
+					forkStateEntry.forkedValues = forkedValues;
+				}
+				forkedValues.add(forkedValue);
+			}
+			finally
+			{
+				forkStateEntry.unlock();
+			}
 		}
 	}
 
@@ -145,6 +160,30 @@ public class ForkState implements IForkState
 		finally
 		{
 			restoreThreadLocals(oldValues);
+		}
+	}
+
+	@Override
+	public void reintegrateForkedValues()
+	{
+		ForkStateEntry[] forkStateEntries = this.forkStateEntries;
+		IForkedValueResolver[] forkedValueResolvers = this.forkedValueResolvers;
+		for (int a = 0, size = forkStateEntries.length; a < size; a++)
+		{
+			ForkStateEntry forkStateEntry = forkStateEntries[a];
+			ArrayList<Object> forkedValues = forkStateEntry.forkedValues;
+
+			if (forkedValues == null)
+			{
+				// nothing to do
+				continue;
+			}
+			Object originalValue = forkedValueResolvers[a].getOriginalValue();
+			for (int b = 0, sizeB = forkedValues.size(); b < sizeB; b++)
+			{
+				Object forkedValue = forkedValues.get(b);
+				forkStateEntry.forkProcessor.returnForkedValue(originalValue, forkedValue);
+			}
 		}
 	}
 }
