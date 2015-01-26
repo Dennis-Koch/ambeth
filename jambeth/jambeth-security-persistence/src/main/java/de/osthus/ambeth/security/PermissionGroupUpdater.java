@@ -80,6 +80,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@LogInstance
 	private ILogger log;
 
+	@Autowired(optional = true)
+	protected IAuthorizationManager authorizationManager;
+
 	@Autowired
 	protected IServiceContext beanContext;
 
@@ -434,6 +437,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					{
 						return Boolean.TRUE;
 					}
+					// for (PermissionGroupUpdateForkItem itemOfFork : forkItems)
 					multithreadingHelper.invokeAndWait(forkItems, new IBackgroundWorkerParamDelegate<PermissionGroupUpdateForkItem>()
 					{
 						@Override
@@ -464,7 +468,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 							}
 							Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
 							updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
-							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.allSids, permissionGroup);
+							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.authentications, itemOfFork.authorizations, permissionGroup);
 						}
 					});
 					return Boolean.TRUE;
@@ -599,6 +603,16 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	{
 		String[] allSids = getAllSids();
 
+		IAuthentication[] authentications = new IAuthentication[allSids.length];
+		IAuthorization[] authorizations = new IAuthorization[allSids.length];
+		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+
+		for (int a = allSids.length; a-- > 0;)
+		{
+			String sid = allSids[a];
+			authentications[a] = new DefaultAuthentication(sid, "dummyPass".toCharArray(), PasswordType.PLAIN);
+			authorizations[a] = mockAuthorization(sid, securityScopes);
+		}
 		boolean debugEnabled = log.isDebugEnabled();
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = debugEnabled ? objectCollector.create(StringBuilder.class) : null;
@@ -640,7 +654,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				{
 					continue;
 				}
-				PermissionGroupUpdateForkItem runnable = new PermissionGroupUpdateForkItem(allSids, pgUpdateEntry);
+				PermissionGroupUpdateForkItem runnable = new PermissionGroupUpdateForkItem(authentications, authorizations, pgUpdateEntry);
 				runnables.add(runnable);
 
 				if (debugEnabled)
@@ -671,8 +685,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	protected void insertPermissionGroupsForUsers(IList<IObjRef> objRefs, Object[] permissionGroupIds, String[] allSids, IPermissionGroup permissionGroup)
-			throws Throwable
+	private void insertPermissionGroupsForUsers(IList<IObjRef> objRefs, Object[] permissionGroupIds, IAuthentication[] authentications,
+			IAuthorization[] authorizations, IPermissionGroup permissionGroup) throws Throwable
 	{
 		IPrivilegeProvider privilegeProvider = this.privilegeProvider;
 		ISecurityContext securityContext = securityContextHolder.getCreateContext();
@@ -683,23 +697,24 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			IAuthorization oldAuthorization = securityContext.getAuthorization();
 			try
 			{
-				ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-				for (String sid : allSids)
+				for (int a = authentications.length; a-- > 0;)
 				{
-					securityContext.setAuthentication(new DefaultAuthentication(sid, "dummyPass".toCharArray(), PasswordType.PLAIN));
-					securityContext.setAuthorization(mockAuthorization(sid, securityScopes));
+					IAuthentication authentication = authentications[a];
+					IAuthorization authorization = authorizations[a];
+					securityContext.setAuthentication(authentication);
+					securityContext.setAuthorization(authorization);
 
 					IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
 
-					insertPermissionGroupPstm.setObject(1, sid);
+					insertPermissionGroupPstm.setObject(1, authorization.getSID());
 
-					for (int a = permissionGroupIds.length; a-- > 0;)
+					for (int b = permissionGroupIds.length; b-- > 0;)
 					{
-						Object permissionGroupId = permissionGroupIds[a];
+						Object permissionGroupId = permissionGroupIds[b];
 
 						insertPermissionGroupPstm.setObject(2, permissionGroupId);
 
-						IPrivilege privilege = privileges.get(a);
+						IPrivilege privilege = privileges.get(b);
 
 						int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
 						int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
@@ -789,6 +804,15 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected IAuthorization mockAuthorization(final String sid, final ISecurityScope[] securityScopes)
 	{
+		if (authorizationManager != null)
+		{
+			IAuthorization authorization = authorizationManager.authorize(sid, securityScopes);
+			if (authorization == null)
+			{
+				throw new IllegalStateException();
+			}
+			return authorization;
+		}
 		return new IAuthorization()
 		{
 			@Override

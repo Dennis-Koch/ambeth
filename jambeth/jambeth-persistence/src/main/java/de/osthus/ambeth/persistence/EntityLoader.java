@@ -42,7 +42,9 @@ import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoItem;
+import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -108,7 +110,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		LinkedHashMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		IdentityLinkedSet<ILoadContainer> loadContainerSet = IdentityLinkedSet.<ILoadContainer> create(orisToLoad.size());
@@ -459,7 +461,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	public void fillVersion(List<IObjRef> orisWithoutVersion)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ILinkedMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		for (int a = orisWithoutVersion.size(); a-- > 0;)
@@ -522,7 +524,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		Object persistentId = conversionHelper.convertValueToType(idType, id);
 		Object objectId = conversionHelper.convertValueToType(idTypeOfObject, id);
 
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		if (LoadMode.VERSION_ONLY == loadMode)
 		{
 			IObjRef objRef = alreadyLoadedCache.getRef(idIndex, persistentId, type);
@@ -609,29 +611,22 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		{
 			return;
 		}
-		// FIXME: the is currently a "mysterious" threading issue with the internal maps of the AlreadyLoadedCache
-		// until this is consistently solved the solution remains sequential here
-		for (ParallelLoadItem pli : parallelPendingItems)
+		multithreadingHelper.invokeAndWait(parallelPendingItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>()
 		{
-			initInstances(pli.entityType, pli.idIndex, pli.ids, pli.cascadeTypeToPendingInit, pli.loadMode);
-			writePendingInitToShared(pli.cascadeTypeToPendingInit, pli.sharedCascadeTypeToPendingInit);
-		}
-		// multithreadingHelper.invokeAndWait(parallelPendingItems, new IResultingBackgroundWorkerParamDelegate<Object, ParallelLoadItem>()
-		// {
-		// @Override
-		// public Object invoke(ParallelLoadItem state) throws Throwable
-		// {
-		// initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
-		// return null;
-		// }
-		// }, new IAggregrateResultHandler<Object, ParallelLoadItem>()
-		// {
-		// @Override
-		// public void aggregateResult(Object resultOfFork, ParallelLoadItem itemOfFork)
-		// {
-		// writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
-		// }
-		// });
+			@Override
+			public Object invoke(ParallelLoadItem state) throws Throwable
+			{
+				initInstances(state.entityType, state.idIndex, state.ids, state.cascadeTypeToPendingInit, state.loadMode);
+				return null;
+			}
+		}, new IAggregrateResultHandler<Object, ParallelLoadItem>()
+		{
+			@Override
+			public void aggregateResult(Object resultOfFork, ParallelLoadItem itemOfFork)
+			{
+				writePendingInitToShared(itemOfFork.cascadeTypeToPendingInit, itemOfFork.sharedCascadeTypeToPendingInit);
+			}
+		});
 	}
 
 	public void writePendingInitToShared(LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit,
@@ -679,7 +674,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		ArrayList<Object> realNeededIds = new ArrayList<Object>(ids.size());
 		IDatabase database = this.database.getCurrent();
 		IObjRefFactory objRefFactory = this.objRefFactory;
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 
 		for (Object id : ids)
 		{
@@ -732,7 +727,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	protected void loadDefault(Class<?> entityType, byte idIndex, Collection<Object> ids, LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IInterningFeature interningFeature = this.interningFeature;
@@ -1123,7 +1118,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			Map<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		Class<?> linkedEntityType = link.getToEntityType();
 		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType);
 

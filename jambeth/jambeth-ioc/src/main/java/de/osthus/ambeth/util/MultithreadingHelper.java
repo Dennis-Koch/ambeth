@@ -258,6 +258,8 @@ public class MultithreadingHelper implements IMultithreadingHelper
 
 		// wait till the forked threads have finished, too
 		waitForLatch(runnableHandle.latch, runnableHandle);
+
+		runnableHandle.forkState.reintegrateForkedValues();
 	}
 
 	protected void waitForLatch(CountDownLatch latch, InterruptingParamHolder exHolder)

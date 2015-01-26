@@ -15,5 +15,7 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 	    R Use<R>(IResultingBackgroundWorkerDelegate<R> runnable);
 
         R Use<R, V>(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V arg);
+
+        void ReintegrateForkedValues();
     }
 }
