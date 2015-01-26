@@ -10,12 +10,15 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
+import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class ToDoWriter implements IToDoWriter
 {
@@ -28,6 +31,8 @@ public class ToDoWriter implements IToDoWriter
 
 	@Property(name = "todo-path", mandatory = false)
 	protected File todoPath;
+
+	protected HashSet<String> alreadyHandled = new HashSet<>();
 
 	@Override
 	public void clearToDoFolder(String languagePathName)
@@ -60,6 +65,70 @@ public class ToDoWriter implements IToDoWriter
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
+	}
+
+	@Override
+	public void write(String topic, Method method)
+	{
+		write(topic, method, -1);
+	}
+
+	@Override
+	public void write(String topic, Method method, int pos)
+	{
+		IConversionContext context = this.context.getCurrent();
+		boolean dryRun = context.isDryRun();
+		if (todoPath == null || dryRun)
+		{
+			return;
+		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("in ").append(method.getOwningClass().getFqName()).append(" in method ").append(method.getName()).append("()");
+		String todo = sb.toString();
+		String languagePathName = context.getLanguagePath();
+
+		if (pos == -1)
+		{
+			sb.setLength(0);
+			sb.append(topic).append('_').append(todo).append('_').append(pos).append('_').append(languagePathName);
+			String uniqueKey = sb.toString();
+			if (alreadyHandled.contains(uniqueKey))
+			{
+				return;
+			}
+		}
+
+		write(topic, todo, languagePathName, dryRun);
+	}
+
+	@Override
+	public void write(String topic, JavaClassInfo classInfo, int pos)
+	{
+		IConversionContext context = this.context.getCurrent();
+		boolean dryRun = context.isDryRun();
+		if (todoPath == null || dryRun)
+		{
+			return;
+		}
+
+		StringBuilder sb = new StringBuilder();
+		sb.append("in ").append(classInfo.getFqName());
+		String todo = sb.toString();
+		String languagePathName = context.getLanguagePath();
+
+		if (pos == -1)
+		{
+			sb.setLength(0);
+			sb.append(topic).append('_').append(todo).append('_').append(pos).append('_').append(languagePathName);
+			String uniqueKey = sb.toString();
+			if (alreadyHandled.contains(uniqueKey))
+			{
+				return;
+			}
+		}
+
+		write(topic, todo, languagePathName, dryRun);
 	}
 
 	@Override
