@@ -31,6 +31,8 @@ public class TestService1 extends BaseClass implements ITestInterface
 
 	protected String magicString = magicNumber + "";
 
+	protected TestService1 self = this;
+
 	public TestService1()
 	{
 		new Object();
@@ -59,7 +61,13 @@ public class TestService1 extends BaseClass implements ITestInterface
 		}
 		finally
 		{
+			String string1 = self.self.toString();
+			TestService1 target = self.self.self;
+			String string2 = target.toString();
+
 			System.out.println(msg);
+			System.out.println(string1);
+			System.out.println(string2);
 		}
 	}
 
@@ -129,6 +137,26 @@ public class TestService1 extends BaseClass implements ITestInterface
 				break;
 			}
 		}
+	}
+
+	@SuppressWarnings("unused")
+	public void testInitializers()
+	{
+		Object v = 1;
+		v = 0x1;
+		v = 0b1;
+		v = 1L;
+		v = 1l;
+		v = 1d;
+		v = 1D;
+		v = 1f;
+		v = 1F;
+		v = true;
+		v = Boolean.TRUE;
+		v = '1';
+		new String(new char[] { '1' });
+		char[] chars = new char[] { 'o', 'k' };
+		char[][] chars2 = { { 'o', 'k' }, { 'n', 'a' } };
 	}
 
 	public void testExceptions()
