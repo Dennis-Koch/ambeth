@@ -534,6 +534,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	{
 		ParamChecker.assertParamNotNull(columnName, "columnName");
 
+		IDatabase database = this.database.getCurrent();
 		ITable table;
 		if (joinClause == null)
 		{
@@ -548,7 +549,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		{
 			if (log.isDebugEnabled())
 			{
-				loggerHistory.debugOnce(log, this, "No column '" + columnName + "' found on table '" + table.getName()
+				loggerHistory.debugOnce(log, database, "No column '" + columnName + "' found on table '" + table.getName()
 						+ "'. This may be a configuration error or usage of deprecated " + IQuery.class.getSimpleName() + " functionality");
 			}
 		}

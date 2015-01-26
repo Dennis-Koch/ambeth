@@ -1,14 +1,15 @@
 package de.osthus.ambeth.security;
 
-
 public class PermissionGroupUpdateForkItem
 {
-	public final String[] allSids;
 	public final PgUpdateEntry pgUpdateEntry;
+	public final IAuthentication[] authentications;
+	public final IAuthorization[] authorizations;
 
-	public PermissionGroupUpdateForkItem(String[] allSids, PgUpdateEntry pgUpdateEntry)
+	public PermissionGroupUpdateForkItem(IAuthentication[] authentications, IAuthorization[] authorizations, PgUpdateEntry pgUpdateEntry)
 	{
-		this.allSids = allSids;
+		this.authentications = authentications;
+		this.authorizations = authorizations;
 		this.pgUpdateEntry = pgUpdateEntry;
 	}
 }
