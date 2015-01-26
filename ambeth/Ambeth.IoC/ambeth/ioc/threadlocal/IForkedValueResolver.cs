@@ -4,6 +4,8 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 {
     public interface IForkedValueResolver
     {
-        Object GetForkedValue();
+        Object CreateForkedValue();
+
+        Object GetOriginalValue();
     }
 }

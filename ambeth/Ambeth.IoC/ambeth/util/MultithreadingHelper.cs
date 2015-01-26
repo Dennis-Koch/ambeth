@@ -203,6 +203,8 @@ namespace De.Osthus.Ambeth.Util
 
             // wait till the forked threads have finished, too
             WaitForLatch(runnableHandle.latch, runnableHandle.exHolder);
+
+            runnableHandle.forkState.ReintegrateForkedValues();
         }
 
         protected void WaitForLatch(CountDownLatch latch, IParamHolder<Exception> exHolder)

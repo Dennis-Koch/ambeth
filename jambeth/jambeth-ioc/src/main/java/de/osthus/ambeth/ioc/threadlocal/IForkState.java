@@ -16,4 +16,6 @@ public interface IForkState
 	<R> R use(IResultingBackgroundWorkerDelegate<R> runnable);
 
 	<R, V> R use(IResultingBackgroundWorkerParamDelegate<R, V> runnable, V arg);
+
+	void reintegrateForkedValues();
 }

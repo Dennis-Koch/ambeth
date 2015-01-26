@@ -38,7 +38,7 @@ public class SimpleValueOperand implements IOperand, IValueOperand, IMultiValueO
 	@Property
 	protected String paramName;
 
-	@Property
+	@Property(mandatory = false)
 	protected boolean tryOnly;
 
 	@Override
