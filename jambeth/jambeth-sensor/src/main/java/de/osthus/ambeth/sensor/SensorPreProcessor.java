@@ -3,6 +3,7 @@ package de.osthus.ambeth.sensor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -35,7 +36,7 @@ public class SensorPreProcessor extends SmartCopyMap<Class<?>, Object[]> impleme
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
 	{
 		ISensorProvider sensorProvider = this.sensorProvider;
 		Object[] sensorFields = getSensorFields(beanType);
@@ -65,6 +66,10 @@ public class SensorPreProcessor extends SmartCopyMap<Class<?>, Object[]> impleme
 			}
 			Sensor sensorAttribute = prop.getAnnotation(Sensor.class);
 			if (sensorAttribute == null)
+			{
+				continue;
+			}
+			if (ignoredPropertyNames.contains(prop.getName()))
 			{
 				continue;
 			}
