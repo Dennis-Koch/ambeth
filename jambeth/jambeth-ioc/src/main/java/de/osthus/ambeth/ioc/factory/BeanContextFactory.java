@@ -5,6 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.accessor.AccessorTypeProvider;
 import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptySet;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IMap;
@@ -210,7 +211,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 			// The DelegatingConversionHelper is functional, but has yet no properties set
 			propertiesPreProcessor.preProcessProperties(null, null, newProps, "delegatingConversionHelper", delegatingConversionHelper,
-					DelegatingConversionHelper.class, null, null);
+					DelegatingConversionHelper.class, null, EmptySet.<String> emptySet(), null);
 			delegatingConversionHelper.afterPropertiesSet();
 
 			BeanContextFactory parentContextFactory = new BeanContextFactory(tlObjectCollector, linkController, beanContextInitializer, proxyFactory, null,
@@ -285,7 +286,7 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	protected static void scanForLogInstance(IBeanPreProcessor beanPreProcessor, IPropertyInfoProvider propertyInfoProvider, IProperties properties, Object bean)
 	{
 		IPropertyInfo[] props = propertyInfoProvider.getProperties(bean.getClass());
-		beanPreProcessor.preProcessProperties(null, null, properties, null, bean, bean.getClass(), null, props);
+		beanPreProcessor.preProcessProperties(null, null, properties, null, bean, bean.getClass(), null, EmptySet.<String> emptySet(), props);
 	}
 
 	protected List<IBeanConfiguration> beanConfigurations;
@@ -481,6 +482,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				context.addPostProcessor(postProcessors.get(a));
 			}
 		}
+		List<Object> disposableObjects = this.disposableObjects;
+		if (disposableObjects != null)
+		{
+			context.addDisposables(disposableObjects);
+			this.disposableObjects = null;
+		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;
 	}
@@ -517,6 +524,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			{
 				context.addPostProcessor(postProcessors.get(a));
 			}
+		}
+		List<Object> disposableObjects = this.disposableObjects;
+		if (disposableObjects != null)
+		{
+			context.addDisposables(disposableObjects);
+			this.disposableObjects = null;
 		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;

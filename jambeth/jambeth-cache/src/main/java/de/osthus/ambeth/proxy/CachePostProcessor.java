@@ -95,13 +95,18 @@ public class CachePostProcessor extends MergePostProcessor
 			CacheInterceptor interceptor = new CacheInterceptor();
 			if (beanContext.isRunning())
 			{
-				interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
-						.ignoreProperties("ProcessService").finish();
+				interceptor = beanContext.registerWithLifecycle(interceptor)//
+						.propertyValue("ServiceName", serviceName)//
+						.propertyValue("Behavior", behavior)//
+						.ignoreProperties("ProcessService")//
+						.finish();
 				beanContext.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
 			else
 			{
-				beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior)
+				beanContextFactory.registerWithLifecycle(interceptor)//
+						.propertyValue("ServiceName", serviceName)//
+						.propertyValue("Behavior", behavior)//
 						.ignoreProperties("ProcessService");
 				beanContextFactory.link(beanName).to(IServiceExtendable.class).with(serviceName);
 			}
@@ -139,12 +144,17 @@ public class CachePostProcessor extends MergePostProcessor
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext != null)
 		{
-			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior).finish();
+			interceptor = beanContext.registerWithLifecycle(interceptor)//
+					.propertyValue("ServiceName", serviceName)//
+					.propertyValue("Behavior", behavior)//
+					.finish();
 			// beanContext.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 		else
 		{
-			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("ServiceName", serviceName).propertyValue("Behavior", behavior);
+			beanContextFactory.registerWithLifecycle(interceptor)//
+					.propertyValue("ServiceName", serviceName)//
+					.propertyValue("Behavior", behavior);
 			// beanContextFactory.link(cacheInterceptorName).to(ICacheServiceByNameExtendable.class).with(serviceName);
 		}
 

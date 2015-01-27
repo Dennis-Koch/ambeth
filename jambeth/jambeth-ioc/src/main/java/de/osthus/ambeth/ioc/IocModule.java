@@ -89,7 +89,7 @@ public class IocModule implements IInitializingModule
 
 		beanContextFactory.registerBean("guiThreadHelper", GuiThreadHelper.class).autowireable(IGuiThreadHelper.class);
 
-		FastThreadPool fastThreadPool = new FastThreadPool(0, Integer.MAX_VALUE, 60000)
+		final FastThreadPool fastThreadPool = new FastThreadPool(0, Integer.MAX_VALUE, 60000)
 		{
 			@Override
 			public void refreshThreadCount()
@@ -104,6 +104,15 @@ public class IocModule implements IInitializingModule
 		fastThreadPool.setName("MTH");
 
 		IBeanConfiguration fastThreadPoolBean = beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
+
+		beanContextFactory.registerDisposable(new IDisposableBean()
+		{
+			@Override
+			public void destroy() throws Throwable
+			{
+				fastThreadPool.destroy();
+			}
+		});
 
 		beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class)//
 				.propertyRef(fastThreadPoolBean);

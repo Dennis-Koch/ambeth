@@ -536,13 +536,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             BeanContextFactory beanContextFactory = beanContextInit.beanContextFactory;
             IList<IBeanPreProcessor> preProcessors = beanContext.GetPreProcessors();
 
-            IList<IPropertyConfiguration> propertyConfigurations = new List<IPropertyConfiguration>();
-            IISet<String> ignoredPropertyNames = new De.Osthus.Ambeth.Collections.CHashSet<String>();
-            IISet<String> alreadySpecifiedPropertyNamesSet = new De.Osthus.Ambeth.Collections.CHashSet<String>();
+            List<IPropertyConfiguration> propertyConfigurations = new List<IPropertyConfiguration>();
+            CHashSet<String> alreadySpecifiedPropertyNamesSet = new CHashSet<String>();
             try
             {
                 Type beanType = ResolveTypeInHierarchy(beanConfHierarchy);
                 ResolveAllBeanConfInHierarchy(beanConfHierarchy, propertyConfigurations);
+                IISet<String> ignoredPropertyNames = ResolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType);
 
                 IPropertyInfo[] propertyInfos = PropertyInfoProvider.GetProperties(beanType);
 
@@ -553,11 +553,11 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     for (int a = 0, size = preProcessors.Count; a < size; a++)
                     {
                         IBeanPreProcessor preProcessor = preProcessors[a];
-                        preProcessor.PreProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations, propertyInfos);
+                        preProcessor.PreProcessProperties(beanContextFactory, beanContext, properties, beanName, bean, beanType, propertyConfigurations,
+                            ignoredPropertyNames, propertyInfos);
                     }
                 }
                 InitializeDefining(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, propertyConfigurations, alreadySpecifiedPropertyNamesSet);
-                ResolveAllIgnoredPropertiesInHierarchy(beanConfHierarchy, beanType, ignoredPropertyNames);
 
                 InitializeAutowiring(beanContextInit, beanConfiguration, bean, beanType, propertyInfos, alreadySpecifiedPropertyNamesSet, ignoredPropertyNames);
                 CallInitializingCallbacks(beanContextInit, bean, joinLifecycle);
@@ -1171,8 +1171,9 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return null;
         }
 
-        protected void ResolveAllIgnoredPropertiesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, Type beanType, IISet<String> ignoredProperties)
+        protected IISet<String> ResolveAllIgnoredPropertiesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, Type beanType)
         {
+            IISet<String> ignoredProperties = null;
             IMap<String, IPropertyInfo> propertyMap = PropertyInfoProvider.GetPropertyMap(beanType);
             for (int a = 0, size = beanConfHierarchy.Count; a < size; a++)
             {
@@ -1197,9 +1198,18 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                         }
                         ignoredPropertyName = uppercaseFirst;
                     }
+                    if (ignoredProperties == null)
+                    {
+                        ignoredProperties = new CHashSet<String>();
+                    }
                     ignoredProperties.Add(ignoredPropertyName);
                 }
             }
+            if (ignoredProperties == null)
+		    {
+			    ignoredProperties = EmptySet.Empty<String>();
+		    }
+		    return ignoredProperties;
         }
 
         protected void ResolveAllAutowireableInterfacesInHierarchy(IList<IBeanConfiguration> beanConfHierarchy, IISet<Type> autowireableInterfaces)

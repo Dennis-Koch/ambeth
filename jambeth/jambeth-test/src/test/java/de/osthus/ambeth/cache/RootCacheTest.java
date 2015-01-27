@@ -305,7 +305,10 @@ public class RootCacheTest extends AbstractInformationBusTest
 		String name = "test unit name";
 		IObjRef[][] relations = ObjRef.EMPTY_ARRAY_ARRAY;
 
-		ChildCache targetCache = beanContext.registerBean(ChildCache.class).propertyValue("Parent", fixture).finish();
+		ChildCache targetCache = beanContext.registerBean(ChildCache.class)//
+				.propertyValue("Parent", fixture)//
+				.propertyValue("Privileged", Boolean.FALSE)//
+				.finish();
 
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		Object[] primitives = new Object[metaData.getPrimitiveMembers().length];

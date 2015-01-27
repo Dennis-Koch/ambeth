@@ -1,6 +1,7 @@
 package de.osthus.ambeth.ioc.link;
 
 import java.util.List;
+import java.util.Set;
 
 import net.sf.cglib.reflect.FastMethod;
 import de.osthus.ambeth.config.IProperties;
@@ -63,7 +64,7 @@ public class AutoLinkPreProcessor implements IInitializingBean, IBeanPreProcesso
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
 	{
 		if (extensionType.isAssignableFrom(service.getClass()))
 		{
