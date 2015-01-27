@@ -3,6 +3,7 @@ package de.osthus.ambeth.garbageproxy;
 import java.lang.reflect.Method;
 
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.util.IDisposable;
 
 public abstract class GCProxy implements IDisposable
@@ -56,7 +57,7 @@ public abstract class GCProxy implements IDisposable
 		{
 			return target;
 		}
-		return new UnsupportedOperationException(
+		throw new BeanAlreadyDisposedException(
 				"This handle has already been disposed. This seems like a memory leak in your application if you refer to illegal handles");
 	}
 }
