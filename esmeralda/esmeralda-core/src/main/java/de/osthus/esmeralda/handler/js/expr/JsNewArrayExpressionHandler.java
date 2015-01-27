@@ -79,14 +79,15 @@ public class JsNewArrayExpressionHandler extends AbstractExpressionHandler<JCNew
 			if (oneNumberOnly)
 			{
 				Method method = context.getMethod();
+				String topic = "Only one Number in Array initialization";
 				if (method != null)
 				{
-					toDoWriter.write("Only one Number in Array initialization", method, newArray.pos);
+					toDoWriter.write(topic, method, newArray.pos);
 				}
 				else
 				{
 					JavaClassInfo classInfo = context.getClassInfo();
-					toDoWriter.write("Only one Number in Array initialization", classInfo, newArray.pos);
+					toDoWriter.write(topic, classInfo, newArray.pos);
 				}
 			}
 		}
