@@ -88,15 +88,9 @@ public class ToDoWriter implements IToDoWriter
 		String todo = sb.toString();
 		String languagePathName = context.getLanguagePath();
 
-		if (pos == -1)
+		if (isAlreadyHandled(topic, todo, pos, languagePathName, sb))
 		{
-			sb.setLength(0);
-			sb.append(topic).append('_').append(todo).append('_').append(pos).append('_').append(languagePathName);
-			String uniqueKey = sb.toString();
-			if (alreadyHandled.contains(uniqueKey))
-			{
-				return;
-			}
+			return;
 		}
 
 		write(topic, todo, languagePathName, dryRun);
@@ -117,15 +111,9 @@ public class ToDoWriter implements IToDoWriter
 		String todo = sb.toString();
 		String languagePathName = context.getLanguagePath();
 
-		if (pos == -1)
+		if (isAlreadyHandled(topic, todo, pos, languagePathName, sb))
 		{
-			sb.setLength(0);
-			sb.append(topic).append('_').append(todo).append('_').append(pos).append('_').append(languagePathName);
-			String uniqueKey = sb.toString();
-			if (alreadyHandled.contains(uniqueKey))
-			{
-				return;
-			}
+			return;
 		}
 
 		write(topic, todo, languagePathName, dryRun);
@@ -174,5 +162,17 @@ public class ToDoWriter implements IToDoWriter
 	{
 		Path todoPath = this.todoPath.toPath().resolve(languagePathName);
 		return todoPath;
+	}
+
+	protected boolean isAlreadyHandled(String topic, String todo, int pos, String languagePathName, StringBuilder sb)
+	{
+		if (pos != -1)
+		{
+			sb.setLength(0);
+			sb.append(topic).append('_').append(todo).append('_').append(pos).append('_').append(languagePathName);
+			String uniqueKey = sb.toString();
+			return !alreadyHandled.add(uniqueKey);
+		}
+		return false;
 	}
 }
