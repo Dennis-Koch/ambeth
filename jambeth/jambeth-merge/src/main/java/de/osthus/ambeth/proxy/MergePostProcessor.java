@@ -9,7 +9,6 @@ import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.Merge;
 import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.annotation.Remove;
-import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -46,11 +45,14 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 		MergeInterceptor mergeInterceptor = new MergeInterceptor();
 		if (beanContext.isRunning())
 		{
-			IBeanRuntime<MergeInterceptor> interceptorBC = beanContext.registerWithLifecycle(mergeInterceptor);
-			interceptorBC.propertyValue("Behavior", behavior);
-			return interceptorBC.finish();
+			return beanContext.registerWithLifecycle(mergeInterceptor)//
+					.propertyValue("Behavior", behavior)//
+					.ignoreProperties("ServiceName")//
+					.finish();
 		}
-		beanContextFactory.registerWithLifecycle(mergeInterceptor).propertyValue("Behavior", behavior);
+		beanContextFactory.registerWithLifecycle(mergeInterceptor)//
+				.propertyValue("Behavior", behavior)//
+				.ignoreProperties("ServiceName");
 		return mergeInterceptor;
 	}
 

@@ -26,24 +26,30 @@ namespace De.Osthus.Ambeth.Log
         
         protected readonly Object lockHandle = new Object();
 
-        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType,
+            IList<IPropertyConfiguration> propertyConfigs, ISet<String> ignoredPropertyNames, IPropertyInfo[] properties)
         {
-            ScanForLogField(props, service, beanType, service.GetType());
+            ScanForLogField(props, service, beanType, service.GetType(), ignoredPropertyNames);
         }
 
-        protected void ScanForLogField(IProperties props, Object service, Type beanType, Type type)
+        protected void ScanForLogField(IProperties props, Object service, Type beanType, Type type, ISet<String> ignoredPropertyNames)
         {
             if (type == null || typeof(Object).Equals(type))
             {
                 return;
             }
-            ScanForLogField(props, service, beanType, type.BaseType);
+            ScanForLogField(props, service, beanType, type.BaseType, ignoredPropertyNames);
             FieldInfo[] fields = type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             for (int a = fields.Length; a-- > 0; )
             {
                 FieldInfo field = fields[a];
                 if (!field.FieldType.Equals(typeof(ILogger)))
                 {
+                    continue;
+                }
+                if (ignoredPropertyNames.Contains(field.Name))
+                {
+                    // do not handle this property
                     continue;
                 }
                 ILogger logger = GetLoggerIfNecessary(props, beanType, field);

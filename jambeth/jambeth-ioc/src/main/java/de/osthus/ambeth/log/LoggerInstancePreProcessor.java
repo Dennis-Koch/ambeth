@@ -2,6 +2,7 @@ package de.osthus.ambeth.log;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.annotation.AnnotationCache;
@@ -45,24 +46,29 @@ public class LoggerInstancePreProcessor extends WeakSmartCopyMap<Class<?>, ILogg
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
 	{
-		scanForLogField(props, service, beanType, service.getClass());
+		scanForLogField(props, service, beanType, service.getClass(), ignoredPropertyNames);
 	}
 
-	protected void scanForLogField(IProperties props, Object service, Class<?> beanType, Class<?> type)
+	protected void scanForLogField(IProperties props, Object service, Class<?> beanType, Class<?> type, Set<String> ignoredPropertyNames)
 	{
 		if (type == null || Object.class.equals(type))
 		{
 			return;
 		}
-		scanForLogField(props, service, beanType, type.getSuperclass());
+		scanForLogField(props, service, beanType, type.getSuperclass(), ignoredPropertyNames);
 		Field[] fields = ReflectUtil.getDeclaredFields(type);
 		for (int a = fields.length; a-- > 0;)
 		{
 			Field field = fields[a];
 			if (!field.getType().equals(ILogger.class))
 			{
+				continue;
+			}
+			if (ignoredPropertyNames.contains(field.getName()))
+			{
+				// do not handle this property
 				continue;
 			}
 			ILogger logger = getLoggerIfNecessary(props, beanType, field);

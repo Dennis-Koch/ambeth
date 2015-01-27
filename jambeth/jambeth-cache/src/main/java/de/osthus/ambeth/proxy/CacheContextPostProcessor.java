@@ -10,7 +10,6 @@ import de.osthus.ambeth.cache.CacheType;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.cache.interceptor.CacheContextInterceptor;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
-import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
@@ -51,11 +50,16 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 		CacheInterceptor interceptor = new CacheInterceptor();
 		if (beanContext.isRunning())
 		{
-			interceptor = beanContext.registerWithLifecycle(interceptor).propertyValue("Behavior", cacheBehavior).ignoreProperties("ProcessService").finish();
+			interceptor = beanContext.registerWithLifecycle(interceptor)//
+					.propertyValue("Behavior", cacheBehavior)//
+					.ignoreProperties("ProcessService", "ServiceName")//
+					.finish();
 		}
 		else
 		{
-			beanContextFactory.registerWithLifecycle(interceptor).propertyValue("Behavior", cacheBehavior).ignoreProperties("ProcessService");
+			beanContextFactory.registerWithLifecycle(interceptor)//
+					.propertyValue("Behavior", cacheBehavior)//
+					.ignoreProperties("ProcessService", "ServiceName");
 		}
 		CacheType cacheType = cacheContext.value();
 		String cacheProviderName;
@@ -86,15 +90,14 @@ public class CacheContextPostProcessor extends AbstractCascadePostProcessor
 		CacheContextInterceptor ccInterceptor = new CacheContextInterceptor();
 		if (beanContext.isRunning())
 		{
-			IBeanRuntime<CacheContextInterceptor> interceptorBR = beanContext.registerWithLifecycle(ccInterceptor);
-			interceptorBR.propertyRef("CacheProvider", cacheProviderName).propertyValue("Target", interceptor);
-			ccInterceptor = interceptorBR.finish();
+			return beanContext.registerWithLifecycle(ccInterceptor)//
+					.propertyRef("CacheProvider", cacheProviderName)//
+					.propertyValue("Target", interceptor)//
+					.finish();
 		}
-		else
-		{
-			IBeanConfiguration interceptorBC = beanContextFactory.registerWithLifecycle(ccInterceptor);
-			interceptorBC.propertyRef("CacheProvider", cacheProviderName).propertyValue("Target", interceptor);
-		}
+		beanContextFactory.registerWithLifecycle(ccInterceptor)//
+				.propertyRef("CacheProvider", cacheProviderName)//
+				.propertyValue("Target", interceptor);
 		return ccInterceptor;
 	}
 
