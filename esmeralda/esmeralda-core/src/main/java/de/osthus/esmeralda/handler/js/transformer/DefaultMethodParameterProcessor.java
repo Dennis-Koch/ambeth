@@ -61,7 +61,16 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			if (overloadManagerNonStatic.hasOverloads(transformedMethod) || overloadManagerStatic.hasOverloads(transformedMethod))
 			{
 				IList<VariableElement> paramsList = getParamsList(methodInvocation);
-				String overloadedMethodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(paramsList);
+				String overloadedMethodNamePostfix;
+				if (paramsList != null)
+				{
+					overloadedMethodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(paramsList);
+				}
+				else
+				{
+					// FIXME
+					overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
+				}
 				writer.append(overloadedMethodNamePostfix);
 			}
 			writer.append('(');
@@ -95,7 +104,8 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 		if (methodInvocation.meth == null)
 		{
-			return paramsList;
+			return null;
+			// return paramsList;
 		}
 
 		if (methodInvocation.meth instanceof JCIdent)
@@ -105,6 +115,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
 			}
+			else
+			{
+				methodInvocation = null;
+				// getParamsList(paramsList, methodInvocation.args);
+			}
 		}
 		else if (methodInvocation.meth instanceof JCFieldAccess)
 		{
@@ -112,6 +127,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			if (meth.sym != null)
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
+			}
+			else
+			{
+				methodInvocation = null;
+				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
 		else
@@ -122,11 +142,38 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		return paramsList;
 	}
 
+	// TODO below here WIP!!!
+
+	protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
+	{
+		StringBuilder sb = new StringBuilder();
+		com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
+		for (JCExpression arg : args)
+		{
+			sb.append("_unknownType");
+		}
+		String dummyOverloadedMethodNamePostfix = sb.toString();
+		return dummyOverloadedMethodNamePostfix;
+	}
+
 	protected void getParamsList(IList<VariableElement> paramsList, MethodSymbol sym)
 	{
 		if (sym.params != null)
 		{
 			paramsList.addAll(sym.params);
+		}
+		else
+		{
+			System.out.println();
+		}
+	}
+
+	protected void getParamsList(IList<VariableElement> paramsList, com.sun.tools.javac.util.List<JCExpression> args)
+	{
+		// TODO
+		for (JCExpression arg : args)
+		{
+			paramsList.add(null);
 		}
 	}
 }
