@@ -2,6 +2,7 @@ package de.osthus.esmeralda.handler.uni.transformer;
 
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -17,21 +18,24 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 {
 	public static final String defaultMethodTransformerExtensionProp = "DefaultMethodTransformerExtension";
 
+	public static final String defaultMethodParameterProcessorProp = "DefaultMethodParameterProcessor";
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
 	@Autowired
-	protected IConversionContext context;
-
-	@Autowired
-	protected IMethodParameterProcessor defaultMethodParameterProcessor;
-
-	@Autowired
-	protected IMethodTransformerExtension defaultMethodTransformerExtension;
+	private IServiceContext serviceContext;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected IConversionContext context;
+
+	protected IMethodParameterProcessor defaultMethodParameterProcessor;
+
+	protected IMethodTransformerExtension defaultMethodTransformerExtension;
 
 	protected final HashMap<MethodKey, ITransformedMethod> methodTransformationMap = new HashMap<MethodKey, ITransformedMethod>();
 
@@ -39,6 +43,16 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	public void afterPropertiesSet() throws Throwable
 	{
 		// intended blank
+	}
+
+	public void setDefaultMethodParameterProcessor(IMethodParameterProcessor defaultMethodParameterProcessor)
+	{
+		this.defaultMethodParameterProcessor = defaultMethodParameterProcessor;
+	}
+
+	public void setDefaultMethodTransformerExtension(IMethodTransformerExtension defaultMethodTransformerExtension)
+	{
+		this.defaultMethodTransformerExtension = defaultMethodTransformerExtension;
 	}
 
 	@Override
@@ -54,6 +68,7 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		{
 			return transformedMethod;
 		}
+
 		return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 	}
 
