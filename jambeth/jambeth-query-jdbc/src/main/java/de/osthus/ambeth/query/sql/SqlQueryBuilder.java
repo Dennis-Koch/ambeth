@@ -53,6 +53,7 @@ import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.query.IQueryBuilderIntern;
 import de.osthus.ambeth.query.ISqlJoin;
 import de.osthus.ambeth.query.ISubQuery;
+import de.osthus.ambeth.query.ISubQueryIntern;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.Query;
 import de.osthus.ambeth.query.QueryDelegate;
@@ -1113,10 +1114,10 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	public <S> IOperand subQuery(ISubQuery<S> subQuery, IOperand... selectedColumns)
 	{
 		ParamChecker.assertParamNotNull(subQuery, "subQuery");
-		ParamChecker.assertParamOfType(subQuery, "subQuery type", SubQuery.class);
+		ParamChecker.assertParamOfType(subQuery, "subQuery type", ISubQueryIntern.class);
 		ParamChecker.assertParamNotNull(selectedColumns, "selectedColumns");
 
-		((SubQuery<S>) subQuery).reAlias(tableAliasProvider);
+		((ISubQueryIntern) subQuery).reAlias(tableAliasProvider);
 
 		SqlColumnOperand[] columns = new SqlColumnOperand[selectedColumns.length];
 		System.arraycopy(selectedColumns, 0, columns, 0, selectedColumns.length);
@@ -1317,7 +1318,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				{
 					ISubQuery<T> subQuery = localContext.getService("query", ISubQuery.class);
 					SubQuery<T> realSubQuery = new SubQuery<T>(subQuery, joinClauses, subQueries.toArray(SqlSubselectOperand.class));
-					return garbageProxyFactory.createGarbageProxy(realSubQuery, ISubQuery.class);
+					return garbageProxyFactory.createGarbageProxy(realSubQuery, ISubQuery.class, ISubQueryIntern.class);
 				}
 				case DEFAULT:
 				{
