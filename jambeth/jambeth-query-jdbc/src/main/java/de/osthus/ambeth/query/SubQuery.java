@@ -7,7 +7,7 @@ import de.osthus.ambeth.query.sql.SqlJoinOperator;
 import de.osthus.ambeth.query.sql.SqlSubselectOperand;
 import de.osthus.ambeth.util.IDisposable;
 
-public class SubQuery<T> implements ISubQuery<T>, IDisposable
+public class SubQuery<T> implements ISubQuery<T>, ISubQueryIntern, IDisposable
 {
 	protected final ISqlJoin[] joinOperands;
 
@@ -52,6 +52,7 @@ public class SubQuery<T> implements ISubQuery<T>, IDisposable
 		return subQuery.getSqlParts(nameToValueMap, parameters, additionalSelectColumnList);
 	}
 
+	@Override
 	public void reAlias(ITableAliasProvider tableAliasProvider)
 	{
 		subQuery.setMainTableAlias(tableAliasProvider.getNextSubQueryAlias());
