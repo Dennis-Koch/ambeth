@@ -25,6 +25,7 @@ import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.PagingRequest;
+import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
@@ -75,28 +76,31 @@ public class QueryTest extends AbstractPersistenceTest
 		assertNotNull(qb.build(rootOperand));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadBuild1() throws Exception
 	{
 		qb.build();
+		qb.dispose();
 		qb.build();
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadyBuild2() throws Exception
 	{
 		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
 		qb.build(rootOperand);
+		qb.dispose();
 		qb.build(rootOperand);
 	}
 
 	@SuppressWarnings("deprecation")
-	@Test(expected = IllegalStateException.class)
+	@Test(expected = BeanAlreadyDisposedException.class)
 	public void testFinalize_alreadyBuild3() throws Exception
 	{
 		IOperand rootOperand = qb.isEqualTo(qb.column(columnName1), qb.valueName(paramName1));
 		qb.build(rootOperand, new ISqlJoin[0]);
+		qb.dispose();
 		qb.build(rootOperand);
 	}
 
