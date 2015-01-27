@@ -22,6 +22,7 @@ import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMemberAccess;
+import de.osthus.esmeralda.ioc.EsmeraldaCoreModule;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -37,9 +38,6 @@ public class MethodTransformer implements IMethodTransformer
 
 	@Autowired
 	protected IConversionContext context;
-
-	@Autowired
-	protected IMethodTransformerExtension defaultMethodTransformerExtension;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -76,13 +74,16 @@ public class MethodTransformer implements IMethodTransformer
 
 	protected ITransformedMethod transformIntern(String owner, String methodName, String[] argTypes)
 	{
+		IConversionContext context = this.context.getCurrent();
+		String language = context.getLanguage();
+
 		if ("super".equals(methodName) || "this".equals(methodName))
 		{
 			MethodKey methodKey = new MethodKey(owner, methodName, argTypes);
+			IMethodTransformerExtension defaultMethodTransformerExtension = methodTransformerExtensionRegistry.getExtension(language
+					+ EsmeraldaCoreModule.DefaultMethodTransformerName);
 			return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 		}
-		IConversionContext context = this.context.getCurrent();
-		String language = context.getLanguage();
 
 		String currOwner = owner;
 		while (currOwner != null)
@@ -120,6 +121,9 @@ public class MethodTransformer implements IMethodTransformer
 			}
 			currOwner = classInfo.getNameOfSuperClass();
 		}
+
+		IMethodTransformerExtension defaultMethodTransformerExtension = methodTransformerExtensionRegistry.getExtension(language
+				+ EsmeraldaCoreModule.DefaultMethodTransformerName);
 		MethodKey methodKey = new MethodKey(owner, methodName, argTypes);
 		return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
 	}

@@ -67,8 +67,6 @@ import de.osthus.esmeralda.handler.js.stmt.JsSynchronizedHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsThrowHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsTryHandler;
 import de.osthus.esmeralda.handler.js.stmt.JsVariableHandler;
-import de.osthus.esmeralda.handler.js.transformer.DefaultMethodParameterProcessor;
-import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.uni.MethodTransformer;
 import de.osthus.esmeralda.handler.uni.expr.ArrayAccessExpressionHandler;
 import de.osthus.esmeralda.handler.uni.expr.AssignExpressionHandler;
@@ -89,7 +87,6 @@ import de.osthus.esmeralda.handler.uni.stmt.UniversalLabeledStatementHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSkipHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalSwitchHandler;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalWhileHandler;
-import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.misc.EsmeFileUtil;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IToDoWriter;
@@ -136,16 +133,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IMethodTransformerExtensionRegistry.class) //
 				.autowireable(IMethodTransformerExtensionExtendable.class, IMethodTransformerExtensionRegistry.class);
 
-		IBeanConfiguration defaultMethodParameterProcessor = beanContextFactory.registerBean(DefaultMethodParameterProcessor,
-				DefaultMethodParameterProcessor.class);
-
-		IBeanConfiguration defaultMethodTransformer = beanContextFactory.registerBean(DefaultMethodTransformerName, DefaultMethodTransformer.class)//
-				.propertyRef(defaultMethodParameterProcessor)//
-				.ignoreProperties(AbstractMethodTransformerExtension.defaultMethodTransformerExtensionProp);
-
-		beanContextFactory.registerBean(MethodTransformer.class)//
-				.propertyRef(defaultMethodTransformer)//
-				.autowireable(IMethodTransformer.class);
+		beanContextFactory.registerBean(MethodTransformer.class).autowireable(IMethodTransformer.class);
 
 		beanContextFactory.registerBean(CsMethodTransformationModule.class);
 		beanContextFactory.registerBean(JsMethodTransformationModule.class);
