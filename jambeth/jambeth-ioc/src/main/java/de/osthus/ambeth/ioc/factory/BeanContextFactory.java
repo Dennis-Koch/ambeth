@@ -482,6 +482,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				context.addPostProcessor(postProcessors.get(a));
 			}
 		}
+		List<Object> disposableObjects = this.disposableObjects;
+		if (disposableObjects != null)
+		{
+			context.addDisposables(disposableObjects);
+			this.disposableObjects = null;
+		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;
 	}
@@ -518,6 +524,12 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			{
 				context.addPostProcessor(postProcessors.get(a));
 			}
+		}
+		List<Object> disposableObjects = this.disposableObjects;
+		if (disposableObjects != null)
+		{
+			context.addDisposables(disposableObjects);
+			this.disposableObjects = null;
 		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;

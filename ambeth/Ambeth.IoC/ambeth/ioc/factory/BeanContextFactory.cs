@@ -331,6 +331,12 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     context.AddPostProcessor(postProcessors[a]);
                 }
             }
+            IList<Object> disposableObjects = this.disposableObjects;
+            if (disposableObjects != null)
+            {
+                context.AddDisposables(disposableObjects);
+                this.disposableObjects = null;
+            }
             beanContextInitializer.InitializeBeanContext(context, this);
             return context;
         }
@@ -367,6 +373,12 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 {
                     context.AddPostProcessor(postProcessors[a]);
                 }
+            }
+            IList<Object> disposableObjects = this.disposableObjects;
+            if (disposableObjects != null)
+            {
+                context.AddDisposables(disposableObjects);
+                this.disposableObjects = null;
             }
             beanContextInitializer.InitializeBeanContext(context, this);
             return context;
