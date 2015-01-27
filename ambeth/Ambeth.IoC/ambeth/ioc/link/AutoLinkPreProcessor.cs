@@ -55,7 +55,8 @@ public class AutoLinkPreProcessor : IInitializingBean, IBeanPreProcessor
         this.extensionType = extensionType;
     }
 
-    public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+    public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType,
+        IList<IPropertyConfiguration> propertyConfigs, ISet<String> ignoredPropertyNames, IPropertyInfo[] properties)
     {
         if (extensionType.IsAssignableFrom(service.GetType()))
         {

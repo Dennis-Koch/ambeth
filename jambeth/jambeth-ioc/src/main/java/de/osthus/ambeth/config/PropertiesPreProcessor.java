@@ -1,6 +1,7 @@
 package de.osthus.ambeth.config;
 
 import java.util.List;
+import java.util.Set;
 
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -43,7 +44,7 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 
 	@Override
 	public void preProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service,
-			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+			Class<?> beanType, List<IPropertyConfiguration> propertyConfigs, Set<String> ignoredPropertyNames, IPropertyInfo[] properties)
 	{
 		if (properties == null)
 		{
@@ -58,6 +59,11 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 			Property propertyAttribute = prop.getAnnotation(Property.class);
 			if (propertyAttribute == null)
 			{
+				continue;
+			}
+			if (ignoredPropertyNames.contains(prop.getName()))
+			{
+				// do not handle this property
 				continue;
 			}
 			if (Property.DEFAULT_VALUE.equals(propertyAttribute.name()) && Property.DEFAULT_VALUE.equals(propertyAttribute.defaultValue()))
