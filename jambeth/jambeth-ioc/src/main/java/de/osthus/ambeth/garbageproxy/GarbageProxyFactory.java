@@ -34,10 +34,10 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor> interfaceTypesToConstructorMap = new Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor>()
+	protected final Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> interfaceTypesToConstructorMap = new Tuple2KeyHashMap<Class<?>, Class<?>[], IGarbageProxyConstructor<?>>()
 	{
 		@Override
-		protected boolean equalKeys(Class<?> key1, Class<?>[] key2, Tuple2KeyEntry<Class<?>, Class<?>[], IGarbageProxyConstructor> entry)
+		protected boolean equalKeys(Class<?> key1, Class<?>[] key2, Tuple2KeyEntry<Class<?>, Class<?>[], IGarbageProxyConstructor<?>> entry)
 		{
 			return key1.equals(entry.getKey1()) && Arrays.equals(key2, entry.getKey2());
 		}
@@ -56,15 +56,9 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 		this.accessorTypeProvider = accessorTypeProvider;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	public <T> T createGarbageProxy(IDisposable target, Class<T> interfaceType, Class<?>... additionalInterfaceTypes)
-	{
-		return createGarbageProxy(target, target, interfaceType, additionalInterfaceTypes);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T createGarbageProxy(Object target, IDisposable disposable, Class<T> interfaceType, Class<?>... additionalInterfaceTypes)
+	public <T> IGarbageProxyConstructor<T> createGarbageProxyConstructor(Class<T> interfaceType, Class<?>... additionalInterfaceTypes)
 	{
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
@@ -73,17 +67,29 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			IGarbageProxyConstructor gpContructor = interfaceTypesToConstructorMap.get(interfaceType, additionalInterfaceTypes);
 			if (gpContructor != null)
 			{
-				return (T) gpContructor.createInstance(target, disposable);
+				return gpContructor;
 			}
 			Class<?> gpType = loadClass(GCProxy.class, interfaceType, additionalInterfaceTypes);
 			gpContructor = accessorTypeProvider.getConstructorType(IGarbageProxyConstructor.class, gpType);
 			interfaceTypesToConstructorMap.put(interfaceType, additionalInterfaceTypes, gpContructor);
-			return (T) gpContructor.createInstance(target, disposable);
+			return gpContructor;
 		}
 		finally
 		{
 			writeLock.unlock();
 		}
+	}
+
+	@Override
+	public <T> T createGarbageProxy(IDisposable target, Class<T> interfaceType, Class<?>... additionalInterfaceTypes)
+	{
+		return createGarbageProxy(target, target, interfaceType, additionalInterfaceTypes);
+	}
+
+	@Override
+	public <T> T createGarbageProxy(Object target, IDisposable disposable, Class<T> interfaceType, Class<?>... additionalInterfaceTypes)
+	{
+		return createGarbageProxyConstructor(interfaceType, additionalInterfaceTypes).createInstance(target, disposable);
 	}
 
 	protected Class<?> loadClass(Class<?> baseType, Class<?> interfaceType, Class<?>[] additionalInterfaceTypes)
@@ -144,8 +150,16 @@ public class GarbageProxyFactory implements IGarbageProxyFactory, IInitializingB
 			Method method = Method.getMethod("void <init> (" + Object.class.getName() + "," + IDisposable.class.getName() + ")");
 			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
 			mv.loadThis();
-			mv.loadArg(0);
-			mv.loadArg(1);
+			mv.loadArgs();
+			mv.invokeConstructor(abstractType, method);
+			mv.returnValue();
+			mv.endMethod();
+		}
+		{
+			Method method = Method.getMethod("void <init> (" + IDisposable.class.getName() + ")");
+			GeneratorAdapter mv = createGA(cw, Opcodes.ACC_PUBLIC, method.getName(), method.getDescriptor());
+			mv.loadThis();
+			mv.loadArgs();
 			mv.invokeConstructor(abstractType, method);
 			mv.returnValue();
 			mv.endMethod();

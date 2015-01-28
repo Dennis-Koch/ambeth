@@ -414,6 +414,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IQueryBuilder<T> groupBy(IOperand... operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType)
 	{
 		throw new UnsupportedOperationException();
@@ -433,6 +439,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 
 	@Override
 	public int selectProperty(String propertyName)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int select(IOperand operand)
 	{
 		throw new UnsupportedOperationException();
 	}
