@@ -157,8 +157,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
 
         protected HashMap<String, IBeanConfiguration> nameToBeanConfMap;
 
-        protected IList<Object> disposableObjects;
-
         protected IDictionary<String, String> aliasToBeanNameMap;
 
         protected IDictionary<String, IList<String>> beanNameToAliasesMap;
@@ -197,7 +195,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         {
             beanConfigurations = null;
             nameToBeanConfMap = null;
-            disposableObjects = null;
             aliasToBeanNameMap = null;
             beanNameToAliasesMap = null;
             linkController = null;
@@ -331,12 +328,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                     context.AddPostProcessor(postProcessors[a]);
                 }
             }
-            IList<Object> disposableObjects = this.disposableObjects;
-            if (disposableObjects != null)
-            {
-                context.AddDisposables(disposableObjects);
-                this.disposableObjects = null;
-            }
             beanContextInitializer.InitializeBeanContext(context, this);
             return context;
         }
@@ -373,12 +364,6 @@ namespace De.Osthus.Ambeth.Ioc.Factory
                 {
                     context.AddPostProcessor(postProcessors[a]);
                 }
-            }
-            IList<Object> disposableObjects = this.disposableObjects;
-            if (disposableObjects != null)
-            {
-                context.AddDisposables(disposableObjects);
-                this.disposableObjects = null;
             }
             beanContextInitializer.InitializeBeanContext(context, this);
             return context;
@@ -544,21 +529,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
         public void RegisterDisposable(IDisposable disposable)
         {
             ParamChecker.AssertParamNotNull(disposable, "disposable");
-            if (disposableObjects == null)
-            {
-                disposableObjects = new List<Object>();
-            }
-            disposableObjects.Add(disposable);
+            RegisterWithLifecycle(new DisposableHook(disposable));
         }
 
         public void RegisterDisposable(IDisposableBean disposableBean)
         {
             ParamChecker.AssertParamNotNull(disposableBean, "disposableBean");
-            if (disposableObjects == null)
-            {
-                disposableObjects = new List<Object>();
-            }
-            disposableObjects.Add(disposableBean);
+            RegisterWithLifecycle(new DisposableBeanHook(disposableBean));
         }
 
         public ILinkRegistryNeededConfiguration Link(String listenerBeanName)

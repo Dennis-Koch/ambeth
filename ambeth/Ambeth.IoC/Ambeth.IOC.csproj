@@ -61,6 +61,8 @@
     <Compile Include="ambeth\ioc\config\PropertyEmbeddedRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
+    <Compile Include="ambeth\ioc\DisposableBeanHook.cs" />
+    <Compile Include="ambeth\ioc\DisposableHook.cs" />
     <Compile Include="ambeth\ioc\proxy\EmptyInterceptor.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextDeclarationException.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />

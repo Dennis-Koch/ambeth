@@ -18,8 +18,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.collections.FastList;
+import de.osthus.ambeth.util.IDisposable;
 
-public class FastThreadPool implements ExecutorService, IFastThreadPool
+public class FastThreadPool implements ExecutorService, IFastThreadPool, IDisposable
 {
 	protected static final Random random = new Random();
 
@@ -59,7 +60,8 @@ public class FastThreadPool implements ExecutorService, IFastThreadPool
 		setCoreThreadCount(coreThreadCount);
 	}
 
-	public void destroy() throws Exception
+	@Override
+	public void dispose()
 	{
 		shutdown();
 	}

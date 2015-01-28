@@ -105,14 +105,7 @@ public class IocModule implements IInitializingModule
 
 		IBeanConfiguration fastThreadPoolBean = beanContextFactory.registerExternalBean(THREAD_POOL_NAME, fastThreadPool);
 
-		beanContextFactory.registerDisposable(new IDisposableBean()
-		{
-			@Override
-			public void destroy() throws Throwable
-			{
-				fastThreadPool.destroy();
-			}
-		});
+		beanContextFactory.registerDisposable(fastThreadPool);
 
 		beanContextFactory.registerBean(MultithreadingHelper.class).autowireable(IMultithreadingHelper.class)//
 				.propertyRef(fastThreadPoolBean);

@@ -44,6 +44,22 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		super(testClass);
 	}
 
+	@Override
+	protected void finalize() throws Throwable
+	{
+		if (beanContext != null)
+		{
+			beanContext.getRoot().dispose();
+			beanContext = null;
+		}
+		if (testClassLevelContext != null)
+		{
+			testClassLevelContext.getRoot().dispose();
+			testClassLevelContext = null;
+		}
+		super.finalize();
+	}
+
 	public IServiceContext getBeanContext()
 	{
 		return beanContext;

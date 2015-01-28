@@ -260,6 +260,10 @@
       <Name>Ambeth.Util.SL5</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\DisposableBeanHook.cs" />
+    <Compile Include="ambeth\ioc\DisposableHook.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Silverlight\$(SilverlightVersion)\Microsoft.Silverlight.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
