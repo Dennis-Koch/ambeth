@@ -17,6 +17,8 @@ import de.osthus.ambeth.config.PropertiesPreProcessor;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.garbageproxy.GarbageProxyFactory;
 import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
+import de.osthus.ambeth.ioc.DisposableBeanHook;
+import de.osthus.ambeth.ioc.DisposableHook;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
@@ -293,8 +295,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 
 	protected IMap<String, IBeanConfiguration> nameToBeanConfMap;
 
-	protected List<Object> disposableObjects;
-
 	protected ILinkedMap<String, String> aliasToBeanNameMap;
 
 	protected ILinkedMap<String, List<String>> beanNameToAliasesMap;
@@ -338,7 +338,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	{
 		beanConfigurations = null;
 		nameToBeanConfMap = null;
-		disposableObjects = null;
 		aliasToBeanNameMap = null;
 		beanNameToAliasesMap = null;
 		linkController = null;
@@ -482,12 +481,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 				context.addPostProcessor(postProcessors.get(a));
 			}
 		}
-		List<Object> disposableObjects = this.disposableObjects;
-		if (disposableObjects != null)
-		{
-			context.addDisposables(disposableObjects);
-			this.disposableObjects = null;
-		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;
 	}
@@ -524,12 +517,6 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 			{
 				context.addPostProcessor(postProcessors.get(a));
 			}
-		}
-		List<Object> disposableObjects = this.disposableObjects;
-		if (disposableObjects != null)
-		{
-			context.addDisposables(disposableObjects);
-			this.disposableObjects = null;
 		}
 		beanContextInitializer.initializeBeanContext(context, this);
 		return context;
@@ -688,25 +675,17 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 	}
 
 	@Override
-	public void registerDisposable(IDisposable disposable)
+	public void registerDisposable(final IDisposable disposable)
 	{
 		ParamChecker.assertParamNotNull(disposable, "disposable");
-		if (disposableObjects == null)
-		{
-			disposableObjects = new ArrayList<Object>();
-		}
-		disposableObjects.add(disposable);
+		registerWithLifecycle(new DisposableHook(disposable));
 	}
 
 	@Override
-	public void registerDisposable(IDisposableBean disposableBean)
+	public void registerDisposable(final IDisposableBean disposableBean)
 	{
 		ParamChecker.assertParamNotNull(disposableBean, "disposableBean");
-		if (disposableObjects == null)
-		{
-			disposableObjects = new ArrayList<Object>();
-		}
-		disposableObjects.add(disposableBean);
+		registerWithLifecycle(new DisposableBeanHook(disposableBean));
 	}
 
 	@Override
