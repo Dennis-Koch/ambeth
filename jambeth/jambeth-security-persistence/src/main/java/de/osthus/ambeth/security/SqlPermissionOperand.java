@@ -4,6 +4,7 @@ import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.appendable.IAppendable;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -22,25 +23,25 @@ public class SqlPermissionOperand implements IOperator
 	private ILogger log;
 
 	@Autowired
+	protected ISecurityContextHolder securityContextHolder;
+
+	@Property
 	protected IOperand operand;
 
-	@Autowired
+	@Property
 	protected IOperand userIdCriteriaOperand;
 
-	@Autowired
+	@Property
 	protected IOperand valueCriteriaOperand;
 
-	@Autowired
+	@Property
 	protected IOperand[] userIdOperands;
 
-	@Autowired
+	@Property
 	protected IOperand[] readPermissionOperands;
 
-	@Autowired
+	@Property
 	protected ISqlJoin[] permissionGroupJoins;
-
-	@Autowired
-	protected ISecurityContextHolder securityContextHolder;
 
 	@Override
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
@@ -51,8 +52,10 @@ public class SqlPermissionOperand implements IOperator
 	@Override
 	public void operate(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
-		operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
-
+		if (operand != null)
+		{
+			operand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
+		}
 		if (nameToValueMap.get(USER_ID_CRITERIA_NAME) == USER_ID_UNSPECIFIED)
 		{
 			return;
@@ -60,7 +63,7 @@ public class SqlPermissionOperand implements IOperator
 		AppendableStringBuilder joinSB = (AppendableStringBuilder) nameToValueMap.get("#JoinSB");
 		for (int i = 0; i < permissionGroupJoins.length; i++)
 		{
-			if (i > 0)
+			if (joinSB.length() > 0)
 			{
 				joinSB.append(' ');
 			}
@@ -69,7 +72,10 @@ public class SqlPermissionOperand implements IOperator
 		IOperand firstUserIdOperand = userIdOperands[0];
 		IOperand firstValueOperand = readPermissionOperands[0];
 
-		querySB.append(" AND ");
+		if (operand != null)
+		{
+			querySB.append(" AND ");
+		}
 		firstUserIdOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);
 		querySB.append('=');
 		userIdCriteriaOperand.expandQuery(querySB, nameToValueMap, joinQuery, parameters);

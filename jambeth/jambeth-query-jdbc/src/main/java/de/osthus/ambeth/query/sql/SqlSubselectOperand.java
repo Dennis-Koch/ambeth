@@ -66,6 +66,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		String joinSql = sqlParts[0];
 		String whereSql = sqlParts[1];
 		String orderBySql = sqlParts[2];
+		String limitSql = sqlParts[3];
 
 		querySB.append("SELECT ");
 		boolean firstColumn = true;
@@ -95,6 +96,10 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		if (orderBySql != null && !orderBySql.isEmpty())
 		{
 			querySB.append(" ").append(orderBySql);
+		}
+		if (limitSql != null && !limitSql.isEmpty())
+		{
+			querySB.append(" ").append(limitSql);
 		}
 	}
 }

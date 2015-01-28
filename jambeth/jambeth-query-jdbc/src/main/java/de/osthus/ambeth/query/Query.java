@@ -262,11 +262,11 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		try
 		{
 			fillOrderBySQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
-			String orderBySql = tempSB.toString();
+			String orderBySql = tempSB.length() > 0 ? tempSB.toString() : null;
 			tempSB.reset();
 			fillLimitSQL(additionalSelectColumnList, tempSB, nameToValueMap, joinQuery, parameters);
-
-			String[] sqlParts = { joinSql, whereSql, orderBySql, tempSB.toString() };
+			String limitSql = tempSB.length() > 0 ? tempSB.toString() : null;
+			String[] sqlParts = { joinSql, whereSql, orderBySql, limitSql };
 			return sqlParts;
 		}
 		finally
