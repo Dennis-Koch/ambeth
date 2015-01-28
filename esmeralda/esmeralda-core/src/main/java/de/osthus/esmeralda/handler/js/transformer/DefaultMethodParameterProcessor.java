@@ -22,6 +22,7 @@ import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class DefaultMethodParameterProcessor implements IMethodParameterProcessor
 {
@@ -53,6 +54,16 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		{
 			ownerWriter.writeOwner(owner);
 			writer.append('.');
+		}
+		else
+		{
+			JavaClassInfo classInfo = context.getClassInfo();
+			String fqName = classInfo.getFqName();
+			String methodOwner = transformedMethod.getOwner();
+			if (fqName.equals(methodOwner))
+			{
+				writer.append("this.");
+			}
 		}
 		writer.append(transformedMethod.getName());
 
