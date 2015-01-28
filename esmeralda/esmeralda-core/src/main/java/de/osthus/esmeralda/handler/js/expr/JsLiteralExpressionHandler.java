@@ -9,7 +9,6 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCLiteral;
 
 import de.osthus.ambeth.collections.HashSet;
-import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -169,20 +168,13 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 
 	protected Field checkHierarchy(String fieldName, String ownerName, JavaClassInfo current, IConversionContext context)
 	{
-		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
-		String genericsFreeName;
-		while (current != null)
+		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, current, context);
+		if (owner != null)
 		{
-			genericsFreeName = languageHelper.removeGenerics(current.getFqName());
-			if (genericsFreeName.equals(ownerName))
-			{
-				Field field = current.getField(fieldName);
-				return field;
-			}
-
-			String nameOfSuperClass = current.getNameOfSuperClass();
-			current = nameOfSuperClass != null ? fqNameToClassInfoMap.get(nameOfSuperClass) : null;
+			Field field = owner.getField(fieldName);
+			return field;
 		}
+
 		return null;
 	}
 }

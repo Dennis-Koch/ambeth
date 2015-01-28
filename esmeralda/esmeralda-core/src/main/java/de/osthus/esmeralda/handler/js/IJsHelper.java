@@ -4,8 +4,10 @@ import javax.lang.model.element.VariableElement;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
 public interface IJsHelper extends ILanguageHelper
@@ -34,4 +36,6 @@ public interface IJsHelper extends ILanguageHelper
 	String convertType(String typeName, boolean direct);
 
 	String createOverloadedMethodNamePostfix(IList<VariableElement> parameters);
+
+	JavaClassInfo findInHierarchy(String ownerName, JavaClassInfo current, IConversionContext context);
 }

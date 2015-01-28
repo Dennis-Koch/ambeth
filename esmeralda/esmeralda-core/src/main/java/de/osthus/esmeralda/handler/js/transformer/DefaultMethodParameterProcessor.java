@@ -4,7 +4,9 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -52,18 +54,29 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 		if (owner != null)
 		{
+			if (methodInvocation.meth instanceof JCFieldAccess)
+			{
+				JCExpression selected = ((JCFieldAccess) methodInvocation.meth).selected;
+				if (selected != null && selected instanceof JCIdent)
+				{
+					Symbol sym = ((JCIdent) selected).sym;
+					if (sym != null && sym instanceof VarSymbol)
+					{
+						String varOwner = ((VarSymbol) sym).owner.toString();
+						varOwner = languageHelper.removeGenerics(varOwner);
+						writeThisIfLocalField(varOwner, context);
+
+						owner = languageHelper.convertVariableName(owner);
+					}
+				}
+			}
 			ownerWriter.writeOwner(owner);
 			writer.append('.');
 		}
 		else
 		{
-			JavaClassInfo classInfo = context.getClassInfo();
-			String fqName = classInfo.getFqName();
-			String methodOwner = transformedMethod.getOwner();
-			if (fqName.equals(methodOwner))
-			{
-				writer.append("this.");
-			}
+			String methodOwner = languageHelper.removeGenerics(transformedMethod.getOwner());
+			writeThisIfLocalField(methodOwner, context);
 		}
 		writer.append(transformedMethod.getName());
 
@@ -106,6 +119,17 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		else if (arguments.size() > 0)
 		{
 			throw new IllegalStateException("Property assignment with multiple values not supported: " + methodInvocation);
+		}
+	}
+
+	protected void writeThisIfLocalField(String ownerName, IConversionContext context)
+	{
+		JavaClassInfo classInfo = context.getClassInfo();
+		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, classInfo, context);
+		if (owner != null)
+		{
+			IWriter writer = context.getWriter();
+			writer.append("this.");
 		}
 	}
 
