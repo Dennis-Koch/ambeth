@@ -830,4 +830,23 @@ public class JsHelper implements IJsHelper
 	{
 		return name.replaceAll("<.*>", "");
 	}
+
+	@Override
+	public JavaClassInfo findInHierarchy(String ownerName, JavaClassInfo current, IConversionContext context)
+	{
+		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
+		String genericsFreeName;
+		while (current != null)
+		{
+			genericsFreeName = removeGenerics(current.getFqName());
+			if (genericsFreeName.equals(ownerName))
+			{
+				return current;
+			}
+
+			String nameOfSuperClass = current.getNameOfSuperClass();
+			current = nameOfSuperClass != null ? fqNameToClassInfoMap.get(nameOfSuperClass) : null;
+		}
+		return null;
+	}
 }
