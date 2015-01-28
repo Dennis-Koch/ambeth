@@ -60,4 +60,15 @@ public abstract class GCProxy implements IDisposable
 		throw new BeanAlreadyDisposedException(
 				"This handle has already been disposed. This seems like a memory leak in your application if you refer to illegal handles");
 	}
+
+	@Override
+	public String toString()
+	{
+		Object target = this.target;
+		if (target != null)
+		{
+			return target.toString();
+		}
+		return super.toString();
+	}
 }
