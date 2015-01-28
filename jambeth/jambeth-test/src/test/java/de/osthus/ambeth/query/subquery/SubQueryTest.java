@@ -45,7 +45,7 @@ public class SubQueryTest extends AbstractPersistenceTest
 		assertNotNull(sqlParts);
 		assertEquals(4, sqlParts.length);
 		assertNull(sqlParts[0]);
-		assertEquals("1=1", sqlParts[1]);
+		assertEquals(null, sqlParts[1]);
 		assertEquals("", sqlParts[2]);
 		assertEquals("", sqlParts[3]);
 	}

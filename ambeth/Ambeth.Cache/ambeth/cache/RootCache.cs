@@ -1843,7 +1843,7 @@ namespace De.Osthus.Ambeth.Cache
                                 // ObjRefs already loaded. Nothing to do
                                 continue;
                             }
-                            // TODO load ONLY the ObjRefs now...
+                            pendingValueHolders.Add(new IndirectValueHolderRef(cacheValue, relationMember, this, true));
                             break;
                         }
                     default:
