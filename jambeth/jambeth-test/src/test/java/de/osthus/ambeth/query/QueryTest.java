@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.persistence.criteria.JoinType;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
@@ -27,9 +28,14 @@ import de.osthus.ambeth.filter.model.IPagingResponse;
 import de.osthus.ambeth.filter.model.PagingRequest;
 import de.osthus.ambeth.ioc.exception.BeanAlreadyDisposedException;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.model.AbstractEntity;
+import de.osthus.ambeth.persistence.IDataCursor;
+import de.osthus.ambeth.persistence.IDataItem;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
+import de.osthus.ambeth.proxy.PersistenceContext;
+import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
@@ -41,6 +47,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
 @SQLStructure("Query_structure.sql")
 @SQLData("Query_data.sql")
+@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
 public class QueryTest extends AbstractPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
@@ -281,6 +288,42 @@ public class QueryTest extends AbstractPersistenceTest
 				assertSimilar(expectedAfterUpdate, allAfterUpdate);
 			}
 		});
+	}
+
+	@Test
+	@PersistenceContext
+	public void retrieveAllGroupByOrderBy() throws Exception
+	{
+		IOperand versionOp = qb.property(AbstractEntity.Version);
+		int maxIndex = qb.select(qb.function("MAX", qb.property(QueryEntity.Name1)));
+		int versionIndex = qb.select(versionOp);
+		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build();
+
+		Object[][] expected = { { 2, "name2" }, { 1, "name3" } };
+		IDataCursor dataCursor = query.retrieveAsData();
+		try
+		{
+			int index = 0;
+			if (expected.length > 0)
+			{
+				Assert.assertEquals(expected[0].length, dataCursor.getFieldCount());
+			}
+			while (dataCursor.moveNext())
+			{
+				IDataItem dataItem = dataCursor.getCurrent();
+				Object version = dataItem.getValue(versionIndex);
+				Object max = dataItem.getValue(maxIndex);
+				Object[] expectedItem = expected[index];
+				Assert.assertEquals(expectedItem[0].toString(), version.toString());
+				Assert.assertEquals(expectedItem[1].toString(), max.toString());
+				index++;
+			}
+			Assert.assertEquals(expected.length, index);
+		}
+		finally
+		{
+			dataCursor.dispose();
+		}
 	}
 
 	@Test

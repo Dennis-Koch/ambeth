@@ -7,7 +7,6 @@ import java.util.Stack;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -20,6 +19,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.IQueryKey;
 import de.osthus.ambeth.query.OrderByType;
 import de.osthus.ambeth.query.QueryEntity;
 import de.osthus.ambeth.query.StringQuery;
@@ -185,6 +185,17 @@ public class SqlQueryTest extends AbstractPersistenceTest
 		String queryString = buildSimpleQuery(paramName1, value1, rootOperand, parameters);
 		Assert.assertEquals("%" + value1, parameters.get(0));
 		Assert.assertEquals("Wrong query string", "(\"" + columnName1 + "\" LIKE ?)", queryString);
+	}
+
+	@SuppressWarnings("deprecation")
+	@Test
+	public void sqlGroupBy() throws Exception
+	{
+		qb.groupBy(qb.column(columnName1));
+
+		IQuery<?> query = qb.build(qb.all());
+		IQueryKey queryKey = query.getQueryKey(null);
+		Assert.assertEquals(QueryEntity.class.getName() + "##1=1#GROUP BY S_A.\"" + columnName1 + "\"#", queryKey.toString());
 	}
 
 	@SuppressWarnings("deprecation")
@@ -503,8 +514,7 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	@SuppressWarnings("deprecation")
 	@Test
-	@Ignore
-	public void sqlOrderBy() throws Exception
+	@Ignore	public void sqlOrderBy() throws Exception
 	{
 		Object value1 = new Integer(55);
 

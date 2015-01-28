@@ -4,6 +4,8 @@ import de.osthus.ambeth.model.AbstractEntity;
 
 public class JoinQueryEntity extends AbstractEntity
 {
+	public static final String JoinValue1 = "JoinValue1";
+
 	protected JoinQueryEntity parent;
 
 	protected int joinValue1;

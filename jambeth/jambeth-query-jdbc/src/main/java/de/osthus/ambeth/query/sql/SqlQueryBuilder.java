@@ -72,6 +72,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 
 	public static final ISqlJoin[] emptyJoins = new ISqlJoin[0];
 
+	public static final IOperand[] emptyOperands = new IOperand[0];
+
 	protected static final Pattern PATTERN_CONTAINS_JOIN = Pattern.compile("\\.");
 
 	protected static final Pattern PATTERN_ALLOWED_SEPARATORS = Pattern.compile("[\\.\\s]+");
@@ -123,6 +125,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	@Property
 	protected IQueryBuilderExtension[] queryBuilderExtensions;
 
+	protected IList<IOperand> groupByOperands;
+
 	protected IList<IOperand> orderByOperands;
 
 	protected IOperand limitOperand;
@@ -157,6 +161,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		entityType = null;
 		relatedEntityTypes.clear();
 		joinMap.clear();
+		groupByOperands = null;
 		orderByOperands = null;
 		limitOperand = null;
 		selectOperands = null;
@@ -978,6 +983,18 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
+	public IQueryBuilder<T> groupBy(IOperand... operand)
+	{
+		ParamChecker.assertParamNotNull(operand, "operand");
+		if (groupByOperands == null)
+		{
+			groupByOperands = new ArrayList<IOperand>();
+		}
+		groupByOperands.addAll(operand);
+		return self;
+	}
+
+	@Override
 	@PersistenceContext(PersistenceContextType.REQUIRED)
 	@Deprecated
 	public int selectColumn(String columnName)
@@ -1002,6 +1019,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		ParamChecker.assertParamNotNull(propertyName, "propertyName");
 		IOperand propertyOperand = property(propertyName);
 		return selectColumnIntern(propertyOperand);
+	}
+
+	@Override
+	public int select(IOperand operand)
+	{
+		return selectColumnIntern(operand);
 	}
 
 	protected int selectColumnIntern(IOperand columnOperand)
@@ -1230,11 +1253,11 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 				self.orderBy(self.property(metaData.getIdMember().getName()), OrderByType.ASC);
 			}
-
 			final IOperand limitOperand = limitIntern(getBeanContext().registerBean(SimpleValueOperand.class)
 					.propertyValue("ParamName", QueryConstants.LIMIT_VALUE).propertyValue("TryOnly", Boolean.TRUE).finish());
-			final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : null;
-			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : null;
+			final IOperand[] groupByOperandArray = groupByOperands != null ? groupByOperands.toArray(new IOperand[groupByOperands.size()]) : emptyOperands;
+			final IOperand[] orderByOperandArray = orderByOperands != null ? orderByOperands.toArray(new IOperand[orderByOperands.size()]) : emptyOperands;
+			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : emptyOperands;
 			final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
 			final String queryDelegateName = "queryDelegate", pagingQueryName = "pagingQuery", queryName = "query";
 
@@ -1279,6 +1302,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 							.propertyValue("EntityType", entityType)//
 							.propertyRefs(stringQuery)//
 							.propertyRef("TransactionalQuery", queryDelegateName)//
+							.propertyValue("GroupByOperands", groupByOperandArray)//
 							.propertyValue("OrderByOperands", orderByOperandArray)//
 							.propertyValue("LimitOperand", limitOperand)//
 							.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//

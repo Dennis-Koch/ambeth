@@ -74,6 +74,9 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	protected IOperand rootOperand;
 
 	@Property
+	protected IOperand[] groupByOperands;
+
+	@Property
 	protected IOperand[] orderByOperands;
 
 	@Property
@@ -276,7 +279,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	protected void fillOrderBySQL(List<String> additionalSelectColumnList, IAppendable orderBySB, IMap<Object, Object> nameToValueMap, boolean joinQuery,
 			IList<Object> parameters)
 	{
-		if (orderByOperands == null)
+		if (orderByOperands.length == 0 && groupByOperands.length == 0)
 		{
 			return;
 		}
@@ -284,6 +287,20 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		nameToValueMap.put(QueryConstants.ADDITIONAL_SELECT_SQL_SB, additionalSelectColumnList);
 		try
 		{
+			boolean firstGroupBy = true;
+			for (int a = 0, size = groupByOperands.length; a < size; a++)
+			{
+				if (firstGroupBy)
+				{
+					orderBySB.append("GROUP BY ");
+					firstGroupBy = false;
+				}
+				else
+				{
+					orderBySB.append(',');
+				}
+				groupByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
+			}
 			for (int a = 0, size = orderByOperands.length; a < size; a++)
 			{
 				orderByOperands[a].expandQuery(orderBySB, nameToValueMap, joinQuery, parameters);
@@ -309,7 +326,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	protected void fillAdditionalFieldsSQL(IList<String> additionalSelectColumnList, IAppendable querySB, IMap<Object, Object> nameToValueMap,
 			boolean joinQuery, IList<Object> parameters)
 	{
-		if (selectOperands == null)
+		if (selectOperands.length == 0)
 		{
 			return;
 		}
