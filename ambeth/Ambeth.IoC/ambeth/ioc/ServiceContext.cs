@@ -786,6 +786,7 @@ namespace De.Osthus.Ambeth.Ioc
 				    disposableObjects = new List<Object>();
 			    }
 			    disposableObjects.Add(obj);
+                return;
 		    }
 		    Lock writeLock = this.writeLock;
 		    writeLock.Lock();

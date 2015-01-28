@@ -749,6 +749,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 				disposableObjects = new ArrayList<Object>();
 			}
 			disposableObjects.add(obj);
+			return;
 		}
 		Lock writeLock = this.writeLock;
 		writeLock.lock();
