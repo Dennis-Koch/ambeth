@@ -55,6 +55,10 @@ public class StringQuery implements IStringQuery, IInitializingBean
 	@Override
 	public String fillQuery(IMap<Object, Object> nameToValueMap, IList<Object> parameters)
 	{
+		if (rootOperand == null)
+		{
+			return null;
+		}
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder whereSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
@@ -86,8 +90,11 @@ public class StringQuery implements IStringQuery, IInitializingBean
 				}
 				joinClauses[i].expandQuery(joinSB, nameToValueMap, true, parameters);
 			}
-			rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
-			return new String[] { joinSB.toString(), whereSB.toString() };
+			if (rootOperand != null)
+			{
+				rootOperand.expandQuery(whereSB, nameToValueMap, true, parameters);
+			}
+			return new String[] { joinSB.length() > 0 ? joinSB.toString() : null, whereSB.length() > 0 ? whereSB.toString() : null };
 		}
 		finally
 		{

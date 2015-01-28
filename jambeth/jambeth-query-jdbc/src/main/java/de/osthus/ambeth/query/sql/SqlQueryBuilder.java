@@ -1239,9 +1239,12 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Object buildIntern(final IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
+	protected Object buildIntern(IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
 	{
-		ParamChecker.assertParamNotNull(whereClause, "whereClause");
+		if (whereClause instanceof SqlAllOperand)
+		{
+			whereClause = null;
+		}
 		ParamChecker.assertParamNotNull(joinClauses, "joinClauses");
 
 		IServiceContext localContext = null;
@@ -1260,6 +1263,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			final IOperand[] selectArray = selectOperands != null ? selectOperands.toArray(new IOperand[selectOperands.size()]) : emptyOperands;
 			final IList<Class<?>> relatedEntityTypesList = relatedEntityTypes.toList();
 			final String queryDelegateName = "queryDelegate", pagingQueryName = "pagingQuery", queryName = "query";
+			final IOperand fWhereClause = whereClause;
 
 			IServiceContext beanContext = getBeanContext();
 			// Build a context from the PARENT of the SqlQueryBuilder-Context. Because from now on the query has a
@@ -1270,7 +1274,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				@Override
 				public void invoke(IBeanContextFactory childContextFactory)
 				{
-					IOperand currWhereClause = whereClause;
+					IOperand currWhereClause = fWhereClause;
 
 					IBeanConfiguration whereClauseConf = null;
 					IList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
