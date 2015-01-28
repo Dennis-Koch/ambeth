@@ -2,7 +2,9 @@ package de.osthus.ambeth.garbageproxy;
 
 import de.osthus.ambeth.util.IDisposable;
 
-public interface IGarbageProxyConstructor
+public interface IGarbageProxyConstructor<T>
 {
-	GCProxy createInstance(Object target, IDisposable disposable);
+	T createInstance(IDisposable target);
+
+	T createInstance(Object target, IDisposable disposable);
 }

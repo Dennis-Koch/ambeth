@@ -26,6 +26,11 @@ public abstract class GCProxy implements IDisposable
 
 	protected IDisposable disposable;
 
+	public GCProxy(IDisposable target)
+	{
+		this(target, target);
+	}
+
 	public GCProxy(Object target, IDisposable disposable)
 	{
 		this.target = target;

@@ -1,7 +1,9 @@
 package de.osthus.ambeth.query.sql;
 
+import de.osthus.ambeth.garbageproxy.IGarbageProxyConstructor;
 import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -12,7 +14,7 @@ import de.osthus.ambeth.query.IQueryBuilderExtension;
 import de.osthus.ambeth.query.IQueryBuilderExtensionExtendable;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 
-public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable
+public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -30,6 +32,15 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<IQueryBuilderExtension>(
 			IQueryBuilderExtension.class, "queryBuilderExtension");
 
+	@SuppressWarnings("rawtypes")
+	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		queryBuilderGPC = garbageProxyFactory.createGarbageProxyConstructor(IQueryBuilder.class);
+	}
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> IQueryBuilder<T> create(Class<T> entityType)
@@ -42,7 +53,7 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 				.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
 				.finish();
 
-		return garbageProxyFactory.createGarbageProxy(sqlQueryBuilder, IQueryBuilder.class);
+		return queryBuilderGPC.createInstance(sqlQueryBuilder);
 	}
 
 	@Override

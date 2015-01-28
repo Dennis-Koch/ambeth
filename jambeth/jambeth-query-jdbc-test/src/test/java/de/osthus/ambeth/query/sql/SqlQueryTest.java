@@ -7,6 +7,7 @@ import java.util.Stack;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -514,7 +515,8 @@ public class SqlQueryTest extends AbstractPersistenceTest
 
 	@SuppressWarnings("deprecation")
 	@Test
-	@Ignore	public void sqlOrderBy() throws Exception
+	@Ignore
+	public void sqlOrderBy() throws Exception
 	{
 		Object value1 = new Integer(55);
 
