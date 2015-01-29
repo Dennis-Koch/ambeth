@@ -238,6 +238,28 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public ICUDResult preMerge(ICUDResult cudResult)
 	{
+		if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
+		{
+			// ignore this dataChange because it is our own Audit merge
+			return cudResult;
+		}
+
+		if (cudResult != null && cudResult.getAllChanges() != null)
+		{
+			List<IChangeContainer> allChanges = cudResult.getAllChanges();
+			for (int index = allChanges.size(); index-- > 0;)
+			{
+				IChangeContainer changeContainer = allChanges.get(index);
+				IObjRef objRef = changeContainer.getReference();
+				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
+				IAuditConfiguration auditConfiguration = auditConfigurationProvider.getAuditConfiguration(metaData.getEntityType());
+
+				if (auditConfiguration.isReasonRequired() && auditReasonTL.get() == null)
+				{
+					throw new AuditReasonMissingException("Audit reason is missing for " + objRef.getRealType() + "!");
+				}
+			}
+		}
 		// intended blank
 		return cudResult;
 	}
@@ -299,12 +321,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		if (auditConfiguration == null)
 		{
 			return;
-		}
-
-		// test if audit reason is required and throw exception if its not set
-		if (auditConfiguration.isReasonRequired() && auditReasonTL.get() == null)
-		{
-			throw new AuditReasonMissingException("Audit reason is missing for " + originalRef.getClass() + "!");
 		}
 
 		IAuditedEntity auditedEntity = entityFactory.createEntity(IAuditedEntity.class);
