@@ -552,14 +552,24 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
+				HashSet<String> alreadyHandled = new HashSet<>();
+				boolean firstVar = true;
 				for (IVariable usedVariable : allUsedVariables)
 				{
+					String name = usedVariable.getName();
+					if (!alreadyHandled.add(name))
+					{
+						// The IVariable instances have no equals(). So there are duplicates.
+						continue;
+					}
+
 					FieldInfo field = new FieldInfo();
 					field.setPrivateFlag(true);
 					field.setFieldType(usedVariable.getType());
-					field.setName(usedVariable.getName());
-
+					field.setName(name);
 					context.setField(field);
+
+					firstVar = languageHelper.writeStringIfFalse(",", firstVar);
 					fieldHandler.handle();
 				}
 			}

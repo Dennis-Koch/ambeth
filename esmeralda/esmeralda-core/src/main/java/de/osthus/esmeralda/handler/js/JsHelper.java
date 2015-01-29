@@ -845,7 +845,13 @@ public class JsHelper implements IJsHelper
 			}
 
 			String nameOfSuperClass = current.getNameOfSuperClass();
-			current = nameOfSuperClass != null ? fqNameToClassInfoMap.get(nameOfSuperClass) : null;
+			if (nameOfSuperClass == null)
+			{
+				break;
+			}
+
+			current = fqNameToClassInfoMap.get(nameOfSuperClass);
+			current = current != null ? current : fqNameToClassInfoMap.get(removeGenerics(nameOfSuperClass));
 		}
 		return null;
 	}
