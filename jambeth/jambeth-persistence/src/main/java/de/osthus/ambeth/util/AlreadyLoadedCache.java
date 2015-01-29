@@ -76,7 +76,11 @@ public class AlreadyLoadedCache implements IAlreadyLoadedCache, IDisposableBean,
 	@Override
 	public void clear()
 	{
-		getCurrent().clear();
+		AlreadyLoadedCacheIntern alreadyLoadedCacheIntern = alreadyLoadedCacheTL.get();
+		if (alreadyLoadedCacheIntern != null)
+		{
+			alreadyLoadedCacheIntern.clear();
+		}
 	}
 
 	@Override

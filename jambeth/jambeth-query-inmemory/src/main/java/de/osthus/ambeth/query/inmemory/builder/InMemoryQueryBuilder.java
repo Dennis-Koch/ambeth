@@ -360,6 +360,24 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IOperand regexpLike(IOperand sourceString, IOperand pattern, IOperand matchParameter)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public IQueryBuilder<T> limit(IOperand operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IOperator startsWith(IOperand leftOperand, IOperand rightOperand)
 	{
 		return createBinaryOperator(StartsWithOperator.class, leftOperand, rightOperand, null);
@@ -396,6 +414,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 	}
 
 	@Override
+	public IQueryBuilder<T> groupBy(IOperand... operand)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public IQueryBuilder<T> orderBy(IOperand column, OrderByType orderByType)
 	{
 		throw new UnsupportedOperationException();
@@ -415,6 +439,12 @@ public class InMemoryQueryBuilder<T> implements IQueryBuilder<T>
 
 	@Override
 	public int selectProperty(String propertyName)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int select(IOperand operand)
 	{
 		throw new UnsupportedOperationException();
 	}

@@ -124,7 +124,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Long.valueOf((String) value);
+				return Long.valueOf((long) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -193,7 +193,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Integer.valueOf((String) value);
+				return Integer.valueOf((int) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -216,7 +216,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Float.valueOf((String) value);
+				return Float.valueOf((float) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -239,7 +239,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Short.valueOf((String) value);
+				return Short.valueOf((short) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{
@@ -262,7 +262,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 			}
 			else if (String.class.isAssignableFrom(type))
 			{
-				return Byte.valueOf((String) value);
+				return Byte.valueOf((byte) Double.parseDouble((String) value));
 			}
 			else if (Boolean.class.isAssignableFrom(type))
 			{

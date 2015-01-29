@@ -1254,7 +1254,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 						{
 							value = listTypeHelper.unpackListType(value);
 						}
-						value = convertPrimitiveValue(value, voMember.getRealType(), boMember.getRealType(), boMember.getElementType());
+						value = convertPrimitiveValue(value, voMember.getElementType(), boMember.getRealType(), boMember.getElementType());
 						// Do not 'kill' technical members except 'version' (for optimistic locking)
 						if (boMember.isTechnicalMember() && !boMember.equals(businessObjectMetaData.getVersionMember())
 								&& (value == null || value.equals(boMember.getNullEquivalentValue())))
@@ -1348,52 +1348,60 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 		{
 			return convertPrimitiveValue(ListUtil.anyToList(value), sourceElementType, targetRealType, targetElementType);
 		}
-		else if (value instanceof Collection)
+		else if (!(value instanceof Collection))
 		{
-			Collection<?> coll = (Collection<?>) value;
-			List<Object> result = new java.util.ArrayList<Object>(coll.size());
+			return conversionHelper.convertValueToType(targetRealType, value);
+		}
+		IConversionHelper conversionHelper = this.conversionHelper;
 
+		Collection<?> coll = (Collection<?>) value;
+
+		if (targetRealType.isArray())
+		{
+			Object array = Array.newInstance(targetRealType.getComponentType(), coll.size());
+			int index = 0;
 			for (Object item : coll)
 			{
 				Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
-				result.add(convertedItem);
+				Array.set(array, index++, convertedItem);
 			}
-			if (targetRealType.isArray())
-			{
-				Object array = Array.newInstance(targetRealType.getComponentType(), result.size());
-				for (int a = result.size(); a-- > 0;)
-				{
-					Array.set(array, a, result.get(a));
-				}
-				value = array;
-			}
-			else if (List.class.isAssignableFrom(targetRealType))
-			{
-				value = result;
-			}
-			else if (Set.class.isAssignableFrom(targetRealType))
-			{
-				value = ListUtil.anyToSet(result);
-			}
-			else if (result.size() == 0)
-			{
-				return null;
-			}
-			else if (result.size() == 1)
-			{
-				return result.get(0);
-			}
-			else
-			{
-				throw new IllegalArgumentException("Cannot map '" + value.getClass() + "' of '" + sourceElementType + "' to '" + targetRealType + "' of '"
-						+ targetElementType + "'");
-			}
+			return array;
 		}
-		else
+		else if (Set.class.isAssignableFrom(targetRealType))
 		{
-			value = conversionHelper.convertValueToType(targetRealType, value);
+			int size = coll.size();
+			java.util.HashSet<Object> set = new java.util.HashSet<Object>((int) (size / 0.75f) + 1, 0.75f);
+			for (Object item : coll)
+			{
+				Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
+				set.add(convertedItem);
+			}
+			return set;
 		}
-		return value;
+		else if (Collection.class.isAssignableFrom(targetRealType))
+		{
+			java.util.ArrayList<Object> list = new java.util.ArrayList<Object>(coll.size());
+			for (Object item : coll)
+			{
+				Object convertedItem = conversionHelper.convertValueToType(targetElementType, item);
+				list.add(convertedItem);
+			}
+			return list;
+		}
+		else if (coll.size() == 0)
+		{
+			return null;
+		}
+		else if (coll.size() == 1)
+		{
+			if (coll instanceof List)
+			{
+				return ((List<?>) coll).get(0);
+			}
+			return coll.iterator().next();
+		}
+		throw new IllegalArgumentException("Cannot map '" + value.getClass() + "' of '" + sourceElementType + "' to '" + targetRealType + "' of '"
+				+ targetElementType + "'");
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import de.osthus.ambeth.model.AbstractEntity;
 
 public class LinkTableEntity extends AbstractEntity
 {
+	public static final String Name = "Name";
+
 	protected String name;
 
 	protected LinkTableEntity()

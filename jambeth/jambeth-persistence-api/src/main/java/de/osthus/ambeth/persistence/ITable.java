@@ -149,7 +149,8 @@ public interface ITable
 	 * @param params
 	 * @return Cursor to ID and version of all selected entities.
 	 */
-	IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, List<Object> parameters);
+	IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
+			List<Object> parameters);
 
 	/**
 	 * Selects ID, version, and all value fields of all given entities in table.

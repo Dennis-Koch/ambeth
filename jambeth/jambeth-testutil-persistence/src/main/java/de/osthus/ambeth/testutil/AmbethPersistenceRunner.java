@@ -103,16 +103,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		super(testClass);
 	}
 
-	public void setDoExecuteStrict(final boolean doExecuteStrict)
-	{
-		this.doExecuteStrict = doExecuteStrict;
-	}
-
-	public void rebuildData()
-	{
-		rebuildData(null);
-	}
-
 	@Override
 	protected void finalize() throws Throwable
 	{
@@ -125,6 +115,17 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			schemaContext.getRoot().dispose();
 			schemaContext = null;
 		}
+		super.finalize();
+	}
+
+	public void setDoExecuteStrict(final boolean doExecuteStrict)
+	{
+		this.doExecuteStrict = doExecuteStrict;
+	}
+
+	public void rebuildData()
+	{
+		rebuildData(null);
 	}
 
 	@Override
@@ -526,15 +527,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 					statement.evaluate();
 					return;
 				}
-				final String scopeName = authentication.scope();
-				final ISecurityScope scope = new ISecurityScope()
-				{
-					@Override
-					public String getName()
-					{
-						return scopeName;
-					}
-				};
+				final ISecurityScope scope = new StringSecurityScope(authentication.scope());
 				IMethodLevelBehavior<SecurityContextType> behaviour = new IMethodLevelBehavior<SecurityContextType>()
 				{
 					@Override

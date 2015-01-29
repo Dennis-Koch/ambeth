@@ -4,7 +4,9 @@ import java.util.List;
 
 import javax.lang.model.element.VariableElement;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -22,6 +24,7 @@ import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class DefaultMethodParameterProcessor implements IMethodParameterProcessor
 {
@@ -51,18 +54,47 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 		if (owner != null)
 		{
+			if (methodInvocation.meth instanceof JCFieldAccess)
+			{
+				JCExpression selected = ((JCFieldAccess) methodInvocation.meth).selected;
+				if (selected != null && selected instanceof JCIdent)
+				{
+					Symbol sym = ((JCIdent) selected).sym;
+					if (sym != null && sym instanceof VarSymbol)
+					{
+						String varOwner = ((VarSymbol) sym).owner.toString();
+						varOwner = languageHelper.removeGenerics(varOwner);
+						writeThisIfLocalField(varOwner, context);
+
+						owner = languageHelper.convertVariableName(owner);
+					}
+				}
+			}
 			ownerWriter.writeOwner(owner);
 			writer.append('.');
+		}
+		else
+		{
+			String methodOwner = languageHelper.removeGenerics(transformedMethod.getOwner());
+			writeThisIfLocalField(methodOwner, context);
 		}
 		writer.append(transformedMethod.getName());
 
 		if (!transformedMethod.isPropertyInvocation())
 		{
-			IJsOverloadManager overloadManager = transformedMethod.isStatic() ? overloadManagerStatic : overloadManagerNonStatic;
-			if (overloadManager.hasOverloads(transformedMethod))
+			if (overloadManagerNonStatic.hasOverloads(transformedMethod) || overloadManagerStatic.hasOverloads(transformedMethod))
 			{
 				IList<VariableElement> paramsList = getParamsList(methodInvocation);
-				String overloadedMethodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(paramsList);
+				String overloadedMethodNamePostfix;
+				if (paramsList != null)
+				{
+					overloadedMethodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(paramsList);
+				}
+				else
+				{
+					// FIXME
+					overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
+				}
 				writer.append(overloadedMethodNamePostfix);
 			}
 			writer.append('(');
@@ -90,13 +122,25 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		}
 	}
 
+	protected void writeThisIfLocalField(String ownerName, IConversionContext context)
+	{
+		JavaClassInfo classInfo = context.getClassInfo();
+		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, classInfo, context);
+		if (owner != null)
+		{
+			IWriter writer = context.getWriter();
+			writer.append("this.");
+		}
+	}
+
 	protected IList<VariableElement> getParamsList(JCMethodInvocation methodInvocation)
 	{
 		IList<VariableElement> paramsList = new ArrayList<VariableElement>();
 
 		if (methodInvocation.meth == null)
 		{
-			return paramsList;
+			return null;
+			// return paramsList;
 		}
 
 		if (methodInvocation.meth instanceof JCIdent)
@@ -106,6 +150,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
 			}
+			else
+			{
+				methodInvocation = null;
+				// getParamsList(paramsList, methodInvocation.args);
+			}
 		}
 		else if (methodInvocation.meth instanceof JCFieldAccess)
 		{
@@ -113,6 +162,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			if (meth.sym != null)
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
+			}
+			else
+			{
+				methodInvocation = null;
+				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
 		else
@@ -123,11 +177,38 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		return paramsList;
 	}
 
+	// TODO below here WIP!!!
+
+	protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
+	{
+		StringBuilder sb = new StringBuilder();
+		com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
+		for (JCExpression arg : args)
+		{
+			sb.append("_unknownType");
+		}
+		String dummyOverloadedMethodNamePostfix = sb.toString();
+		return dummyOverloadedMethodNamePostfix;
+	}
+
 	protected void getParamsList(IList<VariableElement> paramsList, MethodSymbol sym)
 	{
 		if (sym.params != null)
 		{
 			paramsList.addAll(sym.params);
+		}
+		else
+		{
+			System.out.println();
+		}
+	}
+
+	protected void getParamsList(IList<VariableElement> paramsList, com.sun.tools.javac.util.List<JCExpression> args)
+	{
+		// TODO
+		for (JCExpression arg : args)
+		{
+			paramsList.add(null);
 		}
 	}
 }

@@ -66,13 +66,23 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		String joinSql = sqlParts[0];
 		String whereSql = sqlParts[1];
 		String orderBySql = sqlParts[2];
+		String limitSql = sqlParts[3];
 
 		querySB.append("SELECT ");
-		querySB.append(tableAlias).append(".").append(selectedColumns[0].columnName);
-		for (int i = 1; i < selectedColumns.length; i++)
+		boolean firstColumn = true;
+		SqlColumnOperand[] selectedColumns = this.selectedColumns;
+		for (int i = 0, size = selectedColumns.length; i < size; i++)
 		{
+			if (firstColumn)
+			{
+				firstColumn = false;
+			}
+			else
+			{
+				querySB.append(',');
+			}
 			SqlColumnOperand column = selectedColumns[i];
-			querySB.append(",").append(tableAlias).append(".").append(column.columnName);
+			querySB.append(tableAlias).append(".").append(column.columnName);
 		}
 		querySB.append(" FROM ").append(tableName).append(" ").append(tableAlias);
 		if (joinSql != null && !joinSql.isEmpty())
@@ -86,6 +96,10 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		if (orderBySql != null && !orderBySql.isEmpty())
 		{
 			querySB.append(" ").append(orderBySql);
+		}
+		if (limitSql != null && !limitSql.isEmpty())
+		{
+			querySB.append(" ").append(limitSql);
 		}
 	}
 }

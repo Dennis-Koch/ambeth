@@ -76,7 +76,7 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 
 	protected IList<ILinkContainer> linkContainers;
 
-	protected IList<Object> disposableObjects;
+	protected ArrayList<Object> disposableObjects;
 
 	protected IList<IBeanPreProcessor> preProcessors;
 
@@ -729,50 +729,59 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 		registerDisposableIntern(waitCallback, false);
 	}
 
-	protected void registerDisposableIntern(Object object, boolean registerWeakOnRunning)
+	public void addDisposables(List<Object> disposableObjects)
+	{
+		if (this.disposableObjects == null)
+		{
+			this.disposableObjects = new ArrayList<Object>(disposableObjects.size());
+		}
+		this.disposableObjects.addAll(disposableObjects);
+	}
+
+	protected void registerDisposableIntern(Object obj, boolean registerWeakOnRunning)
 	{
 		checkNotDisposed();
-		ParamChecker.assertParamNotNull(object, "object");
-		if (isRunning())
-		{
-			Lock writeLock = this.writeLock;
-			writeLock.lock();
-			try
-			{
-				if (disposableObjects == null)
-				{
-					disposableObjects = new ArrayList<Object>();
-				}
-				IList<Object> disposableObjects = this.disposableObjects;
-				if (disposableObjects.size() % 100 == 0)
-				{
-					for (int a = disposableObjects.size(); a-- > 0;)
-					{
-						Object disposableObject = disposableObjects.get(a);
-						if (disposableObject instanceof Reference)
-						{
-							disposableObject = ((Reference<?>) disposableObject).get();
-						}
-						if (disposableObject == null)
-						{
-							disposableObjects.remove(a);
-						}
-					}
-				}
-				disposableObjects.add(registerWeakOnRunning ? new WeakReference<Object>(object) : object);
-			}
-			finally
-			{
-				writeLock.unlock();
-			}
-		}
-		else
+		ParamChecker.assertParamNotNull(obj, "obj");
+		if (!isRunning())
 		{
 			if (disposableObjects == null)
 			{
 				disposableObjects = new ArrayList<Object>();
 			}
-			disposableObjects.add(object);
+			disposableObjects.add(obj);
+			return;
+		}
+		Lock writeLock = this.writeLock;
+		writeLock.lock();
+		try
+		{
+			ArrayList<Object> disposableObjects = this.disposableObjects;
+			if (disposableObjects == null)
+			{
+				disposableObjects = new ArrayList<Object>();
+				this.disposableObjects = disposableObjects;
+			}
+			// "monte carlo" approach to check for disposable objects without noticeable impact on the runtime performance
+			while (disposableObjects.size() > 0)
+			{
+				int randomIndex = (int) (Math.random() * disposableObjects.size());
+				Object disposableObject = disposableObjects.get(randomIndex);
+				if (disposableObject instanceof Reference)
+				{
+					disposableObject = ((Reference<?>) disposableObject).get();
+				}
+				if (disposableObject != null)
+				{
+					// not a collected object. we finish the search for collected disposables
+					break;
+				}
+				disposableObjects.remove(randomIndex);
+			}
+			disposableObjects.add(registerWeakOnRunning ? new WeakReference<Object>(obj) : obj);
+		}
+		finally
+		{
+			writeLock.unlock();
 		}
 	}
 

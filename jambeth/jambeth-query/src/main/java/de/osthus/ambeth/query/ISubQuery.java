@@ -2,8 +2,9 @@ package de.osthus.ambeth.query;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.util.IDisposable;
 
-public interface ISubQuery<T>
+public interface ISubQuery<T> extends IDisposable
 {
 	Class<?> getEntityType();
 

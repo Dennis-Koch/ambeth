@@ -536,7 +536,7 @@ namespace De.Osthus.Ambeth.Mapping
                     if (config.IsIgnoredMember(voMemberName))
                     {
                         // Nothing to collect
-                        Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                        Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                         boMember.SetValue(businessObject, convertedEmptyRelation);
                         continue;
                     }
@@ -583,7 +583,7 @@ namespace De.Osthus.Ambeth.Mapping
                 if (voValue == null)
                 {
                     // Nothing to collect
-                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                     boMember.SetValue(businessObject, convertedEmptyRelation);
                     continue;
                 }
@@ -595,7 +595,7 @@ namespace De.Osthus.Ambeth.Mapping
                 if (voList.Count == 0)
                 {
                     // Nothing to collect
-                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), boMember.ElementType, boMember);
+                    Object convertedEmptyRelation = ConvertPrimitiveValue(EmptyList.Empty<Object>(), typeof(Object), boMember.RealType, boMember.ElementType);
                     boMember.SetValue(businessObject, convertedEmptyRelation);
                     continue;
                 }
@@ -1134,7 +1134,7 @@ namespace De.Osthus.Ambeth.Mapping
                             {
                                 value = ListTypeHelper.UnpackListType(value);
                             }
-                            value = ConvertPrimitiveValue(value, voMember.RealType, boMember);
+                            value = ConvertPrimitiveValue(value, voMember.ElementType, boMember.RealType, boMember.ElementType);
                             // Do not 'kill' technical members except 'version' (for optimistic locking)
                             if (boMember.TechnicalMember && !boMember.Equals(businessObjectMetaData.VersionMember)
                                     && (value == null || value.Equals(boMember.NullEquivalentValue)))
@@ -1173,7 +1173,7 @@ namespace De.Osthus.Ambeth.Mapping
                                     value = ListTypeHelper.PackInListType((IEnumerable)value, voMember.RealType);
                                 }
                             }
-                            value = ConvertPrimitiveValue(value, boMember.ElementType, voMember);
+                            value = ConvertPrimitiveValue(value, boMember.ElementType, voMember.RealType, voMember.ElementType);
                             if (voMember.TechnicalMember && (value == null || value.Equals(voMember.NullEquivalentValue)))
                             {
                                 continue;
@@ -1211,74 +1211,56 @@ namespace De.Osthus.Ambeth.Mapping
             return primitiveMembers;
         }
 
-        protected Object ConvertPrimitiveValue(Object value, Type sourceElementType, Member targetMember)
+        protected Object ConvertPrimitiveValue(Object value, Type sourceElementType, Type targetRealType, Type targetElementType)
         {
             if (value == null)
             {
                 return null;
             }
-            else if (value.GetType().IsArray && !typeof(String).Equals(targetMember.RealType)) // do not handle byte[]
+            else if (value.GetType().IsArray && !typeof(String).Equals(targetRealType)) // do not handle byte[]
             // or char[] to
             // String here
             {
-                return ConvertPrimitiveValue(ListUtil.AnyToList(value), sourceElementType, targetMember);
+                return ConvertPrimitiveValue(ListUtil.AnyToList(value), sourceElementType, targetRealType, targetElementType);
             }
-            else if (value is IEnumerable && !(value is String))
+            else if (!(value is IEnumerable) || (value is String))
             {
-                List<Object> result = new List<Object>();
-                Type targetElementType;
-                Type targetRealType = targetMember.RealType;
+                return ConversionHelper.ConvertValueToType(targetRealType, value);
+            }
+            IConversionHelper conversionHelper = this.ConversionHelper;
+            IEnumerable coll = (IEnumerable) value;
+            List<Object> result = new List<Object>();
 
-                if (targetRealType.IsArray)
-                {
-                    targetElementType = targetRealType.GetElementType();
-                }
-                else if (typeof(IEnumerable).IsAssignableFrom(targetMember.ElementType) && !typeof(String).IsAssignableFrom(targetMember.ElementType))
-                {
-                    targetElementType = sourceElementType;
-                }
-                else
-                {
-                    targetElementType = targetMember.ElementType;
-                }
-                foreach (Object item in (IEnumerable)value)
-                {
-                    Object convertedItem = ConversionHelper.ConvertValueToType(targetElementType, item);
-                    result.Add(convertedItem);
-                }
-                if (targetRealType.IsArray)
-                {
-                    Array array = Array.CreateInstance(targetRealType.GetElementType(), result.Count);
-                    for (int a = result.Count; a-- > 0; )
-                    {
-                        array.SetValue(result[a], a);
-                    }
-                    value = array;
-                }
-                else if (typeof(IEnumerable).IsAssignableFrom(targetRealType) && !typeof(String).Equals(targetRealType))
-                {
-                    value = ListUtil.CreateCollectionOfType(targetRealType, result.Count);
-                    ListUtil.FillList(value, result);
-                }
-                else if (result.Count == 0)
-                {
-                    return null;
-                }
-                else if (result.Count == 1)
-                {
-                    return result[0];
-                }
-                else
-                {
-                    throw new ArgumentException("Cannot map '" + value.GetType() + "' of '" + sourceElementType + "' to '" + targetMember.RealType
-                            + "' of '" + targetMember.ElementType + "'");
-                }
-            }
-            else
+            foreach (Object item in (IEnumerable)value)
             {
-                value = ConversionHelper.ConvertValueToType(targetMember.RealType, value);
+                Object convertedItem = ConversionHelper.ConvertValueToType(targetElementType, item);
+                result.Add(convertedItem);
             }
-            return value;
+            if (targetRealType.IsArray)
+            {
+                Array array = Array.CreateInstance(targetRealType.GetElementType(), result.Count);
+                for (int a = result.Count; a-- > 0; )
+                {
+                    array.SetValue(result[a], a);
+                }
+                return array;
+            }
+            else if (typeof(IEnumerable).IsAssignableFrom(targetRealType) && !typeof(String).Equals(targetRealType))
+            {
+                value = ListUtil.CreateCollectionOfType(targetRealType, result.Count);
+                ListUtil.FillList(value, result);
+                return value;
+            }
+            else if (result.Count == 0)
+            {
+                return null;
+            }
+            else if (result.Count == 1)
+            {
+                return result[0];
+            }
+            throw new ArgumentException("Cannot map '" + value.GetType() + "' of '" + sourceElementType + "' to '" + targetRealType
+                        + "' of '" + targetElementType + "'");
         }
 
         public Object GetMappedBusinessObject(IObjRef objRef)

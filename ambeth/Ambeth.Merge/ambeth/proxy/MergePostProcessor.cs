@@ -36,11 +36,14 @@ namespace De.Osthus.Ambeth.Proxy
             MergeInterceptor mergeInterceptor = new MergeInterceptor();
             if (beanContext.IsRunning)
             {
-                IBeanRuntime<MergeInterceptor> interceptorBC = beanContext.RegisterWithLifecycle(mergeInterceptor);
-                interceptorBC.PropertyValue("Behavior", behavior);
-                return interceptorBC.Finish();
+                return beanContext.RegisterWithLifecycle(mergeInterceptor)//
+                    .PropertyValue("Behavior", behavior)//
+                    .IgnoreProperties("ServiceName")//
+                    .Finish();
             }
-            beanContextFactory.RegisterWithLifecycle(mergeInterceptor).PropertyValue("Behavior", behavior);
+            beanContextFactory.RegisterWithLifecycle(mergeInterceptor)//
+                .PropertyValue("Behavior", behavior)//
+                .IgnoreProperties("ServiceName");
             return mergeInterceptor;
         }
                 

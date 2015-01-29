@@ -51,7 +51,10 @@ public class QueryIsInMassdataTest extends AbstractPersistenceTest
 	public void testTimeForEquals() throws Exception
 	{
 		long start = System.currentTimeMillis();
-		childService.searchForParentWithEquals(10001);
+		for (int a = 100; a-- > 0;)
+		{
+			childService.searchForParentWithEquals(10001);
+		}
 		timeForEquals = System.currentTimeMillis() - start;
 		checkTimes();
 	}
@@ -60,7 +63,10 @@ public class QueryIsInMassdataTest extends AbstractPersistenceTest
 	public void testTimeForIsIn() throws Exception
 	{
 		long start = System.currentTimeMillis();
-		childService.getForParentWithIsIn(10002);
+		for (int a = 100; a-- > 0;)
+		{
+			childService.getForParentWithIsIn(10002);
+		}
 		timeForIsIn = System.currentTimeMillis() - start;
 		checkTimes();
 	}

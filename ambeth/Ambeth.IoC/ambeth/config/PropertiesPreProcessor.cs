@@ -25,7 +25,8 @@ namespace De.Osthus.Ambeth.Config
             ParamChecker.AssertNotNull(PropertyInfoProvider, "PropertyInfoProvider");
         }
 
-        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType, IList<IPropertyConfiguration> propertyConfigs, IPropertyInfo[] properties)
+        public void PreProcessProperties(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IProperties props, String beanName, Object service, Type beanType,
+            IList<IPropertyConfiguration> propertyConfigs, ISet<String> ignoredPropertyNames, IPropertyInfo[] properties)
         {
             if (properties == null)
             {
@@ -42,8 +43,32 @@ namespace De.Osthus.Ambeth.Config
                 {
                     continue;
                 }
+                if (ignoredPropertyNames.Contains(prop.Name))
+                {
+                    // do not handle this property
+                    continue;
+                }
                 if (PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.Name) && PropertyAttribute.DEFAULT_VALUE.Equals(propertyAttribute.DefaultValue))
                 {
+                    if (propertyAttribute.Mandatory)
+                    {
+                        String propName = prop.Name;
+                        bool propertyInitialized = false;
+                        // check if the mandatory property field has been initialized with a value
+                        for (int a = propertyConfigs.Count; a-- > 0; )
+                        {
+                            IPropertyConfiguration propertyConfig = propertyConfigs[a];
+                            if (propName.Equals(propertyConfig.GetPropertyName()))
+                            {
+                                propertyInitialized = true;
+                                break;
+                            }
+                        }
+                        if (!propertyInitialized)
+                        {
+                            throw new BeanContextInitException("Mandatory property '" + propName + "' not initialized");
+                        }
+                    }
                     continue;
                 }
                 Object value = props != null ? props.GetString(propertyAttribute.Name) : null;

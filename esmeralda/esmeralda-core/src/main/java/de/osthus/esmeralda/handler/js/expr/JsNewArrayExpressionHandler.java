@@ -4,19 +4,27 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCNewArray;
+import com.sun.tools.javac.util.List;
 
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
+import demo.codeanalyzer.common.model.Method;
 
 public class JsNewArrayExpressionHandler extends AbstractExpressionHandler<JCNewArray>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IToDoWriter toDoWriter;
 
 	@Override
 	protected void handleExpressionIntern(JCNewArray newArray)
@@ -48,30 +56,48 @@ public class JsNewArrayExpressionHandler extends AbstractExpressionHandler<JCNew
 			writer.append(']');
 			specifiedDimensions++;
 		}
-		while (specifiedDimensions < dimensionCount)
+		List<JCExpression> initializers = newArray.getInitializers();
+		if (initializers != null)
 		{
-			writer.append("[]");
+			boolean firstInit = true;
+			boolean oneNumberOnly = true;
+			writer.append('[');
+			for (JCExpression initializer : initializers)
+			{
+				oneNumberOnly = firstInit;
+				firstInit = languageHelper.writeStringIfFalse(", ", firstInit);
+				languageHelper.writeExpressionTree(initializer);
+				if (oneNumberOnly)
+				{
+					String typeOnStack = context.getTypeOnStack();
+					oneNumberOnly = astHelper.isNumber(typeOnStack);
+				}
+			}
+			writer.append(']');
 			specifiedDimensions++;
-		}
 
-		// TODO
-		// if (newArray.getInitializers() != null)
-		// {
-		// writer.append(" { ");
-		// boolean firstInitializer = true;
-		// for (JCExpression initializer : newArray.getInitializers())
-		// {
-		// firstInitializer = languageHelper.writeStringIfFalse(", ", firstInitializer);
-		// languageHelper.writeExpressionTree(initializer);
-		// }
-		// writer.append(" }");
-		// }
-		// StringBuilder fullTypeNameSb = new StringBuilder();
-		// fullTypeNameSb.append(currTypeName);
-		// for (int a = dimensionCount; a-- > 0;)
-		// {
-		// fullTypeNameSb.append("[]");
-		// }
-		// context.setTypeOnStack(fullTypeNameSb.toString());
+			if (oneNumberOnly)
+			{
+				Method method = context.getMethod();
+				String topic = "Only one Number in Array initialization";
+				if (method != null)
+				{
+					toDoWriter.write(topic, method, newArray.pos);
+				}
+				else
+				{
+					JavaClassInfo classInfo = context.getClassInfo();
+					toDoWriter.write(topic, classInfo, newArray.pos);
+				}
+			}
+		}
+		else
+		{
+			while (specifiedDimensions < dimensionCount)
+			{
+				writer.append("[]");
+				specifiedDimensions++;
+			}
+		}
 	}
 }

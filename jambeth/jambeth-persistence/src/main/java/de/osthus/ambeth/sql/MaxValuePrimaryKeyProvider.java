@@ -47,7 +47,7 @@ public class MaxValuePrimaryKeyProvider implements IInitializingBean, IPrimaryKe
 
 		try
 		{
-			resultSet = sqlConnection.selectFields(table.getFullqualifiedEscapedName(), "MAX(\"" + idField.getName() + "\")", null, null);
+			resultSet = sqlConnection.selectFields(table.getFullqualifiedEscapedName(), "MAX(\"" + idField.getName() + "\")", null, null, null, null);
 			if (!resultSet.moveNext())
 			{
 				throw new IllegalArgumentException();

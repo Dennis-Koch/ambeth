@@ -177,7 +177,7 @@ namespace De.Osthus.Ambeth.Util
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRef>>();
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory = new IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>>();
                 IdentityLinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad = new IdentityLinkedMap<ICacheIntern, IISet<IObjRef>>();
-                IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad = new IdentityLinkedMap<ICacheIntern, IISet<IObjRelation>>();
+                IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad = new IdentityLinkedMap<ICacheIntern, IMap<IObjRelation, bool>>();
                 List<CascadeLoadItem> loadItems = new List<CascadeLoadItem>();
 
                 PrefetchState prefetchState = null;
@@ -285,36 +285,29 @@ namespace De.Osthus.Ambeth.Util
                         {
                             foreach (CascadeLoadItem cascadeLoadItem in cascadeLoadItems)
                             {
-                                Object valueHolder = cascadeLoadItem.valueHolder;
+                                DirectValueHolderRef valueHolder = cascadeLoadItem.valueHolder;
                                 CachePath[] cachePaths = cascadeLoadItem.cachePaths;
 
                                 // Merge the root prefetch path with the relative prefetch path
                                 cachePaths = MergeCachePaths(cascadeLoadItem.realType, cachePaths, entityTypeToPrefetchSteps);
 
-                                IObjRefContainer vhc;
+                                IObjRefContainer vhc = valueHolder.Vhc;
+                                RelationMember member = valueHolder.Member;
                                 ICacheIntern targetCache;
-                                RelationMember member;
                                 bool doSetValue = false;
-                                Object obj;
                                 if (valueHolder is IndirectValueHolderRef)
                                 {
                                     IndirectValueHolderRef valueHolderKey = (IndirectValueHolderRef)valueHolder;
-                                    vhc = valueHolderKey.Vhc;
                                     targetCache = valueHolderKey.RootCache;
-                                    member = valueHolderKey.Member;
                                 }
                                 else
                                 {
-                                    DirectValueHolderRef valueHolderKey = (DirectValueHolderRef)valueHolder;
-                                    IValueHolderContainer vhcTemp = (IValueHolderContainer)valueHolderKey.Vhc;
-                                    vhc = vhcTemp;
-                                    targetCache = vhcTemp.__TargetCache;
-                                    member = valueHolderKey.Member;
+                                    targetCache = ((IValueHolderContainer)vhc).__TargetCache;
                                     doSetValue = true;
                                 }
                                 int relationIndex = vhc.Get__EntityMetaData().GetIndexByRelation(member);
                                 IObjRef[] objRefs = vhc.Get__ObjRefs(relationIndex);
-                                obj = valueHolderContainerMixin.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
+                                Object obj = valueHolderContainerMixin.GetValue(vhc, relationIndex, member, targetCache, objRefs, CacheDirective.FailEarly);
                                 if (doSetValue && obj != null)
                                 {
                                     member.SetValue(vhc, obj);
@@ -388,29 +381,36 @@ namespace De.Osthus.Ambeth.Util
             orisLoadedHistory.AddAll(orisToLoad);
         }
 
-        protected void LoadAndAddOrels(ILinkedMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad, IList<Object> hardRefList,
+        protected void LoadAndAddOrels(ILinkedMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad, IList<Object> hardRefList,
              IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory, ILinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad)
         {
-            Iterator<Entry<ICacheIntern, IISet<IObjRelation>>> iter = cacheToOrelsToLoad.Iterator();
+            Iterator<Entry<ICacheIntern, IMap<IObjRelation, bool>>> iter = cacheToOrelsToLoad.Iterator();
             while (iter.MoveNext())
             {
-                Entry<ICacheIntern, IISet<IObjRelation>> entry = iter.Current;
+                Entry<ICacheIntern, IMap<IObjRelation, bool>> entry = iter.Current;
                 ICacheIntern cache = entry.Key;
-                IISet<IObjRelation> orelsToLoad = entry.Value;
+                IMap<IObjRelation, bool> orelsToLoad = entry.Value;
                 iter.Remove();
 
                 LoadAndAddOrels(cache, orelsToLoad, hardRefList, cacheToOrelsLoadedHistory, cacheToOrisToLoad);
             }
         }
 
-        protected void LoadAndAddOrels(ICacheIntern cache, IISet<IObjRelation> orelsToLoad, IList<Object> hardRefList,
+        protected void LoadAndAddOrels(ICacheIntern cache, IMap<IObjRelation, bool> orelsToLoad, IList<Object> hardRefList,
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory, ILinkedMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad)
         {
-            IList<IObjRelationResult> objRelResults = cache.GetObjRelations(orelsToLoad.ToList(), cache, CacheDirective.None);
+            IList<IObjRelation> objRelList = orelsToLoad.KeyList();
+            IList<IObjRelationResult> objRelResults = cache.GetObjRelations(objRelList, cache, CacheDirective.ReturnMisses);
 
             IISet<IObjRef> orisToLoad = null;
             for (int a = 0, size = objRelResults.Count; a < size; a++)
             {
+                IObjRelation objRel = objRelList[a];
+                if (orelsToLoad.Get(objRel))
+                {
+                    // fetch only the objRefs, not the objects themselves
+                    continue;
+                }
                 IObjRelationResult objRelResult = objRelResults[a];
                 foreach (IObjRef objRef in objRelResult.Relations)
                 {
@@ -432,11 +432,11 @@ namespace De.Osthus.Ambeth.Util
                 orelsLoadedHistory = new CHashSet<IObjRelation>();
                 cacheToOrelsLoadedHistory.Put(cache, orelsLoadedHistory);
             }
-            orelsLoadedHistory.AddAll(orelsToLoad);
+            orelsLoadedHistory.AddAll(objRelList);
         }
 
         protected void EnsureInitializedRelationsIntern(Object obj, CachePath[] cachePaths,
-            IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad,
+            IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad, IMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad,
             IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory, IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory,
             ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
         {
@@ -536,7 +536,7 @@ namespace De.Osthus.Ambeth.Util
         }
 
         protected bool HandleValueHolder(DirectValueHolderRef vhr, CachePath[] cachePaths, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisToLoad,
-            IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsToLoad, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory,
+            IMap<ICacheIntern, IMap<IObjRelation, bool>> cacheToOrelsToLoad, IMap<ICacheIntern, IISet<IObjRef>> cacheToOrisLoadedHistory,
             IMap<ICacheIntern, IISet<IObjRelation>> cacheToOrelsLoadedHistory, ISet<AlreadyHandledItem> alreadyHandledSet, IList<CascadeLoadItem> cascadeLoadItems)
         {
             RelationMember member = vhr.Member;
@@ -554,20 +554,18 @@ namespace De.Osthus.Ambeth.Util
                     ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.Get(rootCache);
                     if (orelsLoadedHistory == null || !orelsLoadedHistory.Contains(self))
                     {
-                        IISet<IObjRelation> orelsToLoad = cacheToOrelsToLoad.Get(rootCache);
+                        IMap<IObjRelation, bool> orelsToLoad = cacheToOrelsToLoad.Get(rootCache);
                         if (orelsToLoad == null)
                         {
-                            orelsToLoad = new CHashSet<IObjRelation>();
+                            orelsToLoad = new HashMap<IObjRelation, bool>();
                             cacheToOrelsToLoad.Put(rootCache, orelsToLoad);
                         }
-                        orelsToLoad.Add(self);
-
-                        CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.ElementType, vhr, cachePaths);
-                        cascadeLoadItems.Add(cascadeLoadItem);
+                        orelsToLoad.Put(self, vhr.ObjRefsOnly);
+                        AddCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
                     }
                     return false;
                 }
-                else if (rcvObjRefs.Length > 0)
+                else if (!vhr.ObjRefsOnly && rcvObjRefs.Length > 0)
                 {
                     ISet<IObjRef> orisLoadedHistory = cacheToOrisLoadedHistory.Get(rootCache);
                     for (int b = rcvObjRefs.Length; b-- > 0; )
@@ -594,8 +592,7 @@ namespace De.Osthus.Ambeth.Util
                     }
                     if (newOriToLoad)
                     {
-                        CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.ElementType, vhr, cachePaths);
-                        cascadeLoadItems.Add(cascadeLoadItem);
+                        AddCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
                     }
                 }
                 return false;
@@ -621,16 +618,14 @@ namespace De.Osthus.Ambeth.Util
                     ISet<IObjRelation> orelsLoadedHistory = cacheToOrelsLoadedHistory.Get(cache);
                     if (orelsLoadedHistory == null || !orelsLoadedHistory.Contains(self))
                     {
-                        IISet<IObjRelation> orelsToLoad = cacheToOrelsToLoad.Get(cache);
+                        IMap<IObjRelation, bool> orelsToLoad = cacheToOrelsToLoad.Get(cache);
                         if (orelsToLoad == null)
                         {
-                            orelsToLoad = new CHashSet<IObjRelation>();
+                            orelsToLoad = new HashMap<IObjRelation, bool>();
                             cacheToOrelsToLoad.Put(cache, orelsToLoad);
                         }
-                        orelsToLoad.Add(self);
-
-                        CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.ElementType, vhr, cachePaths);
-                        cascadeLoadItems.Add(cascadeLoadItem);
+                        orelsToLoad.Put(self, vhr.ObjRefsOnly);
+                        AddCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
                     }
                     return false;
                 }
@@ -640,7 +635,7 @@ namespace De.Osthus.Ambeth.Util
                     vhc.Set__ObjRefs(relationIndex2, objRefs);
                 }
             }
-            if (objRefs != null && objRefs.Length > 0)
+            if (!vhr.ObjRefsOnly && objRefs != null && objRefs.Length > 0)
             {
                 IList<Object> loadedObjects = cache.GetObjects(new List<IObjRef>(objRefs), cache, failEarlyReturnMisses);
                 try
@@ -682,11 +677,19 @@ namespace De.Osthus.Ambeth.Util
             }
             if (objRefs == null || newOriToLoad)
             {
-                CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.ElementType, vhr, cachePaths);
-                cascadeLoadItems.Add(cascadeLoadItem);
+                AddCascadeLoadItem(member, vhr, cachePaths, cascadeLoadItems);
                 return false;
             }
             return true;
+        }
+
+        protected void AddCascadeLoadItem(RelationMember member, DirectValueHolderRef vhr, CachePath[] cachePaths, IList<CascadeLoadItem> cascadeLoadItems)
+        {
+            if (cachePaths != null || !vhr.ObjRefsOnly)
+            {
+                CascadeLoadItem cascadeLoadItem = new CascadeLoadItem(member.ElementType, vhr, cachePaths);
+                cascadeLoadItems.Add(cascadeLoadItem);
+            }
         }
 
         public Object CreateInstanceOfTargetExpectedType(Type expectedType, Type elementType)
