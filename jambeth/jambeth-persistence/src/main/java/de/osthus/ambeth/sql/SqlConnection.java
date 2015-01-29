@@ -86,10 +86,10 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 	}
 
 	@Override
-	public void queueDelete(String tableName, String whereSql, List<Object> parameters)
+	public void queueDelete(String tableName, CharSequence whereSql, List<Object> parameters)
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("DELETE FROM ");
@@ -99,15 +99,15 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public void queueDelete(String tableName, String[] whereSql)
+	public void queueDelete(String tableName, CharSequence[] whereSql)
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		String[] sqls = new String[whereSql.length];
 		try
 		{
@@ -125,15 +125,15 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
 	public void queueDeleteAll(String tableName)
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("DELETE FROM ");
@@ -142,21 +142,21 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public void queueUpdate(String tableName, String valueAndNamesSql, String whereSql)
+	public void queueUpdate(String tableName, CharSequence valueAndNamesSql, CharSequence whereSql)
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sb.append("UPDATE ");
 			sqlBuilder.appendName(tableName, sb);
 			sb.append(" SET ").append(valueAndNamesSql);
-			if (whereSql != null && !whereSql.isEmpty())
+			if (whereSql != null && whereSql.length() > 0)
 			{
 				sb.append(" WHERE ").append(whereSql);
 			}
@@ -164,35 +164,46 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, List<Object> parameters)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
+			List<Object> parameters)
 	{
-		return selectFields(tableName, fieldNamesSql, "", whereSql, parameters);
+		return selectFields(tableName, fieldNamesSql, "", whereSql, orderBySql, limitSql, parameters);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, parameters, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
 	}
 
 	@Override
-	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, List<Object> parameters,
-			String tableAlias)
+	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters, String tableAlias)
 	{
-		boolean join = joinSql != null && joinSql.length() > 0;
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
+		boolean hasJoin = joinSql != null && joinSql.length() > 0;
+		boolean hasWhere = whereSql != null && whereSql.length() > 0;
+		boolean hasOrderBy = orderBySql != null && orderBySql.length() > 0;
+		boolean hasLimit = limitSql != null && limitSql.length() > 0;
+		boolean needsSubselectForLimit = hasOrderBy && hasLimit;
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
+			if (needsSubselectForLimit)
+			{
+				// sub select needed for the rownum criteria
+				sb.append("SELECT * FROM (");
+			}
 			sb.append("SELECT ");
-			if (join)
+			if (hasJoin)
 			{
 				sb.append("DISTINCT ");
 			}
@@ -200,36 +211,58 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			sqlBuilder.appendName(tableName, sb);
 			if (tableAlias != null)
 			{
-				sb.append(" ").append(tableAlias);
+				sb.append(' ').append(tableAlias);
 			}
-			if (join)
+			if (hasJoin)
 			{
-				sb.append(" ").append(joinSql);
+				sb.append(' ').append(joinSql);
 			}
-			if (whereSql != null && whereSql.length() > 0)
+			if (hasWhere)
 			{
 				sb.append(" WHERE ").append(whereSql);
+			}
+			if (hasOrderBy)
+			{
+				sb.append(" ").append(orderBySql);
+			}
+			if (needsSubselectForLimit)
+			{
+				sb.append(") WHERE ").append(limitSql);
+			}
+			else if (hasLimit)
+			{
+				if (!hasWhere)
+				{
+					sb.append(" WHERE ");
+				}
+				else
+				{
+					sb.append(" AND ");
+				}
+				sb.append(limitSql);
 			}
 			return sqlSelect(sb.toString(), parameters);
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, offset, length, parameters, tableAlias);
+		return selectFields(tableName, fieldNamesSql, joinSql, whereSql, additionalSelectColumnList, orderBySql, limitSql, offset, length, parameters,
+				tableAlias);
 	}
 
 	@Override
 	public IResultSet selectFields(String tableName, CharSequence fieldNamesSql, CharSequence joinSql, CharSequence whereSql,
-			List<String> additionalSelectColumnList, CharSequence orderBySql, int offset, int length, List<Object> parameters, String tableAlias)
+			List<String> additionalSelectColumnList, CharSequence orderBySql, CharSequence limitSql, int offset, int length, List<Object> parameters,
+			String tableAlias)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -353,7 +386,7 @@ public abstract class SqlConnection implements ISqlConnection, IInitializingBean
 			// whereSB.Append(" ORDER BY ");
 			// SqlBuilder.Append(idFieldName, whereSB);
 			// }
-			return selectFields(tableName, fieldsSQL, whereSB.toString(), parameters);
+			return selectFields(tableName, fieldsSQL, whereSB, null, null, parameters);
 		}
 		finally
 		{

@@ -647,7 +647,7 @@ public class JdbcTable extends SqlTable
 			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, parameters, whereSQL);
 			whereSQL.append(" FOR UPDATE NOWAIT");
 
-			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, parameters);
+			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
 		}
 		finally
 		{

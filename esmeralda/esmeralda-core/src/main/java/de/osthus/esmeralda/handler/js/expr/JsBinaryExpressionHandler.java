@@ -29,8 +29,15 @@ public class JsBinaryExpressionHandler extends BinaryExpressionHandler
 				context.setTypeOnStack(boolean.class.getName());
 				break;
 			}
+			case UNSIGNED_RIGHT_SHIFT:
+			{
+				writeSimpleBinary(" >>> ", binary);
+				break;
+			}
 			default:
+			{
 				super.handleExpressionIntern(binary);
+			}
 		}
 	}
 }

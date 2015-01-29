@@ -7,6 +7,8 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
     {
         public ForkableType Value { get; private set; }
 
+        public Type Processor { get; set; }
+
         public Forkable()
             : this(ForkableType.REFERENCE)
         {
@@ -16,6 +18,7 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
         public Forkable(ForkableType forkableType)
         {
             Value = forkableType;
+            Processor = typeof(IForkProcessor);
         }
     }
 }

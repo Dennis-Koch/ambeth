@@ -107,6 +107,8 @@
     <Compile Include="ambeth\ioc\config\PropertyRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
     <Compile Include="ambeth\ioc\DefaultExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\DisposableBeanHook.cs" />
+    <Compile Include="ambeth\ioc\DisposableHook.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />
     <Compile Include="ambeth\ioc\exception\ExtendableException.cs" />
     <Compile Include="ambeth\ioc\exception\LinkException.cs" />
@@ -187,9 +189,11 @@
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
     <Compile Include="ambeth\ioc\threadlocal\Forkable.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ForkableType.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\ForkProcessorValueResolver.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ForkState.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ForkStateEntry.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IForkedValueResolver.cs" />
+    <Compile Include="ambeth\ioc\threadlocal\IForkProcessor.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IForkState.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBean.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IThreadLocalCleanupBeanExtendable.cs" />

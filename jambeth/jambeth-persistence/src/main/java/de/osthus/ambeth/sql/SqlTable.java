@@ -4,9 +4,11 @@ import java.util.List;
 
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -111,9 +113,9 @@ public class SqlTable extends Table
 	@Override
 	public void delete(List<IObjRef> oris)
 	{
-		IThreadLocalObjectCollector current = objectCollector.getCurrent();
-		AppendableStringBuilder sb = current.create(AppendableStringBuilder.class);
-		String[] whereSqls = new String[oris.size()];
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder sb = objectCollector.create(AppendableStringBuilder.class);
+		CharSequence[] whereSqls = new CharSequence[oris.size()];
 		try
 		{
 			String idFieldName = getIdField().getName();
@@ -145,7 +147,7 @@ public class SqlTable extends Table
 		}
 		finally
 		{
-			current.dispose(sb);
+			objectCollector.dispose(sb);
 		}
 	}
 
@@ -164,8 +166,8 @@ public class SqlTable extends Table
 	@Override
 	public ICursor selectValues(List<?> ids)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			List<IField> fields = getAllFields();
@@ -206,15 +208,15 @@ public class SqlTable extends Table
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
 	public ICursor selectValues(String alternateIdMemberName, List<?> alternateIds)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -271,15 +273,15 @@ public class SqlTable extends Table
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
 	public IVersionCursor selectVersion(List<?> ids)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -303,15 +305,15 @@ public class SqlTable extends Table
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
 	public IVersionCursor selectVersion(String alternateIdMemberName, List<?> alternateIds)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			IField idField = getIdField();
@@ -361,32 +363,32 @@ public class SqlTable extends Table
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
-	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereWithOrderBySql, List<Object> parameters)
+	public IVersionCursor selectVersionWhere(List<String> additionalSelectColumnList, CharSequence whereSql, CharSequence orderBySql, CharSequence limitSql,
+			List<Object> parameters)
 	{
-		return selectVersionJoin(additionalSelectColumnList, null, whereWithOrderBySql, parameters);
+		return selectVersionJoin(additionalSelectColumnList, null, whereSql, orderBySql, limitSql, parameters);
 	}
 
 	@Override
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			List<Object> parameters)
+	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectVersionJoin(additionalSelectColumnList, joinSql, whereWithOrderBySql, parameters, tableAlias);
+		return selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
 	}
 
 	@Override
-	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql,
-			List<Object> parameters, String tableAlias)
+	public IVersionCursor selectVersionJoin(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, List<Object> parameters, String tableAlias)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
-		AppendableStringBuilder fieldPatternSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		HashSet<String> additionalSelectColumnSet = null;
 		try
 		{
@@ -452,33 +454,52 @@ public class SqlTable extends Table
 			}
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, parameters,
-					tableAlias));
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereSql, orderBySql, limitSql,
+					parameters, tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
-			tlObjectCollector.dispose(fieldPatternSB);
+			objectCollector.dispose(selectSB);
+		}
+	}
+
+	@Override
+	public long selectCountJoin(CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, List<Object> parameters, String tableAlias)
+	{
+		IResultSet resultSet = sqlConnection.selectFields(getFullqualifiedEscapedName(), "COUNT(*)", joinSql, whereSql, orderBySql, null, parameters,
+				tableAlias);
+		try
+		{
+			if (!resultSet.moveNext())
+			{
+				return 0;
+			}
+			Object[] countValues = resultSet.getCurrent();
+			return ((Number) countValues[0]).longValue();
+		}
+		finally
+		{
+			resultSet.dispose();
 		}
 	}
 
 	@Override
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, List<Object> parameters)
+			CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, offset, length, parameters, tableAlias);
+		return selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, offset, length, parameters, tableAlias);
 	}
 
 	@Override
 	public IVersionCursor selectVersionPaging(List<String> additionalSelectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
-			int offset, int length, List<Object> parameters, String tableAlias)
+			CharSequence limitSql, int offset, int length, List<Object> parameters, String tableAlias)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			String primaryIdFieldName = getIdField().getName();
@@ -520,31 +541,32 @@ public class SqlTable extends Table
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
 			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB, joinSql, whereSql, additionalSelectColumnList,
-					orderBySql, offset, length, parameters, tableAlias));
+					orderBySql, limitSql, offset, length, parameters, tableAlias));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitBySql, List<Object> parameters)
 	{
 		boolean join = joinSql != null && joinSql.length() > 0;
 		String tableAlias = join ? "A" : null;
-		return selectDataJoin(selectColumnList, joinSql, whereWithOrderBySql, parameters, tableAlias);
+		return selectDataJoin(selectColumnList, joinSql, whereSql, orderBySql, limitBySql, parameters, tableAlias);
 	}
 
 	@Override
-	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereWithOrderBySql, List<Object> parameters,
-			String tableAlias)
+	public IDataCursor selectDataJoin(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitBySql, List<Object> parameters, String tableAlias)
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		HashMap<String, Integer> propertyToColIndexMap = new HashMap<String, Integer>();
-		StringBuilder selectSB = tlObjectCollector.create(StringBuilder.class);
+		StringBuilder selectSB = objectCollector.create(StringBuilder.class);
 		try
 		{
 			for (int a = 0, size = selectColumnList.size(); a < size; a++)
@@ -560,30 +582,31 @@ public class SqlTable extends Table
 			}
 			ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 			dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
-			dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), joinSql, whereWithOrderBySql, parameters,
+			dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB, joinSql, whereSql, orderBySql, limitBySql, parameters,
 					tableAlias));
 			dataCursor.afterPropertiesSet();
 			return dataCursor;
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 
 	@Override
-	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql, int offset,
-			int length, List<Object> parameters)
+	public IDataCursor selectDataPaging(List<String> selectColumnList, CharSequence joinSql, CharSequence whereSql, CharSequence orderBySql,
+			CharSequence limitSql, int offset, int length, List<Object> parameters)
 	{
-		HashMap<String, Integer> propertyToColIndexMap = new HashMap<String, Integer>();
-		for (int a = 0, size = selectColumnList.size(); a < size; a++)
+		int size = selectColumnList.size();
+		IMap<String, Integer> propertyToColIndexMap = size > 0 ? HashMap.<String, Integer> create(size) : EmptyMap.<String, Integer> emptyMap();
+		for (int a = 0; a < size; a++)
 		{
 			propertyToColIndexMap.put(selectColumnList.get(a), Integer.valueOf(a));
 		}
 		ResultSetDataCursor dataCursor = new ResultSetDataCursor();
 		dataCursor.setPropertyToColIndexMap(propertyToColIndexMap);
-		dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), "", joinSql, whereSql, selectColumnList, orderBySql, offset, length,
-				parameters));
+		dataCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), "", joinSql, whereSql, selectColumnList, orderBySql, limitSql,
+				offset, length, parameters));
 		dataCursor.afterPropertiesSet();
 		return dataCursor;
 	}
@@ -591,8 +614,8 @@ public class SqlTable extends Table
 	@Override
 	public IVersionCursor selectAll()
 	{
-		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-		AppendableStringBuilder selectSB = tlObjectCollector.create(AppendableStringBuilder.class);
+		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
+		AppendableStringBuilder selectSB = objectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlBuilder.appendName(getIdField().getName(), selectSB);
@@ -606,13 +629,13 @@ public class SqlTable extends Table
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
-			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB.toString(), null, null));
+			versionCursor.setResultSet(sqlConnection.selectFields(getFullqualifiedEscapedName(), selectSB, null, null, null, null));
 			versionCursor.afterPropertiesSet();
 			return versionCursor;
 		}
 		finally
 		{
-			tlObjectCollector.dispose(selectSB);
+			objectCollector.dispose(selectSB);
 		}
 	}
 }

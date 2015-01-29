@@ -109,11 +109,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-query-jdbc-test</artifactId>
-			<scope>compile</scope>
-		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>

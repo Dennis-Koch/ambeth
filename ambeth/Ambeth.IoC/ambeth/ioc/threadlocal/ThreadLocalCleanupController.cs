@@ -14,10 +14,12 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
         [LogInstance]
         public ILogger Log { private get; set; }
 
+        public IServiceContext BeanContext { protected get; set; }
+
         protected readonly DefaultExtendableContainer<IThreadLocalCleanupBean> listeners = new DefaultExtendableContainer<IThreadLocalCleanupBean>("threadLocalCleanupBean");
 
         protected ForkStateEntry[] cachedForkStateEntries;
-
+        
         public virtual void AfterPropertiesSet()
         {
             // Intended blank
@@ -67,7 +69,13 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 					    {
 						    continue;
 					    }
-					    forkStateEntries.Add(new ForkStateEntry(extension, valueTL, forkable.Value));
+                        Type forkProcessorType = forkable.Processor;
+					    IForkProcessor forkProcessor = null;
+					    if (forkProcessorType != null && !typeof(IForkProcessor).Equals(forkProcessorType))
+					    {
+                            forkProcessor = BeanContext.RegisterBean<IForkProcessor>(forkProcessorType).Finish();
+					    }
+                        forkStateEntries.Add(new ForkStateEntry(extension, field.Name, valueTL, forkable.Value, forkProcessor));
 				    }
 			    }
 			    cachedForkStateEntries = forkStateEntries.ToArray();
@@ -86,18 +94,27 @@ namespace De.Osthus.Ambeth.Ioc.Threadlocal
 
 		    IForkedValueResolver[] oldValues = new IForkedValueResolver[forkStateEntries.Length];
 		    for (int a = 0, size = forkStateEntries.Length; a < size; a++)
-		    {
-			    ForkStateEntry forkStateEntry = forkStateEntries[a];
-                Object value = forkStateEntry.getValueMI.Invoke(forkStateEntry.valueTL, ForkStateEntry.EMPTY_ARGS);
-			    if (value != null && ForkableType.SHALLOW_COPY.Equals(forkStateEntry.forkableType))
-			    {
-				    throw new Exception("Could not clone " + value);
-			    }
-			    else
-			    {
-				    oldValues[a] = new ReferenceValueResolver(value);
-			    }
-		    }
+            {
+                ForkStateEntry forkStateEntry = forkStateEntries[a];
+                IForkProcessor forkProcessor = forkStateEntry.forkProcessor;
+                if (forkProcessor != null)
+                {
+                    Object value = forkProcessor.ResolveOriginalValue(forkStateEntry.tlBean, forkStateEntry.fieldName, forkStateEntry.valueTL);
+                    oldValues[a] = new ForkProcessorValueResolver(value, forkProcessor);
+                    continue;
+                }
+                {
+                    Object value = forkStateEntry.getValueMI.Invoke(forkStateEntry.valueTL, ForkStateEntry.EMPTY_ARGS);
+                    if (value != null && ForkableType.SHALLOW_COPY.Equals(forkStateEntry.forkableType))
+                    {
+                        throw new Exception("Could not clone " + value);
+                    }
+                    else
+                    {
+                        oldValues[a] = new ReferenceValueResolver(value, value);
+                    }
+                }
+            }
 		    return new ForkState(forkStateEntries, oldValues);
 	    }
 

@@ -1939,7 +1939,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 						// ObjRefs already loaded. Nothing to do
 						continue;
 					}
-					// TODO load ONLY the ObjRefs now...
+					pendingValueHolders.add(new IndirectValueHolderRef(cacheValue, relationMember, this, true));
 					break;
 				}
 				default:

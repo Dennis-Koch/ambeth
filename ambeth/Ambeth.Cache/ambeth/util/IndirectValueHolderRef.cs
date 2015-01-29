@@ -13,6 +13,12 @@ namespace De.Osthus.Ambeth.Util
 		    this.rootCache = rootCache;
 	    }
 
+        public IndirectValueHolderRef(RootCacheValue cacheValue, RelationMember member, RootCache rootCache, bool objRefsOnly)
+            : base(cacheValue, member, objRefsOnly)
+        {
+            this.rootCache = rootCache;
+        }
+
 	    public RootCache RootCache
 	    {
             get

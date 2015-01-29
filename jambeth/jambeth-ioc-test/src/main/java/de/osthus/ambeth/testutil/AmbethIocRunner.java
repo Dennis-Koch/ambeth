@@ -37,9 +37,27 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 	protected IServiceContext beanContext;
 
+	protected final ThreadLocal<Object> targetProxyTL = new ThreadLocal<Object>();
+
 	public AmbethIocRunner(Class<?> testClass) throws InitializationError
 	{
 		super(testClass);
+	}
+
+	@Override
+	protected void finalize() throws Throwable
+	{
+		if (beanContext != null)
+		{
+			beanContext.getRoot().dispose();
+			beanContext = null;
+		}
+		if (testClassLevelContext != null)
+		{
+			testClassLevelContext.getRoot().dispose();
+			testClassLevelContext = null;
+		}
+		super.finalize();
 	}
 
 	public IServiceContext getBeanContext()
@@ -266,15 +284,32 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			@Override
 			public void evaluate() throws Throwable
 			{
+				Object targetProxy;
 				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
 				{
-					beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
+					targetProxy = beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
 				}
 				else
 				{
-					beanContext.registerWithLifecycle(target).finish();
+					targetProxy = beanContext.registerWithLifecycle(target).finish();
 				}
-				returningStatement.evaluate();
+				Object oldTargetProxy = targetProxyTL.get();
+				targetProxyTL.set(targetProxy);
+				try
+				{
+					returningStatement.evaluate();
+				}
+				finally
+				{
+					if (oldTargetProxy != null)
+					{
+						targetProxyTL.set(oldTargetProxy);
+					}
+					else
+					{
+						targetProxyTL.remove();
+					}
+				}
 			}
 		};
 	}
@@ -295,7 +330,15 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			@Override
 			public void evaluate() throws Throwable
 			{
-				statement.evaluate();
+				Object targetProxy = targetProxyTL.get();
+				if (targetProxy != null)
+				{
+					method.invokeExplosively(targetProxy);
+				}
+				else
+				{
+					statement.evaluate();
+				}
 			}
 		};
 	}

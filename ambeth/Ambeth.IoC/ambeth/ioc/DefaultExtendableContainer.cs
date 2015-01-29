@@ -4,8 +4,8 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
 
-namespace De.Osthus.Ambeth.Ioc{
-
+namespace De.Osthus.Ambeth.Ioc
+{
     public class DefaultExtendableContainer<V> : IExtendableContainer<V>
     {
         protected String message;

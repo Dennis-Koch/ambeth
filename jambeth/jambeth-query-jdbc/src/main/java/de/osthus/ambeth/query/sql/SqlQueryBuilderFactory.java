@@ -1,6 +1,9 @@
 package de.osthus.ambeth.query.sql;
 
+import de.osthus.ambeth.garbageproxy.IGarbageProxyConstructor;
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
+import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
@@ -11,7 +14,7 @@ import de.osthus.ambeth.query.IQueryBuilderExtension;
 import de.osthus.ambeth.query.IQueryBuilderExtensionExtendable;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 
-public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable
+public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuilderExtensionExtendable, IInitializingBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -23,8 +26,20 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
+	protected IGarbageProxyFactory garbageProxyFactory;
+
 	protected final DefaultExtendableContainer<IQueryBuilderExtension> queryBuilderExtensions = new DefaultExtendableContainer<IQueryBuilderExtension>(
 			IQueryBuilderExtension.class, "queryBuilderExtension");
+
+	@SuppressWarnings("rawtypes")
+	protected IGarbageProxyConstructor<IQueryBuilder> queryBuilderGPC;
+
+	@Override
+	public void afterPropertiesSet() throws Throwable
+	{
+		queryBuilderGPC = garbageProxyFactory.createGarbageProxyConstructor(IQueryBuilder.class);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -32,11 +47,13 @@ public class SqlQueryBuilderFactory implements IQueryBuilderFactory, IQueryBuild
 	{
 		Class<?> realEntityType = entityMetaDataProvider.getMetaData(entityType).getEntityType();
 		IQueryBuilderExtension[] queryBuilderExtensions = this.queryBuilderExtensions.getExtensions();
-		return beanContext.registerBean(SqlQueryBuilder.class)//
+		IQueryBuilder<T> sqlQueryBuilder = beanContext.registerBean(SqlQueryBuilder.class)//
 				.propertyValue("EntityType", realEntityType)//
 				.propertyValue("DisposeContextOnDispose", Boolean.FALSE)//
 				.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
 				.finish();
+
+		return queryBuilderGPC.createInstance(sqlQueryBuilder);
 	}
 
 	@Override

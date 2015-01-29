@@ -14,6 +14,12 @@ public class IndirectValueHolderRef extends DirectValueHolderRef
 		this.rootCache = rootCache;
 	}
 
+	public IndirectValueHolderRef(RootCacheValue cacheValue, RelationMember member, RootCache rootCache, boolean objRefsOnly)
+	{
+		super(cacheValue, member, objRefsOnly);
+		this.rootCache = rootCache;
+	}
+
 	public RootCache getRootCache()
 	{
 		return rootCache;

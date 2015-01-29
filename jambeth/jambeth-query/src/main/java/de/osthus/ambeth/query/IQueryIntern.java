@@ -13,21 +13,25 @@ public interface IQueryIntern<T> extends IDisposable
 {
 	IVersionCursor retrieveAsVersions();
 
-	IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap);
+	IDataCursor retrieveAsData(IMap<Object, Object> paramNameToValueMap);
 
-	IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap);
+	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap);
 
 	IEntityCursor<T> retrieveAsCursor();
 
-	IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> nameToValueMap);
+	IEntityCursor<T> retrieveAsCursor(IMap<Object, Object> paramNameToValueMap);
 
 	IList<T> retrieve();
 
-	IList<T> retrieve(IMap<Object, Object> nameToValueMap);
+	IList<T> retrieve(IMap<Object, Object> paramNameToValueMap);
 
 	Class<T> getEntityType();
 
 	void fillRelatedEntityTypes(List<Class<?>> relatedEntityTypes);
 
-	IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap);
+	IQueryKey getQueryKey(IMap<Object, Object> paramNameToValueMap);
+
+	long count(IMap<Object, Object> paramNameToValueMap);
+
+	boolean isEmpty(IMap<Object, Object> paramNameToValueMap);
 }

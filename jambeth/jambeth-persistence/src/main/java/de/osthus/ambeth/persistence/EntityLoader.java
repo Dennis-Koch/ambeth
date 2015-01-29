@@ -110,7 +110,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		LinkedHashMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		IdentityLinkedSet<ILoadContainer> loadContainerSet = IdentityLinkedSet.<ILoadContainer> create(orisToLoad.size());
@@ -461,7 +461,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	public void fillVersion(List<IObjRef> orisWithoutVersion)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ILinkedMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		for (int a = orisWithoutVersion.size(); a-- > 0;)
@@ -524,7 +524,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		Object persistentId = conversionHelper.convertValueToType(idType, id);
 		Object objectId = conversionHelper.convertValueToType(idTypeOfObject, id);
 
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		if (LoadMode.VERSION_ONLY == loadMode)
 		{
 			IObjRef objRef = alreadyLoadedCache.getRef(idIndex, persistentId, type);
@@ -674,7 +674,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		ArrayList<Object> realNeededIds = new ArrayList<Object>(ids.size());
 		IDatabase database = this.database.getCurrent();
 		IObjRefFactory objRefFactory = this.objRefFactory;
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 
 		for (Object id : ids)
 		{
@@ -727,7 +727,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	protected void loadDefault(Class<?> entityType, byte idIndex, Collection<Object> ids, LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IInterningFeature interningFeature = this.interningFeature;
@@ -1118,7 +1118,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			Map<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit)
 	{
 		IDatabase database = this.database.getCurrent();
-		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache();
+		IAlreadyLoadedCache alreadyLoadedCache = database.getContextProvider().getAlreadyLoadedCache().getCurrent();
 		Class<?> linkedEntityType = link.getToEntityType();
 		IEntityMetaData linkedEntityMetaData = entityMetaDataProvider.getMetaData(linkedEntityType);
 

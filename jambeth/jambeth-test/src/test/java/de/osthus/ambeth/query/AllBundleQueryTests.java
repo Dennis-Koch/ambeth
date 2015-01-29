@@ -16,7 +16,6 @@ import org.junit.runners.Suite.SuiteClasses;
 		de.osthus.ambeth.query.backwards.BackwardsQueryTest.class, //
 		de.osthus.ambeth.query.behavior.QueryBehaviorTest.class, //
 		de.osthus.ambeth.query.isin.QueryIsInMassdataTest.class, //
-		de.osthus.ambeth.query.sql.SqlQueryTest.class, //
 		de.osthus.ambeth.query.subquery.SubQueryTest.class })
 public class AllBundleQueryTests
 {

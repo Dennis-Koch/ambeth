@@ -76,7 +76,7 @@ public class SqlField extends Field
 
 			sqlBuilder.appendNameValue(getName(), value, whereSB);
 
-			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB, whereSB, null, null, null);
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
@@ -121,7 +121,7 @@ public class SqlField extends Field
 
 			sqlBuilder.appendNameValues(getName(), converted, whereSB);
 
-			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB, whereSB, null, null, null);
 
 			ResultSetVersionCursor versionCursor = new ResultSetVersionCursor();
 			versionCursor.setContainsVersion(versionField != null);
@@ -158,7 +158,7 @@ public class SqlField extends Field
 
 			sqlBuilder.appendNameValue(getName(), value, whereSB);
 
-			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB.toString(), whereSB.toString(), null);
+			IResultSet resultSet = connection.selectFields(table.getFullqualifiedEscapedName(), selectSB, whereSB, null, null, null);
 
 			if (resultSet == null)
 			{

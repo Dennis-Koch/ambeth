@@ -80,7 +80,7 @@ public class JsClassHandler implements IClassHandler
 		JavaClassInfo classInfo = context.getClassInfo();
 
 		String namespace = languageHelper.createNamespace();
-		String fullClassName = namespace + "." + classInfo.getName().split("<", 2)[0];
+		String fullClassName = namespace + "." + languageHelper.removeGenerics(classInfo.getName());
 		if (jsClasspathManager.isInClasspath(fullClassName))
 		{
 			Path source = jsClasspathManager.getFullPath(fullClassName);
@@ -195,13 +195,13 @@ public class JsClassHandler implements IClassHandler
 
 		String namespace = languageHelper.createNamespace();
 
-		writer.append("'");
+		writer.append('"');
 		if (!namespace.isEmpty())
 		{
 			writer.append(namespace).append(".");
 		}
 		languageHelper.writeSimpleName(classInfo);
-		writer.append("'");
+		writer.append('"');
 	}
 
 	protected void writeData(final JavaClassInfo classInfo)
@@ -216,7 +216,7 @@ public class JsClassHandler implements IClassHandler
 		HashMap<String, ArrayList<Method>> overloadedMethodsNonStatic = findOverloadedMethods(methods, false);
 		overloadManagerNonStatic.registerOverloads(classInfo.getFqName(), overloadedMethodsNonStatic);
 
-		writer.append("function(");
+		writer.append("function (");
 		languageHelper.writeSimpleName(classInfo);
 		writer.append(") ");
 
@@ -278,7 +278,7 @@ public class JsClassHandler implements IClassHandler
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
-		writer.append("extend: '");
+		writer.append("\"extend\": \"");
 		if (nameOfSuperClass == null || nameOfSuperClass.isEmpty() || Object.class.getName().equals(nameOfSuperClass) || "<none>".equals(nameOfSuperClass))
 		{
 			nameOfSuperClass = "Ambeth.Base";
@@ -288,7 +288,7 @@ public class JsClassHandler implements IClassHandler
 		{
 			languageHelper.writeType(nameOfSuperClass);
 		}
-		writer.append("'");
+		writer.append('"');
 
 		return firstLine;
 	}
@@ -309,7 +309,7 @@ public class JsClassHandler implements IClassHandler
 		firstLine = false;
 
 		languageHelper.newLineIndent();
-		writer.append("implements: [");
+		writer.append("\"implements\": [");
 
 		Collections.sort(interfaceNames);
 
@@ -328,9 +328,9 @@ public class JsClassHandler implements IClassHandler
 					additional = true;
 				}
 				languageHelper.newLineIndent();
-				writer.append("'");
+				writer.append('"');
 				languageHelper.writeType(interfaceName);
-				writer.append("'");
+				writer.append('"');
 			}
 		}
 		finally
@@ -355,7 +355,7 @@ public class JsClassHandler implements IClassHandler
 		}
 
 		String namespace = languageHelper.createNamespace();
-		String name = classInfo.getName().replaceAll("<.*>", "");
+		String name = languageHelper.removeGenerics(classInfo.getName());
 		String fullName = namespace + "." + name;
 
 		IList<String> requires = new ArrayList<>(importsMap.keySet());
@@ -378,7 +378,7 @@ public class JsClassHandler implements IClassHandler
 					languageHelper.newLineIndentIfFalse(!firstLine);
 					firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 
-					writer.append("requires: [");
+					writer.append("\"requires\": [");
 					context.incrementIndentationLevel();
 					languageHelper.newLineIndent();
 					firstRequires = false;
@@ -387,7 +387,7 @@ public class JsClassHandler implements IClassHandler
 				{
 					firstRequires = languageHelper.newLineIndentWithCommaIfFalse(firstRequires);
 				}
-				writer.append("'").append(className).append("'");
+				writer.append('"').append(className).append('"');
 			}
 		}
 		finally
@@ -416,7 +416,7 @@ public class JsClassHandler implements IClassHandler
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
-		writer.append("static: ");
+		writer.append("\"static\": ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -499,7 +499,7 @@ public class JsClassHandler implements IClassHandler
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
-		writer.append("privates: ");
+		writer.append("\"privates\": ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -546,7 +546,7 @@ public class JsClassHandler implements IClassHandler
 
 		firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 		languageHelper.newLineIndent();
-		writer.append("config: ");
+		writer.append("\"config\": ");
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
@@ -633,7 +633,7 @@ public class JsClassHandler implements IClassHandler
 			// Signature
 			final String signatureMethodName = firstMethod.isConstructor() ? "constructor" : firstMethod.getName();
 			languageHelper.newLineIndent();
-			writer.append(signatureMethodName).append(": function(parameters)");
+			writer.append('"').append(signatureMethodName).append("\": function(parameters)");
 			languageHelper.preBlockWhiteSpaces();
 
 			// Body

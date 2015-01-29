@@ -11,7 +11,6 @@ import org.junit.Test;
 import de.osthus.ambeth.audit.Password;
 import de.osthus.ambeth.audit.Signature;
 import de.osthus.ambeth.audit.User;
-import de.osthus.ambeth.audit.UserIdentifierProvider;
 import de.osthus.ambeth.cache.interceptor.CacheInterceptor;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
@@ -24,9 +23,8 @@ import de.osthus.ambeth.persistence.xml.Relations20WithSecurityTest.Relations20W
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.security.IUserIdentifierProvider;
 import de.osthus.ambeth.security.SecurityTest;
-import de.osthus.ambeth.security.SecurityTest.SecurityTestModule;
+import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
 import de.osthus.ambeth.security.TestAuthentication;
 import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
@@ -55,9 +53,7 @@ public class Relations20WithSecurityTest extends Relations20Test
 		@Override
 		public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 		{
-			beanContextFactory.registerBean(SecurityTestModule.class);
-
-			beanContextFactory.registerBean(UserIdentifierProvider.class).autowireable(IUserIdentifierProvider.class);
+			beanContextFactory.registerBean(SecurityTestFrameworkModule.class);
 
 			beanContextFactory.link(ISignature.class).to(ITechnicalEntityTypeExtendable.class).with(Signature.class);
 			beanContextFactory.link(IUser.class).to(ITechnicalEntityTypeExtendable.class).with(User.class);

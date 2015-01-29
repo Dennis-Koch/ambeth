@@ -390,7 +390,7 @@ public class JsHelper implements IJsHelper
 		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append(prefix).append(name).append(": {");
+		writer.append('"').append(prefix).append(name).append("\": {");
 
 		String type = (model instanceof FieldInfo) ? ((FieldInfo) model).getFieldType() : ((MethodInfo) model).getReturnType();
 		writeMetadataType(type, writer);
@@ -412,7 +412,7 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		newLineIndentWithCommaIfFalse(false);
-		writer.append("m$f_").append(methodName).append(": {");
+		writer.append("\"m$f_").append(methodName).append("\": {");
 		writeMetadataType(returnType, writer);
 		writer.append(", \"overloads\": [");
 
@@ -446,10 +446,11 @@ public class JsHelper implements IJsHelper
 					String[] paramNames = new String[i];
 
 					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
+					String fullMethodName = methodName + methodNamePostfix;
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
-					writer.append("{ \"methodInstance\": this.").append(methodName).append(methodNamePostfix);
-					writer.append(", ");
+					writer.append("{ \"methodName\": \"").append(fullMethodName).append("\", ");
+					writer.append("\"methodInstance\": this.").append(fullMethodName).append(", ");
 					writeMetadataType(method.getReturnType(), writer);
 
 					IList<VariableElement> parameters = method.getParameters();
@@ -493,9 +494,7 @@ public class JsHelper implements IJsHelper
 							if (existing != null)
 							{
 								ambiguousParameterNames = true;
-								StringBuilder sb = new StringBuilder();
-								sb.append("in ").append(method.getOwningClass().getFqName()).append(" on method ").append(existing.getName()).append("()");
-								toDoWriter.write("Ambiguous parameter names", sb.toString());
+								toDoWriter.write("Ambiguous parameter names", method);
 							}
 						}
 					}
@@ -812,7 +811,7 @@ public class JsHelper implements IJsHelper
 				VariableElement param = parameters.get(i);
 				VarSymbol var = (VarSymbol) param;
 				String paramTypeName = var.type.toString();
-				paramTypeName = paramTypeName.replaceAll("<.*>", "");
+				paramTypeName = removeGenerics(paramTypeName);
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
 				paramTypeName = StringConversionHelper.upperCaseFirst(objectCollector, paramTypeName);
@@ -826,4 +825,28 @@ public class JsHelper implements IJsHelper
 		}
 	}
 
+	@Override
+	public String removeGenerics(String name)
+	{
+		return name.replaceAll("<.*>", "");
+	}
+
+	@Override
+	public JavaClassInfo findInHierarchy(String ownerName, JavaClassInfo current, IConversionContext context)
+	{
+		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
+		String genericsFreeName;
+		while (current != null)
+		{
+			genericsFreeName = removeGenerics(current.getFqName());
+			if (genericsFreeName.equals(ownerName))
+			{
+				return current;
+			}
+
+			String nameOfSuperClass = current.getNameOfSuperClass();
+			current = nameOfSuperClass != null ? fqNameToClassInfoMap.get(nameOfSuperClass) : null;
+		}
+		return null;
+	}
 }
