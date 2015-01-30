@@ -164,7 +164,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						return context.getTypeOnStack();
 					}
 				}, meth.selected);
-				if (meth.selected instanceof JCNewClass)
+				if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass)
 				{
 					languageHelper.writeExpressionTree(meth.selected);
 					writer.append('.');
