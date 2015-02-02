@@ -49,6 +49,7 @@ import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.snippet.ISnippetManager;
 import demo.codeanalyzer.common.model.Annotation;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
@@ -832,27 +833,49 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public JavaClassInfo findInHierarchy(String ownerName, JavaClassInfo current, IConversionContext context)
+	public JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current, IConversionContext context)
 	{
 		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
 		String genericsFreeName;
 		while (current != null)
 		{
 			genericsFreeName = removeGenerics(current.getFqName());
-			if (genericsFreeName.equals(ownerName))
+			if (genericsFreeName.equals(className))
 			{
 				return current;
 			}
 
-			String nameOfSuperClass = current.getNameOfSuperClass();
-			if (nameOfSuperClass == null)
-			{
-				break;
-			}
-
-			current = fqNameToClassInfoMap.get(nameOfSuperClass);
-			current = current != null ? current : fqNameToClassInfoMap.get(removeGenerics(nameOfSuperClass));
+			current = getSuperClassInfo(current, fqNameToClassInfoMap);
 		}
 		return null;
+	}
+
+	@Override
+	public Field findFieldInHierarchy(String fieldName, JavaClassInfo current, IConversionContext context)
+	{
+		IMap<String, JavaClassInfo> fqNameToClassInfoMap = context.getFqNameToClassInfoMap();
+		while (current != null)
+		{
+			Field field = current.getField(fieldName, true);
+			if (field != null)
+			{
+				return field;
+			}
+
+			current = getSuperClassInfo(current, fqNameToClassInfoMap);
+		}
+		return null;
+	}
+
+	protected JavaClassInfo getSuperClassInfo(JavaClassInfo current, IMap<String, JavaClassInfo> fqNameToClassInfoMap)
+	{
+		String nameOfSuperClass = current.getNameOfSuperClass();
+		if (nameOfSuperClass == null)
+		{
+			return null;
+		}
+		current = fqNameToClassInfoMap.get(nameOfSuperClass);
+		current = current != null ? current : fqNameToClassInfoMap.get(removeGenerics(nameOfSuperClass));
+		return current;
 	}
 }

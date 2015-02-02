@@ -174,7 +174,7 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 
 	protected Field checkHierarchy(String fieldName, String ownerName, JavaClassInfo current, IConversionContext context)
 	{
-		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, current, context);
+		JavaClassInfo owner = languageHelper.findClassInHierarchy(ownerName, current, context);
 		if (owner != null)
 		{
 			Field field = owner.getField(fieldName);

@@ -125,7 +125,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	protected void writeThisIfLocalField(String ownerName, IConversionContext context)
 	{
 		JavaClassInfo classInfo = context.getClassInfo();
-		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, classInfo, context);
+		JavaClassInfo owner = languageHelper.findClassInHierarchy(ownerName, classInfo, context);
 		if (owner != null)
 		{
 			IWriter writer = context.getWriter();

@@ -50,11 +50,6 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		this.defaultMethodParameterProcessor = defaultMethodParameterProcessor;
 	}
 
-	public void setDefaultMethodTransformerExtension(IMethodTransformerExtension defaultMethodTransformerExtension)
-	{
-		this.defaultMethodTransformerExtension = defaultMethodTransformerExtension;
-	}
-
 	@Override
 	public final ITransformedMethod buildMethodTransformation(MethodKey methodKey)
 	{
@@ -69,7 +64,7 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 			return transformedMethod;
 		}
 
-		return defaultMethodTransformerExtension.buildMethodTransformation(methodKey);
+		return null;
 	}
 
 	protected ITransformedMethod buildMethodTransformationIntern(MethodKey methodKey)

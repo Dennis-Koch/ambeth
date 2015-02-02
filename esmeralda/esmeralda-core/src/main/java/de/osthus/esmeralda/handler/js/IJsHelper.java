@@ -7,6 +7,7 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
+import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
@@ -37,5 +38,7 @@ public interface IJsHelper extends ILanguageHelper
 
 	String createOverloadedMethodNamePostfix(IList<VariableElement> parameters);
 
-	JavaClassInfo findInHierarchy(String ownerName, JavaClassInfo current, IConversionContext context);
+	JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current, IConversionContext context);
+
+	Field findFieldInHierarchy(String fieldName, JavaClassInfo current, IConversionContext context);
 }
