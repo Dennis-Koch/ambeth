@@ -92,7 +92,11 @@ public class MethodTransformer implements IMethodTransformer
 			if (methodTransformerExtension != null)
 			{
 				MethodKey methodKey = new MethodKey(currOwner, methodName, argTypes);
-				return methodTransformerExtension.buildMethodTransformation(methodKey);
+				ITransformedMethod transformedMethod = methodTransformerExtension.buildMethodTransformation(methodKey);
+				if (transformedMethod != null)
+				{
+					return transformedMethod;
+				}
 			}
 			String nonGenericOwner = astHelper.extractNonGenericType(currOwner);
 			if (!nonGenericOwner.equals(currOwner))
@@ -101,7 +105,11 @@ public class MethodTransformer implements IMethodTransformer
 				if (methodTransformerExtension != null)
 				{
 					MethodKey methodKey = new MethodKey(nonGenericOwner, methodName, argTypes);
-					return methodTransformerExtension.buildMethodTransformation(methodKey);
+					ITransformedMethod transformedMethod = methodTransformerExtension.buildMethodTransformation(methodKey);
+					if (transformedMethod != null)
+					{
+						return transformedMethod;
+					}
 				}
 			}
 			JavaClassInfo classInfo = context.resolveClassInfo(currOwner);
@@ -117,7 +125,11 @@ public class MethodTransformer implements IMethodTransformer
 					continue;
 				}
 				MethodKey methodKey = new MethodKey(interfaceName, methodName, argTypes);
-				return methodTransformerExtension.buildMethodTransformation(methodKey);
+				ITransformedMethod transformedMethod = methodTransformerExtension.buildMethodTransformation(methodKey);
+				if (transformedMethod != null)
+				{
+					return transformedMethod;
+				}
 			}
 			currOwner = classInfo.getNameOfSuperClass();
 		}
