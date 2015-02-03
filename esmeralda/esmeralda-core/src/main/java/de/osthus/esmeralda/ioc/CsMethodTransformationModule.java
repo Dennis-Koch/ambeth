@@ -47,7 +47,6 @@ public class CsMethodTransformationModule implements IInitializingModule
 			Class<? extends IMethodTransformerExtension> methodTransformerType, Class<?> type)
 	{
 		IBeanConfiguration methodTransformer = beanContextFactory.registerBean(methodTransformerType)//
-				.propertyRef(AbstractMethodTransformerExtension.defaultMethodTransformerExtensionProp, defaultMethodTransformer) //
 				.propertyRef(AbstractMethodTransformerExtension.defaultMethodParameterProcessorProp, defaultMethodParameterProcessor);
 		beanContextFactory.link(methodTransformer).to(IMethodTransformerExtensionExtendable.class).with(Lang.C_SHARP + type.getName());
 		return methodTransformer;

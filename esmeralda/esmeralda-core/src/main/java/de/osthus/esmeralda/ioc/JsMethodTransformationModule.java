@@ -9,6 +9,7 @@ import de.osthus.esmeralda.handler.js.transformer.DefaultMethodParameterProcesso
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.js.transformer.JavaIoPrintstreamTransformer;
 import de.osthus.esmeralda.handler.js.transformer.JavaLangCharSequenceTransformer;
+import de.osthus.esmeralda.handler.js.transformer.JavaLangObjectTransformer;
 import de.osthus.esmeralda.handler.js.transformer.JavaLangStringTransformer;
 import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
 import de.osthus.esmeralda.misc.Lang;
@@ -33,15 +34,15 @@ public class JsMethodTransformationModule implements IInitializingModule
 		beanContextFactory.link(defaultMethodTransformer).to(IMethodTransformerExtensionExtendable.class).with(JsDefaultMethodTransformerName);
 
 		registerMethodTransformerExtension(beanContextFactory, JavaIoPrintstreamTransformer.class, java.io.PrintStream.class);
-		registerMethodTransformerExtension(beanContextFactory, JavaLangStringTransformer.class, java.lang.String.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangCharSequenceTransformer.class, java.lang.CharSequence.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaLangStringTransformer.class, java.lang.String.class);
 	}
 
 	private IBeanConfiguration registerMethodTransformerExtension(IBeanContextFactory beanContextFactory,
 			Class<? extends IMethodTransformerExtension> methodTransformerType, Class<?> type)
 	{
 		IBeanConfiguration methodTransformer = beanContextFactory.registerBean(methodTransformerType) //
-				.propertyRef(AbstractMethodTransformerExtension.defaultMethodTransformerExtensionProp, defaultMethodTransformer) //
 				.propertyRef(AbstractMethodTransformerExtension.defaultMethodParameterProcessorProp, defaultMethodParameterProcessor);
 		beanContextFactory.link(methodTransformer).to(IMethodTransformerExtensionExtendable.class).with(Lang.JS + type.getName());
 		return methodTransformer;
