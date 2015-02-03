@@ -2,6 +2,7 @@ package de.osthus.esmeralda.handler.uni.expr;
 
 import java.util.regex.Pattern;
 
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
@@ -23,10 +24,13 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandler;
+import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IMethodMatcher;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IOwnerWriter;
@@ -43,6 +47,9 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IExpressionHandlerRegistry expressionHandlerRegistry;
 
 	@Autowired
 	protected IMethodMatcher methodMatcher;
@@ -105,8 +112,19 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			JCFieldAccess meth = (JCFieldAccess) methodInvocation.meth;
 			if (meth.selected instanceof JCLiteral)
 			{
-				owner = ((JCLiteral) meth.selected).value.toString();
-				typeOfOwner = context.resolveClassInfo(((JCLiteral) meth.selected).type.toString()).getFqName();
+				final JCLiteral literal = (JCLiteral) meth.selected;
+				String lang = context.getLanguage();
+				Kind kind = meth.selected.getKind(); // There are multiple literal kinds
+				final IExpressionHandler expressionHandler = expressionHandlerRegistry.getExtension(lang + kind);
+				owner = astHelper.writeToStash(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						expressionHandler.handleExpression(literal);
+					}
+				});
+				typeOfOwner = context.resolveClassInfo(literal.type.toString()).getFqName();
 			}
 			else if (meth.selected instanceof JCFieldAccess)
 			{
@@ -146,7 +164,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						return context.getTypeOnStack();
 					}
 				}, meth.selected);
-				if (meth.selected instanceof JCNewClass)
+				if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass)
 				{
 					languageHelper.writeExpressionTree(meth.selected);
 					writer.append('.');

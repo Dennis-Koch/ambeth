@@ -23,6 +23,7 @@ import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.IConversionContext;
@@ -30,6 +31,7 @@ import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IVariable;
+import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -190,8 +192,9 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 	protected void writeAnonymousInstantiation(String owner, JCClassDecl def)
 	{
 		IConversionContext context = this.context.getCurrent();
-		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IJsHelper languageHelper = (IJsHelper) context.getLanguageHelper();
 		IWriter writer = context.getWriter();
+		HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
 		owner = JsNewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
@@ -199,11 +202,25 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		writer.append("Ext.create(\"");
 		languageHelper.writeType(owner);
 		writer.append("\", { ");
+
+		HashSet<String> alreadyHandled = new HashSet<>();
 		boolean firstParameter = true;
 		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
 		{
+			String name = usedVariable.getName();
+			if (!alreadyHandled.add(name))
+			{
+				// The IVariable instances have no equals(). So there are duplicates.
+				continue;
+			}
+
 			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			writer.append('"').append(usedVariable.getName()).append("\" : \"").append(usedVariable.getName()).append('"');
+			writer.append('"').append(name).append("\" : ");
+			if (!methodScopeVars.contains(name))
+			{
+				writer.append("this.");
+			}
+			writer.append(name);
 		}
 		writer.append(" })");
 		context.setTypeOnStack(owner);

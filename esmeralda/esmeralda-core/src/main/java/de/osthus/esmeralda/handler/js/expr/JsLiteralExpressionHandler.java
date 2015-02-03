@@ -69,6 +69,12 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 		boolean valueMayContainLetter = literal.typetag == 5 || literal.typetag == 6 || literal.typetag == 7; // Long, Float, Double
 		boolean useValueField = valueIsNumber && valueMayContainLetter;
 		String value = useValueField ? literal.value.toString() : literal.toString();
+
+		if (literal.typetag == 10) // String
+		{
+			// Only looks identical. This lets escaped characters be escaped in the generated code.
+			value = value.replaceAll("\\\\", "\\\\");
+		}
 		writer.append(value);
 
 		if (literal.type != null)
@@ -168,7 +174,7 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 
 	protected Field checkHierarchy(String fieldName, String ownerName, JavaClassInfo current, IConversionContext context)
 	{
-		JavaClassInfo owner = languageHelper.findInHierarchy(ownerName, current, context);
+		JavaClassInfo owner = languageHelper.findClassInHierarchy(ownerName, current, context);
 		if (owner != null)
 		{
 			Field field = owner.getField(fieldName);
