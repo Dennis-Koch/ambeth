@@ -186,9 +186,9 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			// ConversionContext csContext = createClassScopeContext(csDefaultContext);
-			// csContext.setClassInfo(classInfo);
-			// invokeClassHandler(csClassHandler, csContext);
+			ConversionContext csContext = createClassScopeContext(csDefaultContext);
+			csContext.setClassInfo(classInfo);
+			invokeClassHandler(csClassHandler, csContext);
 
 			ConversionContext jsContext = createClassScopeContext(jsDefaultContext);
 			jsContext.setClassInfo(classInfo);
