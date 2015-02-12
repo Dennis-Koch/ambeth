@@ -5,7 +5,7 @@ import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 public interface IWriter
 {
 	boolean isInAttributeState();
-	
+
 	void writeEscapedXml(CharSequence unescapedString);
 
 	void writeAttribute(CharSequence attributeName, Object attributeValue);

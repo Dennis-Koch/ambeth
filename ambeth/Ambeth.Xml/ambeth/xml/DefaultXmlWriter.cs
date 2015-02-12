@@ -24,6 +24,16 @@ namespace De.Osthus.Ambeth.Xml
 
         protected bool isInAttributeState = false;
 
+        protected int beautifierLevel;
+
+        protected bool beautifierIgnoreLineBreak = true;
+
+        protected int elementContentLevel = -1;
+
+        protected String beautifierLinebreak;
+
+        protected bool beautifierActive;
+
         public IDictionary<Object, int> MutableToIdMap
         {
             get
@@ -52,6 +62,42 @@ namespace De.Osthus.Ambeth.Xml
         {
             this.appendable = appendable;
             this.xmlController = xmlController;
+        }
+
+        public void SetBeautifierActive(bool beautifierActive)
+        {
+            this.beautifierActive = beautifierActive;
+        }
+
+        public bool IsBeautifierActive()
+        {
+            return beautifierActive;
+        }
+
+        public String GetBeautifierLinebreak()
+        {
+            return beautifierLinebreak;
+        }
+
+        public void SetBeautifierLinebreak(String beautifierLinebreak)
+        {
+            this.beautifierLinebreak = beautifierLinebreak;
+        }
+
+        protected void WriteBeautifierTabs(int amount)
+        {
+            if (beautifierIgnoreLineBreak)
+            {
+                beautifierIgnoreLineBreak = false;
+            }
+            else
+            {
+                Write(beautifierLinebreak);
+            }
+            while (amount-- > 0)
+            {
+                Write('\t');
+            }
         }
 
         public void WriteEscapedXml(String unescapedString)
@@ -109,6 +155,10 @@ namespace De.Osthus.Ambeth.Xml
             CheckIfInAttributeState();
             appendable.Append("/>");
             isInAttributeState = false;
+            if (beautifierActive)
+            {
+                beautifierLevel--;
+            }
         }
 
         public void WriteCloseElement(String elementName)
@@ -120,6 +170,15 @@ namespace De.Osthus.Ambeth.Xml
             }
             else
             {
+                if (beautifierActive)
+                {
+                    if (elementContentLevel == beautifierLevel)
+                    {
+                        WriteBeautifierTabs(beautifierLevel - 1);
+                    }
+                    beautifierLevel--;
+                    elementContentLevel = beautifierLevel;
+                }
                 appendable.Append("</").Append(elementName).Append('>');
             }
         }
@@ -137,13 +196,33 @@ namespace De.Osthus.Ambeth.Xml
         public void WriteOpenElement(String elementName)
         {
             EndTagIfInAttributeState();
-            appendable.Append('<').Append(elementName).Append('>');
+            if (beautifierActive)
+            {
+                WriteBeautifierTabs(beautifierLevel);
+                appendable.Append('<').Append(elementName).Append('>');
+                elementContentLevel = beautifierLevel;
+                beautifierLevel++;
+            }
+            else
+            {
+                appendable.Append('<').Append(elementName).Append('>');
+            }
         }
 
         public void WriteStartElement(String elementName)
         {
             EndTagIfInAttributeState();
-            appendable.Append('<').Append(elementName);
+            if (beautifierActive)
+            {
+                WriteBeautifierTabs(beautifierLevel);
+                appendable.Append('<').Append(elementName);
+                elementContentLevel = beautifierLevel;
+                beautifierLevel++;
+            }
+            else
+            {
+                appendable.Append('<').Append(elementName);
+            }
             isInAttributeState = true;
         }
 
@@ -166,6 +245,11 @@ namespace De.Osthus.Ambeth.Xml
         public void WriteEmptyElement(String elementName)
         {
             EndTagIfInAttributeState();
+            if (beautifierActive)
+            {
+                elementContentLevel = beautifierLevel - 1;
+                WriteBeautifierTabs(beautifierLevel);
+            }
             appendable.Append('<').Append(elementName).Append("/>");
         }
 

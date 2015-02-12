@@ -9,6 +9,8 @@ namespace De.Osthus.Ambeth.Proxy
 {
     public interface IObjRefContainer : IEntityMetaDataHolder
     {
+        ICache Get__Cache();
+
         ValueHolderState Get__State(int relationIndex);
         
         bool Is__Initialized(int relationIndex);

@@ -30,7 +30,7 @@ public class H2SequencePrimaryKeyProvider extends AbstractCachingPrimaryKeyProvi
 	@Override
 	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
 	{
-		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getSequenceName(), ".nextval FROM DUAL");
+		String sql = StringBuilderUtil.concat(objectCollector.getCurrent(), "SELECT ", table.getMetaData().getSequenceName(), ".nextval FROM DUAL");
 		PreparedStatement pstm = null;
 		ResultSet rs = null;
 		try

@@ -3,6 +3,7 @@ using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Xml;
 using De.Osthus.Ambeth.Xml.Namehandler;
 using De.Osthus.Ambeth.Xml.Pending;
@@ -130,6 +131,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean("mergeXmlPostProcessor", typeof(MergeXmlPostProcessor));
             beanContextFactory.Link("mergeXmlPostProcessor").To(typeof(IXmlPostProcessorExtendable)).With("merge");
+
+            beanContextFactory.RegisterBean<CUDResultPrinter>().Autowireable<ICUDResultPrinter>();
         }
     }
 }

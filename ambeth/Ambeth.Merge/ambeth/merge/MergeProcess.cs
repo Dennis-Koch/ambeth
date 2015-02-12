@@ -14,11 +14,24 @@ using De.Osthus.Ambeth.Threading;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+#if SILVERLIGHT
+using De.Osthus.Ambeth.Util;
+#else
+using System.Threading;
+#endif
 
 namespace De.Osthus.Ambeth.Merge
 {
     public class MergeProcess : IMergeProcess
     {
+        private static readonly ThreadLocal<bool?> addNewlyPersistedEntitiesTL = new ThreadLocal<bool?>();
+
+	    public static bool IsAddNewlyPersistedEntities()
+	    {
+		    bool? value = addNewlyPersistedEntitiesTL.Value;
+            return value.HasValue && value.Value;
+	    }
+
         [LogInstance]
         public ILogger Log { private get; set; }
 
@@ -74,26 +87,32 @@ namespace De.Osthus.Ambeth.Merge
 
         protected void MergePhase1(Object objectToMerge, Object objectToDelete, ProceedWithMergeHook proceedHook, MergeFinishedCallback mergeFinishedCallback, bool addNewEntitiesToCache)
         {
+            ICUDResult cudResult;
+		    MergeHandle mergeHandle;
             IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, false, false, "MergeProcess.ORIGINAL");
             try
             {
-                MergeHandle mergeHandle = BeanContext.RegisterBean<MergeHandle>().PropertyValue("Cache", childCache).Finish();
-                ICUDResult cudResult = MergeController.MergeDeep(objectToMerge, mergeHandle);
-                if (GuiThreadHelper.IsInGuiThread())
-                {
-                    MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
-                }
-                else
-                {
-                    GuiThreadHelper.InvokeInGui(delegate()
-                    {
-                        MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
-                    });
-                }
+                mergeHandle = BeanContext.RegisterBean<MergeHandle>()//
+					.PropertyValue("Cache", childCache)//
+					.Finish();
+			    cudResult = MergeController.MergeDeep(objectToMerge, mergeHandle);
+			    mergeHandle.Cache = null;
             }
             finally
             {
                 childCache.Dispose();
+                childCache = null;
+            }
+            if (GuiThreadHelper.IsInGuiThread())
+            {
+                MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+            }
+            else
+            {
+                GuiThreadHelper.InvokeInGui(delegate()
+                {
+                    MergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+                });
             }
         }
 
@@ -317,17 +336,17 @@ namespace De.Osthus.Ambeth.Merge
                     EventDispatcher.Pause(Cache);
                     try
                     {
-                        oriColl = MergeService.Merge(cudResult, null);
-                        if (GuiThreadHelper.IsInGuiThread())
+                        bool? oldNewlyPersistedEntities = addNewlyPersistedEntitiesTL.Value;
+                        addNewlyPersistedEntitiesTL.Value = addNewEntitiesToCache;
+                        try
                         {
-                            MergeController.ApplyChangesToOriginals(cudResult.GetOriginalRefs(), oriColl.AllChangeORIs, oriColl.ChangedOn, oriColl.ChangedBy);
+                            oriColl = MergeService.Merge(cudResult, null);
+
+                            MergeController.ApplyChangesToOriginals(cudResult, oriColl, null);
                         }
-                        else
+                        finally
                         {
-                            GuiThreadHelper.InvokeInGuiAndWait(delegate()
-                            {
-                                MergeController.ApplyChangesToOriginals(cudResult.GetOriginalRefs(), oriColl.AllChangeORIs, oriColl.ChangedOn, oriColl.ChangedBy);
-                            });
+                            addNewlyPersistedEntitiesTL.Value = oldNewlyPersistedEntities;
                         }
                     }
                     finally

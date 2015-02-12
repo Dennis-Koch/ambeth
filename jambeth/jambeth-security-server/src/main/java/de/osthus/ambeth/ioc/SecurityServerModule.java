@@ -7,6 +7,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeSecurityManager;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleExtendable;
 import de.osthus.ambeth.privilege.IEntityTypePermissionRule;
@@ -26,7 +27,6 @@ import de.osthus.ambeth.security.PBEncryptor;
 import de.osthus.ambeth.security.PasswordUtil;
 import de.osthus.ambeth.security.PersistedPrivateKeyProvider;
 import de.osthus.ambeth.security.SignatureUtil;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.privilegeprovider.ActionPermissionRule;
 import de.osthus.ambeth.security.proxy.SecurityPostProcessor;
 
@@ -37,7 +37,7 @@ public class SecurityServerModule implements IInitializingModule
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean isSecurityActive;
 
 	@Override

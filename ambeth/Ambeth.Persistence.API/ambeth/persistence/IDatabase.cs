@@ -10,6 +10,8 @@ namespace De.Osthus.Ambeth.Persistence
      */
     public interface IDatabase : IDisposable, IDatabaseDisposeHookExtendable
     {
+        IDatabaseMetaData MetaData { get; }
+
         /**
          * Returns the dispose state of the current instance
          * 
@@ -62,16 +64,7 @@ namespace De.Osthus.Ambeth.Persistence
          * @return Context provider.
          */
         IContextProvider GetContextProvider();
-
-        IEnumerable<Type> GetHandledEntities();
-
-        /**
-         * Getter for the database pool this instance is managed by.
-         * 
-         * @return Database pool.
-         */
-        IDatabasePool GetPool();
-
+        
         /**
          * Releases this instance after flushing the used database instance.
          */
@@ -94,19 +87,7 @@ namespace De.Osthus.Ambeth.Persistence
          * @return the thread-local instance of IDatabase
          */
         IDatabase GetCurrent();
-
-        /**
-         * 
-         * @return Name of this database.
-         */
-        String Name { get; }
-
-        /**
-         * 
-         * @return Names of schemas in use.
-         */
-        String[] SchemaNames { get; }
-
+        
         /**
          * Getter for alle tables in this database.
          * 
@@ -138,48 +119,7 @@ namespace De.Osthus.Ambeth.Persistence
          * @return Table used for archiving the given entity type.
          */
         ITable GetArchiveTableByType(Type entityType);
-
-        /**
-	     * Getter for a permission group table table identified by either an entity table or a link table.
-	     * 
-	     * @param tableName
-	     *            name of either an entity table or a link table
-	     * @return The permission group table
-	     */
-        IPermissionGroup GetPermissionGroupOfTable(String tableName);
-
-        /**
-         * Maps a table identified by name to a given entity type.
-         * 
-         * @param tableName
-         *            Name of the table to map.
-         * @param entityType
-         *            Type to map to a table.
-         * @return Mapped table.
-         */
-        ITable MapTable(String tableName, Type entityType);
-
-        /**
-         * Maps a table identified by name as archive table to a given entity type.
-         * 
-         * @param tableName
-         *            Name of the table to map.
-         * @param entityType
-         *            Type to map to a table.
-         * @return Mapped table.
-         */
-        ITable MapArchiveTable(String tableName, Type entityType);
-
-        /**
-	     * Maps a table identified by name as permission group table to a given entity type.
-	     * 
-	     * @param tableName
-	     *            Name of the table to map.
-	     * @param entityType
-	     *            Type to map to a table.
-	     */
-        void MapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable);
-
+        
         /**
          * Getter for a table identified by name.
          * 
@@ -188,26 +128,7 @@ namespace De.Osthus.Ambeth.Persistence
          * @return Table of given name.
          */
         ITable GetTableByName(String tableName);
-
-        /**
-         * Getter for a link identified by name.
-         * 
-         * @param linkName
-         *            Identifying name.
-         * @return Link of given name.
-         */
-        ILink GetLinkByName(String linkName);
-
-        /**
-         * 
-         * @param linkSource
-         *            Name of the link-defining thing (link table or foreign key constraint)
-         * @return Link defined by the given name.
-         */
-        ILink GetLinkByDefiningName(String definingName);
-
-        void AddLinkByTables(ILink link);
-
+        
         /**
          * 
          * @param table1

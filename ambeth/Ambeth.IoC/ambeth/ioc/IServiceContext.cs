@@ -1,6 +1,8 @@
 ﻿using De.Osthus.Ambeth.Ioc.Config;
+using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Hierarchy;
 using De.Osthus.Ambeth.Ioc.Link;
+using De.Osthus.Ambeth.Threading;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -58,7 +60,7 @@ namespace De.Osthus.Ambeth.Ioc
         /// <param name="registerPhaseDelegate">Similar to an already instantiated module.</param>
         /// <param name="serviceModules">Initializing modules defining the content of the new context.</param>
         /// <returns>New IoC context.</returns>
-        IServiceContext CreateService(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModules);
+        IServiceContext CreateService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModules);
 
         /// <summary>
         ///  Creates a child context of this context with the additional beans from the given initializing modules plus everything you do in the RegisterPhaseDelegate.
@@ -67,11 +69,11 @@ namespace De.Osthus.Ambeth.Ioc
         /// <param name="registerPhaseDelegate">Similar to an already instantiated module.</param>
         /// <param name="serviceModules">Initializing modules defining the content of the new context.</param>
         /// <returns>New IoC context.</returns>
-        IServiceContext CreateService(String childContextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModules);
+        IServiceContext CreateService(String childContextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModules);
 
         IBeanContextHolder<V> CreateService<V>(params Type[] serviceModules);
 
-        IBeanContextHolder<V> CreateService<V>(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModules);
+        IBeanContextHolder<V> CreateService<V>(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModules);
 
         IBeanContextHolder<V> CreateHolder<V>();
 
@@ -141,7 +143,7 @@ namespace De.Osthus.Ambeth.Ioc
         /// Adds a callback to be executed during context shutdown.
         /// </summary>
         /// <param name="waitCallback">Callback to be executed.</param>
-        void RegisterDisposeHook(WaitCallback waitCallback);
+        void RegisterDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> waitCallback);
 
         /// <summary>
         /// Adds an external bean to the context and links it to the contexts dispose life cycle hook. Injections are done by the context.

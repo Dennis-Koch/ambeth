@@ -12,6 +12,8 @@ namespace De.Osthus.Ambeth.Metadata
 
         public abstract IObjRef CreateObjRef(AbstractCacheValue cacheValue);
 
+        public abstract IObjRef CreateObjRef(AbstractCacheValue cacheValue, int idIndex);
+
         public abstract IObjRef Dup(IObjRef objRef);
     }
 }

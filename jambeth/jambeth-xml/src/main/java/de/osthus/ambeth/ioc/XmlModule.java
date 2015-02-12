@@ -6,6 +6,8 @@ import de.osthus.ambeth.ioc.annotation.FrameworkModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.merge.CUDResultPrinter;
+import de.osthus.ambeth.merge.ICUDResultPrinter;
 import de.osthus.ambeth.objectcollector.ByteBuffer65536CollectableController;
 import de.osthus.ambeth.objectcollector.ICollectableControllerExtendable;
 import de.osthus.ambeth.xml.CyclicXmlController;
@@ -94,8 +96,7 @@ public class XmlModule implements IInitializingModule
 		IBeanConfiguration stringElementHandlerBC = beanContextFactory.registerBean(StringNameHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(stringElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("s");
 
-		IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.registerBean(ObjRefWrapperElementHandler.class).parent(
-				"abstractElementHandler");
+		IBeanConfiguration oriWrapperElementHandlerBC = beanContextFactory.registerBean(ObjRefWrapperElementHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(oriWrapperElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("ow");
 
 		IBeanConfiguration numberElementHandlerBC = beanContextFactory.registerBean(NumberTypeHandler.class).parent("abstractElementHandler");
@@ -119,8 +120,7 @@ public class XmlModule implements IInitializingModule
 		IBeanConfiguration dateTypeHandlerBC = beanContextFactory.registerBean(DateElementHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(dateTypeHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("d");
 
-		IBeanConfiguration collectionElementHandlerBC = beanContextFactory.registerBean(CollectionElementHandler.class).parent(
-				"abstractElementHandler");
+		IBeanConfiguration collectionElementHandlerBC = beanContextFactory.registerBean(CollectionElementHandler.class).parent("abstractElementHandler");
 		beanContextFactory.link(collectionElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("l");
 		beanContextFactory.link(collectionElementHandlerBC).to(CYCLIC_XML_HANDLER, INameBasedHandlerExtendable.class).with("set");
 
@@ -156,5 +156,7 @@ public class XmlModule implements IInitializingModule
 
 		IBeanConfiguration byteBufferCC = beanContextFactory.registerBean(ByteBuffer65536CollectableController.class);
 		beanContextFactory.link(byteBufferCC).to(ICollectableControllerExtendable.class).with(ByteBuffer.class);
+
+		beanContextFactory.registerBean(CUDResultPrinter.class).autowireable(ICUDResultPrinter.class);
 	}
 }

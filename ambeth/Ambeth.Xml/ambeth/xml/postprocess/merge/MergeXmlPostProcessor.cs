@@ -12,6 +12,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml.Pending;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Xml.PostProcess
 {
@@ -54,10 +55,10 @@ namespace De.Osthus.Ambeth.Xml.PostProcess
             }
 
             IDisposableCache childCache = CacheFactory.Create(CacheFactoryDirective.NoDCE, "XmlMerge");
-            IServiceContext mergeContext = BeanContext.CreateService(new RegisterPhaseDelegate(delegate(IBeanContextFactory childContextFactory)
+            IServiceContext mergeContext = BeanContext.CreateService(delegate(IBeanContextFactory childContextFactory)
                 {
                     childContextFactory.RegisterBean(typeof(MergeHandle)).Autowireable<MergeHandle>().PropertyValue("Cache", childCache);
-                }));
+                });
             try
             {
                 IDictionary<Object, Int32> mutableToIdMap = writer.MutableToIdMap;

@@ -2,8 +2,7 @@ package de.osthus.ambeth.proxy;
 
 import java.util.Collection;
 
-import net.sf.cglib.reflect.FastClass;
-import net.sf.cglib.reflect.FastConstructor;
+import de.osthus.ambeth.accessor.IAccessorTypeProvider;
 import de.osthus.ambeth.bytecode.IBytecodeEnhancer;
 import de.osthus.ambeth.bytecode.IBytecodePrinter;
 import de.osthus.ambeth.collections.SmartCopyMap;
@@ -22,27 +21,12 @@ import de.osthus.ambeth.util.ListUtil;
 
 public class EntityFactory extends AbstractEntityFactory
 {
-	public static class ConstructorEntry
-	{
-		public final FastConstructor constructor;
-
-		public final Object[] args;
-
-		public ConstructorEntry(FastConstructor constructor, Object[] args)
-		{
-			super();
-			this.constructor = constructor;
-			this.args = args;
-		}
-	}
-
-	private static final Class<?>[][] CONSTRUCTOR_SERIES = { { IEntityFactory.class }, {} };
-
-	private static final Object[] EMPTY_ARGS = new Object[0];
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IAccessorTypeProvider accessorTypeProvider;
 
 	@Autowired
 	protected IServiceContext beanContext;
@@ -59,7 +43,7 @@ public class EntityFactory extends AbstractEntityFactory
 	@Self
 	protected IEntityFactory self;
 
-	protected final SmartCopyMap<Class<?>, ConstructorEntry> typeToConstructorMap = new SmartCopyMap<Class<?>, ConstructorEntry>(0.5f);
+	protected final SmartCopyMap<Class<?>, EntityFactoryConstructor> typeToConstructorMap = new SmartCopyMap<Class<?>, EntityFactoryConstructor>(0.5f);
 
 	@Override
 	public boolean supportsEnhancement(Class<?> enhancementType)
@@ -67,59 +51,31 @@ public class EntityFactory extends AbstractEntityFactory
 		return bytecodeEnhancer.supportsEnhancement(enhancementType);
 	}
 
-	protected ConstructorEntry getConstructorEntry(Class<?> entityType)
+	protected EntityFactoryConstructor getConstructorEntry(Class<?> entityType)
 	{
-		ConstructorEntry constructorEntry = typeToConstructorMap.get(entityType);
-		if (constructorEntry == null)
+		EntityFactoryConstructor constructor = typeToConstructorMap.get(entityType);
+		if (constructor == null)
 		{
-			FastClass fastClass = FastClass.create(entityType);
-			Throwable lastThrowable = null;
-			FastConstructor constructor = null;
-			for (int a = 0, size = CONSTRUCTOR_SERIES.length; a < size; a++)
+			try
 			{
-				Class<?>[] parameters = CONSTRUCTOR_SERIES[a];
-				try
+				final EntityFactoryWithArgumentConstructor argumentConstructor = accessorTypeProvider.getConstructorType(
+						EntityFactoryWithArgumentConstructor.class, entityType);
+				constructor = new EntityFactoryConstructor()
 				{
-					constructor = fastClass.getConstructor(parameters);
-					lastThrowable = null;
-					break;
-				}
-				catch (Throwable e)
-				{
-					lastThrowable = e;
-				}
+					@Override
+					public Object createEntity()
+					{
+						return argumentConstructor.createEntity(self);
+					}
+				};
 			}
-			if (constructor == null)
+			catch (Throwable e)
 			{
-				throw RuntimeExceptionUtil.mask(lastThrowable);
+				constructor = accessorTypeProvider.getConstructorType(EntityFactoryConstructor.class, entityType);
 			}
-			constructorEntry = new ConstructorEntry(constructor, getConstructorArguments(constructor));
-			typeToConstructorMap.put(entityType, constructorEntry);
+			typeToConstructorMap.put(entityType, constructor);
 		}
-		return constructorEntry;
-	}
-
-	protected Object[] getConstructorArguments(FastConstructor constructor)
-	{
-		Class<?>[] parameterTypes = constructor.getParameterTypes();
-		if (parameterTypes.length == 0)
-		{
-			return EMPTY_ARGS;
-		}
-		Object[] beanArgs = new Object[parameterTypes.length];
-		for (int a = parameterTypes.length; a-- > 0;)
-		{
-			Class<?> parameterType = parameterTypes[a];
-			if (IEntityFactory.class.equals(parameterType))
-			{
-				beanArgs[a] = self;
-			}
-			else
-			{
-				beanArgs[a] = beanContext.getService(parameterType);
-			}
-		}
-		return beanArgs;
+		return constructor;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -150,8 +106,8 @@ public class EntityFactory extends AbstractEntityFactory
 			{
 				entityMetaDataRefresher.refreshMembers(metaData);
 			}
-			ConstructorEntry constructorEntry = getConstructorEntry(metaData.getEnhancedType());
-			Object entity = constructorEntry.constructor.newInstance(constructorEntry.args);
+			EntityFactoryConstructor constructor = getConstructorEntry(metaData.getEnhancedType());
+			Object entity = constructor.createEntity();
 			postProcessEntity(entity, metaData, doEmptyInit);
 			return entity;
 		}

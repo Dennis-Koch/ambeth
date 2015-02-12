@@ -429,19 +429,18 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 		this.size = size;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean addAll(final Collection<? extends V> c)
 	{
+		Object[] arrayToAdd = c.toArray();
 		if (c instanceof List)
 		{
-			final List<? extends V> list = (List<? extends V>) c;
-
-			final int listSize = list.size();
 			int size = this.size;
 			Object[] array = this.array;
-			if (size + listSize > array.length)
+			if (size + arrayToAdd.length > array.length)
 			{
-				final int sizeNeeded = size + listSize;
+				final int sizeNeeded = size + arrayToAdd.length;
 				int newSize = array.length << 1;
 				if (newSize == 0)
 				{
@@ -457,23 +456,22 @@ public class ObservableArrayList<V> implements List<V>, IList<V>, Externalizable
 				this.array = array;
 			}
 
-			for (int a = 0, sizeA = list.size(); a < sizeA; a++)
+			for (Object itemToAdd : arrayToAdd)
 			{
-				array[size++] = list.get(a);
+				array[size++] = itemToAdd;
 			}
 			this.size = size;
 		}
 		else
 		{
-			final Iterator<? extends V> iter = c.iterator();
-			while (iter.hasNext())
+			for (Object itemToAdd : arrayToAdd)
 			{
-				internalAdd(iter.next());
+				internalAdd((V) itemToAdd);
 			}
 		}
 		if (notifyCollectionChangedSupport != null && c.size() > 0)
 		{
-			fireNotifyCollectionChanged(new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Add, c));
+			fireNotifyCollectionChanged(new NotifyCollectionChangedEvent(this, NotifyCollectionChangedAction.Add, arrayToAdd));
 		}
 		return c.size() > 0;
 	}

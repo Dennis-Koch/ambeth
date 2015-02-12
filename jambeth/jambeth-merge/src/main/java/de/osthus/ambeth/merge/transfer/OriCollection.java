@@ -19,11 +19,17 @@ public class OriCollection implements IOriCollection
 	@XmlElement(required = true)
 	protected List<IObjRef> allChangeORIs;
 
-	@XmlElement(required = true)
+	@XmlElement(required = false)
 	protected Long changedOn;
 
-	@XmlElement(required = true)
+	@XmlElement(required = false)
 	protected String changedBy;
+
+	@XmlElement(required = false)
+	protected String[] allChangedBy;
+
+	@XmlElement(required = false)
+	protected Long[] allChangedOn;
 
 	public OriCollection()
 	{
@@ -31,7 +37,7 @@ public class OriCollection implements IOriCollection
 
 	public OriCollection(List<IObjRef> oriList)
 	{
-		this.allChangeORIs = oriList;
+		allChangeORIs = oriList;
 	}
 
 	@Override
@@ -48,31 +54,31 @@ public class OriCollection implements IOriCollection
 	@Override
 	public List<IObjRef> getChangeRefs(Class<?> type)
 	{
-		if (this.typeToOriDict == null)
+		if (typeToOriDict == null)
 		{
-			this.typeToOriDict = new HashMap<Class<?>, List<IObjRef>>();
+			typeToOriDict = new HashMap<Class<?>, List<IObjRef>>();
 
-			for (int a = this.allChangeORIs.size(); a-- > 0;)
+			for (int a = allChangeORIs.size(); a-- > 0;)
 			{
-				IObjRef ori = this.allChangeORIs.get(a);
+				IObjRef ori = allChangeORIs.get(a);
 				Class<?> realType = ori.getRealType();
-				List<IObjRef> modList = this.typeToOriDict.get(realType);
+				List<IObjRef> modList = typeToOriDict.get(realType);
 				if (modList == null)
 				{
 					modList = new ArrayList<IObjRef>();
-					this.typeToOriDict.put(realType, modList);
+					typeToOriDict.put(realType, modList);
 				}
 				modList.add(ori);
 			}
 		}
 
-		return this.typeToOriDict.get(type);
+		return typeToOriDict.get(type);
 	}
 
 	@Override
 	public Long getChangedOn()
 	{
-		return this.changedOn;
+		return changedOn;
 	}
 
 	public void setChangedOn(Long changedOn)
@@ -83,11 +89,33 @@ public class OriCollection implements IOriCollection
 	@Override
 	public String getChangedBy()
 	{
-		return this.changedBy;
+		return changedBy;
 	}
 
 	public void setChangedBy(String changedBy)
 	{
 		this.changedBy = changedBy;
+	}
+
+	@Override
+	public String[] getAllChangedBy()
+	{
+		return allChangedBy;
+	}
+
+	public void setAllChangedBy(String[] allChangedBy)
+	{
+		this.allChangedBy = allChangedBy;
+	}
+
+	@Override
+	public Long[] getAllChangedOn()
+	{
+		return allChangedOn;
+	}
+
+	public void setAllChangedOn(Long[] allChangedOn)
+	{
+		this.allChangedOn = allChangedOn;
 	}
 }

@@ -25,7 +25,6 @@ import de.osthus.ambeth.cache.config.CacheConfigurationConstants;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IOriCollection;
@@ -112,7 +111,6 @@ public class JDBCDatabaseTest extends AbstractPersistenceTest
 	@Test
 	public void test() throws Throwable
 	{
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override

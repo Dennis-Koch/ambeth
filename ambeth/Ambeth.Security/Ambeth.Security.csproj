@@ -79,7 +79,6 @@
     <Compile Include="ambeth\security\IServicePermission.cs" />
     <Compile Include="ambeth\security\IAuthorization.cs" />
     <Compile Include="ambeth\security\IAuthorizationManager.cs" />
-    <Compile Include="ambeth\security\SecurityActivation.cs" />
     <Compile Include="ambeth\service\IPrivilegeService.cs" />
     <Compile Include="ambeth\service\IPrivilegeServiceWCF.cs" />
     <Compile Include="ambeth\service\ISecurityService.cs" />
@@ -123,9 +122,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\privilege\model\ReadPermission.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ambeth\security\ISecurityActivation.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\privilege\model\IPropertyPrivilege.cs" />

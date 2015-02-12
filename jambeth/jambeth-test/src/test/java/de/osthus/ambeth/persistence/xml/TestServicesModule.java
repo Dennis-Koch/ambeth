@@ -14,7 +14,7 @@ import de.osthus.ambeth.persistence.xml.model.ProjectService;
 public class TestServicesModule implements IInitializingModule
 {
 	@SuppressWarnings("unused")
-	@LogInstance(TestServicesModule.class)
+	@LogInstance
 	private ILogger log;
 
 	@Override

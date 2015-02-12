@@ -6,8 +6,8 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 
 public class CacheFactory implements ICacheFactory
 {
@@ -24,7 +24,7 @@ public class CacheFactory implements ICacheFactory
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Override

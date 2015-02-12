@@ -7,6 +7,21 @@ import de.osthus.ambeth.util.IPrintable;
 
 public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType
 {
+	public static int arraySizeForIndex()
+	{
+		return 1 << 8;
+	}
+
+	public static int calcIndex(boolean create, boolean read, boolean update, boolean delete, boolean execute)
+	{
+		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+	}
+
+	public static int toBitValue(boolean value, int startingBit)
+	{
+		return value ? 1 << startingBit : 0;
+	}
+
 	public static char upperOrLower(boolean flag, char oneChar)
 	{
 		if (flag)
@@ -29,7 +44,7 @@ public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmu
 		return Character.toLowerCase(oneChar);
 	}
 
-	public AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+	protected AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
 			IPropertyPrivilege[] relationPropertyPrivileges)
 	{
 		// intended blank

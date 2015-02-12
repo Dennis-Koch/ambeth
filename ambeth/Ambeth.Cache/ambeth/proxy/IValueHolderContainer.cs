@@ -11,7 +11,7 @@ namespace De.Osthus.Ambeth.Proxy
     {
         IObjRelation Get__Self(int relationIndex);
 
-	    ICacheIntern __TargetCache { get; set; }
+        ICacheIntern __TargetCache { get; set; }
 
         Object Get__ValueDirect(int relationIndex);
 

@@ -6,11 +6,11 @@ import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 
 public class PrototypeContextHandle implements IContextHandle
 {
@@ -33,7 +33,7 @@ public class PrototypeContextHandle implements IContextHandle
 	@Override
 	public IServiceContext start(final IMap<String, Object> namedBeans)
 	{
-		IServiceContext childContext = childContextFactory.createChildContext(new RegisterPhaseDelegate()
+		IServiceContext childContext = childContextFactory.createChildContext(new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 
 			@Override
@@ -52,7 +52,7 @@ public class PrototypeContextHandle implements IContextHandle
 	}
 
 	@Override
-	public IServiceContext start(RegisterPhaseDelegate registerPhaseDelegate)
+	public IServiceContext start(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
 	{
 		IServiceContext childContext = childContextFactory.createChildContext(registerPhaseDelegate);
 		childContexts.add(childContext);

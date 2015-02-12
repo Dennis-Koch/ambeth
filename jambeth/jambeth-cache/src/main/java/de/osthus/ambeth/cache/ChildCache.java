@@ -16,6 +16,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventQueue;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -755,5 +756,26 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			return;
 		}
 		vhc.set__ObjRefs(relationIndex, relationsOfMember);
+	}
+
+	@Override
+	protected void putIntern(Object objectToCache, ArrayList<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet,
+			HashSet<IObjRef> cascadeNeededORIs)
+	{
+		if (objectToCache instanceof IValueHolderContainer)
+		{
+			((IValueHolderContainer) objectToCache).set__TargetCache(this);
+		}
+		super.putIntern(objectToCache, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+	}
+
+	@Override
+	public String toString()
+	{
+		if (name != null)
+		{
+			return name + " " + super.toString();
+		}
+		return super.toString();
 	}
 }

@@ -1,9 +1,9 @@
 package de.osthus.ambeth.database;
 
-public interface ITransaction
-{
-	boolean isActive();
+import de.osthus.ambeth.merge.ILightweightTransaction;
 
+public interface ITransaction extends ILightweightTransaction
+{
 	ITransactionInfo getTransactionInfo();
 
 	void begin(boolean readOnly);

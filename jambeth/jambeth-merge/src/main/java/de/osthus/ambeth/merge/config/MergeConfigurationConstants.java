@@ -24,6 +24,9 @@ public final class MergeConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String ValueObjectConfigValidationActive = "ambeth.mapping.config.validate.active";
 
+	@ConfigurationConstantDescription("TODO")
+	public static final String SecurityActive = "ambeth.security.active";
+
 	private MergeConfigurationConstants()
 	{
 		// Intended blank

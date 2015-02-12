@@ -8,7 +8,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 
 public class StatefulQuery<T> implements IQuery<T>
 {
@@ -49,7 +48,13 @@ public class StatefulQuery<T> implements IQuery<T>
 	@Override
 	public IVersionCursor retrieveAsVersions()
 	{
-		return query.retrieveAsVersions(paramMap);
+		return query.retrieveAsVersions(paramMap, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return query.retrieveAsVersions(paramMap, retrieveAlternateIds);
 	}
 
 	@Override
@@ -96,19 +101,6 @@ public class StatefulQuery<T> implements IQuery<T>
 			throw new IllegalArgumentException("Parameter '" + paramKey + "' already added with value '" + paramMap.get(paramKey) + "'");
 		}
 		return this;
-	}
-
-	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		IVersionCursor cursor = retrieveAsVersions();
-		if (cursor == null || !cursor.moveNext())
-		{
-			return null;
-		}
-		IVersionItem versionItem = cursor.getCurrent();
-		cursor.dispose();
-		return versionItem;
 	}
 
 	@Override

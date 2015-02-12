@@ -24,6 +24,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
 @TestModule({ TestServicesModule.class })
@@ -77,10 +78,10 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	public void testRootCacheDataChangePerformance() throws Throwable
 	{
 		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
-		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);
@@ -117,10 +118,10 @@ public class RootCacheInvalidationTest extends AbstractPersistenceTest
 	public void testRootCacheInvalidation2() throws Throwable
 	{
 		final IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.SubscribeTransactionalDCE, "test");
-		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				MaterialGroup mg = cache.getObject(MaterialGroup.class, "pl");
 				Unit unit = cache.getObject(Unit.class, (long) 1);

@@ -32,73 +32,73 @@ public class PermissionGroup implements IPermissionGroup, IPrintable
 	private ILogger log;
 
 	@Property
-	protected IField readPermissionField;
+	protected IFieldMetaData readPermissionField;
 
 	@Property
-	protected IField updatePermissionField;
+	protected IFieldMetaData updatePermissionField;
 
 	@Property
-	protected IField deletePermissionField;
+	protected IFieldMetaData deletePermissionField;
 
 	@Property
-	protected IField permissionGroupField;
+	protected IFieldMetaData permissionGroupField;
 
 	@Property
-	protected IField userField;
+	protected IFieldMetaData userField;
 
 	@Property
-	protected IField permissionGroupFieldOnTarget;
+	protected IFieldMetaData permissionGroupFieldOnTarget;
 
 	@Property
-	protected ITable targetTable;
+	protected ITableMetaData targetTable;
 
 	@Property
-	protected ITable table;
+	protected ITableMetaData table;
 
 	@Override
-	public ITable getTable()
+	public ITableMetaData getTable()
 	{
 		return table;
 	}
 
 	@Override
-	public ITable getTargetTable()
+	public ITableMetaData getTargetTable()
 	{
 		return targetTable;
 	}
 
 	@Override
-	public IField getPermissionGroupFieldOnTarget()
+	public IFieldMetaData getPermissionGroupFieldOnTarget()
 	{
 		return permissionGroupFieldOnTarget;
 	}
 
 	@Override
-	public IField getUserField()
+	public IFieldMetaData getUserField()
 	{
 		return userField;
 	}
 
 	@Override
-	public IField getPermissionGroupField()
+	public IFieldMetaData getPermissionGroupField()
 	{
 		return permissionGroupField;
 	}
 
 	@Override
-	public IField getReadPermissionField()
+	public IFieldMetaData getReadPermissionField()
 	{
 		return readPermissionField;
 	}
 
 	@Override
-	public IField getUpdatePermissionField()
+	public IFieldMetaData getUpdatePermissionField()
 	{
 		return updatePermissionField;
 	}
 
 	@Override
-	public IField getDeletePermissionField()
+	public IFieldMetaData getDeletePermissionField()
 	{
 		return deletePermissionField;
 	}

@@ -1,13 +1,15 @@
 package de.osthus.ambeth.orm;
 
+import java.sql.Connection;
+
 import de.osthus.ambeth.database.IDatabaseMapper;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.util.ParamChecker;
 
 public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
@@ -63,7 +65,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapFields(IDatabase database)
+	public void mapFields(Connection connection, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -75,7 +77,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 *            Database to map to.
 	 */
 	@Override
-	public void mapLinks(IDatabase database)
+	public void mapLinks(Connection connection, IDatabaseMetaData database)
 	{
 		// Intended blank
 	}
@@ -86,7 +88,7 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 * @param table
 	 *            Table to map to.
 	 */
-	protected void mapIdAndVersion(ITable table)
+	protected void mapIdAndVersion(ITableMetaData table)
 	{
 		mapIdAndVersion(table, idName, versionName);
 	}
@@ -101,10 +103,10 @@ public class DefaultDatabaseMapper implements IDatabaseMapper, IInitializingBean
 	 * @param versionName
 	 *            Name of the version field.
 	 */
-	protected void mapIdAndVersion(ITable table, String idName, String versionName)
+	protected void mapIdAndVersion(ITableMetaData table, String idName, String versionName)
 	{
 		table.mapField(table.getIdField().getName(), idName);
-		IField versionField = table.getVersionField();
+		IFieldMetaData versionField = table.getVersionField();
 		if (versionField != null)
 		{
 			table.mapField(versionField.getName(), versionName);

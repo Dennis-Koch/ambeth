@@ -10,6 +10,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.Tuple3KeyHashMap;
 import de.osthus.ambeth.datachange.IDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
@@ -143,7 +144,7 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 
 	protected final Lock writeLock = new ReentrantLock();
 
-	protected final HashMap<PrivilegeKey, IPrivilege> privilegeCache = new HashMap<PrivilegeKey, IPrivilege>();
+	protected final LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
 
 	protected final Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Class<?>, String, String, ITypePrivilege>();
 

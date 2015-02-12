@@ -4,7 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import de.osthus.ambeth.appendable.IAppendable;
+import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -23,23 +23,7 @@ public class Measurement implements IMeasurement, IInitializingBean, IDisposable
 
 	protected final StringBuilder measurementXML = new StringBuilder();
 
-	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(new IAppendable()
-	{
-
-		@Override
-		public IAppendable append(char value)
-		{
-			measurementXML.append(value);
-			return this;
-		}
-
-		@Override
-		public IAppendable append(CharSequence value)
-		{
-			measurementXML.append(value);
-			return this;
-		}
-	}, null);
+	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
 
 	protected String measurementFile;
 

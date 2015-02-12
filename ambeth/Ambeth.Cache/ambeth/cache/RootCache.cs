@@ -34,9 +34,9 @@ using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Privilege;
 using De.Osthus.Ambeth.Security;
 using De.Osthus.Ambeth.Privilege.Model;
-using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Metadata;
+using De.Osthus.Ambeth.Merge.Config;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -125,7 +125,7 @@ namespace De.Osthus.Ambeth.Cache
         [Property(CacheConfigurationConstants.CacheLruThreshold, DefaultValue = "0")]
         public int LruThreshold { protected get; set; }
 
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
         [Property(ServiceConfigurationConstants.NetworkClientMode, DefaultValue = "false")]
@@ -508,7 +508,7 @@ namespace De.Osthus.Ambeth.Cache
                         for (int a = 0, size = objRels.Count; a < size; a++)
                         {
                             IObjRelation objRel = objRels[a];
-                            if (targetCache != null)
+                            if (targetCache != null && targetCache != this)
                             {
                                 IList<Object> cacheResult = targetCache.GetObjects(objRel.ObjRefs, CacheDirective.FailEarly);
                                 if (cacheResult.Count > 0)
@@ -630,7 +630,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 IObjRelation objRel = objRels[a];
                 IList<Object> cacheResult = null;
-                if (targetCache != null)
+                if (targetCache != null && targetCache != this)
                 {
                     cacheResult = targetCache.GetObjects(objRel.ObjRefs, CacheDirective.FailEarly);
                 }
@@ -850,26 +850,23 @@ namespace De.Osthus.Ambeth.Cache
 
                     objRelToResultMap.Add(objRel, objRelResult);
 
-                    IList<Object> cacheValues = GetObjects(objRel.ObjRefs, failEarlyCacheValueResultSet);
-
+                    IList<Object> cacheValues = GetObjects(objRel.ObjRefs, CacheDirective.CacheValueResult);
                     if (cacheValues.Count == 0)
                     {
                         continue;
                     }
                     RootCacheValue cacheValue = (RootCacheValue)cacheValues[0]; // Only first hit needed
-                    IObjRef[][] relations = cacheValue.GetRelations();
-
+                    
                     IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(objRel.RealType);
                     int index = metaData.GetIndexByRelationName(objRel.MemberName);
-                    UnregisterRelations(relations[index]);
+                    UnregisterRelations(cacheValue.GetRelation(index));
                     IObjRef[] relationsOfMember = objRelResult.Relations;
                     if (relationsOfMember.Length == 0)
                     {
                         relationsOfMember = ObjRef.EMPTY_ARRAY;
                     }
-                    relations[index] = relationsOfMember;
                     cacheValue.SetRelation(index, relationsOfMember);
-                    RegisterRelations(relations[index]);
+                    RegisterRelations(relationsOfMember);
                 }
             }
             finally
@@ -1076,8 +1073,10 @@ namespace De.Osthus.Ambeth.Cache
             try
             {
                 List<Object> result = new List<Object>(objRefsToGet.Count);
+                List<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>> runnables = null;
                 List<IObjRef> tempObjRefList = null;
                 IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs = null;
+                IdentityHashSet<IObjRef> greyListObjRefs = null;
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                 {
                     IObjRef objRefToGet = objRefsToGet[a];
@@ -1108,21 +1107,33 @@ namespace De.Osthus.Ambeth.Cache
                         LoadContainer loadContainer = new LoadContainer();
                         loadContainer.Reference = ObjRefFactory.CreateObjRef(cacheValue);
                         loadContainer.Primitives = cacheValue.GetPrimitives();
-                        relations = FilterRelations(relations, targetCache, filteringNecessary);
-                        if (relations != null && relations.Length > 0)
-                        {
-                            if (alreadyClonedObjRefs == null)
-                            {
-                                alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
-                            }
-                            IObjRef[][] objRefsClone = new IObjRef[relations.Length][];
-                            for (int b = relations.Length; b-- > 0; )
-                            {
-                                objRefsClone[b] = CloneObjectRefArray(relations[b], alreadyClonedObjRefs);
-                            }
-                            relations = objRefsClone;
-                        }
-                        loadContainer.Relations = relations;
+                        
+                        if (relations.Length == 0 || !filteringNecessary)
+					    {
+						    loadContainer.Relations = relations;
+						    result.Add(loadContainer);
+						    continue;
+					    }
+					    if (runnables == null)
+					    {
+						    runnables = new List<IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>>(size);
+						    greyListObjRefs = new IdentityHashSet<IObjRef>();
+                            alreadyClonedObjRefs = new IdentityDictionary<IObjRef, IObjRef>();
+						    tempObjRefList = new List<IObjRef>();
+					    }
+					    ScanForAllKnownRelations(relations, greyListObjRefs);
+
+					    List<IObjRef> fTempObjRefList = tempObjRefList;
+					    IdentityDictionary<IObjRef, IObjRef> fAlreadyClonedObjRefs = alreadyClonedObjRefs;
+					    runnables.Add(new IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>>(delegate(IdentityHashSet<IObjRef> whiteListObjRefs)
+						    {
+							    IObjRef[][] whiteListedRelations = FilterRelations(relations, whiteListObjRefs, fTempObjRefList);
+							    for (int b = whiteListedRelations.Length; b-- > 0;)
+							    {
+								    whiteListedRelations[b] = CloneObjectRefArray(whiteListedRelations[b], fAlreadyClonedObjRefs);
+							    }
+							    loadContainer.Relations = whiteListedRelations;
+						    }));
                         result.Add(loadContainer);
                     }
                     else if (cacheValueResult)
@@ -1139,6 +1150,15 @@ namespace De.Osthus.Ambeth.Cache
                         Object cacheHitObject = CreateObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary,
                             privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet[a] : null);
                         result.Add(cacheHitObject);
+                    }
+                }
+                if (runnables != null)
+                {
+                    IdentityHashSet<IObjRef> whiteListObjRefs = BuildWhiteListedObjRefs(greyListObjRefs);
+                    for (int a = runnables.Count; a-- > 0; )
+                    {
+                        IBackgroundWorkerParamDelegate<IdentityHashSet<IObjRef>> runnable = runnables[a];
+                        runnable(whiteListObjRefs);
                     }
                 }
                 return result;
@@ -1309,8 +1329,8 @@ namespace De.Osthus.Ambeth.Cache
 			    }
             }
             IObjRef[][] relations = cacheValue.GetRelations();
-            relations = FilterRelations(relations, targetCache, filteringNecessary);
-            targetCache.AddDirect(metaData, id, version, obj, cacheValue, cacheValue.GetRelations());
+            relations = FilterRelations(relations, filteringNecessary);
+            targetCache.AddDirect(metaData, id, version, obj, cacheValue, relations);
         }
 
         protected IPrivilege GetPrivilegeByObjRefWithoutReadLock(IObjRef objRef)
@@ -1357,46 +1377,68 @@ namespace De.Osthus.Ambeth.Cache
 		    }
 	    }
 
-        protected IObjRef[][] FilterRelations(IObjRef[][] relations, ICacheIntern targetCache, bool filteringNecessary)
-        {
-            if (relations.Length == 0 || !filteringNecessary)
-            {
-                return relations;
-            }
-            List<IObjRef> allKnownRelations = new List<IObjRef>();
-            for (int a = relations.Length; a-- > 0; )
-            {
-                IObjRef[] relationsOfMember = relations[a];
-                if (relationsOfMember == null)
-                {
-                    continue;
-                }
-                foreach (IObjRef relationOfMember in relationsOfMember)
-                {
-                    if (relationOfMember == null)
-                    {
-                        continue;
-                    }
-                    allKnownRelations.Add(relationOfMember);
-                }
-            }
-            if (allKnownRelations.Count == 0)
-            {
-                // nothing to filter
-                return relations;
-            }
-            IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(allKnownRelations.Count);
-            IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(allKnownRelations);
-            for (int a = privileges.Count; a-- > 0; )
-            {
-                IPrivilege privilege = privileges[a];
-                if (privilege.ReadAllowed)
-                {
-                    whiteListObjRefs.Add(allKnownRelations[a]);
-                }
-            }
+        protected void ScanForAllKnownRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> allKnownRelations)
+	    {
+		    for (int a = relations.Length; a-- > 0;)
+		    {
+			    IObjRef[] relationsOfMember = relations[a];
+			    if (relationsOfMember == null)
+			    {
+				    continue;
+			    }
+			    foreach (IObjRef relationOfMember in relationsOfMember)
+			    {
+				    if (relationOfMember == null)
+				    {
+					    continue;
+				    }
+				    allKnownRelations.Add(relationOfMember);
+			    }
+		    }
+	    }
+
+	    protected IdentityHashSet<IObjRef> BuildWhiteListedObjRefs(IdentityHashSet<IObjRef> greyListObjRefs)
+	    {
+		    IObjRef[] greyListArray = greyListObjRefs.ToArray();
+		    IdentityHashSet<IObjRef> whiteListObjRefs = IdentityHashSet<IObjRef>.Create(greyListArray.Length);
+		    IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(greyListObjRefs);
+		    for (int a = privileges.Count; a-- > 0;)
+		    {
+			    IPrivilege privilege = privileges[a];
+			    if (privilege.ReadAllowed)
+			    {
+				    whiteListObjRefs.Add(greyListArray[a]);
+			    }
+		    }
+		    return whiteListObjRefs;
+	    }
+
+	    protected IObjRef[][] FilterRelations(IObjRef[][] relations, bool filteringNecessary)
+	    {
+		    if (relations.Length == 0 || !filteringNecessary)
+		    {
+			    return relations;
+		    }
+		    IdentityHashSet<IObjRef> allKnownRelations = new IdentityHashSet<IObjRef>();
+		    ScanForAllKnownRelations(relations, allKnownRelations);
+		    if (allKnownRelations.Count == 0)
+		    {
+			    // nothing to filter
+			    return relations;
+		    }
+		    IdentityHashSet<IObjRef> whiteListObjRefs = BuildWhiteListedObjRefs(allKnownRelations);
+		    return FilterRelations(relations, whiteListObjRefs, null);
+	    }
+
+        protected IObjRef[][] FilterRelations(IObjRef[][] relations, IdentityHashSet<IObjRef> whiteListObjRefs, List<IObjRef> tempList)
+	    {
             IObjRef[][] filteredRelations = new IObjRef[relations.Length][];
-            List<IObjRef> filteredRelationsOfMember = new List<IObjRef>();
+            
+            if (tempList == null)
+		    {
+			    tempList = new List<IObjRef>();
+		    }
+		    // reuse list instance for performance reasons
             for (int a = relations.Length; a-- > 0; )
             {
                 IObjRef[] relationsOfMember = relations[a];
@@ -1404,7 +1446,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     continue;
                 }
-                filteredRelationsOfMember.Clear();
+                tempList.Clear();
                 foreach (IObjRef relationOfMember in relationsOfMember)
                 {
                     if (relationOfMember == null)
@@ -1413,10 +1455,10 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     if (whiteListObjRefs.Contains(relationOfMember))
                     {
-                        filteredRelationsOfMember.Add(relationOfMember);
+                        tempList.Add(relationOfMember);
                     }
                 }
-                filteredRelations[a] = filteredRelationsOfMember.Count > 0 ? filteredRelationsOfMember.ToArray() : ObjRef.EMPTY_ARRAY;
+                filteredRelations[a] = tempList.Count > 0 ? tempList.ToArray() : ObjRef.EMPTY_ARRAY;
             }
             return filteredRelations;
         }

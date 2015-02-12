@@ -9,8 +9,6 @@ namespace De.Osthus.Ambeth.Persistence
 
         String CurrentUser { get; set; }
 
-        IAlreadyLoadedCache GetAlreadyLoadedCache();
-
         void Acquired();
 
         void Clear();

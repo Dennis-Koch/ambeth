@@ -38,7 +38,14 @@ public abstract class AbstractSimpleInterceptor implements MethodInterceptor
 			// Do nothing. This is to prevent unnecessary exceptions in tomcat in REDEPLOY scenarios
 			return Boolean.TRUE;
 		}
-		return interceptIntern(obj, method, args, proxy);
+		try
+		{
+			return interceptIntern(obj, method, args, proxy);
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+		}
 	}
 
 	protected abstract Object interceptIntern(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable;

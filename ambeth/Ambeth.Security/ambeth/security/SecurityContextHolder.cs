@@ -10,11 +10,37 @@ using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Security
 {
+    public class SecurityContextForkProcessor : IForkProcessor
+	{
+		public Object ResolveOriginalValue(Object bean, String fieldName, Object fieldValueTL)
+		{
+			return ((ThreadLocal<ISecurityContext>)fieldValueTL).Value;
+		}
+
+		public Object CreateForkedValue(Object value)
+		{
+			if (value == null)
+			{
+				return null;
+			}
+			SecurityContextImpl original = (SecurityContextImpl) value;
+			SecurityContextImpl forkedValue = new SecurityContextImpl(original.SecurityContextHolder);
+			forkedValue.Authentication = original.Authentication;
+			forkedValue.Authorization = original.Authorization;
+			return forkedValue;
+		}
+
+		public void ReturnForkedValue(Object value, Object forkedValue)
+		{
+			// Intended blank
+		}
+	}
+
     public class SecurityContextHolder : IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
     {
         protected readonly DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>("authorizationChangeListener");
 
-        [Forkable]
+        [Forkable(Processor = typeof(SecurityContextForkProcessor))]
         protected readonly ThreadLocal<ISecurityContext> contextTL = new ThreadLocal<ISecurityContext>();
 
         public void NotifyAuthorizationChangeListeners(IAuthorization authorization)

@@ -26,7 +26,6 @@ import org.junit.Test;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.IInitializingModule;
@@ -56,6 +55,7 @@ import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.transfer.MaterialSmallVO;
 import de.osthus.ambeth.transfer.MaterialVO;
 
@@ -226,10 +226,10 @@ public class MapperTest extends AbstractPersistenceTest
 		ICacheProvider cacheProvider = beanContext.getService(ICacheProvider.class);
 
 		final ICache cache = cacheProvider.getCurrentCache();
-		cacheContext.executeWithCache(cache, new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cache, new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
 				expected.setName("testNewEntity");

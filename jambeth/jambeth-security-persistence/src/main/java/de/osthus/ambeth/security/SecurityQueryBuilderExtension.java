@@ -13,15 +13,15 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IPermissionGroup;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQueryBuilderExtension;
 import de.osthus.ambeth.query.IQueryBuilderIntern;
 import de.osthus.ambeth.query.ISqlJoin;
 import de.osthus.ambeth.query.QueryType;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 
 public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 {
@@ -30,7 +30,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 	private ILogger log;
 
 	@Autowired
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
@@ -38,7 +38,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 	@Autowired
 	protected ISecurityContextHolder securityContextHolder;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Override
@@ -49,14 +49,14 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 		{
 			return null;
 		}
-		IDatabase database = this.database.getCurrent();
+		IDatabaseMetaData databaseMetaData = this.databaseMetaData;
 		IOperand userIdCriteriaOperand = queryBuilder.valueName(SqlPermissionOperand.USER_ID_CRITERIA_NAME);
 		IOperand valueCriteriaOperand = queryBuilder.value(Boolean.TRUE);
 		ArrayList<ISqlJoin> permissionGroupJoins = new ArrayList<ISqlJoin>();
 		ArrayList<IOperand> readPermissionValueColumns = new ArrayList<IOperand>();
 		ArrayList<IOperand> readPermissionUserIdColumns = new ArrayList<IOperand>();
 		{
-			ITable tableOfEntity = database.getTableByType(queryBuilder.getEntityType());
+			ITableMetaData tableOfEntity = databaseMetaData.getTableByType(queryBuilder.getEntityType());
 			ISqlJoin join = createJoin(tableOfEntity.getName(), queryBuilder, readPermissionValueColumns, readPermissionUserIdColumns, queryBeanContextFactory,
 					null);
 			if (join != null)
@@ -94,7 +94,7 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 	protected ISqlJoin createJoin(String tableNameOfJoin, IQueryBuilderIntern<?> queryBuilder, List<IOperand> readPermissionValueColumns,
 			List<IOperand> readPermissionUserIdColumns, IBeanContextFactory queryBeanContextFactory, ISqlJoin baseJoin)
 	{
-		IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(tableNameOfJoin);
+		IPermissionGroup permissionGroup = databaseMetaData.getPermissionGroupOfTable(tableNameOfJoin);
 		if (permissionGroup == null)
 		{
 			// this join is a either link-table join which has (currently) no permission group
@@ -102,11 +102,11 @@ public class SecurityQueryBuilderExtension implements IQueryBuilderExtension
 			return null;
 		}
 		String tableName = permissionGroup.getTable().getName();
-		IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), baseJoin);
-		IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), baseJoin);
+		IOperand columnOperand = queryBuilder.column(permissionGroup.getPermissionGroupFieldOnTarget().getName(), baseJoin, false);
+		IOperand readPermissionIdColumn = queryBuilder.column(permissionGroup.getPermissionGroupField().getName(), baseJoin, false);
 		ISqlJoin join = queryBuilder.joinIntern(tableName, columnOperand, readPermissionIdColumn, JoinType.INNER, queryBeanContextFactory);
-		readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join));
-		readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), join));
+		readPermissionValueColumns.add(queryBuilder.column(permissionGroup.getReadPermissionField().getName(), join, false));
+		readPermissionUserIdColumns.add(queryBuilder.column(permissionGroup.getUserField().getName(), join, false));
 		return join;
 	}
 

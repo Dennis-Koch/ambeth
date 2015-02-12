@@ -84,6 +84,10 @@
       <Project>{470B5E14-25AD-448A-9C8B-50A594E84EF6}</Project>
       <Name>Ambeth.Log.SL4</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.SL4.csproj">
+      <Project>{ba00bde1-75cb-438f-85b6-3ba2a6f0f6d3}</Project>
+      <Name>Ambeth.Merge.SL4</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.Persistence.API\Ambeth.Persistence.API.SL4.csproj">
       <Project>{7ba3eba6-b63d-4a5c-89ac-0d769f9df8a9}</Project>
       <Name>Ambeth.Persistence.API.SL4</Name>

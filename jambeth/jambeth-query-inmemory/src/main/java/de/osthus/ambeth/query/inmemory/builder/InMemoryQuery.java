@@ -7,7 +7,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryIntern;
 import de.osthus.ambeth.query.IQueryKey;
@@ -47,12 +46,6 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		return null;
-	}
-
-	@Override
 	public IVersionCursor retrieveAsVersions()
 	{
 		return null;
@@ -60,6 +53,18 @@ public class InMemoryQuery<T> implements IQuery<T>, IQueryIntern<T>
 
 	@Override
 	public IDataCursor retrieveAsData()
+	{
+		return null;
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return null;
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds)
 	{
 		return null;
 	}

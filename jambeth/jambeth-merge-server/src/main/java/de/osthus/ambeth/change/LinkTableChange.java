@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.IDirectedLink;
 import de.osthus.ambeth.persistence.ILink;
@@ -16,14 +17,6 @@ import de.osthus.ambeth.service.IChangeAggregator;
 public class LinkTableChange extends AbstractTableChange
 {
 	protected final HashMap<IObjRef, ILinkChangeCommand> rowCommands = new HashMap<IObjRef, ILinkChangeCommand>();
-
-	@Override
-	public void dispose()
-	{
-		rowCommands.clear();
-
-		super.dispose();
-	}
 
 	@Override
 	public void addChangeCommand(IChangeCommand command)
@@ -42,13 +35,15 @@ public class LinkTableChange extends AbstractTableChange
 	public void addChangeCommand(ILinkChangeCommand command)
 	{
 		HashMap<IObjRef, ILinkChangeCommand> rowCommands = this.rowCommands;
-		if (!rowCommands.containsKey(command.getReference()))
+		IObjRef reference = command.getReference();
+		ILinkChangeCommand existingCommand = rowCommands.get(reference);
+		if (existingCommand != null)
 		{
-			rowCommands.put(command.getReference(), command);
+			existingCommand.addCommand(command);
 		}
 		else
 		{
-			rowCommands.get(command.getReference()).addCommand(command);
+			rowCommands.put(reference, command);
 		}
 	}
 
@@ -110,5 +105,10 @@ public class LinkTableChange extends AbstractTableChange
 				link.clearBatch();
 			}
 		}
+	}
+
+	public IMap<IObjRef, ILinkChangeCommand> getRowCommands()
+	{
+		return rowCommands;
 	}
 }

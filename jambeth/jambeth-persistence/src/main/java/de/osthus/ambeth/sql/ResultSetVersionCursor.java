@@ -1,56 +1,24 @@
 package de.osthus.ambeth.sql;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.merge.transfer.ObjRef;
-import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
-import de.osthus.ambeth.util.IDisposable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class ResultSetVersionCursor implements IVersionCursor, IVersionItem, IDisposable, IInitializingBean
+public class ResultSetVersionCursor extends ResultSetPkVersionCursor
 {
 	private static final Object[] EMPTY_ALTERNATE_IDS = new Object[0];
 
-	protected IResultSet resultSet;
-
-	protected Object id, version;
-
 	protected Object[] alternateIds;
-
-	protected boolean containsVersion = true;
 
 	protected int systemColumnCount;
 
 	@Override
 	public void afterPropertiesSet()
 	{
-		ParamChecker.assertNotNull(resultSet, "ResultSet");
+		super.afterPropertiesSet();
 		systemColumnCount = containsVersion ? 2 : 1;
 	}
 
-	public void setContainsVersion(boolean containsVersion)
-	{
-		this.containsVersion = containsVersion;
-	}
-
-	public IResultSet getResultSet()
-	{
-		return resultSet;
-	}
-
-	public void setResultSet(IResultSet resultSet)
-	{
-		this.resultSet = resultSet;
-	}
-
 	@Override
-	public Object getId()
-	{
-		return id;
-	}
-
-	@Override
-	public Object getId(byte idIndex)
+	public Object getId(int idIndex)
 	{
 		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{
@@ -63,21 +31,9 @@ public class ResultSetVersionCursor implements IVersionCursor, IVersionItem, IDi
 	}
 
 	@Override
-	public Object getVersion()
+	public int getAlternateIdCount()
 	{
-		return version;
-	}
-
-	@Override
-	public byte getAlternateIdCount()
-	{
-		return (byte) alternateIds.length;
-	}
-
-	@Override
-	public IVersionItem getCurrent()
-	{
-		return this;
+		return alternateIds.length;
 	}
 
 	@Override
@@ -114,15 +70,5 @@ public class ResultSetVersionCursor implements IVersionCursor, IVersionItem, IDi
 			return true;
 		}
 		return false;
-	}
-
-	@Override
-	public void dispose()
-	{
-		if (resultSet != null)
-		{
-			resultSet.dispose();
-			resultSet = null;
-		}
 	}
 }

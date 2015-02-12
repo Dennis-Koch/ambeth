@@ -446,7 +446,7 @@ public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupB
 				}
 			}
 		}
-		else if (String.class.equals(expectedType))
+		else if (CharSequence.class.isAssignableFrom(expectedType))
 		{
 			if (Class.class.isAssignableFrom(type))
 			{

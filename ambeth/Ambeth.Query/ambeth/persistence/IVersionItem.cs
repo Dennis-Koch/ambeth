@@ -6,10 +6,10 @@ namespace De.Osthus.Ambeth.Persistence
     {
         Object GetId();
 
-        Object GetId(sbyte idIndex);
+        Object GetId(int idIndex);
 
         Object GetVersion();
 
-        sbyte GetAlternateIdCount();
+        int GetAlternateIdCount();
     }
 }
