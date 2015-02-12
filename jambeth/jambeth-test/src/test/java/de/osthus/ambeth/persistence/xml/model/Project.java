@@ -7,6 +7,8 @@ import de.osthus.ambeth.model.AbstractEntity;
 
 public class Project extends AbstractEntity
 {
+	public static final String Name = "Name";
+
 	protected String name;
 
 	protected Set<Employee> employees;

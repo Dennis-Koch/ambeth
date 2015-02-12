@@ -54,11 +54,14 @@ namespace De.Osthus.Ambeth.Ioc
         {
             beanContextFactory.RegisterAutowireableBean<IMergeController, MergeController>();
             beanContextFactory.RegisterAutowireableBean<IMergeProcess, MergeProcess>();
+            beanContextFactory.RegisterAutowireableBean<ICUDResultApplier, CUDResultApplier>();
+		    beanContextFactory.RegisterAutowireableBean<ICUDResultComparer, CUDResultComparer>();
 
             beanContextFactory.RegisterAutowireableBean<CompositeIdMixin, CompositeIdMixin>();
             beanContextFactory.RegisterAutowireableBean<ObjRefMixin, ObjRefMixin>();
 
             beanContextFactory.RegisterBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
+            beanContextFactory.RegisterBean<SecurityActivation>().Autowireable<ISecurityActivation>();
 
             beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
 
@@ -67,7 +70,7 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
 
-            beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable));
+            beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable), typeof(IMergeListenerExtendable));
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterBean<ValueObjectMap>();
 

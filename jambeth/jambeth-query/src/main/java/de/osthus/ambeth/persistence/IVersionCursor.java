@@ -8,5 +8,5 @@ public interface IVersionCursor extends IDisposable
 
 	IVersionItem getCurrent();
 
-	byte getAlternateIdCount();
+	int getAlternateIdCount();
 }

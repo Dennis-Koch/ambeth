@@ -53,6 +53,9 @@ namespace De.Osthus.Ambeth.Mixin
         [Autowired]
         public IThreadPool ThreadPool { protected get; set; }
 
+        [Autowired(Optional = true)]
+        public ILightweightTransaction Transaction { protected get; set; }
+
         public ValueHolderContainerMixin()
         {
             loadAllPendingValueHoldersQGK = new QueueGroupKey<DirectValueHolderRef>(100, false, LoadAllPendingValueHolders);
@@ -180,15 +183,35 @@ namespace De.Osthus.Ambeth.Mixin
                     IObjRelation self = GetSelf(entity, relationIndex);
                     List<IObjRelation> selfs = new List<IObjRelation>(1);
                     selfs.Add(self);
-                    IList<IObjRelationResult> objRelResults = targetCache.GetObjRelations(selfs, targetCache, cacheDirective);
-                    if (objRelResults.Count == 0)
+
+                    if (Transaction != null)
                     {
-                        results = EmptyList.Empty<Object>();
+                        results = Transaction.RunInLazyTransaction(new IResultingBackgroundWorkerDelegate<IList<Object>>(delegate()
+                        {
+                            IList<IObjRelationResult> objRelResults = targetCache.GetObjRelations(selfs, targetCache, cacheDirective);
+                            if (objRelResults.Count == 0)
+                            {
+                                return EmptyList.Empty<Object>();
+                            }
+                            else
+                            {
+                                IObjRelationResult objRelResult = objRelResults[0];
+                                return targetCache.GetObjects(new List<IObjRef>(objRelResult.Relations), targetCache, cacheDirective);
+                            }
+                        }));
                     }
                     else
                     {
-                        IObjRelationResult objRelResult = objRelResults[0];
-                        results = targetCache.GetObjects(new List<IObjRef>(objRelResult.Relations), targetCache, cacheDirective);
+                        IList<IObjRelationResult> objRelResults = targetCache.GetObjRelations(selfs, targetCache, cacheDirective);
+                        if (objRelResults.Count == 0)
+                        {
+                            results = EmptyList.Empty<Object>();
+                        }
+                        else
+                        {
+                            IObjRelationResult objRelResult = objRelResults[0];
+                            results = targetCache.GetObjects(new List<IObjRef>(objRelResult.Relations), targetCache, cacheDirective);
+                        }
                     }
                 }
                 else

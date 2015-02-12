@@ -12,9 +12,9 @@ namespace De.Osthus.Minerva.Mock
 
         Lock GetWriteLock();
 
-        void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn);
+        void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn);
 
-        void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn);
+        void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn);
 
         void RemoveObject(IObjRef objRef);
     }

@@ -8,9 +8,10 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 
 public abstract class AbstractChildContextHandle implements IInitializingBean, IContextHandle, IDisposableBean
@@ -20,7 +21,7 @@ public abstract class AbstractChildContextHandle implements IInitializingBean, I
 
 	protected IContextFactory contextFactory;
 
-	protected RegisterPhaseDelegate registerPhaseDelegate;
+	protected IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate;
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -41,7 +42,7 @@ public abstract class AbstractChildContextHandle implements IInitializingBean, I
 		this.contextFactory = contextFactory;
 	}
 
-	public void setRegisterPhaseDelegate(RegisterPhaseDelegate registerPhaseDelegate)
+	public void setRegisterPhaseDelegate(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
 	{
 		this.registerPhaseDelegate = registerPhaseDelegate;
 	}
@@ -96,7 +97,7 @@ public abstract class AbstractChildContextHandle implements IInitializingBean, I
 	}
 
 	@Override
-	public IServiceContext start(RegisterPhaseDelegate registerPhaseDelegate)
+	public IServiceContext start(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
 	{
 		if (registerPhaseDelegate == null)
 		{

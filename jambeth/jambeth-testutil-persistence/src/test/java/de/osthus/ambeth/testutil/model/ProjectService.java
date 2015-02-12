@@ -1,55 +1,48 @@
 package de.osthus.ambeth.testutil.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import de.osthus.ambeth.ioc.IInitializingBean;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.IServiceUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.proxy.Service;
-import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.ambeth.query.IQuery;
+import de.osthus.ambeth.query.IQueryBuilder;
+import de.osthus.ambeth.query.IQueryBuilderFactory;
 
 @Service(IProjectService.class)
 @PersistenceContext
 public class ProjectService implements IInitializingBean, IProjectService
 {
+	@Autowired
+	protected IQueryBuilderFactory queryBuilderFactory;
 
-	protected IDatabase database;
+	protected IQuery<Project> queryProjectAll;
 
-	protected IServiceUtil serviceUtil;
+	protected IQuery<Project> queryProjectByName;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
-		ParamChecker.assertNotNull(serviceUtil, "serviceUtil");
-		ParamChecker.assertNotNull(database, "database");
-	}
-
-	public void setServiceUtil(IServiceUtil serviceUtil)
-	{
-		this.serviceUtil = serviceUtil;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
+		{
+			queryProjectAll = queryBuilderFactory.create(Project.class).build();
+		}
+		{
+			IQueryBuilder<Project> qb = queryBuilderFactory.create(Project.class);
+			queryProjectByName = qb.build(qb.isEqualTo(qb.property(Project.Name), qb.valueName(Project.Name)));
+		}
 	}
 
 	@Override
 	public List<Project> getAllProjects()
 	{
-		List<Project> projects = new ArrayList<Project>();
-		serviceUtil.loadObjectsIntoCollection(projects, Project.class, database.getTableByType(Project.class).selectAll());
-		return projects;
+		return queryProjectAll.retrieve();
 	}
 
 	@Override
 	public Project getProjectByName(String name)
 	{
-		IField nameField = database.getTableByType(Project.class).getFieldByMemberName("Name");
-		return serviceUtil.loadObject(Project.class, nameField.findSingle(name));
+		return queryProjectByName.param(Project.Name, name).retrieveSingle();
 	}
 
 	@Override

@@ -10,7 +10,6 @@ import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
 import de.osthus.ambeth.util.IAlreadyLinkedCache;
-import de.osthus.ambeth.util.IAlreadyLoadedCache;
 import de.osthus.ambeth.util.IInterningFeature;
 
 public class ContextProvider implements IContextProvider, IAuthorizationChangeListener
@@ -26,9 +25,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 
 	@Autowired
 	protected ISecurityScopeProvider securityScopeProvider;
-
-	@Autowired
-	protected IAlreadyLoadedCache alreadyLoadedCache;
 
 	@Autowired
 	protected IAlreadyLinkedCache alreadyLinkedCache;
@@ -80,12 +76,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	}
 
 	@Override
-	public IAlreadyLoadedCache getAlreadyLoadedCache()
-	{
-		return alreadyLoadedCache;
-	}
-
-	@Override
 	public void clear()
 	{
 		clearAfterMerge();
@@ -97,7 +87,6 @@ public class ContextProvider implements IContextProvider, IAuthorizationChangeLi
 	@Override
 	public void clearAfterMerge()
 	{
-		alreadyLoadedCache.clear();
 		alreadyLinkedCache.clear();
 	}
 

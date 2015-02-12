@@ -39,7 +39,7 @@ import de.osthus.ambeth.threading.IGuiThreadHelper;
 
 public class MergeProcess implements IMergeProcess
 {
-	private static ThreadLocal<Boolean> addNewlyPersistedEntitiesTL = new ThreadLocal<Boolean>();
+	private static final ThreadLocal<Boolean> addNewlyPersistedEntitiesTL = new ThreadLocal<Boolean>();
 
 	public static final boolean isAddNewlyPersistedEntities()
 	{
@@ -109,30 +109,36 @@ public class MergeProcess implements IMergeProcess
 	protected void mergePhase1(final Object objectToMerge, final Object objectToDelete, final ProceedWithMergeHook proceedHook,
 			final MergeFinishedCallback mergeFinishedCallback, final boolean addNewEntitiesToCache)
 	{
+		final ICUDResult cudResult;
+		final MergeHandle mergeHandle;
 		IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "MergeProcess.ORIGINAL");
 		try
 		{
-			final MergeHandle mergeHandle = beanContext.registerBean(MergeHandle.class).propertyValue("Cache", childCache).finish();
-			final ICUDResult cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
-			if (guiThreadHelper.isInGuiThread())
-			{
-				mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
-			}
-			else
-			{
-				guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate()
-				{
-					@Override
-					public void invoke() throws Throwable
-					{
-						mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
-					}
-				});
-			}
+			mergeHandle = beanContext.registerBean(MergeHandle.class)//
+					.propertyValue("Cache", childCache)//
+					.finish();
+			cudResult = mergeController.mergeDeep(objectToMerge, mergeHandle);
+			mergeHandle.setCache(null);
 		}
 		finally
 		{
 			childCache.dispose();
+			childCache = null;
+		}
+		if (guiThreadHelper.isInGuiThread())
+		{
+			mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+		}
+		else
+		{
+			guiThreadHelper.invokeInGui(new IBackgroundWorkerDelegate()
+			{
+				@Override
+				public void invoke() throws Throwable
+				{
+					mergePhase2(objectToMerge, objectToDelete, mergeHandle, cudResult, proceedHook, mergeFinishedCallback, addNewEntitiesToCache);
+				}
+			});
 		}
 	}
 
@@ -398,34 +404,11 @@ public class MergeProcess implements IMergeProcess
 					{
 						oriColl = mergeService.merge(cudResult, null);
 
-						if (guiThreadHelper.isInGuiThread())
-						{
-							mergeController.applyChangesToOriginals(cudResult.getOriginalRefs(), oriColl.getAllChangeORIs(), oriColl.getChangedOn(),
-									oriColl.getChangedBy());
-						}
-						else
-						{
-							guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
-							{
-								@Override
-								public void invoke() throws Throwable
-								{
-									mergeController.applyChangesToOriginals(cudResult.getOriginalRefs(), oriColl.getAllChangeORIs(), oriColl.getChangedOn(),
-											oriColl.getChangedBy());
-								}
-							});
-						}
+						mergeController.applyChangesToOriginals(cudResult, oriColl, null);
 					}
 					finally
 					{
-						if (oldNewlyPersistedEntities != null)
-						{
-							addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);
-						}
-						else
-						{
-							addNewlyPersistedEntitiesTL.remove();
-						}
+						addNewlyPersistedEntitiesTL.set(oldNewlyPersistedEntities);
 					}
 				}
 				finally

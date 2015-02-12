@@ -23,11 +23,15 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
+import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.sql.ISqlBuilder;
 
 public class H2Dialect extends AbstractConnectionDialect
 {
@@ -39,6 +43,9 @@ public class H2Dialect extends AbstractConnectionDialect
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseProtocol)
 	protected String protocol;
@@ -292,6 +299,42 @@ public class H2Dialect extends AbstractConnectionDialect
 		finally
 		{
 			JdbcUtil.close(pstm, rs);
+		}
+	}
+
+	@Override
+	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
+	{
+		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
+		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
+		try
+		{
+			ArrayList<IColumnEntry> columns = new ArrayList<IColumnEntry>();
+			while (tableColumnsRS.next())
+			{
+				String fieldName = tableColumnsRS.getString("COLUMN_NAME");
+				int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
+				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
+
+				String typeName = tableColumnsRS.getString("TYPE_NAME");
+
+				String isNullable = tableColumnsRS.getString("IS_NULLABLE");
+				boolean nullable = "YES".equalsIgnoreCase(isNullable);
+
+				int scale = tableColumnsRS.getInt("COLUMN_SIZE");
+				int digits = tableColumnsRS.getInt("DECIMAL_DIGITS");
+				int radix = tableColumnsRS.getInt("NUM_PREC_RADIX");
+
+				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
+
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				columns.add(entry);
+			}
+			return columns;
+		}
+		finally
+		{
+			JdbcUtil.close(tableColumnsRS);
 		}
 	}
 }

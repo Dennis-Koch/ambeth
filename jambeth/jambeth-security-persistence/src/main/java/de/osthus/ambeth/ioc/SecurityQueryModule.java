@@ -10,13 +10,13 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.privilege.IEntityPermissionRuleEvent;
 import de.osthus.ambeth.query.IQueryBuilderExtensionExtendable;
 import de.osthus.ambeth.security.IPermissionGroupUpdater;
 import de.osthus.ambeth.security.PermissionGroupUpdater;
 import de.osthus.ambeth.security.SecurityQueryBuilderExtension;
 import de.osthus.ambeth.security.UpdatePermissionGroupEventListener;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 
 @FrameworkModule
 public class SecurityQueryModule implements IInitializingModule
@@ -25,7 +25,7 @@ public class SecurityQueryModule implements IInitializingModule
 	@LogInstance
 	private ILogger log;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Override

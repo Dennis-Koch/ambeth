@@ -66,7 +66,7 @@ namespace De.Osthus.Ambeth.Config
                         }
                         if (!propertyInitialized)
                         {
-                            throw new BeanContextInitException("Mandatory property '" + propName + "' not initialized");
+                            throw new Exception("Mandatory property '" + propName + "' not initialized");
                         }
                     }
                     continue;

@@ -82,7 +82,7 @@ public class DefaultQueryResultRetriever implements IQueryResultRetriever
 				}
 				ArrayList<Object> versionList = new ArrayList<Object>();
 
-				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap);
+				IVersionCursor versionCursor = query.retrieveAsVersions(currentNameToValueMap, true);
 				try
 				{
 					while (versionCursor.moveNext())

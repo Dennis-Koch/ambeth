@@ -9,7 +9,9 @@ import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.PostProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -17,7 +19,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ReflectUtil;
 
-public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean
+public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor, IInitializingBean, IOrderedBeanPostProcessor
 {
 	@LogInstance
 	private ILogger log;
@@ -35,6 +37,12 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
 	public void setProxyFactory(IProxyFactory proxyFactory)
 	{
 		this.proxyFactory = proxyFactory;
+	}
+
+	@Override
+	public PostProcessorOrder getOrder()
+	{
+		return PostProcessorOrder.DEFAULT;
 	}
 
 	@Override
@@ -61,7 +69,7 @@ public abstract class AbstractCascadePostProcessor implements IBeanPostProcessor
 		}
 		if (log.isDebugEnabled())
 		{
-			log.debug(getClass().getSimpleName() + " intercepted bean with name '" + beanConfiguration.getName() + "'");
+			log.debug("Proxying bean with name '" + beanConfiguration.getName() + "' by " + getClass().getName());
 		}
 		if (cascadedInterceptor == null)
 		{

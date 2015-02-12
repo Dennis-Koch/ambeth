@@ -21,7 +21,7 @@ import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.datachange.transfer.DataChangeEntry;
 import de.osthus.ambeth.datachange.transfer.DataChangeEvent;
 import de.osthus.ambeth.event.IEventDispatcher;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -30,94 +30,47 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IPersistenceHelper;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.util.IConversionHelper;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class OracleDatabaseChangeListener implements DatabaseChangeListener, IInitializingBean
+public class OracleDatabaseChangeListener implements DatabaseChangeListener
 {
 	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected IConversionHelper conversionHelper;
 
+	@Autowired
 	protected IDatabase database;
 
+	@Autowired
+	protected IDatabaseMetaData databaseMetaData;
+
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
+	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired
 	protected IPersistenceHelper persistenceHelper;
 
+	@Autowired
 	protected ISqlBuilder sqlBuilder;
 
+	@Autowired
 	protected IThreadLocalCleanupController threadLocalCleanupController;
 
+	@Autowired
 	protected ITransaction transaction;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(conversionHelper, "ConversionHelper");
-		ParamChecker.assertNotNull(database, "Database");
-		ParamChecker.assertNotNull(entityMetaDataProvider, "EntityMetaDataProvider");
-		ParamChecker.assertNotNull(eventDispatcher, "EventDispatcher");
-		ParamChecker.assertNotNull(objectCollector, "ObjectCollector");
-		ParamChecker.assertNotNull(persistenceHelper, "PersistenceHelper");
-		ParamChecker.assertNotNull(sqlBuilder, "SqlBuilder");
-		ParamChecker.assertNotNull(threadLocalCleanupController, "threadLocalCleanupController");
-		ParamChecker.assertNotNull(transaction, "Transaction");
-	}
-
-	public void setConversionHelper(IConversionHelper conversionHelper)
-	{
-		this.conversionHelper = conversionHelper;
-	}
-
-	public void setDatabase(IDatabase database)
-	{
-		this.database = database;
-	}
-
-	public void setEntityMetaDataProvider(IEntityMetaDataProvider entityMetaDataProvider)
-	{
-		this.entityMetaDataProvider = entityMetaDataProvider;
-	}
-
-	public void setEventDispatcher(IEventDispatcher eventDispatcher)
-	{
-		this.eventDispatcher = eventDispatcher;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
-
-	public void setPersistenceHelper(IPersistenceHelper persistenceHelper)
-	{
-		this.persistenceHelper = persistenceHelper;
-	}
-
-	public void setSqlBuilder(ISqlBuilder sqlBuilder)
-	{
-		this.sqlBuilder = sqlBuilder;
-	}
-
-	public void setThreadLocalCleanupController(IThreadLocalCleanupController threadLocalCleanupController)
-	{
-		this.threadLocalCleanupController = threadLocalCleanupController;
-	}
-
-	public void setTransaction(ITransaction transaction)
-	{
-		this.transaction = transaction;
-	}
 
 	@Override
 	public void onDatabaseChangeNotification(final DatabaseChangeEvent databaseChangeEvent)
@@ -166,7 +119,7 @@ public class OracleDatabaseChangeListener implements DatabaseChangeListener, IIn
 			for (TableChangeDescription tcDesc : tcDescs)
 			{
 				String tableName = tcDesc.getTableName();
-				ITable table = database.getTableByName(tableName);
+				ITableMetaData table = databaseMetaData.getTableByName(tableName);
 				if (table == null)
 				{
 					continue;

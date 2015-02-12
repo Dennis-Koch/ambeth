@@ -67,6 +67,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
     	private static readonly MethodInstance m_vhce_setUninitialized_Member = new MethodInstance(null, typeof(ValueHolderContainerEntry), typeof(void),
 			"SetUninitialized", typeof(Object), typeof(int), typeof(IObjRef[]));
 
+        private static readonly MethodInstance m_template_getCache = new MethodInstance(null, typeof(IObjRefContainer), typeof(ICache), "Get__Cache");
+
         private static readonly MethodInstance m_template_getState_Member = new MethodInstance(null, typeof(IObjRefContainer), typeof(ValueHolderState), "Get__State", typeof(int));
 
         private static readonly MethodInstance m_template_setInitPending_Member = new MethodInstance(null, typeof(IValueHolderContainer), typeof(void), "Set__InitPending", typeof(int));
@@ -364,7 +366,7 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             if (EmbeddedEnhancementHint.HasMemberPath(State.Context))
             {
                 PropertyInstance p_rootEntity = EmbeddedTypeVisitor.GetRootEntityProperty(this);
-                return ImplementProperty(p_template_targetCache, delegate(IMethodVisitor mv)
+                PropertyInstance p_targetCache2 = ImplementProperty(p_template_targetCache, delegate(IMethodVisitor mv)
                 {
                     Label l_finish = mv.NewLabel();
                     mv.CallThisGetter(p_rootEntity);
@@ -375,12 +377,20 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     mv.Mark(l_finish);
                     mv.ReturnValue();
                 }, null);
+
+                {
+                    IMethodVisitor mg = VisitMethod(m_template_getCache);
+                    mg.CallThisGetter(p_targetCache2);
+                    mg.ReturnValue();
+                    mg.EndMethod();
+                }
+                return p_targetCache2;
             }
             ImplementSelfGetter(p_valueHolderContainerTemplate);
 
             FieldInstance f_targetCache = ImplementField(new FieldInstance(FieldAttributes.Private, "__targetCache", p_template_targetCache.PropertyType));
 
-            return ImplementProperty(p_template_targetCache, delegate(IMethodVisitor mv)
+            PropertyInstance p_targetCache = ImplementProperty(p_template_targetCache, delegate(IMethodVisitor mv)
             {
                 mv.GetThisField(f_targetCache);
                 mv.ReturnValue();
@@ -392,6 +402,13 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 });
                 mv.ReturnValue();
             });
+            {
+                IMethodVisitor mg = VisitMethod(m_template_getCache);
+                mg.CallThisGetter(p_targetCache);
+                mg.ReturnValue();
+                mg.EndMethod();
+            }
+            return p_targetCache;
         }
 
         protected void ImplementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_targetCache, PropertyInstance p_relationMembers)

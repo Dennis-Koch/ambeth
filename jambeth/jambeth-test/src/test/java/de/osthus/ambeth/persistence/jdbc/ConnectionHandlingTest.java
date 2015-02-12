@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.persistence.IDatabase;
@@ -30,7 +29,6 @@ public class ConnectionHandlingTest extends AbstractPersistenceTest
 	@Test
 	public void testClosedConnection_1()
 	{
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		transaction.processAndCommit(new DatabaseCallback()
 		{
 			@Override
@@ -54,7 +52,6 @@ public class ConnectionHandlingTest extends AbstractPersistenceTest
 	public void testClosedConnection_2()
 	{
 		final Connection connection = beanContext.getService(Connection.class);
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		try
 		{
 			transaction.processAndCommit(new DatabaseCallback()
@@ -96,7 +93,6 @@ public class ConnectionHandlingTest extends AbstractPersistenceTest
 	public void testClosedConnection_3()
 	{
 		final Connection connection = beanContext.getService(Connection.class);
-		ITransaction transaction = beanContext.getService(ITransaction.class);
 		try
 		{
 			transaction.processAndCommit(new DatabaseCallback()

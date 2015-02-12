@@ -1,6 +1,5 @@
 package de.osthus.ambeth.persistence;
 
-import java.util.Collection;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IList;
@@ -13,6 +12,8 @@ import de.osthus.ambeth.util.IDisposable;
  */
 public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 {
+	IDatabaseMetaData getMetaData();
+
 	/**
 	 * Returns the dispose state of the current instance
 	 * 
@@ -73,8 +74,6 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 */
 	IContextProvider getContextProvider();
 
-	Collection<Class<?>> getHandledEntities();
-
 	/**
 	 * Getter for the database pool this instance is managed by.
 	 * 
@@ -118,11 +117,6 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	String[] getSchemaNames();
 
 	/**
-	 * @return Maximum characters this database instance supports as a symbol name
-	 */
-	int getMaxNameLength();
-
-	/**
 	 * Getter for alle tables in this database.
 	 * 
 	 * @return List of all tables in this database.
@@ -155,47 +149,6 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	ITable getArchiveTableByType(Class<?> entityType);
 
 	/**
-	 * Getter for a permission group table table identified by either an entity table or a link table.
-	 * 
-	 * @param tableName
-	 *            name of either an entity table or a link table
-	 * @return The permission group table
-	 */
-	IPermissionGroup getPermissionGroupOfTable(String tableName);
-
-	/**
-	 * Maps a table identified by name to a given entity type.
-	 * 
-	 * @param tableName
-	 *            Name of the table to map.
-	 * @param entityType
-	 *            Type to map to a table.
-	 * @return Mapped table.
-	 */
-	ITable mapTable(String tableName, Class<?> entityType);
-
-	/**
-	 * Maps a table identified by name as archive table to a given entity type.
-	 * 
-	 * @param tableName
-	 *            Name of the table to map.
-	 * @param entityType
-	 *            Type to map to a table.
-	 * @return Mapped table.
-	 */
-	ITable mapArchiveTable(String tableName, Class<?> entityType);
-
-	/**
-	 * Maps a table identified by name as permission group table to a given entity type.
-	 * 
-	 * @param tableName
-	 *            Name of the table to map.
-	 * @param entityType
-	 *            Type to map to a table.
-	 */
-	void mapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable);
-
-	/**
 	 * Getter for a table identified by name.
 	 * 
 	 * @param tableName
@@ -203,25 +156,6 @@ public interface IDatabase extends IDisposable, IDatabaseDisposeHookExtendable
 	 * @return Table of given name.
 	 */
 	ITable getTableByName(String tableName);
-
-	/**
-	 * Getter for a link identified by name.
-	 * 
-	 * @param linkName
-	 *            Identifying name.
-	 * @return Link of given name.
-	 */
-	ILink getLinkByName(String linkName);
-
-	/**
-	 * 
-	 * @param linkSource
-	 *            Name of the link-defining thing (link table or foreign key constraint)
-	 * @return Link defined by the given name.
-	 */
-	ILink getLinkByDefiningName(String definingName);
-
-	void addLinkByTables(ILink link);
 
 	/**
 	 * 

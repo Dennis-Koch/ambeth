@@ -37,12 +37,15 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.persistence.IColumnEntry;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.exception.NullConstraintException;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionDialect;
+import de.osthus.ambeth.persistence.jdbc.ColumnEntry;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.connection.IConnectionKeyHandle;
+import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.StringBuilderUtil;
 import de.osthus.ambeth.util.StringConversionHelper;
@@ -142,6 +145,9 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
+
+	@Autowired
+	protected ISqlBuilder sqlBuilder;
 
 	@Autowired(optional = true)
 	protected ITransactionState transactionState;
@@ -756,6 +762,44 @@ public class Oracle10gDialect extends AbstractConnectionDialect
 		}
 
 		return allViewNames;
+	}
+
+	@Override
+	public IList<IColumnEntry> getAllFieldsOfTable(Connection connection, String fqTableName) throws SQLException
+	{
+		String[] names = sqlBuilder.getSchemaAndTableName(fqTableName);
+		ResultSet tableColumnsRS = connection.getMetaData().getColumns(null, names[0], names[1], null);
+		try
+		{
+			ArrayList<IColumnEntry> columns = new ArrayList<IColumnEntry>();
+			columns.add(new ColumnEntry("ROWID", -1, Object.class, null, false, 0, false));
+
+			while (tableColumnsRS.next())
+			{
+				String fieldName = tableColumnsRS.getString("COLUMN_NAME");
+				int columnIndex = tableColumnsRS.getInt("ORDINAL_POSITION");
+				int typeIndex = tableColumnsRS.getInt("DATA_TYPE");
+
+				String typeName = tableColumnsRS.getString("TYPE_NAME");
+
+				String isNullable = tableColumnsRS.getString("IS_NULLABLE");
+				boolean nullable = "YES".equalsIgnoreCase(isNullable);
+
+				int scale = tableColumnsRS.getInt("COLUMN_SIZE");
+				int digits = tableColumnsRS.getInt("DECIMAL_DIGITS");
+				int radix = tableColumnsRS.getInt("NUM_PREC_RADIX");
+
+				Class<?> javaType = JdbcUtil.getJavaTypeFromJdbcType(typeIndex, scale, digits);
+
+				ColumnEntry entry = new ColumnEntry(fieldName, columnIndex, javaType, typeName, nullable, radix, true);
+				columns.add(entry);
+			}
+			return columns;
+		}
+		finally
+		{
+			JdbcUtil.close(tableColumnsRS);
+		}
 	}
 
 	protected void buildOwnerInClause(final StringBuilder sb, final String... schemaNames)

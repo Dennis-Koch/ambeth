@@ -16,10 +16,9 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.security.ISecurityActivation;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.service.ICacheRetriever;
-import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInterceptor implements ITransactionalRootCache, ISecondLevelCacheManager
 {
@@ -35,17 +34,17 @@ public class TransactionalRootCacheInterceptor extends AbstractRootCacheAwareInt
 	@Autowired(optional = true)
 	protected ISecurityActivation securityActivation;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Forkable
-	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new SensitiveThreadLocal<RootCache>();
+	protected final ThreadLocal<RootCache> privilegedRootCacheTL = new ThreadLocal<RootCache>();
 
 	@Forkable
-	protected final ThreadLocal<RootCache> rootCacheTL = new SensitiveThreadLocal<RootCache>();
+	protected final ThreadLocal<RootCache> rootCacheTL = new ThreadLocal<RootCache>();
 
 	@Forkable
-	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new SensitiveThreadLocal<Boolean>();
+	protected final ThreadLocal<Boolean> transactionalRootCacheActiveTL = new ThreadLocal<Boolean>();
 
 	@Override
 	public void cleanupThreadLocal()

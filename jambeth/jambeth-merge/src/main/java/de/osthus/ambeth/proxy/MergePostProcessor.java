@@ -9,14 +9,16 @@ import de.osthus.ambeth.annotation.Find;
 import de.osthus.ambeth.annotation.Merge;
 import de.osthus.ambeth.annotation.NoProxy;
 import de.osthus.ambeth.annotation.Remove;
+import de.osthus.ambeth.ioc.IOrderedBeanPostProcessor;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.PostProcessorOrder;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.interceptor.MergeInterceptor;
 
-public class MergePostProcessor extends AbstractCascadePostProcessor
+public class MergePostProcessor extends AbstractCascadePostProcessor implements IOrderedBeanPostProcessor
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -30,6 +32,12 @@ public class MergePostProcessor extends AbstractCascadePostProcessor
 			return true;
 		}
 	};
+
+	@Override
+	public PostProcessorOrder getOrder()
+	{
+		return PostProcessorOrder.HIGH;
+	}
 
 	@Override
 	protected ICascadedInterceptor handleServiceIntern(IBeanContextFactory beanContextFactory, IServiceContext beanContext,

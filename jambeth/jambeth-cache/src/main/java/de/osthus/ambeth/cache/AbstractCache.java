@@ -316,7 +316,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			}
 			alternateCacheKey.setEntityType(entityType);
 			alternateCacheKey.setId(alternateId);
-			alternateCacheKey.setIdNameIndex((byte) idIndex);
+			alternateCacheKey.setIdIndex((byte) idIndex);
 		}
 	}
 
@@ -412,7 +412,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 		{
 			return null;
 		}
-		return removeKeyFromCache(cacheKey.getEntityType(), cacheKey.getIdNameIndex(), cacheKey.getId());
+		return removeKeyFromCache(cacheKey.getEntityType(), cacheKey.getIdIndex(), cacheKey.getId());
 	}
 
 	protected Object removeKeyFromCache(Class<?> entityType, byte idIndex, Object id)
@@ -616,12 +616,21 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 				hardRefsToCacheValue.add(cacheValue);
 			}
 		}
+		else
+		{
+			putInternUnpersistedEntity(objectToCache);
+		}
 
 		// Even if it has no id we look for its relations and cache them
 		for (int a = relationValues.size(); a-- > 0;)
 		{
 			putIntern(relationValues.get(a), hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
 		}
+	}
+
+	protected void putInternUnpersistedEntity(Object entity)
+	{
+		// Intended blank
 	}
 
 	protected boolean allowCacheValueReplacement()
@@ -680,7 +689,7 @@ public abstract class AbstractCache<V> implements ICache, IInitializingBean, IDi
 			CacheKey alternateCacheKey = alternateCacheKeys[a];
 			if (alternateCacheKey != null)
 			{
-				keyToCacheValueDict.put(alternateCacheKey.getEntityType(), alternateCacheKey.getIdNameIndex(), alternateCacheKey.getId(), cacheValueR);
+				keyToCacheValueDict.put(alternateCacheKey.getEntityType(), alternateCacheKey.getIdIndex(), alternateCacheKey.getId(), cacheValueR);
 			}
 		}
 	}

@@ -77,6 +77,17 @@ public class ObjRefFactory extends IObjRefFactory
 	}
 
 	@Override
+	public IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex)
+	{
+		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(cacheValue.getEntityType(), Integer.valueOf(idIndex));
+		if (objRefConstructorDelegate == null)
+		{
+			objRefConstructorDelegate = buildDelegate(cacheValue.getEntityType(), idIndex);
+		}
+		return objRefConstructorDelegate.createObjRef(cacheValue.getId(), cacheValue.getVersion());
+	}
+
+	@Override
 	public IObjRef createObjRef(Class<?> entityType, int idIndex, Object id, Object version)
 	{
 		IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.get(entityType, Integer.valueOf(idIndex));

@@ -16,12 +16,14 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ICacheHelper;
 
 public class ValueHolderContainerMixin
@@ -38,6 +40,9 @@ public class ValueHolderContainerMixin
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
+
+	@Autowired(optional = true)
+	protected ILightweightTransaction transaction;
 
 	public IObjRelation getSelf(IObjRefContainer entity, String memberName)
 	{
@@ -57,8 +62,8 @@ public class ValueHolderContainerMixin
 		return getValue(entity, relationIndex, relationMembers[relationIndex], targetCache, objRefs, CacheDirective.none());
 	}
 
-	public Object getValue(IObjRefContainer entity, int relationindex, RelationMember relationMember, ICacheIntern targetCache, IObjRef[] objRefs,
-			Set<CacheDirective> cacheDirective)
+	public Object getValue(IObjRefContainer entity, int relationindex, RelationMember relationMember, final ICacheIntern targetCache, IObjRef[] objRefs,
+			final Set<CacheDirective> cacheDirective)
 	{
 		Object value;
 		if (targetCache == null)
@@ -71,16 +76,40 @@ public class ValueHolderContainerMixin
 			IList<Object> results;
 			if (objRefs == null)
 			{
-				IObjRelation self = getSelf(entity, relationMember.getName());
-				IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
-				if (objRelResults.size() == 0)
+				final IObjRelation self = getSelf(entity, relationMember.getName());
+
+				if (transaction != null)
 				{
-					results = EmptyList.getInstance();
+					results = transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IList<Object>>()
+					{
+						@Override
+						public IList<Object> invoke() throws Throwable
+						{
+							IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+							if (objRelResults.size() == 0)
+							{
+								return EmptyList.getInstance();
+							}
+							else
+							{
+								IObjRelationResult objRelResult = objRelResults.get(0);
+								return targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
+							}
+						}
+					});
 				}
 				else
 				{
-					IObjRelationResult objRelResult = objRelResults.get(0);
-					results = targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
+					IList<IObjRelationResult> objRelResults = targetCache.getObjRelations(Arrays.asList(self), targetCache, cacheDirective);
+					if (objRelResults.size() == 0)
+					{
+						results = EmptyList.getInstance();
+					}
+					else
+					{
+						IObjRelationResult objRelResult = objRelResults.get(0);
+						results = targetCache.getObjects(new ArrayList<IObjRef>(objRelResult.getRelations()), targetCache, cacheDirective);
+					}
 				}
 			}
 			else

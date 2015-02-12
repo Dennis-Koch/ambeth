@@ -52,14 +52,14 @@ namespace De.Osthus.Minerva.Mock
             IList<IChangeContainer> allChanges = cudResult.AllChanges;
             IList<IObjRef> resultOriList = new List<IObjRef>(allChanges.Count);
             String changedBy = "anonymous";
-            DateTime changedOn;
+            long changedOn;
 
             Lock writeLock = PersistenceMock.GetWriteLock();
             writeLock.Lock();
             try
             {
                 localDcId = ++dcId;
-                changedOn = DateTime.Now.ToLocalTime();
+                changedOn = DateTimeUtil.CurrentTimeMillis();
 
                 IList<IDataChangeEntry> inserts = new List<IDataChangeEntry>();
                 IList<IDataChangeEntry> updates = new List<IDataChangeEntry>();
@@ -98,8 +98,11 @@ namespace De.Osthus.Minerva.Mock
                         inserts.Add(new DataChangeEntry(reference.RealType, ObjRef.PRIMARY_KEY_INDEX, reference.Id, reference.Version));
                     }
                 }
-                MergeController.ApplyChangesToOriginals(cudResult.GetOriginalRefs(), resultOriList, changedOn, changedBy);
-                dataChange = new DataChangeEvent(inserts, updates, deletes, changedOn, false);
+                OriCollection oriColl = new OriCollection(resultOriList);
+                oriColl.ChangedBy = changedBy;
+                oriColl.ChangedOn = changedOn;
+                MergeController.ApplyChangesToOriginals(cudResult, oriColl, null);
+                dataChange = new DataChangeEvent(inserts, updates, deletes, DateTimeUtil.ConvertJavaMillisToDateTime(changedOn), false);
             }
             finally
             {

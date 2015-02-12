@@ -10,8 +10,6 @@ import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.ICacheProviderExtendable;
 import de.osthus.ambeth.cache.IRootCache;
-import de.osthus.ambeth.cache.ISingleCacheParamRunnable;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -21,6 +19,8 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.AbstractSimpleInterceptor;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.ParamChecker;
 
@@ -104,19 +104,19 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R> R executeWithCache(ISingleCacheRunnable<R> runnable) throws Throwable
+	public <R> R executeWithCache(IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
 		return executeWithCache(threadLocalCacheProvider, runnable);
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
+	public <R, T> R executeWithCache(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
 	{
 		return executeWithCache(threadLocalCacheProvider, runnable, state);
 	}
 
 	@Override
-	public <R> R executeWithCache(ICacheProvider cacheProvider, ISingleCacheRunnable<R> runnable) throws Throwable
+	public <R> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
@@ -130,7 +130,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 		stack.push(cacheProvider);
 		try
 		{
-			return runnable.run();
+			return runnable.invoke();
 		}
 		finally
 		{
@@ -142,7 +142,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ICacheProvider cacheProvider, ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
+	public <R, T> R executeWithCache(ICacheProvider cacheProvider, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
 	{
 		ParamChecker.assertParamNotNull(cacheProvider, "cacheProvider");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
@@ -156,7 +156,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 		stack.push(cacheProvider);
 		try
 		{
-			return runnable.run(state);
+			return runnable.invoke(state);
 		}
 		finally
 		{
@@ -168,7 +168,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R> R executeWithCache(final ICache cache, ISingleCacheRunnable<R> runnable) throws Throwable
+	public <R> R executeWithCache(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable) throws Throwable
 	{
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");
@@ -176,7 +176,7 @@ public class CacheProviderInterceptor extends AbstractSimpleInterceptor implemen
 	}
 
 	@Override
-	public <R, T> R executeWithCache(ICache cache, ISingleCacheParamRunnable<R, T> runnable, T state) throws Throwable
+	public <R, T> R executeWithCache(ICache cache, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state) throws Throwable
 	{
 		ParamChecker.assertParamNotNull(cache, "cache");
 		ParamChecker.assertParamNotNull(runnable, "runnable");

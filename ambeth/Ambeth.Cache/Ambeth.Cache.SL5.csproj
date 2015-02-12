@@ -115,15 +115,12 @@
     <Compile Include="ambeth\cache\IParentEntityAware.cs" />
     <Compile Include="ambeth\cache\IRootCache.cs" />
     <Compile Include="ambeth\cache\ISecondLevelCacheManager.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
     <Compile Include="ambeth\cache\ICacheIntern.cs" />
     <Compile Include="ambeth\cache\ITransactionalRootCache.cs" />
     <Compile Include="ambeth\cache\RootCacheBridge.cs" />
-    <Compile Include="ambeth\cache\ICacheContext.cs" />
     <Compile Include="ambeth\cache\ICacheProviderExtendable.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheContextInterceptor.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheProviderInterceptor.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
     <Compile Include="ambeth\cache\EntityCallback.cs" />
     <Compile Include="ambeth\cache\interceptor\CacheInterceptor.cs" />
     <Compile Include="ambeth\cache\IServiceResultCache.cs" />

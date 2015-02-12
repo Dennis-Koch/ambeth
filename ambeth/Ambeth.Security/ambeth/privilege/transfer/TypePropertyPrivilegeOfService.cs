@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Privilege.Model.Impl;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Runtime.Serialization;
@@ -10,7 +11,7 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
     [DataContract(Name = "TypePropertyPrivilegeOfService", Namespace = "http://schemas.osthus.de/Ambeth")]
     public class TypePropertyPrivilegeOfService : ITypePropertyPrivilegeOfService, IPrintable
     {
-        private static readonly TypePropertyPrivilegeOfService[] array = new TypePropertyPrivilegeOfService[1 << 8];
+        private static readonly TypePropertyPrivilegeOfService[] array = new TypePropertyPrivilegeOfService[TypePropertyPrivilegeImpl.ArraySizeForIndex()];
 
         static TypePropertyPrivilegeOfService()
         {
@@ -110,14 +111,14 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
                 return false;
             }
             TypePropertyPrivilegeOfService other = (TypePropertyPrivilegeOfService)obj;
-            int index = ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6);
-            int otherIndex = ToBitValue(other.create, 0) + ToBitValue(other.read, 2) + ToBitValue(other.update, 4) + ToBitValue(other.delete, 6);
+            int index = TypePropertyPrivilegeImpl.CalcIndex(create, read, update, delete);
+            int otherIndex = TypePropertyPrivilegeImpl.CalcIndex(other.create, other.read, other.update, other.delete);
             return index == otherIndex;
         }
 
         public override int GetHashCode()
         {
-            return ToBitValue(create, 0) + ToBitValue(read, 2) + ToBitValue(update, 4) + ToBitValue(delete, 6);
+            return TypePropertyPrivilegeImpl.CalcIndex(create, read, update, delete);
         }
 
         public override String ToString()

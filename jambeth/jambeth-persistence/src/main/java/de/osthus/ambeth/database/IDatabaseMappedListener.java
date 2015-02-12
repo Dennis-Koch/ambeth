@@ -1,10 +1,8 @@
 package de.osthus.ambeth.database;
 
-import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
 
 public interface IDatabaseMappedListener
 {
-
-	void databaseMapped(IDatabase database);
-
+	void databaseMapped(IDatabaseMetaData database);
 }

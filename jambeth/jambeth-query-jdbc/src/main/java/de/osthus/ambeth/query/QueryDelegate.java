@@ -15,7 +15,7 @@ import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 {
@@ -83,7 +83,19 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 	@Override
 	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
-		return queryIntern.retrieveAsVersions(nameToValueMap);
+		return queryIntern.retrieveAsVersions(nameToValueMap, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return query.retrieveAsVersions(retrieveAlternateIds);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds)
+	{
+		return queryIntern.retrieveAsVersions(paramNameToValueMap, retrieveAlternateIds);
 	}
 
 	@Override
@@ -130,12 +142,6 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 				return queryIntern.retrieve(nameToValueMap);
 			}
 		}, true, true);
-	}
-
-	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		return transactionalQuery.retrieveAsVersion();
 	}
 
 	@Override
@@ -191,10 +197,10 @@ public class QueryDelegate<T> implements IQuery<T>, IQueryIntern<T>
 		{
 			return query.isEmpty();
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Boolean>()
+		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Boolean>()
 		{
 			@Override
-			public Boolean callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			public Boolean invoke() throws Throwable
 			{
 				return Boolean.valueOf(query.isEmpty());
 			}

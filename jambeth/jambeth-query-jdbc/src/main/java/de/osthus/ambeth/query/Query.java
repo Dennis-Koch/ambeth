@@ -8,17 +8,16 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransaction;
-import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.filter.QueryConstants;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.EntityCursor;
 import de.osthus.ambeth.persistence.IDataCursor;
@@ -26,11 +25,9 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IServiceUtil;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.persistence.Table;
 import de.osthus.ambeth.proxy.PersistenceContext;
 import de.osthus.ambeth.query.sql.ITableAliasHolder;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.util.IConversionHelper;
 
 @PersistenceContext
@@ -82,7 +79,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Property
 	protected IOperand limitOperand;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	@Property
@@ -158,7 +155,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		return this.queryKey;
 	}
 
-	protected Object buildCursor(IMap<Object, Object> nameToValueMapSrc, RetrievalType retrievalType, int limitValue)
+	protected Object buildCursor(IMap<Object, Object> nameToValueMapSrc, RetrievalType retrievalType, int limitValue, boolean retrieveAlternateIds)
 	{
 		if (!transaction.isActive())
 		{
@@ -209,7 +206,8 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		{
 			if (RetrievalType.VERSION.equals(retrievalType))
 			{
-				return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias);
+				return table.selectVersionJoin(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, parameters, tableAlias,
+						retrieveAlternateIds);
 			}
 			else if (RetrievalType.COUNT.equals(retrievalType))
 			{
@@ -225,7 +223,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 		if (RetrievalType.VERSION.equals(retrievalType))
 		{
 			return table.selectVersionPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters,
-					tableAlias);
+					tableAlias, retrieveAlternateIds);
 		}
 		return table.selectDataPaging(additionalSelectColumnList, joinSql, whereSql, orderBySql, limitSql, pagingOffset, pagingLimit, parameters);
 	}
@@ -347,25 +345,37 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Override
 	public IVersionCursor retrieveAsVersions()
 	{
-		return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0);
+		return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
+	{
+		return (IVersionCursor) buildCursor(null, RetrievalType.VERSION, 0, retrieveAlternateIds);
 	}
 
 	@Override
 	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap)
 	{
-		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0);
+		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0, true);
+	}
+
+	@Override
+	public IVersionCursor retrieveAsVersions(IMap<Object, Object> nameToValueMap, boolean retrieveAlternateIds)
+	{
+		return (IVersionCursor) buildCursor(nameToValueMap, RetrievalType.VERSION, 0, retrieveAlternateIds);
 	}
 
 	@Override
 	public IDataCursor retrieveAsData()
 	{
-		return (IDataCursor) buildCursor(null, RetrievalType.DATA, 0);
+		return (IDataCursor) buildCursor(null, RetrievalType.DATA, 0, false);
 	}
 
 	@Override
 	public IDataCursor retrieveAsData(IMap<Object, Object> nameToValueMap)
 	{
-		return (IDataCursor) buildCursor(nameToValueMap, RetrievalType.DATA, 0);
+		return (IDataCursor) buildCursor(nameToValueMap, RetrievalType.DATA, 0, false);
 	}
 
 	@Override
@@ -402,31 +412,6 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
-	{
-		if (!transaction.isActive())
-		{
-			return transaction.processAndCommit(new ResultingDatabaseCallback<IVersionItem>()
-			{
-
-				@Override
-				public IVersionItem callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
-				{
-					return retrieveAsVersion();
-				}
-			});
-		}
-		IVersionCursor cursor = retrieveAsVersions();
-		if (cursor == null || !cursor.moveNext())
-		{
-			return null;
-		}
-		IVersionItem item = cursor.getCurrent();
-		cursor.dispose();
-		return item;
-	}
-
-	@Override
 	public T retrieveSingle()
 	{
 		IList<T> resultList = retrieve();
@@ -450,7 +435,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Override
 	public long count(IMap<Object, Object> paramNameToValueMap)
 	{
-		return ((Long) buildCursor(paramNameToValueMap, RetrievalType.COUNT, 0)).longValue();
+		return ((Long) buildCursor(paramNameToValueMap, RetrievalType.COUNT, 0, false)).longValue();
 	}
 
 	@Override
@@ -462,7 +447,7 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Override
 	public boolean isEmpty(IMap<Object, Object> paramNameToValueMap)
 	{
-		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1);
+		IVersionCursor versionCursor = (IVersionCursor) buildCursor(paramNameToValueMap, RetrievalType.VERSION, 1, false);
 		try
 		{
 			return !versionCursor.moveNext();

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Ioc.Hierarchy
 {
@@ -34,7 +35,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
             });
         }
 
-        public override IServiceContext Start(RegisterPhaseDelegate content)
+        public override IServiceContext Start(IBackgroundWorkerParamDelegate<IBeanContextFactory> content)
         {
             return StartIntern(delegate(IBeanContextFactory childContextFactory)
             {

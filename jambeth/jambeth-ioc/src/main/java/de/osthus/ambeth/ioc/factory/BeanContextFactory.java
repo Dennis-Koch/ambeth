@@ -23,7 +23,6 @@ import de.osthus.ambeth.ioc.IBeanPostProcessor;
 import de.osthus.ambeth.ioc.IBeanPreProcessor;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.ServiceContext;
 import de.osthus.ambeth.ioc.config.BeanConfiguration;
 import de.osthus.ambeth.ioc.config.BeanInstanceConfiguration;
@@ -52,6 +51,7 @@ import de.osthus.ambeth.objectcollector.ObjectCollector;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.proxy.ProxyFactory;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
@@ -448,20 +448,27 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return contextName + " " + value;
 	}
 
-	public IServiceContext create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, List<IBeanPreProcessor> preProcessors,
-			List<IBeanPostProcessor> postProcessors)
+	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors)
 	{
 		return create(contextName, registerPhaseDelegate, preProcessors, postProcessors, emptyServiceModules);
 	}
 
-	public IServiceContext create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, List<IBeanPreProcessor> preProcessors,
-			List<IBeanPostProcessor> postProcessors, Class<?>... serviceModuleTypes)
+	public IServiceContext create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			List<IBeanPreProcessor> preProcessors, List<IBeanPostProcessor> postProcessors, Class<?>... serviceModuleTypes)
 	{
 		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, null), objectCollector);
 
 		if (registerPhaseDelegate != null)
 		{
-			registerPhaseDelegate.invoke(this);
+			try
+			{
+				registerPhaseDelegate.invoke(this);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{
@@ -485,18 +492,26 @@ public class BeanContextFactory implements IBeanContextFactory, ILinkController,
 		return context;
 	}
 
-	public IServiceContext create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate)
+	public IServiceContext create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
 	{
 		return create(contextName, parent, registerPhaseDelegate, emptyServiceModules);
 	}
 
-	public IServiceContext create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		ServiceContext context = new ServiceContext(generateUniqueContextName(contextName, parent), parent);
 
 		if (registerPhaseDelegate != null)
 		{
-			registerPhaseDelegate.invoke(this);
+			try
+			{
+				registerPhaseDelegate.invoke(this);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
 		}
 		for (Class<?> serviceModuleType : serviceModuleTypes)
 		{

@@ -8,16 +8,16 @@ namespace De.Osthus.Ambeth.Persistence
 
         ITable TargetTable { get; }
 
-        IField PermissionGroupFieldOnTarget { get; }
+        IFieldMetaData PermissionGroupFieldOnTarget { get; }
 
-        IField UserField { get; }
+        IFieldMetaData UserField { get; }
 
-        IField PermissionGroupField { get; }
+        IFieldMetaData PermissionGroupField { get; }
 
-        IField ReadPermissionField { get; }
+        IFieldMetaData ReadPermissionField { get; }
 
-        IField UpdatePermissionField { get; }
+        IFieldMetaData UpdatePermissionField { get; }
 
-        IField DeletePermissionField { get; }
+        IFieldMetaData DeletePermissionField { get; }
     }
 }

@@ -2,9 +2,9 @@ package de.osthus.ambeth.persistence;
 
 public class TablesMapKey
 {
-	private ITable table1, table2;
+	private ITableMetaData table1, table2;
 
-	public TablesMapKey(ITable table1, ITable table2)
+	public TablesMapKey(ITableMetaData table1, ITableMetaData table2)
 	{
 		this.table1 = table1;
 		this.table2 = table2;

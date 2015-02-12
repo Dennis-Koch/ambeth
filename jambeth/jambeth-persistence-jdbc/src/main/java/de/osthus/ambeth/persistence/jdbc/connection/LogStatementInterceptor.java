@@ -108,7 +108,7 @@ public class LogStatementInterceptor extends AbstractSimpleInterceptor implement
 	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(statement, "Statement");
-		identityHashCode = System.identityHashCode(statement);
+		identityHashCode = System.identityHashCode(statement.getConnection());
 	}
 
 	protected ILogger getLog()

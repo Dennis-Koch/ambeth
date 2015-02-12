@@ -7,6 +7,8 @@ import de.osthus.ambeth.model.AbstractEntity;
 
 public abstract class Employee extends AbstractEntity
 {
+	public static final String Name = "Name";
+
 	protected String name;
 
 	protected Address primaryAddress;

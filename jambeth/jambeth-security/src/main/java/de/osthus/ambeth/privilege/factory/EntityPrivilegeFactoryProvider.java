@@ -25,7 +25,7 @@ public class EntityPrivilegeFactoryProvider implements IEntityPrivilegeFactoryPr
 	@Autowired
 	protected IAccessorTypeProvider accessorTypeProvider;
 
-	protected final HashMap<Class<?>, IEntityPrivilegeFactory> typeToConstructorMap = new HashMap<Class<?>, IEntityPrivilegeFactory>();
+	protected final HashMap<Class<?>, IEntityPrivilegeFactory[]> typeToConstructorMap = new HashMap<Class<?>, IEntityPrivilegeFactory[]>();
 
 	protected final Lock writeLock = new ReentrantLock();
 
@@ -36,7 +36,9 @@ public class EntityPrivilegeFactoryProvider implements IEntityPrivilegeFactoryPr
 		{
 			return ci;
 		}
-		IEntityPrivilegeFactory factory = typeToConstructorMap.get(entityType);
+		int index = AbstractPrivilege.calcIndex(create, read, update, delete, execute);
+		IEntityPrivilegeFactory[] factories = typeToConstructorMap.get(entityType);
+		IEntityPrivilegeFactory factory = factories != null ? factories[index] : null;
 		if (factory != null)
 		{
 			return factory;
@@ -46,7 +48,8 @@ public class EntityPrivilegeFactoryProvider implements IEntityPrivilegeFactoryPr
 		try
 		{
 			// concurrent thread might have been faster
-			factory = typeToConstructorMap.get(entityType);
+			factories = typeToConstructorMap.get(entityType);
+			factory = factories != null ? factories[index] : null;
 			if (factory != null)
 			{
 				return factory;
@@ -75,7 +78,12 @@ public class EntityPrivilegeFactoryProvider implements IEntityPrivilegeFactoryPr
 				// something serious happened during enhancement: continue with a fallback
 				factory = ci;
 			}
-			typeToConstructorMap.put(entityType, factory);
+			if (factories == null)
+			{
+				factories = new IEntityPrivilegeFactory[AbstractPrivilege.arraySizeForIndex()];
+				typeToConstructorMap.put(entityType, factories);
+			}
+			factories[index] = factory;
 			return factory;
 		}
 		finally

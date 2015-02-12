@@ -42,6 +42,6 @@ public class IncomingRelationKey
 	@Override
 	public String toString()
 	{
-		return idIndex + " " + table.getName() + " - " + link.getName();
+		return idIndex + " " + table.getMetaData().getName() + " - " + link.getMetaData().getName();
 	}
 }

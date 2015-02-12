@@ -53,7 +53,7 @@ namespace De.Osthus.Ambeth.Testutil
             if (testClassLevelContext != null)
             {
     			IThreadLocalCleanupController tlCleanupController = testClassLevelContext.GetService<IThreadLocalCleanupController>();
-                testClassLevelContext.Dispose();
+                testClassLevelContext.GetRoot().Dispose();
                 testClassLevelContext = null;
                 beanContext = null;
                 tlCleanupController.CleanupThreadLocal();

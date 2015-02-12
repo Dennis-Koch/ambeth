@@ -13,6 +13,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Ioc.Threadlocal;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
@@ -85,17 +86,17 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
         }
 
-        public R ExecuteWithCache<R>(ISingleCacheRunnable<R> runnable)
+        public R ExecuteWithCache<R>(IResultingBackgroundWorkerDelegate<R> runnable)
         {
             return ExecuteWithCache(ThreadLocalCacheProvider, runnable);
         }
 
-       	public R ExecuteWithCache<R, T>(ISingleCacheParamRunnable<R, T> runnable, T state)
+       	public R ExecuteWithCache<R, T>(IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state)
 	    {
             return ExecuteWithCache(ThreadLocalCacheProvider, runnable, state);
 	    }
 
-        public R ExecuteWithCache<R>(ICacheProvider cacheProvider, ISingleCacheRunnable<R> runnable)
+        public R ExecuteWithCache<R>(ICacheProvider cacheProvider, IResultingBackgroundWorkerDelegate<R> runnable)
         {
             ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
             ParamChecker.AssertParamNotNull(runnable, "runnable");
@@ -108,7 +109,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             stack.Push(cacheProvider);
             try
             {
-                return runnable.Invoke();
+                return runnable();
             }
             finally
             {
@@ -119,7 +120,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
         }
 
-        public R ExecuteWithCache<R, T>(ICacheProvider cacheProvider, ISingleCacheParamRunnable<R, T> runnable, T state)
+        public R ExecuteWithCache<R, T>(ICacheProvider cacheProvider, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state)
 	    {
 		    ParamChecker.AssertParamNotNull(cacheProvider, "cacheProvider");
 		    ParamChecker.AssertParamNotNull(runnable, "runnable");
@@ -132,7 +133,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             stack.Push(cacheProvider);
             try
             {
-                return runnable.Invoke(state);
+                return runnable(state);
             }
             finally
             {
@@ -143,14 +144,14 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
             }
 	    }
 
-        public R ExecuteWithCache<R>(ICache cache, ISingleCacheRunnable<R> runnable)
+        public R ExecuteWithCache<R>(ICache cache, IResultingBackgroundWorkerDelegate<R> runnable)
         {
             ParamChecker.AssertParamNotNull(cache, "cache");
             ParamChecker.AssertParamNotNull(runnable, "runnable");
             return ExecuteWithCache<R>(new SingleCacheProvider(cache), runnable);
         }
 
-        public R ExecuteWithCache<R, T>(ICache cache, ISingleCacheParamRunnable<R, T> runnable, T state)
+        public R ExecuteWithCache<R, T>(ICache cache, IResultingBackgroundWorkerParamDelegate<R, T> runnable, T state)
 	    {
 		    ParamChecker.AssertParamNotNull(cache, "cache");
 		    ParamChecker.AssertParamNotNull(runnable, "runnable");

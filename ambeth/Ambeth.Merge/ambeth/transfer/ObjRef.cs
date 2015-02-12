@@ -16,6 +16,23 @@ namespace De.Osthus.Ambeth.Merge.Transfer
 
         public const sbyte PRIMARY_KEY_INDEX = -1;
 
+        public const sbyte UNDEFINED_KEY_INDEX = SByte.MinValue;
+
+        public static readonly Comparison<IObjRef> comparator = new Comparison<IObjRef>(delegate(IObjRef o1, IObjRef o2)
+		    {
+			    int result = o1.RealType.FullName.CompareTo(o2.RealType.FullName);
+			    if (result != 0)
+			    {
+				    return result;
+			    }
+                result = o1.IdNameIndex == o2.IdNameIndex ? 0 : o1.IdNameIndex > o2.IdNameIndex ? 1 : -1;
+			    if (result != 0)
+			    {
+				    return result;
+			    }
+			    return o1.Id.ToString().CompareTo(o2.Id.ToString());
+		    });
+
         [DataMember]
         public sbyte IdNameIndex { get; set; }
 

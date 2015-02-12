@@ -2,7 +2,6 @@ package de.osthus.ambeth.persistence;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -11,9 +10,7 @@ import net.sf.cglib.proxy.Factory;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.database.IDatabaseProvider;
-import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
@@ -21,21 +18,12 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.ILoggerHistory;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.log.PersistenceWarnUtil;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.orm.XmlDatabaseMapper;
-import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.typeinfo.IRelationProvider;
-import de.osthus.ambeth.typeinfo.ITypeInfo;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
-import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.util.ParamChecker;
-import de.osthus.ambeth.util.StringConversionHelper;
 
-public class Database implements IDatabase, IConfigurableDatabase, IInitializingBean, IStartingBean, IDisposableBean
+public class Database implements IDatabase, IInitializingBean, IStartingBean, IDisposableBean
 {
 	@LogInstance
 	private ILogger log;
@@ -50,41 +38,34 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	protected IDatabaseProvider databaseProvider;
 
 	@Autowired
-	protected ILoggerHistory loggerHistory;
+	protected IDatabaseMetaData metaData;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	protected IModifyingDatabase modifyingDatabase;
 
 	@Autowired
 	protected IDatabasePool pool;
 
 	@Autowired
-	protected IRelationProvider relationProvider;
-
-	@Autowired
 	protected IServiceContext serviceContext;
 
-	@Autowired
-	protected ITypeInfoProvider typeInfoProvider;
-
 	protected final HashMap<String, ITable> nameToTableDict = new HashMap<String, ITable>();
+
 	protected final HashMap<Class<?>, ITable> typeToTableDict = new HashMap<Class<?>, ITable>();
+
 	protected final HashMap<Class<?>, ITable> typeToArchiveTableDict = new HashMap<Class<?>, ITable>();
-	protected final HashMap<String, IPermissionGroup> nameToPermissionGroupTableDict = new HashMap<String, IPermissionGroup>();
-	protected final HashMap<String, ILink> nameToLinkDict = new HashMap<String, ILink>();
-	protected final HashMap<String, ILink> definingNameToLinkDict = new HashMap<String, ILink>();
+
 	protected final HashMap<TablesMapKey, List<ILink>> tablesToLinkDict = new HashMap<TablesMapKey, List<ILink>>();
-	protected final IdentityHashSet<IField> fieldsMappedToLinks = new IdentityHashSet<IField>();
+
 	protected final HashMap<Class<?>, IEntityHandler> typeToEntityHandler = new HashMap<Class<?>, IEntityHandler>();
-	protected final ArrayList<Class<?>> handledEntities = new ArrayList<Class<?>>();
+
 	protected final DefaultExtendableContainer<IDatabaseDisposeHook> databaseDisposeHooks = new DefaultExtendableContainer<IDatabaseDisposeHook>(
 			IDatabaseDisposeHook.class, "databaseDisposeHook");
 
 	protected long sessionId;
-	protected String name;
+
 	protected final ArrayList<ITable> tables = new ArrayList<ITable>();
+
 	protected final List<ILink> links = new ArrayList<ILink>();
 
 	@Override
@@ -96,150 +77,13 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@Override
 	public void afterStarted()
 	{
-		List<ITable> tables = getTables();
-		for (int tableIndex = tables.size(); tableIndex-- > 0;)
-		{
-			ITable table = tables.get(tableIndex);
-			handleTable(table);
-		}
-
+		// Intended blank
 	}
 
-	protected void handleTable(ITable table)
+	@Override
+	public IDatabaseMetaData getMetaData()
 	{
-		if (table.isPermissionGroup())
-		{
-			return;
-		}
-		ArrayList<IField> alternateIdMembers = new ArrayList<IField>();
-		Class<?> fromType = table.getEntityType();
-		if (fromType == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No entity mapped to table '" + table.getName() + "'");
-			}
-			return;
-		}
-		if (table.isArchive())
-		{
-			typeToArchiveTableDict.put(fromType, table);
-			return;
-		}
-		else
-		{
-			typeToTableDict.put(fromType, table);
-		}
-
-		ITypeInfo typeInfo = typeInfoProvider.getTypeInfo(fromType);
-		List<IDirectedLink> links = table.getLinks();
-		for (int linkIndex = links.size(); linkIndex-- > 0;)
-		{
-			IDirectedLink link = links.get(linkIndex);
-			ITable toTable = link.getToTable();
-
-			Class<?> toType;
-			if (toTable != null)
-			{
-				toType = toTable.getEntityType();
-				if (toType == null)
-				{
-					if (log.isWarnEnabled())
-					{
-						log.warn("No entity mapped to table '" + toTable.getName() + "'. Error occured while handling link '" + link.getName() + "'");
-					}
-					continue;
-				}
-			}
-			else
-			{
-				toType = link.getToEntityType();
-			}
-			String memberName = table.getMemberNameByLinkName(link.getName());
-			if (!(memberName == null || memberName.isEmpty()))
-			{
-				continue;
-			}
-			ITypeInfoItem matchingMember = null;
-			String typeNamePluralLower = null;
-			for (ITypeInfoItem member : typeInfo.getMembers())
-			{
-				Class<?> elementType = member.getElementType();
-				if (table.isIgnoredMember(member.getName()))
-				{
-					continue;
-				}
-				if (!relationProvider.isEntityType(member.getElementType()))
-				{
-					continue;
-				}
-				if (!elementType.isAssignableFrom(toType))
-				{
-					if (Collection.class.isAssignableFrom(elementType))
-					{
-						// No generic info at runtime, so we guess by name.
-						if (typeNamePluralLower == null)
-						{
-							typeNamePluralLower = StringConversionHelper.entityNameToPlural(objectCollector,
-									typeInfoProvider.getTypeInfo(toType).getSimpleName()).toLowerCase();
-						}
-						String memberNameLower = member.getName().toLowerCase();
-						if (memberNameLower.equals(typeNamePluralLower))
-						{
-							matchingMember = member;
-						}
-					}
-					continue;
-				}
-				// Check if this member is already configured to another link
-				if (table.getLinkByMemberName(member.getName()) != null)
-				{
-					continue;
-				}
-				if (matchingMember != null)
-				{
-					// ambiguous property-to-entity relationship so we do nothing automatically here
-					throw new IllegalArgumentException("Ambiguous property-to-entity relationship. Automatic mapping for link '" + link.getName()
-							+ "' not possible! Multiple properties with the same expected relationtype found: " + matchingMember.toString() + " vs. "
-							+ member.toString() + " on entity '" + table.getEntityType().getName() + "'");
-				}
-				matchingMember = member;
-			}
-			if (matchingMember == null)
-			{
-				if (!(memberName == null || memberName.isEmpty()))
-				{
-					throw new IllegalArgumentException("Property-to-entity relationship which is explicit defined for member '" + fromType.getName() + "."
-							+ memberName + "' not possible. Member not found");
-				}
-				continue;
-			}
-			((Table) link.getFromTable()).mapLink(link.getName(), matchingMember.getName());
-		}
-		// TODO Reactivate this check with embedded-type case handling
-		// for (ITypeInfoItem member : typeInfo.getChildMembers())
-		// {
-		// if (member.isXMLIgnore())
-		// {
-		// continue;
-		// }
-		// String memberName = member.getName();
-		// if (table.getFieldByMemberName(memberName) == null && table.getLinkByMemberName(memberName) == null)
-		// {
-		// throw new IllegalArgumentException("Member '" + fromType.getName() + "." + memberName
-		// + " is neither mapped to a link or a field and it is not annotated with " + Transient.class.getName());
-		// }
-		// }
-
-		// Remove not-mapped (and so not usable) alternate id fields
-		for (IField alternateIdMember : table.getAlternateIdFields())
-		{
-			if (alternateIdMember.getMember() != null)
-			{
-				alternateIdMembers.add(alternateIdMember);
-			}
-		}
-		((Table) table).setAlternateIdFields(alternateIdMembers.toArray(IField.class));
+		return metaData;
 	}
 
 	@Override
@@ -270,25 +114,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	public <T> T getNamedBeanInContext(String beanName, Class<T> expectedType)
 	{
 		return serviceContext.getService(beanName, expectedType, false);
-	}
-
-	@Override
-	public List<Class<?>> getHandledEntities()
-	{
-		return handledEntities;
-	}
-
-	@Override
-	public int getMaxNameLength()
-	{
-		try
-		{
-			return connection.getMetaData().getMaxProcedureNameLength();
-		}
-		catch (SQLException e)
-		{
-			throw RuntimeExceptionUtil.mask(e);
-		}
 	}
 
 	@Override
@@ -434,18 +259,13 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	@Override
 	public String getName()
 	{
-		return name;
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
+		return getMetaData().getName();
 	}
 
 	@Override
 	public String[] getSchemaNames()
 	{
-		throw new UnsupportedOperationException("Not implemented");
+		return getMetaData().getSchemaNames();
 	}
 
 	@Override
@@ -461,169 +281,15 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	}
 
 	@Override
-	public ITable mapTable(String tableName, Class<?> entityType)
-	{
-		ITable table = getTableByName(tableName);
-		if (table == null)
-		{
-			throw new IllegalArgumentException("No table with name '" + tableName + "' found");
-		}
-		Class<?> mappedEntityType = table.getEntityType();
-		if (mappedEntityType != null && !mappedEntityType.equals(entityType))
-		{
-			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '"
-					+ typeInfoProvider.getTypeInfo(mappedEntityType).getSimpleName() + "'");
-		}
-		((Table) table).setEntityType(entityType);
-		return table;
-	}
-
-	@Override
-	public ITable mapArchiveTable(String tableName, Class<?> entityType)
-	{
-		ITable table = getTableByName(tableName);
-		if (table == null)
-		{
-			throw new IllegalArgumentException("No table with name '" + tableName + "' found");
-		}
-		Class<?> mappedEntityType = table.getEntityType();
-		if (mappedEntityType != null && !mappedEntityType.equals(entityType))
-		{
-			throw new IllegalArgumentException("Table '" + tableName + "' already mapped to entity '" + mappedEntityType.getSimpleName() + "'");
-		}
-		Table tableInst = (Table) table;
-		tableInst.setEntityType(entityType);
-		tableInst.setArchive(true);
-		return table;
-	}
-
-	@Override
-	public void mapPermissionGroupTable(ITable permissionGroupTable, ITable targetTable)
-	{
-		Table tableInst = (Table) permissionGroupTable;
-		tableInst.setPermissionGroup(true);
-
-		IField userField = tableInst.getFieldByName(PermissionGroup.userIdName);
-		IField permissionGroupField = tableInst.getFieldByName(PermissionGroup.permGroupIdName);
-		IField readPermissionField = tableInst.getFieldByName(PermissionGroup.readPermColumName);
-		IField updatePermissionField = tableInst.getFieldByName(PermissionGroup.updatePermColumName);
-		IField deletePermissionField = tableInst.getFieldByName(PermissionGroup.deletePermColumName);
-		IField permissionGroupFieldOnTarget = targetTable.getFieldByName(PermissionGroup.permGroupIdNameOfData);
-
-		if (userField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "." + PermissionGroup.userIdName
-						+ ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		if (permissionGroupField == null)
-		{
-
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
-						+ PermissionGroup.permGroupIdName + ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		if (readPermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
-						+ PermissionGroup.readPermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		if (updatePermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
-						+ PermissionGroup.updatePermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		if (deletePermissionField == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + tableInst.getName() + "."
-						+ PermissionGroup.deletePermColumName + ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		if (permissionGroupFieldOnTarget == null)
-		{
-			if (log.isWarnEnabled())
-			{
-				PersistenceWarnUtil.logWarnOnce(log, loggerHistory, connection, "No column found " + targetTable.getName() + "."
-						+ PermissionGroup.permGroupIdNameOfData + ": SQL based security is deactivated for table " + targetTable.getName());
-			}
-			return;
-		}
-		PermissionGroup permissionGroup = serviceContext.registerBean(PermissionGroup.class)//
-				.propertyValue("UserField", userField)//
-				.propertyValue("PermissionGroupField", permissionGroupField)//
-				.propertyValue("ReadPermissionField", readPermissionField)//
-				.propertyValue("UpdatePermissionField", updatePermissionField)//
-				.propertyValue("DeletePermissionField", deletePermissionField)//
-				.propertyValue("PermissionGroupFieldOnTarget", permissionGroupFieldOnTarget)//
-				.propertyValue("Table", permissionGroupTable)//
-				.propertyValue("TargetTable", targetTable)//
-				.finish();
-
-		if (!nameToPermissionGroupTableDict.putIfNotExists(targetTable.getName(), permissionGroup))
-		{
-			throw new IllegalStateException("A permission group is already mapped to table '" + targetTable + "'");
-		}
-	}
-
-	@Override
 	public ITable getTableByName(String tableName)
 	{
 		return nameToTableDict.get(tableName);
 	}
 
 	@Override
-	public ILink getLinkByName(String linkName)
-	{
-		return nameToLinkDict.get(linkName);
-	}
-
-	@Override
-	public ILink getLinkByDefiningName(String definingName)
-	{
-		return definingNameToLinkDict.get(definingName);
-	}
-
-	@Override
-	public void addLinkByTables(ILink link)
-	{
-		ITable fromTable = link.getFromTable();
-		ITable toTable = link.getToTable();
-		if (fromTable == null || toTable == null)
-		{
-			return;
-		}
-
-		TablesMapKey tablesMapKey = new TablesMapKey(fromTable, toTable);
-		List<ILink> links = tablesToLinkDict.get(tablesMapKey);
-		if (links == null)
-		{
-			links = new ArrayList<ILink>();
-			tablesToLinkDict.put(tablesMapKey, links);
-		}
-		links.add(link);
-	}
-
-	@Override
 	public List<ILink> getLinksByTables(ITable table1, ITable table2)
 	{
-		TablesMapKey tablesMapKey = new TablesMapKey(table1, table2);
+		TablesMapKey tablesMapKey = new TablesMapKey(table1.getMetaData(), table2.getMetaData());
 		return tablesToLinkDict.get(tablesMapKey);
 	}
 
@@ -643,12 +309,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	public ITable getArchiveTableByType(Class<?> entityType)
 	{
 		return typeToArchiveTableDict.get(entityType);
-	}
-
-	@Override
-	public IPermissionGroup getPermissionGroupOfTable(String tableName)
-	{
-		return nameToPermissionGroupTableDict.get(tableName);
 	}
 
 	@Override
@@ -673,24 +333,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 	public boolean test()
 	{
 		return true;
-	}
-
-	public String createForeignKeyLinkName(String fromTableName, String fromFieldName, String toTableName, String toFieldName)
-	{
-		fromTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromTableName));
-		fromFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(fromFieldName));
-		toTableName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toTableName));
-		toFieldName = buildFqName(XmlDatabaseMapper.splitSchemaAndName(toFieldName));
-		return "LINK_" + fromTableName + "_" + fromFieldName + "-" + toTableName + "_" + toFieldName;
-	}
-
-	protected String buildFqName(String[] fqNameSplit)
-	{
-		if (fqNameSplit[0] == null)
-		{
-			return fqNameSplit[1];
-		}
-		return fqNameSplit[0] + "_" + fqNameSplit[1];
 	}
 
 	@Override
@@ -719,24 +361,6 @@ public class Database implements IDatabase, IConfigurableDatabase, IInitializing
 
 	@Override
 	public void enableConstraints(IList<String[]> disabled)
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public boolean isLinkArchiveTable(String tableName)
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public ILink mapLink(ILink link)
-	{
-		throw new UnsupportedOperationException("Not implemented");
-	}
-
-	@Override
-	public boolean isFieldNullable(IField field) throws SQLException
 	{
 		throw new UnsupportedOperationException("Not implemented");
 	}

@@ -27,7 +27,7 @@ import de.osthus.ambeth.proxy.ICgLibUtil;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.util.IPrintable;
 
-public class LogConnectionInterceptor extends AbstractSimpleInterceptor
+public class LogConnectionInterceptor extends AbstractSimpleInterceptor implements IPreparedConnectionHolder
 {
 	public static final Method createStatementMethod;
 
@@ -72,6 +72,8 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 	@Autowired
 	protected Connection connection;
 
+	protected boolean preparedConnection;
+
 	@Property(name = PersistenceConfigurationConstants.FetchSize, defaultValue = "100")
 	protected int fetchSize;
 
@@ -89,6 +91,18 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 	public void setConnection(Connection connection)
 	{
 		this.connection = connection;
+	}
+
+	@Override
+	public boolean isPreparedConnection()
+	{
+		return preparedConnection;
+	}
+
+	@Override
+	public void setPreparedConnection(boolean preparedConnection)
+	{
+		this.preparedConnection = preparedConnection;
 	}
 
 	@Override
@@ -110,13 +124,23 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 			}
 			throw new SQLException(SQLState.CONNECTION_NOT_OPEN.getMessage(), SQLState.CONNECTION_NOT_OPEN.getXopen());
 		}
-		if (isWrapperForMethod.equals(method) && IConnectionKeyHandle.class.equals(args[0]))
+		if (isWrapperForMethod.equals(method))
 		{
-			return Boolean.TRUE;
+			if (IConnectionKeyHandle.class.equals(args[0]) || IPreparedConnectionHolder.class.equals(args[0]))
+			{
+				return Boolean.TRUE;
+			}
 		}
-		else if (unwrapMethod.equals(method) && IConnectionKeyHandle.class.equals(args[0]))
+		else if (unwrapMethod.equals(method))
 		{
-			return connectionKeyHandle;
+			if (IConnectionKeyHandle.class.equals(args[0]))
+			{
+				return connectionKeyHandle;
+			}
+			if (IPreparedConnectionHolder.class.equals(args[0]))
+			{
+				return this;
+			}
 		}
 		try
 		{
@@ -156,6 +180,10 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor
 
 			if (pooledCloseMethod.equals(method) || closeMethod.equals(method))
 			{
+				if (log.isDebugEnabled())
+				{
+					log.debug("[" + System.identityHashCode(connection) + "] closed connection");
+				}
 				if (eventDispatcher != null)
 				{
 					eventDispatcher.dispatchEvent(new ConnectionClosedEvent((Connection) obj));

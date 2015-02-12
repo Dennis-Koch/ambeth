@@ -19,7 +19,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.PersistenceContext;
-import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
+import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;

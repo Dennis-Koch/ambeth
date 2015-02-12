@@ -231,7 +231,11 @@ namespace De.Osthus.Ambeth.Accessor
                 cw = loader.CreateNewType(TypeAttributes.Public, constructorClassName, superType, Type.EmptyTypes);
             }
             {
-                ConstructorInfo baseConstructor = superType.GetConstructor(Type.EmptyTypes);
+                ConstructorInfo baseConstructor = superType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+                if (baseConstructor == null)
+                {
+                    throw new Exception("Constructor not found: " + superType.FullName);
+                }
                 ILGenerator mv = cw.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, Type.EmptyTypes).GetILGenerator();
                 mv.Emit(OpCodes.Ldarg_0);
                 mv.Emit(OpCodes.Call, baseConstructor);

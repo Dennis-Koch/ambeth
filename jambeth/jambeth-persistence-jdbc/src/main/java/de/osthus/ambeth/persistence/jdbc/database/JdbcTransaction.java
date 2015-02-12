@@ -1,9 +1,11 @@
 package de.osthus.ambeth.persistence.jdbc.database;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Map.Entry;
 
 import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 import javax.transaction.UserTransaction;
 
 import de.osthus.ambeth.cache.ITransactionalRootCache;
@@ -29,16 +31,19 @@ import de.osthus.ambeth.ioc.threadlocal.Forkable;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.ITransactionState;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionHolder;
 import de.osthus.ambeth.persistence.jdbc.IConnectionHolderRegistry;
 import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public class JdbcTransaction implements ITransaction, ITransactionState, IThreadLocalCleanupBean
+public class JdbcTransaction implements ILightweightTransaction, ITransaction, ITransactionState, IThreadLocalCleanupBean
 {
 	public static class ThreadLocalItem implements ITransactionInfo
 	{
@@ -55,6 +60,8 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 		public Boolean etmActive;
 
 		public LinkedHashMap<Object, IDatabase> databaseMap;
+
+		public boolean lazyMode;
 
 		@Override
 		public long getSessionId()
@@ -513,11 +520,16 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 	@Override
 	public <R> R processAndCommit(ResultingDatabaseCallback<R> databaseCallback)
 	{
-		return processAndCommit(databaseCallback, false, false);
+		return processAndCommit(databaseCallback, false, false, false);
 	}
 
 	@Override
 	public <R> R processAndCommit(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly)
+	{
+		return processAndCommit(databaseCallback, expectOwnDatabaseSession, readOnly, false);
+	}
+
+	public <R> R processAndCommit(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction)
 	{
 		long start = System.currentTimeMillis();
 		ThreadLocalItem tli = getEnsureTLI();
@@ -527,42 +539,97 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 			{
 				throw new IllegalStateException("Transaction already active");
 			}
-			// atabaseMap = databaseMapTL.get();
-			// ILinkedMap<IDatabase, Object[]> oldContextProviderValues = IdentityLinkedMap.create(objectCollector.getCurrent());
-			// try
-			// {
-			// IMapIterator<Object, IDatabase> iter = databaseMap.iterator();
-			// while (iter.hasNext())
-			// {
-			// IDatabase database = iter.next();
-			//
-			// IContextProvider contextProvider = database.getContextProvider();
-			// IUserHandle userHandle = securityScopeProvider.getUserHandle();
-			// this.contextProvider.setCurrentUser(userHandle != null ? userHandle.getSid() : "anonymous");
-			// this.contextProvider.setCurrentTime(Long.valueOf(System.currentTimeMillis()));
-			// }
-			// iter.dispose();
-			// return databaseCallback.callback(databaseMap);
-			// }
-			// catch (Throwable e)
-			// {
-			// throw RuntimeExceptionUtil.mask(e);
-			// }
-			// finally
-			// {
-			// IMapIterator<IDatabase, Object> iter = oldContextProviderValues.iterator();
-			// while (iter.hasNext())
-			// {
-			// IMapEntry<IDatabase, Object> entry = iter.nextEntry();
-			// IContextProvider contextProvider = entry.getKey().getContextProvider();
-			// Object[] oldValues = entry.getValue();
-			// contextProvider.setCurrentTime(oldValues.)
-			// }
-			// oldContextProviderValues.dispose();
-			// }
 			ILinkedMap<Object, IDatabase> databaseMap = Boolean.TRUE.equals(tli.beginInProgress) ? null : tli.databaseMap;
 			try
 			{
+				return databaseCallback.callback(databaseMap);
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+		if (lazyTransaction)
+		{
+			boolean oldLazyMode = tli.lazyMode;
+			if (oldLazyMode)
+			{
+				// nothing to do. any success or error will be handled already in the outer scope
+				try
+				{
+					return databaseCallback.callback(null);
+				}
+				catch (Throwable e)
+				{
+					throw RuntimeExceptionUtil.mask(e);
+				}
+			}
+			tli.lazyMode = true;
+			boolean success = false;
+			Throwable recoverableException = null;
+			try
+			{
+				R result = databaseCallback.callback(null);
+				if (!isActive())
+				{
+					// during the callback no transaction has been opened & pending for close
+					// so we have nothing to do in this case
+					return result;
+				}
+				if (readOnly)
+				{
+					rollback(false);
+				}
+				else
+				{
+					commit();
+				}
+				success = true;
+				long end = System.currentTimeMillis();
+				if (log.isDebugEnabled())
+				{
+					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Executed Transaction: ", (end - start), " ms"));
+				}
+				return result;
+			}
+			catch (OptimisticLockException e)
+			{
+				recoverableException = e;
+				throw e;
+			}
+			catch (PersistenceException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (SQLException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (Error e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			catch (Throwable e) // all other exceptions are assumed application based and therefore recoverable
+			{
+				recoverableException = e;
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			finally
+			{
+				tli.lazyMode = false;
+				if (!success)
+				{
+					rollback(recoverableException == null);
+				}
+			}
+		}
+		if (tli.lazyMode)
+		{
+			// previous call to this JdbcTransaction with "lazy" flag. So we handle rollbacks/success at the "previous" outer level
+			try
+			{
+				begin(false); // intentionally open the transaction "writable" in any case if we are in lazy mode
+				ILinkedMap<Object, IDatabase> databaseMap = tli.databaseMap;
 				return databaseCallback.callback(databaseMap);
 			}
 			catch (Throwable e)
@@ -658,5 +725,44 @@ public class JdbcTransaction implements ITransaction, ITransactionState, IThread
 			tli = getEnsureTLI();
 		}
 		tli.etmActive = active;
+	}
+
+	@Override
+	public void runInTransaction(final IBackgroundWorkerDelegate runnable)
+	{
+		processAndCommit(new DatabaseCallback()
+		{
+			@Override
+			public void callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				runnable.invoke();
+			}
+		});
+	}
+
+	@Override
+	public <R> R runInTransaction(final IResultingBackgroundWorkerDelegate<R> runnable)
+	{
+		return processAndCommit(new ResultingDatabaseCallback<R>()
+		{
+			@Override
+			public R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return runnable.invoke();
+			}
+		});
+	}
+
+	@Override
+	public <R> R runInLazyTransaction(final IResultingBackgroundWorkerDelegate<R> runnable)
+	{
+		return processAndCommit(new ResultingDatabaseCallback<R>()
+		{
+			@Override
+			public R callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			{
+				return runnable.invoke();
+			}
+		}, false, false, true);
 	}
 }

@@ -24,6 +24,7 @@ import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.SystemUtil;
 
 public class ServiceContextTest
@@ -62,27 +63,27 @@ public class ServiceContextTest
 	@Ignore
 	public final void testDefaultServiceProviderIThreadLocalObjectCollector()
 	{
-		assertNotNull(this.beanContext);
+		assertNotNull(beanContext);
 	}
 
 	@Test
 	@Ignore
 	public final void testDefaultServiceProviderDefaultServiceProviderIThreadLocalObjectCollector()
 	{
-		assertNotNull(this.childBeanContext);
+		assertNotNull(childBeanContext);
 	}
 
 	@Test
 	public final void testGetParent()
 	{
-		assertNull(this.beanContext.getParent());
-		assertSame(this.beanContext, this.childBeanContext.getParent());
+		assertNull(beanContext.getParent());
+		assertSame(beanContext, childBeanContext.getParent());
 	}
 
 	@Test
 	public final void testGetPostProcessors()
 	{
-		List<IBeanPostProcessor> actual = this.beanContext.getPostProcessors();
+		List<IBeanPostProcessor> actual = beanContext.getPostProcessors();
 		assertTrue(actual == null || actual.isEmpty());
 	}
 
@@ -99,8 +100,8 @@ public class ServiceContextTest
 				return null;
 			}
 		});
-		this.beanContext.addPostProcessor(expected.get(0));
-		List<IBeanPostProcessor> actuals = this.beanContext.getPostProcessors();
+		beanContext.addPostProcessor(expected.get(0));
+		List<IBeanPostProcessor> actuals = beanContext.getPostProcessors();
 		assertEquals(expected.size(), actuals.size());
 		for (IBeanPostProcessor actual : actuals)
 		{
@@ -302,7 +303,7 @@ public class ServiceContextTest
 	@Ignore
 	public final void testRegisterServiceClassOfIClassOfT()
 	{
-		IServiceContext beanContext = this.beanContext.createService("test", new RegisterPhaseDelegate()
+		IServiceContext beanContext = this.beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 			@Override
 			public void invoke(IBeanContextFactory childContextFactory)
@@ -372,7 +373,7 @@ public class ServiceContextTest
 
 		PrintStream orgOut = System.out;
 		{
-			ServiceContext childContext = (ServiceContext) this.beanContext.createService("test", new RegisterPhaseDelegate()
+			ServiceContext childContext = (ServiceContext) beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 			{
 
 				@Override
@@ -391,7 +392,7 @@ public class ServiceContextTest
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			System.setOut(new PrintStream(out));
 
-			this.beanContext.createService("test", new RegisterPhaseDelegate()
+			beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 			{
 
 				@Override
@@ -412,7 +413,7 @@ public class ServiceContextTest
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			System.setOut(new PrintStream(out));
 
-			this.beanContext.createService("test", new RegisterPhaseDelegate()
+			beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 			{
 				@Override
 				public void invoke(IBeanContextFactory childContextFactory)
@@ -427,12 +428,12 @@ public class ServiceContextTest
 			String actualLog = out.toString().trim();
 			assertTrue("Wrong/missing log entry!" + System.getProperty("line.separator") + "Actual: " + actualLog + System.getProperty("line.separator")
 					+ "Should end with: " + expectedLogEnd, actualLog.endsWith(expectedLogEnd));
-			assertSame("Registered new object!", service1, this.beanContext.typeToServiceDict.get(IRegisterableServiceFake.class));
+			assertSame("Registered new object!", service1, beanContext.typeToServiceDict.get(IRegisterableServiceFake.class));
 		}
 		{
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			System.setOut(new PrintStream(out));
-			this.beanContext.createService("test", new RegisterPhaseDelegate()
+			beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 			{
 				@Override
 				public void invoke(IBeanContextFactory childContextFactory)
@@ -443,7 +444,7 @@ public class ServiceContextTest
 			});
 			System.setOut(orgOut);
 			String expectedLogEnd = "There is already a service mapped to type '" + IRegisterableServiceFake.class.getName() + "' of type '"
-					+ this.beanContext.typeToServiceDict.get(IRegisterableServiceFake.class).getClass().getName() + "'. Skipping registration of type '"
+					+ beanContext.typeToServiceDict.get(IRegisterableServiceFake.class).getClass().getName() + "'. Skipping registration of type '"
 					+ RegisterableServiceFake2.class.getName() + "'";
 			String actualLog = out.toString().trim();
 			assertTrue("Wrong/missing log entry!" + System.getProperty("line.separator") + "Actual: " + actualLog + System.getProperty("line.separator")
@@ -455,7 +456,7 @@ public class ServiceContextTest
 	@Ignore
 	public final void testRegisterServiceClassOfTObject_misfittingObject()
 	{
-		this.beanContext.createService("test", new RegisterPhaseDelegate()
+		beanContext.createService("test", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 			@Override
 			public void invoke(IBeanContextFactory childContextFactory)

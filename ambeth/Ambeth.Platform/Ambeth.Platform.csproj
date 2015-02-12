@@ -61,6 +61,10 @@
       <Project>{e5a70d5c-ee4f-40fa-be23-5352d40c7b33}</Project>
       <Name>Ambeth.Log</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Ambeth.Merge\Ambeth.Merge.csproj">
+      <Project>{d8c0ca71-b7fc-4699-97c2-4deb72eec485}</Project>
+      <Name>Ambeth.Merge</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Ambeth.Persistence.API\Ambeth.Persistence.API.csproj">
       <Project>{eb70c286-064d-44eb-b105-05537581c833}</Project>
       <Name>Ambeth.Persistence.API</Name>
