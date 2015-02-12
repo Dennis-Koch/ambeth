@@ -15,7 +15,7 @@ public interface IQueryIntern<T> extends IDisposable
 
 	IDataCursor retrieveAsData(IMap<Object, Object> paramNameToValueMap);
 
-	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap);
+	IVersionCursor retrieveAsVersions(IMap<Object, Object> paramNameToValueMap, boolean retrieveAlternateIds);
 
 	IEntityCursor<T> retrieveAsCursor();
 

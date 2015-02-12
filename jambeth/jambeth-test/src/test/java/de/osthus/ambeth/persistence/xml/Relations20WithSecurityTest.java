@@ -18,6 +18,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.xml.Relations20WithSecurityTest.Relations20WithSecurityTestModule;
 import de.osthus.ambeth.persistence.xml.model.Employee;
@@ -26,7 +27,6 @@ import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.security.SecurityTest;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
 import de.osthus.ambeth.security.TestAuthentication;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
@@ -43,7 +43,7 @@ import de.osthus.ambeth.util.setup.IDatasetBuilderExtendable;
 @TestFrameworkModule(Relations20WithSecurityTestModule.class)
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm20.xml;de/osthus/ambeth/audit/security-orm.xml"),
-		@TestProperties(name = SecurityConfigurationConstants.SecurityActive, value = "true"),
+		@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true"),
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestAuthentication(name = SecurityTest.userName1, password = SecurityTest.userPass1)
 public class Relations20WithSecurityTest extends Relations20Test

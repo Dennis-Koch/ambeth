@@ -28,10 +28,15 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
+import de.osthus.ambeth.metadata.PrimitiveMember;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.model.IEmbeddedType;
 import de.osthus.ambeth.model.INotifyPropertyChanged;
 import de.osthus.ambeth.model.INotifyPropertyChangedSource;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
+import de.osthus.ambeth.proxy.IValueHolderContainer;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
@@ -211,11 +216,59 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 		{
 			return;
 		}
-		obj.onPropertyChanged("ToBeUpdated");
+		boolean oldToBeUpdated = ((IDataObject) obj).isToBeUpdated();
+		if (oldToBeUpdated)
+		{
+			return;
+		}
+		obj.onPropertyChanged("ToBeUpdated", Boolean.FALSE, Boolean.TRUE);
 	}
 
 	public void handleCollectionChange(INotifyPropertyChangedSource obj, NotifyCollectionChangedEvent evnt)
 	{
+		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
+
+		Object source = evnt.getSource();
+		Object base = null;
+		boolean parentChildProperty = false;
+
+		RelationMember[] relationMembers = metaData.getRelationMembers();
+		for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
+		{
+			Object valueDirect = ((IValueHolderContainer) obj).get__ValueDirect(relationIndex);
+			if (valueDirect != source)
+			{
+				continue;
+			}
+			if (relationMembers[relationIndex].getAnnotation(ParentChild.class) != null)
+			{
+				base = obj;
+				parentChildProperty = true;
+			}
+			else
+			{
+				base = source;
+			}
+			break;
+		}
+		if (base == null)
+		{
+			for (PrimitiveMember primitiveMember : metaData.getPrimitiveMembers())
+			{
+				Object valueDirect = primitiveMember.getValue(obj);
+				if (valueDirect != source)
+				{
+					continue;
+				}
+				base = obj;
+				parentChildProperty = true;
+				break;
+			}
+		}
+		if (base == null)
+		{
+			throw new IllegalStateException("Must never happen");
+		}
 		ICacheModification cacheModification = this.cacheModification;
 		boolean oldCacheModification = cacheModification.isActive();
 		boolean cacheModificationUsed = false;
@@ -230,14 +283,14 @@ public class PropertyChangeMixin implements IPropertyChangeExtensionExtendable, 
 					{
 						for (Object oldItem : evnt.getOldItems())
 						{
-							handleRemovedItem(obj, oldItem, true);
+							handleRemovedItem(obj, oldItem, parentChildProperty);
 						}
 					}
 					if (evnt.getNewItems() != null)
 					{
 						for (Object newItem : evnt.getNewItems())
 						{
-							handleAddedItem(obj, newItem, true);
+							handleAddedItem(obj, newItem, parentChildProperty);
 						}
 					}
 					break;

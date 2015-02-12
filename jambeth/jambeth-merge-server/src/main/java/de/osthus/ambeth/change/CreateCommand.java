@@ -5,30 +5,25 @@ import java.util.Map.Entry;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.merge.model.IChangeContainer;
-import de.osthus.ambeth.merge.transfer.CreateContainer;
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.ITable;
 
 public class CreateCommand extends AbstractChangeCommand implements ICreateCommand
 {
 	protected final LinkedHashMap<String, Object> items = new LinkedHashMap<String, Object>();
 
-	@Override
-	public void dispose()
+	public CreateCommand(IObjRef reference)
 	{
-		super.dispose();
-		items.clear();
+		super(reference);
 	}
 
 	@Override
 	public void configureFromContainer(IChangeContainer changeContainer, ITable table)
 	{
-		CreateContainer container = (CreateContainer) changeContainer;
-		super.configureFromContainer(container, table);
+		super.configureFromContainer(changeContainer, table);
 
-		if (container.getPrimitives() != null)
-		{
-			repackPuis(container.getPrimitives(), this.items);
-		}
+		repackPuis(((ICreateOrUpdateContainer) changeContainer).getFullPUIs(), items);
 	}
 
 	@Override
@@ -64,6 +59,6 @@ public class CreateCommand extends AbstractChangeCommand implements ICreateComma
 	@Override
 	public ILinkedMap<String, Object> getItems()
 	{
-		return this.items;
+		return items;
 	}
 }

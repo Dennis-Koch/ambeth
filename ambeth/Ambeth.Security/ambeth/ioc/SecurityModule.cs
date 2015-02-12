@@ -21,8 +21,6 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            beanContextFactory.RegisterBean<SecurityActivation>().Autowireable<ISecurityActivation>();
-
             beanContextFactory.RegisterBean<SecurityContextHolder>().Autowireable(typeof(ISecurityContextHolder), typeof(IAuthorizationChangeListenerExtendable));
 
             if (IsNetworkClientMode && IsSecurityBeanActive)

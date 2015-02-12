@@ -91,17 +91,12 @@
     <Compile Include="ambeth\persistence\IContextProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ambeth\util\IAlreadyLoadedCache.cs" />
-    <Compile Include="ambeth\util\IdTypeTuple.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="ambeth\persistence\IDatabasePool.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\persistence\ICursor.cs" />
     <Compile Include="ambeth\persistence\ICursorItem.cs" />
     <Compile Include="ambeth\persistence\IDirectedLink.cs" />
-    <Compile Include="ambeth\persistence\IField.cs" />
     <Compile Include="ambeth\persistence\ILink.cs" />
     <Compile Include="ambeth\persistence\ILinkCursor.cs" />
     <Compile Include="ambeth\persistence\ILinkCursorItem.cs" />
@@ -114,6 +109,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\persistence\IPermissionGroup.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\persistence\IDatabaseMetaData.cs" />
+    <Compile Include="ambeth\persistence\IDirectedLinkMetaData.cs" />
+    <Compile Include="ambeth\persistence\IFieldMetaData.cs" />
+    <Compile Include="ambeth\persistence\ILinkMetaData.cs" />
+    <Compile Include="ambeth\persistence\ITableMetaData.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

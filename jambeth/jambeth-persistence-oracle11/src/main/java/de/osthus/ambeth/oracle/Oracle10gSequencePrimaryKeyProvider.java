@@ -26,11 +26,11 @@ public class Oracle10gSequencePrimaryKeyProvider extends AbstractCachingPrimaryK
 	@Override
 	protected void acquireIdsIntern(ITable table, int count, List<Object> targetIdList)
 	{
-		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getSequenceName());
+		String[] schemaAndName = XmlDatabaseMapper.splitSchemaAndName(table.getMetaData().getSequenceName());
 		if (schemaAndName[0] == null)
 		{
 			// if no schema is explicitly specified in the sequence we look in the schema of the table
-			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getFullqualifiedEscapedName())[0];
+			schemaAndName[0] = XmlDatabaseMapper.splitSchemaAndName(table.getMetaData().getFullqualifiedEscapedName())[0];
 		}
 		PreparedStatement pstm = null;
 		ResultSet rs = null;

@@ -9,7 +9,7 @@ import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
+import de.osthus.ambeth.cache.IDisposableCache;
 import de.osthus.ambeth.cache.interceptor.SingleCacheOnDemandProvider;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashSet;
@@ -22,6 +22,7 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -67,7 +68,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.IPrefetchState;
 
 public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable,
-		IEntityPermissionRuleProvider, IEntityTypePermissionRuleProvider
+		IEntityPermissionRuleProvider, IEntityTypePermissionRuleProvider, IThreadLocalCleanupBean
 {
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -142,6 +143,31 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@Property(name = SecurityConfigurationConstants.DefaultDeletePropertyPrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultDeletePropertyPrivilege;
 
+	protected final ThreadLocal<IDisposableCache> privilegeCacheTL = new ThreadLocal<IDisposableCache>();
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		IDisposableCache privilegeCache = privilegeCacheTL.get();
+		if (privilegeCache != null)
+		{
+			privilegeCacheTL.set(null);
+			privilegeCache.dispose();
+		}
+	}
+
+	protected IDisposableCache getOrCreatePrivilegeCache()
+	{
+		IDisposableCache privilegeCache = privilegeCacheTL.get();
+		if (privilegeCache != null)
+		{
+			return privilegeCache;
+		}
+		privilegeCache = cacheFactory.createPrivileged(CacheFactoryDirective.SubscribeTransactionalDCE, false, Boolean.FALSE, "Privilege.ORIGINAL");
+		privilegeCacheTL.set(privilegeCache);
+		return privilegeCache;
+	}
+
 	public boolean isCreateAllowed(Object entity, ISecurityScope[] securityScopes)
 	{
 		return getPrivileges(entity, securityScopes).isCreateAllowed();
@@ -188,9 +214,15 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		return new SingleCacheOnDemandProvider()
 		{
 			@Override
+			public void dispose()
+			{
+				// intended blank
+			}
+
+			@Override
 			protected ICache resolveCurrentCache()
 			{
-				return cacheFactory.createPrivileged(CacheFactoryDirective.NoDCE, false, Boolean.FALSE, "Privilege.ORIGINAL");
+				return getOrCreatePrivilegeCache();
 			}
 		};
 	}
@@ -219,10 +251,10 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		SingleCacheOnDemandProvider cacheProviderForSecurityChecks = createCacheProvider();
 		try
 		{
-			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new ISingleCacheRunnable<List<ITypePrivilegeOfService>>()
+			return cacheContext.executeWithCache(cacheProviderForSecurityChecks, new IResultingBackgroundWorkerDelegate<List<ITypePrivilegeOfService>>()
 			{
 				@Override
-				public List<ITypePrivilegeOfService> run() throws Throwable
+				public List<ITypePrivilegeOfService> invoke() throws Throwable
 				{
 					return getPrivilegesOfTypesIntern(entityTypes, securityScopes);
 				}

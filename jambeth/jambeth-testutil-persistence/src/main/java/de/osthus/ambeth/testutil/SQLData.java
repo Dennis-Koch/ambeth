@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface SQLData
 {
-	String value() default "";
+	String[] value() default {};
 
 	Class<? extends ISchemaRunnable> type() default ISchemaRunnable.class;
 }

@@ -2,16 +2,46 @@ package de.osthus.ambeth.security;
 
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
 public class SecurityContextHolder implements IAuthorizationChangeListenerExtendable, ISecurityContextHolder, IThreadLocalCleanupBean
 {
+	public static class SecurityContextForkProcessor implements IForkProcessor
+	{
+		@Override
+		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
+		{
+			return fieldValueTL.get();
+		}
+
+		@Override
+		public Object createForkedValue(Object value)
+		{
+			if (value == null)
+			{
+				return null;
+			}
+			SecurityContextImpl original = (SecurityContextImpl) value;
+			SecurityContextImpl forkedValue = new SecurityContextImpl(original.securityContextHolder);
+			forkedValue.setAuthentication(original.getAuthentication());
+			forkedValue.setAuthorization(original.getAuthorization());
+			return forkedValue;
+		}
+
+		@Override
+		public void returnForkedValue(Object value, Object forkedValue)
+		{
+			// Intended blank
+		}
+	}
+
 	protected final DefaultExtendableContainer<IAuthorizationChangeListener> authorizationChangeListeners = new DefaultExtendableContainer<IAuthorizationChangeListener>(
 			IAuthorizationChangeListener.class, "authorizationChangeListener");
 
-	@Forkable
+	@Forkable(processor = SecurityContextForkProcessor.class)
 	protected final ThreadLocal<ISecurityContext> contextTL = new SensitiveThreadLocal<ISecurityContext>();
 
 	protected void notifyAuthorizationChangeListeners(IAuthorization authorization)

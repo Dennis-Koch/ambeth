@@ -183,7 +183,6 @@
     <Compile Include="ambeth\ioc\PostProcessorOrder.cs" />
     <Compile Include="ambeth\ioc\proxy\EmptyInterceptor.cs" />
     <Compile Include="ambeth\ioc\proxy\InterfaceBean.cs" />
-    <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
     <Compile Include="ambeth\ioc\threadlocal\Forkable.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ForkableType.cs" />

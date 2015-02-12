@@ -9,7 +9,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
     {
         public static readonly IPropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new IPropertyPrivilege[0];
 
-        private static readonly PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[1 << 4];
+        private static readonly PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[ArraySizeForIndex()];
 
         static PropertyPrivilegeImpl()
         {
@@ -40,41 +40,42 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             Put(create, read, update, false);
         }
 
-        public static int ToBitValue(bool value, int startingBit)
+        public static int ArraySizeForIndex()
         {
-            return value ? 1 << startingBit : 0;
+            return 1 << 4;
         }
 
-        public static int ToBitValue(bool create, bool read, bool update, bool delete, bool execute)
+        public static int CalcIndex(bool create, bool read, bool update, bool delete)
         {
-            return ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3) + ToBitValue(execute, 4);
+            return AbstractPrivilege.ToBitValue(create, 0) + AbstractPrivilege.ToBitValue(read, 1) + AbstractPrivilege.ToBitValue(update, 2)
+                    + AbstractPrivilege.ToBitValue(delete, 3);
         }
 
         private static void Put(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, read, update, delete, false);
+            int index = CalcIndex(create, read, update, delete);
             array[index] = new PropertyPrivilegeImpl(create, read, update, delete);
         }
 
         public static IPropertyPrivilege Create(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, read, update, delete, false);
+            int index = CalcIndex(create, read, update, delete);
             return array[index];
         }
-
-        public static IPropertyPrivilege createFrom(IPrivilege privilegeAsTemplate)
+        
+        public static IPropertyPrivilege CreateFrom(IPrivilege privilegeAsTemplate)
         {
             return Create(privilegeAsTemplate.CreateAllowed, privilegeAsTemplate.ReadAllowed, privilegeAsTemplate.UpdateAllowed,
                     privilegeAsTemplate.DeleteAllowed);
         }
 
-        public static IPropertyPrivilege createFrom(IPrivilegeOfService privilegeOfService)
+        public static IPropertyPrivilege CreateFrom(IPrivilegeOfService privilegeOfService)
         {
             return Create(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
                     privilegeOfService.DeleteAllowed);
         }
 
-        public static IPropertyPrivilege createFrom(IPropertyPrivilegeOfService propertyPrivilegeResult)
+        public static IPropertyPrivilege CreateFrom(IPropertyPrivilegeOfService propertyPrivilegeResult)
         {
             return Create(propertyPrivilegeResult.CreateAllowed, propertyPrivilegeResult.ReadAllowed, propertyPrivilegeResult.UpdateAllowed,
                     propertyPrivilegeResult.DeleteAllowed);
@@ -112,26 +113,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
         {
             get { return delete; }
         }
-
-        public override bool Equals(Object obj)
-        {
-            if (Object.ReferenceEquals(obj, this))
-            {
-                return true;
-            }
-            if (!(obj is PropertyPrivilegeImpl))
-            {
-                return false;
-            }
-            PropertyPrivilegeImpl other = (PropertyPrivilegeImpl)obj;
-            return create == other.create && read == other.read && update == other.update && delete == other.delete;
-        }
-
-        public override int GetHashCode()
-        {
-            return ToBitValue(create, read, update, delete, false);
-        }
-
+        
         public override String ToString()
         {
             StringBuilder sb = new StringBuilder();

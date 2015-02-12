@@ -22,7 +22,7 @@ namespace De.Osthus.Ambeth.Merge
 
         public Dictionary<IObjRef, Object> oriToObjDict = new Dictionary<IObjRef, Object>();
 
-        public IdentityDictionary<Object, IList<IUpdateItem>> objToModDict = new IdentityDictionary<Object, IList<IUpdateItem>>();
+        public IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = new IdentityLinkedMap<Object, IList<IUpdateItem>>();
 
         public IdentityHashSet<Object> objToDeleteSet = new IdentityHashSet<Object>();
 

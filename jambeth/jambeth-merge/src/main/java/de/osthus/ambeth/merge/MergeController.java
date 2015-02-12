@@ -18,6 +18,8 @@ import de.osthus.ambeth.cache.ICacheProvider;
 import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptySet;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.IdentityHashSet;
@@ -30,14 +32,20 @@ import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.merge.model.IOriCollection;
+import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.model.IUpdateItem;
+import de.osthus.ambeth.merge.model.RelationUpdateItemBuild;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
 import de.osthus.ambeth.merge.transfer.RelationUpdateItem;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IGuiThreadHelper;
 import de.osthus.ambeth.util.DirectValueHolderRef;
 import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -69,10 +77,16 @@ public class MergeController implements IMergeController, IMergeExtendable
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
+	protected IGuiThreadHelper guiThreadHelper;
+
+	@Autowired
 	protected IPrefetchHelper prefetchHelper;
 
 	@Autowired
 	protected ICUDResultHelper cudResultHelper;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IObjRefHelper oriHelper;
@@ -113,9 +127,35 @@ public class MergeController implements IMergeController, IMergeExtendable
 	}
 
 	@Override
-	public void applyChangesToOriginals(List<Object> originalRefs, List<IObjRef> oriList, Long changedOn, String changedBy)
+	public void applyChangesToOriginals(final ICUDResult cudResult, final IOriCollection oriCollection, final ICache cache)
+	{
+		if (guiThreadHelper.isInGuiThread())
+		{
+			applyChangesToOriginalsIntern(cudResult, oriCollection, cache);
+			return;
+		}
+		guiThreadHelper.invokeInGuiAndWait(new IBackgroundWorkerDelegate()
+		{
+			@Override
+			public void invoke() throws Throwable
+			{
+				applyChangesToOriginalsIntern(cudResult, oriCollection, cache);
+			}
+		});
+	}
+
+	protected void applyChangesToOriginalsIntern(ICUDResult cudResult, IOriCollection oriCollection, ICache cache)
 	{
 		ICacheModification cacheModification = this.cacheModification;
+		IConversionHelper conversionHelper = this.conversionHelper;
+		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
+		List<Object> originalRefs = cudResult.getOriginalRefs();
+		List<IObjRef> allChangeORIs = oriCollection.getAllChangeORIs();
+		String[] allChangedBy = oriCollection.getAllChangedBy();
+		Long[] allChangedOn = oriCollection.getAllChangedOn();
+		String singleChangedBy = oriCollection.getChangedBy();
+		Long singleChangedOn = oriCollection.getChangedOn();
+
 		boolean newInstanceOnCall = cacheProvider.isNewInstanceOnCall();
 		boolean oldCacheModificationValue = cacheModification.isActive();
 		ArrayList<Object> validObjects = new ArrayList<Object>();
@@ -125,7 +165,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 			for (int a = originalRefs.size(); a-- > 0;)
 			{
 				Object originalRef = originalRefs.get(a);
-				IObjRef ori = oriList.get(a);
+				IObjRef ori = allChangeORIs.get(a);
 
 				if (originalRef == null)
 				{
@@ -137,6 +177,8 @@ public class MergeController implements IMergeController, IMergeExtendable
 				{
 					continue;
 				}
+				Long changedOn = allChangedOn != null ? allChangedOn[a] : singleChangedOn;
+				String changedBy = allChangedBy != null ? allChangedBy[a] : singleChangedBy;
 				IEntityMetaData metaData = entityMetaDataProvider.getMetaData(originalRef.getClass());
 
 				Member keyMember = metaData.getIdMember();
@@ -180,7 +222,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 				keyMember.setValue(originalRef, conversionHelper.convertValueToType(keyMember.getRealType(), ori.getId()));
 				if (versionMember != null)
 				{
-					if (newInstanceOnCall || alwaysUpdateVersionInChangedEntities)
+					if (alwaysUpdateVersionInChangedEntities)
 					{
 						versionMember.setValue(originalRef, conversionHelper.convertValueToType(versionMember.getRealType(), ori.getVersion()));
 					}
@@ -201,7 +243,7 @@ public class MergeController implements IMergeController, IMergeExtendable
 				}
 				validObjects.add(originalRef);
 			}
-			putInstancesToCurrentCache(validObjects);
+			putInstancesToCurrentCache(validObjects, cache);
 		}
 		finally
 		{
@@ -209,19 +251,14 @@ public class MergeController implements IMergeController, IMergeExtendable
 		}
 	}
 
-	protected void putInstancesToCurrentCache(List<Object> validObjects)
+	protected void putInstancesToCurrentCache(List<Object> validObjects, ICache cache)
 	{
 		if (!MergeProcess.isAddNewlyPersistedEntities())
 		{
 			return;
 		}
-		if (validObjects.size() == 0 || cacheProvider.isNewInstanceOnCall())
-		{
-			// Following code only necessary if cache instance is singleton or threadlocal
-			return;
-		}
-		IWritableCache cache = (IWritableCache) cacheProvider.getCurrentCache();
-		cache.put(validObjects);
+		IWritableCache currentCache = cache != null ? (IWritableCache) cache : (IWritableCache) cacheProvider.getCurrentCache();
+		currentCache.put(validObjects);
 	}
 
 	@Override
@@ -352,11 +389,11 @@ public class MergeController implements IMergeController, IMergeExtendable
 		{
 			return;
 		}
-		ObjRef objRef = null;
+		IObjRef objRef = null;
 		Object id = metaData.getIdMember().getValue(obj, false);
 		if (id != null)
 		{
-			objRef = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
+			objRef = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, id, null);
 		}
 		if (!(obj instanceof IDataObject) || ((IDataObject) obj).hasPendingChanges())
 		{
@@ -844,36 +881,10 @@ public class MergeController implements IMergeController, IMergeExtendable
 			IList<IObjRef> oldOriList = oriHelper.extractObjRefList(cloneValue, handle, handle.getOldOrList());
 			IList<IObjRef> newOriList = oriHelper.extractObjRefList(value, handle, handle.getNewOrList());
 
-			// Check unchanged ORIs
-			for (int a = oldOriList.size(); a-- > 0;)
-			{
-				IObjRef oldOri = oldOriList.get(a);
-				for (int b = newOriList.size(); b-- > 0;)
-				{
-					IObjRef newOri = newOriList.get(b);
-					if (oldOri.equals(newOri))
-					{
-						// Old ORIs, which exist as new ORIs, too, are unchanged
-						newOriList.remove(b);
-						oldOriList.remove(a);
-						break;
-					}
-				}
-			}
-			if (oldOriList.size() == 0 && newOriList.size() == 0)
+			IRelationUpdateItem oriModItem = createRUI(memberName, oldOriList, newOriList);
+			if (oriModItem == null)
 			{
 				return;
-			}
-			// Old ORIs are now handled as REMOVE, New ORIs as ADD
-			RelationUpdateItem oriModItem = new RelationUpdateItem();
-			oriModItem.setMemberName(memberName);
-			if (oldOriList.size() > 0)
-			{
-				oriModItem.setRemovedORIs(oldOriList.toArray(new IObjRef[oldOriList.size()]));
-			}
-			if (newOriList.size() > 0)
-			{
-				oriModItem.setAddedORIs(newOriList.toArray(new IObjRef[newOriList.size()]));
 			}
 
 			IList<IUpdateItem> modItemList = addModification(obj, handle);
@@ -885,6 +896,89 @@ public class MergeController implements IMergeController, IMergeExtendable
 			handle.getOldOrList().clear();
 			handle.getNewOrList().clear();
 		}
+	}
+
+	@Override
+	public IRelationUpdateItem createRUI(String memberName, List<IObjRef> oldOriList, List<IObjRef> newOriList)
+	{
+		if (oldOriList.size() == 0 && newOriList.size() == 0)
+		{
+			return null;
+		}
+		ISet<IObjRef> oldSet = oldOriList.size() > 0 ? new HashSet<IObjRef>(oldOriList) : EmptySet.<IObjRef> emptySet();
+		ISet<IObjRef> newSet = newOriList.size() > 0 ? new HashSet<IObjRef>(newOriList) : EmptySet.<IObjRef> emptySet();
+
+		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
+		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
+
+		// Check unchanged ORIs
+		Iterator<IObjRef> smallerIter = smallerSet.iterator();
+		while (smallerIter.hasNext())
+		{
+			// Old ORIs, which exist as new ORIs, too, are unchanged
+			IObjRef objRef = smallerIter.next();
+			if (greaterSet.remove(objRef))
+			{
+				smallerIter.remove();
+			}
+		}
+		if (oldSet.size() == 0 && newSet.size() == 0)
+		{
+			return null;
+		}
+		// Old ORIs are now handled as REMOVE, New ORIs as ADD
+		RelationUpdateItem rui = new RelationUpdateItem();
+		rui.setMemberName(memberName);
+		if (oldSet.size() > 0)
+		{
+			rui.setRemovedORIs(oldSet.toArray(IObjRef.class));
+		}
+		if (newSet.size() > 0)
+		{
+			rui.setAddedORIs(newSet.toArray(IObjRef.class));
+		}
+		return rui;
+	}
+
+	@Override
+	public RelationUpdateItemBuild createRUIBuild(String memberName, List<IObjRef> oldOriList, List<IObjRef> newOriList)
+	{
+		if (oldOriList.size() == 0 && newOriList.size() == 0)
+		{
+			return null;
+		}
+		ISet<IObjRef> oldSet = oldOriList.size() > 0 ? new HashSet<IObjRef>(oldOriList) : EmptySet.<IObjRef> emptySet();
+		ISet<IObjRef> newSet = newOriList.size() > 0 ? new HashSet<IObjRef>(newOriList) : EmptySet.<IObjRef> emptySet();
+
+		ISet<IObjRef> smallerSet = oldSet.size() > newSet.size() ? newSet : oldSet;
+		ISet<IObjRef> greaterSet = oldSet.size() > newSet.size() ? oldSet : newSet;
+
+		// Check unchanged ORIs
+		Iterator<IObjRef> smallerIter = smallerSet.iterator();
+		while (smallerIter.hasNext())
+		{
+			// Old ORIs, which exist as new ORIs, too, are unchanged
+			IObjRef objRef = smallerIter.next();
+			if (greaterSet.remove(objRef))
+			{
+				smallerIter.remove();
+			}
+		}
+		if (oldSet.size() == 0 && newSet.size() == 0)
+		{
+			return null;
+		}
+		// Old ORIs are now handled as REMOVE, New ORIs as ADD
+		RelationUpdateItemBuild rui = new RelationUpdateItemBuild(memberName);
+		if (oldSet.size() > 0)
+		{
+			rui.removeObjRefs(oldSet);
+		}
+		if (newSet.size() > 0)
+		{
+			rui.addObjRefs(newSet);
+		}
+		return rui;
 	}
 
 	@SuppressWarnings("rawtypes")

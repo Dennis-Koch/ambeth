@@ -33,14 +33,11 @@ import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
-import de.osthus.ambeth.database.DatabaseCallback;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -51,14 +48,16 @@ import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.ILoggerCache;
+import de.osthus.ambeth.merge.ILightweightTransaction;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.orm.XmlDatabaseMapper;
 import de.osthus.ambeth.persistence.IConnectionDialect;
-import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.IConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.persistence.jdbc.connection.IPreparedConnectionHolder;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.security.DefaultAuthentication;
@@ -68,7 +67,7 @@ import de.osthus.ambeth.security.PasswordType;
 import de.osthus.ambeth.security.SecurityContextType;
 import de.osthus.ambeth.security.SecurityFilterInterceptor;
 import de.osthus.ambeth.security.TestAuthentication;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.NullPrintStream;
 import de.osthus.ambeth.util.setup.SetupModule;
@@ -128,6 +127,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		rebuildData(null);
 	}
 
+	@SuppressWarnings("resource")
 	@Override
 	protected void extendProperties(FrameworkMethod frameworkMethod, Properties props)
 	{
@@ -140,6 +140,24 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 			props.putString(PersistenceJdbcConfigurationConstants.DatabaseUser, databaseUser + "_" + testForkSuffix);
 		}
 		DialectSelectorModule.fillTestProperties(props);
+
+		try
+		{
+			Connection schemaConnection = connection != null && !connection.isClosed() ? connection : null;
+			if (schemaConnection == null || !schemaConnection.isWrapperFor(IPreparedConnectionHolder.class))
+			{
+				return;
+			}
+			schemaConnection.unwrap(IPreparedConnectionHolder.class).setPreparedConnection(true);
+			ArrayList<Connection> preparedConnections = new ArrayList<Connection>(1);
+			preparedConnections.add(schemaConnection);
+			props.put(PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, preparedConnections);
+		}
+		catch (SQLException e)
+		{
+			throw RuntimeExceptionUtil.mask(e);
+		}
+
 	}
 
 	@Override
@@ -220,21 +238,19 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		}
 		try
 		{
-			if (connection != null)
+			if (connection != null && !connection.isClosed())
 			{
-				connection.close();
-				connection = null;
+				connection.rollback();
 			}
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		beanContext.getService(ITransaction.class).processAndCommit(new DatabaseCallback()
+		beanContext.getService(ILightweightTransaction.class).runInTransaction(new IBackgroundWorkerDelegate()
 		{
-
 			@Override
-			public void callback(final ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap)
+			public void invoke() throws Throwable
 			{
 				// Intended blank
 			}
@@ -486,7 +502,14 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				isFirstTestMethodAlreadyExecuted = true;
 				isRebuildDataForThisTestRecommended = doDataRebuild;
 
-				statement.evaluate();
+				try
+				{
+					statement.evaluate();
+				}
+				catch (MaskingRuntimeException e)
+				{
+					throw RuntimeExceptionUtil.mask(e, Throwable.class); // potentially unwraps redundant MaskingRuntimeException
+				}
 			}
 		};
 	}
@@ -509,8 +532,8 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				// Trigger clearing of other maps and caches (QueryResultCache,...)
 				beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
 
-				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(
-						SecurityConfigurationConstants.SecurityActive, "false"));
+				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(MergeConfigurationConstants.SecurityActive,
+						"false"));
 				if (!securityActive)
 				{
 					statement.evaluate();
@@ -710,8 +733,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				throw e;
 			}
 		}
-		conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-		conn.setAutoCommit(false);
 		connection = conn;
 		return connection;
 	}
@@ -886,7 +907,7 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 		return schemaRunnables.toArray(new ISchemaRunnable[schemaRunnables.size()]);
 	}
 
-	protected void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType, final String schemaFile,
+	protected void getSchemaRunnable(final Class<? extends ISchemaRunnable> schemaRunnableType, final String[] schemaFiles,
 			final List<ISchemaRunnable> schemaRunnables, final AnnotatedElement callingClass, final boolean doCommitBehavior)
 	{
 		if (schemaRunnableType != null && !ISchemaRunnable.class.equals(schemaRunnableType))
@@ -901,15 +922,20 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
-		if (schemaFile != null && schemaFile.length() > 0)
+		for (String schemaFile : schemaFiles)
 		{
+			if (schemaFile == null || schemaFile.length() == 0)
+			{
+				continue;
+			}
+			final String fSchemaFile = schemaFile;
 			ISchemaRunnable schemaRunnable = new ISchemaRunnable()
 			{
 
 				@Override
 				public void executeSchemaSql(final Connection connection) throws Exception
 				{
-					List<String> sql = readSqlFile(schemaFile, callingClass);
+					List<String> sql = readSqlFile(fSchemaFile, callingClass);
 					if (!sql.isEmpty())
 					{
 						executeScript(sql, connection, false);

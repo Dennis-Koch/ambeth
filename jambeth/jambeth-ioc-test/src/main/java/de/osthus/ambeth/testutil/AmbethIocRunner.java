@@ -21,10 +21,10 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.io.FileUtil;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.NullPrintStream;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
@@ -80,7 +80,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		if (testClassLevelContext != null)
 		{
 			IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
-			testClassLevelContext.dispose();
+			testClassLevelContext.getRoot().dispose();
 			testClassLevelContext = null;
 			beanContext = null;
 			tlCleanupController.cleanupThreadLocal();
@@ -155,7 +155,7 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				IServiceContext currentBeanContext = testClassLevelContext;
 				if (frameworkModules.length > 0)
 				{
-					currentBeanContext = currentBeanContext.createService("framework", new RegisterPhaseDelegate()
+					currentBeanContext = currentBeanContext.createService("framework", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 					{
 						@Override
 						public void invoke(IBeanContextFactory childContextFactory)

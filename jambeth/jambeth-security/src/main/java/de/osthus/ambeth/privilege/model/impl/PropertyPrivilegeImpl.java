@@ -11,7 +11,7 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 {
 	public static final IPropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new IPropertyPrivilege[0];
 
-	private static final PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[1 << 4];
+	private static final PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[arraySizeForIndex()];
 
 	static
 	{
@@ -42,25 +42,26 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 		put(create, read, update, false);
 	}
 
-	public static int toBitValue(boolean value, int startingBit)
+	public static int arraySizeForIndex()
 	{
-		return value ? 1 << startingBit : 0;
+		return 1 << 4;
 	}
 
-	public static int toBitValue(boolean create, boolean read, boolean update, boolean delete, boolean execute)
+	public static int calcIndex(boolean create, boolean read, boolean update, boolean delete)
 	{
-		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3) + toBitValue(execute, 4);
+		return AbstractPrivilege.toBitValue(create, 0) + AbstractPrivilege.toBitValue(read, 1) + AbstractPrivilege.toBitValue(update, 2)
+				+ AbstractPrivilege.toBitValue(delete, 3);
 	}
 
 	private static void put(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, read, update, delete, false);
+		int index = calcIndex(create, read, update, delete);
 		array[index] = new PropertyPrivilegeImpl(create, read, update, delete);
 	}
 
 	public static IPropertyPrivilege create(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, read, update, delete, false);
+		int index = calcIndex(create, read, update, delete);
 		return array[index];
 	}
 
@@ -117,27 +118,6 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 	public boolean isDeleteAllowed()
 	{
 		return delete;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (obj == this)
-		{
-			return true;
-		}
-		if (!(obj instanceof PropertyPrivilegeImpl))
-		{
-			return false;
-		}
-		PropertyPrivilegeImpl other = (PropertyPrivilegeImpl) obj;
-		return create == other.create && read == other.read && update == other.update && delete == other.delete;
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return toBitValue(create, read, update, delete, false);
 	}
 
 	@Override

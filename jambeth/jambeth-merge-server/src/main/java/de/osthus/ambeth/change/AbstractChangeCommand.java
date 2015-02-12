@@ -6,24 +6,22 @@ import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 
 public abstract class AbstractChangeCommand implements IChangeCommand
 {
-	protected IObjRef reference;
+	protected final IObjRef reference;
 
 	protected ITable table;
 
-	@Override
-	public void dispose()
+	public AbstractChangeCommand(IObjRef reference)
 	{
-		this.reference = null;
-		this.table = null;
+		this.reference = reference;
 	}
 
 	@Override
 	public void configureFromContainer(IChangeContainer changeContainer, ITable table)
 	{
-		this.reference = changeContainer.getReference();
 		this.table = table;
 	}
 
@@ -31,12 +29,6 @@ public abstract class AbstractChangeCommand implements IChangeCommand
 	public IObjRef getReference()
 	{
 		return reference;
-	}
-
-	@Override
-	public void setReference(IObjRef reference)
-	{
-		this.reference = reference;
 	}
 
 	@Override
@@ -69,15 +61,23 @@ public abstract class AbstractChangeCommand implements IChangeCommand
 	@Override
 	public String toString()
 	{
-		return this.getClass() + " for " + this.reference;
+		return this.getClass() + " for " + reference;
 	}
 
 	protected void repackPuis(IPrimitiveUpdateItem[] puis, Map<String, Object> target)
 	{
-		ITable table = this.table;
+		if (puis == null)
+		{
+			return;
+		}
+		ITableMetaData table = this.table.getMetaData();
 		for (int i = puis.length; i-- > 0;)
 		{
 			IPrimitiveUpdateItem pui = puis[i];
+			if (pui == null)
+			{
+				continue;
+			}
 			target.put(table.getFieldByMemberName(pui.getMemberName()).getName(), pui.getNewValue());
 		}
 	}

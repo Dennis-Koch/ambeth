@@ -9,6 +9,6 @@ namespace De.Osthus.Ambeth.Persistence
 
         new IVersionItem Current { get; }
 
-        sbyte GetAlternateIdCount();
+        int GetAlternateIdCount();
     }
 }

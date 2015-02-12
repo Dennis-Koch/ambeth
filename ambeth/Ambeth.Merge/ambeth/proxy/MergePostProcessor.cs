@@ -23,6 +23,11 @@ namespace De.Osthus.Ambeth.Proxy
         }
 
         protected readonly AnnotationCache<MergeContext> mergeContextCache = new MergeContextAnnotationCache();
+        
+        public override PostProcessorOrder GetOrder()
+        {
+            return PostProcessorOrder.HIGH;
+        }
 
         protected override ICascadedInterceptor HandleServiceIntern(Ioc.Factory.IBeanContextFactory beanContextFactory, Ioc.IServiceContext beanContext, Ioc.Config.IBeanConfiguration beanConfiguration, System.Type type, System.Collections.Generic.ISet<System.Type> requestedTypes)
         {

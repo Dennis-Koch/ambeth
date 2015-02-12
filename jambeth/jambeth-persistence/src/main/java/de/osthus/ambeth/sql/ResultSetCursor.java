@@ -5,47 +5,48 @@ import java.util.Map;
 
 import de.osthus.ambeth.persistence.ICursor;
 import de.osthus.ambeth.persistence.ICursorItem;
-import de.osthus.ambeth.persistence.IField;
+import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.util.IDisposable;
 
 public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, ICursorItem, IDisposable
 {
 	public static final String SENSOR_NAME = "de.osthus.ambeth.sql.ResultSetCursor";
 
-	protected final Map<String, IField> memberNameToFieldDict = new HashMap<String, IField>();
+	protected final Map<String, IFieldMetaData> memberNameToFieldDict = new HashMap<String, IFieldMetaData>();
 	protected final Map<String, Integer> memberNameToFieldIndexDict = new HashMap<String, Integer>();
 	protected final Map<String, Integer> fieldNameToFieldIndexDict = new HashMap<String, Integer>();
 
 	protected Object[] values;
-	protected IField[] fields;
+	protected IFieldMetaData[] fields;
 
 	@Override
 	public void afterPropertiesSet()
 	{
 		super.afterPropertiesSet();
 
-		IField[] fields = this.fields;
-		this.values = new Object[fields.length];
+		IFieldMetaData[] fields = this.fields;
+		values = new Object[fields.length];
 		for (int a = fields.length; a-- > 0;)
 		{
-			IField field = fields[a];
+			IFieldMetaData field = fields[a];
+			Integer index = Integer.valueOf(a + systemColumnCount);
 			if (field.getMember() != null)
 			{
 				String memberName = field.getMember().getName();
-				this.memberNameToFieldDict.put(memberName, field);
-				this.memberNameToFieldIndexDict.put(memberName, a + systemColumnCount);
+				memberNameToFieldDict.put(memberName, field);
+				memberNameToFieldIndexDict.put(memberName, index);
 			}
-			this.fieldNameToFieldIndexDict.put(field.getName(), a + systemColumnCount);
+			fieldNameToFieldIndexDict.put(field.getName(), index);
 		}
 	}
 
 	@Override
-	public IField[] getFields()
+	public IFieldMetaData[] getFields()
 	{
-		return this.fields;
+		return fields;
 	}
 
-	public void setFields(IField[] fields)
+	public void setFields(IFieldMetaData[] fields)
 	{
 		this.fields = fields;
 	}
@@ -53,7 +54,7 @@ public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, 
 	@Override
 	public Object[] getValues()
 	{
-		return this.values;
+		return values;
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, 
 		if (super.moveNext())
 		{
 			Object[] current = getResultSet().getCurrent();
-			IField[] fields = this.fields;
+			IFieldMetaData[] fields = this.fields;
 			int systemColumnCount = this.systemColumnCount;
 			Object[] values = this.values;
 			for (int a = fields.length; a-- > 0;)
@@ -81,21 +82,21 @@ public class ResultSetCursor extends ResultSetVersionCursor implements ICursor, 
 	}
 
 	@Override
-	public IField getFieldByMemberName(String memberName)
+	public IFieldMetaData getFieldByMemberName(String memberName)
 	{
-		return this.memberNameToFieldDict.get(memberName);
+		return memberNameToFieldDict.get(memberName);
 	}
 
 	@Override
 	public int getFieldIndexByMemberName(String memberName)
 	{
-		return this.memberNameToFieldIndexDict.get(memberName);
+		return memberNameToFieldIndexDict.get(memberName);
 	}
 
 	@Override
 	public int getFieldIndexByName(String fieldName)
 	{
-		return this.fieldNameToFieldIndexDict.get(fieldName);
+		return fieldNameToFieldIndexDict.get(fieldName);
 	}
 
 }

@@ -122,7 +122,6 @@
     <Compile Include="ambeth\security\IAuthorizationChangeListener.cs" />
     <Compile Include="ambeth\security\IAuthorizationChangeListenerExtendable.cs" />
     <Compile Include="ambeth\security\IAuthorizationManager.cs" />
-    <Compile Include="ambeth\security\ISecurityActivation.cs" />
     <Compile Include="ambeth\security\ISecurityContext.cs" />
     <Compile Include="ambeth\security\ISecurityContextHolder.cs" />
     <Compile Include="ambeth\security\ISecurityManager.cs" />
@@ -132,7 +131,6 @@
     <Compile Include="ambeth\security\PasswordType.cs" />
     <Compile Include="ambeth\security\PermissionApplyType.cs" />
     <Compile Include="ambeth\security\ReadPermission.cs" />
-    <Compile Include="ambeth\security\SecurityActivation.cs" />
     <Compile Include="ambeth\security\SecurityContext.cs" />
     <Compile Include="ambeth\security\SecurityContextHolder.cs" />
     <Compile Include="ambeth\security\SecurityContextImpl.cs" />

@@ -14,6 +14,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Ioc.Factory
 {
@@ -295,20 +296,20 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return contextName + " " + value;
         }
 
-        public IServiceContext Create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
+        public IServiceContext Create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
             IList<IBeanPostProcessor> postProcessors)
         {
             return Create(contextName, registerPhaseDelegate, preProcessors, postProcessors, emptyServiceModules);
         }
 
-        public IServiceContext Create(String contextName, RegisterPhaseDelegate registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
+        public IServiceContext Create(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, IList<IBeanPreProcessor> preProcessors,
             IList<IBeanPostProcessor> postProcessors, Type[] serviceModuleTypes)
         {
             ServiceContext context = new ServiceContext(GenerateUniqueContextName(contextName, null), null);
 
             if (registerPhaseDelegate != null)
             {
-                registerPhaseDelegate.Invoke(this);
+                registerPhaseDelegate(this);
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {
@@ -332,18 +333,18 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             return context;
         }
 
-        public IServiceContext Create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate)
+        public IServiceContext Create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate)
         {
             return Create(contextName, parent, registerPhaseDelegate, emptyServiceModules);
         }
 
-        public IServiceContext Create(String contextName, ServiceContext parent, RegisterPhaseDelegate registerPhaseDelegate, Type[] serviceModuleTypes)
+        public IServiceContext Create(String contextName, ServiceContext parent, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Type[] serviceModuleTypes)
         {
             ServiceContext context = new ServiceContext(GenerateUniqueContextName(contextName, null), parent);
 
             if (registerPhaseDelegate != null)
             {
-                registerPhaseDelegate.Invoke(this);
+                registerPhaseDelegate(this);
             }
             foreach (Type serviceModuleType in serviceModuleTypes)
             {

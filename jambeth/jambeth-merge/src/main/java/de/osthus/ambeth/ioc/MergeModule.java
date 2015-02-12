@@ -10,8 +10,12 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.config.PrecedenceType;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.merge.CUDResultApplier;
+import de.osthus.ambeth.merge.CUDResultComparer;
 import de.osthus.ambeth.merge.CUDResultHelper;
 import de.osthus.ambeth.merge.EntityMetaDataProvider;
+import de.osthus.ambeth.merge.ICUDResultApplier;
+import de.osthus.ambeth.merge.ICUDResultComparer;
 import de.osthus.ambeth.merge.ICUDResultExtendable;
 import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityFactory;
@@ -20,6 +24,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataExtendable;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IEntityMetaDataRefresher;
 import de.osthus.ambeth.merge.IMergeController;
+import de.osthus.ambeth.merge.IMergeListenerExtendable;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
 import de.osthus.ambeth.merge.IObjRefHelper;
@@ -55,8 +60,10 @@ import de.osthus.ambeth.orm.IOrmXmlReaderRegistry;
 import de.osthus.ambeth.orm.OrmXmlReader20;
 import de.osthus.ambeth.orm.OrmXmlReaderLegathy;
 import de.osthus.ambeth.proxy.EntityFactory;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.security.ISecurityScopeChangeListenerExtendable;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
+import de.osthus.ambeth.security.SecurityActivation;
 import de.osthus.ambeth.security.SecurityScopeProvider;
 import de.osthus.ambeth.service.IMergeService;
 import de.osthus.ambeth.typeinfo.IRelationProvider;
@@ -83,11 +90,14 @@ public class MergeModule implements IInitializingModule
 	{
 		beanContextFactory.registerAutowireableBean(IMergeController.class, MergeController.class);
 		beanContextFactory.registerAutowireableBean(IMergeProcess.class, MergeProcess.class);
+		beanContextFactory.registerAutowireableBean(ICUDResultApplier.class, CUDResultApplier.class);
+		beanContextFactory.registerAutowireableBean(ICUDResultComparer.class, CUDResultComparer.class);
 
 		beanContextFactory.registerAutowireableBean(CompositeIdMixin.class, CompositeIdMixin.class);
 		beanContextFactory.registerAutowireableBean(ObjRefMixin.class, ObjRefMixin.class);
 
 		beanContextFactory.registerBean(SecurityScopeProvider.class).autowireable(ISecurityScopeProvider.class, ISecurityScopeChangeListenerExtendable.class);
+		beanContextFactory.registerBean(SecurityActivation.class).autowireable(ISecurityActivation.class);
 
 		// if (isNetworkClientMode)
 		// {
@@ -107,7 +117,8 @@ public class MergeModule implements IInitializingModule
 
 		beanContextFactory.registerBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 
-		beanContextFactory.registerBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class);
+		beanContextFactory.registerBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class,
+				IMergeListenerExtendable.class);
 
 		IBeanConfiguration valueObjectMap = beanContextFactory.registerBean(ValueObjectMap.class);
 		beanContextFactory
@@ -185,15 +196,4 @@ public class MergeModule implements IInitializingModule
 
 		// ServiceExtendable.RegisterService<ITypeInfoProvider>(ProxyFactory.CreateProxy<ITypeInfoProvider>(tlInterceptor));
 	}
-
-	// @Override
-	// public void afterStarted(IServiceProvider serviceProvider)
-	// {
-	// // if (metaDataClient != null)
-	// // {
-	// //
-	// metaDataClient.setMergeService(serviceProvider.getService(IServiceFactory.class).getService(
-	// // IMergeService.class));
-	// // }
-	// }
 }

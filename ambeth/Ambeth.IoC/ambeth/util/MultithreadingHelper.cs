@@ -191,13 +191,13 @@ namespace De.Osthus.Ambeth.Util
         protected void QueueAndWait<V>(int forkCount, Runnable parallelRunnable, Runnable mainRunnable, AbstractRunnableHandle<V> runnableHandle)
         {
             // for n items fork at most n - 1 threads because our main thread behaves like a worker by itself
-            for (int a = forkCount; a-- > 0; )
-            {
-                ThreadPool.Queue(delegate()
-                {
-                    parallelRunnable.Run();
-                });
-            }
+            //for (int a = forkCount; a-- > 0; )
+            //{
+            //    ThreadPool.Queue(delegate()
+            //    {
+            //        parallelRunnable.Run();
+            //    });
+            //}
             // consume items with the "main thread" as long as there is one in the queue
             mainRunnable.Run();
 

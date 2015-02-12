@@ -4,13 +4,14 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import de.osthus.ambeth.privilege.model.impl.TypePropertyPrivilegeImpl;
 import de.osthus.ambeth.util.IPrintable;
 
 @XmlRootElement(name = "TypePropertyPrivilegeOfService", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivilegeOfService, IPrintable
 {
-	private static final TypePropertyPrivilegeOfService[] array = new TypePropertyPrivilegeOfService[1 << 8];
+	private static final TypePropertyPrivilegeOfService[] array = new TypePropertyPrivilegeOfService[TypePropertyPrivilegeImpl.arraySizeForIndex()];
 
 	static
 	{
@@ -45,24 +46,15 @@ public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivil
 		put(create, read, update, Boolean.TRUE);
 	}
 
-	protected static int toBitValue(Boolean value, int startingBit)
-	{
-		if (value == null)
-		{
-			return 0;
-		}
-		return value.booleanValue() ? 1 << startingBit : 1 << (startingBit + 1);
-	}
-
 	private static void put(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		array[index] = new TypePropertyPrivilegeOfService(create, read, update, delete);
 	}
 
 	public static ITypePropertyPrivilegeOfService create(Boolean create, Boolean read, Boolean update, Boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		return array[index];
 	}
 
@@ -115,15 +107,15 @@ public final class TypePropertyPrivilegeOfService implements ITypePropertyPrivil
 			return false;
 		}
 		TypePropertyPrivilegeOfService other = (TypePropertyPrivilegeOfService) obj;
-		int index = toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
-		int otherIndex = toBitValue(other.create, 0) + toBitValue(other.read, 2) + toBitValue(other.update, 4) + toBitValue(other.delete, 6);
+		int index = TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
+		int otherIndex = TypePropertyPrivilegeImpl.calcIndex(other.create, other.read, other.update, other.delete);
 		return index == otherIndex;
 	}
 
 	@Override
 	public int hashCode()
 	{
-		return toBitValue(create, 0) + toBitValue(read, 2) + toBitValue(update, 4) + toBitValue(delete, 6);
+		return TypePropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 	}
 
 	@Override

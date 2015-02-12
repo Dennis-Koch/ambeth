@@ -6,6 +6,21 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 {
     public abstract class AbstractPrivilege : IPrivilege, IPrintable, IImmutableType
     {
+        public static int ArraySizeForIndex()
+        {
+            return 1 << 8;
+        }
+
+        public static int CalcIndex(bool create, bool read, bool update, bool delete, bool execute)
+        {
+            return ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3) + ToBitValue(execute, 4);
+        }
+
+        public static int ToBitValue(bool value, int startingBit)
+        {
+            return value ? 1 << startingBit : 0;
+        }
+
         public static char upperOrLower(bool flag, char oneChar)
         {
             if (flag)
@@ -28,7 +43,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             return Char.ToLowerInvariant(oneChar);
         }
 
-        public AbstractPrivilege(bool create, bool read, bool update, bool delete, bool execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+        protected AbstractPrivilege(bool create, bool read, bool update, bool delete, bool execute, IPropertyPrivilege[] primitivePropertyPrivileges,
                 IPropertyPrivilege[] relationPropertyPrivileges)
         {
             // intended blank

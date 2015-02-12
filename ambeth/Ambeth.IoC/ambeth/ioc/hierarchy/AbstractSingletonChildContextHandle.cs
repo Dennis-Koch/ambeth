@@ -5,6 +5,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Threading;
 
 namespace De.Osthus.Ambeth.Ioc.Hierarchy
 {
@@ -35,7 +36,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
 
 	    public IContextFactory ContextFactory { get; set; }
 
-	    public RegisterPhaseDelegate Content { get; set; }
+        public IBackgroundWorkerParamDelegate<IBeanContextFactory> Content { get; set; }
 
         protected readonly ISet<IServiceContext> childContexts = new IdentityHashSet<IServiceContext>();
 
@@ -55,7 +56,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
             return StartIntern(Content);
         }
 
-        protected virtual IServiceContext StartIntern(RegisterPhaseDelegate content)
+        protected virtual IServiceContext StartIntern(IBackgroundWorkerParamDelegate<IBeanContextFactory> content)
         {
 		    writeLock.Lock();
 		    try
@@ -71,7 +72,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
                     {
 				        Log.Debug("No valid child context found. Creating new child context");
                     }
-                    RegisterPhaseDelegate rpd = new RegisterPhaseDelegate(delegate(IBeanContextFactory beanContextFactory)
+                    IBackgroundWorkerParamDelegate<IBeanContextFactory> rpd = new IBackgroundWorkerParamDelegate<IBeanContextFactory>(delegate(IBeanContextFactory beanContextFactory)
                         {
                             if (content != null)
                             {
@@ -112,7 +113,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
 		    throw new NotSupportedException();
 	    }
 
-        public virtual IServiceContext Start(RegisterPhaseDelegate content)
+        public virtual IServiceContext Start(IBackgroundWorkerParamDelegate<IBeanContextFactory> content)
 	    {
 		    throw new NotSupportedException();
 	    }

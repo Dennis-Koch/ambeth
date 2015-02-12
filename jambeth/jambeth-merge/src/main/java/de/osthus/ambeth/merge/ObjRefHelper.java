@@ -15,6 +15,7 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.util.IConversionHelper;
@@ -26,6 +27,9 @@ public class ObjRefHelper implements IObjRefHelper
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Override
 	public IList<IObjRef> extractObjRefList(Object objValue, MergeHandle mergeHandle)
@@ -50,13 +54,13 @@ public class ObjRefHelper implements IObjRefHelper
 			}
 			return targetOriList;
 		}
-		if (targetOriList == null)
-		{
-			targetOriList = new ArrayList<IObjRef>();
-		}
 		if (objValue.getClass().isArray())
 		{
 			Object[] array = (Object[]) objValue;
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(array.length);
+			}
 			for (int a = 0, size = array.length; a < size; a++)
 			{
 				extractObjRefList(array[a], mergeHandle, targetOriList, entityCallback);
@@ -65,6 +69,10 @@ public class ObjRefHelper implements IObjRefHelper
 		else if (objValue instanceof List<?>)
 		{
 			List<?> list = (List<?>) objValue;
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(list.size());
+			}
 			for (int a = 0, size = list.size(); a < size; a++)
 			{
 				extractObjRefList(list.get(a), mergeHandle, targetOriList, entityCallback);
@@ -73,6 +81,10 @@ public class ObjRefHelper implements IObjRefHelper
 		else if (objValue instanceof Iterable<?>)
 		{
 			Iterator<?> objEnumerator = ((Iterable<?>) objValue).iterator();
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>();
+			}
 			while (objEnumerator.hasNext())
 			{
 				extractObjRefList(objEnumerator.next(), mergeHandle, targetOriList, entityCallback);
@@ -80,6 +92,10 @@ public class ObjRefHelper implements IObjRefHelper
 		}
 		else
 		{
+			if (targetOriList == null)
+			{
+				targetOriList = new ArrayList<IObjRef>(1);
+			}
 			getCreateORIs(objValue, mergeHandle, targetOriList, entityCallback);
 		}
 		return targetOriList;
@@ -88,13 +104,17 @@ public class ObjRefHelper implements IObjRefHelper
 	@Override
 	public IList<IObjRef> extractObjRefList(Object objValue, IObjRefProvider oriProvider, IList<IObjRef> targetOriList, EntityCallback entityCallback)
 	{
+		if (objValue == null)
+		{
+			if (targetOriList == null)
+			{
+				targetOriList = EmptyList.getInstance();
+			}
+			return targetOriList;
+		}
 		if (targetOriList == null)
 		{
 			targetOriList = new ArrayList<IObjRef>();
-		}
-		if (objValue == null)
-		{
-			return targetOriList;
 		}
 		if (objValue.getClass().isArray())
 		{
@@ -188,6 +208,10 @@ public class ObjRefHelper implements IObjRefHelper
 		{
 			return (IObjRef) obj;
 		}
+		if (!(obj instanceof IEntityMetaDataHolder))
+		{
+			return null;
+		}
 		IEntityMetaData metaData = ((IEntityMetaDataHolder) obj).get__EntityMetaData();
 
 		Object keyValue;
@@ -220,7 +244,7 @@ public class ObjRefHelper implements IObjRefHelper
 				Member versionMember = metaData.getVersionMember();
 				version = versionMember != null ? versionMember.getValue(obj, true) : null;
 			}
-			ori = new ObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
+			ori = objRefFactory.createObjRef(metaData.getEntityType(), ObjRef.PRIMARY_KEY_INDEX, keyValue, version);
 		}
 		if (objToOriDict != null)
 		{
@@ -311,7 +335,7 @@ public class ObjRefHelper implements IObjRefHelper
 				Class<?> versionType = versionMember.getElementType();
 				version = conversionHelper.convertValueToType(versionType, version);
 			}
-			ori = new ObjRef(metaData.getEntityType(), idIndex, id, version);
+			ori = objRefFactory.createObjRef(metaData.getEntityType(), idIndex, id, version);
 		}
 		else
 		{
@@ -338,7 +362,7 @@ public class ObjRefHelper implements IObjRefHelper
 		if (id != null)
 		{
 			id = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), id);
-			allOris.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+			allOris.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
 		}
 		if (alternateIdCount > 0)
 		{
@@ -361,7 +385,7 @@ public class ObjRefHelper implements IObjRefHelper
 							continue;
 						}
 						alternateId = conversionHelper.convertValueToType(alternateIdMember.getRealType(), alternateId);
-						allOris.add(new ObjRef(entityType, (byte) b, alternateId, version));
+						allOris.add(objRefFactory.createObjRef(entityType, b, alternateId, version));
 						break;
 					}
 				}

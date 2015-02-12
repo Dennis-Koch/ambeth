@@ -18,6 +18,11 @@ namespace De.Osthus.Ambeth.Cache.Rootcachevalue
 		    // Intended blank
 	    }
 
+        public ICache Get__Cache()
+        {
+            return null;
+        }
+
 	    public abstract void SetPrimitives(Object[] primitives);
 
 	    public abstract IObjRef[][] GetRelations();

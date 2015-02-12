@@ -19,11 +19,17 @@ namespace De.Osthus.Ambeth.Merge.Transfer
         [DataMember]
         public IList<IObjRef> AllChangeORIs { get; set; }
 
-        [DataMember]
-        public DateTime? ChangedOn { get; set; }
+        [DataMember(IsRequired = false)]
+        public long? ChangedOn { get; set; }
 
-        [DataMember]
+        [DataMember(IsRequired = false)]
         public String ChangedBy { get; set; }
+
+        [DataMember(IsRequired = false)]
+        public long[] AllChangedOn { get; set; }
+
+        [DataMember(IsRequired = false)]
+        public String[] AllChangedBy { get; set; }
 
         [IgnoreDataMember]
         public Object HardRefs { get; set; }

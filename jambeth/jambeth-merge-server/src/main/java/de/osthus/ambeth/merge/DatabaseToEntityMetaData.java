@@ -21,12 +21,12 @@ import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.metadata.RelationMember;
-import de.osthus.ambeth.persistence.DirectedLink;
-import de.osthus.ambeth.persistence.Field;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IDirectedLink;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.DirectedLinkMetaData;
+import de.osthus.ambeth.persistence.FieldMetaData;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.service.ICacheRetriever;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
 
@@ -82,17 +82,17 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 	}
 
 	@Override
-	public synchronized void databaseMapped(IDatabase database)
+	public synchronized void databaseMapped(IDatabaseMetaData database)
 	{
 		if (!firstMapping)
 		{
 			return;
 		}
 		firstMapping = false;
-		HashSet<IField> alreadyHandledFields = new HashSet<IField>();
+		HashSet<IFieldMetaData> alreadyHandledFields = new HashSet<IFieldMetaData>();
 		List<IEntityMetaData> newMetaDatas = new ArrayList<IEntityMetaData>();
 		List<IEntityMetaData> newRegisteredMetaDatas = new ArrayList<IEntityMetaData>();
-		for (ITable table : database.getTables())
+		for (ITableMetaData table : database.getTables())
 		{
 			Class<?> entityType = table.getEntityType();
 			if (entityType == null || table.isArchive())
@@ -113,7 +113,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				metaData.setIdMember((PrimitiveMember) table.getIdField().getMember());
 			}
 			alreadyHandledFields.add(table.getIdField());
-			IField versionField = table.getVersionField();
+			IFieldMetaData versionField = table.getVersionField();
 			if (versionField != null)
 			{
 				alreadyHandledFields.add(versionField);
@@ -152,11 +152,11 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			}
 
-			IField[] alternateIdFields = table.getAlternateIdFields();
+			IFieldMetaData[] alternateIdFields = table.getAlternateIdFields();
 			PrimitiveMember[] alternateIdMembers = new PrimitiveMember[alternateIdFields.length];
 			for (int b = alternateIdFields.length; b-- > 0;)
 			{
-				IField alternateIdField = alternateIdFields[b];
+				IFieldMetaData alternateIdField = alternateIdFields[b];
 				alternateIdMembers[b] = (PrimitiveMember) alternateIdField.getMember();
 			}
 			ArrayList<Member> fulltextMembers = new ArrayList<Member>();
@@ -178,10 +178,10 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 			// for (int a = 0; a < fulltextFieldsCatsearch.length; a++)
 			// {
 			// IField field = fulltextFieldsCatsearch[a];
-			List<IField> fulltextFields = table.getFulltextFields();
+			List<IFieldMetaData> fulltextFields = table.getFulltextFields();
 			for (int a = 0; a < fulltextFields.size(); a++)
 			{
-				IField field = fulltextFields.get(a);
+				IFieldMetaData field = fulltextFields.get(a);
 				Member member = field.getMember();
 				if (member != null)
 				{
@@ -190,10 +190,10 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			}
 
-			List<IField> fields = table.getPrimitiveFields();
+			List<IFieldMetaData> fields = table.getPrimitiveFields();
 			for (int a = 0; a < fields.size(); a++)
 			{
-				IField field = fields.get(a);
+				IFieldMetaData field = fields.get(a);
 
 				Member member = field.getMember();
 				if (member == null)
@@ -207,10 +207,10 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				}
 			}
 
-			List<IDirectedLink> links = table.getLinks();
+			List<IDirectedLinkMetaData> links = table.getLinks();
 			for (int a = 0; a < links.size(); a++)
 			{
-				IDirectedLink link = links.get(a);
+				IDirectedLinkMetaData link = links.get(a);
 				RelationMember member = link.getMember();
 				if (member == null)
 				{
@@ -269,13 +269,13 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 					throw new IllegalStateException("Member '" + member.getName() + "' has not been refreshed");
 				}
 				Object value = entry.getValue();
-				if (value instanceof Field)
+				if (value instanceof FieldMetaData)
 				{
-					((Field) value).setMember(refreshedMember);
+					((FieldMetaData) value).setMember(refreshedMember);
 				}
-				else if (value instanceof DirectedLink)
+				else if (value instanceof DirectedLinkMetaData)
 				{
-					((DirectedLink) value).setMember((RelationMember) refreshedMember);
+					((DirectedLinkMetaData) value).setMember((RelationMember) refreshedMember);
 				}
 			}
 			newMetaDatas.add(metaData);
@@ -321,7 +321,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 		return memberToFind;
 	}
 
-	protected boolean isMemberOnFieldBetter(Class<?> entityType, Member existingMember, IField newMemberField)
+	protected boolean isMemberOnFieldBetter(Class<?> entityType, Member existingMember, IFieldMetaData newMemberField)
 	{
 		if (newMemberField == null)
 		{
@@ -344,7 +344,7 @@ public class DatabaseToEntityMetaData implements IDatabaseMappedListener, IDispo
 				+ "'");
 	}
 
-	protected boolean isMemberOnMetaDataBetter(Class<?> entityType, Member existingMember, IField newMemberField)
+	protected boolean isMemberOnMetaDataBetter(Class<?> entityType, Member existingMember, IFieldMetaData newMemberField)
 	{
 		if (newMemberField == null)
 		{

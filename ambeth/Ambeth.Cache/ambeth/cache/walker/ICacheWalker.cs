@@ -28,6 +28,13 @@ namespace De.Osthus.Ambeth.Walker
         ICacheWalkerResult Walk(params IObjRef[] objRefs);
 
         /// <summary>
+        /// Walks the current cache hierarchy up beginning from a (potentially thread-bound) 1st level cache (ChildCache) to all active instances of 2nd level caches
+        /// (RootCache) including thread-bound or transaction-bound instances.
+        /// </summary>
+        /// <returns>Tree-like structure starting always from the committed root cache instance (top-down)</returns>
+        ICacheWalkerResult WalkAll();
+
+        /// <summary>
         /// "Walks" the current cache hierarchy up beginning from a (potentially thread-bound) 1st level cache (ChildCache) to all active instances of 2nd level
         /// caches (RootCache) including thread-bound or transaction-bound instances.
         /// </summary>

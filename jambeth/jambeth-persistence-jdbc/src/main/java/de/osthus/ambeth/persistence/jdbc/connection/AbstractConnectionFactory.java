@@ -1,10 +1,12 @@
 package de.osthus.ambeth.persistence.jdbc.connection;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
+import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -42,6 +44,9 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	@Autowired
 	protected IProxyFactory proxyFactory;
 
+	@Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, mandatory = false)
+	protected ArrayList<Connection> preparedConnectionInstances;
+
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
 
@@ -60,9 +65,32 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	@Override
 	public final Connection create()
 	{
+		while (preparedConnectionInstances != null && preparedConnectionInstances.size() > 0)
+		{
+			Connection preparedConnection = preparedConnectionInstances.remove(preparedConnectionInstances.size() - 1);
+			try
+			{
+				if (preparedConnection.isClosed())
+				{
+					continue;
+				}
+			}
+			catch (SQLException e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+			connectionDialect.preProcessConnection(preparedConnection, schemaNames, false);
+
+			if (eventDispatcher != null)
+			{
+				eventDispatcher.dispatchEvent(new ConnectionCreatedEvent(preparedConnection));
+			}
+			return preparedConnection;
+		}
 		try
 		{
 			Connection connection = createIntern();
+			connection.setAutoCommit(false);
 
 			MethodInterceptor logConnectionInterceptor = beanContext.registerExternalBean(new LogConnectionInterceptor(connectionKeyHandle))
 					.propertyValue("Connection", connection).finish();

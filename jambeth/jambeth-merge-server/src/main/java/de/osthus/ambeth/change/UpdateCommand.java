@@ -2,43 +2,40 @@ package de.osthus.ambeth.change;
 
 import java.util.Map.Entry;
 
+import de.osthus.ambeth.collections.EmptyMap;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.ReadOnlyMapWrapper;
 import de.osthus.ambeth.merge.model.IChangeContainer;
-import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
+import de.osthus.ambeth.merge.model.IObjRef;
+import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.persistence.ITable;
 
 public class UpdateCommand extends AbstractChangeCommand implements IUpdateCommand
 {
-	private static final ILinkedMap<String, Object> emptyItems = new ReadOnlyMapWrapper<String, Object>(new LinkedHashMap<String, Object>());
+	private static final ILinkedMap<String, Object> emptyItems = EmptyMap.<String, Object> emptyMap();
 
 	protected ILinkedMap<String, Object> items = emptyItems;
 	protected ILinkedMap<String, Object> roItems = emptyItems;
 
-	@Override
-	public void dispose()
+	public UpdateCommand(IObjRef reference)
 	{
-		super.dispose();
-		if (items != emptyItems)
-		{
-			items.clear();
-			items = null;
-			roItems = null;
-		}
+		super(reference);
 	}
 
 	@Override
 	public void configureFromContainer(IChangeContainer changeContainer, ITable table)
 	{
-		UpdateContainer container = (UpdateContainer) changeContainer;
-		super.configureFromContainer(container, table);
+		ICreateOrUpdateContainer container = (ICreateOrUpdateContainer) changeContainer;
+		super.configureFromContainer(changeContainer, table);
 
-		if (container.getPrimitives() != null)
+		IPrimitiveUpdateItem[] fullPUIs = container.getFullPUIs();
+		if (fullPUIs != null)
 		{
 			ensureWritableMap();
-			repackPuis(container.getPrimitives(), items);
+			repackPuis(fullPUIs, items);
 		}
 	}
 
@@ -59,8 +56,7 @@ public class UpdateCommand extends AbstractChangeCommand implements IUpdateComma
 				Object actualValue = items.get(entry.getKey());
 				if (actualValue == null)
 				{
-					ensureWritableMap();
-					items.put(entry.getKey(), entry.getValue());
+					put(entry.getKey(), entry.getValue());
 				}
 				else if (entry.getValue() != null && !actualValue.equals(entry.getValue()))
 				{

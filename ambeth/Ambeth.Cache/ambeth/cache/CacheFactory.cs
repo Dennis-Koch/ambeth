@@ -2,9 +2,8 @@ using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge.Config;
 using De.Osthus.Ambeth.Security;
-using De.Osthus.Ambeth.Security.Config;
-using De.Osthus.Ambeth.Util;
 using System;
 
 namespace De.Osthus.Ambeth.Cache
@@ -23,7 +22,7 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
        
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
 	    public bool SecurityActive { protected get; set; }
 
 	    public IDisposableCache Create(CacheFactoryDirective cacheFactoryDirective, String name)

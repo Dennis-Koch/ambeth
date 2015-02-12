@@ -17,7 +17,7 @@ using Castle.Core.Interceptor;
 
 namespace De.Osthus.Ambeth.Proxy
 {
-    public class AbstractCascadePostProcessor : IBeanPostProcessor, IInitializingBean
+    public class AbstractCascadePostProcessor : IBeanPostProcessor, IInitializingBean, IOrderedBeanPostProcessor
     {
         [LogInstance]
         public ILogger log;
@@ -27,6 +27,11 @@ namespace De.Osthus.Ambeth.Proxy
         public virtual void AfterPropertiesSet()
         {
             ParamChecker.AssertNotNull(ProxyFactory, "ProxyFactory");
+        }
+
+        public virtual PostProcessorOrder GetOrder()
+        {
+            return PostProcessorOrder.DEFAULT;
         }
 
         public Object PostProcessBean(IBeanContextFactory beanContextFactory, IServiceContext beanContext, IBeanConfiguration beanConfiguration, Type beanType, Object targetBean, ISet<Type> requestedTypes)
@@ -52,7 +57,7 @@ namespace De.Osthus.Ambeth.Proxy
             }
             if (log.DebugEnabled)
             {
-                log.Debug(GetType().Name + " intercepted bean with name '" + beanConfiguration.GetName() + "'");
+                log.Debug("Proxying bean with name '" + beanConfiguration.GetName() + "' by " + GetType().FullName);
             }
             Object target;
             if (cascadedInterceptor != null)

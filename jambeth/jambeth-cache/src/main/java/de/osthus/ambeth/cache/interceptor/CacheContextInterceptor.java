@@ -6,12 +6,12 @@ import net.sf.cglib.proxy.MethodProxy;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class CacheContextInterceptor extends CascadedInterceptor
 {
@@ -35,20 +35,20 @@ public class CacheContextInterceptor extends CascadedInterceptor
 		{
 			return invokeTarget(obj, method, args, proxy);
 		}
-		return cacheContext.executeWithCache(cacheProvider, new ISingleCacheRunnable<Object>()
+		try
 		{
-			@Override
-			public Object run() throws Throwable
+			return cacheContext.executeWithCache(cacheProvider, new IResultingBackgroundWorkerDelegate<Object>()
 			{
-				try
+				@Override
+				public Object invoke() throws Throwable
 				{
 					return invokeTarget(obj, method, args, proxy);
 				}
-				catch (Throwable e)
-				{
-					throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
-				}
-			}
-		});
+			});
+		}
+		catch (Throwable e)
+		{
+			throw RuntimeExceptionUtil.mask(e, method.getExceptionTypes());
+		}
 	}
 }

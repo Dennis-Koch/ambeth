@@ -3,6 +3,8 @@ using De.Osthus.Ambeth.Ioc.Link;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Threading;
+using De.Osthus.Ambeth.Ioc.Factory;
 
 namespace De.Osthus.Ambeth.Ioc.Hierarchy
 {
@@ -26,7 +28,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
             }
         }
 
-        public virtual IServiceContext CreateChildContext(RegisterPhaseDelegate content)
+        public virtual IServiceContext CreateChildContext(IBackgroundWorkerParamDelegate<IBeanContextFactory> content)
         {
             return BeanContext.CreateService(content, Modules);
         }

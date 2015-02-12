@@ -11,5 +11,7 @@ public abstract class IObjRefFactory
 
 	public abstract IObjRef createObjRef(AbstractCacheValue cacheValue);
 
+	public abstract IObjRef createObjRef(AbstractCacheValue cacheValue, int idIndex);
+
 	public abstract IObjRef dup(IObjRef objRef);
 }

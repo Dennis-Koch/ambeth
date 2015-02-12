@@ -1,17 +1,24 @@
 package de.osthus.ambeth.ioc.threadlocal;
 
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.concurrent.locks.Lock;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.IdentityHashMap;
+import de.osthus.ambeth.collections.IdentityWeakHashMap;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.IDisposableBean;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
+import de.osthus.ambeth.ioc.factory.BeanContextInitializer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.ThreadLocalObjectCollector;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.ParamHolder;
 import de.osthus.ambeth.util.ReflectUtil;
 
 public class ThreadLocalCleanupController implements IInitializingBean, IDisposableBean, IThreadLocalCleanupBeanExtendable, IThreadLocalCleanupController
@@ -25,9 +32,31 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 
 	protected ForkStateEntry[] cachedForkStateEntries;
 
+	protected final IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>> extensionToContextMap = new IdentityHashMap<IThreadLocalCleanupBean, Reference<IServiceContext>>();
+
+	protected final IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>> alreadyHookedContextSet = new IdentityWeakHashMap<IServiceContext, ParamHolder<Boolean>>();
+
 	protected IServiceContext beanContext;
 
 	protected ThreadLocalObjectCollector objectCollector;
+
+	protected final IBackgroundWorkerParamDelegate<IServiceContext> foreignContextHook = new IBackgroundWorkerParamDelegate<IServiceContext>()
+	{
+		@Override
+		public void invoke(IServiceContext state) throws Throwable
+		{
+			Lock writeLock = listeners.getWriteLock();
+			writeLock.lock();
+			try
+			{
+				cachedForkStateEntries = null;
+			}
+			finally
+			{
+				writeLock.unlock();
+			}
+		}
+	};
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -105,7 +134,13 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 					IForkProcessor forkProcessor = null;
 					if (forkProcessorType != null && !IForkProcessor.class.equals(forkProcessorType))
 					{
-						forkProcessor = beanContext.registerBean(forkProcessorType).finish();
+						Reference<IServiceContext> beanContextOfExtensionR = extensionToContextMap.get(extension);
+						IServiceContext beanContextOfExtension = beanContextOfExtensionR != null ? beanContextOfExtensionR.get() : null;
+						if (beanContextOfExtension == null)
+						{
+							beanContextOfExtension = beanContext;
+						}
+						forkProcessor = beanContextOfExtension.registerBean(forkProcessorType).finish();
 					}
 					forkStateEntries.add(new ForkStateEntry(extension, field.getName(), valueTL, forkable.value(), forkProcessor));
 				}
@@ -170,6 +205,29 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		{
 			listeners.register(threadLocalCleanupBean);
 			cachedForkStateEntries = null;
+			IServiceContext currentBeanContext = BeanContextInitializer.getCurrentBeanContext();
+			if (currentBeanContext != null)
+			{
+				extensionToContextMap.put(threadLocalCleanupBean, new WeakReference<IServiceContext>(currentBeanContext));
+				if (alreadyHookedContextSet.putIfNotExists(currentBeanContext, null))
+				{
+					final ParamHolder<Boolean> inactive = new ParamHolder<Boolean>();
+
+					currentBeanContext.registerDisposeHook(new IBackgroundWorkerParamDelegate<IServiceContext>()
+					{
+						@Override
+						public void invoke(IServiceContext state) throws Throwable
+						{
+							if (Boolean.TRUE.equals(inactive.getValue()))
+							{
+								return;
+							}
+							foreignContextHook.invoke(state);
+						}
+					});
+					alreadyHookedContextSet.put(currentBeanContext, inactive);
+				}
+			}
 		}
 		finally
 		{
@@ -186,6 +244,7 @@ public class ThreadLocalCleanupController implements IInitializingBean, IDisposa
 		{
 			listeners.unregister(threadLocalCleanupBean);
 			cachedForkStateEntries = null;
+			extensionToContextMap.remove(threadLocalCleanupBean);
 		}
 		finally
 		{

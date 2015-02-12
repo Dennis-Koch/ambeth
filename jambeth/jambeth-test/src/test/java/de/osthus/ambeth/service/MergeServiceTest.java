@@ -22,6 +22,8 @@ import de.osthus.ambeth.cache.CacheFactoryDirective;
 import de.osthus.ambeth.cache.ChildCache;
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheFactory;
+import de.osthus.ambeth.cache.IRootCache;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.change.ILinkChangeCommand;
 import de.osthus.ambeth.change.ITableChange;
 import de.osthus.ambeth.collections.HashMap;
@@ -87,6 +89,8 @@ public class MergeServiceTest extends AbstractPersistenceTest
 
 	protected ChildCache childCache;
 
+	protected IRootCache rootCache;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
@@ -98,6 +102,7 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		fixture = (PersistenceMergeServiceExtension) inter.getTarget();
 
 		childCache = (ChildCache) cacheFactory.create(CacheFactoryDirective.SubscribeGlobalDCE, "test");
+		rootCache = ((IRootCache) childCache.getParent()).getCurrentRootCache();
 	}
 
 	@Test
@@ -252,24 +257,23 @@ public class MergeServiceTest extends AbstractPersistenceTest
 	public void testLoadEntitiesForDeletion()
 	{
 		IList<IObjRef> toLoadForDeletion = new de.osthus.ambeth.collections.ArrayList<IObjRef>();
-		IMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
-		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, childCache);
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
+		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 		assertTrue(toLoadForDeletion.isEmpty());
 		assertTrue(toDeleteMap.isEmpty());
 
 		toLoadForDeletion.add(new ObjRef(Employee.class, 1, 1));
 		toLoadForDeletion.add(new ObjRef(Project.class, 21, 1));
 		toLoadForDeletion.add(new ObjRef(Address.class, 13, 1));
-		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, childCache);
+		fixture.loadEntitiesForDeletion(toLoadForDeletion, toDeleteMap, rootCache);
 		assertEquals(3, toLoadForDeletion.size());
 		assertEquals(4, toDeleteMap.size()); // 3 + 1 alternate ID entry for the Employee
 		assertEquals(3, new HashSet<Object>(toDeleteMap.values()).size()); // proving 3 + 1 theory
 
 		for (IObjRef ori : toLoadForDeletion)
 		{
-			Object actual = toDeleteMap.get(ori);
-			Class<?> realType = proxyHelper.getRealType(actual.getClass());
-			assertEquals(ori.getRealType(), realType);
+			RootCacheValue actual = toDeleteMap.get(ori);
+			assertEquals(ori.getRealType(), actual.getEntityType());
 		}
 	}
 
@@ -288,10 +292,11 @@ public class MergeServiceTest extends AbstractPersistenceTest
 		IMap<String, ITableChange> tableChangeMap = new HashMap<String, ITableChange>();
 		ILinkedMap<Class<?>, IList<IObjRef>> typeToIdlessReferenceMap = new LinkedHashMap<Class<?>, IList<IObjRef>>();
 		ILinkedMap<ITableChange, IList<ILinkChangeCommand>> linkChangeCommands = new LinkedHashMap<ITableChange, IList<ILinkChangeCommand>>();
-		IMap<IObjRef, Object> toDeleteMap = new HashMap<IObjRef, Object>();
+		IMap<IObjRef, RootCacheValue> toDeleteMap = new HashMap<IObjRef, RootCacheValue>();
+		IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<IObjRef, IChangeContainer>();
 
 		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
-				toDeleteMap);
+				toDeleteMap, objRefToChangeContainerMap, (IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache());
 
 		fail("Not yet implemented"); // TODO
 	}

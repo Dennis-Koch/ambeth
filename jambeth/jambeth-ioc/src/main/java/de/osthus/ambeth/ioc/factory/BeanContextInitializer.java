@@ -297,17 +297,13 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 		catch (Throwable e)
 		{
-			ArrayList<IDisposableBean> toDestroyOnError = beanContextInit.toDestroyOnError;
-			for (int a = 0, size = toDestroyOnError.size(); a < size; a++)
+			try
 			{
-				try
-				{
-					toDestroyOnError.get(a).destroy();
-				}
-				catch (Throwable ex)
-				{
-					throw RuntimeExceptionUtil.mask(ex);
-				}
+				beanContext.dispose();
+			}
+			catch (Throwable ex)
+			{
+				throw RuntimeExceptionUtil.mask(ex, "Error occurred while disposing context while starting the context due to bean exception");
 			}
 			throw RuntimeExceptionUtil.mask(e);
 		}
@@ -565,10 +561,10 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 			if (bean instanceof IInitializingBean)
 			{
 				((IInitializingBean) bean).afterPropertiesSet();
-				if (bean instanceof IDisposableBean)
-				{
-					beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
-				}
+			}
+			if (bean instanceof IDisposableBean)
+			{
+				beanContextInit.toDestroyOnError.add((IDisposableBean) bean);
 			}
 			if (bean instanceof IPropertyLoadingBean)
 			{

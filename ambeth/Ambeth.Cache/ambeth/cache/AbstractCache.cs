@@ -303,7 +303,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 alternateCacheKey.EntityType = entityType;
                 alternateCacheKey.Id = alternateId;
-                alternateCacheKey.IdNameIndex = (sbyte)idIndex;
+                alternateCacheKey.IdIndex = (sbyte)idIndex;
             }
         }
 
@@ -400,7 +400,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return null;
             }
-            return RemoveKeyFromCache(cacheKey.EntityType, cacheKey.IdNameIndex, cacheKey.Id);
+            return RemoveKeyFromCache(cacheKey.EntityType, cacheKey.IdIndex, cacheKey.Id);
         }
 
         protected virtual Object RemoveKeyFromCache(Type entityType, sbyte idIndex, Object id)
@@ -512,7 +512,7 @@ namespace De.Osthus.Ambeth.Cache
 
         protected abstract void PutInternObjRelation(V cacheValue, IEntityMetaData metaData, IObjRelation objRelation, IObjRef[] relationsOfMember);
 
-        protected void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet, HashSet<IObjRef> cascadeNeededORIs)
+        protected virtual void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet, HashSet<IObjRef> cascadeNeededORIs)
         {
             if (objectToCache == null || !alreadyHandledSet.Add(objectToCache))
             {
@@ -601,12 +601,21 @@ namespace De.Osthus.Ambeth.Cache
                     hardRefsToCacheValue.Add(cacheValue);
                 }
             }
+		    else
+		    {
+			    PutInternUnpersistedEntity(objectToCache);
+		    }
 
             // Even if it has no id we look for its relations and cache them
             for (int a = relationValues.Count; a-- > 0; )
             {
                 PutIntern(relationValues[a], hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
             }
+        }
+
+        protected virtual void PutInternUnpersistedEntity(Object entity)
+        {
+            // Intended blank
         }
 
         protected virtual bool AllowCacheValueReplacement()
@@ -664,7 +673,7 @@ namespace De.Osthus.Ambeth.Cache
                 CacheKey alternateCacheKey = alternateCacheKeys[a];
                 if (alternateCacheKey != null)
                 {
-                    keyToCacheValueDict.Put(alternateCacheKey.EntityType, alternateCacheKey.IdNameIndex, alternateCacheKey.Id, cacheValueR);
+                    keyToCacheValueDict.Put(alternateCacheKey.EntityType, alternateCacheKey.IdIndex, alternateCacheKey.Id, cacheValueR);
                 }
             }
         }
@@ -912,7 +921,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     CacheKey cacheKey = new CacheKey();
                     cacheKey.Id = entry.Id;
-                    cacheKey.IdNameIndex = entry.IdIndex;
+                    cacheKey.IdIndex = entry.IdIndex;
                     cacheKey.EntityType = entry.EntityType;
                     pendingKeysToRemove.Add(cacheKey);
                 }
@@ -921,7 +930,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 CacheKey pendingKeyToRemove = pendingKeysToRemove[a];
                 IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(pendingKeyToRemove.EntityType);
-                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdNameIndex, pendingKeyToRemove.Id);
+                RemoveCacheValueFromCacheCascade(metaData, pendingKeyToRemove.IdIndex, pendingKeyToRemove.Id);
             }
         }
 

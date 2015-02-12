@@ -8,7 +8,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public Object Id;
 
-        public sbyte IdNameIndex;
+        public sbyte IdIndex;
 
         public override int GetHashCode()
         {
@@ -28,12 +28,12 @@ namespace De.Osthus.Ambeth.Cache
             CacheKey other = (CacheKey)obj;
             return Object.Equals(Id, other.Id)
                 && Object.Equals(EntityType, other.EntityType)
-                && IdNameIndex == other.IdNameIndex;
+                && IdIndex == other.IdIndex;
         }
 
         public override string ToString()
         {
-            return "CacheKey: " + EntityType.FullName + "(" + IdNameIndex + "," + Id + ")";
+            return "CacheKey: " + EntityType.FullName + "(" + IdIndex + "," + Id + ")";
         }
     }
 }

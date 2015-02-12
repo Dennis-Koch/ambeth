@@ -70,7 +70,7 @@ namespace De.Osthus.Minerva.Mock
             }
         }
 
-        public void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn)
+        public void AddObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn)
         {
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRef.RealType);
 
@@ -112,7 +112,7 @@ namespace De.Osthus.Minerva.Mock
             throw new Exception("Primitive member with name '" + primitiveMemberName + "' not found on entity of type '" + metaData.EntityType);
         }
 
-        public void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, DateTime changedOn)
+        public void ChangeObject(IObjRef objRef, IPrimitiveUpdateItem[] primitiveUpdates, IRelationUpdateItem[] relationUpdates, String changedBy, long changedOn)
         {
             writeLock.Lock();
             try

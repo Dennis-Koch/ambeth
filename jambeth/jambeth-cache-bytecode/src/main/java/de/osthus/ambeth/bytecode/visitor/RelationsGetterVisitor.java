@@ -11,6 +11,7 @@ import de.osthus.ambeth.bytecode.MethodInstance;
 import de.osthus.ambeth.bytecode.PropertyInstance;
 import de.osthus.ambeth.bytecode.Script;
 import de.osthus.ambeth.bytecode.behavior.BytecodeBehaviorState;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheIntern;
 import de.osthus.ambeth.cache.ValueHolderIEC;
 import de.osthus.ambeth.cache.ValueHolderIEC.ValueHolderContainerEntry;
@@ -93,6 +94,8 @@ public class RelationsGetterVisitor extends ClassGenerator
 
 	private static final MethodInstance m_vhce_setUninitialized_Member = new MethodInstance(null, ValueHolderContainerEntry.class, void.class,
 			"setUninitialized", Object.class, int.class, IObjRef[].class);
+
+	private static final MethodInstance m_template_getCache = new MethodInstance(null, IObjRefContainer.class, ICache.class, "get__Cache");
 
 	private static final MethodInstance m_template_getState_Member = new MethodInstance(null, IObjRefContainer.class, ValueHolderState.class, "get__State",
 			int.class);
@@ -409,7 +412,7 @@ public class RelationsGetterVisitor extends ClassGenerator
 		if (EmbeddedEnhancementHint.hasMemberPath(getState().getContext()))
 		{
 			final PropertyInstance p_rootEntity = EmbeddedTypeVisitor.getRootEntityProperty(this);
-			return implementProperty(p_template_targetCache, new Script()
+			PropertyInstance p_targetCache = implementProperty(p_template_targetCache, new Script()
 			{
 				@Override
 				public void execute(MethodGenerator mg)
@@ -424,13 +427,21 @@ public class RelationsGetterVisitor extends ClassGenerator
 					mg.returnValue();
 				}
 			}, null);
+
+			{
+				MethodGenerator mg = visitMethod(m_template_getCache);
+				mg.callThisGetter(p_targetCache);
+				mg.returnValue();
+				mg.endMethod();
+			}
+			return p_targetCache;
 		}
 		implementSelfGetter(p_valueHolderContainerTemplate);
 
 		final FieldInstance f_targetCache = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "__targetCache", p_template_targetCache.getSignature(),
 				p_template_targetCache.getPropertyType()));
 
-		return implementProperty(p_template_targetCache, new Script()
+		PropertyInstance p_targetCache = implementProperty(p_template_targetCache, new Script()
 		{
 			@Override
 			public void execute(MethodGenerator mg)
@@ -454,6 +465,13 @@ public class RelationsGetterVisitor extends ClassGenerator
 				mg.returnValue();
 			}
 		});
+		{
+			MethodGenerator mg = visitMethod(m_template_getCache);
+			mg.callThisGetter(p_targetCache);
+			mg.returnValue();
+			mg.endMethod();
+		}
+		return p_targetCache;
 	}
 
 	protected void implementValueHolderCode(PropertyInstance p_valueHolderContainerTemplate, PropertyInstance p_targetCache, PropertyInstance p_relationMembers)

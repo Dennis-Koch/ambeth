@@ -15,6 +15,7 @@ import de.osthus.ambeth.appendable.AppendableStringBuilder;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -24,9 +25,13 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.persistence.IConnectionDialect;
-import de.osthus.ambeth.persistence.IField;
+import de.osthus.ambeth.persistence.IDirectedLink;
+import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.sql.CompositeResultSet;
 import de.osthus.ambeth.sql.IResultSet;
 import de.osthus.ambeth.sql.IResultSetProvider;
@@ -42,10 +47,10 @@ public class JdbcTable extends SqlTable
 	private ILogger log;
 
 	@Autowired
-	protected IConnectionDialect connectionDialect;
+	protected Connection connection;
 
 	@Autowired
-	protected Connection connection;
+	protected IConnectionDialect connectionDialect;
 
 	protected boolean batching = false;
 
@@ -68,6 +73,26 @@ public class JdbcTable extends SqlTable
 		super.afterPropertiesSet();
 
 		maxInClauseBatchThreshold = connectionDialect.getMaxInClauseBatchThreshold();
+	}
+
+	public void init(ITableMetaData metaData, IdentityHashMap<IDirectedLinkMetaData, IDirectedLink> alreadyCreatedLinkMap)
+	{
+		this.metaData = metaData;
+		for (IDirectedLinkMetaData directedLinkMD : metaData.getLinks())
+		{
+			IDirectedLink directedLink = alreadyCreatedLinkMap.get(directedLinkMD);
+			links.add(directedLink);
+
+			linkNameToLinkDict.put(directedLinkMD.getName().toUpperCase(), directedLink);
+			fieldNameToLinkDict.put(directedLinkMD.getFromField().getName().toUpperCase(), directedLink);
+
+			RelationMember member = directedLinkMD.getMember();
+			if (member == null)
+			{
+				continue;
+			}
+			memberNameToLinkDict.put(member.getName(), directedLink);
+		}
 	}
 
 	@Override
@@ -102,7 +127,7 @@ public class JdbcTable extends SqlTable
 			executeBatchedStatements(fieldsToInsertStmtMap);
 			return new int[0];
 		}
-		catch (SQLException e)
+		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
@@ -187,9 +212,10 @@ public class JdbcTable extends SqlTable
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
-		Class<?> entityType = getEntityType();
-		Class<?> idFieldType = getIdField().getFieldType();
-		Class<?> versionFieldType = getVersionField() != null ? getVersionField().getFieldType() : null;
+		ITableMetaData metaData = getMetaData();
+		Class<?> entityType = metaData.getEntityType();
+		Class<?> idFieldType = metaData.getIdField().getFieldType();
+		Class<?> versionFieldType = metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
 		PreparedStatement prep = createDeleteStatementWithIn();
 		try
 		{
@@ -204,7 +230,9 @@ public class JdbcTable extends SqlTable
 				Object persistenceVersion = null;
 				if (versionFieldType != null)
 				{
-					persistenceVersion = conversionHelper.convertValueToType(versionFieldType, ori.getVersion());
+					Object version = ori.getVersion();
+					ParamChecker.assertParamNotNull(version, "version");
+					persistenceVersion = conversionHelper.convertValueToType(versionFieldType, version);
 				}
 				persistedIdToVersionMap.put(persistenceId, persistenceVersion);
 				prep.setObject(1, persistenceId);
@@ -247,7 +275,10 @@ public class JdbcTable extends SqlTable
 		ParamChecker.assertParamNotNull(newId, "newId");
 		ParamChecker.assertTrue(batching, "batching");
 
-		String[] fieldNames = new String[getAllFields().size()];
+		ITableMetaData metaData = getMetaData();
+		IConversionHelper conversionHelper = this.conversionHelper;
+
+		String[] fieldNames = new String[metaData.getAllFields().size()];
 		Object[] values = new Object[fieldNames.length];
 		String namesKey = generateNamesKey(puis, fieldNames, values);
 
@@ -258,9 +289,9 @@ public class JdbcTable extends SqlTable
 			prep = createInsertStatement(fieldNames);
 			perCount.put(namesKey, prep);
 		}
-		IField idField = idFields[0];
-		IField versionField = this.versionField;
-		Object initialVersion = this.initialVersion;
+		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData versionField = metaData.getVersionField() != null ? metaData.getVersionField() : null;
+		Object initialVersion = getMetaData().getInitialVersion();
 		newId.setValue(conversionHelper.convertValueToType(idField.getMember().getRealType(), id));
 		Object newVersion = versionField != null ? conversionHelper.convertValueToType(versionField.getMember().getRealType(), initialVersion) : null;
 
@@ -283,13 +314,13 @@ public class JdbcTable extends SqlTable
 				Object convertedValue = values[a];
 				prep.setObject(index++, convertedValue);
 			}
-			IField createdOnField = getCreatedOnField();
+			IFieldMetaData createdOnField = metaData.getCreatedOnField();
 			if (createdOnField != null)
 			{
 				Object convertedValue = conversionHelper.convertValueToType(createdOnField.getFieldType(), contextProvider.getCurrentTime());
 				prep.setObject(index++, convertedValue);
 			}
-			IField createdByField = getCreatedByField();
+			IFieldMetaData createdByField = metaData.getCreatedByField();
 			if (createdByField != null)
 			{
 				Object convertedValue = conversionHelper.convertValueToType(createdByField.getFieldType(), contextProvider.getCurrentUser());
@@ -321,7 +352,8 @@ public class JdbcTable extends SqlTable
 	public Object update(Object id, Object version, ILinkedMap<String, Object> puis)
 	{
 		ParamChecker.assertParamNotNull(id, "id");
-		IField versionField = getVersionField();
+		ITableMetaData metaData = getMetaData();
+		IFieldMetaData versionField = metaData.getVersionField();
 		if (versionField != null)
 		{
 			ParamChecker.assertParamNotNull(version, "version");
@@ -329,7 +361,7 @@ public class JdbcTable extends SqlTable
 		ParamChecker.assertTrue(batching, "batching");
 		IConversionHelper conversionHelper = this.conversionHelper;
 
-		String[] fieldNames = new String[getAllFields().size()];
+		String[] fieldNames = new String[metaData.getAllFields().size()];
 		Object[] values = new Object[fieldNames.length];
 		String namesKey = generateNamesKey(puis, fieldNames, values);
 
@@ -399,20 +431,20 @@ public class JdbcTable extends SqlTable
 				Object convertedValue = values[a];
 				prep.setObject(index++, convertedValue);
 			}
-			IField updatedOnField = getUpdatedOnField();
+			IFieldMetaData updatedOnField = metaData.getUpdatedOnField();
 			if (updatedOnField != null)
 			{
 				Object convertedValue = conversionHelper.convertValueToType(updatedOnField.getFieldType(), contextProvider.getCurrentTime());
 				prep.setObject(index++, convertedValue);
 			}
-			IField updatedByField = getUpdatedByField();
+			IFieldMetaData updatedByField = metaData.getUpdatedByField();
 			if (updatedByField != null)
 			{
 				Object convertedValue = conversionHelper.convertValueToType(updatedByField.getFieldType(), contextProvider.getCurrentUser());
 				prep.setObject(index++, convertedValue);
 			}
 
-			Object persistenceId = conversionHelper.convertValueToType(idFields[0].getFieldType(), id);
+			Object persistenceId = conversionHelper.convertValueToType(metaData.getIdField().getFieldType(), id);
 			Object persistenceVersion = null;
 			prep.setObject(index++, persistenceId);
 			if (versionField != null)
@@ -453,12 +485,13 @@ public class JdbcTable extends SqlTable
 			return;
 		}
 		IConversionHelper conversionHelper = this.conversionHelper;
+		ITableMetaData metaData = getMetaData();
 		boolean exactVersionForOptimisticLockingRequired = this.exactVersionForOptimisticLockingRequired;
-		Class<?> idFieldType = getIdField().getFieldType();
+		Class<?> idFieldType = metaData.getIdField().getFieldType();
 
 		List<Object> persistedIdsForArray = persistedIdToVersionMap.keyList();
 
-		Class<?> versionFieldType = getVersionField() != null ? getVersionField().getFieldType() : null;
+		Class<?> versionFieldType = metaData.getVersionField() != null ? metaData.getVersionField().getFieldType() : null;
 		IResultSet selectForUpdateRS = createSelectForUpdateStatementWithIn(persistedIdsForArray);
 		try
 		{
@@ -474,7 +507,8 @@ public class JdbcTable extends SqlTable
 				Object persistedVersion = conversionHelper.convertValueToType(versionFieldType, current[1]);
 				if (log.isDebugEnabled())
 				{
-					log.debug("Given: " + getName() + " - " + persistedId + ", Version: " + givenPersistedVersion + ", VersionInDb: " + persistedVersion);
+					log.debug("Given: " + metaData.getName() + " - " + persistedId + ", Version: " + givenPersistedVersion + ", VersionInDb: "
+							+ persistedVersion);
 				}
 
 				if (persistedVersion == null)
@@ -485,25 +519,26 @@ public class JdbcTable extends SqlTable
 				{
 					if (!persistedVersion.equals(givenPersistedVersion))
 					{
-						Object objId = conversionHelper.convertValueToType(getIdField().getMember().getRealType(), persistedId);
-						Object objVersion = conversionHelper.convertValueToType(getVersionField().getMember().getRealType(), persistedVersion);
-						throw OptimisticLockUtil.throwModified(new ObjRef(getEntityType(), objId, objVersion), givenPersistedVersion);
+						Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
+						Object objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
+						throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
 					}
 				}
 				else
 				{
 					if (((Comparable<Object>) persistedVersion).compareTo(givenPersistedVersion) > 0)
 					{
-						Object objId = conversionHelper.convertValueToType(getIdField().getMember().getRealType(), persistedId);
-						Object objVersion = conversionHelper.convertValueToType(getVersionField().getMember().getRealType(), persistedVersion);
-						throw OptimisticLockUtil.throwModified(new ObjRef(getEntityType(), objId, objVersion), givenPersistedVersion);
+						Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedId);
+						Object objVersion = conversionHelper.convertValueToType(metaData.getVersionField().getMember().getRealType(), persistedVersion);
+						throw OptimisticLockUtil.throwModified(new ObjRef(metaData.getEntityType(), objId, objVersion), givenPersistedVersion);
 					}
 				}
 			}
 			if (persistedIdToVersionMap.size() > 0)
 			{
-				Object objId = conversionHelper.convertValueToType(getIdField().getMember().getRealType(), persistedIdToVersionMap.iterator().next().getKey());
-				throw OptimisticLockUtil.throwDeleted(new ObjRef(getEntityType(), objId, null));
+				Object objId = conversionHelper.convertValueToType(metaData.getIdField().getMember().getRealType(), persistedIdToVersionMap.iterator().next()
+						.getKey());
+				throw OptimisticLockUtil.throwDeleted(new ObjRef(metaData.getEntityType(), objId, null));
 			}
 		}
 		finally
@@ -514,8 +549,9 @@ public class JdbcTable extends SqlTable
 
 	protected PreparedStatement createInsertStatement(String[] fieldNames)
 	{
-		IField idField = getIdField();
-		IField versionField = getVersionField();
+		ITableMetaData metaData = getMetaData();
+		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData versionField = metaData.getVersionField();
 
 		int variableCount = 0;
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -523,7 +559,7 @@ public class JdbcTable extends SqlTable
 		try
 		{
 			sqlSB.append("INSERT INTO ");
-			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB).append(" (");
+			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB).append(" (");
 			sqlBuilder.appendName(idField.getName(), sqlSB);
 			variableCount++;
 			if (versionField != null)
@@ -545,14 +581,14 @@ public class JdbcTable extends SqlTable
 				sqlBuilder.appendName(fieldName, sqlSB);
 				variableCount++;
 			}
-			IField createdOnField = getCreatedOnField();
+			IFieldMetaData createdOnField = metaData.getCreatedOnField();
 			if (createdOnField != null)
 			{
 				sqlSB.append(',');
 				sqlBuilder.appendName(createdOnField.getName(), sqlSB);
 				variableCount++;
 			}
-			IField createdByField = getCreatedByField();
+			IFieldMetaData createdByField = metaData.getCreatedByField();
 			if (createdByField != null)
 			{
 				sqlSB.append(',');
@@ -630,8 +666,9 @@ public class JdbcTable extends SqlTable
 
 	protected IResultSet createSelectForUpdateStatementWithInIntern(List<?> ids)
 	{
-		IField idField = getIdField();
-		IField versionField = getVersionField();
+		ITableMetaData metaData = getMetaData();
+		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData versionField = metaData.getVersionField();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder fieldNamesSQL = tlObjectCollector.create(AppendableStringBuilder.class);
@@ -647,7 +684,7 @@ public class JdbcTable extends SqlTable
 			persistenceHelper.appendSplittedValues(idField.getName(), idField.getFieldType(), ids, parameters, whereSQL);
 			whereSQL.append(" FOR UPDATE NOWAIT");
 
-			return sqlConnection.selectFields(getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
+			return sqlConnection.selectFields(metaData.getFullqualifiedEscapedName(), fieldNamesSQL, whereSQL, null, null, parameters);
 		}
 		finally
 		{
@@ -658,15 +695,16 @@ public class JdbcTable extends SqlTable
 
 	protected PreparedStatement createUpdateStatement(String[] fieldNames)
 	{
-		IField idField = getIdField();
-		IField versionField = getVersionField();
+		ITableMetaData metaData = getMetaData();
+		IFieldMetaData idField = metaData.getIdField();
+		IFieldMetaData versionField = metaData.getVersionField();
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlSB.append("UPDATE ");
-			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB);
+			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB);
 			sqlSB.append(" SET ");
 
 			boolean firstField = true;
@@ -691,7 +729,7 @@ public class JdbcTable extends SqlTable
 				firstField = false;
 				sqlBuilder.appendName(fieldName, sqlSB).append("=?");
 			}
-			IField updatedOnField = getUpdatedOnField();
+			IFieldMetaData updatedOnField = metaData.getUpdatedOnField();
 			if (updatedOnField != null)
 			{
 				if (!firstField)
@@ -701,7 +739,7 @@ public class JdbcTable extends SqlTable
 				firstField = false;
 				sqlBuilder.appendName(updatedOnField.getName(), sqlSB).append("=?");
 			}
-			IField updatedByField = getUpdatedByField();
+			IFieldMetaData updatedByField = metaData.getUpdatedByField();
 			if (updatedByField != null)
 			{
 				if (!firstField)
@@ -743,14 +781,15 @@ public class JdbcTable extends SqlTable
 		{
 			return deleteStmt;
 		}
-		IField idField = getIdField();
+		ITableMetaData metaData = getMetaData();
+		IFieldMetaData idField = metaData.getIdField();
 
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
 		AppendableStringBuilder sqlSB = tlObjectCollector.create(AppendableStringBuilder.class);
 		try
 		{
 			sqlSB.append("DELETE FROM ");
-			sqlBuilder.appendName(getFullqualifiedEscapedName(), sqlSB).append(" WHERE ");
+			sqlBuilder.appendName(metaData.getFullqualifiedEscapedName(), sqlSB).append(" WHERE ");
 			sqlBuilder.appendName(idField.getName(), sqlSB);
 			sqlSB.append("=?");
 			deleteStmt = connection.prepareStatement(sqlSB.toString());
@@ -769,22 +808,22 @@ public class JdbcTable extends SqlTable
 	protected String generateNamesKey(ILinkedMap<String, Object> puis, String[] fieldNames, Object[] values)
 	{
 		IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
-
+		ITableMetaData metaData = getMetaData();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		StringBuilder namesKeySB = tlObjectCollector.create(StringBuilder.class);
 		try
 		{
-			List<IField> allFields = getAllFields();
+			List<IFieldMetaData> allFields = metaData.getAllFields();
 			for (Entry<String, Object> entry : puis)
 			{
 				String fieldName = entry.getKey();
 				Object newValue = entry.getValue();
-				int fieldIndex = getFieldIndexByName(fieldName);
+				int fieldIndex = metaData.getFieldIndexByName(fieldName);
 				if (fieldIndex < 0)
 				{
-					throw new RuntimeException("No field found for member name '" + fieldName + "' on entity '" + getEntityType().getName() + "'");
+					throw new RuntimeException("No field found for member name '" + fieldName + "' on entity '" + metaData.getEntityType().getName() + "'");
 				}
-				IField field = allFields.get(fieldIndex);
+				IFieldMetaData field = allFields.get(fieldIndex);
 				if (newValue == null && java.sql.Array.class.isAssignableFrom(field.getFieldType()))
 				{
 					newValue = Array.newInstance(field.getFieldSubType(), 0);

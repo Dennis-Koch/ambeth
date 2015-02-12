@@ -11,7 +11,10 @@ using De.Osthus.Ambeth.Ioc;
 using De.Osthus.Ambeth.Ioc.Annotation;
 using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Merge.Model;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
@@ -447,11 +450,58 @@ namespace De.Osthus.Ambeth.Mixin
             {
                 return;
             }
-            obj.OnPropertyChanged("ToBeUpdated");
+            bool oldToBeUpdated = ((IDataObject)obj).ToBeUpdated;
+            if (oldToBeUpdated)
+            {
+                return;
+            }
+            obj.OnPropertyChanged("ToBeUpdated", false, true);
         }
 
         public void HandleCollectionChange(INotifyPropertyChangedSource obj, Object sender, NotifyCollectionChangedEventArgs evnt)
         {
+            IEntityMetaData metaData = ((IEntityMetaDataHolder)obj).Get__EntityMetaData();
+
+            Object bases = null;
+		    bool parentChildProperty = false;
+
+            RelationMember[] relationMembers = metaData.RelationMembers;
+		    for (int relationIndex = relationMembers.Length; relationIndex-- > 0;)
+		    {
+			    Object valueDirect = ((IValueHolderContainer) obj).Get__ValueDirect(relationIndex);
+			    if (!Object.ReferenceEquals(valueDirect, sender))
+			    {
+				    continue;
+			    }
+			    if (relationMembers[relationIndex].GetAnnotation(typeof(ParentChild)) != null)
+			    {
+				    bases = obj;
+				    parentChildProperty = true;
+			    }
+			    else
+			    {
+                    bases = sender;
+			    }
+			    break;
+		    }
+		    if (bases == null)
+		    {
+			    foreach (PrimitiveMember primitiveMember in metaData.PrimitiveMembers)
+			    {
+				    Object valueDirect = primitiveMember.GetValue(obj);
+                    if (!Object.ReferenceEquals(valueDirect, sender))
+				    {
+					    continue;
+				    }
+				    bases = obj;
+				    parentChildProperty = true;
+				    break;
+			    }
+		    }
+		    if (bases == null)
+		    {
+			    throw new Exception("Must never happen");
+		    }
             ICacheModification cacheModification = this.CacheModification;
             bool oldCacheModification = cacheModification.Active;
             bool cacheModificationUsed = false;
@@ -466,14 +516,14 @@ namespace De.Osthus.Ambeth.Mixin
                         {
                             foreach (Object oldItem in evnt.OldItems)
                             {
-                                HandleRemovedItem(obj, oldItem, true);
+                                HandleRemovedItem(obj, oldItem, parentChildProperty);
                             }
                         }
                         if (evnt.NewItems != null)
                         {
                             foreach (Object newItem in evnt.NewItems)
                             {
-                                HandleAddedItem(obj, newItem, true);
+                                HandleAddedItem(obj, newItem, parentChildProperty);
                             }
                         }
                         break;

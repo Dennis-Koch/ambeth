@@ -84,7 +84,7 @@ public class PropertiesPreProcessor implements IBeanPreProcessor, IInitializingB
 					}
 					if (!propertyInitialized)
 					{
-						throw new BeanContextInitException("Mandatory property '" + propName + "' not initialized");
+						throw new IllegalStateException("Mandatory property '" + propName + "' not initialized");
 					}
 				}
 				continue;

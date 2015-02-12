@@ -25,7 +25,7 @@ public class EmptyVersionCursor implements IDisposable, IVersionCursor
 	}
 
 	@Override
-	public byte getAlternateIdCount()
+	public int getAlternateIdCount()
 	{
 		return 0;
 	}
