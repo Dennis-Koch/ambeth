@@ -96,6 +96,9 @@ public final class PersistenceJdbcConfigurationConstants
 	@ConfigurationConstantDescription("TODO")
 	public static final String DataSourceName = "datasource.name";
 
+	@ConfigurationConstantDescription("TODO")
+	public static final String PreparedConnectionInstances = "connections.prepared";
+
 	private PersistenceJdbcConfigurationConstants()
 	{
 		// Intended blank

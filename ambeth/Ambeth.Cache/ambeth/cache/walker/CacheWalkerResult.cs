@@ -22,15 +22,15 @@ namespace De.Osthus.Ambeth.Walker
 
         protected readonly bool threadLocal;
 
-        protected readonly IObjRef[] objRefs;
+        public IObjRef[] objRefs;
 
-        protected readonly Object[] cacheValues;
+        public Object[] cacheValues;
 
-        protected readonly bool[] pendingChanges;
+        public bool[] pendingChanges;
 
         protected CacheWalkerResult parentEntry;
 
-        protected readonly Object childEntries;
+        public readonly Object childEntries;
 
         public CacheWalkerResult(ICache cache, bool transactional, bool threadLocal, IObjRef[] objRefs, Object[] cacheValues, Object childEntries)
         {
@@ -40,6 +40,11 @@ namespace De.Osthus.Ambeth.Walker
             this.objRefs = objRefs;
             this.cacheValues = cacheValues;
             this.childEntries = childEntries;
+            privileged = cache.Privileged;
+        }
+
+        public void UpdatePendingChanges()
+        {
             bool[] pendingChanges = null;
             for (int a = cacheValues.Length; a-- > 0; )
             {
@@ -55,7 +60,6 @@ namespace De.Osthus.Ambeth.Walker
                 pendingChanges[a] = ((IDataObject)cacheValue).HasPendingChanges;
             }
             this.pendingChanges = pendingChanges;
-            privileged = cache.Privileged;
         }
 
         public CacheWalkerResult ParentEntry { get; set; }

@@ -706,5 +706,24 @@ namespace De.Osthus.Ambeth.Cache
             }
             vhc.Set__ObjRefs(relationIndex, relationsOfMember);
         }
+
+	    protected override void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet,
+			    HashSet<IObjRef> cascadeNeededORIs)
+	    {
+		    if (objectToCache is IValueHolderContainer)
+		    {
+			    ((IValueHolderContainer) objectToCache).__TargetCache = this;
+		    }
+		    base.PutIntern(objectToCache, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+	    }
+        
+	    public override String ToString()
+	    {
+		    if (Name != null)
+		    {
+                return Name + " " + base.ToString();
+		    }
+		    return base.ToString();
+	    }
     }
 }

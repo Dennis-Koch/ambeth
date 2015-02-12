@@ -22,7 +22,7 @@ namespace De.Osthus.Ambeth.Privilege.Factory
         [Autowired]
         public IAccessorTypeProvider AccessorTypeProvider { protected get; set; }
 
-        protected readonly HashMap<Type, IEntityTypePrivilegeFactory> typeToConstructorMap = new HashMap<Type, IEntityTypePrivilegeFactory>();
+        protected readonly HashMap<Type, IEntityTypePrivilegeFactory[]> typeToConstructorMap = new HashMap<Type, IEntityTypePrivilegeFactory[]>();
 
         protected readonly Object writeLock = new Object();
 
@@ -33,7 +33,9 @@ namespace De.Osthus.Ambeth.Privilege.Factory
             {
                 return ci;
             }
-            IEntityTypePrivilegeFactory factory = typeToConstructorMap.Get(entityType);
+            int index = AbstractTypePrivilege.CalcIndex(create, read, update, delete, execute);
+            IEntityTypePrivilegeFactory[] factories = typeToConstructorMap.Get(entityType);
+            IEntityTypePrivilegeFactory factory = factories != null ? factories[index] : null;
             if (factory != null)
             {
                 return factory;
@@ -42,7 +44,8 @@ namespace De.Osthus.Ambeth.Privilege.Factory
             lock (writeLock)
             {
                 // concurrent thread might have been faster
-                factory = typeToConstructorMap.Get(entityType);
+                factories = typeToConstructorMap.Get(entityType);
+                factory = factories != null ? factories[index] : null;
                 if (factory != null)
                 {
                     return factory;
@@ -71,7 +74,12 @@ namespace De.Osthus.Ambeth.Privilege.Factory
                     // something serious happened during enhancement: continue with a fallback
                     factory = ci;
                 }
-                typeToConstructorMap.Put(entityType, factory);
+                if (factories == null)
+                {
+                    factories = new IEntityTypePrivilegeFactory[AbstractTypePrivilege.ArraySizeForIndex()];
+                    typeToConstructorMap.Put(entityType, factories);
+                }
+                factories[index] = factory;
                 return factory;
             }
         }

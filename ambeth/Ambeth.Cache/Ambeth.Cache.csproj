@@ -60,7 +60,6 @@
     <Compile Include="ambeth\cache\IParentCacheValueHardRef.cs" />
     <Compile Include="ambeth\cache\FlcEntry.cs" />
     <Compile Include="ambeth\cache\interceptor\TransactionalRootCacheInterceptor.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheParamRunnable.cs" />
     <Compile Include="ambeth\cache\ICacheIntern.cs" />
     <Compile Include="ambeth\cache\PagingQueryServiceResultProcessor.cs" />
     <Compile Include="ambeth\cache\ServiceResultCacheKey.cs" />
@@ -143,9 +142,7 @@
     <Compile Include="ambeth\cache\CacheFactory.cs" />
     <Compile Include="ambeth\cache\CacheProvider.cs" />
     <Compile Include="ambeth\cache\CacheType.cs" />
-    <Compile Include="ambeth\cache\ICacheContext.cs" />
     <Compile Include="ambeth\cache\ICacheProviderExtendable.cs" />
-    <Compile Include="ambeth\cache\ISingleCacheRunnable.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ambeth\proxy\CacheContextPostProcessor.cs" />

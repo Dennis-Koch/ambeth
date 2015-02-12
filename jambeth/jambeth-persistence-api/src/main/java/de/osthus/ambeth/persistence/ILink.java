@@ -4,34 +4,15 @@ import java.util.List;
 
 public interface ILink
 {
+	ILinkMetaData getMetaData();
+
 	ITable getFromTable();
 
 	ITable getToTable();
 
-	IField getFromField();
-
-	IField getToField();
-
-	boolean isNullable();
-
-	boolean hasLinkTable();
-
 	IDirectedLink getDirectedLink();
 
 	IDirectedLink getReverseDirectedLink();
-
-	String getName();
-
-	String getTableName();
-
-	/**
-	 * Getter for the table name which is in quotes to allow to include the value directly in a query string
-	 * 
-	 * @return
-	 */
-	String getFullqualifiedEscapedTableName();
-
-	String getArchiveTableName();
 
 	ILinkCursor findAllLinked(IDirectedLink fromLink, List<?> fromIds);
 

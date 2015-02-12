@@ -4,7 +4,7 @@ public class CacheKey
 {
 	protected Class<?> entityType;
 
-	protected byte idNameIndex;
+	protected byte idIndex;
 
 	protected Object id;
 
@@ -18,14 +18,14 @@ public class CacheKey
 		this.entityType = entityType;
 	}
 
-	public byte getIdNameIndex()
+	public byte getIdIndex()
 	{
-		return idNameIndex;
+		return idIndex;
 	}
 
-	public void setIdNameIndex(byte idNameIndex)
+	public void setIdIndex(byte idIndex)
 	{
-		this.idNameIndex = idNameIndex;
+		this.idIndex = idIndex;
 	}
 
 	public Object getId()
@@ -41,7 +41,7 @@ public class CacheKey
 	@Override
 	public int hashCode()
 	{
-		return this.entityType.hashCode() ^ this.id.hashCode();
+		return entityType.hashCode() ^ id.hashCode();
 	}
 
 	@Override
@@ -56,12 +56,12 @@ public class CacheKey
 			return false;
 		}
 		CacheKey other = (CacheKey) obj;
-		return this.id.equals(other.getId()) && this.entityType.equals(other.getEntityType()) && this.idNameIndex == other.getIdNameIndex();
+		return id.equals(other.getId()) && entityType.equals(other.getEntityType()) && idIndex == other.getIdIndex();
 	}
 
 	@Override
 	public String toString()
 	{
-		return "CacheKey: " + this.entityType.getName() + "(" + this.idNameIndex + "," + this.id + ")";
+		return "CacheKey: " + entityType.getName() + "(" + idIndex + "," + id + ")";
 	}
 }

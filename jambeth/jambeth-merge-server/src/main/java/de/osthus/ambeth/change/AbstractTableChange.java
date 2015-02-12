@@ -1,25 +1,14 @@
 package de.osthus.ambeth.change;
 
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.persistence.ITable;
-import de.osthus.ambeth.util.ParamChecker;
 
-public abstract class AbstractTableChange implements ITableChange, IInitializingBean
+public abstract class AbstractTableChange implements ITableChange
 {
+	@Property
 	protected String entityHandlerName;
 
 	protected ITable table;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(entityHandlerName, "EntityHandlerName");
-	}
-
-	public void setEntityHandlerName(String entityHandlerName)
-	{
-		this.entityHandlerName = entityHandlerName;
-	}
 
 	@Override
 	public void setTable(ITable table)
@@ -34,12 +23,6 @@ public abstract class AbstractTableChange implements ITableChange, IInitializing
 	}
 
 	@Override
-	public void dispose()
-	{
-		// Intended blank
-	}
-
-	@Override
 	public ITable getTable()
 	{
 		return table;
@@ -49,5 +32,11 @@ public abstract class AbstractTableChange implements ITableChange, IInitializing
 	public int compareTo(ITableChange o)
 	{
 		return getEntityHandlerName().compareTo(o.getEntityHandlerName());
+	}
+
+	@Override
+	public String toString()
+	{
+		return getTable().toString();
 	}
 }

@@ -30,6 +30,14 @@ public interface ICacheWalker
 	ICacheWalkerResult walk(IObjRef... objRefs);
 
 	/**
+	 * Walks the current cache hierarchy up beginning from a (potentially thread-bound) 1st level cache (ChildCache) to all active instances of 2nd level caches
+	 * (RootCache) including thread-bound or transaction-bound instances.
+	 * 
+	 * @return Tree-like structure starting always from the committed root cache instance (top-down)
+	 */
+	ICacheWalkerResult walkAll();
+
+	/**
 	 * "Walks" the current cache hierarchy up beginning from a (potentially thread-bound) 1st level cache (ChildCache) to all active instances of 2nd level
 	 * caches (RootCache) including thread-bound or transaction-bound instances.
 	 * 

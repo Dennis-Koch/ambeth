@@ -15,8 +15,8 @@ using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
 using De.Osthus.Ambeth.Config;
-using De.Osthus.Ambeth.Security.Config;
 using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Merge.Config;
 
 namespace De.Osthus.Ambeth.Cache.Interceptor
 {
@@ -32,7 +32,7 @@ namespace De.Osthus.Ambeth.Cache.Interceptor
         [Autowired(Optional = true)]
         public ISecurityActivation SecurityActivation { protected get; set; }
 
-        [Property(SecurityConfigurationConstants.SecurityActive, DefaultValue = "false")]
+        [Property(MergeConfigurationConstants.SecurityActive, DefaultValue = "false")]
         public bool SecurityActive { protected get; set; }
 
         [Forkable]

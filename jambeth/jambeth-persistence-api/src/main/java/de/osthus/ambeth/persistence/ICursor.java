@@ -4,9 +4,9 @@ import de.osthus.ambeth.util.IDisposable;
 
 public interface ICursor extends IDisposable
 {
-	IField[] getFields();
+	IFieldMetaData[] getFields();
 
-	IField getFieldByMemberName(String memberName);
+	IFieldMetaData getFieldByMemberName(String memberName);
 
 	int getFieldIndexByMemberName(String memberName);
 

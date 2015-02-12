@@ -35,7 +35,7 @@ import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.proxy.PersistenceContext;
-import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
+import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
@@ -259,7 +259,7 @@ public class QueryTest extends AbstractPersistenceTest
 		List<Integer> expected = Arrays.asList(new Integer[] { 1, 2, 3, 4, 5, 6 });
 
 		IQuery<QueryEntity> query = qb.build();
-
+		IQueryKey queryKey = query.getQueryKey(nameToValueMap);
 		List<QueryEntity> actual = query.retrieve(nameToValueMap);
 		assertSimilar(expected, actual);
 	}
@@ -295,9 +295,10 @@ public class QueryTest extends AbstractPersistenceTest
 	public void retrieveAllGroupByOrderBy() throws Exception
 	{
 		IOperand versionOp = qb.property(AbstractEntity.Version);
-		int maxIndex = qb.select(qb.function("MAX", qb.property(QueryEntity.Name1)));
+		IOperand maxName1 = qb.function("MAX", qb.property(QueryEntity.Name1));
+		int maxIndex = qb.select(maxName1);
 		int versionIndex = qb.select(versionOp);
-		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build();
+		IQuery<QueryEntity> query = qb.groupBy(versionOp).orderBy(versionOp, OrderByType.DESC).build(qb.isNotEqualTo(maxName1, qb.value(0)));
 
 		Object[][] expected = { { 2, "name2" }, { 1, "name3" } };
 		IDataCursor dataCursor = query.retrieveAsData();

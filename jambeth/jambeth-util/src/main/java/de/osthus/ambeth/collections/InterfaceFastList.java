@@ -1,5 +1,7 @@
 package de.osthus.ambeth.collections;
 
+import java.util.List;
+
 public class InterfaceFastList<V>
 {
 	public static class InterfaceFastListAnchor<V> implements IListElem<V>
@@ -60,6 +62,53 @@ public class InterfaceFastList<V>
 	private IListElem<V> last;
 
 	private int size = 0;
+
+	public final boolean isEmpty()
+	{
+		return size == 0;
+	}
+
+	public final void pushAllFrom(InterfaceFastList<V> list)
+	{
+		while (true)
+		{
+			IListElem<V> firstElem = list.popFirst();
+			if (firstElem == null)
+			{
+				return;
+			}
+			pushLast(firstElem);
+		}
+	}
+
+	public final void pushAllFrom(FastList<V> list)
+	{
+		while (true)
+		{
+			ListElem<V> firstElem = list.popFirst();
+			if (firstElem == null)
+			{
+				return;
+			}
+			pushLast(firstElem);
+		}
+	}
+
+	public final void pushAllFrom(List<V> list)
+	{
+		for (int a = 0, size = list.size(); a < size; a++)
+		{
+			pushLast(new InterfaceListElem<V>(list.get(a)));
+		}
+	}
+
+	public final void pushAllFrom(IList<IListElem<V>> list)
+	{
+		for (int a = 0, size = list.size(); a < size; a++)
+		{
+			pushLast(list.get(a));
+		}
+	}
 
 	public final void pushLast(final IListElem<V> elem)
 	{

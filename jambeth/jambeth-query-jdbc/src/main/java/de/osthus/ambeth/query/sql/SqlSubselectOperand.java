@@ -7,8 +7,8 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.ISubQuery;
 import de.osthus.ambeth.util.ParamChecker;
@@ -23,7 +23,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 
 	protected SqlColumnOperand[] selectedColumns;
 
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -31,7 +31,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		ParamChecker.assertNotNull(subQuery, "subQuery");
 		ParamChecker.assertNotNull(selectedColumns, "selectedColumns");
 
-		ParamChecker.assertNotNull(database, "database");
+		ParamChecker.assertNotNull(databaseMetaData, "database");
 	}
 
 	public void setSubQuery(ISubQuery<?> subQuery)
@@ -44,9 +44,9 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 		this.selectedColumns = selectedColumns;
 	}
 
-	public void setDatabase(IDatabase database)
+	public void setDatabase(IDatabaseMetaData databaseMetaData)
 	{
-		this.database = database;
+		this.databaseMetaData = databaseMetaData;
 	}
 
 	public ISubQuery<?> getSubQuery()
@@ -58,7 +58,7 @@ public class SqlSubselectOperand implements IOperand, IInitializingBean
 	public void expandQuery(IAppendable querySB, IMap<Object, Object> nameToValueMap, boolean joinQuery, IList<Object> parameters)
 	{
 		Class<?> entityType = subQuery.getEntityType();
-		ITable table = database.getTableByType(entityType);
+		ITableMetaData table = databaseMetaData.getTableByType(entityType);
 		String tableName = table.getFullqualifiedEscapedName();
 		String tableAlias = subQuery.getMainTableAlias();
 

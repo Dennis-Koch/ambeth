@@ -24,7 +24,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.SmartCopyMap;
 import de.osthus.ambeth.collections.SmartCopySet;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.datachange.model.IDataChangeEntry;
 import de.osthus.ambeth.event.EntityMetaDataAddedEvent;
@@ -39,15 +38,19 @@ import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IMergeProcess;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
+import de.osthus.ambeth.metadata.IObjRefFactory;
+import de.osthus.ambeth.metadata.IPreparedObjRefFactory;
 import de.osthus.ambeth.model.ISecurityScope;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.persistence.IDatabase;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
 import de.osthus.ambeth.persistence.IPermissionGroup;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.privilege.IEntityPermissionRule;
@@ -57,9 +60,10 @@ import de.osthus.ambeth.privilege.IPrivilegeProvider;
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.ITypePrivilege;
 import de.osthus.ambeth.privilege.model.impl.SkipAllTypePrivilege;
+import de.osthus.ambeth.proxy.PersistenceContext;
+import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.sql.ISqlBuilder;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -74,6 +78,7 @@ import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.PrefetchHandle;
 import de.osthus.ambeth.util.setup.IDataSetup;
 
+@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
 public class PermissionGroupUpdater implements IInitializingBean, IPermissionGroupUpdater, IStartingBean
 {
 	@SuppressWarnings("unused")
@@ -93,7 +98,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Autowired
 	protected IDataSetup dataSetup;
@@ -109,6 +114,9 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	@Autowired
 	protected IMultithreadingHelper multithreadingHelper;
+
+	@Autowired
+	protected IObjRefFactory objRefFactory;
 
 	@Autowired
 	protected IPrefetchHelper prefetchHelper;
@@ -138,7 +146,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	protected IThreadLocalObjectCollector objectCollector;
 
 	@Autowired
-	protected ITransaction transaction;
+	protected ILightweightTransaction transaction;
 
 	@Autowired(optional = true)
 	protected IUserIdentifierProvider userIdentifierProvider;
@@ -146,7 +154,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	@Autowired(optional = true)
 	protected IUserResolver userResolver;
 
-	@Property(name = SecurityConfigurationConstants.SecurityActive, defaultValue = "false")
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
 	protected boolean securityActive;
 
 	protected final SmartCopyMap<Class<?>, IQuery<?>> entityTypeToAllEntitiesQuery = new SmartCopyMap<Class<?>, IQuery<?>>();
@@ -221,12 +229,12 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected IMap<Class<?>, PgUpdateEntry> createPgUpdateMap(IDataChange dataChange)
 	{
+		IDatabaseMetaData databaseMetaData = this.databaseMetaData;
 		HashMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = null;
-		IDatabase database = this.database.getCurrent();
 		for (Class<?> entityType : metaDataAvailableSet)
 		{
-			ITable table = database.getTableByType(entityType);
-			IPermissionGroup permissionGroup = database.getPermissionGroupOfTable(table.getName());
+			ITableMetaData table = databaseMetaData.getTableByType(entityType);
+			IPermissionGroup permissionGroup = databaseMetaData.getPermissionGroupOfTable(table.getName());
 			if (permissionGroup == null)
 			{
 				continue;
@@ -385,12 +393,14 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 	}
 
 	@Override
+	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public void fillEmptyPermissionGroups()
 	{
 		updatePermissionGroups(null);
 	}
 
 	@Override
+	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public void updatePermissionGroups(final IDataChange dataChange)
 	{
 		if (!securityActive)
@@ -443,28 +453,36 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 						@Override
 						public void invoke(PermissionGroupUpdateForkItem itemOfFork) throws Throwable
 						{
-							PgUpdateEntry pgUpdateEntry = itemOfFork.pgUpdateEntry;
+							final PgUpdateEntry pgUpdateEntry = itemOfFork.pgUpdateEntry;
 							IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
-							ITable table = permissionGroup.getTargetTable();
-							IList<IObjRef> objRefs;
-							switch (pgUpdateEntry.getUpdateType())
+							final ITableMetaData table = permissionGroup.getTargetTable();
+							IList<IObjRef> objRefs = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRef>>()
 							{
-								case NOTHING:
+								@Override
+								public IList<IObjRef> invoke() throws Throwable
 								{
-									return;
+									switch (pgUpdateEntry.getUpdateType())
+									{
+										case NOTHING:
+										{
+											return null;
+										}
+										case SELECTED_ROW:
+										{
+											return loadSelectedObjRefs(pgUpdateEntry);
+										}
+										case EACH_ROW:
+										{
+											return loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
+										}
+										default:
+											throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
+									}
 								}
-								case SELECTED_ROW:
-								{
-									objRefs = loadSelectedObjRefs(pgUpdateEntry);
-									break;
-								}
-								case EACH_ROW:
-								{
-									objRefs = loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
-									break;
-								}
-								default:
-									throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
+							});
+							if (objRefs == null)
+							{
+								return;
 							}
 							Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
 							updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
@@ -517,7 +535,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return objRefs;
 	}
 
-	protected IList<IObjRef> loadAllObjRefsOfEntityTable(ITable table, PgUpdateEntry pgUpdateEntry)
+	protected IList<IObjRef> loadAllObjRefsOfEntityTable(ITableMetaData table, PgUpdateEntry pgUpdateEntry)
 	{
 		Class<?> entityType = table.getEntityType();
 		IQuery<?> allEntitiesQuery = getAllEntitiesQuery(entityType);
@@ -527,9 +545,11 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
 		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 
-		IVersionCursor versionCursor = allEntitiesQuery.retrieveAsVersions();
+		IConversionHelper conversionHelper = this.conversionHelper;
+		IVersionCursor versionCursor = allEntitiesQuery.retrieveAsVersions(false);
 		try
 		{
+			IPreparedObjRefFactory prepareObjRefFactory = objRefFactory.prepareObjRefFactory(entityType, ObjRef.PRIMARY_KEY_INDEX);
 			ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
 			while (versionCursor.moveNext())
 			{
@@ -541,7 +561,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				// correctly by itself
 				id = conversionHelper.convertValueToType(idTypeOfObject, id);
 				Object version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
-				objRefs.add(new ObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
+				objRefs.add(prepareObjRefFactory.createObjRef(id, version));
 			}
 			return objRefs;
 		}
@@ -566,7 +586,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return connection.prepareStatement(sb.toString());
 	}
 
-	protected PreparedStatement buildUpdateEntityRowStm(IPermissionGroup permissionGroup, ITable table) throws SQLException
+	protected PreparedStatement buildUpdateEntityRowStm(IPermissionGroup permissionGroup, ITableMetaData table) throws SQLException
 	{
 		AppendableStringBuilder sb = new AppendableStringBuilder();
 		sb.append("UPDATE ");
@@ -773,7 +793,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return permissionGroupIds;
 	}
 
-	protected void updateEntityRows(IList<IObjRef> objRefs, Object[] permissionGroupIds, IPermissionGroup permissionGroup, ITable table) throws Throwable
+	protected void updateEntityRows(IList<IObjRef> objRefs, Object[] permissionGroupIds, IPermissionGroup permissionGroup, ITableMetaData table)
+			throws Throwable
 	{
 		IConversionHelper conversionHelper = this.conversionHelper;
 		Class<?> idType = table.getIdField().getFieldType();

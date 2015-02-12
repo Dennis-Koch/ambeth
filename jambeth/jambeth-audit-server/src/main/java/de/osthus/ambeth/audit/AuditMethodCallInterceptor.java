@@ -3,18 +3,16 @@ package de.osthus.ambeth.audit;
 import java.lang.reflect.Method;
 
 import net.sf.cglib.proxy.MethodProxy;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.AuditConfigurationConstants;
 import de.osthus.ambeth.config.Property;
-import de.osthus.ambeth.database.ITransaction;
-import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.ITransactionState;
-import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.proxy.CascadedInterceptor;
 import de.osthus.ambeth.proxy.IMethodLevelBehavior;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 public class AuditMethodCallInterceptor extends CascadedInterceptor
 {
@@ -29,7 +27,7 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 	protected IMethodLevelBehavior<AuditInfo> methodLevelBehaviour;
 
 	@Autowired
-	protected ITransaction transaction;
+	protected ILightweightTransaction transaction;
 
 	@Autowired
 	protected ITransactionState transactionState;
@@ -76,10 +74,10 @@ public class AuditMethodCallInterceptor extends CascadedInterceptor
 				methodCallLogger.logMethodCallFinish(methodCallHandle);
 			}
 		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
+		return transaction.runInTransaction(new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
+			public Object invoke() throws Throwable
 			{
 				IMethodCallHandle methodCallHandle = methodCallLogger.logMethodCallStart(method, filteredArgs);
 				try

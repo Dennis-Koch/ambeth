@@ -23,15 +23,15 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 
 	protected final boolean threadLocal;
 
-	protected final IObjRef[] objRefs;
+	public IObjRef[] objRefs;
 
-	protected final Object[] cacheValues;
+	public Object[] cacheValues;
 
-	protected final boolean[] pendingChanges;
+	public boolean[] pendingChanges;
 
 	protected ICacheWalkerResult parentEntry;
 
-	protected final Object childEntries;
+	public final Object childEntries;
 
 	public CacheWalkerResult(ICache cache, boolean transactional, boolean threadLocal, IObjRef[] objRefs, Object[] cacheValues, Object childEntries)
 	{
@@ -41,6 +41,11 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 		this.objRefs = objRefs;
 		this.cacheValues = cacheValues;
 		this.childEntries = childEntries;
+		privileged = cache.isPrivileged();
+	}
+
+	public void updatePendingChanges()
+	{
 		boolean[] pendingChanges = null;
 		for (int a = cacheValues.length; a-- > 0;)
 		{
@@ -56,7 +61,6 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 			pendingChanges[a] = ((IDataObject) cacheValue).hasPendingChanges();
 		}
 		this.pendingChanges = pendingChanges;
-		privileged = cache.isPrivileged();
 	}
 
 	public ICacheWalkerResult getParentEntry()
@@ -238,7 +242,7 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 				{
 					version = metaData.getVersionMember().getValue(cacheValue);
 				}
-				hasPendingChanges = this.pendingChanges != null && this.pendingChanges[a];
+				hasPendingChanges = pendingChanges != null && pendingChanges[a];
 			}
 			if (!Boolean.TRUE.equals(entityDescriptionAtRoot))
 			{
@@ -254,7 +258,7 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 				sb.append(" (m)");
 			}
 		}
-		if (this.childEntries instanceof ICacheWalkerResult[])
+		if (childEntries instanceof ICacheWalkerResult[])
 		{
 			CacheWalkerResult[] childEntries = (CacheWalkerResult[]) this.childEntries;
 			for (int a = 0, size = childEntries.length; a < size; a++)
@@ -279,9 +283,9 @@ public class CacheWalkerResult implements IPrintable, ICacheWalkerResult
 				entry.toStringIntern(sb, preSpaceForChildEntry, entityDescriptionAtRoot);
 			}
 		}
-		else if (this.childEntries != null)
+		else if (childEntries != null)
 		{
-			CacheWalkerResult entry = (CacheWalkerResult) this.childEntries;
+			CacheWalkerResult entry = (CacheWalkerResult) childEntries;
 			preSpace.toString(sb);
 			entry.toStringIntern(sb, preSpace, entityDescriptionAtRoot);
 		}

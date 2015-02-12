@@ -6,11 +6,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 
 public interface IQueryBuilderIntern<T> extends IQueryBuilder<T>
 {
-	@Override
-	IOperand column(String columnName);
-
-	@Override
-	IOperand column(String columnName, ISqlJoin joinClause);
+	IOperand column(String columnName, ISqlJoin joinClause, boolean checkFieldExistence);
 
 	ISqlJoin joinIntern(String tableName, IOperand columnBase, IOperand columnJoined, JoinType joinType, IBeanContextFactory childContextFactory);
 }

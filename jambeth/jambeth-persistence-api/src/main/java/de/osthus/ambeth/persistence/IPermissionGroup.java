@@ -2,19 +2,19 @@ package de.osthus.ambeth.persistence;
 
 public interface IPermissionGroup
 {
-	ITable getTable();
+	ITableMetaData getTable();
 
-	ITable getTargetTable();
+	ITableMetaData getTargetTable();
 
-	IField getPermissionGroupFieldOnTarget();
+	IFieldMetaData getPermissionGroupFieldOnTarget();
 
-	IField getUserField();
+	IFieldMetaData getUserField();
 
-	IField getPermissionGroupField();
+	IFieldMetaData getPermissionGroupField();
 
-	IField getReadPermissionField();
+	IFieldMetaData getReadPermissionField();
 
-	IField getUpdatePermissionField();
+	IFieldMetaData getUpdatePermissionField();
 
-	IField getDeletePermissionField();
+	IFieldMetaData getDeletePermissionField();
 }

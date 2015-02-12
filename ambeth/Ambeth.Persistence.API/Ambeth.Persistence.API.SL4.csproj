@@ -75,19 +75,21 @@
     <Compile Include="ambeth\persistence\IDatabase.cs" />
     <Compile Include="ambeth\persistence\IDatabaseDisposeHook.cs" />
     <Compile Include="ambeth\persistence\IDatabaseDisposeHookExtendable.cs" />
+    <Compile Include="ambeth\persistence\IDatabaseMetaData.cs" />
     <Compile Include="ambeth\persistence\IDatabasePool.cs" />
     <Compile Include="ambeth\persistence\IDirectedLink.cs" />
-    <Compile Include="ambeth\persistence\IField.cs" />
+    <Compile Include="ambeth\persistence\IDirectedLinkMetaData.cs" />
+    <Compile Include="ambeth\persistence\IFieldMetaData.cs" />
     <Compile Include="ambeth\persistence\ILink.cs" />
     <Compile Include="ambeth\persistence\ILinkCursor.cs" />
     <Compile Include="ambeth\persistence\ILinkCursorItem.cs" />
+    <Compile Include="ambeth\persistence\ILinkMetaData.cs" />
     <Compile Include="ambeth\persistence\ILinqFinder.cs" />
     <Compile Include="ambeth\persistence\IllegalResultException.cs" />
     <Compile Include="ambeth\persistence\IPermissionGroup.cs" />
     <Compile Include="ambeth\persistence\ISavepoint.cs" />
     <Compile Include="ambeth\persistence\ITable.cs" />
-    <Compile Include="ambeth\util\IAlreadyLoadedCache.cs" />
-    <Compile Include="ambeth\util\IdTypeTuple.cs" />
+    <Compile Include="ambeth\persistence\ITableMetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

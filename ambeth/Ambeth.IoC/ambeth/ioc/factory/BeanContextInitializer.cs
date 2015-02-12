@@ -49,6 +49,26 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             primitiveSet.Add(type);
         }
 
+        public static IBeanContextFactory GetCurrentBeanContextFactory()
+        {
+            BeanContextInit beanContextInit = currentBeanContextInitTL.Value;
+            if (beanContextInit == null)
+            {
+                return null;
+            }
+            return beanContextInit.beanContextFactory;
+        }
+
+        public static IServiceContext GetCurrentBeanContext()
+        {
+            BeanContextInit beanContextInit = currentBeanContextInitTL.Value;
+            if (beanContextInit == null)
+            {
+                return null;
+            }
+            return beanContextInit.beanContext;
+        }
+
         public CallingProxyPostProcessor CallingProxyPostProcessor { protected get; set; }
 
         public IConversionHelper ConversionHelper { protected get; set; }
@@ -199,10 +219,13 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             }
             catch (Exception)
             {
-                List<IDisposableBean> toDestroyOnError = beanContextInit.toDestroyOnError;
-                for (int a = 0, size = toDestroyOnError.Count; a < size; a++)
+                try
                 {
-                    toDestroyOnError[a].Destroy();
+                    beanContext.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    throw RuntimeExceptionUtil.Mask(ex, "Error occurred while disposing context while starting the context due to bean exception");
                 }
                 throw;
             }
@@ -444,6 +467,10 @@ namespace De.Osthus.Ambeth.Ioc.Factory
             {
                 ((IInitializingBean)bean).AfterPropertiesSet();
             }
+            if (bean is IDisposableBean)
+			{
+				beanContextInit.toDestroyOnError.Add((IDisposableBean) bean);
+			}
             if (bean is IPropertyLoadingBean)
             {
                 ((IPropertyLoadingBean)bean).ApplyProperties(beanContextInit.properties);

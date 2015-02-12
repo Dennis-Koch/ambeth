@@ -8,6 +8,7 @@ using De.Osthus.Ambeth.Merge;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using System;
+using System.Reflection;
 
 namespace De.Osthus.Ambeth.Metadata
 {
@@ -65,6 +66,16 @@ namespace De.Osthus.Ambeth.Metadata
             return objRefConstructorDelegate.CreateObjRef(cacheValue.Id, cacheValue.Version);
         }
 
+        public override IObjRef CreateObjRef(AbstractCacheValue cacheValue, int idIndex)
+        {
+            IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.Get(cacheValue.EntityType, idIndex);
+            if (objRefConstructorDelegate == null)
+            {
+                objRefConstructorDelegate = BuildDelegate(cacheValue.EntityType, idIndex);
+            }
+            return objRefConstructorDelegate.CreateObjRef(cacheValue.Id, cacheValue.Version);
+        }
+
         public override IObjRef CreateObjRef(Type entityType, int idIndex, Object id, Object version)
         {
             IPreparedObjRefFactory objRefConstructorDelegate = constructorDelegateMap.Get(entityType, idIndex);
@@ -72,6 +83,7 @@ namespace De.Osthus.Ambeth.Metadata
             {
                 objRefConstructorDelegate = BuildDelegate(entityType, idIndex);
             }
+            MethodInfo[] methods = objRefConstructorDelegate.GetType().GetMethods();
             return objRefConstructorDelegate.CreateObjRef(id, version);
         }
 

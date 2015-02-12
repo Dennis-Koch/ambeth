@@ -19,7 +19,6 @@ import de.osthus.ambeth.cache.imc.InMemoryCacheRetriever;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.database.ITransaction;
 import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -28,13 +27,13 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.xml.TestServicesModule;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.IBusinessService;
 import de.osthus.ambeth.persistence.xml.model.IEmployeeService;
 import de.osthus.ambeth.security.SecurityTest.SecurityTestFrameworkModule;
-import de.osthus.ambeth.security.config.SecurityConfigurationConstants;
 import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
@@ -51,7 +50,7 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
-@TestProperties(name = SecurityConfigurationConstants.SecurityActive, value = "true")
+@TestProperties(name = MergeConfigurationConstants.SecurityActive, value = "true")
 @TestPropertiesList({
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml;de/osthus/ambeth/security/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false"),
@@ -99,9 +98,6 @@ public class SecurityTest extends AbstractPersistenceTest
 
 	@Autowired
 	protected ISecurityActivation securityActivation;
-
-	@Autowired
-	protected ITransaction transaction;
 
 	@Autowired(IN_MEMORY_CACHE_RETRIEVER)
 	protected InMemoryCacheRetriever inMemoryCacheRetriever;

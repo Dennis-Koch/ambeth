@@ -13,6 +13,14 @@ namespace De.Osthus.Ambeth.Security
             this.securityContextHolder = securityContextHolder;
         }
 
+        public SecurityContextHolder SecurityContextHolder
+        {
+            get
+            {
+                return securityContextHolder;
+            }
+        }
+
         public IAuthentication Authentication
         {
             get

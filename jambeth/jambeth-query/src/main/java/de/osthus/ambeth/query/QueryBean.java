@@ -12,7 +12,6 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 
 public class QueryBean<T> implements IQuery<T>
 {
@@ -115,15 +114,15 @@ public class QueryBean<T> implements IQuery<T>
 	}
 
 	@Override
-	public IDataCursor retrieveAsData()
+	public IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds)
 	{
-		return getQuery().retrieveAsData();
+		return getQuery().retrieveAsVersions(retrieveAlternateIds);
 	}
 
 	@Override
-	public IVersionItem retrieveAsVersion()
+	public IDataCursor retrieveAsData()
 	{
-		return getQuery().retrieveAsVersion();
+		return getQuery().retrieveAsData();
 	}
 
 	@Override

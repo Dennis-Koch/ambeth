@@ -131,7 +131,6 @@
     <Compile Include="ambeth\ioc\proxy\CallingProxyPostProcessor.cs" />
     <Compile Include="ambeth\ioc\proxy\InterfaceBean.cs" />
     <Compile Include="ambeth\ioc\proxy\Self.cs" />
-    <Compile Include="ambeth\ioc\RegisterPhaseDelegate.cs" />
     <Compile Include="ambeth\ioc\ServiceContext.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ForkProcessorValueResolver.cs" />
     <Compile Include="ambeth\ioc\threadlocal\IForkProcessor.cs" />

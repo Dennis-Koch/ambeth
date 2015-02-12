@@ -9,8 +9,6 @@ public interface ILinkChangeCommand extends IChangeCommand
 {
 	IDirectedLink getDirectedLink();
 
-	void setLink(IDirectedLink link);
-
 	List<IObjRef> getRefsToLink();
 
 	List<IObjRef> getRefsToUnlink();

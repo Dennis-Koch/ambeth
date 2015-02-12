@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
-using De.Osthus.Ambeth.Collections;
+﻿using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Hierarchy;
 using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Exceptions;
@@ -10,7 +6,12 @@ using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Ioc.Hierarchy;
 using De.Osthus.Ambeth.Ioc.Link;
 using De.Osthus.Ambeth.Log;
+using De.Osthus.Ambeth.Threading;
 using De.Osthus.Ambeth.Util;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 
 namespace De.Osthus.Ambeth.Ioc
 {
@@ -134,10 +135,14 @@ namespace De.Osthus.Ambeth.Ioc
 
         public void ChildContextDisposed(IServiceContext childContext)
         {
+            if (children == null)
+            {
+                return;
+            }
             writeLock.Lock();
             try
             {
-                this.children.Remove(childContext);
+                children.Remove(childContext);
             }
             finally
             {
@@ -443,11 +448,11 @@ namespace De.Osthus.Ambeth.Ioc
                                 }
                             }
                         }
-                        else if (disposableObject is WaitCallback)
+                        else if (disposableObject is IBackgroundWorkerParamDelegate<IServiceContext>)
                         {
                             try
                             {
-                                ((WaitCallback)disposableObject).Invoke(this);
+                                ((IBackgroundWorkerParamDelegate<IServiceContext>)disposableObject).Invoke(this);
                             }
                             catch (System.Exception e)
                             {
@@ -503,12 +508,12 @@ namespace De.Osthus.Ambeth.Ioc
             return CreateService(contextName, null, serviceModuleTypes);
         }
 
-        public IServiceContext CreateService(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IServiceContext CreateService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             return CreateService(null, registerPhaseDelegate, serviceModuleTypes);
         }
 
-        public IServiceContext CreateService(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IServiceContext CreateService(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
             IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
@@ -546,12 +551,12 @@ namespace De.Osthus.Ambeth.Ioc
             return CreateService<I>(contextName, null, serviceModuleTypes);
         }
 
-        public IBeanContextHolder<I> CreateService<I>(RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IBeanContextHolder<I> CreateService<I>(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             return CreateService<I>(null, registerPhaseDelegate, serviceModuleTypes);
         }
 
-        public IBeanContextHolder<I> CreateService<I>(String contextName, RegisterPhaseDelegate registerPhaseDelegate, params Type[] serviceModuleTypes)
+        public IBeanContextHolder<I> CreateService<I>(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, params Type[] serviceModuleTypes)
         {
             CheckNotDisposed();
             IBeanContextInitializer beanContextInitializer = RegisterBean<BeanContextInitializer>().Finish();
@@ -761,7 +766,7 @@ namespace De.Osthus.Ambeth.Ioc
             RegisterDisposableIntern(disposableBean, true);
         }
 
-        public void RegisterDisposeHook(WaitCallback waitCallback)
+        public void RegisterDisposeHook(IBackgroundWorkerParamDelegate<IServiceContext> waitCallback)
         {
             RegisterDisposableIntern(waitCallback, false);
         }

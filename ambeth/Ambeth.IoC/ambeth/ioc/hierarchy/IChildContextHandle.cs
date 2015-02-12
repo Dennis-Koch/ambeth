@@ -1,5 +1,6 @@
+using De.Osthus.Ambeth.Ioc.Factory;
+using De.Osthus.Ambeth.Threading;
 using System;
-using De.Osthus.Ambeth.Ioc.Link;
 using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Ioc.Hierarchy
@@ -10,7 +11,7 @@ namespace De.Osthus.Ambeth.Ioc.Hierarchy
 
         IServiceContext Start(IDictionary<String, Object> namedBeans);
 
-        IServiceContext Start(RegisterPhaseDelegate registerPhaseDelegate);
+        IServiceContext Start(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate);
 
         void Stop();
     }

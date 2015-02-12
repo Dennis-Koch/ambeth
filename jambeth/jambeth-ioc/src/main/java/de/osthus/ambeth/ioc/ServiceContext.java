@@ -20,6 +20,7 @@ import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.exception.BeanContextInitException;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.BeanContextInitializer;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextInitializer;
 import de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder;
 import de.osthus.ambeth.ioc.hierarchy.SearchType;
@@ -573,18 +574,20 @@ public class ServiceContext implements IServiceContext, IServiceContextIntern, I
 	}
 
 	@Override
-	public IServiceContext createService(RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext createService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModuleTypes)
 	{
 		return createService(null, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
 	}
 
 	@Override
-	public IServiceContext createService(String contextName, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public IServiceContext createService(String contextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		return createService(contextName, IServiceContext.class, registerPhaseDelegate, serviceModuleTypes);
 	}
 
-	public <I> I createService(String contextName, Class<I> serviceClass, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModuleTypes)
+	public <I> I createService(String contextName, Class<I> serviceClass, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModuleTypes)
 	{
 		checkNotDisposed();
 		IBeanContextInitializer beanContextInitializer = registerBean(BeanContextInitializer.class).finish();

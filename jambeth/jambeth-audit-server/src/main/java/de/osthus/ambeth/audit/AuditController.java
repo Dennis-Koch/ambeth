@@ -17,6 +17,7 @@ import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
 import de.osthus.ambeth.audit.util.NullOutputStream;
 import de.osthus.ambeth.audit.util.SignatureOutputStream;
+import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.IFirstLevelCacheManager;
 import de.osthus.ambeth.codec.Base64;
 import de.osthus.ambeth.collections.ArrayList;
@@ -230,13 +231,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		handle.auditedService.setSpentTime(System.currentTimeMillis() - handle.start);
 	}
 
-	/**
-	 * This method gets called DIRECTLY via the event API
-	 * 
-	 * @param evnt
-	 */
 	@Override
-	public ICUDResult preMerge(ICUDResult cudResult)
+	public ICUDResult preMerge(ICUDResult cudResult, ICache cache)
 	{
 		// intended blank
 		return cudResult;
@@ -244,7 +240,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public void postMerge(ICUDResult cudResult)
+	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs)
 	{
 		try
 		{
@@ -260,8 +256,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			for (int index = allChanges.size(); index-- > 0;)
 			{
 				IChangeContainer changeContainer = allChanges.get(index);
+				IObjRef updatedObjRef = updatedObjRefs[index];
 				Object originalRef = originalRefs.get(index);
-				auditChangeContainer(originalRef, changeContainer, entities);
+				auditChangeContainer(originalRef, updatedObjRef, changeContainer, entities);
 
 				// IObjRef objRef = changeContainer.getReference();
 				// IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
@@ -291,7 +288,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 	}
 
-	protected void auditChangeContainer(Object originalRef, IChangeContainer changeContainer, List<IAuditedEntity> auditedEntities)
+	protected void auditChangeContainer(Object originalRef, IObjRef updatedObjRef, IChangeContainer changeContainer, List<IAuditedEntity> auditedEntities)
 	{
 		IObjRef objRef = changeContainer.getReference();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
@@ -312,23 +309,27 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		if (changeContainer instanceof CreateContainer)
 		{
 			auditedEntity.setChangeType(AuditedEntityChangeType.INSERT);
+			auditedEntity.setEntityId(updatedObjRef.getId());
+			auditedEntity.setEntityVersion(updatedObjRef.getVersion());
 			auditPUIs(((CreateContainer) changeContainer).getPrimitives(), auditedEntity, metaData, auditConfiguration);
 			auditRUIs(((CreateContainer) changeContainer).getRelations(), auditedEntity, metaData, auditConfiguration);
 		}
 		else if (changeContainer instanceof UpdateContainer)
 		{
 			auditedEntity.setChangeType(AuditedEntityChangeType.UPDATE);
+			auditedEntity.setEntityId(updatedObjRef.getId());
+			auditedEntity.setEntityVersion(updatedObjRef.getVersion());
 			auditPUIs(((UpdateContainer) changeContainer).getPrimitives(), auditedEntity, metaData, auditConfiguration);
 			auditRUIs(((UpdateContainer) changeContainer).getRelations(), auditedEntity, metaData, auditConfiguration);
 		}
 		else if (changeContainer instanceof DeleteContainer)
 		{
 			auditedEntity.setChangeType(AuditedEntityChangeType.DELETE);
+			auditedEntity.setEntityId(objRef.getId());
+			auditedEntity.setEntityVersion(objRef.getVersion());
 		}
 
 		auditedEntity.setEntityType(objRef.getRealType());
-		auditedEntity.setEntityId(objRef.getId());
-		auditedEntity.setEntityVersion(objRef.getVersion());
 
 		auditedEntities.add(auditedEntity);
 	}

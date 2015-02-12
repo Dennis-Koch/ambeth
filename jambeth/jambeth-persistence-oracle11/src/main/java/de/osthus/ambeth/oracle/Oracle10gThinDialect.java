@@ -65,6 +65,14 @@ public class Oracle10gThinDialect extends Oracle10gDialect
 		{
 			connection.rollback();
 		}
+		catch (SQLException e)
+		{
+			if (SQLState.CONNECTION_NOT_OPEN.getXopen().equals(e.getSQLState())) // Closed connection
+			{
+				return;
+			}
+			throw e;
+		}
 		catch (MaskingRuntimeException e)
 		{
 			if (e.getCause() instanceof SQLRecoverableException)
@@ -75,15 +83,6 @@ public class Oracle10gThinDialect extends Oracle10gDialect
 				{
 					return;
 				}
-			}
-			throw e;
-		}
-		catch (SQLRecoverableException e)
-		{
-			String sqlState = e.getSQLState();
-			if (SQLState.CONNECTION_NOT_OPEN.getXopen().equals(sqlState)) // Closed connection
-			{
-				return;
 			}
 			throw e;
 		}

@@ -7,7 +7,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.persistence.IDataCursor;
 import de.osthus.ambeth.persistence.IEntityCursor;
 import de.osthus.ambeth.persistence.IVersionCursor;
-import de.osthus.ambeth.persistence.IVersionItem;
 import de.osthus.ambeth.util.IDisposable;
 
 public interface IQuery<T> extends IDisposable
@@ -18,9 +17,9 @@ public interface IQuery<T> extends IDisposable
 
 	IQueryKey getQueryKey(IMap<Object, Object> nameToValueMap);
 
-	IVersionItem retrieveAsVersion();
-
 	IVersionCursor retrieveAsVersions();
+
+	IVersionCursor retrieveAsVersions(boolean retrieveAlternateIds);
 
 	IDataCursor retrieveAsData();
 

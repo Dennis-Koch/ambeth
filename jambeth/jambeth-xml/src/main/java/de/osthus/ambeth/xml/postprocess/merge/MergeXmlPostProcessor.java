@@ -11,7 +11,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IStartingBean;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
@@ -28,6 +27,7 @@ import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.metadata.IMemberTypeProvider;
 import de.osthus.ambeth.metadata.Member;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.typeinfo.ITypeInfoProvider;
 import de.osthus.ambeth.xml.pending.ArraySetterCommand;
 import de.osthus.ambeth.xml.pending.ICommandBuilder;
@@ -85,7 +85,7 @@ public class MergeXmlPostProcessor implements IXmlPostProcessor, IStartingBean
 		}
 
 		final IDisposableCache childCache = cacheFactory.create(CacheFactoryDirective.NoDCE, "XmlMerge");
-		IServiceContext mergeContext = beanContext.createService("mergeXml", new RegisterPhaseDelegate()
+		IServiceContext mergeContext = beanContext.createService("mergeXml", new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 		{
 			@Override
 			public void invoke(IBeanContextFactory childContextFactory)

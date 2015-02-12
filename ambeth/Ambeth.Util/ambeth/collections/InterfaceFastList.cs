@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace De.Osthus.Ambeth.Collections
 {
@@ -71,6 +72,40 @@ namespace De.Osthus.Ambeth.Collections
         private IListElem<V> last;
 
         private int size = 0;
+
+        public bool IsEmpty()
+	    {
+		    return size == 0;
+	    }
+
+	    public void PushAllFrom(InterfaceFastList<V> list)
+	    {
+		    while (true)
+		    {
+			    IListElem<V> firstElem = list.PopFirst();
+			    if (firstElem == null)
+			    {
+				    return;
+			    }
+			    PushLast(firstElem);
+		    }
+	    }
+        
+	    public void PushAllFrom(IList<V> list)
+	    {
+            for (int a = 0, size = list.Count; a < size; a++)
+		    {
+                PushLast(new InterfaceListElem<V>(list[a]));
+		    }
+	    }
+
+	    public void PushAllFrom(IList<IListElem<V>> list)
+	    {
+		    for (int a = 0, size = list.Count; a < size; a++)
+		    {
+                PushLast(list[a]);
+		    }
+	    }
 
         public void PushLast(IListElem<V> elem)
 	    {

@@ -10,39 +10,23 @@ import java.sql.Connection;
 
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
-import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IDedicatedConverter;
-import de.osthus.ambeth.util.ParamChecker;
 
-public class LobConverter implements IDedicatedConverter, IInitializingBean
+public class LobConverter implements IDedicatedConverter
 {
 	@SuppressWarnings("unused")
-	@LogInstance(LobConverter.class)
+	@LogInstance
 	private ILogger log;
 
+	@Autowired
 	protected Connection connection;
 
+	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
-
-	@Override
-	public void afterPropertiesSet() throws Throwable
-	{
-		ParamChecker.assertNotNull(connection, "connection");
-		ParamChecker.assertNotNull(objectCollector, "objectCollector");
-	}
-
-	public void setConnection(Connection connection)
-	{
-		this.connection = connection;
-	}
-
-	public void setObjectCollector(IThreadLocalObjectCollector objectCollector)
-	{
-		this.objectCollector = objectCollector;
-	}
 
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)

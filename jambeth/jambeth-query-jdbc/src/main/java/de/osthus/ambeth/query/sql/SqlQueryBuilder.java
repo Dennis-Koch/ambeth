@@ -8,13 +8,11 @@ import javax.persistence.criteria.JoinType;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
-import de.osthus.ambeth.collections.ILinkedMap;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.database.ITransaction;
-import de.osthus.ambeth.database.ResultingDatabaseCallback;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.filter.IPagingQuery;
 import de.osthus.ambeth.filter.PagingQuery;
@@ -23,7 +21,6 @@ import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.IBeanRuntime;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.ioc.IServiceContext;
-import de.osthus.ambeth.ioc.RegisterPhaseDelegate;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
@@ -35,13 +32,13 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.persistence.IDatabase;
-import de.osthus.ambeth.persistence.IDirectedLink;
-import de.osthus.ambeth.persistence.IField;
-import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.persistence.IDatabaseMetaData;
+import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
+import de.osthus.ambeth.persistence.IFieldMetaData;
+import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.proxy.IProxyFactory;
 import de.osthus.ambeth.proxy.PersistenceContext;
-import de.osthus.ambeth.proxy.PersistenceContext.PersistenceContextType;
+import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.BasicTwoPlaceOperator;
 import de.osthus.ambeth.query.IMultiValueOperand;
 import de.osthus.ambeth.query.IOperand;
@@ -61,10 +58,10 @@ import de.osthus.ambeth.query.QueryType;
 import de.osthus.ambeth.query.StringQuery;
 import de.osthus.ambeth.query.SubQuery;
 import de.osthus.ambeth.sql.ISqlBuilder;
+import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ParamChecker;
 
-@PersistenceContext(PersistenceContextType.NOT_REQUIRED)
 public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderIntern<T>
 {
 	@LogInstance
@@ -84,7 +81,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	protected IServiceContext beanContext;
 
 	@Autowired
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -437,7 +434,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			{
 				String joinPart = propertyByJoinHierarchyList.get(i);
 				entityType = stepViaEntity.get(i);
-				ITable table = database.getTableByType(entityType);
+				ITableMetaData table = databaseMetaData.getTableByType(entityType);
 				if (joinName.length() > 0)
 				{
 					joinName.append('.');
@@ -445,7 +442,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				joinName.append(joinPart);
 				ISqlJoin prevJoin = join;
 
-				IDirectedLink dLink = table.getLinkByMemberName(joinPart);
+				IDirectedLinkMetaData dLink = table.getLinkByMemberName(joinPart);
 				if (dLink == null)
 				{
 					throw new IllegalArgumentException("Property not mapped: " + joinPart);
@@ -467,8 +464,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				{
 					continue;
 				}
-				IField currentFromField = dLink.getFromField();
-				IField currentToField = dLink.getToField();
+				IFieldMetaData currentFromField = dLink.getFromField();
+				IFieldMetaData currentToField = dLink.getToField();
 
 				if (dLink.getLink().hasLinkTable())
 				{
@@ -476,7 +473,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					byte fromMemberIdIndex = dLink.getFromField().getIdIndex();
 					IEntityMetaData fromMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
 					String fromMemberName = fromMetaData.getIdMemberByIdIndex(fromMemberIdIndex).getName();
-					IField fromField = dLink.getFromTable().getFieldByPropertyName(fromMemberName);
+					IFieldMetaData fromField = dLink.getFromTable().getFieldByPropertyName(fromMemberName);
 					IOperand columnBase = columnIntern(fromField.getName(), fromField, prevJoin);
 					join = joinIntern(dLink.getLink().getName(), columnBase, columnIntern(currentFromField.getName(), currentFromField, null), joinType, null);
 
@@ -486,7 +483,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 					IEntityMetaData toMetaData = entityMetaDataProvider.getMetaData(fromEntityType);
 					byte toMemberIdIndex = dLink.getToField().getIdIndex();
 					String toMemberName = toMetaData.getIdMemberByIdIndex(toMemberIdIndex).getName();
-					IField toField = dLink.getToTable().getFieldByPropertyName(toMemberName);
+					IFieldMetaData toField = dLink.getToTable().getFieldByPropertyName(toMemberName);
 					currentFromField = currentToField;
 					currentToField = toField;
 				}
@@ -498,8 +495,8 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 				joinMap.put(joinKey, join);
 			}
 
-			ITable table = database.getTableByType(entityType);
-			IField field = table.getFieldByPropertyName(propertyByJoinHierarchyList.get(i));
+			ITableMetaData table = databaseMetaData.getTableByType(entityType);
+			IFieldMetaData field = table.getFieldByPropertyName(propertyByJoinHierarchyList.get(i));
 			if (field == null)
 			{
 				throw new IllegalArgumentException("Property not mapped: " + propertyName);
@@ -538,31 +535,37 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	@Deprecated
 	public IOperand column(String columnName, ISqlJoin joinClause)
 	{
+		return column(columnName, joinClause, true);
+	}
+
+	@Override
+	@PersistenceContext(PersistenceContextType.REQUIRED)
+	public IOperand column(String columnName, ISqlJoin joinClause, boolean checkFieldExistence)
+	{
 		ParamChecker.assertParamNotNull(columnName, "columnName");
 
-		IDatabase database = this.database.getCurrent();
-		ITable table;
+		ITableMetaData table;
 		if (joinClause == null)
 		{
-			table = database.getTableByType(entityType);
+			table = databaseMetaData.getTableByType(entityType);
 		}
 		else
 		{
-			table = database.getTableByName(joinClause.getTableName());
+			table = databaseMetaData.getTableByName(joinClause.getTableName());
 		}
-		IField field = table.getFieldByName(columnName);
+		IFieldMetaData field = table.getFieldByName(columnName);
 		if (field == null)
 		{
 			if (log.isDebugEnabled())
 			{
-				loggerHistory.debugOnce(log, database, "No column '" + columnName + "' found on table '" + table.getName()
+				loggerHistory.debugOnce(log, databaseMetaData, "No column '" + columnName + "' found on table '" + table.getName()
 						+ "'. This may be a configuration error or usage of deprecated " + IQuery.class.getSimpleName() + " functionality");
 			}
 		}
 		return columnIntern(columnName, field, joinClause);
 	}
 
-	protected IOperand columnIntern(String fieldName, IField field, ISqlJoin joinClause)
+	protected IOperand columnIntern(String fieldName, IFieldMetaData field, ISqlJoin joinClause)
 	{
 		ParamChecker.assertTrue(fieldName != null || field != null, "either fieldName or field must be valid");
 		try
@@ -884,14 +887,14 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(queryOperand, "queryOperand");
 
-		ITable table = this.database.getTableByType(entityType);
-		List<IField> fulltextFields = table.getFulltextFields();
+		ITableMetaData table = databaseMetaData.getTableByType(entityType);
+		List<IFieldMetaData> fulltextFields = table.getFulltextFields();
 
 		IOperator orOperator = null;
 
 		for (int a = fulltextFields.size(); a-- > 0;)
 		{
-			IField fulltextField = fulltextFields.get(a);
+			IFieldMetaData fulltextField = fulltextFields.get(a);
 
 			Integer label = Integer.valueOf(a + 1);
 			IOperand containsFunction = function("CONTAINS", columnIntern(fulltextField.getName(), fulltextField, null), queryOperand, value(label));
@@ -909,14 +912,14 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		}
 		if (fulltextFields.size() == 0)
 		{
-			List<IField> primitiveFields = table.getPrimitiveFields();
+			List<IFieldMetaData> primitiveFields = table.getPrimitiveFields();
 
-			IField updatedByField = table.getUpdatedByField();
-			IField createdByField = table.getCreatedByField();
+			IFieldMetaData updatedByField = table.getUpdatedByField();
+			IFieldMetaData createdByField = table.getCreatedByField();
 
 			for (int a = primitiveFields.size(); a-- > 0;)
 			{
-				IField primitiveField = primitiveFields.get(a);
+				IFieldMetaData primitiveField = primitiveFields.get(a);
 				if (!String.class.equals(primitiveField.getFieldType()) || primitiveField.equals(updatedByField) || primitiveField.equals(createdByField))
 				{
 					continue;
@@ -1008,7 +1011,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	public int selectColumn(String columnName, ISqlJoin join)
 	{
 		ParamChecker.assertParamNotNull(columnName, "columnName");
-		IOperand columnOperand = column(columnName, join);
+		IOperand columnOperand = column(columnName, join, true);
 		return selectColumnIntern(columnOperand);
 	}
 
@@ -1041,19 +1044,17 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	}
 
 	@Override
-	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public ISqlJoin join(Class<?> entityType, IOperator clause)
 	{
 		return join(entityType, clause, JoinType.LEFT);
 	}
 
 	@Override
-	@PersistenceContext(PersistenceContextType.REQUIRED)
 	public ISqlJoin join(Class<?> entityType, IOperator clause, JoinType joinType)
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
 		ParamChecker.assertParamNotNull(clause, "clause");
-		ITable table = database.getTableByType(entityType);
+		ITableMetaData table = databaseMetaData.getTableByType(entityType);
 		try
 		{
 			return getBeanContext().registerBean(SqlJoinOperator.class).propertyValue("TableName", table.getName())
@@ -1078,7 +1079,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	public ISqlJoin join(Class<?> entityType, IOperand columnBase, IOperand columnJoined, JoinType joinType)
 	{
 		ParamChecker.assertParamNotNull(entityType, "entityType");
-		String tableName = database.getTableByType(entityType).getName();
+		String tableName = databaseMetaData.getTableByType(entityType).getName();
 		return joinIntern(tableName, columnBase, columnJoined, joinType, null);
 	}
 
@@ -1093,7 +1094,7 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 		ParamChecker.assertTrue(columnJoined instanceof SqlColumnOperand, "columnJoined type");
 
 		Class<?> entityType = null;
-		ITable table = database.getTableByName(tableName);
+		ITableMetaData table = databaseMetaData.getTableByName(tableName);
 		String fullqualifiedEscapedTableName = tableName;
 		if (table != null)
 		{
@@ -1205,41 +1206,24 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 	@Override
 	public IQuery<T> build(IOperand whereClause, ISqlJoin... joinClauses)
 	{
-		return (IQuery<T>) buildIntern(whereClause, joinClauses, QueryType.DEFAULT);
+		return (IQuery<T>) build(whereClause, joinClauses, QueryType.DEFAULT);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public IPagingQuery<T> buildPaging(IOperand whereClause, ISqlJoin... joinClauses)
 	{
-		return (IPagingQuery<T>) buildIntern(whereClause, joinClauses, QueryType.PAGING);
+		return (IPagingQuery<T>) build(whereClause, joinClauses, QueryType.PAGING);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	public ISubQuery<T> buildSubQuery(IOperand whereClause, ISqlJoin... joinClauses)
 	{
-		return (ISubQuery<T>) buildIntern(whereClause, joinClauses, QueryType.SUBQUERY);
+		return (ISubQuery<T>) build(whereClause, joinClauses, QueryType.SUBQUERY);
 	}
 
-	protected Object build(final IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
-	{
-		if (transaction.isActive())
-		{
-			return buildIntern(whereClause, joinClauses, queryType);
-		}
-		return transaction.processAndCommit(new ResultingDatabaseCallback<Object>()
-		{
-			@Override
-			public Object callback(ILinkedMap<Object, IDatabase> persistenceUnitToDatabaseMap) throws Throwable
-			{
-				return buildIntern(whereClause, joinClauses, queryType);
-			}
-		}, false, true);
-	}
-
-	@SuppressWarnings("unchecked")
-	protected Object buildIntern(IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
+	protected Object build(IOperand whereClause, final ISqlJoin[] joinClauses, final QueryType queryType)
 	{
 		if (whereClause instanceof SqlAllOperand)
 		{
@@ -1268,73 +1252,74 @@ public class SqlQueryBuilder<T> implements IInitializingBean, IQueryBuilderInter
 			IServiceContext beanContext = getBeanContext();
 			// Build a context from the PARENT of the SqlQueryBuilder-Context. Because from now on the query has a
 			// DIFFERENT, own lifecycle
-			localContext = (disposeContextOnDispose ? beanContext.getParent() : beanContext).createService("sqlQuery", new RegisterPhaseDelegate()
-			{
-
-				@Override
-				public void invoke(IBeanContextFactory childContextFactory)
-				{
-					IOperand currWhereClause = fWhereClause;
-
-					IBeanConfiguration whereClauseConf = null;
-					IList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
-					for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
+			localContext = (disposeContextOnDispose ? beanContext.getParent() : beanContext).createService("sqlQuery",
+					new IBackgroundWorkerParamDelegate<IBeanContextFactory>()
 					{
-						IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(childContextFactory, self, currWhereClause,
-								allJoinClauses, queryType);
-						if (currWhereClauseConf == null)
+
+						@Override
+						public void invoke(IBeanContextFactory childContextFactory)
 						{
-							continue;
-						}
-						currWhereClause = (IOperand) currWhereClauseConf.getInstance();
-						whereClauseConf = currWhereClauseConf;
-					}
-					if (allJoinClauses.size() == 0)
-					{
-						allJoinClauses = EmptyList.getInstance();
-					}
-					for (int i = 0; i < allJoinClauses.size(); i++)
-					{
-						((SqlJoinOperator) allJoinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
-					}
-					IBeanConfiguration stringQuery = childContextFactory.registerBean(StringQuery.class)//
-							.propertyValue("EntityType", SqlQueryBuilder.this.entityType)//
-							.propertyValue("JoinClauses", joinClauses)//
-							.propertyValue("AllJoinClauses", allJoinClauses.toArray(ISqlJoin.class));
+							IOperand currWhereClause = fWhereClause;
 
-					IBeanConfiguration query = childContextFactory.registerBean(queryName, Query.class)//
-							.propertyValue("EntityType", entityType)//
-							.propertyRefs(stringQuery)//
-							.propertyRef("TransactionalQuery", queryDelegateName)//
-							.propertyValue("GroupByOperands", groupByOperandArray)//
-							.propertyValue("OrderByOperands", orderByOperandArray)//
-							.propertyValue("LimitOperand", limitOperand)//
-							.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
-							.propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
-							.propertyValue("SelectOperands", selectArray)//
-							.propertyValue("TableAliasHolder", tableAliasHolder)//
-							.propertyValue("ContainsSubQuery", !subQueries.isEmpty());
-					if (whereClauseConf != null)
-					{
-						stringQuery.propertyRef("RootOperand", whereClauseConf);
-						query.propertyRef("RootOperand", whereClauseConf);
-					}
-					else
-					{
-						stringQuery.propertyValue("RootOperand", currWhereClause);
-						query.propertyValue("RootOperand", currWhereClause);
-					}
-					Object queryInstance = query.getInstance();
-					childContextFactory.registerBean(queryDelegateName, QueryDelegate.class)//
-							.propertyValue("Query", queryInstance)//
-							.propertyValue("QueryIntern", queryInstance)//
-							.propertyRef("TransactionalQuery", queryName);
-					if (QueryType.PAGING == queryType)
-					{
-						childContextFactory.registerBean(pagingQueryName, PagingQuery.class).propertyRef("Query", queryDelegateName);
-					}
-				}
-			});
+							IBeanConfiguration whereClauseConf = null;
+							IList<ISqlJoin> allJoinClauses = new ArrayList<ISqlJoin>(joinClauses);
+							for (IQueryBuilderExtension queryBuilderExtension : queryBuilderExtensions)
+							{
+								IBeanConfiguration currWhereClauseConf = queryBuilderExtension.applyOnWhereClause(childContextFactory, self, currWhereClause,
+										allJoinClauses, queryType);
+								if (currWhereClauseConf == null)
+								{
+									continue;
+								}
+								currWhereClause = (IOperand) currWhereClauseConf.getInstance();
+								whereClauseConf = currWhereClauseConf;
+							}
+							if (allJoinClauses.size() == 0)
+							{
+								allJoinClauses = EmptyList.getInstance();
+							}
+							for (int i = 0; i < allJoinClauses.size(); i++)
+							{
+								((SqlJoinOperator) allJoinClauses.get(i)).setTableAlias(tableAliasProvider.getNextJoinAlias());
+							}
+							IBeanConfiguration stringQuery = childContextFactory.registerBean(StringQuery.class)//
+									.propertyValue("EntityType", SqlQueryBuilder.this.entityType)//
+									.propertyValue("JoinClauses", joinClauses)//
+									.propertyValue("AllJoinClauses", allJoinClauses.toArray(ISqlJoin.class));
+
+							IBeanConfiguration query = childContextFactory.registerBean(queryName, Query.class)//
+									.propertyValue("EntityType", entityType)//
+									.propertyRefs(stringQuery)//
+									.propertyRef("TransactionalQuery", queryDelegateName)//
+									.propertyValue("GroupByOperands", groupByOperandArray)//
+									.propertyValue("OrderByOperands", orderByOperandArray)//
+									.propertyValue("LimitOperand", limitOperand)//
+									.propertyValue("QueryBuilderExtensions", queryBuilderExtensions)//
+									.propertyValue("RelatedEntityTypes", relatedEntityTypesList)//
+									.propertyValue("SelectOperands", selectArray)//
+									.propertyValue("TableAliasHolder", tableAliasHolder)//
+									.propertyValue("ContainsSubQuery", !subQueries.isEmpty());
+							if (whereClauseConf != null)
+							{
+								stringQuery.propertyRef("RootOperand", whereClauseConf);
+								query.propertyRef("RootOperand", whereClauseConf);
+							}
+							else
+							{
+								stringQuery.propertyValue("RootOperand", currWhereClause);
+								query.propertyValue("RootOperand", currWhereClause);
+							}
+							Object queryInstance = query.getInstance();
+							childContextFactory.registerBean(queryDelegateName, QueryDelegate.class)//
+									.propertyValue("Query", queryInstance)//
+									.propertyValue("QueryIntern", queryInstance)//
+									.propertyRef("TransactionalQuery", queryName);
+							if (QueryType.PAGING == queryType)
+							{
+								childContextFactory.registerBean(pagingQueryName, PagingQuery.class).propertyRef("Query", queryDelegateName);
+							}
+						}
+					});
 			switch (queryType)
 			{
 				case PAGING:

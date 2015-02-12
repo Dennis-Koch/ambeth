@@ -13,7 +13,6 @@ import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.cache.ICacheContext;
 import de.osthus.ambeth.cache.ICacheFactory;
 import de.osthus.ambeth.cache.ICacheProvider;
-import de.osthus.ambeth.cache.ISingleCacheRunnable;
 import de.osthus.ambeth.cache.config.CacheNamedBeans;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
@@ -32,6 +31,7 @@ import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 
 @SQLData("alternateid_data.sql")
 @SQLStructure("alternateid_structure.sql")
@@ -207,10 +207,10 @@ public class AlternateIdTest extends AbstractPersistenceTest
 
 		aeEntity.setName("AE_1");
 		be2.setName("BE_2");
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				IMergeProcess mergeProcess = beanContext.getService(IMergeProcess.class);
 
@@ -218,10 +218,10 @@ public class AlternateIdTest extends AbstractPersistenceTest
 				return null;
 			}
 		});
-		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new ISingleCacheRunnable<Object>()
+		cacheContext.executeWithCache(cacheFactory.create(CacheFactoryDirective.NoDCE, "test"), new IResultingBackgroundWorkerDelegate<Object>()
 		{
 			@Override
-			public Object run() throws Throwable
+			public Object invoke() throws Throwable
 			{
 				IQueryBuilder<AlternateIdEntity> qb = queryBuilderFactory.create(AlternateIdEntity.class);
 				IQuery<AlternateIdEntity> query = qb.build(qb.isEqualTo(qb.property("Id"), qb.value(aeEntity.getId())));

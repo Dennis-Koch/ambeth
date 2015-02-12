@@ -17,6 +17,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeServiceExtension;
 import de.osthus.ambeth.merge.IValueObjectConfig;
+import de.osthus.ambeth.merge.incremental.IIncrementalMergeState;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -103,6 +104,12 @@ public class InMemoryCacheRetriever implements ICacheRetriever, IMergeServiceExt
 
 	@Override
 	public List<IObjRelationResult> getRelations(List<IObjRelation> objRelations)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ICUDResult evaluateImplictChanges(ICUDResult cudResult, IIncrementalMergeState incrementalState)
 	{
 		throw new UnsupportedOperationException();
 	}

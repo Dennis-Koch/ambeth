@@ -1,5 +1,6 @@
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Model;
+using De.Osthus.Ambeth.Privilege.Model.Impl;
 using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
     [DataContract(Name = "PropertyPrivilegeOfService", Namespace = "http://schemas.osthus.de/Ambeth")]
     public class PropertyPrivilegeOfService : IPropertyPrivilegeOfService, IPrintable
     {
-        private static readonly PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[1 << 4];
+        private static readonly PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[PropertyPrivilegeImpl.ArraySizeForIndex()];
 
         static PropertyPrivilegeOfService()
         {
@@ -20,11 +21,11 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
 
         private static void Put1()
         {
-            put2(true);
-            put2(false);
+            Put2(true);
+            Put2(false);
         }
 
-        private static void put2(bool create)
+        private static void Put2(bool create)
         {
             Put3(create, true);
             Put3(create, false);
@@ -42,20 +43,15 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
             Put(create, read, update, false);
         }
 
-        protected static int ToBitValue(bool value, int startingBit)
-        {
-            return value ? 1 << startingBit : 0;
-        }
-
         private static void Put(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            int index = PropertyPrivilegeImpl.CalcIndex(create, read, update, delete);
             array[index] = new PropertyPrivilegeOfService(create, read, update, delete);
         }
 
         public static IPropertyPrivilegeOfService Create(bool create, bool read, bool update, bool delete)
         {
-            int index = ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            int index = PropertyPrivilegeImpl.CalcIndex(create, read, update, delete);
             return array[index];
         }
 
@@ -108,7 +104,7 @@ namespace De.Osthus.Ambeth.Privilege.Transfer
 
         public override int GetHashCode()
         {
-            return ToBitValue(create, 0) + ToBitValue(read, 1) + ToBitValue(update, 2) + ToBitValue(delete, 3);
+            return PropertyPrivilegeImpl.CalcIndex(create, read, update, delete);
         }
 
         public override String ToString()

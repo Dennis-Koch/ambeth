@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
+import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder;
 import de.osthus.ambeth.ioc.link.ILinkRuntimeExtendable;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
@@ -80,7 +81,7 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	 *            Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
-	IServiceContext createService(RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModules);
+	IServiceContext createService(IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate, Class<?>... serviceModules);
 
 	/**
 	 * Creates a child context of this context with the additional beans from the given initializing modules plus everything you do in the
@@ -94,7 +95,8 @@ public interface IServiceContext extends IDisposable, ILinkRuntimeExtendable
 	 *            Initializing modules defining the content of the new context.
 	 * @return New IoC context.
 	 */
-	IServiceContext createService(String childContextName, RegisterPhaseDelegate registerPhaseDelegate, Class<?>... serviceModules);
+	IServiceContext createService(String childContextName, IBackgroundWorkerParamDelegate<IBeanContextFactory> registerPhaseDelegate,
+			Class<?>... serviceModules);
 
 	/**
 	 * For future feature of complex context hierarchies.

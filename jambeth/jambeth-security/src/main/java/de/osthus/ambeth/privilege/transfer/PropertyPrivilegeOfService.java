@@ -4,13 +4,14 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import de.osthus.ambeth.privilege.model.impl.PropertyPrivilegeImpl;
 import de.osthus.ambeth.util.IPrintable;
 
 @XmlRootElement(name = "PropertyPrivilegeOfService", namespace = "http://schemas.osthus.de/Ambeth")
 @XmlAccessorType(XmlAccessType.FIELD)
 public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfService, IPrintable
 {
-	private static final PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[1 << 4];
+	private static final PropertyPrivilegeOfService[] array = new PropertyPrivilegeOfService[PropertyPrivilegeImpl.arraySizeForIndex()];
 
 	static
 	{
@@ -41,20 +42,15 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 		put(create, read, update, false);
 	}
 
-	protected static int toBitValue(boolean value, int startingBit)
-	{
-		return value ? 1 << startingBit : 0;
-	}
-
 	private static void put(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		int index = PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		array[index] = new PropertyPrivilegeOfService(create, read, update, delete);
 	}
 
 	public static IPropertyPrivilegeOfService create(boolean create, boolean read, boolean update, boolean delete)
 	{
-		int index = toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		int index = PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 		return array[index];
 	}
 
@@ -113,7 +109,7 @@ public final class PropertyPrivilegeOfService implements IPropertyPrivilegeOfSer
 	@Override
 	public int hashCode()
 	{
-		return toBitValue(create, 0) + toBitValue(read, 1) + toBitValue(update, 2) + toBitValue(delete, 3);
+		return PropertyPrivilegeImpl.calcIndex(create, read, update, delete);
 	}
 
 	@Override

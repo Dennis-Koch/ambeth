@@ -5,7 +5,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ PersistenceHelperTest.class, FieldTest.class, TableTest.class })
+@SuiteClasses({ PersistenceHelperTest.class })
 public class AllTests
 {
 

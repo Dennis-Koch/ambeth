@@ -37,7 +37,7 @@ public class JDBCSqlConnection extends SqlConnection
 	protected IConnectionExtension connectionExtension;
 
 	@Autowired
-	protected IDatabase database;
+	protected IDatabaseMetaData databaseMetaData;
 
 	@Sensor(name = JDBCResultSet.SENSOR_NAME)
 	protected ISensor jdbcResultSetSensor;
@@ -197,14 +197,14 @@ public class JDBCSqlConnection extends SqlConnection
 	protected Object createArray(String tableName, String idFieldName, List<?> ids)
 	{
 		Class<?> fieldType = null;
-		ITable table = database.getTableByName(tableName);
+		ITableMetaData table = databaseMetaData.getTableByName(tableName);
 		if (table != null)
 		{
 			fieldType = table.getFieldByName(idFieldName).getFieldType();
 		}
 		else
 		{
-			ILink link = database.getLinkByName(tableName);
+			ILinkMetaData link = databaseMetaData.getLinkByName(tableName);
 			if (link.getFromField().getName().equals(idFieldName))
 			{
 				fieldType = link.getFromField().getFieldType();

@@ -6,6 +6,7 @@ using De.Osthus.Ambeth.Ioc.Extendable;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
 using De.Osthus.Ambeth.Util;
+using De.Osthus.Ambeth.Metadata;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -26,29 +27,19 @@ namespace De.Osthus.Ambeth.Merge
         public ICUDResult CreateCUDResult(MergeHandle mergeHandle)
         {
             ILinkedMap<Type, ICUDResultExtension> typeToCudResultExtension = extensions.GetExtensions();
+		    foreach (Entry<Type, ICUDResultExtension> entry in typeToCudResultExtension)
+		    {
+			    entry.Value.Extend(mergeHandle);
+		    }
 
-            bool changeOccured = false;
-            while (true)
-            {
-                changeOccured = false;
-                foreach (Entry<Type, ICUDResultExtension> entry in typeToCudResultExtension)
-                {
-                    changeOccured = changeOccured || entry.Value.Extend(mergeHandle);
-                }
-                if (!changeOccured)
-                {
-                    break;
-                }
-            }
+		    IdentityLinkedMap<Object, IList<IUpdateItem>> objToModDict = mergeHandle.objToModDict;
+		    IdentityHashSet<Object> objToDeleteSet = mergeHandle.objToDeleteSet;
 
-            IDictionary<Object, IList<IUpdateItem>> objToModDict = mergeHandle.objToModDict;
-            ISet<Object> objToDeleteSet = mergeHandle.objToDeleteSet;
+		    HashMap<Type, IPrimitiveUpdateItem[]> entityTypeToFullPuis = new HashMap<Type, IPrimitiveUpdateItem[]>();
+		    HashMap<Type, IRelationUpdateItem[]> entityTypeToFullRuis = new HashMap<Type, IRelationUpdateItem[]>();
 
-            List<IPrimitiveUpdateItem> modItemList = new List<IPrimitiveUpdateItem>();
-            List<IRelationUpdateItem> oriModItemList = new List<IRelationUpdateItem>();
-
-            List<IChangeContainer> allChanges = new List<IChangeContainer>(objToModDict.Count);
-            List<Object> originalRefs = new List<Object>(objToModDict.Count);
+		    List<IChangeContainer> allChanges = new List<IChangeContainer>(objToModDict.Count);
+		    List<Object> originalRefs = new List<Object>(objToModDict.Count);
 
             foreach (Object objToDelete in objToDeleteSet)
             {
@@ -58,40 +49,39 @@ namespace De.Osthus.Ambeth.Merge
                 allChanges.Add(deleteContainer);
                 originalRefs.Add(objToDelete);
             }
+            IEntityMetaDataProvider entityMetaDataProvider = this.EntityMetaDataProvider;
 
-            IEnumerator<Object> objEnum = objToModDict.Keys.GetEnumerator();
-            while (objEnum.MoveNext())
-            {
-                Object obj = objEnum.Current;
-                Type objType = obj.GetType();
+            foreach (Entry<Object, IList<IUpdateItem>> entry in objToModDict)
+		    {
+			    Object obj = entry.Key;
+			    IList<IUpdateItem> modItems = entry.Value;
 
-                IList<IUpdateItem> modItems = objToModDict[obj];
+			    IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(obj.GetType());
 
-                for (int a = modItems.Count; a-- > 0; )
-                {
-                    IUpdateItem modItem = modItems[a];
+			    IPrimitiveUpdateItem[] fullPuis = GetEnsureFullPUIs(metaData, entityTypeToFullPuis);
+			    IRelationUpdateItem[] fullRuis = GetEnsureFullRUIs(metaData, entityTypeToFullRuis);
 
-                    if (modItem is IRelationUpdateItem)
-                    {
-                        oriModItemList.Add((IRelationUpdateItem)modItem);
-                    }
-                    else
-                    {
-                        modItemList.Add((IPrimitiveUpdateItem)modItem);
-                    }
-                }
-                IRelationUpdateItem[] relations = null;
-                IPrimitiveUpdateItem[] primitives = null;
-                if (oriModItemList.Count > 0)
-                {
-                    relations = oriModItemList.ToArray();
-                    oriModItemList.Clear();
-                }
-                if (modItemList.Count > 0)
-                {
-                    primitives = modItemList.ToArray();
-                    modItemList.Clear();
-                }
+			    int puiCount = 0, ruiCount = 0;
+			    for (int a = modItems.Count; a-- > 0;)
+			    {
+				    IUpdateItem modItem = modItems[a];
+
+				    Member member = metaData.GetMemberByName(modItem.MemberName);
+
+				    if (modItem is IRelationUpdateItem)
+				    {
+					    fullRuis[metaData.GetIndexByRelation(member)] = (IRelationUpdateItem) modItem;
+					    ruiCount++;
+				    }
+				    else
+				    {
+					    fullPuis[metaData.GetIndexByPrimitive(member)] = (IPrimitiveUpdateItem) modItem;
+					    puiCount++;
+				    }
+			    }
+
+			    IRelationUpdateItem[] ruis = CompactRUIs(fullRuis, ruiCount);
+			    IPrimitiveUpdateItem[] puis = CompactPUIs(fullPuis, puiCount);
                 IObjRef ori = OriHelper.GetCreateObjRef(obj, mergeHandle);
                 originalRefs.Add(obj);
 
@@ -102,8 +92,8 @@ namespace De.Osthus.Ambeth.Merge
                     ((IDirectObjRef)ori).CreateContainerIndex = allChanges.Count;
 
                     createContainer.Reference = ori;
-                    createContainer.Primitives = primitives;
-                    createContainer.Relations = relations;
+                    createContainer.Primitives = puis;
+                    createContainer.Relations = ruis;
 
                     allChanges.Add(createContainer);
                 }
@@ -111,13 +101,75 @@ namespace De.Osthus.Ambeth.Merge
                 {
                     UpdateContainer updateContainer = new UpdateContainer();
                     updateContainer.Reference = ori;
-                    updateContainer.Primitives = primitives;
-                    updateContainer.Relations = relations;
+                    updateContainer.Primitives = puis;
+                    updateContainer.Relations = ruis;
                     allChanges.Add(updateContainer);
                 }
             }
             return new CUDResult(allChanges, originalRefs);
         }
+
+        public IPrimitiveUpdateItem[] GetEnsureFullPUIs(IEntityMetaData metaData, IMap<Type, IPrimitiveUpdateItem[]> entityTypeToFullPuis)
+	    {
+            IPrimitiveUpdateItem[] fullPuis = entityTypeToFullPuis.Get(metaData.EntityType);
+		    if (fullPuis == null)
+		    {
+			    fullPuis = new IPrimitiveUpdateItem[metaData.PrimitiveMembers.Length];
+                entityTypeToFullPuis.Put(metaData.EntityType, fullPuis);
+		    }
+		    return fullPuis;
+	    }
+
+	    public IRelationUpdateItem[] GetEnsureFullRUIs(IEntityMetaData metaData, IMap<Type, IRelationUpdateItem[]> entityTypeToFullRuis)
+	    {
+            IRelationUpdateItem[] fullRuis = entityTypeToFullRuis.Get(metaData.EntityType);
+		    if (fullRuis == null)
+		    {
+                fullRuis = new IRelationUpdateItem[metaData.RelationMembers.Length];
+                entityTypeToFullRuis.Put(metaData.EntityType, fullRuis);
+		    }
+		    return fullRuis;
+	    }
+
+	    public IPrimitiveUpdateItem[] CompactPUIs(IPrimitiveUpdateItem[] fullPUIs, int puiCount)
+	    {
+		    if (puiCount == 0)
+		    {
+			    return null;
+		    }
+		    IPrimitiveUpdateItem[] puis = new IPrimitiveUpdateItem[puiCount];
+            for (int a = fullPUIs.Length; a-- > 0; )
+		    {
+			    IPrimitiveUpdateItem pui = fullPUIs[a];
+			    if (pui == null)
+			    {
+				    continue;
+			    }
+			    fullPUIs[a] = null;
+			    puis[--puiCount] = pui;
+		    }
+		    return puis;
+	    }
+
+	    public IRelationUpdateItem[] CompactRUIs(IRelationUpdateItem[] fullRUIs, int ruiCount)
+	    {
+		    if (ruiCount == 0)
+		    {
+			    return null;
+		    }
+		    IRelationUpdateItem[] ruis = new IRelationUpdateItem[ruiCount];
+		    for (int a = fullRUIs.Length; a-- > 0;)
+		    {
+			    IRelationUpdateItem rui = fullRUIs[a];
+			    if (rui == null)
+			    {
+				    continue;
+			    }
+			    fullRUIs[a] = null;
+			    ruis[--ruiCount] = rui;
+		    }
+		    return ruis;
+	    }
 
         public void RegisterCUDResultExtension(ICUDResultExtension cudResultExtension, Type entityType)
         {

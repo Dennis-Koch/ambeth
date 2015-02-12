@@ -168,7 +168,7 @@ namespace De.Osthus.Ambeth.Privilege
 
         protected readonly Object writeLock = new Object();
 
-        protected readonly HashMap<PrivilegeKey, IPrivilege> privilegeCache = new HashMap<PrivilegeKey, IPrivilege>();
+        protected readonly LinkedHashMap<PrivilegeKey, IPrivilege> privilegeCache = new LinkedHashMap<PrivilegeKey, IPrivilege>();
 
         protected readonly Tuple3KeyHashMap<Type, String, String, ITypePrivilege> entityTypePrivilegeCache = new Tuple3KeyHashMap<Type, String, String, ITypePrivilege>();
 
@@ -274,7 +274,7 @@ namespace De.Osthus.Ambeth.Privilege
 	    {
 		    IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
 
-		    IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
+		    IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.CreateFrom(privilegeOfService);
 		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
 		    {
 			    return new SimplePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
