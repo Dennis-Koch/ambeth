@@ -752,7 +752,7 @@
 				<configuration>
 					<forkCount>1C</forkCount>
 					<reuseForks>true</reuseForks>
-					<argLine>-XX:MaxPermSize=128m</argLine>
+					<argLine>-XX:MaxPermSize=128m ${argLine}</argLine>
 					<systemPropertyVariables>
 						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
 					</systemPropertyVariables>
@@ -828,5 +828,4 @@
 			</properties>
 		</profile>
 	</profiles>
-
 </project>
