@@ -60,7 +60,7 @@ public class OracleDatabaseChangeRegistration implements IDisposableBean, IEvent
 		Connection connection = connectionFactory.create();
 		try
 		{
-			((OracleConnection) connection).unregisterDatabaseChangeNotification(databaseChangeRegistration);
+			connection.unwrap(OracleConnection.class).unregisterDatabaseChangeNotification(databaseChangeRegistration);
 		}
 		finally
 		{
@@ -114,7 +114,7 @@ public class OracleDatabaseChangeRegistration implements IDisposableBean, IEvent
 
 		for (Entry<Object, IDatabase> entry : persistenceUnitToDatabaseMap)
 		{
-			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(OracleConnection.class);
+			OracleConnection connection = entry.getValue().getAutowiredBeanInContext(Connection.class).unwrap(OracleConnection.class);
 			databaseChangeRegistration = connection.registerDatabaseChangeNotification(prop);
 			databaseChangeRegistration.addListener(databaseChangeListener);
 

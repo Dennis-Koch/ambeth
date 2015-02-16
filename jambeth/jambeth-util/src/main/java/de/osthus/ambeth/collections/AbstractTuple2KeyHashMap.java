@@ -1,5 +1,6 @@
 package de.osthus.ambeth.collections;
 
+import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
@@ -10,7 +11,7 @@ import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.IPrintable;
 import de.osthus.ambeth.util.StringBuilderUtil;
 
-public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrintable, Iterable<Tuple2KeyEntry<Key1, Key2, V>>
+public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrintable, Iterable<Tuple2KeyEntry<Key1, Key2, V>>, Externalizable
 {
 	public static final int DEFAULT_INITIAL_CAPACITY = 16;
 
@@ -102,6 +103,7 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrinta
 		// Intended blank
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
 	{
@@ -115,6 +117,7 @@ public abstract class AbstractTuple2KeyHashMap<Key1, Key2, V> implements IPrinta
 		}
 	}
 
+	@Override
 	public void writeExternal(final ObjectOutput out) throws IOException
 	{
 		out.writeInt(size());

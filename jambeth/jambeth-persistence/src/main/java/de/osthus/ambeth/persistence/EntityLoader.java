@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import de.osthus.ambeth.cache.CacheKey;
-import de.osthus.ambeth.cache.collections.CacheHashMap;
 import de.osthus.ambeth.cache.collections.ICacheMapEntryTypeProvider;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
@@ -50,7 +49,6 @@ import de.osthus.ambeth.query.IOperator;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.IQueryBuilderFactory;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
-import de.osthus.ambeth.typeinfo.ITypeInfoItem;
 import de.osthus.ambeth.util.IAggregrateResultHandler;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IInterningFeature;
@@ -612,56 +610,6 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			pendingInits[idNameIndex + 1] = pendingInit;
 		}
 		return pendingInit;
-	}
-
-	protected Object ensureInstance(IDatabase database, Class<?> type, byte idIndex, Object id, Map<Class<?>, Collection<Object>[]> typeToPendingInit,
-			ITypeInfoItem keyMember, LoadMode loadMode, CacheHashMap loadContainerMap, CacheHashMap objRefMap)
-	{
-		IConversionHelper conversionHelper = this.conversionHelper;
-		ITableMetaData table = database.getTableByType(type).getMetaData();
-		IFieldMetaData idField = table.getIdFieldByAlternateIdIndex(idIndex);
-		Class<?> idType = idField.getFieldType();
-		Class<?> idTypeOfObject = idField.getMember().getElementType();
-		Object persistentId = conversionHelper.convertValueToType(idType, id);
-		Object objectId = conversionHelper.convertValueToType(idTypeOfObject, id);
-
-		if (LoadMode.VERSION_ONLY == loadMode)
-		{
-			IObjRef objRef = (IObjRef) objRefMap.get(type, idIndex, persistentId);
-			if (objRef == null)
-			{
-				objRef = objRefFactory.createObjRef(type, idIndex, objectId, null);
-				objRefMap.put(type, idIndex, persistentId, objRef);
-				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idIndex);
-				pendingInit.add(persistentId);
-			}
-			return objRef;
-		}
-		else if (LoadMode.REFERENCE_ONLY == loadMode)
-		{
-			ILoadContainer result = (ILoadContainer) loadContainerMap.get(type, idIndex, persistentId);
-			if (result == null)
-			{
-				LoadContainer loadContainer = new LoadContainer();
-
-				IObjRef objRef = (IObjRef) objRefMap.get(type, idIndex, persistentId);
-				if (objRef == null)
-				{
-					objRef = objRefFactory.createObjRef(type, idIndex, objectId, null);
-					objRefMap.put(type, idIndex, persistentId, objRef);
-				}
-				loadContainerMap.put(type, idIndex, persistentId, loadContainer);
-				loadContainer.setReference(objRef);
-				result = loadContainer;
-				Collection<Object> pendingInit = getEnsurePendingInit(table, typeToPendingInit, idIndex);
-				pendingInit.add(persistentId);
-			}
-			return result;
-		}
-		else
-		{
-			throw new IllegalArgumentException("LoadMode " + loadMode + " not supported");
-		}
 	}
 
 	protected void initInstances(ILinkedMap<Class<?>, Collection<Object>[]> typeToPendingInit,
