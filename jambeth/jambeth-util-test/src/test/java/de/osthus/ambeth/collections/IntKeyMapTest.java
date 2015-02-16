@@ -1,64 +1,81 @@
 package de.osthus.ambeth.collections;
 
-import static org.junit.Assert.fail;
+import java.util.List;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import de.osthus.ambeth.util.ParamHolder;
 
 public class IntKeyMapTest
 {
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception
-	{
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception
-	{
-	}
-
-	@Before
-	public void setUp() throws Exception
-	{
-	}
-
-	@After
-	public void tearDown() throws Exception
-	{
-	}
-
 	@Test
-	public void testIntKeyMap()
+	public void ctorDefault()
 	{
 		new IntKeyMap<Object>();
 	}
 
 	@Test
-	public void testIntKeyMapInt()
+	public void ctorCapacity()
 	{
 		new IntKeyMap<Object>(100);
 	}
 
 	@Test
-	public void testIntKeyMapIntFloat()
+	public void ctorCapacityAndFactor()
 	{
 		new IntKeyMap<Object>(100, 0.75f);
 	}
 
 	@Test
-	public void testInit()
+	public void init()
 	{
 		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
 		map.init();
 	}
 
 	@Test
-	public void testSize()
+	public void containsKey()
+	{
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+
+		map.put(5, new Object());
+		map.put(6, new Object());
+		map.put(7, new Object());
+
+		Assert.assertTrue(map.containsKey(6));
+		Assert.assertFalse(map.containsKey(77));
+	}
+
+	@Test
+	public void clear()
+	{
+		IntKeyMap<Object> map = new IntKeyMap<Object>();
+
+		map.putIfNotExists(new Object());
+		map.putIfNotExists(new Object());
+		map.putIfNotExists(new Object());
+		map.putIfNotExists(new Object());
+
+		Assert.assertEquals(4, map.size());
+		map.clear();
+		Assert.assertEquals(0, map.size());
+	}
+
+	@Test
+	public void containsValue()
+	{
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+
+		Object value = new Object();
+		map.put(5, value);
+
+		Assert.assertTrue(map.containsValue(value));
+		Assert.assertFalse(map.containsValue(new Object()));
+	}
+
+	@Test
+	public void size()
 	{
 		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
 
@@ -70,7 +87,7 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void testIsEmpty()
+	public void isEmpty()
 	{
 		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
 
@@ -84,7 +101,7 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void testGet()
+	public void get()
 	{
 		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
 
@@ -101,20 +118,7 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void testContainsKey()
-	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
-
-		map.put(5, new Object());
-		map.put(6, new Object());
-		map.put(7, new Object());
-
-		Assert.assertTrue(map.containsKey(6));
-		Assert.assertFalse(map.containsKey(77));
-	}
-
-	@Test
-	public void testPut()
+	public void put()
 	{
 		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
 
@@ -128,9 +132,25 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	public void testPutIfNotExistsIntV()
+	public void putIfNotExistsIntV()
 	{
-		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+		IntKeyMap<Object> map = new IntKeyMap<Object>();
+
+		map.putIfNotExists(5, new Object());
+		map.putIfNotExists(6, new Object());
+		map.putIfNotExists(7, new Object());
+		Assert.assertFalse(map.putIfNotExists(5, new Object()));
+
+		Assert.assertTrue(map.containsKey(5));
+		Assert.assertTrue(map.containsKey(6));
+		Assert.assertTrue(map.containsKey(7));
+		Assert.assertEquals(3, map.size());
+	}
+
+	@Test
+	public void putIfNotExistsV()
+	{
+		IntKeyMap<Object> map = new IntKeyMap<Object>();
 
 		int randomId1 = map.putIfNotExists(new Object());
 		int randomId2 = map.putIfNotExists(new Object());
@@ -147,51 +167,66 @@ public class IntKeyMapTest
 	}
 
 	@Test
-	@Ignore
-	public void testPutIfNotExistsV()
+	public void remove()
 	{
-		fail("Not yet implemented");
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+
+		Object value = new Object();
+		map.put(5, value);
+
+		Assert.assertSame(value, map.remove(5));
+		Assert.assertEquals(0, map.size());
 	}
 
 	@Test
-	@Ignore
-	public void testContainsValue()
+	public void removeIfObject()
 	{
-		fail("Not yet implemented");
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f);
+
+		Object value = new Object();
+		map.put(5, value);
+
+		Assert.assertFalse(map.removeIfObject(5, new Object()));
+		Assert.assertFalse(map.removeIfObject(6, value));
+		Assert.assertTrue(map.removeIfObject(5, value));
+		Assert.assertEquals(0, map.size());
 	}
 
 	@Test
-	@Ignore
-	public void testRemove()
+	public void removeAndNotify()
 	{
-		fail("Not yet implemented");
+		final ParamHolder<Boolean> notified = new ParamHolder<Boolean>(Boolean.FALSE);
+		IntKeyMap<Object> map = new IntKeyMap<Object>(100, 0.75f)
+		{
+			@Override
+			protected void disposeEntry(IntKeyMapEntry<Object> entry)
+			{
+				notified.setValue(Boolean.TRUE);
+			};
+		};
+		Object value = new Object();
+		map.put(5, value);
+
+		map.removeAndNotify(5);
+		Assert.assertEquals(Boolean.TRUE, notified.getValue());
 	}
 
 	@Test
-	@Ignore
-	public void testRemoveIfObject()
+	public void values()
 	{
-		fail("Not yet implemented");
-	}
-
-	@Test
-	@Ignore
-	public void testRemoveAndNotify()
-	{
-		fail("Not yet implemented");
-	}
-
-	@Test
-	@Ignore
-	public void testClear()
-	{
-		fail("Not yet implemented");
-	}
-
-	@Test
-	@Ignore
-	public void testValues()
-	{
-		fail("Not yet implemented");
+		IntKeyMap<Object> map = new IntKeyMap<Object>();
+		Object[] values = new Object[5];
+		for (int a = values.length; a-- > 0;)
+		{
+			values[a] = new Object();
+			map.putIfNotExists(values[a]);
+		}
+		List<Object> valuesList = map.values();
+		Assert.assertEquals(values.length, valuesList.size());
+		for (Object value : values)
+		{
+			valuesList.remove(value);
+		}
+		Assert.assertEquals(0, valuesList.size());
 	}
 }

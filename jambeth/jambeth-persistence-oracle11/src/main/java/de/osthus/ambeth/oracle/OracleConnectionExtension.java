@@ -1,6 +1,7 @@
 package de.osthus.ambeth.oracle;
 
 import java.sql.Array;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -22,7 +23,7 @@ public class OracleConnectionExtension implements IConnectionExtension
 	protected IConnectionDialect connectionDialect;
 
 	@Autowired
-	protected OracleConnection oracleConnection;
+	protected Connection connection;
 
 	protected final HashSet<Class<?>> numbersToConvert = new HashSet<Class<?>>(Arrays.<Class<?>> asList(byte.class, Byte.class, Short.class, Integer.class,
 			Long.class));
@@ -73,7 +74,7 @@ public class OracleConnectionExtension implements IConnectionExtension
 		}
 		try
 		{
-			return oracleConnection.createARRAY(arrayTypeName, javaArray);
+			return connection.unwrap(OracleConnection.class).createARRAY(arrayTypeName, javaArray);
 		}
 		catch (Throwable e)
 		{

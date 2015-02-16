@@ -638,6 +638,18 @@ public class IntHashMap implements Externalizable
 		}
 	}
 
+	public final IntArrayList values()
+	{
+		IntArrayList values = new IntArrayList(size(), false);
+		IntIterator iter = iterator();
+		while (iter.hasNext())
+		{
+			int value = iter.next();
+			values.add(value);
+		}
+		return values;
+	}
+
 	public final IntIterator iterator()
 	{
 		if (!fastListIteration)

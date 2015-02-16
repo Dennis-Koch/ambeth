@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.log.interceptor.LogInterceptor;
 import de.osthus.ambeth.persistence.SQLState;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.event.ConnectionClosedEvent;
@@ -189,6 +190,13 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 					eventDispatcher.dispatchEvent(new ConnectionClosedEvent((Connection) obj));
 				}
 				connection = null;
+			}
+			else if (unwrapMethod.equals(method))
+			{
+				LogInterceptor logInterceptor = beanContext.registerBean(LogInterceptor.class)//
+						.propertyValue("Target", result)//
+						.finish();
+				result = proxyFactory.createProxy(cgLibUtil.getAllInterfaces(result), logInterceptor);
 			}
 			return result;
 		}

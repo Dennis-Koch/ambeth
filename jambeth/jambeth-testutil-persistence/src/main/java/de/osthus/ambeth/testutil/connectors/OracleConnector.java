@@ -1,6 +1,5 @@
 package de.osthus.ambeth.testutil.connectors;
 
-import oracle.jdbc.OracleConnection;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.oracle.Oracle10gConnectionModule;
@@ -27,7 +26,6 @@ public class OracleConnector
 		{
 			return false;
 		}
-		props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, OracleConnection.class.getName());
 		props.put(PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, Oracle10gConnectionModule.class.getName());
 		return true;
 	}

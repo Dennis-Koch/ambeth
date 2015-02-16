@@ -72,9 +72,6 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 	@Property(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, defaultValue = "true")
 	protected boolean integratedConnectionPool;
 
-	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionInterfaces, mandatory = false)
-	protected String additionalConnectionInterfaces;
-
 	@Property(name = PersistenceJdbcConfigurationConstants.AdditionalConnectionModules, mandatory = false)
 	protected String additionalConnectionModules;
 
@@ -140,20 +137,8 @@ public class PersistenceJdbcModule implements IInitializingModule, IPropertyLoad
 				.autowireable(IConnectionHolder.class).ignoreProperties("Connection").getInstance();
 		beanContextFactory.link(chInterceptor).to(IConnectionHolderExtendable.class).with(Object.class);
 
-		List<Class<?>> connectionInterfaceTypes = new ArrayList<Class<?>>();
-		connectionInterfaceTypes.add(Connection.class);
-		if (additionalConnectionInterfaces != null)
-		{
-			String[] typeNames = additionalConnectionInterfaces.split(";");
-			for (int a = typeNames.length; a-- > 0;)
-			{
-				Class<?> type = Thread.currentThread().getContextClassLoader().loadClass(typeNames[a]);
-				connectionInterfaceTypes.add(type);
-			}
-		}
-		Class<?>[] cInterfaceTypes = connectionInterfaceTypes.toArray(new Class<?>[connectionInterfaceTypes.size()]);
-		Object connectionHolderProxy = proxyFactory.createProxy(cInterfaceTypes, chInterceptor);
-		beanContextFactory.registerExternalBean("connectionHolderProxy", connectionHolderProxy).autowireable(cInterfaceTypes);
+		Object connectionHolderProxy = proxyFactory.createProxy(Connection.class, chInterceptor);
+		beanContextFactory.registerExternalBean("connectionHolderProxy", connectionHolderProxy).autowireable(Connection.class);
 
 		if (integratedConnectionFactory)
 		{
