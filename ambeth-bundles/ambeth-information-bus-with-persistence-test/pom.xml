@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
@@ -17,13 +16,13 @@
 			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-audit-server-test</artifactId>
@@ -44,6 +43,12 @@
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-ioc-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-job-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
@@ -59,13 +64,13 @@
 			<artifactId>jambeth-merge-server-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-						
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-				
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-h2</artifactId>
@@ -82,7 +87,7 @@
 			<artifactId>jambeth-persistence-jdbc-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-persistence-oracle11</artifactId>
@@ -99,7 +104,13 @@
 			<artifactId>jambeth-query-test</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-persistence-test</artifactId>
@@ -109,6 +120,12 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-server-test</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

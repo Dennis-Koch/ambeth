@@ -744,18 +744,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<configuration>
-					<forkCount>1C</forkCount>
-					<reuseForks>true</reuseForks>
-					<argLine>-XX:MaxPermSize=128m ${argLine}</argLine>
-					<systemPropertyVariables>
-						<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>
@@ -824,6 +812,57 @@
 				<deploy.env>test</deploy.env>
 				<local.server.port>8089</local.server.port>
 			</properties>
+		</profile>
+
+		<profile>
+			<id>jenkins</id>
+			<activation>
+				<property>
+					<name>env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<forkCount>1C</forkCount>
+							<reuseForks>true</reuseForks>
+							<!-- add argLine only if jacoco is activated like it is in the jenkins profile -->
+							<argLine>-XX:MaxPermSize=128m ${argLine}</argLine>
+							<systemPropertyVariables>
+								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>non-jenkins</id>
+			<activation>
+				<property>
+					<name>!env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<forkCount>1C</forkCount>
+							<reuseForks>true</reuseForks>
+							<argLine>-XX:MaxPermSize=128m</argLine>
+							<systemPropertyVariables>
+								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>
