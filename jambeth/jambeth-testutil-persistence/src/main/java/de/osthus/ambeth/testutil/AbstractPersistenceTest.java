@@ -49,7 +49,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 		SQLQueryModule.class, FilterPersistenceModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethPersistenceRunner.class)
-public abstract class AbstractPersistenceTest extends AbstractIocTest
+public abstract class AbstractPersistenceTest extends AbstractInform
 {
 	public static class PersistencePropertiesProvider implements IPropertiesProvider
 	{

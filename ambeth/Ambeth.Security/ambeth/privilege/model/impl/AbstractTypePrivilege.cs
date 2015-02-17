@@ -26,7 +26,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             return value.Value ? valueIfTrue : valueIfFalse;
         }
 
-        protected AbstractTypePrivilege(bool? create, bool? read, bool? update, bool? delete, bool? execute,
+        public AbstractTypePrivilege(bool? create, bool? read, bool? update, bool? delete, bool? execute,
                 ITypePropertyPrivilege[] primitivePropertyPrivileges, ITypePropertyPrivilege[] relationPropertyPrivileges)
         {
             // intended blank

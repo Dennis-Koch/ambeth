@@ -48,7 +48,7 @@ public final class TypePropertyPrivilegeImpl implements ITypePropertyPrivilege, 
 
 	public static int arraySizeForIndex()
 	{
-		return 1 << 7;
+		return 27 * 3;
 	}
 
 	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete)

@@ -15,7 +15,7 @@ import de.osthus.ambeth.model.ClobObject;
 import de.osthus.ambeth.persistence.jdbc.lob.ClobTest.ClobTestModule;
 import de.osthus.ambeth.service.ClobObjectService;
 import de.osthus.ambeth.service.IClobObjectService;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -25,7 +25,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLStructure("clob_structure.sql")
 @TestModule(ClobTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/lob/clob_orm.xml")
-public class ClobTest extends AbstractPersistenceTest
+public class ClobTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class ClobTestModule implements IInitializingModule
 	{

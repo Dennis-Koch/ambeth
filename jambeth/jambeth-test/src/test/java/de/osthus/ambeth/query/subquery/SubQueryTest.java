@@ -15,7 +15,7 @@ import de.osthus.ambeth.query.IOperand;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
 import de.osthus.ambeth.query.ISubQuery;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -23,7 +23,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/subquery/SubQuery_orm.xml")
 @SQLStructure("SubQuery_structure.sql")
 @SQLData("SubQuery_data.sql")
-public class SubQueryTest extends AbstractPersistenceTest
+public class SubQueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected IQueryBuilder<EntityA> qb;
 

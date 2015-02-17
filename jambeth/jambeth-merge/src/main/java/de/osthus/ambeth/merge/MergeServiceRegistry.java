@@ -143,7 +143,15 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 				try
 				{
 					IncrementalMergeState state = (IncrementalMergeState) cudResultApplier.acquireNewState(childCache);
-					ICUDResult cudResultOfCache = cudResultApplier.applyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					ICUDResult cudResultOfCache;
+					if (MergeProcess.isAddNewlyPersistedEntities())
+					{
+						cudResultOfCache = cudResultApplier.applyCUDResultOnEntitiesOfCache(cudResultOriginal, true, state);
+					}
+					else
+					{
+						cudResultOfCache = cudResultOriginal;
+					}
 					if (log.isDebugEnabled())
 					{
 						if (cudResultPrinter != null)
@@ -155,9 +163,19 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 							log.debug("Initial merge [" + System.identityHashCode(state) + "]. No Details available");
 						}
 					}
-					ArrayList<MergeOperation> mergeOperationSequence = new ArrayList<MergeOperation>();
-					ICUDResult extendedCudResult = whatIfMerged(cudResultOfCache, methodDescription, mergeOperationSequence, state);
-
+					IList<MergeOperation> mergeOperationSequence;
+					ICUDResult extendedCudResult;
+					if (cudResultOfCache != cudResultOriginal)
+					{
+						mergeOperationSequence = new ArrayList<MergeOperation>();
+						extendedCudResult = whatIfMerged(cudResultOfCache, methodDescription, mergeOperationSequence, state);
+					}
+					else
+					{
+						extendedCudResult = cudResultOriginal;
+						IMap<Class<?>, IList<IChangeContainer>> sortedChanges = bucketSortChanges(cudResultOriginal.getAllChanges());
+						mergeOperationSequence = createMergeOperationSequence(sortedChanges);
+					}
 					if (log.isDebugEnabled())
 					{
 						log.debug("Merge finished [" + System.identityHashCode(state) + "]");

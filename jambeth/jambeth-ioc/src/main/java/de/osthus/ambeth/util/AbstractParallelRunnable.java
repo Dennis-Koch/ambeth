@@ -57,46 +57,36 @@ public abstract class AbstractParallelRunnable<V> implements Runnable
 	@Override
 	public final void run()
 	{
+		Thread currentThread = Thread.currentThread();
+		String oldName = currentThread.getName();
+		if (buildThreadLocals)
+		{
+			String name = abstractRunnableHandle.createdThread.getName();
+			currentThread.setName(name + " " + oldName);
+		}
 		try
 		{
-			Thread currentThread = Thread.currentThread();
-			String oldName = currentThread.getName();
-			if (buildThreadLocals)
-			{
-				String name = abstractRunnableHandle.createdThread.getName();
-				currentThread.setName(name + " " + oldName);
-			}
-			try
-			{
-				CountDownLatch latch = abstractRunnableHandle.latch;
+			CountDownLatch latch = abstractRunnableHandle.latch;
 
-				while (true)
-				{
-					V item = retrieveNextItem();
-					if (item == null)
-					{
-						// queue finished
-						return;
-					}
-					try
-					{
-						runIntern(item);
-					}
-					catch (Throwable e)
-					{
-						handleThrowable(e);
-					}
-					finally
-					{
-						latch.countDown();
-					}
-				}
-			}
-			finally
+			while (true)
 			{
-				if (buildThreadLocals)
+				V item = retrieveNextItem();
+				if (item == null)
 				{
-					currentThread.setName(oldName);
+					// queue finished
+					return;
+				}
+				try
+				{
+					runIntern(item);
+				}
+				catch (Throwable e)
+				{
+					handleThrowable(e);
+				}
+				finally
+				{
+					latch.countDown();
 				}
 			}
 		}
@@ -104,7 +94,7 @@ public abstract class AbstractParallelRunnable<V> implements Runnable
 		{
 			if (buildThreadLocals)
 			{
-				abstractRunnableHandle.threadLocalCleanupController.cleanupThreadLocal();
+				currentThread.setName(oldName);
 			}
 		}
 	}

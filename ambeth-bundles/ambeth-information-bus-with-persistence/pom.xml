@@ -15,8 +15,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
 		</dependency>
 
 		<dependency>
@@ -67,6 +65,11 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-query-jdbc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-security-persistence</artifactId>
 		</dependency>
 
 		<dependency>

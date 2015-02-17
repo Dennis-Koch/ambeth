@@ -61,4 +61,22 @@ public class ConstructorInstance extends MethodInstance
 	{
 		super(BytecodeBehaviorState.getState().getNewType(), access, Type.VOID_TYPE, CONSTRUCTOR_NAME, signature, TypeUtil.getClassesToTypes(parameters));
 	}
+
+	@Override
+	public MethodInstance deriveName(String methodName)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public ConstructorInstance deriveAccess(int access)
+	{
+		return new ConstructorInstance(access, getSignature(), getParameters());
+	}
+
+	@Override
+	public MethodInstance deriveOwner()
+	{
+		throw new UnsupportedOperationException();
+	}
 }

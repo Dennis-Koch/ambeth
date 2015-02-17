@@ -11,7 +11,7 @@ import de.osthus.ambeth.model.Material;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.TestServicesModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -27,7 +27,7 @@ import de.osthus.ambeth.transfer.MaterialVO;
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
 @SQLStructure("JDBCDatabase_structure.sql")
 @SQLData("Example_data.sql")
-public class OptimisticLockTest extends AbstractPersistenceTest
+public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test(expected = OptimisticLockException.class)
 	public void doesOptimisticLockException()

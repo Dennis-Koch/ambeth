@@ -42,7 +42,7 @@ import de.osthus.ambeth.persistence.xml.model.EmployeeSmallType;
 import de.osthus.ambeth.persistence.xml.model.EmployeeType;
 import de.osthus.ambeth.persistence.xml.model.Project;
 import de.osthus.ambeth.persistence.xml.model.ProjectType;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -57,7 +57,7 @@ import de.osthus.ambeth.testutil.category.ReminderTests;
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = IndependentMetaDataComparisonTest.basePath
 				+ "independent-value-object.xml;" + IndependentMetaDataComparisonTest.basePath + "independent-value-object2.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
-public class IndependentMetaDataComparisonTest extends AbstractPersistenceTest
+public class IndependentMetaDataComparisonTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/xml/";
 

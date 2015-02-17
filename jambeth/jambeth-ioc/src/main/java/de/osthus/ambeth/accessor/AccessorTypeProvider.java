@@ -343,7 +343,7 @@ public class AccessorTypeProvider implements IAccessorTypeProvider, IInitializin
 		}
 		java.lang.reflect.Method[] r_methods = delegateType.getMethods();
 
-		Constructor<?>[] constructors = targetType.getConstructors();
+		Constructor<?>[] constructors = targetType.getDeclaredConstructors();
 		for (Constructor<?> constructor : constructors)
 		{
 			Class<?>[] constructorParams = constructor.getParameterTypes();

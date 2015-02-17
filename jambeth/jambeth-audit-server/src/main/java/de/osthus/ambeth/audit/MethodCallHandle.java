@@ -1,20 +1,20 @@
 package de.osthus.ambeth.audit;
 
-import de.osthus.ambeth.audit.model.IAuditedService;
+import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 
 public class MethodCallHandle implements IMethodCallHandle
 {
-	protected final IAuditedService auditedService;
+	protected final CreateOrUpdateContainerBuild auditedService;
 
 	protected final long start;
 
-	public MethodCallHandle(IAuditedService auditedService, long start)
+	public MethodCallHandle(CreateOrUpdateContainerBuild auditedService, long start)
 	{
 		this.auditedService = auditedService;
 		this.start = start;
 	}
 
-	public IAuditedService getAuditEntry()
+	public CreateOrUpdateContainerBuild getAuditEntry()
 	{
 		return auditedService;
 	}

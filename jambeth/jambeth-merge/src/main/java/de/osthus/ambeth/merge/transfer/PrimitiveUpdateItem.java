@@ -18,6 +18,17 @@ public class PrimitiveUpdateItem implements IPrimitiveUpdateItem, IPrintable
 	@XmlElement(required = true)
 	public String memberName;
 
+	public PrimitiveUpdateItem()
+	{
+		// intended blank
+	}
+
+	public PrimitiveUpdateItem(String memberName, Object newValue)
+	{
+		this.memberName = memberName;
+		this.newValue = newValue;
+	}
+
 	@Override
 	public Object getNewValue()
 	{

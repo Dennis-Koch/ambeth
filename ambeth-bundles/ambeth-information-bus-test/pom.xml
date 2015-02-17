@@ -15,7 +15,6 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus</artifactId>
 			<scope>provided</scope>
-			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -131,6 +130,11 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-stream-test</artifactId>
 			<scope>compile</scope>
+		</dependency>
+				
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-xml</artifactId>
 		</dependency>
 		
 		<dependency>

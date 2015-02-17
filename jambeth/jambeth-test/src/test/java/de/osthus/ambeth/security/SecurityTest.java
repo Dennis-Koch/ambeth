@@ -38,7 +38,7 @@ import de.osthus.ambeth.security.config.SecurityServerConfigurationConstants;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.IUser;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
@@ -57,7 +57,7 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 		@TestProperties(name = SecurityServerConfigurationConstants.LoginPasswordAutoRehashActive, value = "false") })
 @TestModule(TestServicesModule.class)
 @TestFrameworkModule(SecurityTestFrameworkModule.class)
-public class SecurityTest extends AbstractPersistenceTest
+public class SecurityTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String IN_MEMORY_CACHE_RETRIEVER = "inMemoryCacheRetriever";
 

@@ -39,7 +39,7 @@ import de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity;
 import de.osthus.ambeth.persistence.jdbc.alternateid.BaseEntity2;
 import de.osthus.ambeth.persistence.jdbc.alternateid.IAlternateIdEntityService;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -47,7 +47,7 @@ import de.osthus.ambeth.util.IMultithreadingHelper;
 
 @TestModule({ AlternateIdModule.class, SimpleInMemoryDatabaseTestModule.class })
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/inmemory/simpleinmemory_orm.xml")
-public class SimpleInMemoryDatabaseTest extends AbstractPersistenceTest
+public class SimpleInMemoryDatabaseTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class SimpleInMemoryDatabaseTestModule implements IInitializingModule
 	{

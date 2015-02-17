@@ -26,7 +26,7 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.model.IDataObject;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -39,7 +39,7 @@ import de.osthus.ambeth.util.ReflectUtil;
 @SQLData("MergeControllerTest_data.sql")
 @TestModule(MergeControllerTestModule.class)
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/merge/mergecontroller/MergeControllerTest-orm.xml") })
-public class MergeControllerClientTest extends AbstractPersistenceTest
+public class MergeControllerClientTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICache cache;

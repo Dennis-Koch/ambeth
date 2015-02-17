@@ -18,7 +18,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.xml.model.Address;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.proxy.IObjRefContainer;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -27,7 +27,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLData("/de/osthus/ambeth/persistence/xml/Relations_data.sql")
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml")
-public class ORIHelperValueHolderTest extends AbstractPersistenceTest
+public class ORIHelperValueHolderTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected ICache cache;
 

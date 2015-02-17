@@ -23,6 +23,7 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.collections.IdentityHashMap;
 import de.osthus.ambeth.collections.IdentityLinkedSet;
 import de.osthus.ambeth.collections.LinkedHashMap;
+import de.osthus.ambeth.collections.Tuple3KeyEntry;
 import de.osthus.ambeth.collections.Tuple3KeyHashMap;
 import de.osthus.ambeth.compositeid.ICompositeIdFactory;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -76,6 +77,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		@Override
 		public void returnForkedValue(Object value, Object forkedValue)
 		{
+			Maps baseValue = (Maps) value;
+			Maps fork = (Maps) forkedValue;
+
+			for (Tuple3KeyEntry<Class<?>, Integer, Object, ILoadContainer> entry : fork.loadContainerMap)
+			{
+				baseValue.loadContainerMap.put(entry.getKey1(), entry.getKey2(), entry.getKey3(), entry.getValue());
+			}
 		}
 	}
 
@@ -161,7 +169,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 	@Override
 	public void cleanupThreadLocal()
 	{
-		disposeMaps();
+		disposeMaps(null);
 	}
 
 	protected void acquireMaps(int sizeHint)
@@ -190,9 +198,9 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		return loadContainerMapTL.get().objRefMap;
 	}
 
-	protected void disposeMaps()
+	protected void disposeMaps(Maps oldMaps)
 	{
-		loadContainerMapTL.remove();
+		loadContainerMapTL.set(oldMaps);
 	}
 
 	@Override
@@ -203,10 +211,12 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		LinkedHashMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		LinkedHashMap<Class<?>, Collection<Object>[]> cascadeTypeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
 		IdentityLinkedSet<ILoadContainer> loadContainerSet = IdentityLinkedSet.<ILoadContainer> create(orisToLoad.size());
-		acquireMaps(orisToLoad.size());
-		Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
+		Maps oldMaps = loadContainerMapTL.get();
+		loadContainerMapTL.set(null);
 		try
 		{
+			acquireMaps(orisToLoad.size());
+			Tuple3KeyHashMap<Class<?>, Integer, Object, ILoadContainer> loadContainerMap = getLoadContainerMap();
 			for (int a = orisToLoad.size(); a-- > 0;)
 			{
 				IObjRef oriToLoad = orisToLoad.get(a);
@@ -240,6 +250,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				ILoadContainer loadContainer = loadContainerMap.get(table.getEntityType(), Integer.valueOf(idIndex), persistentId);
 				if (loadContainer == null)
 				{
+					// beanContext.getService(java.sql.Connection.class).commit();
 					continue;
 				}
 				if (table.getVersionField() != null)
@@ -260,7 +271,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		finally
 		{
-			disposeMaps();
+			disposeMaps(oldMaps);
 		}
 	}
 
@@ -553,9 +564,11 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		IDatabase database = this.database.getCurrent();
 		IConversionHelper conversionHelper = this.conversionHelper;
 		ILinkedMap<Class<?>, Collection<Object>[]> typeToPendingInit = new LinkedHashMap<Class<?>, Collection<Object>[]>();
-		acquireMaps(orisWithoutVersion.size());
+		Maps oldMaps = loadContainerMapTL.get();
+		loadContainerMapTL.set(null);
 		try
 		{
+			acquireMaps(orisWithoutVersion.size());
 			Tuple3KeyHashMap<Class<?>, Integer, Object, IObjRef> objRefMap = getObjRefMap();
 
 			for (int a = orisWithoutVersion.size(); a-- > 0;)
@@ -579,7 +592,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 		}
 		finally
 		{
-			disposeMaps();
+			disposeMaps(oldMaps);
 		}
 	}
 

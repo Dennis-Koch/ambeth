@@ -103,15 +103,14 @@ public class EntityTypePrivilegeVisitor extends ClassGenerator
 		Constructor<?> constructor;
 		try
 		{
-			constructor = state.getCurrentType().getConstructor(Boolean.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class,
+			constructor = state.getCurrentType().getDeclaredConstructor(Boolean.class, Boolean.class, Boolean.class, Boolean.class, Boolean.class,
 					ITypePropertyPrivilege[].class, ITypePropertyPrivilege[].class);
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		ConstructorInstance c_method = new ConstructorInstance(constructor);
-
+		ConstructorInstance c_method = new ConstructorInstance(constructor).deriveAccess(Opcodes.ACC_PUBLIC);
 		MethodGenerator mg = visitMethod(c_method);
 		mg.loadThis();
 		mg.loadArgs();

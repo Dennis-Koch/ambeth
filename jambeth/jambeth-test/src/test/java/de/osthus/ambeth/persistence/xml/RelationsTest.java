@@ -47,7 +47,7 @@ import de.osthus.ambeth.security.IAuthorization;
 import de.osthus.ambeth.security.ISecurityContext;
 import de.osthus.ambeth.security.ISecurityContextHolder;
 import de.osthus.ambeth.security.ISecurityScopeProvider;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -63,7 +63,7 @@ import de.osthus.ambeth.util.ParamHolder;
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml"),
 		@TestProperties(name = CacheConfigurationConstants.ServiceResultCacheActive, value = "false") })
 @TestModule(TestServicesModule.class)
-public class RelationsTest extends AbstractPersistenceTest
+public class RelationsTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected IBusinessService businessService;

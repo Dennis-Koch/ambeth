@@ -147,6 +147,10 @@ public class JDBCSqlConnection extends SqlConnection
 							}
 							arraysToDispose.add(value);
 						}
+						else if (value != null && value.getClass().isEnum())
+						{
+							value = value.toString();
+						}
 						pstm.setObject(index + 1, value);
 					}
 					resultSet = pstm.executeQuery();

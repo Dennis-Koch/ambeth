@@ -15,10 +15,5 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-datachange-persistence</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil-persistence</artifactId>
-		</dependency>
 	</dependencies>
 </project>

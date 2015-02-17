@@ -60,8 +60,6 @@
 		<!-- REMOVED till migrated from other repo <module>../jAmbeth.Xml.File</module> -->
 
 		<module>../jambeth-test</module>
-		<module>../jambeth-testutil</module>
-		<module>../jambeth-testutil-persistence</module>
 	</modules>
 
 	<build>

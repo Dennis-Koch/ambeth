@@ -8,7 +8,7 @@ import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -18,7 +18,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLStructure("/de/osthus/ambeth/persistence/xml/Relations_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/orm.xml")
 @TestModule(TestServicesModule.class)
-public class QueryBuilderTest extends AbstractPersistenceTest
+public class QueryBuilderTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	public void testComplexQuery()

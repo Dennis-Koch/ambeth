@@ -8,7 +8,7 @@ import de.osthus.ambeth.ioc.BootstrapScannerModule;
 import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.service.ProcessServiceTestModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataList;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.xml.oriwrapper.OriWrapperTestBed.TestData;
 @TestPropertiesList({ @TestProperties(file = "de/osthus/ambeth/xml/oriwrapper/OriWrapperTestData.properties"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml;de/osthus/ambeth/xml/oriwrapper/orm.xml") })
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceTestModule.class, OriWrapperTestModule.class })
-public class OriWrapperWriteTest extends AbstractPersistenceTest
+public class OriWrapperWriteTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired(XmlModule.CYCLIC_XML_HANDLER)
 	protected ICyclicXMLHandler cyclicXmlHandler;

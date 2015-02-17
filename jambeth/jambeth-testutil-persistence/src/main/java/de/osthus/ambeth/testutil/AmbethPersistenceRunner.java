@@ -30,7 +30,6 @@ import org.junit.runners.model.InitializationError;
 
 import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.appendable.AppendableStringBuilder;
-import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -38,7 +37,6 @@ import de.osthus.ambeth.collections.IMap;
 import de.osthus.ambeth.config.IProperties;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.UtilConfigurationConstants;
-import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.io.FileUtil;
@@ -528,10 +526,6 @@ public class AmbethPersistenceRunner extends AmbethIocRunner
 					beanContext.getService(DataSetupExecutor.class).rebuildData();
 					isRebuildDataForThisTestRecommended = false;
 				}
-
-				// Trigger clearing of other maps and caches (QueryResultCache,...)
-				beanContext.getService(IEventDispatcher.class).dispatchEvent(ClearAllCachesEvent.getInstance());
-
 				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(MergeConfigurationConstants.SecurityActive,
 						"false"));
 				if (!securityActive)

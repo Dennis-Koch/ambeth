@@ -26,7 +26,7 @@ import de.osthus.ambeth.persistence.jdbc.alternateid.AlternateIdTest.AlternateId
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -37,7 +37,7 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 @SQLStructure("alternateid_structure.sql")
 @TestModule(AlternateIdModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/jdbc/alternateid/alternateid_orm.xml")
-public class AlternateIdTest extends AbstractPersistenceTest
+public class AlternateIdTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class AlternateIdModule implements IInitializingModule
 	{

@@ -778,6 +778,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache)
 	{
 		IDirectedLinkMetaData linkMD = link.getMetaData();
+		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IObjRefHelper oriHelper = this.oriHelper;
 		IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getMetaData().getEntityType());
@@ -849,12 +850,17 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IVersionCursor cursor = query.retrieveAsVersions(false);
 			try
 			{
+				Class<?> idType = relatedMetaData.getIdMember().getRealType();
+				Class<?> versionType = relatedMetaData.getVersionMember() != null ? relatedMetaData.getVersionMember().getRealType() : null;
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(relatedType, ObjRef.PRIMARY_KEY_INDEX);
 				while (cursor.moveNext())
 				{
 					IVersionItem versionItem = cursor.getCurrent();
-					IObjRef objRef = preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion());
-					relatingRefs.add(preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion()));
+
+					Object id = conversionHelper.convertValueToType(idType, versionItem.getId());
+					Object version = conversionHelper.convertValueToType(versionType, versionItem.getVersion());
+					IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
+					relatingRefs.add(objRef);
 
 					UpdateContainer updateContainer = new UpdateContainer();
 					updateContainer.setReference(objRef);

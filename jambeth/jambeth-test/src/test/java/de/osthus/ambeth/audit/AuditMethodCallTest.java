@@ -36,7 +36,7 @@ import de.osthus.ambeth.security.TestUserResolver;
 import de.osthus.ambeth.security.model.IPassword;
 import de.osthus.ambeth.security.model.ISignature;
 import de.osthus.ambeth.security.model.IUser;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.SQLStructureList;
 import de.osthus.ambeth.testutil.TestFrameworkModule;
@@ -51,7 +51,7 @@ import de.osthus.ambeth.util.IPrefetchConfig;
 		@TestProperties(name = AuditConfigurationConstants.AuditActive, value = "true") })
 @SQLStructureList({ @SQLStructure("security-structure.sql"),//
 		@SQLStructure("audit-structure.sql") })
-public class AuditMethodCallTest extends AbstractPersistenceTest
+public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static class ABC implements IEntityPermissionRule<User>
 	{

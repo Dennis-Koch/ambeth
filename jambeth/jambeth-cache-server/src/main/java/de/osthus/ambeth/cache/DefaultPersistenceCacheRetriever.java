@@ -37,7 +37,7 @@ public class DefaultPersistenceCacheRetriever implements ICacheRetriever
 		{
 			debugToLoad(orisToLoad);
 		}
-		ArrayList<ILoadContainer> targetEntities = new ArrayList<ILoadContainer>();
+		ArrayList<ILoadContainer> targetEntities = new ArrayList<ILoadContainer>(orisToLoad.size());
 		loadContainerProvider.assignInstances(orisToLoad, targetEntities);
 		return targetEntities;
 	}

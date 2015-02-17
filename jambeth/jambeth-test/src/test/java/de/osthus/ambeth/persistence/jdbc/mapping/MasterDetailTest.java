@@ -20,7 +20,7 @@ import de.osthus.ambeth.persistence.jdbc.mapping.models.DetailListVO;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.DetailVO;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.Master;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.MasterVO;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
@@ -29,7 +29,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MasterDetailTest.basePath + "master-detail-orm.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MasterDetailTest.basePath + "master-detail-value-object.xml") })
-public class MasterDetailTest extends AbstractPersistenceTest
+public class MasterDetailTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/jdbc/mapping/";
 

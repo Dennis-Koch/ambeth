@@ -39,7 +39,7 @@ import de.osthus.ambeth.proxy.PersistenceContextType;
 import de.osthus.ambeth.query.config.QueryConfigurationConstants;
 import de.osthus.ambeth.query.sql.SqlColumnOperand;
 import de.osthus.ambeth.query.sql.SqlJoinOperator;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -48,7 +48,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLStructure("Query_structure.sql")
 @SQLData("Query_data.sql")
 @PersistenceContext(PersistenceContextType.NOT_REQUIRED)
-public class QueryTest extends AbstractPersistenceTest
+public class QueryTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";

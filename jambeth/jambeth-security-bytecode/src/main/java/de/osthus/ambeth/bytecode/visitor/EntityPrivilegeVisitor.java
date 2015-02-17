@@ -103,7 +103,7 @@ public class EntityPrivilegeVisitor extends ClassGenerator
 		Constructor<?> constructor;
 		try
 		{
-			constructor = state.getCurrentType().getConstructor(boolean.class, boolean.class, boolean.class, boolean.class, boolean.class,
+			constructor = state.getCurrentType().getDeclaredConstructor(boolean.class, boolean.class, boolean.class, boolean.class, boolean.class,
 					IPropertyPrivilege[].class, IPropertyPrivilege[].class);
 		}
 		catch (Throwable e)
