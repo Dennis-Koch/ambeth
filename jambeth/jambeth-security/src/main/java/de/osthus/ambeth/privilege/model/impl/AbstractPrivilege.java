@@ -44,7 +44,7 @@ public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmu
 		return Character.toLowerCase(oneChar);
 	}
 
-	protected AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+	public AbstractPrivilege(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege[] primitivePropertyPrivileges,
 			IPropertyPrivilege[] relationPropertyPrivileges)
 	{
 		// intended blank

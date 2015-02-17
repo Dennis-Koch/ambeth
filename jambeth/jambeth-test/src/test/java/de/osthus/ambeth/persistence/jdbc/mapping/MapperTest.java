@@ -49,7 +49,7 @@ import de.osthus.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntityVO;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.StringListType;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.MaterialService;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -67,7 +67,7 @@ import de.osthus.ambeth.transfer.MaterialVO;
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MapperTest.basePath + "orm.xml;" + MapperTest.basePath + "orm2.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MapperTest.basePath + "value-object.xml;" + MapperTest.basePath
 				+ "value-object2.xml") })
-public class MapperTest extends AbstractPersistenceTest
+public class MapperTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/jdbc/mapping/";
 

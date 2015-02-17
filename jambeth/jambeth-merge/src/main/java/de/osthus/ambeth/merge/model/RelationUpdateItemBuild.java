@@ -27,6 +27,16 @@ public class RelationUpdateItemBuild implements IRelationUpdateItem
 		return memberName;
 	}
 
+	public int getAddedCount()
+	{
+		return addedORIs.size();
+	}
+
+	public int getRemovedCount()
+	{
+		return removedORIs.size();
+	}
+
 	@Override
 	public IObjRef[] getAddedORIs()
 	{

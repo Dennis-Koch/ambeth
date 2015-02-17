@@ -23,7 +23,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.update.RelationUpdateTest.RelationUpdateTestModule;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -36,7 +36,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @SQLStructure("RelationUpdate_structure.sql")
 @TestModule(RelationUpdateTestModule.class)
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/update/orm.xml")
-public class RelationUpdateTest extends AbstractPersistenceTest
+public class RelationUpdateTest extends AbstractInformationBusWithPersistenceTest
 {
 
 	public static class RelationUpdateTestModule implements IInitializingModule

@@ -52,7 +52,7 @@
 //import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 //import de.osthus.ambeth.persistence.xml.TestServicesModule;
 //import de.osthus.ambeth.query.config.QueryConfigurationConstants;
-//import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+//import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 //import de.osthus.ambeth.testutil.SQLStructure;
 //import de.osthus.ambeth.testutil.TestFrameworkModule;
 //import de.osthus.ambeth.testutil.TestModule;
@@ -93,7 +93,7 @@
 //		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.persistence.jdbc.database.JdbcTransaction", value = "INFO"),
 //		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.proxy.AbstractCascadePostProcessor", value = "INFO"),
 //		@TestProperties(name = "ambeth.log.level.de.osthus.ambeth.service.PersistenceMergeServiceExtension", value = "INFO") })
-//public class QueryMassdataTest extends AbstractPersistenceTest
+//public class QueryMassdataTest extends AbstractInformationBusWithPersistenceTest
 //{
 //	public static final String THREAD_COUNT = "QueryMassdataTest.threads";
 //

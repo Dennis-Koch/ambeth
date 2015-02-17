@@ -3,7 +3,6 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jambeth-information-bus</artifactId>
-	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>de.osthus.ambeth</groupId>

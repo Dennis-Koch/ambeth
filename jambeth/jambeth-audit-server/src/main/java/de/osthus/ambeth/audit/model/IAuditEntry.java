@@ -13,7 +13,11 @@ public interface IAuditEntry
 
 	public static final String User = "User";
 
+	public static final String UserIdentifier = "UserIdentifier";
+
 	public static final String Services = "Services";
+
+	public static final String SignatureOfUser = "SignatureOfUser";
 
 	public static final String Entities = "Entities";
 

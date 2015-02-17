@@ -13,7 +13,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.service.IProcessService;
 import de.osthus.ambeth.service.SyncToAsyncUtil;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -24,7 +24,7 @@ import de.osthus.ambeth.xml.IXmlTypeExtendable;
 @SQLStructure("../ProcessServiceTest_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/service/orm.xml")
 @TestModule({ BootstrapScannerModule.class, XmlModule.class, ProcessServiceNamedTestModule.class })
-public class ProcessServiceNamedTest extends AbstractPersistenceTest
+public class ProcessServiceNamedTest extends AbstractInformationBusWithPersistenceTest
 {
 	private static final Object[] NO_PARAMS = {};
 

@@ -59,7 +59,7 @@ import de.osthus.ambeth.persistence.xml.model.Employee;
 import de.osthus.ambeth.persistence.xml.model.EmployeeType;
 import de.osthus.ambeth.persistence.xml.model.Project;
 import de.osthus.ambeth.proxy.ICascadedInterceptor;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -72,7 +72,7 @@ import de.osthus.ambeth.testutil.TestPropertiesList;
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = "de/osthus/ambeth/persistence/xml/value-object.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true") })
 @TestModule(TestServicesModule.class)
-public class MergeServiceTest extends AbstractPersistenceTest
+public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Autowired
 	protected ICacheFactory cacheFactory;

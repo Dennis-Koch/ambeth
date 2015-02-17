@@ -8,10 +8,6 @@ public class QueryEntity extends AbstractEntity
 {
 	public static final String Name1 = "Name1";
 
-	public static final String Fk = "Fk";
-
-	public static final String LinkTableEntity = "LinkTableEntity";
-
 	@Cascade(load = CascadeLoadMode.EAGER_VERSION)
 	protected JoinQueryEntity fk;
 

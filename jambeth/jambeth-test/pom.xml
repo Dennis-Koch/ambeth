@@ -22,6 +22,11 @@
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-test</artifactId>
 		</dependency>
+		
+		<dependency>
+			<groupId>de.osthus.ambeth</groupId>
+			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
@@ -128,17 +133,6 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-security-server</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.osthus.ambeth</groupId>
-			<artifactId>jambeth-testutil-persistence</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>

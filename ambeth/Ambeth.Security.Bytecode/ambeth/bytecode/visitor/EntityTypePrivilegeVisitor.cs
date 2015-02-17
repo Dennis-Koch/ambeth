@@ -82,15 +82,15 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                 mg.ReturnValue();
                 mg.EndMethod();
             }
-            implementConstructor(template_m_setPrimitivePropertyPrivilege, template_m_setRelationPropertyPrivilege);
+            ImplementConstructor(template_m_setPrimitivePropertyPrivilege, template_m_setRelationPropertyPrivilege);
             base.VisitEnd();
         }
 
-        protected void implementConstructor(MethodInstance template_m_setPrimitivePropertyPrivilege, MethodInstance template_m_setRelationPropertyPrivilege)
+        protected void ImplementConstructor(MethodInstance template_m_setPrimitivePropertyPrivilege, MethodInstance template_m_setRelationPropertyPrivilege)
         {
             IBytecodeBehaviorState state = State;
-            ConstructorInfo constructor = state.CurrentType.GetConstructor(new Type[] { typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool),
-					typeof(ITypePropertyPrivilege[]), typeof(ITypePropertyPrivilege[])});
+            ConstructorInfo constructor = state.CurrentType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] { typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool),
+					typeof(ITypePropertyPrivilege[]), typeof(ITypePropertyPrivilege[])}, null);
             ConstructorInstance c_method = new ConstructorInstance(constructor);
 
             IMethodVisitor mg = VisitMethod(c_method);

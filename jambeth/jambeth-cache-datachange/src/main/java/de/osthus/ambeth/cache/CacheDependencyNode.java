@@ -3,9 +3,6 @@ package de.osthus.ambeth.cache;
 import java.util.EnumSet;
 import java.util.Set;
 
-import de.osthus.ambeth.cache.CacheDirective;
-import de.osthus.ambeth.cache.ChildCache;
-import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.collections.ArrayList;
@@ -69,7 +66,7 @@ public class CacheDependencyNode
 
 	private void pushPendingChangeOnAnyChildCacheIntern()
 	{
-		this.pendingChangeOnAnyChildCache = true;
+		pendingChangeOnAnyChildCache = true;
 		if (parentNode != null)
 		{
 			parentNode.pushPendingChangeOnAnyChildCacheIntern();
@@ -122,9 +119,12 @@ public class CacheDependencyNode
 			IObjRef hardRefObjRefToLoad = hardRefRequest.get(a);
 			intermediateDeletes.add(hardRefObjRefToLoad);
 		}
-		this.privilegedHardRefResult = hardRefResult;
-		removeNotFoundObjRefs(intermediateDeletes.toArray(IObjRef.class));
-
+		privilegedHardRefResult = hardRefResult;
+		if (intermediateDeletes.size() > 0)
+		{
+			IObjRef[] intermediateDeletesArray = intermediateDeletes.toArray(IObjRef.class);
+			removeNotFoundObjRefs(intermediateDeletesArray);
+		}
 		return intermediateDeletes;
 	}
 }

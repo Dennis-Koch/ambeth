@@ -15,7 +15,7 @@ import de.osthus.ambeth.exception.MaskingRuntimeException;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 import de.osthus.ambeth.testutil.TestRebuildContext;
@@ -23,7 +23,7 @@ import de.osthus.ambeth.testutil.TestRebuildContext;
 @TestPropertiesList({ @TestProperties(name = PersistenceJdbcConfigurationConstants.IntegratedConnectionPool, value = "true"),
 		@TestProperties(name = PersistenceJdbcConfigurationConstants.DatabaseBehaviourStrict, value = "true") })
 @TestRebuildContext
-public class ConnectionHandlingTest extends AbstractPersistenceTest
+public class ConnectionHandlingTest extends AbstractInformationBusWithPersistenceTest
 {
 	// Normal behavior. No Exception and only one created connection in log.
 	@Test

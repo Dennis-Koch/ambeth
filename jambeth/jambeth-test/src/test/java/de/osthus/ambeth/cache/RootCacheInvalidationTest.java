@@ -18,7 +18,7 @@ import de.osthus.ambeth.model.Unit;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.TestServicesModule;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -33,7 +33,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestPropertiesList({ @TestProperties(name = PersistenceConfigurationConstants.DatabaseTablePrefix, value = "D_"),
 		@TestProperties(name = PersistenceConfigurationConstants.DatabaseFieldPrefix, value = "F_"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
-public class RootCacheInvalidationTest extends AbstractPersistenceTest
+public class RootCacheInvalidationTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected ICacheContext cacheContext;
 

@@ -14,7 +14,7 @@ import de.osthus.ambeth.persistence.ITableMetaData;
 import de.osthus.ambeth.persistence.xml.model.ParentOfEmbeddedType;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -22,7 +22,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLData("embeddedtype_data.sql")
 @SQLStructure("embeddedtype_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/persistence/xml/embedded_type_orm.xml")
-public class EmbeddedTypeTest extends AbstractPersistenceTest
+public class EmbeddedTypeTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	public void simple() throws Throwable

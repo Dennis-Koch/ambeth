@@ -254,6 +254,11 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 	protected void rebuildContextDetails(IBeanContextFactory childContextFactory)
 	{
 		childContextFactory.registerExternalBean(new TestContext(this)).autowireable(ITestContext.class);
+		Class<? extends ICleanupAfter> cleanupAfterType = getCleanupAfterType();
+		if (cleanupAfterType != null)
+		{
+			childContextFactory.registerBean(cleanupAfterType).autowireable(ICleanupAfter.class);
+		}
 	}
 
 	@Override
@@ -272,6 +277,11 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				System.gc();
 			}
 		};
+	}
+
+	protected Class<? extends ICleanupAfter> getCleanupAfterType()
+	{
+		return CleanupAfterIoc.class;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -301,13 +311,20 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				}
 				finally
 				{
-					if (oldTargetProxy != null)
+					targetProxyTL.set(oldTargetProxy);
+
+					if (beanContext != null)
 					{
-						targetProxyTL.set(oldTargetProxy);
+						ICleanupAfter cleanupAfter = beanContext.getService(ICleanupAfter.class, false);
+						if (cleanupAfter != null)
+						{
+							cleanupAfter.cleanup();
+						}
 					}
-					else
+					else if (testClassLevelContext != null)
 					{
-						targetProxyTL.remove();
+						IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
+						tlCleanupController.cleanupThreadLocal();
 					}
 				}
 			}

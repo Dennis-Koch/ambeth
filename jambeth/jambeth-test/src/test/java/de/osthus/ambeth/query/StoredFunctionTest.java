@@ -8,7 +8,7 @@ import java.util.List;
 import org.junit.Test;
 
 import de.osthus.ambeth.config.ServiceConfigurationConstants;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
@@ -16,7 +16,7 @@ import de.osthus.ambeth.testutil.TestProperties;
 @SQLData("StoredFunction_data.sql")
 @SQLStructure("StoredFunction_structure.sql")
 @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "de/osthus/ambeth/query/Query_orm.xml")
-public class StoredFunctionTest extends AbstractPersistenceTest
+public class StoredFunctionTest extends AbstractInformationBusWithPersistenceTest
 {
 	protected static final String paramName1 = "param.1";
 	protected static final String paramName2 = "param.2";

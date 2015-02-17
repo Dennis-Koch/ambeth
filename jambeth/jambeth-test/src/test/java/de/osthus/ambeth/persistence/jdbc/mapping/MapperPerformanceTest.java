@@ -25,7 +25,7 @@ import de.osthus.ambeth.persistence.jdbc.mapping.models.OneToManyEntityService;
 import de.osthus.ambeth.persistence.jdbc.mapping.models.SelfReferencingEntityService;
 import de.osthus.ambeth.service.IMaterialService;
 import de.osthus.ambeth.service.MaterialService;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -42,7 +42,7 @@ import de.osthus.ambeth.util.ParamChecker;
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.GenericTransferMapping, value = "true"),
 		@TestProperties(name = ServiceConfigurationConstants.mappingFile, value = MapperPerformanceTest.basePath + "orm.xml"),
 		@TestProperties(name = ServiceConfigurationConstants.valueObjectFile, value = MapperPerformanceTest.basePath + "value-object.xml") })
-public class MapperPerformanceTest extends AbstractPersistenceTest
+public class MapperPerformanceTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/persistence/jdbc/mapping/";
 

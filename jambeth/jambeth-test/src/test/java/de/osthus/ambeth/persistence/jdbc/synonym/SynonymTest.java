@@ -5,7 +5,7 @@ import org.junit.experimental.categories.Category;
 
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.SQLTableSynonyms;
@@ -15,7 +15,7 @@ import de.osthus.ambeth.testutil.category.ReminderTests;
 @SQLStructure("Synonym_structure.sql")
 @SQLData("Synonym_data.sql")
 @SQLTableSynonyms("S_CHILD")
-public class SynonymTest extends AbstractPersistenceTest
+public class SynonymTest extends AbstractInformationBusWithPersistenceTest
 {
 	@LogInstance
 	private ILogger log;

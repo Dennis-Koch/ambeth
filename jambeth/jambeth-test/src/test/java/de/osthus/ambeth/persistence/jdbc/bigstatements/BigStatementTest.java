@@ -25,7 +25,7 @@ import de.osthus.ambeth.persistence.IVersionCursor;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.query.IQuery;
 import de.osthus.ambeth.query.IQueryBuilder;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLDataRebuild;
 import de.osthus.ambeth.testutil.SQLStructure;
@@ -41,7 +41,7 @@ import de.osthus.ambeth.testutil.category.SlowTests;
 @SQLStructure("BigStatement_structure.sql")
 @SQLData("BigStatement_data.sql")
 @SQLDataRebuild(false)
-public class BigStatementTest extends AbstractPersistenceTest
+public class BigStatementTest extends AbstractInformationBusWithPersistenceTest
 {
 	@Test
 	public void testBigQuery100000() throws Exception

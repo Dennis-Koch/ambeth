@@ -201,12 +201,17 @@ public class MethodInstance
 			sb.append(parameters[a].getClassName());
 		}
 		sb.append(')');
-		this.method = Method.getMethod(sb.toString());
+		method = Method.getMethod(sb.toString());
 	}
 
 	public MethodInstance deriveOwner()
 	{
 		return new MethodInstance(BytecodeBehaviorState.getState().getNewType(), this);
+	}
+
+	public MethodInstance deriveAccess(int access)
+	{
+		return new MethodInstance(getOwner(), access, getReturnType(), getMethod().getName(), getSignature(), getParameters());
 	}
 
 	public MethodInstance deriveName(String methodName)

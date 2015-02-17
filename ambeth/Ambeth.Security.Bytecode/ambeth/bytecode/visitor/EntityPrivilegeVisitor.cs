@@ -91,8 +91,8 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
         protected void ImplementConstructor(MethodInstance template_m_setPrimitivePropertyPrivilege, MethodInstance template_m_setRelationPropertyPrivilege)
         {
             IBytecodeBehaviorState state = State;
-            ConstructorInfo constructor = state.CurrentType.GetConstructor(new Type[] {typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool),
-					typeof(IPropertyPrivilege[]), typeof(IPropertyPrivilege[])});
+            ConstructorInfo constructor = state.CurrentType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new Type[] {typeof(bool), typeof(bool), typeof(bool), typeof(bool), typeof(bool),
+					typeof(IPropertyPrivilege[]), typeof(IPropertyPrivilege[])}, null);
             ConstructorInstance c_method = new ConstructorInstance(constructor);
 
             IMethodVisitor mg = VisitMethod(c_method);

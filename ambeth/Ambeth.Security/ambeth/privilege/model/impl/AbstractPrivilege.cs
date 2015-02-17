@@ -43,7 +43,7 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
             return Char.ToLowerInvariant(oneChar);
         }
 
-        protected AbstractPrivilege(bool create, bool read, bool update, bool delete, bool execute, IPropertyPrivilege[] primitivePropertyPrivileges,
+        public AbstractPrivilege(bool create, bool read, bool update, bool delete, bool execute, IPropertyPrivilege[] primitivePropertyPrivileges,
                 IPropertyPrivilege[] relationPropertyPrivileges)
         {
             // intended blank

@@ -15,20 +15,16 @@
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-with-persistence</artifactId>
-			<version>${project.version}</version>
 			<scope>provided</scope>
 			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-information-bus-with-persistence-test</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>de.osthus.ambeth</groupId>
 			<artifactId>jambeth-server-test</artifactId>
-			<version>${project.version}</version>
 			<type>pom</type>
 		</dependency>
 	</dependencies>

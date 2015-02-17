@@ -9,7 +9,7 @@ public abstract class AbstractTypePrivilege implements ITypePrivilege, IPrintabl
 {
 	public static int arraySizeForIndex()
 	{
-		return 1 << 8;
+		return 81 * 3;
 	}
 
 	public static int calcIndex(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute)
@@ -27,7 +27,7 @@ public abstract class AbstractTypePrivilege implements ITypePrivilege, IPrintabl
 		return value.booleanValue() ? valueIfTrue : valueIfFalse;
 	}
 
-	protected AbstractTypePrivilege(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute,
+	public AbstractTypePrivilege(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute,
 			ITypePropertyPrivilege[] primitivePropertyPrivileges, ITypePropertyPrivilege[] relationPropertyPrivileges)
 	{
 		// intended blank

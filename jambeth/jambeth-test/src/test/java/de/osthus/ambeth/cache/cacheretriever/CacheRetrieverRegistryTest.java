@@ -23,7 +23,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.service.ICacheRetrieverExtendable;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLData;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestModule;
@@ -36,7 +36,7 @@ import de.osthus.ambeth.util.ParamChecker;
 		+ CacheRetrieverRegistryTest.basePath + "external-orm.xml")
 @SQLData("CacheRetrieverRegistry_data.sql")
 @SQLStructure("CacheRetrieverRegistry_structure.sql")
-public class CacheRetrieverRegistryTest extends AbstractPersistenceTest
+public class CacheRetrieverRegistryTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String basePath = "de/osthus/ambeth/cache/cacheretriever/";
 

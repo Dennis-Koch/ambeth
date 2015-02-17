@@ -27,14 +27,14 @@ import de.osthus.ambeth.stream.binary.IBinaryInputStream;
 import de.osthus.ambeth.stream.binary.InputStreamToBinaryInputStream;
 import de.osthus.ambeth.stream.chars.ICharacterInputStream;
 import de.osthus.ambeth.stream.chars.ReaderToCharacterInputSource;
-import de.osthus.ambeth.testutil.AbstractPersistenceTest;
+import de.osthus.ambeth.testutil.AbstractInformationBusWithPersistenceTest;
 import de.osthus.ambeth.testutil.SQLStructure;
 import de.osthus.ambeth.testutil.TestProperties;
 import de.osthus.ambeth.testutil.TestPropertiesList;
 
 @SQLStructure("PersistenceStream_structure.sql")
 @TestPropertiesList({ @TestProperties(name = ServiceConfigurationConstants.mappingFile, value = "orm.xml") })
-public class PersistenceStreamTest extends AbstractPersistenceTest
+public class PersistenceStreamTest extends AbstractInformationBusWithPersistenceTest
 {
 	public static final String clobValue = "hallo";
 
