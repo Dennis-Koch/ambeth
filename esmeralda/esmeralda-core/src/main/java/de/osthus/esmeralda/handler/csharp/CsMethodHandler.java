@@ -211,7 +211,7 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeExpressionTree(superOrThisStatement);
 		}
 
-		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
+		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
 		context.setSnippetManager(snippetManager);
 		try
 		{

@@ -113,7 +113,8 @@ public class JsMethodHandler implements IMethodHandler
 			return;
 		}
 
-		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
+		ISnippetManager originalSnippetManager = context.getSnippetManager();
+		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
 		context.setSnippetManager(snippetManager);
 		try
 		{
@@ -154,7 +155,7 @@ public class JsMethodHandler implements IMethodHandler
 		}
 		finally
 		{
-			context.setSnippetManager(null);
+			context.setSnippetManager(originalSnippetManager);
 			languageHelper.getLanguageSpecific().getMethodScopeVars().clear();
 		}
 
