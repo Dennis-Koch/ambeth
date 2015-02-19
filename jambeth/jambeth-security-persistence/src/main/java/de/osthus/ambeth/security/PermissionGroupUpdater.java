@@ -436,60 +436,69 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				@Override
 				public Boolean invoke() throws Throwable
 				{
-					IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
-					if (entityToPgUpdateMap.size() == 0)
-					{
-						return Boolean.FALSE;
-					}
-					ArrayList<PermissionGroupUpdateForkItem> forkItems = new ArrayList<PermissionGroupUpdateForkItem>();
-					insertPermissionGroupsIntern(entityToPgUpdateMap, forkItems, dataChange != null);
-					if (forkItems.size() == 0)
-					{
-						return Boolean.TRUE;
-					}
-					// for (PermissionGroupUpdateForkItem itemOfFork : forkItems)
-					multithreadingHelper.invokeAndWait(forkItems, new IBackgroundWorkerParamDelegate<PermissionGroupUpdateForkItem>()
+					return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Boolean>()
 					{
 						@Override
-						public void invoke(PermissionGroupUpdateForkItem itemOfFork) throws Throwable
+						public Boolean invoke() throws Throwable
 						{
-							final PgUpdateEntry pgUpdateEntry = itemOfFork.pgUpdateEntry;
-							IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
-							final ITableMetaData table = permissionGroup.getTargetTable();
-							IList<IObjRef> objRefs = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRef>>()
+							IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
+							if (entityToPgUpdateMap.size() == 0)
+							{
+								return Boolean.FALSE;
+							}
+							ArrayList<PermissionGroupUpdateForkItem> forkItems = new ArrayList<PermissionGroupUpdateForkItem>();
+							insertPermissionGroupsIntern(entityToPgUpdateMap, forkItems, dataChange != null);
+							if (forkItems.size() == 0)
+							{
+								return Boolean.TRUE;
+							}
+							// for (PermissionGroupUpdateForkItem itemOfFork : forkItems)
+							multithreadingHelper.invokeAndWait(forkItems, new IBackgroundWorkerParamDelegate<PermissionGroupUpdateForkItem>()
 							{
 								@Override
-								public IList<IObjRef> invoke() throws Throwable
+								public void invoke(PermissionGroupUpdateForkItem itemOfFork) throws Throwable
 								{
-									switch (pgUpdateEntry.getUpdateType())
+									final PgUpdateEntry pgUpdateEntry = itemOfFork.pgUpdateEntry;
+									IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
+									final ITableMetaData table = permissionGroup.getTargetTable();
+									IList<IObjRef> objRefs = securityActivation
+											.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRef>>()
+											{
+												@Override
+												public IList<IObjRef> invoke() throws Throwable
+												{
+													switch (pgUpdateEntry.getUpdateType())
+													{
+														case NOTHING:
+														{
+															return null;
+														}
+														case SELECTED_ROW:
+														{
+															return loadSelectedObjRefs(pgUpdateEntry);
+														}
+														case EACH_ROW:
+														{
+															return loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
+														}
+														default:
+															throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
+													}
+												}
+											});
+									if (objRefs == null)
 									{
-										case NOTHING:
-										{
-											return null;
-										}
-										case SELECTED_ROW:
-										{
-											return loadSelectedObjRefs(pgUpdateEntry);
-										}
-										case EACH_ROW:
-										{
-											return loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
-										}
-										default:
-											throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
+										return;
 									}
+									Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
+									updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
+									insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.authentications, itemOfFork.authorizations,
+											permissionGroup);
 								}
 							});
-							if (objRefs == null)
-							{
-								return;
-							}
-							Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
-							updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
-							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.authentications, itemOfFork.authorizations, permissionGroup);
+							return Boolean.TRUE;
 						}
 					});
-					return Boolean.TRUE;
 				}
 			}, securityScopes);
 			if (pgUpdated.booleanValue() && log.isDebugEnabled())

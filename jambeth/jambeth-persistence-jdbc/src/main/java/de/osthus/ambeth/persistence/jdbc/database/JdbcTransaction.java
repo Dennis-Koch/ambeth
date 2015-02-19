@@ -41,7 +41,6 @@ import de.osthus.ambeth.persistence.parallel.IModifyingDatabase;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
-import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class JdbcTransaction implements ILightweightTransaction, ITransaction, ITransactionState, IThreadLocalCleanupBean
 {
@@ -62,6 +61,8 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		public LinkedHashMap<Object, IDatabase> databaseMap;
 
 		public boolean lazyMode;
+
+		public long openTime;
 
 		@Override
 		public long getSessionId()
@@ -170,6 +171,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				eventDispatcher.dispatchEvent(new DatabaseAcquireEvent(sessionId));
 			}
 			tli.databaseMap = persistenceUnitToDatabaseMap;
+			tli.openTime = System.currentTimeMillis();
 			tli.beginInProgress = Boolean.TRUE;
 			try
 			{
@@ -245,6 +247,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		{
 			return;
 		}
+		long tillPreCommitTime = System.currentTimeMillis();
 		boolean releaseSessionId = false;
 		long sessionId = sessionIdValue.longValue();
 		eventDispatcher.dispatchEvent(new DatabasePreCommitEvent(sessionId));
@@ -264,6 +267,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		ILinkedMap<Object, IConnectionHolder> persistenceUnitToConnectionHolderMap = connectionHolderRegistry.getPersistenceUnitToConnectionHolderMap();
 		try
 		{
+			long tillFlushTime = System.currentTimeMillis();
 			for (Entry<Object, IDatabaseProvider> entry : persistenceUnitToDatabaseProviderMap)
 			{
 				IDatabaseProvider databaseProvider = entry.getValue();
@@ -302,10 +306,12 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				IDatabase database = databaseProvider.tryGetInstance();
 				database.setSessionId(-1);
 			}
+			long openTime = tli.openTime;
 			if (eventDispatcher != null)
 			{
 				Boolean oldReadOnly = tli.isReadOnly;
 				Boolean oldIgnoreReleaseDatabase = tli.ignoreReleaseDatabase;
+				tli.openTime = 0;
 				tli.databaseMap = null;
 				tli.sessionId = null;
 				tli.isReadOnly = null;
@@ -316,6 +322,7 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				}
 				finally
 				{
+					tli.openTime = openTime;
 					tli.ignoreReleaseDatabase = oldIgnoreReleaseDatabase;
 					tli.sessionId = sessionIdValue;
 					tli.databaseMap = databaseMap;
@@ -338,10 +345,20 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 					database.release(false);
 				}
 			}
+			tli.openTime = 0;
 			tli.sessionId = null;
 			tli.databaseMap = null;
 			tli.isReadOnly = null;
 			releaseSessionId = true;
+			if (log.isDebugEnabled())
+			{
+				long currTime = System.currentTimeMillis();
+				long overall = currTime - openTime;
+				long app = tillPreCommitTime - openTime;
+				long preCommit = tillFlushTime - tillPreCommitTime;
+				long flush = currTime - tillFlushTime;
+				log.debug("Transaction commit (overall // app / preCommit / flush): " + overall + " // " + app + " / " + preCommit + " / " + flush + " ms");
+			}
 		}
 		catch (Throwable e)
 		{
@@ -372,6 +389,9 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 		long sessionId = sessionIdValue.longValue();
 		try
 		{
+			long openTime = tli.openTime;
+			long preRollbackTime = System.currentTimeMillis();
+			tli.openTime = 0;
 			tli.sessionId = null;
 			ILinkedMap<Object, IDatabase> databaseMap = tli.databaseMap;
 			tli.databaseMap = null;
@@ -434,9 +454,20 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 					throw RuntimeExceptionUtil.mask(e);
 				}
 			}
+			long tillFlushTime = System.currentTimeMillis();
 			if (eventDispatcher != null && !Boolean.TRUE.equals(readOnly))
 			{
 				eventDispatcher.dispatchEvent(new DatabaseFailEvent(sessionId));
+			}
+			if (log.isDebugEnabled())
+			{
+				long currTime = System.currentTimeMillis();
+				long overall = currTime - openTime;
+				long app = preRollbackTime - openTime;
+				long preRollback = tillFlushTime - preRollbackTime;
+				long revert = currTime - tillFlushTime;
+				log.debug("Transaction rollback (overall // app / preRollback / revert): " + overall + " // " + app + " / " + preRollback + " / " + revert
+						+ " ms");
 			}
 		}
 		catch (Throwable e)
@@ -458,7 +489,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 	@Override
 	public void processAndCommit(DatabaseCallback databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly)
 	{
-		long start = System.currentTimeMillis();
 		ThreadLocalItem tli = getEnsureTLI();
 		if (isActive())
 		{
@@ -493,11 +523,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				commit();
 			}
 			success = true;
-			long end = System.currentTimeMillis();
-			if (log.isDebugEnabled())
-			{
-				log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Executed Transaction: ", (end - start), " ms"));
-			}
 		}
 		catch (OptimisticLockException e)
 		{
@@ -531,7 +556,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 
 	public <R> R processAndCommit(ResultingDatabaseCallback<R> databaseCallback, boolean expectOwnDatabaseSession, boolean readOnly, boolean lazyTransaction)
 	{
-		long start = System.currentTimeMillis();
 		ThreadLocalItem tli = getEnsureTLI();
 		if (isActive())
 		{
@@ -585,11 +609,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 					commit();
 				}
 				success = true;
-				long end = System.currentTimeMillis();
-				if (log.isDebugEnabled())
-				{
-					log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Executed Transaction: ", (end - start), " ms"));
-				}
 				return result;
 			}
 			catch (OptimisticLockException e)
@@ -653,11 +672,6 @@ public class JdbcTransaction implements ILightweightTransaction, ITransaction, I
 				commit();
 			}
 			success = true;
-			long end = System.currentTimeMillis();
-			if (log.isDebugEnabled())
-			{
-				log.debug(StringBuilderUtil.concat(objectCollector.getCurrent(), "Executed Transaction: ", (end - start), " ms"));
-			}
 			return result;
 		}
 		catch (OptimisticLockException e)
