@@ -157,7 +157,7 @@ namespace De.Osthus.Ambeth.Merge.Model
             return ruiCount;
         }
 
-        public void ToString(StringBuilder sb)
+        public override void ToString(StringBuilder sb)
 	    {
 		    if (IsCreate())
 		    {

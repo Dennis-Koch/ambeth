@@ -470,10 +470,7 @@ namespace De.Osthus.Ambeth.Mapping
         protected Object CreateBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache)
 	    {
 		    Object businessObject = EntityFactory.CreateEntity(boMetaData);
-		    if (businessObject is IValueHolderContainer)
-		    {
-			    ((IValueHolderContainer) businessObject).__TargetCache = cache;
-		    }
+            cache.AssignEntityToCache(businessObject);
 		    return businessObject;
 	    }
 
@@ -659,7 +656,7 @@ namespace De.Osthus.Ambeth.Mapping
                 {
                     IObjRef[] objRefs = pendingRelations.Count > 0 ? pendingRelations.ToArray() : ObjRef.EMPTY_ARRAY;
                     businessObject.Set__Uninitialized(relationIndex, objRefs);
-				    businessObject.__TargetCache = cache;
+                    cache.AssignEntityToCache(businessObject);
                     referencedBOsSet.AddAll(objRefs);
                     boToPendingRelationsList.Add(new DirectValueHolderRef(businessObject, boMember));
                 }
