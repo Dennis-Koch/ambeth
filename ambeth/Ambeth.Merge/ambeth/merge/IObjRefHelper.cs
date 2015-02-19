@@ -22,13 +22,13 @@ namespace De.Osthus.Ambeth.Merge
 
         IObjRef EntityToObjRef(Object entity, bool forceOri);
 
-        IObjRef EntityToObjRef(Object entity, sbyte idIndex);
+        IObjRef EntityToObjRef(Object entity, int idIndex);
 
         IObjRef EntityToObjRef(Object entity, IEntityMetaData metaData);
 
-        IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData);
+        IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData);
 
-        IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData, bool forceOri);
+        IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, bool forceOri);
 
         IList<IObjRef> EntityToAllObjRefs(Object id, Object version, Object[] primitives, IEntityMetaData metaData);
 

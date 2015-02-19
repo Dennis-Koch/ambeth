@@ -50,16 +50,20 @@ public class CUDResultComparer implements ICUDResultComparer
 
 		protected boolean hasChanges;
 
+		private final ICUDResultHelper cudResultHelper;
+
 		private final IEntityMetaDataProvider entityMetaDataProvider;
 
 		private HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap;
 		private HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap;
 
-		public CUDResultDiff(ICUDResult left, ICUDResult right, boolean doFullDiff, IEntityMetaDataProvider entityMetaDataProvider)
+		public CUDResultDiff(ICUDResult left, ICUDResult right, boolean doFullDiff, ICUDResultHelper cudResultHelper,
+				IEntityMetaDataProvider entityMetaDataProvider)
 		{
 			this.doFullDiff = doFullDiff;
 			this.left = left;
 			this.right = right;
+			this.cudResultHelper = cudResultHelper;
 			this.entityMetaDataProvider = entityMetaDataProvider;
 			if (doFullDiff)
 			{
@@ -91,7 +95,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			}
 			Class<?> entityType = getLeftContainer().getReference().getRealType();
 			containerBuild = new CreateOrUpdateContainerBuild(leftContainer instanceof CreateContainer, getOrCreateRelationMemberNameToIndexMap(entityType),
-					getOrCreatePrimitiveMemberNameToIndexMap(entityType));
+					getOrCreatePrimitiveMemberNameToIndexMap(entityType), cudResultHelper);
 			containerBuild.setReference(getLeftContainer().getReference());
 			return containerBuild;
 		}
@@ -241,14 +245,14 @@ public class CUDResultComparer implements ICUDResultComparer
 	@Override
 	public boolean equalsCUDResult(ICUDResult left, ICUDResult right)
 	{
-		CUDResultDiff diff = new CUDResultDiff(left, right, false, entityMetaDataProvider);
+		CUDResultDiff diff = new CUDResultDiff(left, right, false, cudResultHelper, entityMetaDataProvider);
 		return equalsCUDResult(diff);
 	}
 
 	@Override
 	public ICUDResult diffCUDResult(ICUDResult left, ICUDResult right)
 	{
-		CUDResultDiff diff = new CUDResultDiff(left, right, true, entityMetaDataProvider);
+		CUDResultDiff diff = new CUDResultDiff(left, right, true, cudResultHelper, entityMetaDataProvider);
 		equalsCUDResult(diff);
 
 		if (!diff.hasChanges())
@@ -263,23 +267,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			{
 				continue;
 			}
-			CreateOrUpdateContainerBuild createOrUpdate = (CreateOrUpdateContainerBuild) changeContainer;
-			if (createOrUpdate.isCreate())
-			{
-				CreateContainer cc = new CreateContainer();
-				cc.setReference(createOrUpdate.getReference());
-				cc.setPrimitives(cudResultHelper.compactPUIs(createOrUpdate.getFullPUIs(), createOrUpdate.getPuiCount()));
-				cc.setRelations(cudResultHelper.compactRUIs(createOrUpdate.getFullRUIs(), createOrUpdate.getRuiCount()));
-				diffChanges.set(a, cc);
-			}
-			else if (createOrUpdate.isUpdate())
-			{
-				UpdateContainer uc = new UpdateContainer();
-				uc.setReference(createOrUpdate.getReference());
-				uc.setPrimitives(cudResultHelper.compactPUIs(createOrUpdate.getFullPUIs(), createOrUpdate.getPuiCount()));
-				uc.setRelations(cudResultHelper.compactRUIs(createOrUpdate.getFullRUIs(), createOrUpdate.getRuiCount()));
-				diffChanges.set(a, uc);
-			}
+			diffChanges.set(a, ((CreateOrUpdateContainerBuild) changeContainer).build());
 		}
 		return new CUDResult(diffChanges, diff.originalRefs);
 	}

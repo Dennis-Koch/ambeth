@@ -283,7 +283,7 @@ public class ObjRefHelper implements IObjRefHelper
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex)
+	public IObjRef entityToObjRef(Object entity, int idIndex)
 	{
 		return entityToObjRef(entity, idIndex, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
 	}
@@ -295,13 +295,13 @@ public class ObjRefHelper implements IObjRefHelper
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData)
+	public IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData)
 	{
 		return entityToObjRef(entity, idIndex, metaData, false);
 	}
 
 	@Override
-	public IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData, boolean forceOri)
+	public IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, boolean forceOri)
 	{
 		Object id;
 		Object version;

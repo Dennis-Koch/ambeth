@@ -67,7 +67,7 @@ public class LobStreamConverter implements IDedicatedConverter
 				}
 				return blob;
 			}
-			else if (IBinaryInputSource.class.isAssignableFrom(sourceType))
+			else if (ICharacterInputSource.class.isAssignableFrom(sourceType))
 			{
 				Clob clob = connection.createClob();
 				Writer os = clob.setCharacterStream(1);

@@ -116,7 +116,7 @@ namespace De.Osthus.Ambeth.Merge.Model
             this.AlternateIdMemberIndicesInPrimitives = EmptyShortArray;
         }
 
-        public PrimitiveMember GetIdMemberByIdIndex(sbyte idIndex)
+        public PrimitiveMember GetIdMemberByIdIndex(int idIndex)
         {
             if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
             {

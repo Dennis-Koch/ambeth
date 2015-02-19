@@ -35,7 +35,7 @@ public class OptimisticLockTest extends AbstractInformationBusWithPersistenceTes
 		IMaterialService materialService = beanContext.getService(IMaterialService.class);
 		Material material = materialService.getMaterialByName("test 1");
 		material.setName(material.getName() + "_X");
-		material.setVersion((short) (material.getVersion() - 1)); // Force OptLock exception
+		material.setVersion((short) -1); // Force OptLock exception
 		materialService.updateMaterial(material);
 	}
 

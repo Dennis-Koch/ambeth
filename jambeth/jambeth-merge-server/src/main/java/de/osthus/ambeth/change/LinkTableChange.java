@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.config.Property;
+import de.osthus.ambeth.config.UtilConfigurationConstants;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.IDirectedLink;
 import de.osthus.ambeth.persistence.ILink;
@@ -17,6 +19,9 @@ import de.osthus.ambeth.service.IChangeAggregator;
 public class LinkTableChange extends AbstractTableChange
 {
 	protected final HashMap<IObjRef, ILinkChangeCommand> rowCommands = new HashMap<IObjRef, ILinkChangeCommand>();
+
+	@Property(name = UtilConfigurationConstants.DebugMode, defaultValue = "false")
+	protected boolean debugMode;
 
 	@Override
 	public void addChangeCommand(IChangeCommand command)
@@ -57,7 +62,7 @@ public class LinkTableChange extends AbstractTableChange
 			for (Entry<IObjRef, ILinkChangeCommand> entry : rowCommands)
 			{
 				ILinkChangeCommand command = entry.getValue();
-				if (!command.isReadyToExecute())
+				if (debugMode && !command.isReadyToExecute())
 				{
 					throw new IllegalCommandException("LinkChangeCommand is not ready to be executed!");
 				}

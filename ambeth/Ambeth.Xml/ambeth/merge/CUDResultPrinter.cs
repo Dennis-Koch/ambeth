@@ -4,6 +4,7 @@ using De.Osthus.Ambeth.Log;
 using De.Osthus.Ambeth.Merge.Incremental;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Xml;
 using System;
@@ -18,6 +19,9 @@ namespace De.Osthus.Ambeth.Merge
 
 	    [Autowired]
 	    public IConversionHelper ConversionHelper { protected get; set; }
+
+        [Autowired]
+	    public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         protected readonly Comparison<CreateContainer> createContainerComparator = new Comparison<CreateContainer>(delegate(CreateContainer o1, CreateContainer o2)
 		    {
@@ -184,8 +188,10 @@ namespace De.Osthus.Ambeth.Merge
 				    writer.WriteEndElement();
 				    continue;
 			    }
-			    writer.WriteAttribute("type", item.RealType.FullName);
-			    writer.WriteAttribute("id", conversionHelper.ConvertValueToType<String>(item.Id));
+       			IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(item.RealType);
+			    writer.WriteAttribute("type", metaData.EntityType.FullName);
+			    PrimitiveMember idMember = metaData.GetIdMemberByIdIndex(item.IdNameIndex);
+			    writer.WriteAttribute(idMember.Name, conversionHelper.ConvertValueToType<String>(item.Id));
 			    if (item.Version != null)
 			    {
 				    writer.WriteAttribute("version", conversionHelper.ConvertValueToType<String>(item.Version));

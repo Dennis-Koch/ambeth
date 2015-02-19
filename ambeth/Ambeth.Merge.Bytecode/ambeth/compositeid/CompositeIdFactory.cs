@@ -112,5 +112,24 @@ namespace De.Osthus.Ambeth.CompositeId
             }
             return CreateCompositeId(metaData, compositeIdMember, ids);
         }
+
+        public Object CreateIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity)
+        {
+            int[][] alternateIdMemberIndicesInPrimitives = metaData.AlternateIdMemberIndicesInPrimitives;
+            int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
+
+            if (compositeIndex.Length == 1)
+            {
+                return metaData.PrimitiveMembers[compositeIndex[0]].GetValue(entity);
+            }
+            PrimitiveMember compositeIdMember = metaData.AlternateIdMembers[idIndex];
+            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
+            Object[] ids = new Object[compositeIndex.Length];
+            for (int a = compositeIndex.Length; a-- > 0; )
+            {
+                ids[a] = primitiveMembers[compositeIndex[a]].GetValue(entity);
+            }
+            return CreateCompositeId(metaData, compositeIdMember, ids);
+        }
     }
 }

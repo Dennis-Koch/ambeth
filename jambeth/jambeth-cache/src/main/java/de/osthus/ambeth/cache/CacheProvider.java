@@ -82,7 +82,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			IDisposableCache cache = cacheTL.get();
 			if (cache != null)
 			{
-				cacheTL.remove();
+				cacheTL.set(null);
 				cache.dispose();
 			}
 		}
@@ -91,7 +91,7 @@ public class CacheProvider implements IInitializingBean, IThreadLocalCleanupBean
 			IDisposableCache cache = privilegedCacheTL.get();
 			if (cache != null)
 			{
-				privilegedCacheTL.remove();
+				privilegedCacheTL.set(null);
 				cache.dispose();
 			}
 		}

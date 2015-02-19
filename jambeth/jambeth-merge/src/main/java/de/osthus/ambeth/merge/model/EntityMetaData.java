@@ -163,7 +163,7 @@ public class EntityMetaData implements IEntityMetaData
 	}
 
 	@Override
-	public PrimitiveMember getIdMemberByIdIndex(byte idIndex)
+	public PrimitiveMember getIdMemberByIdIndex(int idIndex)
 	{
 		if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
 		{

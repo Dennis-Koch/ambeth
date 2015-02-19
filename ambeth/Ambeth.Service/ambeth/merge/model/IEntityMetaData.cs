@@ -17,7 +17,7 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         PrimitiveMember IdMember { get; }
 
-        PrimitiveMember GetIdMemberByIdIndex(sbyte idIndex);
+        PrimitiveMember GetIdMemberByIdIndex(int idIndex);
 
         sbyte GetIdIndexByMemberName(String memberName);
 

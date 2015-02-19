@@ -18,6 +18,9 @@ namespace De.Osthus.Ambeth.Merge.Incremental
         public IConversionHelper ConversionHelper { protected get; set; }
 
         [Autowired]
+        public ICUDResultHelper CudResultHelper { protected get; set; }
+
+        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
@@ -27,9 +30,11 @@ namespace De.Osthus.Ambeth.Merge.Incremental
 
         public readonly HashMap<IObjRef, StateEntry> objRefToStateMap = new HashMap<IObjRef, StateEntry>();
 
-        private readonly HashMap<Type, HashMap<String, int>> typeToMemberNameToIndexMap = new HashMap<Type, HashMap<String, int>>();
+        private readonly HashMap<Type, HashMap<String, int?>> typeToMemberNameToIndexMap = new HashMap<Type, HashMap<String, int?>>();
 
-        private readonly HashMap<Type, HashMap<String, int>> typeToPrimitiveMemberNameToIndexMap = new HashMap<Type, HashMap<String, int>>();
+        private readonly HashMap<Type, HashMap<String, int?>> typeToPrimitiveMemberNameToIndexMap = new HashMap<Type, HashMap<String, int?>>();
+
+        private readonly Object writeLock = new Object();
 
         public readonly Comparison<IObjRef> objRefComparator;
 
@@ -75,54 +80,72 @@ namespace De.Osthus.Ambeth.Merge.Incremental
             return StateCache;
         }
 
-        protected HashMap<String, int> GetOrCreateRelationMemberNameToIndexMap(Type entityType,
-                IMap<Type, HashMap<String, int>> typeToMemberNameToIndexMap)
+        protected HashMap<String, int?> GetOrCreateRelationMemberNameToIndexMap(Type entityType,
+                IMap<Type, HashMap<String, int?>> typeToMemberNameToIndexMap)
         {
-            HashMap<String, int> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
+            HashMap<String, int?> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
             if (memberNameToIndexMap != null)
             {
                 return memberNameToIndexMap;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
-            RelationMember[] relationMembers = metaData.RelationMembers;
-            memberNameToIndexMap = HashMap<String, int>.Create(relationMembers.Length);
-            for (int a = relationMembers.Length; a-- > 0; )
+            lock (writeLock)
             {
-                memberNameToIndexMap.Put(relationMembers[a].Name, a);
+                memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
+                if (memberNameToIndexMap != null)
+                {
+                    // concurrent thread might have been faster
+                    return memberNameToIndexMap;
+                }
+                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
+                RelationMember[] relationMembers = metaData.RelationMembers;
+                memberNameToIndexMap = HashMap<String, int?>.Create(relationMembers.Length);
+                for (int a = relationMembers.Length; a-- > 0; )
+                {
+                    memberNameToIndexMap.Put(relationMembers[a].Name, a);
+                }
+                typeToMemberNameToIndexMap.Put(entityType, memberNameToIndexMap);
+                return memberNameToIndexMap;
             }
-            typeToMemberNameToIndexMap.Put(entityType, memberNameToIndexMap);
-            return memberNameToIndexMap;
         }
 
-        protected HashMap<String, int> GetOrCreatePrimitiveMemberNameToIndexMap(Type entityType,
-                IMap<Type, HashMap<String, int>> typeToMemberNameToIndexMap)
+        protected HashMap<String, int?> GetOrCreatePrimitiveMemberNameToIndexMap(Type entityType,
+                IMap<Type, HashMap<String, int?>> typeToMemberNameToIndexMap)
         {
-            HashMap<String, int> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
+            HashMap<String, int?> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
             if (memberNameToIndexMap != null)
             {
                 return memberNameToIndexMap;
             }
-            IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
-            PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
-            memberNameToIndexMap = HashMap<String, int>.Create(primitiveMembers.Length);
-            for (int a = primitiveMembers.Length; a-- > 0; )
+            lock (writeLock)
             {
-                memberNameToIndexMap.Put(primitiveMembers[a].Name, a);
+                memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
+                if (memberNameToIndexMap != null)
+                {
+                    // concurrent thread might have been faster
+                    return memberNameToIndexMap;
+                }
+                IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(entityType);
+                PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
+                memberNameToIndexMap = HashMap<String, int?>.Create(primitiveMembers.Length);
+                for (int a = primitiveMembers.Length; a-- > 0; )
+                {
+                    memberNameToIndexMap.Put(primitiveMembers[a].Name, a);
+                }
+                typeToMemberNameToIndexMap.Put(entityType, memberNameToIndexMap);
+                return memberNameToIndexMap;
             }
-            typeToMemberNameToIndexMap.Put(entityType, memberNameToIndexMap);
-            return memberNameToIndexMap;
         }
 
         public CreateOrUpdateContainerBuild NewCreateContainer(Type entityType)
         {
             return new CreateOrUpdateContainerBuild(true, GetOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
-                    GetOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap));
+                    GetOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), CudResultHelper);
         }
 
         public CreateOrUpdateContainerBuild NewUpdateContainer(Type entityType)
         {
             return new CreateOrUpdateContainerBuild(false, GetOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
-                    GetOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap));
+                    GetOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), CudResultHelper);
         }
     }
 }

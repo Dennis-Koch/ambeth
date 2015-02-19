@@ -22,6 +22,7 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.persistence.IDirectedLinkMetaData;
 import de.osthus.ambeth.persistence.IFieldMetaData;
 import de.osthus.ambeth.persistence.ITable;
+import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.service.IChangeAggregator;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ParamHolder;
@@ -99,7 +100,7 @@ public class TableChange extends AbstractTableChange
 				else if (ref instanceof IDirectObjRef)
 				{
 					IDirectObjRef directRef = (IDirectObjRef) ref;
-					CreateContainer container = (CreateContainer) directRef.getDirect();
+					Object container = directRef.getDirect();
 					String keyMemberName = foreignField.getMember().getName();
 					foreignKey = getAlternateIdValue(container, keyMemberName);
 				}
@@ -125,7 +126,7 @@ public class TableChange extends AbstractTableChange
 				IDirectObjRef directRef = (IDirectObjRef) reference;
 				if (foreignField.getIdIndex() != ObjRef.PRIMARY_KEY_INDEX)
 				{
-					CreateContainer container = (CreateContainer) directRef.getDirect();
+					Object container = directRef.getDirect();
 					String keyMemberName = foreignField.getMember().getName();
 					foreignKey = getAlternateIdValue(container, keyMemberName);
 				}
@@ -266,21 +267,30 @@ public class TableChange extends AbstractTableChange
 		}
 	}
 
-	protected Object getAlternateIdValue(CreateContainer container, String memberName)
+	protected Object getAlternateIdValue(Object container, String memberName)
 	{
 		Object value = null;
-		IPrimitiveUpdateItem[] puis = container.getPrimitives();
-		if (puis != null)
+		if (container instanceof CreateContainer)
 		{
-			for (int i = puis.length; i-- > 0;)
+			IPrimitiveUpdateItem[] puis = ((CreateContainer) container).getPrimitives();
+			if (puis != null)
 			{
-				IPrimitiveUpdateItem pui = puis[i];
-				if (pui.getMemberName().equals(memberName))
+				for (int i = puis.length; i-- > 0;)
 				{
-					value = pui.getNewValue();
-					break;
+					IPrimitiveUpdateItem pui = puis[i];
+					if (pui.getMemberName().equals(memberName))
+					{
+						value = pui.getNewValue();
+						break;
+					}
 				}
 			}
+		}
+		else
+		{
+			IEntityMetaData metaData = ((IEntityMetaDataHolder) container).get__EntityMetaData();
+			byte idIndex = metaData.getIdIndexByMemberName(memberName);
+			value = metaData.getAlternateIdMembers()[idIndex].getValue(container);
 		}
 		return value;
 	}

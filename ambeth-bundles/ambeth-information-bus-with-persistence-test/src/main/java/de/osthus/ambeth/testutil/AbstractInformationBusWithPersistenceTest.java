@@ -19,6 +19,7 @@ import de.osthus.ambeth.ioc.PrivilegeModule;
 import de.osthus.ambeth.ioc.PrivilegeServerModule;
 import de.osthus.ambeth.ioc.SecurityQueryModule;
 import de.osthus.ambeth.ioc.SecurityServerModule;
+import de.osthus.ambeth.ioc.XmlModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.merge.IEntityFactory;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
@@ -32,7 +33,7 @@ import de.osthus.ambeth.util.IConversionHelper;
 
 @TestFrameworkModule({ MergeServerModule.class, CacheServerModule.class, EventServerModule.class, EventDataChangeModule.class, ExprModule.class,
 		PersistenceModule.class, PersistenceJdbcModule.class, PrivilegeModule.class, PrivilegeServerModule.class, SecurityServerModule.class,
-		SecurityQueryModule.class, SQLQueryModule.class, FilterPersistenceModule.class })
+		SecurityQueryModule.class, SQLQueryModule.class, FilterPersistenceModule.class, PreparedStatementParamLoggerModule.class, XmlModule.class })
 @TestProperties(type = PersistencePropertiesProvider.class)
 @RunWith(AmbethInformationBusWithPersistenceRunner.class)
 public abstract class AbstractInformationBusWithPersistenceTest extends AbstractInformationBusTest

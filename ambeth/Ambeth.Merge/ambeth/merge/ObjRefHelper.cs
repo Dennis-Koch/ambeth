@@ -252,7 +252,7 @@ namespace De.Osthus.Ambeth.Merge
             return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, ((IEntityMetaDataHolder)entity).Get__EntityMetaData(), forceOri);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex)
+        public IObjRef EntityToObjRef(Object entity, int idIndex)
         {
             return EntityToObjRef(entity, idIndex, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
         }
@@ -262,12 +262,12 @@ namespace De.Osthus.Ambeth.Merge
             return EntityToObjRef(entity, ObjRef.PRIMARY_KEY_INDEX, metaData);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData)
+        public IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData)
         {
             return EntityToObjRef(entity, idIndex, metaData, false);
         }
 
-        public IObjRef EntityToObjRef(Object entity, sbyte idIndex, IEntityMetaData metaData, bool forceOri)
+        public IObjRef EntityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, bool forceOri)
         {
             Object id;
             Object version;

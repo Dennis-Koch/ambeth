@@ -22,6 +22,8 @@ import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableListContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IForkProcessor;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -70,6 +72,30 @@ import de.osthus.ambeth.util.IPrefetchState;
 public class PrivilegeService implements IPrivilegeService, IEntityPermissionRuleExtendable, IEntityTypePermissionRuleExtendable,
 		IEntityPermissionRuleProvider, IEntityTypePermissionRuleProvider, IThreadLocalCleanupBean
 {
+	public static class PrivilegeServiceForkProcessor implements IForkProcessor
+	{
+		@Autowired
+		protected IPrivilegeService privilegeService;
+
+		@Override
+		public Object resolveOriginalValue(Object bean, String fieldName, ThreadLocal<?> fieldValueTL)
+		{
+			return ((PrivilegeService) privilegeService).getOrCreatePrivilegeCache();
+		}
+
+		@Override
+		public Object createForkedValue(Object value)
+		{
+			return value;
+		}
+
+		@Override
+		public void returnForkedValue(Object value, Object forkedValue)
+		{
+		}
+
+	}
+
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -143,6 +169,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	@Property(name = SecurityConfigurationConstants.DefaultDeletePropertyPrivilegeActive, defaultValue = "true")
 	protected boolean isDefaultDeletePropertyPrivilege;
 
+	@Forkable(processor = PrivilegeServiceForkProcessor.class)
 	protected final ThreadLocal<IDisposableCache> privilegeCacheTL = new ThreadLocal<IDisposableCache>();
 
 	@Override
@@ -156,7 +183,7 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 		}
 	}
 
-	protected IDisposableCache getOrCreatePrivilegeCache()
+	public IDisposableCache getOrCreatePrivilegeCache()
 	{
 		IDisposableCache privilegeCache = privilegeCacheTL.get();
 		if (privilegeCache != null)
@@ -274,6 +301,10 @@ public class PrivilegeService implements IPrivilegeService, IEntityPermissionRul
 	{
 		try
 		{
+			if (!securityActivation.isSecured())
+			{
+				return getPrivilegesIntern2(objRefs, securityScopes);
+			}
 			return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<List<IPrivilegeOfService>>()
 			{
 				@Override

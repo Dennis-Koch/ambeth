@@ -16,7 +16,7 @@ public interface IEntityMetaData
 
 	PrimitiveMember getIdMember();
 
-	PrimitiveMember getIdMemberByIdIndex(byte idIndex);
+	PrimitiveMember getIdMemberByIdIndex(int idIndex);
 
 	byte getIdIndexByMemberName(String memberName);
 

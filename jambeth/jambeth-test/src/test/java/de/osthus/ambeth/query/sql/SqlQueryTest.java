@@ -196,7 +196,7 @@ public class SqlQueryTest extends AbstractInformationBusWithPersistenceTest
 
 		IQuery<?> query = qb.build(qb.all());
 		IQueryKey queryKey = query.getQueryKey(null);
-		Assert.assertEquals(QueryEntity.class.getName() + "##1=1#GROUP BY S_A.\"" + columnName1 + "\"#", queryKey.toString());
+		Assert.assertEquals(QueryEntity.class.getName() + "###GROUP BY \"" + columnName1 + "\"#", queryKey.toString());
 	}
 
 	@SuppressWarnings("deprecation")

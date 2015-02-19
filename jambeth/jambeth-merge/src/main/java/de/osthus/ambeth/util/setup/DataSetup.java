@@ -1,16 +1,22 @@
 package de.osthus.ambeth.util.setup;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import de.osthus.ambeth.collections.IdentityHashSet;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.extendable.IExtendableContainer;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 {
@@ -30,6 +36,7 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 	public void unregisterDatasetBuilder(IDatasetBuilder testBedBuilder)
 	{
 		datasetBuilderContainer.unregister(testBedBuilder);
+		eraseEntityReference(testBedBuilder);
 	}
 
 	@Override
@@ -72,6 +79,60 @@ public class DataSetup implements IDataSetup, IDatasetBuilderExtendable
 		}
 
 		return sortedBuilders;
+	}
 
+	@Override
+	public void eraseEntityReferences()
+	{
+		IDatasetBuilder[] extensions = datasetBuilderContainer.getExtensions();
+		for (IDatasetBuilder extension : extensions)
+		{
+			eraseEntityReference(extension);
+		}
+	}
+
+	protected void eraseEntityReference(IDatasetBuilder datasetBuilder)
+	{
+		for (Field field : ReflectUtil.getDeclaredFields(datasetBuilder.getClass()))
+		{
+			try
+			{
+				if (Modifier.isStatic(field.getModifiers()))
+				{
+					if (isFieldValueToBeErased(field.get(null)))
+					{
+						field.set(null, null);
+					}
+				}
+				else if (isFieldValueToBeErased(field.get(datasetBuilder)))
+				{
+					field.set(datasetBuilder, null);
+				}
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
+			}
+		}
+	}
+
+	protected boolean isFieldValueToBeErased(Object value)
+	{
+		if (value instanceof IObjRefContainer)
+		{
+			return true;
+		}
+		if (value instanceof Collection<?>)
+		{
+			Iterator<?> iter = ((Collection<?>) value).iterator();
+			while (iter.hasNext())
+			{
+				if (isFieldValueToBeErased(iter.next()))
+				{
+					iter.remove();
+				}
+			}
+		}
+		return false;
 	}
 }
