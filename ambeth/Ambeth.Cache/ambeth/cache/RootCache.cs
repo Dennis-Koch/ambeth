@@ -2048,5 +2048,10 @@ namespace De.Osthus.Ambeth.Cache
         {
             // Intended blank
         }
+
+        public void AssignEntityToCache(Object entity)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

@@ -2168,4 +2168,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	{
 		// Intended blank
 	}
+
+	@Override
+	public void assignEntityToCache(Object entity)
+	{
+		throw new UnsupportedOperationException();
+	}
 }

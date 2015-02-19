@@ -746,7 +746,7 @@ public class ValueHolderContainerTest extends AbstractInformationBusTest
 		IObjRef typeObjRef = oriHelper.entityToObjRef(obj);
 
 		IDisposableCache cache = cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
-		((IValueHolderContainer) parentEntity).set__TargetCache((ICacheIntern) cache);
+		((ICacheIntern) cache).assignEntityToCache(parentEntity);
 		((IObjRefContainer) parentEntity).set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
 		Assert.assertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).get__State(relationIndex));
