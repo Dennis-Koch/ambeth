@@ -24,4 +24,6 @@ public interface ICacheIntern extends ICache
 	boolean acquireHardRefTLIfNotAlready();
 
 	void clearHardRefs(boolean acquirementSuccessful);
+
+	void assignEntityToCache(Object entity);
 }

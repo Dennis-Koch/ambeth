@@ -18,6 +18,7 @@ using De.Osthus.Ambeth.Typeinfo;
 using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Garbageproxy;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -44,6 +45,9 @@ namespace De.Osthus.Ambeth.Cache
         public IFirstLevelCacheExtendable FirstLevelCacheExtendable { protected get; set; }
 
         [Autowired]
+        public IGarbageProxyFactory GarbageProxyFactory { protected get; set; }
+
+        [Autowired]
         public ICacheIntern Parent { get; set; }
 
         [Property(CacheConfigurationConstants.ValueholderOnEmptyToOne, DefaultValue = "false")]
@@ -57,6 +61,8 @@ namespace De.Osthus.Ambeth.Cache
 
         [Property(Mandatory = false)]
 	    public String Name { protected get; set; }
+        
+        protected ICacheIntern gcProxy;
 
         protected int cacheId;
 
@@ -94,6 +100,8 @@ namespace De.Osthus.Ambeth.Cache
             base.AfterPropertiesSet();
 
             keyToAlternateIdsMap = new CacheHashMap(CacheMapEntryTypeProvider);
+
+            gcProxy = GarbageProxyFactory.CreateGarbageProxy<ICacheIntern>(this, (IDisposable) null, typeof(IWritableCache));
         }
 
         public override void Dispose()
@@ -510,13 +518,10 @@ namespace De.Osthus.Ambeth.Cache
             {
                 AddHardRefTL(cacheValue);
             }
+            AssignEntityToCache(primitiveFilledObject);
             if (relations != null && relations.Length > 0)
             {
-                RelationMember[] relationMembers = metaData.RelationMembers;
-
-                IValueHolderContainer vhc = (IValueHolderContainer)primitiveFilledObject;
-                vhc.__TargetCache = this;
-                HandleValueHolderContainer(vhc, relationMembers, relations);
+                HandleValueHolderContainer((IValueHolderContainer)primitiveFilledObject, metaData.RelationMembers, relations);
             }
             if (primitiveFilledObject is IDataObject)
             {
@@ -707,15 +712,16 @@ namespace De.Osthus.Ambeth.Cache
             vhc.Set__ObjRefs(relationIndex, relationsOfMember);
         }
 
-	    protected override void PutIntern(Object objectToCache, List<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet,
-			    HashSet<IObjRef> cascadeNeededORIs)
-	    {
-		    if (objectToCache is IValueHolderContainer)
-		    {
-			    ((IValueHolderContainer) objectToCache).__TargetCache = this;
-		    }
-		    base.PutIntern(objectToCache, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
-	    }
+        protected override void PutInternUnpersistedEntity(Object entity)
+        {
+            AssignEntityToCache(entity);		    
+            base.PutInternUnpersistedEntity(entity);
+        }
+
+        public void AssignEntityToCache(Object entity)
+        {
+            ((IValueHolderContainer)entity).__TargetCache = gcProxy;
+        }
         
 	    public override String ToString()
 	    {
