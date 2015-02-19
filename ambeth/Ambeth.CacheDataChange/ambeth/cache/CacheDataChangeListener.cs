@@ -569,17 +569,17 @@ namespace De.Osthus.Ambeth.Cache
                         // that these relations are in the RootCache at the time the target object will be updated.
                         // This is because initialized relations have to remain initialized after update but the relations
                         // may have been updated, too
-                        BatchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex], node);
+                        BatchPendingRelations(loadContainer, relationMembers[relationIndex], relations[relationIndex], node);
                     }
                 }
             }
         }
 
-        protected void BatchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
+        protected void BatchPendingRelations(ILoadContainer newEntityContent, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
 	    {
 		    if (relationsOfMember == null)
 		    {
-			    IObjRelation objRelation = ValueHolderContainerMixin.GetSelf(entity, member.Name);
+                IObjRelation objRelation = ValueHolderContainerMixin.GetSelf(newEntityContent, member.Name);
 			    node.cascadeRefreshObjRelationsSet.Add(objRelation);
                 IObjRef[] objRefs = objRelation.ObjRefs;
                 for (int a = objRefs.Length; a-- > 0; )

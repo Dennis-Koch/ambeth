@@ -1,5 +1,8 @@
 package de.osthus.ambeth.ioc;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -8,14 +11,18 @@ import javax.management.InvalidAttributeValueException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
+import javax.management.MBeanOperationInfo;
 import javax.management.ReflectionException;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IMap;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.ioc.annotation.MBeanOperation;
 import de.osthus.ambeth.typeinfo.IPropertyInfo;
 import de.osthus.ambeth.typeinfo.IPropertyInfoProvider;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.ImmutableTypeSet;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class BeanMonitoringSupport implements DynamicMBean
 {
@@ -111,8 +118,19 @@ public class BeanMonitoringSupport implements DynamicMBean
 	@Override
 	public Object invoke(String actionName, Object[] params, String[] signature) throws MBeanException, ReflectionException
 	{
-		// ReflectUtil.getDeclaredMethod(false, bean.getClass(), actionName, )
-		return null;
+		Method method = ReflectUtil.getDeclaredMethod(false, bean.getClass(), null, actionName, (Class<?>[]) null);
+		try
+		{
+			return method.invoke(bean, params);
+		}
+		catch (InvocationTargetException e)
+		{
+			throw new ReflectionException(((Exception) RuntimeExceptionUtil.mask(e.getCause(), Exception.class)));
+		}
+		catch (Throwable e)
+		{
+			throw new ReflectionException(((Exception) RuntimeExceptionUtil.mask(e, Exception.class)));
+		}
 	}
 
 	@Override
@@ -120,11 +138,27 @@ public class BeanMonitoringSupport implements DynamicMBean
 	{
 		IPropertyInfoProvider propertyInfoProvider = beanContext.getService(IPropertyInfoProvider.class);
 		IPropertyInfo[] properties = propertyInfoProvider.getProperties(bean.getClass());
-		ArrayList<MBeanAttributeInfo> attributes = new ArrayList<MBeanAttributeInfo>(properties.length);
+
+		Method[] methods = ReflectUtil.getDeclaredMethods(bean.getClass());
+		ArrayList<MBeanOperationInfo> operations = null;
+		ArrayList<MBeanAttributeInfo> attributes = null;
+		for (int a = methods.length; a-- > 0;)
+		{
+			Method method = methods[a];
+			if (!method.isAnnotationPresent(MBeanOperation.class))
+			{
+				continue;
+			}
+			if (operations == null)
+			{
+				operations = new ArrayList<MBeanOperationInfo>();
+			}
+			operations.add(new MBeanOperationInfo(method.getName(), method));
+		}
 		for (int a = properties.length; a-- > 0;)
 		{
 			IPropertyInfo propertyInfo = properties[a];
-			if (!propertyInfo.isReadable())
+			if (!propertyInfo.isReadable() || propertyInfo.isAnnotationPresent(MBeanOperation.class))
 			{
 				continue;
 			}
@@ -132,10 +166,15 @@ public class BeanMonitoringSupport implements DynamicMBean
 			{
 				continue;
 			}
+			if (attributes == null)
+			{
+				attributes = new ArrayList<MBeanAttributeInfo>(a + 1);
+			}
 			attributes.add(new MBeanAttributeInfo(propertyInfo.getName(), propertyInfo.getPropertyType().getName(), null, propertyInfo.isReadable(),
 					propertyInfo.isWritable(), false));
 		}
-		MBeanInfo info = new MBeanInfo(bean.getClass().getName(), null, attributes.toArray(MBeanAttributeInfo.class), null, null, null, null);
+		MBeanInfo info = new MBeanInfo(bean.getClass().getName(), null, attributes != null ? attributes.toArray(MBeanAttributeInfo.class) : null, null,
+				operations != null ? operations.toArray(MBeanOperationInfo.class) : null, null, null);
 		return info;
 	}
 }

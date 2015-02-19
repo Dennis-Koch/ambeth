@@ -602,17 +602,17 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					// that these relations are in the RootCache at the time the target object will be updated.
 					// This is because initialized relations have to remain initialized after update but the relations
 					// may have been updated, too
-					batchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex], node);
+					batchPendingRelations(loadContainer, relationMembers[relationIndex], relations[relationIndex], node);
 				}
 			}
 		}
 	}
 
-	protected void batchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
+	protected void batchPendingRelations(ILoadContainer newEntityContent, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
 	{
 		if (relationsOfMember == null)
 		{
-			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(entity, member.getName());
+			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(newEntityContent, member.getName());
 			IObjRef[] objRefs = objRelation.getObjRefs();
 			for (int a = objRefs.length; a-- > 0;)
 			{

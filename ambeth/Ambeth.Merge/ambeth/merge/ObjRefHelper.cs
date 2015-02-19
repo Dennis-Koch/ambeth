@@ -11,6 +11,7 @@ using De.Osthus.Ambeth.Util;
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Metadata;
 using De.Osthus.Ambeth.Collections;
+using De.Osthus.Ambeth.Cache.Model;
 
 namespace De.Osthus.Ambeth.Merge
 {
@@ -21,6 +22,9 @@ namespace De.Osthus.Ambeth.Merge
 
         [Autowired]
         public IConversionHelper ConversionHelper { protected get; set; }
+
+        [Autowired]
+        public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
         public IObjRefFactory ObjRefFactory { protected get; set; }
@@ -285,6 +289,19 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 version = cacheValue.Version;
             }
+            else if (entity is ILoadContainer)
+		    {
+			    ILoadContainer lc = (ILoadContainer) entity;
+			    if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+			    {
+				    id = lc.Reference.Id;
+			    }
+			    else
+			    {
+				    id = CompositeIdFactory.CreateIdFromPrimitives(metaData, idIndex, lc.Primitives);
+			    }
+			    version = lc.Reference.Version;
+		    }
             else
             {
                 id = metaData.GetIdMemberByIdIndex(idIndex).GetValue(entity, false);
@@ -361,7 +378,12 @@ namespace De.Osthus.Ambeth.Merge
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity)
         {
-            return EntityToAllObjRefs(entity, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
+            if (entity is IEntityMetaDataHolder)
+		    {
+                return EntityToAllObjRefs(entity, ((IEntityMetaDataHolder)entity).Get__EntityMetaData());
+		    }
+		    ILoadContainer lc = (ILoadContainer) entity;
+		    return EntityToAllObjRefs(entity, EntityMetaDataProvider.GetMetaData(lc.Reference.RealType));
         }
 
         public IList<IObjRef> EntityToAllObjRefs(Object entity, IEntityMetaData metaData)
