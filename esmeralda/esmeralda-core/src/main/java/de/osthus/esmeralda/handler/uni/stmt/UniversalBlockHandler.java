@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.uni.stmt;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import com.sun.source.tree.BlockTree;
@@ -8,23 +9,33 @@ import com.sun.source.tree.Tree;
 import com.sun.source.tree.Tree.Kind;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeResolveException;
 import de.osthus.esmeralda.handler.AbstractStatementHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.StatementCount;
-import de.osthus.esmeralda.snippet.SnippetTrigger;
 import de.osthus.esmeralda.snippet.ISnippetManager;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
+import demo.codeanalyzer.common.model.Method;
 
 public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> implements IStatementHandlerExtension<BlockTree>
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IToDoWriter todoWriter;
 
 	@Override
 	public void handle(final BlockTree blockTree, boolean standalone)
@@ -45,14 +56,15 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 	public void writeBlockContentWithoutIntendation(BlockTree blockTree)
 	{
 		IConversionContext context = UniversalBlockHandler.this.context.getCurrent();
+		Method method = context.getMethod();
 		ISnippetManager snippetManager = context.getSnippetManager();
 		StatementCount metric = context.getMetric();
 
 		ArrayList<String> untranslatableStatements = new ArrayList<>();
 
 		List<? extends StatementTree> statements = blockTree.getStatements();
-		boolean noDryRun = !context.isDryRun();
-		if (noDryRun)
+		boolean dryRun = context.isDryRun();
+		if (!dryRun)
 		{
 			metric.setStatements(metric.getStatements() + statements.size());
 		}
@@ -82,14 +94,28 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 						});
 
 						// Important to check here to keep the code in order
-						checkUntranslatableList(untranslatableStatements, snippetManager);
+						checkUntranslatableList(untranslatableStatements, snippetManager, dryRun, context);
 
 						context.getWriter().append(statementString);
 					}
-					catch (SnippetTrigger | TypeResolveException e)
+					catch (SnippetTrigger snippetTrigger)
 					{
-						log.warn(e);
-						addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
+						String message = snippetTrigger.getMessage();
+						int pos = findPos(statement);
+						todoWriter.write(message, method, pos);
+						if (log.isInfoEnabled() && !dryRun)
+						{
+							log.info(message);
+						}
+						addToUntranslatableList(untranslatableStatements, statement, dryRun, context, kind);
+					}
+					catch (TypeResolveException e)
+					{
+						if (log.isWarnEnabled() && !dryRun)
+						{
+							log.warn(e);
+						}
+						addToUntranslatableList(untranslatableStatements, statement, dryRun, context, kind);
 					}
 					finally
 					{
@@ -98,10 +124,10 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 				}
 				else
 				{
-					addToUntranslatableList(untranslatableStatements, statement, noDryRun, context, kind);
+					addToUntranslatableList(untranslatableStatements, statement, dryRun, context, kind);
 				}
 			}
-			checkUntranslatableList(untranslatableStatements, snippetManager);
+			checkUntranslatableList(untranslatableStatements, snippetManager, dryRun, context);
 		}
 		finally
 		{
@@ -109,10 +135,29 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 		}
 	}
 
-	protected void addToUntranslatableList(ArrayList<String> untranslatableStatements, StatementTree statement, boolean noDryRun, IConversionContext context,
+	protected int findPos(StatementTree statement)
+	{
+		try
+		{
+			Field field = statement.getClass().getField("pos");
+			Object value = field.get(statement);
+			int pos = conversionHelper.convertValueToType(Integer.class, value).intValue();
+			return pos;
+		}
+		catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e)
+		{
+			return -1;
+		}
+	}
+
+	protected void addToUntranslatableList(ArrayList<String> untranslatableStatements, StatementTree statement, boolean dryRun, IConversionContext context,
 			Kind kind)
 	{
-		if (log.isInfoEnabled() && noDryRun)
+		if (dryRun)
+		{
+			return;
+		}
+		if (log.isInfoEnabled())
 		{
 			log.info(context.getClassInfo().getFqName() + ": unhandled - " + kind + ": " + statement.getClass().getSimpleName() + ": " + statement.toString());
 		}
@@ -122,20 +167,17 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 		untranslatableStatements.add(untranslatableStatement);
 	}
 
-	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager)
+	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager, boolean dryRun,
+			IConversionContext context)
 	{
-		if (untranslatableStatements.isEmpty())
+		if (dryRun || untranslatableStatements.isEmpty())
 		{
 			return;
 		}
 
-		if (!context.isDryRun())
-		{
-			IConversionContext context = UniversalBlockHandler.this.context.getCurrent();
-			StatementCount metric = context.getMetric();
+		StatementCount metric = context.getMetric();
 
-			metric.setUntranslatableStatements(metric.getUntranslatableStatements() + untranslatableStatements.size());
-		}
+		metric.setUntranslatableStatements(metric.getUntranslatableStatements() + untranslatableStatements.size());
 
 		snippetManager.writeSnippet(untranslatableStatements);
 		untranslatableStatements.clear();

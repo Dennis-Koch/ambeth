@@ -10,7 +10,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 
+import javax.lang.model.element.VariableElement;
+
 import de.osthus.ambeth.collections.HashSet;
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -84,7 +87,23 @@ public class ToDoWriter implements IToDoWriter
 		}
 
 		StringBuilder sb = new StringBuilder();
-		sb.append("in ").append(method.getOwningClass().getFqName()).append(" in method ").append(method.getName()).append("()");
+		sb.append("in ").append(method.getOwningClass().getFqName()).append(" in method ").append(method.getName()).append("(");
+		IList<VariableElement> parameters = method.getParameters();
+		boolean firstParam = true;
+		for (VariableElement parameter : parameters)
+		{
+			if (!firstParam)
+			{
+				sb.append(", ");
+			}
+			else
+			{
+				firstParam = false;
+			}
+			String name = parameter.asType().toString();
+			sb.append(name);
+		}
+		sb.append(")");
 		String todo = sb.toString();
 		String languagePathName = context.getLanguagePath();
 
@@ -99,6 +118,12 @@ public class ToDoWriter implements IToDoWriter
 	@Override
 	public void write(String topic, JavaClassInfo classInfo, int pos)
 	{
+		write(topic, null, classInfo, pos);
+	}
+
+	@Override
+	public void write(String topic, String message, JavaClassInfo classInfo, int pos)
+	{
 		IConversionContext context = this.context.getCurrent();
 		boolean dryRun = context.isDryRun();
 		if (todoPath == null || dryRun)
@@ -108,6 +133,10 @@ public class ToDoWriter implements IToDoWriter
 
 		StringBuilder sb = new StringBuilder();
 		sb.append("in ").append(classInfo.getFqName());
+		if (message != null)
+		{
+			sb.append(" => ").append(message);
+		}
 		String todo = sb.toString();
 		String languagePathName = context.getLanguagePath();
 

@@ -4,21 +4,13 @@ public class SnippetTrigger extends RuntimeException
 {
 	private static final long serialVersionUID = 3058855403144819674L;
 
-	private final String label;
-
-	public SnippetTrigger(String label)
+	public SnippetTrigger(String message)
 	{
-		this.label = label;
+		super(message);
 	}
 
-	public SnippetTrigger(String label, Throwable e)
+	public SnippetTrigger(String message, Throwable cause)
 	{
-		super(e);
-		this.label = label;
-	}
-
-	public String getLabel()
-	{
-		return label;
+		super(message, cause);
 	}
 }

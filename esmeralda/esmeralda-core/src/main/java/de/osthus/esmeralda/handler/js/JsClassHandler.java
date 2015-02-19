@@ -25,11 +25,16 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IClasspathManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IVariable;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.snippet.ISnippetManager;
+import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
@@ -48,6 +53,9 @@ public class JsClassHandler implements IClassHandler
 	@Autowired
 	protected IConversionContext context;
 
+	@Autowired
+	protected IASTHelper astHelper;
+
 	@Autowired("jsClasspathManager")
 	protected IClasspathManager jsClasspathManager;
 
@@ -65,6 +73,12 @@ public class JsClassHandler implements IClassHandler
 
 	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
+
+	@Autowired
+	protected ISnippetManagerFactory snippetManagerFactory;
+
+	@Autowired
+	protected IToDoWriter todoWriter;
 
 	@Override
 	public IJsHelper getLanguageHelper()
@@ -98,6 +112,8 @@ public class JsClassHandler implements IClassHandler
 
 		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
 
+		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
+		context.setSnippetManager(snippetManager);
 		context.setIndentationLevel(0);
 		try
 		{
@@ -126,6 +142,7 @@ public class JsClassHandler implements IClassHandler
 		finally
 		{
 			context.setIndentationLevel(0);
+			context.setSnippetManager(null);
 		}
 	}
 
@@ -263,13 +280,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writePrivateStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		IList<Field> privateStaticFields = createView(classInfo.getFields(), Boolean.TRUE, Boolean.TRUE);
-		for (Field field : privateStaticFields)
-		{
-			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(privateStaticFields, writer, firstLine, false);
 		return firstLine;
 	}
 
@@ -457,18 +468,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writePublicStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonStaticPrivateFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.TRUE);
-		if (nonStaticPrivateFields.isEmpty())
-		{
-			return firstLine;
-		}
-
-		for (Field field : nonStaticPrivateFields)
-		{
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(nonStaticPrivateFields, writer, firstLine, true);
 		return firstLine;
 	}
 
@@ -508,13 +508,8 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				boolean firstLine = true;
-				for (Field field : privateNonStaticFields)
-				{
-					firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-					context.setField(field);
-					fieldHandler.handle();
-				}
+				boolean firstLine = true; // new scope
+				writeFieldListWithSnippets(privateNonStaticFields, writer, firstLine, true);
 			}
 		});
 
@@ -524,18 +519,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writeFields(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonPrivateNonStaticFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.FALSE);
-		if (nonPrivateNonStaticFields.isEmpty())
-		{
-			return firstLine;
-		}
-
-		for (Field field : nonPrivateNonStaticFields)
-		{
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(nonPrivateNonStaticFields, writer, firstLine, true);
 		return firstLine;
 	}
 
@@ -666,6 +650,90 @@ public class JsClassHandler implements IClassHandler
 		return firstLine;
 	}
 
+	protected boolean writeFieldListWithSnippets(IList<Field> fields, IWriter writer, boolean firstLine, boolean useComma)
+	{
+		if (fields.isEmpty())
+		{
+			return firstLine;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+		ISnippetManager snippetManager = context.getSnippetManager();
+		ArrayList<String> untranslatableFieldDefinitions = new ArrayList<>();
+		boolean dryRun = context.isDryRun();
+		for (Field field : fields)
+		{
+			if (useComma)
+			{
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+			}
+			else
+			{
+				firstLine = languageHelper.newLineIndentIfFalse(firstLine);
+			}
+			context.setField(field);
+			try
+			{
+				String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						fieldHandler.handle();
+					}
+				});
+
+				// Important to check here to keep the code in order
+				checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+				context.getWriter().append(statementString);
+			}
+			catch (SnippetTrigger snippetTrigger)
+			{
+				if (!dryRun)
+				{
+					String message = snippetTrigger.getMessage();
+					todoWriter.write(message, ((FieldInfo) field).getInitializer().toString(), classInfo, field.getLocationInfo().getStartOffset());
+					if (log.isInfoEnabled())
+					{
+						log.info(message);
+					}
+				}
+				addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
+			}
+		}
+		checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+		return firstLine;
+	}
+
+	protected void addToUntranslatableList(ArrayList<String> untranslatableFieldDefinitions, Field field, boolean dryRun, IConversionContext context)
+	{
+		if (dryRun)
+		{
+			return;
+		}
+		if (log.isInfoEnabled())
+		{
+			log.info(context.getClassInfo().getFqName() + ": unhandled - FIELD: " + field.toString());
+		}
+
+		String untranslatableFieldDefinition = field.toString();
+		untranslatableFieldDefinitions.add(untranslatableFieldDefinition);
+	}
+
+	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager, boolean dryRun)
+	{
+		if (dryRun || untranslatableStatements.isEmpty())
+		{
+			return;
+		}
+
+		snippetManager.writeSnippet(untranslatableStatements);
+		untranslatableStatements.clear();
+	}
+
 	protected String findReturnType(ArrayList<Method> methods)
 	{
 		HashSet<String> returnTypes = new HashSet<>();
@@ -686,8 +754,13 @@ public class JsClassHandler implements IClassHandler
 		return "java.lang.Object";
 	}
 
-	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, JavaClassInfo classInfo, final IWriter writer)
+	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final JavaClassInfo classInfo, final IWriter writer)
 	{
+		if (fieldsToInit.isEmpty())
+		{
+			return;
+		}
+
 		final boolean enumType = classInfo.isEnum();
 
 		writer.append("function() ");
@@ -696,24 +769,55 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				for (Field field : fieldsToInit)
+				IConversionContext context = JsClassHandler.this.context.getCurrent();
+				ISnippetManager snippetManager = context.getSnippetManager();
+				ArrayList<String> untranslatableFieldDefinitions = new ArrayList<>();
+				boolean dryRun = context.isDryRun();
+				for (final Field field : fieldsToInit)
 				{
-					ExpressionTree initializer = ((FieldInfo) field).getInitializer();
-					if (initializer != null)
+					final ExpressionTree initializer = ((FieldInfo) field).getInitializer();
+					if (initializer == null)
 					{
-						languageHelper.newLineIndent();
-						writer.append("this.").append(field.getName()).append(" = ");
-						if (enumType && initializer instanceof JCNewClass)
+						continue;
+					}
+					languageHelper.newLineIndent();
+					try
+					{
+						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
 						{
-							writeEnumConstruction((JCNewClass) initializer, field.getName(), writer);
-						}
-						else
+							@Override
+							public void invoke() throws Throwable
+							{
+								writer.append("this.").append(field.getName()).append(" = ");
+								if (enumType && initializer instanceof JCNewClass)
+								{
+									writeEnumConstruction((JCNewClass) initializer, field.getName(), writer);
+								}
+								else
+								{
+									languageHelper.writeExpressionTree(initializer);
+								}
+								writer.append(";");
+							}
+						});
+
+						// Important to check here to keep the code in order
+						checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+						context.getWriter().append(statementString);
+					}
+					catch (SnippetTrigger snippetTrigger)
+					{
+						String message = snippetTrigger.getMessage();
+						todoWriter.write(message, ((FieldInfo) field).getInitializer().toString(), classInfo, field.getLocationInfo().getStartOffset());
+						if (log.isInfoEnabled() && !dryRun)
 						{
-							languageHelper.writeExpressionTree(initializer);
+							log.info(message);
 						}
-						writer.append(";");
+						addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
 					}
 				}
+				checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
 			}
 		});
 	}

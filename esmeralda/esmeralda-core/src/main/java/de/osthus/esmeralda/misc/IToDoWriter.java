@@ -13,6 +13,8 @@ public interface IToDoWriter
 
 	void write(String topic, JavaClassInfo classInfo, int pos);
 
+	void write(String topic, String message, JavaClassInfo classInfo, int pos);
+
 	void write(String topic, String todo);
 
 	void write(String topic, String todo, String languagePathName, boolean dryRun);

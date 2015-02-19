@@ -10,8 +10,6 @@ import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
-import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -34,6 +32,7 @@ import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
@@ -152,7 +151,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		writeAnonymousInstantiation(owner, def);
 	}
 
-	// FIXME es muss unterschieden werden, ob die Namen verfügbar sind. Anderenfalls müssen wir uns noch was einfallen lassen.
 	protected Iterator<String> extractParamNames(JCNewClass newClass)
 	{
 		MethodSymbol constructor = (MethodSymbol) newClass.constructor;
@@ -166,25 +164,27 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		}
 		else if (constructor != null && constructor.type != null)
 		{
-			if (log.isInfoEnabled())
-			{
-				log.info("Using parameter types instead of names for " + newClass.toString());
-			}
-			for (Type param : ((MethodType) constructor.type).argtypes)
-			{
-				paramNames.add(param.toString());
-			}
+			throw new SnippetTrigger("No names for called constructors parameters available");
+			// if (log.isInfoEnabled())
+			// {
+			// log.info("Using parameter types instead of names for " + newClass.toString());
+			// }
+			// for (Type param : ((MethodType) constructor.type).argtypes)
+			// {
+			// paramNames.add(param.toString());
+			// }
 		}
 		else
 		{
-			if (log.isWarnEnabled())
-			{
-				log.warn("Guessing parameter names for " + newClass.toString());
-			}
-			for (int i = 0, length = newClass.args.length(); i < length; i++)
-			{
-				paramNames.add("argument_" + i);
-			}
+			throw new SnippetTrigger("No names or types for called constructors parameters available");
+			// if (log.isWarnEnabled())
+			// {
+			// log.warn("Guessing parameter names for " + newClass.toString());
+			// }
+			// for (int i = 0, length = newClass.args.length(); i < length; i++)
+			// {
+			// paramNames.add("argument_" + i);
+			// }
 		}
 		return paramNames.iterator();
 	}

@@ -24,6 +24,7 @@ import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class DefaultMethodParameterProcessor implements IMethodParameterProcessor
@@ -92,8 +93,8 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				}
 				else
 				{
-					// FIXME JH Trigger Snippet creation
-					overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
+					throw new SnippetTrigger("No names or types for called methods parameters available");
+					// overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
 				}
 				writer.append(overloadedMethodNamePostfix);
 			}
@@ -152,7 +153,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			}
 			else
 			{
-				methodInvocation = null;
+				throw new SnippetTrigger("No names for called methods parameters available");
 				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
@@ -165,31 +166,29 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			}
 			else
 			{
-				methodInvocation = null;
+				throw new SnippetTrigger("No names for called methods parameters available");
 				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
 		else
 		{
-			throw new RuntimeException("Have not yet thought of that one...");
+			throw new RuntimeException("Unknown type of methodInvocation.meth");
 		}
 
 		return paramsList;
 	}
 
-	// TODO JH below here WIP!!!
-
-	protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
-	{
-		StringBuilder sb = new StringBuilder();
-		com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
-		for (JCExpression arg : args)
-		{
-			sb.append("_unknownType");
-		}
-		String dummyOverloadedMethodNamePostfix = sb.toString();
-		return dummyOverloadedMethodNamePostfix;
-	}
+	// protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
+	// {
+	// StringBuilder sb = new StringBuilder();
+	// com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
+	// for (JCExpression arg : args)
+	// {
+	// sb.append("_unknownType");
+	// }
+	// String dummyOverloadedMethodNamePostfix = sb.toString();
+	// return dummyOverloadedMethodNamePostfix;
+	// }
 
 	protected void getParamsList(IList<VariableElement> paramsList, MethodSymbol sym)
 	{
