@@ -693,11 +693,12 @@ public class JsClassHandler implements IClassHandler
 			{
 				if (!dryRun)
 				{
-					String message = snippetTrigger.getMessage();
-					todoWriter.write(message, ((FieldInfo) field).getInitializer().toString(), classInfo, field.getLocationInfo().getStartOffset());
+					String topic = snippetTrigger.getMessage();
+					String message = "Field initializer: " + ((FieldInfo) field).getInitializer().toString();
+					todoWriter.write(topic, message, classInfo, field.getLocationInfo().getStartOffset());
 					if (log.isInfoEnabled())
 					{
-						log.info(message);
+						log.info(topic);
 					}
 				}
 				addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
@@ -808,11 +809,12 @@ public class JsClassHandler implements IClassHandler
 					}
 					catch (SnippetTrigger snippetTrigger)
 					{
-						String message = snippetTrigger.getMessage();
-						todoWriter.write(message, ((FieldInfo) field).getInitializer().toString(), classInfo, field.getLocationInfo().getStartOffset());
+						String topic = snippetTrigger.getMessage();
+						String message = "Field initializer: " + ((FieldInfo) field).getInitializer().toString();
+						todoWriter.write(topic, message, classInfo, field.getLocationInfo().getStartOffset());
 						if (log.isInfoEnabled() && !dryRun)
 						{
-							log.info(message);
+							log.info(topic);
 						}
 						addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
 					}
