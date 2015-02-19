@@ -12,7 +12,7 @@ public class CleanupAfterInformationBus extends CleanupAfterIoc
 	@Autowired(CacheModule.COMMITTED_ROOT_CACHE)
 	protected IRootCache committedRootCache;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IDataSetup dataSetup;
 
 	@Autowired
@@ -21,8 +21,10 @@ public class CleanupAfterInformationBus extends CleanupAfterIoc
 	@Override
 	public void cleanup()
 	{
-		dataSetup.eraseEntityReferences();
-
+		if (dataSetup != null)
+		{
+			dataSetup.eraseEntityReferences();
+		}
 		committedRootCache.clear();
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 

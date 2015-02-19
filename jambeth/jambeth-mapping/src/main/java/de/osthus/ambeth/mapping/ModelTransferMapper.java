@@ -555,10 +555,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 	protected Object createBusinessObject(IEntityMetaData boMetaData, ICacheIntern cache)
 	{
 		Object businessObject = entityFactory.createEntity(boMetaData);
-		if (businessObject instanceof IValueHolderContainer)
-		{
-			((IValueHolderContainer) businessObject).set__TargetCache(cache);
-		}
+		cache.assignEntityToCache(businessObject);
 		return businessObject;
 	}
 
@@ -747,7 +744,7 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			{
 				IObjRef[] objRefs = pendingRelations.size() > 0 ? pendingRelations.toArray(IObjRef.class) : ObjRef.EMPTY_ARRAY;
 				businessObject.set__Uninitialized(relationIndex, objRefs);
-				businessObject.set__TargetCache(cache);
+				cache.assignEntityToCache(businessObject);
 				referencedBOsSet.addAll(objRefs);
 				boToPendingRelationsList.add(new DirectValueHolderRef(businessObject, boMember));
 			}

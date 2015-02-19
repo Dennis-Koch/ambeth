@@ -20,5 +20,7 @@ namespace De.Osthus.Ambeth.Cache
         bool AcquireHardRefTLIfNotAlready();
         
         void ClearHardRefs(bool acquirementSuccessful);
+
+        void AssignEntityToCache(Object entity);
     }
 }

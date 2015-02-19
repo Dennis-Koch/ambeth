@@ -731,7 +731,7 @@ namespace De.Osthus.Ambeth.Cache.Valueholdercontainer
             IObjRef typeObjRef = OriHelper.EntityToObjRef(obj);
 
             IDisposableCache cache = CacheFactory.Create(CacheFactoryDirective.NoDCE, "test");
-            ((IValueHolderContainer)parentEntity).__TargetCache = (ICacheIntern)cache;
+            ((ICacheIntern)cache).AssignEntityToCache(parentEntity);
             ((IObjRefContainer)parentEntity).Set__ObjRefs(relationIndex, new IObjRef[] { typeObjRef });
 
             Assert.AssertEquals(ValueHolderState.INIT, ((IObjRefContainer) parentEntity).Get__State(relationIndex));

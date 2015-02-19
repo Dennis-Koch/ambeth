@@ -259,6 +259,15 @@
     <Compile Include="ambeth\ioc\threadlocal\ReferenceValueResolver.cs" />
     <Compile Include="ambeth\ioc\threadlocal\ShallowCopyValueResolver.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\garbageproxy\GarbageProxyFactory.cs" />
+    <Compile Include="ambeth\garbageproxy\GCProxy.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyConstructor.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ambeth\ioc\exception\BeanAlreadyDisposedException.cs" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

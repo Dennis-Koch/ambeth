@@ -92,6 +92,10 @@
     <Compile Include="ambeth\converter\StringToPatternConverter.cs" />
     <Compile Include="ambeth\converter\StringToStringArrayConverter.cs" />
     <Compile Include="ambeth\debug\FlattenHierarchyProxy.cs" />
+    <Compile Include="ambeth\garbageproxy\GarbageProxyFactory.cs" />
+    <Compile Include="ambeth\garbageproxy\GCProxy.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyConstructor.cs" />
+    <Compile Include="ambeth\garbageproxy\IGarbageProxyFactory.cs" />
     <Compile Include="ambeth\ioc\annotation\AutowiredAttribute.cs" />
     <Compile Include="ambeth\ioc\annotation\BootstrapModuleAttribute.cs" />
     <Compile Include="ambeth\ioc\annotation\FrameworkModuleAttribute.cs" />
@@ -107,6 +111,7 @@
     <Compile Include="ambeth\ioc\config\PropertyRefConfiguration.cs" />
     <Compile Include="ambeth\ioc\config\PropertyValueConfiguration.cs" />
     <Compile Include="ambeth\ioc\DefaultExtendableContainer.cs" />
+    <Compile Include="ambeth\ioc\exception\BeanAlreadyDisposedException.cs" />
     <Compile Include="ambeth\ioc\exception\BeanContextInitException.cs" />
     <Compile Include="ambeth\ioc\exception\ExtendableException.cs" />
     <Compile Include="ambeth\ioc\exception\LinkException.cs" />

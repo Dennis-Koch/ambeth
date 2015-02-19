@@ -16,13 +16,15 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
-import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventQueue;
+import de.osthus.ambeth.exception.RuntimeExceptionUtil;
+import de.osthus.ambeth.garbageproxy.IGarbageProxyFactory;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IEntityFactory;
+import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -33,8 +35,11 @@ import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.proxy.IDefaultCollection;
 import de.osthus.ambeth.proxy.IObjRefContainer;
 import de.osthus.ambeth.proxy.IValueHolderContainer;
+import de.osthus.ambeth.security.ISecurityActivation;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ICacheHelper;
 import de.osthus.ambeth.util.ICachePathHelper;
+import de.osthus.ambeth.util.IDisposable;
 import de.osthus.ambeth.util.IParamHolder;
 import de.osthus.ambeth.util.ListUtil;
 import de.osthus.ambeth.util.Lock;
@@ -64,12 +69,23 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	protected IFirstLevelCacheExtendable firstLevelCacheExtendable;
 
 	@Autowired
+	protected IGarbageProxyFactory garbageProxyFactory;
+
+	@Autowired
 	protected ICacheIntern parent;
+
+	@Autowired(optional = true)
+	protected ISecurityActivation securityActivation;
 
 	@Property(mandatory = false)
 	protected String name;
 
 	protected int cacheId;
+
+	protected ICacheIntern gcProxy;
+
+	@Property(name = MergeConfigurationConstants.SecurityActive, defaultValue = "false")
+	protected boolean securityActive;
 
 	@Property(name = CacheConfigurationConstants.ValueholderOnEmptyToOne, defaultValue = "false")
 	protected boolean valueholderOnEmptyToOne;
@@ -86,6 +102,8 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		super.afterPropertiesSet();
 
 		keyToAlternateIdsMap = new CacheHashMap(cacheMapEntryTypeProvider);
+
+		gcProxy = garbageProxyFactory.createGarbageProxy(this, (IDisposable) null, ICacheIntern.class, IWritableCache.class);
 	}
 
 	@Property(name = CacheConfigurationConstants.FirstLevelCacheWeakActive, defaultValue = "true")
@@ -117,6 +135,11 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		if (cacheId != 0)
 		{
 			firstLevelCacheExtendable.unregisterFirstLevelCache(this, null, false, name);
+		}
+		if (gcProxy != null)
+		{
+			((IDisposable) gcProxy).dispose(); // cuts the reference of all entities to this cache instance
+			gcProxy = null;
 		}
 		entityFactory = null;
 		firstLevelCacheExtendable = null;
@@ -451,7 +474,7 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	public IList<IObjRelationResult> getObjRelations(List<IObjRelation> objRels, ICacheIntern targetCache, Set<CacheDirective> cacheDirective)
+	public IList<IObjRelationResult> getObjRelations(final List<IObjRelation> objRels, final ICacheIntern targetCache, final Set<CacheDirective> cacheDirective)
 	{
 		checkNotDisposed();
 		IEventQueue eventQueue = this.eventQueue;
@@ -467,7 +490,26 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 			cacheModification.setActive(true);
 			try
 			{
-				return parent.getObjRelations(objRels, targetCache, cacheDirective);
+				if (securityActive && ((targetCache == null && isPrivileged()) || (targetCache != null && targetCache.isPrivileged())//
+						&& securityActivation != null && securityActivation.isFilterActivated()))
+				{
+					return securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRelationResult>>()
+					{
+						@Override
+						public IList<IObjRelationResult> invoke() throws Throwable
+						{
+							return parent.getObjRelations(objRels, targetCache, cacheDirective);
+						}
+					});
+				}
+				else
+				{
+					return parent.getObjRelations(objRels, targetCache, cacheDirective);
+				}
+			}
+			catch (Throwable e)
+			{
+				throw RuntimeExceptionUtil.mask(e);
 			}
 			finally
 			{
@@ -556,13 +598,10 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 		{
 			addHardRefTL(cacheValue);
 		}
+		assignEntityToCache(primitiveFilledObject);
 		if (relations != null && relations.length > 0)
 		{
-			RelationMember[] relationMembers = metaData.getRelationMembers();
-
-			IValueHolderContainer vhc = (IValueHolderContainer) primitiveFilledObject;
-			vhc.set__TargetCache(this);
-			handleValueHolderContainer(vhc, relationMembers, relations);
+			handleValueHolderContainer((IValueHolderContainer) primitiveFilledObject, metaData.getRelationMembers(), relations);
 		}
 		if (primitiveFilledObject instanceof IDataObject)
 		{
@@ -759,14 +798,16 @@ public class ChildCache extends AbstractCache<Object> implements ICacheIntern, I
 	}
 
 	@Override
-	protected void putIntern(Object objectToCache, ArrayList<Object> hardRefsToCacheValue, IdentityHashSet<Object> alreadyHandledSet,
-			HashSet<IObjRef> cascadeNeededORIs)
+	protected void putInternUnpersistedEntity(Object entity)
 	{
-		if (objectToCache instanceof IValueHolderContainer)
-		{
-			((IValueHolderContainer) objectToCache).set__TargetCache(this);
-		}
-		super.putIntern(objectToCache, hardRefsToCacheValue, alreadyHandledSet, cascadeNeededORIs);
+		assignEntityToCache(entity);
+		super.putInternUnpersistedEntity(entity);
+	}
+
+	@Override
+	public void assignEntityToCache(Object entity)
+	{
+		((IValueHolderContainer) entity).set__TargetCache(gcProxy);
 	}
 
 	@Override
