@@ -92,7 +92,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				}
 				else
 				{
-					// FIXME
+					// FIXME JH Trigger Snippet creation
 					overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
 				}
 				writer.append(overloadedMethodNamePostfix);
@@ -177,7 +177,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		return paramsList;
 	}
 
-	// TODO below here WIP!!!
+	// TODO JH below here WIP!!!
 
 	protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
 	{

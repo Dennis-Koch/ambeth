@@ -194,13 +194,14 @@ public class JsClassHandler implements IClassHandler
 		IWriter writer = context.getWriter();
 
 		String namespace = languageHelper.createNamespace();
+		String name = classInfo.getName();
 
 		writer.append('"');
 		if (!namespace.isEmpty())
 		{
-			writer.append(namespace).append(".");
+			name = namespace + "." + name;
 		}
-		languageHelper.writeSimpleName(classInfo);
+		languageHelper.writeType(name);
 		writer.append('"');
 	}
 
@@ -387,7 +388,9 @@ public class JsClassHandler implements IClassHandler
 				{
 					firstRequires = languageHelper.newLineIndentWithCommaIfFalse(firstRequires);
 				}
-				writer.append('"').append(className).append('"');
+				writer.append('"');
+				languageHelper.writeType(className);
+				writer.append('"');
 			}
 		}
 		finally
