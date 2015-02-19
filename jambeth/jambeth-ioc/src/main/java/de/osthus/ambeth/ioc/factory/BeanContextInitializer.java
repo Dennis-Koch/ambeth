@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.management.DynamicMBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
@@ -391,10 +392,19 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 					// beans without a name will not be browsable
 					continue;
 				}
-				BeanMonitoringSupport mBean = new BeanMonitoringSupport(bean, beanContext);
-				if (mBean.getMBeanInfo().getAttributes().length == 0)
+				Object mBean;
+				if (!(bean instanceof DynamicMBean))
 				{
-					continue;
+					BeanMonitoringSupport bmSupport = new BeanMonitoringSupport(bean, beanContext);
+					if (bmSupport.getMBeanInfo().getAttributes().length == 0)
+					{
+						continue;
+					}
+					mBean = bmSupport;
+				}
+				else
+				{
+					mBean = bean;
 				}
 				try
 				{

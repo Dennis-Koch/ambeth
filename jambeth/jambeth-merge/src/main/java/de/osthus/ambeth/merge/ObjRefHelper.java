@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.osthus.ambeth.cache.AbstractCacheValue;
+import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
@@ -27,6 +28,9 @@ public class ObjRefHelper implements IObjRefHelper
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
 	protected IObjRefFactory objRefFactory;
@@ -319,6 +323,19 @@ public class ObjRefHelper implements IObjRefHelper
 			}
 			version = cacheValue.getVersion();
 		}
+		else if (entity instanceof ILoadContainer)
+		{
+			ILoadContainer lc = (ILoadContainer) entity;
+			if (idIndex == ObjRef.PRIMARY_KEY_INDEX)
+			{
+				id = lc.getReference().getId();
+			}
+			else
+			{
+				id = compositeIdFactory.createIdFromPrimitives(metaData, idIndex, lc.getPrimitives());
+			}
+			version = lc.getReference().getVersion();
+		}
 		else
 		{
 			id = metaData.getIdMemberByIdIndex(idIndex).getValue(entity, false);
@@ -402,7 +419,12 @@ public class ObjRefHelper implements IObjRefHelper
 	@Override
 	public IList<IObjRef> entityToAllObjRefs(Object entity)
 	{
-		return entityToAllObjRefs(entity, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
+		if (entity instanceof IEntityMetaDataHolder)
+		{
+			return entityToAllObjRefs(entity, ((IEntityMetaDataHolder) entity).get__EntityMetaData());
+		}
+		ILoadContainer lc = (ILoadContainer) entity;
+		return entityToAllObjRefs(entity, entityMetaDataProvider.getMetaData(lc.getReference().getRealType()));
 	}
 
 	/*

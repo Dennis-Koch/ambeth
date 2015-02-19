@@ -3,8 +3,8 @@ package de.osthus.ambeth.cache;
 import java.util.EnumSet;
 import java.util.Set;
 
-import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
@@ -33,7 +33,7 @@ public class CacheDependencyNode
 
 	public final HashSet<IObjRelation> cascadeRefreshObjRelationsSet = new HashSet<IObjRelation>();
 
-	public final HashMap<IObjRef, ILoadContainer> objRefToLoadContainerMap = new HashMap<IObjRef, ILoadContainer>();
+	public final HashMap<IObjRef, RootCacheValue> objRefToCacheValueMap = new HashMap<IObjRef, RootCacheValue>();
 
 	public CacheChangeItem[] cacheChangeItems;
 

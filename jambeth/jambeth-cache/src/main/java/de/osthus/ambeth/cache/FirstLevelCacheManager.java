@@ -11,6 +11,7 @@ import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.LinkedHashMap;
 import de.osthus.ambeth.ioc.IInitializingBean;
+import de.osthus.ambeth.ioc.annotation.MBeanOperation;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.ITransactionState;
@@ -307,5 +308,11 @@ public class FirstLevelCacheManager implements IInitializingBean, IFirstLevelCac
 			}
 			liveChildCaches.add(childCache);
 		}
+	}
+
+	@MBeanOperation
+	public int getNumberOfFirstLevelCaches()
+	{
+		return allFLCs.size();
 	}
 }

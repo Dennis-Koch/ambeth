@@ -5,9 +5,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import de.osthus.ambeth.cache.model.ILoadContainer;
 import de.osthus.ambeth.cache.model.IObjRelation;
 import de.osthus.ambeth.cache.model.IObjRelationResult;
+import de.osthus.ambeth.cache.rootcachevalue.RootCacheValue;
 import de.osthus.ambeth.cache.transfer.ObjRelation;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
@@ -51,9 +51,6 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected static final Set<CacheDirective> failInCacheHierarchyAndCacheValueResultAndReturnMissesSet = EnumSet.of(CacheDirective.FailInCacheHierarchy,
 			CacheDirective.CacheValueResult, CacheDirective.ReturnMisses);
-
-	protected static final Set<CacheDirective> failInCacheHierarchyAndLoadContainerResultSet = EnumSet.of(CacheDirective.FailInCacheHierarchy,
-			CacheDirective.LoadContainerResult);
 
 	@Autowired
 	protected ICacheModification cacheModification;
@@ -272,18 +269,23 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 	protected void changeSecondLevelCache(CacheDependencyNode node)
 	{
-		changeSecondLevelCacheIntern(node, CacheDirective.loadContainerResult());
+		changeSecondLevelCacheIntern(node, cacheValueResultAndReturnMissesSet);
 	}
 
 	protected void changeSecondLevelCacheIntern(CacheDependencyNode node, Set<CacheDirective> cacheDirective)
 	{
 		IRootCache rootCache = node.rootCache;
-		HashMap<IObjRef, ILoadContainer> objRefToLoadContainerDict = node.objRefToLoadContainerMap;
-		IList<Object> refreshResult = rootCache.getObjects(node.objRefsToLoad.toList(), cacheDirective);
+		HashMap<IObjRef, RootCacheValue> objRefToLoadContainerDict = node.objRefToCacheValueMap;
+		IList<IObjRef> objRefsToLoad = node.objRefsToLoad.toList();
+		IList<Object> refreshResult = rootCache.getObjects(objRefsToLoad, cacheDirective);
 		for (int a = refreshResult.size(); a-- > 0;)
 		{
-			ILoadContainer loadContainer = (ILoadContainer) refreshResult.get(a);
-			objRefToLoadContainerDict.put(loadContainer.getReference(), loadContainer);
+			RootCacheValue cacheValue = (RootCacheValue) refreshResult.get(a);
+			if (cacheValue == null)
+			{
+				continue;
+			}
+			objRefToLoadContainerDict.put(objRefsToLoad.get(a), cacheValue);
 		}
 		checkCascadeRefreshNeeded(node);
 
@@ -308,7 +310,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		ArrayList<CacheDependencyNode> childNodes = node.childNodes;
 		for (int a = childNodes.size(); a-- > 0;)
 		{
-			changeSecondLevelCacheIntern(childNodes.get(a), failInCacheHierarchyAndLoadContainerResultSet);
+			changeSecondLevelCacheIntern(childNodes.get(a), failInCacheHierarchyAndCacheValueResultAndReturnMissesSet);
 		}
 	}
 
@@ -563,7 +565,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		{
 			return;
 		}
-		HashMap<IObjRef, ILoadContainer> objRefToLoadContainerMap = node.objRefToLoadContainerMap;
+		HashMap<IObjRef, RootCacheValue> objRefToCacheValueMap = node.objRefToCacheValueMap;
 		for (int c = cacheChangeItems.length; c-- > 0;)
 		{
 			CacheChangeItem cci = cacheChangeItems[c];
@@ -578,13 +580,12 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				IObjRef objRefToUpdate = objectRefsToUpdate.get(a);
 				Object objectToUpdate = objectsToUpdate.get(a);
-				ILoadContainer loadContainer = objRefToLoadContainerMap.get(objRefToUpdate);
-				if (loadContainer == null)
+				RootCacheValue cacheValue = objRefToCacheValueMap.get(objRefToUpdate);
+				if (cacheValue == null)
 				{
 					// Current value in childCache is not in our interest here
 					continue;
 				}
-				IObjRef[][] relations = loadContainer.getRelations();
 				IEntityMetaData metaData = ((IEntityMetaDataHolder) objectToUpdate).get__EntityMetaData();
 				RelationMember[] relationMembers = metaData.getRelationMembers();
 				if (relationMembers.length == 0)
@@ -602,17 +603,17 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					// that these relations are in the RootCache at the time the target object will be updated.
 					// This is because initialized relations have to remain initialized after update but the relations
 					// may have been updated, too
-					batchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex], node);
+					batchPendingRelations(cacheValue, relationMembers[relationIndex], cacheValue.getRelation(relationIndex), node);
 				}
 			}
 		}
 	}
 
-	protected void batchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
+	protected void batchPendingRelations(RootCacheValue cacheValue, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
 	{
 		if (relationsOfMember == null)
 		{
-			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(entity, member.getName());
+			IObjRelation objRelation = valueHolderContainerTemplate.getSelf(cacheValue, member.getName());
 			IObjRef[] objRefs = objRelation.getObjRefs();
 			for (int a = objRefs.length; a-- > 0;)
 			{

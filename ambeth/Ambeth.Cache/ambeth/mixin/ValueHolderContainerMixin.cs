@@ -39,7 +39,7 @@ namespace De.Osthus.Ambeth.Mixin
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
 
         [Autowired]
-        public IObjRefHelper OriHelper { protected get; set; }
+        public IObjRefHelper ObjRefHelper { protected get; set; }
 
         [Autowired]
         public IPropertyInfoProvider PropertyInfoProvider { protected get; set; }
@@ -475,16 +475,16 @@ namespace De.Osthus.Ambeth.Mixin
             return Object.ReferenceEquals(parentEntity, parent);
         }
 
-       	public IObjRelation GetSelf(IObjRefContainer entity, String memberName)
+        public IObjRelation GetSelf(Object entity, String memberName)
 	    {
-		    IList<IObjRef> allObjRefs = OriHelper.EntityToAllObjRefs(entity);
+		    IList<IObjRef> allObjRefs = ObjRefHelper.EntityToAllObjRefs(entity);
 		    return new ObjRelation(ListUtil.ToArray(allObjRefs), memberName);
 	    }
 
         public IObjRelation GetSelf(IObjRefContainer entity, int relationIndex)
         {
             String memberName = entity.Get__EntityMetaData().RelationMembers[relationIndex].Name;
-            IList<IObjRef> allObjRefs = OriHelper.EntityToAllObjRefs(entity);
+            IList<IObjRef> allObjRefs = ObjRefHelper.EntityToAllObjRefs(entity);
             return new ObjRelation(ListUtil.ToArray(allObjRefs), memberName);
         }
         //public class PendingValueHolderItem

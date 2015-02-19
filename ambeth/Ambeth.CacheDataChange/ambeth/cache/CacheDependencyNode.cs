@@ -1,4 +1,5 @@
 using De.Osthus.Ambeth.Cache.Model;
+using De.Osthus.Ambeth.Cache.Rootcachevalue;
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Merge.Model;
 using System;
@@ -25,7 +26,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public readonly CHashSet<IObjRelation> cascadeRefreshObjRelationsSet = new CHashSet<IObjRelation>();
 
-	    public readonly HashMap<IObjRef, ILoadContainer> objRefToLoadContainerMap = new HashMap<IObjRef, ILoadContainer>();
+        public readonly HashMap<IObjRef, RootCacheValue> objRefToLoadContainerMap = new HashMap<IObjRef, RootCacheValue>();
 
 	    public CacheChangeItem[] cacheChangeItems;
 
