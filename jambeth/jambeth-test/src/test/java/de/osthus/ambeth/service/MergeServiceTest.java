@@ -296,7 +296,7 @@ public class MergeServiceTest extends AbstractInformationBusWithPersistenceTest
 		IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap = new HashMap<IObjRef, IChangeContainer>();
 
 		fixture.convertChangeContainersToCommands(fixture.database.getCurrent(), allChanges, tableChangeMap, typeToIdlessReferenceMap, linkChangeCommands,
-				toDeleteMap, objRefToChangeContainerMap, (IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache());
+				toDeleteMap, objRefToChangeContainerMap, (IRootCache) ((ChildCache) cache.getCurrentCache()).getParent().getCurrentCache(), null);
 
 		fail("Not yet implemented"); // TODO
 	}

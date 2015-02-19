@@ -427,13 +427,6 @@ public class RelationsGetterVisitor extends ClassGenerator
 					mg.returnValue();
 				}
 			}, null);
-
-			{
-				MethodGenerator mg = visitMethod(m_template_getCache);
-				mg.callThisGetter(p_targetCache);
-				mg.returnValue();
-				mg.endMethod();
-			}
 			return p_targetCache;
 		}
 		implementSelfGetter(p_valueHolderContainerTemplate);

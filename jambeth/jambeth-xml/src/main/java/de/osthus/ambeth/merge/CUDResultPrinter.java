@@ -17,12 +17,14 @@ import de.osthus.ambeth.merge.incremental.IncrementalMergeState.StateEntry;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
 import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
+import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.model.IPrimitiveUpdateItem;
 import de.osthus.ambeth.merge.model.IRelationUpdateItem;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.metadata.PrimitiveMember;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.xml.DefaultXmlWriter;
@@ -36,6 +38,9 @@ public class CUDResultPrinter implements ICUDResultPrinter
 
 	@Autowired
 	protected IConversionHelper conversionHelper;
+
+	@Autowired
+	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
@@ -208,8 +213,10 @@ public class CUDResultPrinter implements ICUDResultPrinter
 				writer.writeEndElement();
 				continue;
 			}
-			writer.writeAttribute("type", item.getRealType().getName());
-			writer.writeAttribute("id", conversionHelper.convertValueToType(CharSequence.class, item.getId()));
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(item.getRealType());
+			writer.writeAttribute("type", metaData.getEntityType().getName());
+			PrimitiveMember idMember = metaData.getIdMemberByIdIndex(item.getIdNameIndex());
+			writer.writeAttribute(idMember.getName(), conversionHelper.convertValueToType(CharSequence.class, item.getId()));
 			if (item.getVersion() != null)
 			{
 				writer.writeAttribute("version", conversionHelper.convertValueToType(CharSequence.class, item.getVersion()));

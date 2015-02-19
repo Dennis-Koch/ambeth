@@ -1,6 +1,6 @@
 namespace De.Osthus.Ambeth.Merge.Model
 {
-    public interface ICreateOrUpdateContainer
+    public interface ICreateOrUpdateContainer : IChangeContainer
     {
         IPrimitiveUpdateItem[] GetFullPUIs();
 

@@ -15,7 +15,7 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef
 	protected transient Object direct;
 
 	@XmlElement(required = true)
-	protected int createContainerIndex;
+	protected int createContainerIndex = -1;
 
 	public DirectObjRef()
 	{
@@ -76,9 +76,9 @@ public class DirectObjRef extends ObjRef implements IDirectObjRef
 				return false;
 			}
 			// Identity - not equals - intentionally here!
-			return this.direct == ((IDirectObjRef) obj).getDirect();
+			return direct == ((IDirectObjRef) obj).getDirect();
 		}
-		return this.id.equals(obj.getId()) && this.realType.equals(obj.getRealType());
+		return id.equals(obj.getId()) && realType.equals(obj.getRealType());
 	}
 
 	@Override

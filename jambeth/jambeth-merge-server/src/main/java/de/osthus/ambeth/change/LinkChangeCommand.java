@@ -5,6 +5,7 @@ import java.util.List;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.IList;
+import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.IDirectedLink;
 
@@ -16,10 +17,18 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 
 	protected IList<IObjRef> refsToUnlink = EmptyList.<IObjRef> getInstance();
 
+	protected final byte toIdIndex;
+
 	public LinkChangeCommand(IObjRef reference, IDirectedLink link)
 	{
 		super(reference);
 		this.link = link;
+		byte fromIdIndex = getDirectedLink().getMetaData().getFromIdIndex();
+		if (!(reference instanceof IDirectObjRef) && fromIdIndex != reference.getIdNameIndex())
+		{
+			throw new IllegalStateException();
+		}
+		toIdIndex = getDirectedLink().getMetaData().getToIdIndex();
 	}
 
 	@Override
@@ -93,6 +102,19 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 		return true;
 	}
 
+	protected void checkCorrectIdIndex(IObjRef objRef)
+	{
+		// if (objRef instanceof IDirectObjRef && ((IDirectObjRef) objRef).getDirect() != null)
+		// {
+		// return;
+		// }
+		// if (objRef.getIdNameIndex() != toIdIndex)
+		// {
+		// System.out.println("AAAAAAAAAAAAAAAA");
+		// // throw new IllegalStateException();
+		// }
+	}
+
 	public void addRefsToLink(IObjRef[] addedORIs)
 	{
 		if (addedORIs.length == 0)
@@ -105,7 +127,12 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			refsToLink = new ArrayList<IObjRef>();
 			this.refsToLink = refsToLink;
 		}
-		refsToLink.addAll(addedORIs);
+		for (IObjRef addedORI : addedORIs)
+		{
+			checkCorrectIdIndex(addedORI);
+			refsToLink.add(addedORI);
+		}
+		// refsToLink.addAll(addedORIs);
 	}
 
 	public void addRefsToLink(List<IObjRef> addedORIs)
@@ -120,7 +147,25 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			refsToLink = new ArrayList<IObjRef>();
 			this.refsToLink = refsToLink;
 		}
-		refsToLink.addAll(addedORIs);
+		for (int a = 0, size = addedORIs.size(); a < size; a++)
+		{
+			IObjRef addedObjRef = addedORIs.get(a);
+			checkCorrectIdIndex(addedObjRef);
+			refsToLink.add(addedObjRef);
+		}
+		// refsToLink.addAll(addedORIs);
+	}
+
+	public void addRefToLink(IObjRef addedObjRef)
+	{
+		IList<IObjRef> refsToLink = this.refsToLink;
+		if (refsToLink.size() == 0)
+		{
+			refsToLink = new ArrayList<IObjRef>();
+			this.refsToLink = refsToLink;
+		}
+		checkCorrectIdIndex(addedObjRef);
+		refsToLink.add(addedObjRef);
 	}
 
 	public void addRefsToUnlink(IObjRef[] removedORIs)
@@ -135,7 +180,12 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			refsToUnlink = new ArrayList<IObjRef>();
 			this.refsToUnlink = refsToUnlink;
 		}
-		refsToUnlink.addAll(removedORIs);
+		for (IObjRef removedORI : removedORIs)
+		{
+			checkCorrectIdIndex(removedORI);
+			refsToUnlink.add(removedORI);
+		}
+		// refsToUnlink.addAll(removedORIs);
 	}
 
 	public void addRefsToUnlink(List<IObjRef> removedORIs)
@@ -150,6 +200,24 @@ public class LinkChangeCommand extends AbstractChangeCommand implements ILinkCha
 			refsToUnlink = new ArrayList<IObjRef>();
 			this.refsToUnlink = refsToUnlink;
 		}
-		refsToUnlink.addAll(removedORIs);
+		for (int a = 0, size = removedORIs.size(); a < size; a++)
+		{
+			IObjRef removedORI = removedORIs.get(a);
+			checkCorrectIdIndex(removedORI);
+			refsToUnlink.add(removedORI);
+		}
+		// refsToUnlink.addAll(removedORIs);
+	}
+
+	public void addRefToUnlink(IObjRef removedObjRef)
+	{
+		IList<IObjRef> refsToUnlink = this.refsToUnlink;
+		if (refsToUnlink.size() == 0)
+		{
+			refsToUnlink = new ArrayList<IObjRef>();
+			this.refsToUnlink = refsToUnlink;
+		}
+		checkCorrectIdIndex(removedObjRef);
+		refsToUnlink.add(removedObjRef);
 	}
 }

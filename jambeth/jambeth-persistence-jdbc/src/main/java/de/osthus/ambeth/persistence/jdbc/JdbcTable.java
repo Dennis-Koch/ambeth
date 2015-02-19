@@ -611,12 +611,13 @@ public class JdbcTable extends SqlTable
 			}
 			sqlSB.append(')');
 
+			String sql = sqlSB.toString();
 			if (log.isDebugEnabled())
 			{
-				log.debug("prepare: " + sqlSB.toString());
+				log.debug("prepare: " + sql);
 			}
 
-			PreparedStatement pstm = connection.prepareStatement(sqlSB.toString());
+			PreparedStatement pstm = connection.prepareStatement(sql);
 			pstm.setQueryTimeout(30);
 			return pstm;
 		}

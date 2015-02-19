@@ -15,7 +15,7 @@ public class BooleanArrayConverter implements IDedicatedConverter
 	@Override
 	public Object convertValueToType(Class<?> expectedType, Class<?> sourceType, Object value, Object additionalInformation)
 	{
-		if (boolean[].class.equals(sourceType) && String.class.equals(expectedType))
+		if (boolean[].class.equals(sourceType) && (CharSequence.class.equals(expectedType) || String.class.equals(expectedType)))
 		{
 			boolean[] source = (boolean[]) value;
 			IThreadLocalObjectCollector tlObjectCollector = objectCollector.getCurrent();
@@ -40,9 +40,9 @@ public class BooleanArrayConverter implements IDedicatedConverter
 				tlObjectCollector.dispose(sb);
 			}
 		}
-		else if (String.class.equals(sourceType) && boolean[].class.equals(expectedType))
+		else if (CharSequence.class.isAssignableFrom(sourceType) && boolean[].class.equals(expectedType))
 		{
-			String sValue = (String) value;
+			CharSequence sValue = (CharSequence) value;
 			boolean[] target = new boolean[sValue.length()];
 			for (int a = 0, size = sValue.length(); a < size; a++)
 			{

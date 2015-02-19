@@ -17,5 +17,7 @@ namespace De.Osthus.Ambeth.CompositeId
         Object CreateIdFromPrimitives(IEntityMetaData metaData, int idIndex, Object[] primitives);
 
         Object CreateIdFromPrimitives(IEntityMetaData metaData, int idIndex, AbstractCacheValue cacheValue);
+
+        Object CreateIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity);
     }
 }

@@ -521,7 +521,7 @@ namespace De.Osthus.Ambeth.Cache
                                     }
                                 }
                             }
-                            IObjRelationResult selfResult = GetObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
+                            IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
                             if (selfResult == null && isCacheRetrieverCallAllowed)
                             {
                                 objRelMisses.Add(objRel);
@@ -593,10 +593,10 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        protected IObjRelationResult GetObjRelationIfValid(IObjRelation objRel, Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap,
+        protected IObjRelationResult GetObjRelationIfValid(IObjRelation objRel, ICacheIntern targetCache, Dictionary<IObjRelation, IObjRelationResult> objRelToResultMap,
             IdentityDictionary<IObjRef, IObjRef> alreadyClonedObjRefs)
         {
-            IList<Object> cacheValues = GetObjects(objRel.ObjRefs, failEarlyCacheValueResultSet);
+            IList<Object> cacheValues = GetObjects(objRel.ObjRefs, targetCache, failEarlyCacheValueResultSet);
             if (cacheValues.Count == 0)
             {
                 if (objRelToResultMap != null)
@@ -636,7 +636,7 @@ namespace De.Osthus.Ambeth.Cache
                 }
                 if (cacheResult == null || cacheResult.Count == 0)
                 {
-                    IObjRelationResult selfResult = GetObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+                    IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
                     if (selfResult != null || returnMisses)
                     {
                         objRelResults.Add(selfResult);
@@ -660,7 +660,7 @@ namespace De.Osthus.Ambeth.Cache
                     }
                     else
                     {
-                        IObjRelationResult selfResult = GetObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+                        IObjRelationResult selfResult = GetObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
                         if (selfResult != null || returnMisses)
                         {
                             objRelResults.Add(selfResult);

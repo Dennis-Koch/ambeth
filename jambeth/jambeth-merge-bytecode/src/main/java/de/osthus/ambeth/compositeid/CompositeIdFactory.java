@@ -133,4 +133,24 @@ public class CompositeIdFactory implements ICompositeIdFactory, IInitializingBea
 		}
 		return createCompositeId(metaData, compositeIdMember, ids);
 	}
+
+	@Override
+	public Object createIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity)
+	{
+		int[][] alternateIdMemberIndicesInPrimitives = metaData.getAlternateIdMemberIndicesInPrimitives();
+		int[] compositeIndex = alternateIdMemberIndicesInPrimitives[idIndex];
+
+		if (compositeIndex.length == 1)
+		{
+			return metaData.getPrimitiveMembers()[compositeIndex[0]].getValue(entity);
+		}
+		PrimitiveMember compositeIdMember = metaData.getAlternateIdMembers()[idIndex];
+		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+		Object[] ids = new Object[compositeIndex.length];
+		for (int a = compositeIndex.length; a-- > 0;)
+		{
+			ids[a] = primitiveMembers[compositeIndex[a]].getValue(entity);
+		}
+		return createCompositeId(metaData, compositeIdMember, ids);
+	}
 }

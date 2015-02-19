@@ -47,6 +47,7 @@ import de.osthus.ambeth.merge.incremental.IIncrementalMergeState;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
+import de.osthus.ambeth.merge.model.ICreateOrUpdateContainer;
 import de.osthus.ambeth.merge.model.IDirectObjRef;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
@@ -404,7 +405,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			primitives.addObjRef(primitiveProperty.getReference());
 
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Name).setNewValue(pui.getMemberName());
-			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(pui.getNewValue());
+			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.NewValue).setNewValue(
+					conversionHelper.convertValueToType(String.class, pui.getNewValue()));
 			primitiveProperty.ensurePrimitive(IAuditedEntityPrimitiveProperty.Order).setNewValue(Integer.valueOf(primitives.getAddedCount()));
 		}
 	}
@@ -659,12 +661,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 						{
 							throw new IllegalStateException();
 						}
-						CreateContainer cc = new CreateContainer();
-						cc.setReference(createOrUpdate.getReference());
+						ICreateOrUpdateContainer cc = createOrUpdate.build();
 						((IDirectObjRef) cc.getReference()).setDirect(cc);
-						cc.setPrimitives(cudResultHelper.compactPUIs(createOrUpdate.getFullPUIs(), createOrUpdate.getPuiCount()));
-						cc.setRelations(cudResultHelper.compactRUIs(createOrUpdate.getFullRUIs(), createOrUpdate.getRuiCount()));
-						IRelationUpdateItem[] ruis = cc.getRelations();
+						IRelationUpdateItem[] ruis = cc.getFullRUIs();
 						if (ruis != null)
 						{
 							for (int b = ruis.length; b-- > 0;)

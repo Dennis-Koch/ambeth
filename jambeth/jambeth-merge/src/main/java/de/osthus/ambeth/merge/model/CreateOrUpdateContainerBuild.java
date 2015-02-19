@@ -1,8 +1,12 @@
 package de.osthus.ambeth.merge.model;
 
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.transfer.AbstractChangeContainer;
+import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.PrimitiveUpdateItem;
+import de.osthus.ambeth.merge.transfer.UpdateContainer;
+import de.osthus.ambeth.util.StringBuilderUtil;
 
 public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implements ICreateOrUpdateContainer
 {
@@ -18,11 +22,15 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 
 	protected boolean isCreate;
 
-	public CreateOrUpdateContainerBuild(boolean isCreate, HashMap<String, Integer> relationNameToIndexMap, HashMap<String, Integer> primitiveNameToIndexMap)
+	protected final ICUDResultHelper cudResultHelper;
+
+	public CreateOrUpdateContainerBuild(boolean isCreate, HashMap<String, Integer> relationNameToIndexMap, HashMap<String, Integer> primitiveNameToIndexMap,
+			ICUDResultHelper cudResultHelper)
 	{
 		this.isCreate = isCreate;
 		this.relationNameToIndexMap = relationNameToIndexMap;
 		this.primitiveNameToIndexMap = primitiveNameToIndexMap;
+		this.cudResultHelper = cudResultHelper;
 	}
 
 	public boolean isCreate()
@@ -55,7 +63,12 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 			fullPUIs = new IPrimitiveUpdateItem[primitiveNameToIndexMap.size()];
 			this.fullPUIs = fullPUIs;
 		}
-		int index = primitiveNameToIndexMap.get(pui.getMemberName()).intValue();
+		Integer indexR = primitiveNameToIndexMap.get(pui.getMemberName());
+		if (indexR == null)
+		{
+			throw new IllegalStateException("No primitive member " + getReference().getRealType().getName() + "." + pui.getMemberName() + " defined");
+		}
+		int index = indexR.intValue();
 		if (fullPUIs[index] == null)
 		{
 			puiCount++;
@@ -71,7 +84,12 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 			fullRUIs = new IRelationUpdateItem[relationNameToIndexMap.size()];
 			this.fullRUIs = fullRUIs;
 		}
-		int index = relationNameToIndexMap.get(rui.getMemberName()).intValue();
+		Integer indexR = relationNameToIndexMap.get(rui.getMemberName());
+		if (indexR == null)
+		{
+			throw new IllegalStateException("No relation member " + getReference().getRealType().getName() + "." + rui.getMemberName() + " defined");
+		}
+		int index = indexR.intValue();
 		if (fullRUIs[index] == null)
 		{
 			ruiCount++;
@@ -85,7 +103,12 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 		{
 			return null;
 		}
-		return (PrimitiveUpdateItem) fullPUIs[primitiveNameToIndexMap.get(memberName)];
+		Integer indexR = primitiveNameToIndexMap.get(memberName);
+		if (indexR == null)
+		{
+			throw new IllegalStateException("No primitive member " + getReference().getRealType().getName() + "." + memberName + " defined");
+		}
+		return (PrimitiveUpdateItem) fullPUIs[indexR.intValue()];
 	}
 
 	public RelationUpdateItemBuild findRelation(String memberName)
@@ -94,7 +117,12 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 		{
 			return null;
 		}
-		return (RelationUpdateItemBuild) fullRUIs[relationNameToIndexMap.get(memberName)];
+		Integer indexR = relationNameToIndexMap.get(memberName);
+		if (indexR == null)
+		{
+			throw new IllegalStateException("No relational member " + getReference().getRealType().getName() + "." + memberName + " defined");
+		}
+		return (RelationUpdateItemBuild) fullRUIs[indexR.intValue()];
 	}
 
 	public PrimitiveUpdateItem ensurePrimitive(String memberName)
@@ -130,5 +158,45 @@ public class CreateOrUpdateContainerBuild extends AbstractChangeContainer implem
 	public int getRuiCount()
 	{
 		return ruiCount;
+	}
+
+	@Override
+	public void toString(StringBuilder sb)
+	{
+		if (isCreate())
+		{
+			sb.append(CreateContainer.class.getSimpleName()).append(": ");
+		}
+		else if (isUpdate())
+		{
+			sb.append(UpdateContainer.class.getSimpleName()).append(": ");
+		}
+		else
+		{
+			super.toString(sb);
+			return;
+		}
+		StringBuilderUtil.appendPrintable(sb, reference);
+	}
+
+	public ICreateOrUpdateContainer build()
+	{
+		if (isCreate())
+		{
+			CreateContainer cc = new CreateContainer();
+			cc.setReference(getReference());
+			cc.setPrimitives(cudResultHelper.compactPUIs(getFullPUIs(), getPuiCount()));
+			cc.setRelations(cudResultHelper.compactRUIs(getFullRUIs(), getRuiCount()));
+			return cc;
+		}
+		if (isUpdate())
+		{
+			UpdateContainer uc = new UpdateContainer();
+			uc.setReference(getReference());
+			uc.setPrimitives(cudResultHelper.compactPUIs(getFullPUIs(), getPuiCount()));
+			uc.setRelations(cudResultHelper.compactRUIs(getFullRUIs(), getRuiCount()));
+			return uc;
+		}
+		throw new IllegalStateException("Must never happen");
 	}
 }

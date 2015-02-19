@@ -33,17 +33,20 @@ namespace De.Osthus.Ambeth.Merge
 
             protected bool hasChanges;
 
+            private readonly ICUDResultHelper cudResultHelper;
+
             private readonly IEntityMetaDataProvider entityMetaDataProvider;
 
-            private HashMap<Type, HashMap<String, int>> typeToMemberNameToIndexMap;
+            private HashMap<Type, HashMap<String, int?>> typeToMemberNameToIndexMap;
 
-            private HashMap<Type, HashMap<String, int>> typeToPrimitiveMemberNameToIndexMap;
+            private HashMap<Type, HashMap<String, int?>> typeToPrimitiveMemberNameToIndexMap;
 
-            public CUDResultDiff(ICUDResult left, ICUDResult right, bool doFullDiff, IEntityMetaDataProvider entityMetaDataProvider)
+            public CUDResultDiff(ICUDResult left, ICUDResult right, bool doFullDiff, ICUDResultHelper cudResultHelper, IEntityMetaDataProvider entityMetaDataProvider)
             {
                 this.doFullDiff = doFullDiff;
                 this.left = left;
                 this.right = right;
+                this.cudResultHelper = cudResultHelper;
                 this.entityMetaDataProvider = entityMetaDataProvider;
                 if (doFullDiff)
                 {
@@ -75,7 +78,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 Type entityType = GetLeftContainer().Reference.RealType;
                 containerBuild = new CreateOrUpdateContainerBuild(leftContainer is CreateContainer, GetOrCreateRelationMemberNameToIndexMap(entityType),
-                        GetOrCreatePrimitiveMemberNameToIndexMap(entityType));
+                        GetOrCreatePrimitiveMemberNameToIndexMap(entityType), cudResultHelper);
                 containerBuild.Reference = GetLeftContainer().Reference;
                 return containerBuild;
             }
@@ -90,20 +93,20 @@ namespace De.Osthus.Ambeth.Merge
                 return relationBuild;
             }
 
-            protected HashMap<String, int> GetOrCreateRelationMemberNameToIndexMap(Type entityType)
+            protected HashMap<String, int?> GetOrCreateRelationMemberNameToIndexMap(Type entityType)
             {
                 if (typeToMemberNameToIndexMap == null)
                 {
-                    typeToMemberNameToIndexMap = new HashMap<Type, HashMap<String, int>>();
+                    typeToMemberNameToIndexMap = new HashMap<Type, HashMap<String, int?>>();
                 }
-                HashMap<String, int> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
+                HashMap<String, int?> memberNameToIndexMap = typeToMemberNameToIndexMap.Get(entityType);
                 if (memberNameToIndexMap != null)
                 {
                     return memberNameToIndexMap;
                 }
                 IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(entityType);
                 RelationMember[] relationMembers = metaData.RelationMembers;
-                memberNameToIndexMap = HashMap<String, int>.Create(relationMembers.Length);
+                memberNameToIndexMap = HashMap<String, int?>.Create(relationMembers.Length);
                 for (int a = relationMembers.Length; a-- > 0; )
                 {
                     memberNameToIndexMap.Put(relationMembers[a].Name, a);
@@ -112,20 +115,20 @@ namespace De.Osthus.Ambeth.Merge
                 return memberNameToIndexMap;
             }
 
-            protected HashMap<String, int> GetOrCreatePrimitiveMemberNameToIndexMap(Type entityType)
+            protected HashMap<String, int?> GetOrCreatePrimitiveMemberNameToIndexMap(Type entityType)
             {
                 if (typeToPrimitiveMemberNameToIndexMap == null)
                 {
-                    typeToPrimitiveMemberNameToIndexMap = new HashMap<Type, HashMap<String, int>>();
+                    typeToPrimitiveMemberNameToIndexMap = new HashMap<Type, HashMap<String, int?>>();
                 }
-                HashMap<String, int> memberNameToIndexMap = typeToPrimitiveMemberNameToIndexMap.Get(entityType);
+                HashMap<String, int?> memberNameToIndexMap = typeToPrimitiveMemberNameToIndexMap.Get(entityType);
                 if (memberNameToIndexMap != null)
                 {
                     return memberNameToIndexMap;
                 }
                 IEntityMetaData metaData = entityMetaDataProvider.GetMetaData(entityType);
                 PrimitiveMember[] primitiveMembers = metaData.PrimitiveMembers;
-                memberNameToIndexMap = HashMap<String, int>.Create(primitiveMembers.Length);
+                memberNameToIndexMap = HashMap<String, int?>.Create(primitiveMembers.Length);
                 for (int a = primitiveMembers.Length; a-- > 0; )
                 {
                     memberNameToIndexMap.Put(primitiveMembers[a].Name, a);
@@ -223,13 +226,13 @@ namespace De.Osthus.Ambeth.Merge
 
         public bool EqualsCUDResult(ICUDResult left, ICUDResult right)
         {
-            CUDResultDiff diff = new CUDResultDiff(left, right, false, EntityMetaDataProvider);
+            CUDResultDiff diff = new CUDResultDiff(left, right, false, CudResultHelper, EntityMetaDataProvider);
             return EqualsCUDResult(diff);
         }
 
         public ICUDResult DiffCUDResult(ICUDResult left, ICUDResult right)
         {
-            CUDResultDiff diff = new CUDResultDiff(left, right, true, EntityMetaDataProvider);
+            CUDResultDiff diff = new CUDResultDiff(left, right, true, CudResultHelper, EntityMetaDataProvider);
             EqualsCUDResult(diff);
 
             if (!diff.HasChanges())
@@ -244,23 +247,7 @@ namespace De.Osthus.Ambeth.Merge
                 {
                     continue;
                 }
-                CreateOrUpdateContainerBuild createOrUpdate = (CreateOrUpdateContainerBuild)changeContainer;
-                if (createOrUpdate.IsCreate())
-                {
-                    CreateContainer cc = new CreateContainer();
-                    cc.Reference = createOrUpdate.Reference;
-                    cc.Primitives = CudResultHelper.CompactPUIs(createOrUpdate.GetFullPUIs(), createOrUpdate.GetPuiCount());
-                    cc.Relations = CudResultHelper.CompactRUIs(createOrUpdate.GetFullRUIs(), createOrUpdate.GetRuiCount());
-                    diffChanges[a] = cc;
-                }
-                else if (createOrUpdate.IsUpdate())
-                {
-                    UpdateContainer uc = new UpdateContainer();
-                    uc.Reference = createOrUpdate.Reference;
-                    uc.Primitives = CudResultHelper.CompactPUIs(createOrUpdate.GetFullPUIs(), createOrUpdate.GetPuiCount());
-                    uc.Relations = CudResultHelper.CompactRUIs(createOrUpdate.GetFullRUIs(), createOrUpdate.GetRuiCount());
-                    diffChanges[a] = uc;
-                }
+                diffChanges[a] = ((CreateOrUpdateContainerBuild)changeContainer).Build();
             }
             return new CUDResult(diffChanges, diff.originalRefs);
         }

@@ -587,7 +587,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 								}
 							}
 						}
-						IObjRelationResult selfResult = getObjRelationIfValid(objRel, null, alreadyClonedObjRefs);
+						IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, null, alreadyClonedObjRefs);
 						if (selfResult == null && isCacheRetrieverCallAllowed)
 						{
 							objRelMisses.add(objRel);
@@ -669,10 +669,10 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		}
 	}
 
-	protected IObjRelationResult getObjRelationIfValid(IObjRelation objRel, HashMap<IObjRelation, IObjRelationResult> objRelToResultMap,
-			IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
+	protected IObjRelationResult getObjRelationIfValid(IObjRelation objRel, ICacheIntern targetCache,
+			HashMap<IObjRelation, IObjRelationResult> objRelToResultMap, IdentityHashMap<IObjRef, IObjRef> alreadyClonedObjRefs)
 	{
-		IList<Object> cacheValues = getObjects(objRel.getObjRefs(), failEarlyCacheValueResultSet);
+		IList<Object> cacheValues = getObjects(new ArrayList<IObjRef>(objRel.getObjRefs()), targetCache, failEarlyCacheValueResultSet);
 		if (cacheValues.size() == 0)
 		{
 			if (objRelToResultMap != null)
@@ -712,7 +712,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 			}
 			if (cacheResult == null || cacheResult.size() == 0)
 			{
-				IObjRelationResult selfResult = getObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+				IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
 				if (selfResult != null || returnMisses)
 				{
 					objRelResults.add(selfResult);
@@ -736,7 +736,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 				}
 				else
 				{
-					IObjRelationResult selfResult = getObjRelationIfValid(objRel, objRelToResultMap, alreadyClonedObjRefs);
+					IObjRelationResult selfResult = getObjRelationIfValid(objRel, targetCache, objRelToResultMap, alreadyClonedObjRefs);
 					if (selfResult != null || returnMisses)
 					{
 						objRelResults.add(selfResult);

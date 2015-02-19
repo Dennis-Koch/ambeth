@@ -1,6 +1,8 @@
 package de.osthus.ambeth.merge.incremental;
 
 import java.util.Comparator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import de.osthus.ambeth.cache.ICache;
 import de.osthus.ambeth.collections.HashMap;
@@ -10,6 +12,7 @@ import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.merge.ICUDResultHelper;
 import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.IEntityMetaData;
@@ -44,6 +47,9 @@ public class IncrementalMergeState implements IIncrementalMergeState
 	protected IConversionHelper conversionHelper;
 
 	@Autowired
+	protected ICUDResultHelper cudResultHelper;
+
+	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Property
@@ -56,6 +62,8 @@ public class IncrementalMergeState implements IIncrementalMergeState
 	private final HashMap<Class<?>, HashMap<String, Integer>> typeToMemberNameToIndexMap = new HashMap<Class<?>, HashMap<String, Integer>>();
 
 	private final HashMap<Class<?>, HashMap<String, Integer>> typeToPrimitiveMemberNameToIndexMap = new HashMap<Class<?>, HashMap<String, Integer>>();
+
+	private final Lock writeLock = new ReentrantLock();
 
 	public final Comparator<IObjRef> objRefComparator = new Comparator<IObjRef>()
 	{
@@ -109,15 +117,29 @@ public class IncrementalMergeState implements IIncrementalMergeState
 		{
 			return memberNameToIndexMap;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		RelationMember[] relationMembers = metaData.getRelationMembers();
-		memberNameToIndexMap = HashMap.create(relationMembers.length);
-		for (int a = relationMembers.length; a-- > 0;)
+		writeLock.lock();
+		try
 		{
-			memberNameToIndexMap.put(relationMembers[a].getName(), Integer.valueOf(a));
+			memberNameToIndexMap = typeToMemberNameToIndexMap.get(entityType);
+			if (memberNameToIndexMap != null)
+			{
+				// concurrent thread might have been faster
+				return memberNameToIndexMap;
+			}
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			RelationMember[] relationMembers = metaData.getRelationMembers();
+			memberNameToIndexMap = HashMap.create(relationMembers.length);
+			for (int a = relationMembers.length; a-- > 0;)
+			{
+				memberNameToIndexMap.put(relationMembers[a].getName(), Integer.valueOf(a));
+			}
+			typeToMemberNameToIndexMap.put(entityType, memberNameToIndexMap);
+			return memberNameToIndexMap;
 		}
-		typeToMemberNameToIndexMap.put(entityType, memberNameToIndexMap);
-		return memberNameToIndexMap;
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	protected HashMap<String, Integer> getOrCreatePrimitiveMemberNameToIndexMap(Class<?> entityType,
@@ -128,28 +150,42 @@ public class IncrementalMergeState implements IIncrementalMergeState
 		{
 			return memberNameToIndexMap;
 		}
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
-		memberNameToIndexMap = HashMap.create(primitiveMembers.length);
-		for (int a = primitiveMembers.length; a-- > 0;)
+		writeLock.lock();
+		try
 		{
-			memberNameToIndexMap.put(primitiveMembers[a].getName(), Integer.valueOf(a));
+			memberNameToIndexMap = typeToMemberNameToIndexMap.get(entityType);
+			if (memberNameToIndexMap != null)
+			{
+				// concurrent thread might have been faster
+				return memberNameToIndexMap;
+			}
+			IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
+			PrimitiveMember[] primitiveMembers = metaData.getPrimitiveMembers();
+			memberNameToIndexMap = HashMap.create(primitiveMembers.length);
+			for (int a = primitiveMembers.length; a-- > 0;)
+			{
+				memberNameToIndexMap.put(primitiveMembers[a].getName(), Integer.valueOf(a));
+			}
+			typeToMemberNameToIndexMap.put(entityType, memberNameToIndexMap);
+			return memberNameToIndexMap;
 		}
-		typeToMemberNameToIndexMap.put(entityType, memberNameToIndexMap);
-		return memberNameToIndexMap;
+		finally
+		{
+			writeLock.unlock();
+		}
 	}
 
 	@Override
 	public CreateOrUpdateContainerBuild newCreateContainer(Class<?> entityType)
 	{
 		return new CreateOrUpdateContainerBuild(true, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
-				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap));
+				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), cudResultHelper);
 	}
 
 	@Override
 	public CreateOrUpdateContainerBuild newUpdateContainer(Class<?> entityType)
 	{
 		return new CreateOrUpdateContainerBuild(false, getOrCreateRelationMemberNameToIndexMap(entityType, typeToMemberNameToIndexMap),
-				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap));
+				getOrCreatePrimitiveMemberNameToIndexMap(entityType, typeToPrimitiveMemberNameToIndexMap), cudResultHelper);
 	}
 }

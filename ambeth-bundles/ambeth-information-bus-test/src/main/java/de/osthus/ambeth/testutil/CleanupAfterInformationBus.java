@@ -5,6 +5,7 @@ import de.osthus.ambeth.cache.IRootCache;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.ioc.CacheModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
+import de.osthus.ambeth.util.setup.IDataSetup;
 
 public class CleanupAfterInformationBus extends CleanupAfterIoc
 {
@@ -12,11 +13,16 @@ public class CleanupAfterInformationBus extends CleanupAfterIoc
 	protected IRootCache committedRootCache;
 
 	@Autowired
+	protected IDataSetup dataSetup;
+
+	@Autowired
 	protected IEventDispatcher eventDispatcher;
 
 	@Override
 	public void cleanup()
 	{
+		dataSetup.eraseEntityReferences();
+
 		committedRootCache.clear();
 		eventDispatcher.dispatchEvent(ClearAllCachesEvent.getInstance());
 

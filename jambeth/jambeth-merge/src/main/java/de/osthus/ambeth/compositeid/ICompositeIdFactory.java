@@ -15,4 +15,6 @@ public interface ICompositeIdFactory
 	Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex, Object[] primitives);
 
 	Object createIdFromPrimitives(IEntityMetaData metaData, int idIndex, AbstractCacheValue cacheValue);
+
+	Object createIdFromEntity(IEntityMetaData metaData, int idIndex, Object entity);
 }

@@ -1,7 +1,9 @@
 using De.Osthus.Ambeth.Collections;
 using De.Osthus.Ambeth.Merge.Model;
 using De.Osthus.Ambeth.Merge.Transfer;
+using De.Osthus.Ambeth.Util;
 using System;
+using System.Text;
 
 namespace De.Osthus.Ambeth.Merge.Model
 {
@@ -9,9 +11,9 @@ namespace De.Osthus.Ambeth.Merge.Model
     {
         protected IPrimitiveUpdateItem[] fullPUIs;
 
-        protected readonly HashMap<String, int> relationNameToIndexMap;
+        protected readonly HashMap<String, int?> relationNameToIndexMap;
 
-        protected readonly HashMap<String, int> primitiveNameToIndexMap;
+        protected readonly HashMap<String, int?> primitiveNameToIndexMap;
 
         protected IRelationUpdateItem[] fullRUIs;
 
@@ -19,11 +21,15 @@ namespace De.Osthus.Ambeth.Merge.Model
 
         protected bool isCreate;
 
-        public CreateOrUpdateContainerBuild(bool isCreate, HashMap<String, int> relationNameToIndexMap, HashMap<String, int> primitiveNameToIndexMap)
+        protected readonly ICUDResultHelper cudResultHelper;
+
+        public CreateOrUpdateContainerBuild(bool isCreate, HashMap<String, int?> relationNameToIndexMap, HashMap<String, int?> primitiveNameToIndexMap,
+            ICUDResultHelper cudResultHelper)
         {
             this.isCreate = isCreate;
             this.relationNameToIndexMap = relationNameToIndexMap;
             this.primitiveNameToIndexMap = primitiveNameToIndexMap;
+            this.cudResultHelper = cudResultHelper;
         }
 
         public bool IsCreate()
@@ -54,7 +60,12 @@ namespace De.Osthus.Ambeth.Merge.Model
                 fullPUIs = new IPrimitiveUpdateItem[primitiveNameToIndexMap.Count];
                 this.fullPUIs = fullPUIs;
             }
-            int index = primitiveNameToIndexMap.Get(pui.MemberName);
+            int? indexR = primitiveNameToIndexMap.Get(pui.MemberName);
+            if (!indexR.HasValue)
+            {
+                throw new Exception("No primitive member " + Reference.RealType.FullName + "." + pui.MemberName + " defined");
+            }
+            int index = indexR.Value;
             if (fullPUIs[index] == null)
             {
                 puiCount++;
@@ -70,7 +81,12 @@ namespace De.Osthus.Ambeth.Merge.Model
                 fullRUIs = new IRelationUpdateItem[relationNameToIndexMap.Count];
                 this.fullRUIs = fullRUIs;
             }
-            int index = relationNameToIndexMap.Get(rui.MemberName);
+            int? indexR = relationNameToIndexMap.Get(rui.MemberName);
+            if (!indexR.HasValue)
+            {
+                throw new Exception("No relation member " + Reference.RealType.FullName + "." + rui.MemberName + " defined");
+            }
+            int index = indexR.Value;
             if (fullRUIs[index] == null)
             {
                 ruiCount++;
@@ -84,7 +100,12 @@ namespace De.Osthus.Ambeth.Merge.Model
             {
                 return null;
             }
-            return (PrimitiveUpdateItem)fullPUIs[primitiveNameToIndexMap.Get(memberName)];
+            int? indexR = primitiveNameToIndexMap.Get(memberName);
+            if (!indexR.HasValue)
+            {
+                throw new Exception("No primitive member " + Reference.RealType.FullName + "." + memberName + " defined");
+            }
+            return (PrimitiveUpdateItem)fullPUIs[indexR.Value];
         }
 
         public RelationUpdateItemBuild FindRelation(String memberName)
@@ -93,7 +114,12 @@ namespace De.Osthus.Ambeth.Merge.Model
             {
                 return null;
             }
-            return (RelationUpdateItemBuild)fullRUIs[relationNameToIndexMap.Get(memberName)];
+            int? indexR = relationNameToIndexMap.Get(memberName);
+            if (!indexR.HasValue)
+            {
+                throw new Exception("No relation member " + Reference.RealType.FullName + "." + memberName + " defined");
+            }
+            return (RelationUpdateItemBuild)fullRUIs[indexR.Value];
         }
 
         public PrimitiveUpdateItem EnsurePrimitive(String memberName)
@@ -130,5 +156,44 @@ namespace De.Osthus.Ambeth.Merge.Model
         {
             return ruiCount;
         }
+
+        public void ToString(StringBuilder sb)
+	    {
+		    if (IsCreate())
+		    {
+			    sb.Append(typeof(CreateContainer).Name).Append(": ");
+		    }
+		    else if (IsUpdate())
+		    {
+			    sb.Append(typeof(UpdateContainer).Name).Append(": ");
+		    }
+		    else
+		    {
+			    base.ToString(sb);
+			    return;
+		    }
+		    StringBuilderUtil.AppendPrintable(sb, Reference);
+	    }
+
+	    public ICreateOrUpdateContainer Build()
+	    {
+            if (IsCreate())
+		    {
+			    CreateContainer cc = new CreateContainer();
+			    cc.Reference = Reference;
+			    cc.Primitives = cudResultHelper.CompactPUIs(GetFullPUIs(), GetPuiCount());
+			    cc.Relations = cudResultHelper.CompactRUIs(GetFullRUIs(), GetRuiCount());
+			    return cc;
+		    }
+            if (IsUpdate())
+		    {
+			    UpdateContainer uc = new UpdateContainer();
+			    uc.Reference = Reference;
+			    uc.Primitives = cudResultHelper.CompactPUIs(GetFullPUIs(), GetPuiCount());
+			    uc.Relations = cudResultHelper.CompactRUIs(GetFullRUIs(), GetRuiCount());
+			    return uc;
+		    }
+		    throw new Exception("Must never happen");
+	    }
     }
 }

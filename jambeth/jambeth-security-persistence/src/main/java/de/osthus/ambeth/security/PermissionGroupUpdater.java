@@ -717,34 +717,41 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			IAuthorization oldAuthorization = securityContext.getAuthorization();
 			try
 			{
-				for (int a = authentications.length; a-- > 0;)
+				boolean oldIgnoreInvalidUser = SecurityFilterInterceptor.setIgnoreInvalidUser(true);
+				try
 				{
-					IAuthentication authentication = authentications[a];
-					IAuthorization authorization = authorizations[a];
-					securityContext.setAuthentication(authentication);
-					securityContext.setAuthorization(authorization);
-
-					IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
-
-					insertPermissionGroupPstm.setObject(1, authorization.getSID());
-
-					for (int b = permissionGroupIds.length; b-- > 0;)
+					for (int a = authentications.length; a-- > 0;)
 					{
-						Object permissionGroupId = permissionGroupIds[b];
+						IAuthentication authentication = authentications[a];
+						IAuthorization authorization = authorizations[a];
+						securityContext.setAuthentication(authentication);
+						securityContext.setAuthorization(authorization);
+						IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
 
-						insertPermissionGroupPstm.setObject(2, permissionGroupId);
+						insertPermissionGroupPstm.setObject(1, authorization.getSID());
 
-						IPrivilege privilege = privileges.get(b);
+						for (int b = permissionGroupIds.length; b-- > 0;)
+						{
+							Object permissionGroupId = permissionGroupIds[b];
 
-						int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
-						int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
-						int deleteAllowed = privilege == null || privilege.isDeleteAllowed() ? 1 : 0;
+							insertPermissionGroupPstm.setObject(2, permissionGroupId);
 
-						insertPermissionGroupPstm.setInt(3, readAllowed);
-						insertPermissionGroupPstm.setInt(4, updateAllowed);
-						insertPermissionGroupPstm.setInt(5, deleteAllowed);
-						insertPermissionGroupPstm.addBatch();
+							IPrivilege privilege = privileges.get(b);
+
+							int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
+							int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
+							int deleteAllowed = privilege == null || privilege.isDeleteAllowed() ? 1 : 0;
+
+							insertPermissionGroupPstm.setInt(3, readAllowed);
+							insertPermissionGroupPstm.setInt(4, updateAllowed);
+							insertPermissionGroupPstm.setInt(5, deleteAllowed);
+							insertPermissionGroupPstm.addBatch();
+						}
 					}
+				}
+				finally
+				{
+					SecurityFilterInterceptor.setIgnoreInvalidUser(oldIgnoreInvalidUser);
 				}
 			}
 			finally

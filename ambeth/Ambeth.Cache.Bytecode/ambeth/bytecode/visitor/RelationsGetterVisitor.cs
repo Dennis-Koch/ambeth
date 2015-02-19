@@ -377,13 +377,6 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                     mv.Mark(l_finish);
                     mv.ReturnValue();
                 }, null);
-
-                {
-                    IMethodVisitor mg = VisitMethod(m_template_getCache);
-                    mg.CallThisGetter(p_targetCache2);
-                    mg.ReturnValue();
-                    mg.EndMethod();
-                }
                 return p_targetCache2;
             }
             ImplementSelfGetter(p_valueHolderContainerTemplate);

@@ -22,13 +22,13 @@ public interface IObjRefHelper
 
 	IObjRef entityToObjRef(Object entity, boolean forceOri);
 
-	IObjRef entityToObjRef(Object entity, byte idIndex);
+	IObjRef entityToObjRef(Object entity, int idIndex);
 
 	IObjRef entityToObjRef(Object entity, IEntityMetaData metaData);
 
-	IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData);
+	IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData);
 
-	IObjRef entityToObjRef(Object entity, byte idIndex, IEntityMetaData metaData, boolean forceOri);
+	IObjRef entityToObjRef(Object entity, int idIndex, IEntityMetaData metaData, boolean forceOri);
 
 	/**
 	 * Returns all valid (key != null) references for the given values.

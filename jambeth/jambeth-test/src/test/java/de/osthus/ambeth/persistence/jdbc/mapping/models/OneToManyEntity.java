@@ -1,11 +1,10 @@
 package de.osthus.ambeth.persistence.jdbc.mapping.models;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.model.AbstractEntity;
 import de.osthus.ambeth.persistence.xml.model.TestEmbeddedType;
 
@@ -116,33 +115,21 @@ public class OneToManyEntity extends AbstractEntity
 
 	public Set<SelfReferencingEntity> getSelfReferencingEntities()
 	{
-		ensureSelfReferencingEntities();
 		return selfReferencingEntities;
 	}
 
-	public void setSelfReferencingEntities(Set<SelfReferencingEntity> selfReferencingEntities)
+	public void setSelfReferencingEntities(Set<SelfReferencingEntity> newSelfReferencingEntities)
 	{
-		removeAllSelfReferencingEntities();
-		if (selfReferencingEntities != null)
-		{
-			for (Iterator<SelfReferencingEntity> iter = selfReferencingEntities.iterator(); iter.hasNext();)
-			{
-				this.selfReferencingEntities.add(iter.next());
-			}
-		}
-	}
-
-	public void removeAllSelfReferencingEntities()
-	{
-		ensureSelfReferencingEntities();
-		selfReferencingEntities.clear();
-	}
-
-	protected void ensureSelfReferencingEntities()
-	{
+		Set<SelfReferencingEntity> selfReferencingEntities = getSelfReferencingEntities();
 		if (selfReferencingEntities == null)
 		{
-			selfReferencingEntities = new HashSet<SelfReferencingEntity>(0);
+			selfReferencingEntities = new HashSet<SelfReferencingEntity>();
+			this.selfReferencingEntities = selfReferencingEntities;
+		}
+		selfReferencingEntities.clear();
+		if (newSelfReferencingEntities != null)
+		{
+			selfReferencingEntities.addAll(newSelfReferencingEntities);
 		}
 	}
 }
