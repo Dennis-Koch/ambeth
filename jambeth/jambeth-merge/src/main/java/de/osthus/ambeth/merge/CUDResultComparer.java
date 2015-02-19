@@ -342,9 +342,9 @@ public class CUDResultComparer implements ICUDResultComparer
 
 	protected boolean equalsPUIs(CUDResultDiff cudResultDiff, IPrimitiveUpdateItem[] left, IPrimitiveUpdateItem[] right)
 	{
-		if (left == null)
+		if (left == null || left.length == 0)
 		{
-			if (right == null)
+			if (right == null || right.length == 0)
 			{
 				return true;
 			}
@@ -359,7 +359,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			}
 			return false;
 		}
-		if (right == null)
+		if (right == null || right.length == 0)
 		{
 			throw new IllegalStateException("Must never happen");
 		}
@@ -426,9 +426,9 @@ public class CUDResultComparer implements ICUDResultComparer
 
 	protected boolean equalsRUIs(CUDResultDiff cudResultDiff, IRelationUpdateItem[] left, IRelationUpdateItem[] right)
 	{
-		if (left == null)
+		if (left == null || left.length == 0)
 		{
-			if (right == null)
+			if (right == null || right.length == 0)
 			{
 				return true;
 			}
@@ -442,7 +442,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			}
 			return false;
 		}
-		if (right == null)
+		if (right == null || right.length == 0)
 		{
 			throw new IllegalStateException("Must never happen");
 		}

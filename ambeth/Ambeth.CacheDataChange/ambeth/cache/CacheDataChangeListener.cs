@@ -19,6 +19,7 @@ using De.Osthus.Ambeth.Util;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using De.Osthus.Ambeth.Cache.Rootcachevalue;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -28,9 +29,6 @@ namespace De.Osthus.Ambeth.Cache
 
         protected static readonly CacheDirective failInCacheHierarchyAndCacheValueResultAndReturnMissesSet = CacheDirective.FailInCacheHierarchy |
 			CacheDirective.CacheValueResult | CacheDirective.ReturnMisses;
-
-        protected static readonly CacheDirective failInCacheHierarchyAndLoadContainerResultSet = CacheDirective.FailInCacheHierarchy |
-			CacheDirective.LoadContainerResult;
 
         [LogInstance]
         public ILogger Log { private get; set; }
@@ -237,18 +235,23 @@ namespace De.Osthus.Ambeth.Cache
 
 	    protected void ChangeSecondLevelCache(CacheDependencyNode node)
 	    {
-		    ChangeSecondLevelCacheIntern(node, CacheDirective.LoadContainerResult);
+		    ChangeSecondLevelCacheIntern(node, cacheValueResultAndReturnMissesSet);
 	    }
 
 	    protected void ChangeSecondLevelCacheIntern(CacheDependencyNode node, CacheDirective cacheDirective)
 	    {
 		    IRootCache rootCache = node.rootCache;
-		    HashMap<IObjRef, ILoadContainer> objRefToLoadContainerDict = node.objRefToLoadContainerMap;
-		    IList<Object> refreshResult = rootCache.GetObjects(node.objRefsToLoad.ToList(), cacheDirective);
+		    HashMap<IObjRef, RootCacheValue> objRefToLoadContainerDict = node.objRefToLoadContainerMap;
+            IList<IObjRef> objRefsToLoadList = node.objRefsToLoad.ToList();
+            IList<Object> refreshResult = rootCache.GetObjects(objRefsToLoadList, cacheDirective);
 		    for (int a = refreshResult.Count; a-- > 0;)
 		    {
-			    ILoadContainer loadContainer = (ILoadContainer) refreshResult[a];
-			    objRefToLoadContainerDict.Put(loadContainer.Reference, loadContainer);
+                RootCacheValue cacheValue = (RootCacheValue)refreshResult[a];
+                if (cacheValue == null)
+                {
+                    continue;
+                }
+                objRefToLoadContainerDict.Put(objRefsToLoadList[a], cacheValue);
 		    }
 		    CheckCascadeRefreshNeeded(node);
 
@@ -273,7 +276,7 @@ namespace De.Osthus.Ambeth.Cache
 		    List<CacheDependencyNode> childNodes = node.childNodes;
 		    for (int a = childNodes.Count; a-- > 0;)
 		    {
-			    ChangeSecondLevelCacheIntern(childNodes[a], failInCacheHierarchyAndLoadContainerResultSet);
+			    ChangeSecondLevelCacheIntern(childNodes[a], failInCacheHierarchyAndCacheValueResultAndReturnMissesSet);
 		    }
 	    }
 
@@ -530,7 +533,7 @@ namespace De.Osthus.Ambeth.Cache
 		    {
 			    return;
 		    }
-		    HashMap<IObjRef, ILoadContainer> objRefToLoadContainerMap = node.objRefToLoadContainerMap;
+		    HashMap<IObjRef, RootCacheValue> objRefToLoadContainerMap = node.objRefToLoadContainerMap;
 		    for (int c = cacheChangeItems.Length; c-- > 0;)
 		    {
 			    CacheChangeItem cci = cacheChangeItems[c];
@@ -545,13 +548,12 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     IObjRef objRefToUpdate = objectRefsToUpdate[a];
                     Object objectToUpdate = objectsToUpdate[a];
-                    ILoadContainer loadContainer = objRefToLoadContainerMap.Get(objRefToUpdate);
-                    if (loadContainer == null)
+                    RootCacheValue cacheValue = objRefToLoadContainerMap.Get(objRefToUpdate);
+                    if (cacheValue == null)
                     {
                         // Current value in childCache is not in our interest here
                         continue;
                     }
-                    IObjRef[][] relations = loadContainer.Relations;
                     IEntityMetaData metaData = ((IEntityMetaDataHolder)objectToUpdate).Get__EntityMetaData();
                     RelationMember[] relationMembers = metaData.RelationMembers;
                     if (relationMembers.Length == 0)
@@ -569,17 +571,17 @@ namespace De.Osthus.Ambeth.Cache
                         // that these relations are in the RootCache at the time the target object will be updated.
                         // This is because initialized relations have to remain initialized after update but the relations
                         // may have been updated, too
-                        BatchPendingRelations(vhc, relationMembers[relationIndex], relations[relationIndex], node);
+                        BatchPendingRelations(cacheValue, relationMembers[relationIndex], cacheValue.GetRelation(relationIndex), node);
                     }
                 }
             }
         }
 
-        protected void BatchPendingRelations(IObjRefContainer entity, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
+        protected void BatchPendingRelations(RootCacheValue cacheValue, RelationMember member, IObjRef[] relationsOfMember, CacheDependencyNode node)
 	    {
 		    if (relationsOfMember == null)
 		    {
-			    IObjRelation objRelation = ValueHolderContainerMixin.GetSelf(entity, member.Name);
+                IObjRelation objRelation = ValueHolderContainerMixin.GetSelf(cacheValue, member.Name);
 			    node.cascadeRefreshObjRelationsSet.Add(objRelation);
                 IObjRef[] objRefs = objRelation.ObjRefs;
                 for (int a = objRefs.Length; a-- > 0; )

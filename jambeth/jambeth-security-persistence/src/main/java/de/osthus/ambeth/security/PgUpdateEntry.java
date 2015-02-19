@@ -1,6 +1,8 @@
 package de.osthus.ambeth.security;
 
+import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.datachange.model.IDataChange;
+import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.persistence.IPermissionGroup;
 
 public class PgUpdateEntry
@@ -12,6 +14,12 @@ public class PgUpdateEntry
 	protected PermissionGroupUpdateType updateType = PermissionGroupUpdateType.NOTHING;
 
 	protected IDataChange dataChange;
+
+	protected IList<IObjRef> objRefs;
+
+	private Object[] permissionGroupIds;
+
+	private int startIndexInAllObjRefs;
 
 	public PgUpdateEntry(Class<?> entityType, IPermissionGroup permissionGroup)
 	{
@@ -49,9 +57,39 @@ public class PgUpdateEntry
 		this.dataChange = dataChange;
 	}
 
+	public IList<IObjRef> getObjRefs()
+	{
+		return objRefs;
+	}
+
+	public void setObjRefs(IList<IObjRef> objRefs)
+	{
+		this.objRefs = objRefs;
+	}
+
+	public Object[] getPermissionGroupIds()
+	{
+		return permissionGroupIds;
+	}
+
+	public void setPermissionGroupIds(Object[] permissionGroupIds)
+	{
+		this.permissionGroupIds = permissionGroupIds;
+	}
+
 	@Override
 	public String toString()
 	{
 		return getUpdateType().toString();
+	}
+
+	public int getStartIndexInAllObjRefs()
+	{
+		return startIndexInAllObjRefs;
+	}
+
+	public void setStartIndexInAllObjRefs(int startIndexInAllObjRefs)
+	{
+		this.startIndexInAllObjRefs = startIndexInAllObjRefs;
 	}
 }

@@ -322,9 +322,9 @@ namespace De.Osthus.Ambeth.Merge
 
         protected bool EqualsPUIs(CUDResultDiff cudResultDiff, IPrimitiveUpdateItem[] left, IPrimitiveUpdateItem[] right)
         {
-            if (left == null)
+            if (left == null || left.Length == 0)
             {
-                if (right == null)
+                if (right == null || right.Length == 0)
                 {
                     return true;
                 }
@@ -339,7 +339,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 return false;
             }
-            if (right == null)
+            if (right == null || right.Length == 0)
             {
                 throw new Exception("Must never happen");
             }
@@ -406,9 +406,9 @@ namespace De.Osthus.Ambeth.Merge
 
         protected bool EqualsRUIs(CUDResultDiff cudResultDiff, IRelationUpdateItem[] left, IRelationUpdateItem[] right)
         {
-            if (left == null)
+            if (left == null || left.Length == 0)
             {
-                if (right == null)
+                if (right == null || right.Length == 0)
                 {
                     return true;
                 }
@@ -422,7 +422,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 return false;
             }
-            if (right == null)
+            if (right == null || right.Length == 0)
             {
                 throw new Exception("Must never happen");
             }
@@ -443,7 +443,7 @@ namespace De.Osthus.Ambeth.Merge
                         containerBuild.AddRelation(rightRui);
                         continue;
                     }
-                    if (!equalsRUI(cudResultDiff, leftRui, rightRui))
+                    if (!EqualsRUI(cudResultDiff, leftRui, rightRui))
                     {
                         if (!cudResultDiff.doFullDiff)
                         {
@@ -457,7 +457,7 @@ namespace De.Osthus.Ambeth.Merge
             for (int a = left.Length; a-- > 0; )
             {
                 IRelationUpdateItem rightPui = right[a];
-                if (!equalsRUI(cudResultDiff, left[a], rightPui))
+                if (!EqualsRUI(cudResultDiff, left[a], rightPui))
                 {
                     if (!cudResultDiff.doFullDiff)
                     {
@@ -468,7 +468,7 @@ namespace De.Osthus.Ambeth.Merge
             return true;
         }
 
-        protected bool equalsRUI(CUDResultDiff cudResultDiff, IRelationUpdateItem left, IRelationUpdateItem right)
+        protected bool EqualsRUI(CUDResultDiff cudResultDiff, IRelationUpdateItem left, IRelationUpdateItem right)
         {
             // we do NOT have to check each relational ObjRef because IF an objRef is in the scope it must not be removed afterwards
             // so we know by design that the arrays can only grow

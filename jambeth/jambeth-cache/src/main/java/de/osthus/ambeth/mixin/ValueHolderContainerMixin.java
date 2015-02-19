@@ -39,21 +39,21 @@ public class ValueHolderContainerMixin
 	protected IEntityMetaDataProvider entityMetaDataProvider;
 
 	@Autowired
-	protected IObjRefHelper oriHelper;
+	protected IObjRefHelper objRefHelper;
 
 	@Autowired(optional = true)
 	protected ILightweightTransaction transaction;
 
-	public IObjRelation getSelf(IObjRefContainer entity, String memberName)
+	public IObjRelation getSelf(Object entity, String memberName)
 	{
-		IList<IObjRef> allObjRefs = oriHelper.entityToAllObjRefs(entity);
+		IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
 		return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
 	}
 
 	public IObjRelation getSelf(IObjRefContainer entity, int relationIndex)
 	{
 		String memberName = entity.get__EntityMetaData().getRelationMembers()[relationIndex].getName();
-		IList<IObjRef> allObjRefs = oriHelper.entityToAllObjRefs(entity);
+		IList<IObjRef> allObjRefs = objRefHelper.entityToAllObjRefs(entity);
 		return new ObjRelation(allObjRefs.toArray(IObjRef.class), memberName);
 	}
 

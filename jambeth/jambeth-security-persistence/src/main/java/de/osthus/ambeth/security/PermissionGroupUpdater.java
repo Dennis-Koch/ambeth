@@ -327,6 +327,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected boolean hasChangesOnRuleReferredEntities(Class<?> entityType, IDataChange dataChange, IMap<Class<?>, IDataChange> entityTypeToDataChangeMap,
 			IMap<Class<?>, Boolean> entityTypeToEmptyFlagMap)
 	{
@@ -436,60 +437,85 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				@Override
 				public Boolean invoke() throws Throwable
 				{
-					IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
-					if (entityToPgUpdateMap.size() == 0)
-					{
-						return Boolean.FALSE;
-					}
-					ArrayList<PermissionGroupUpdateForkItem> forkItems = new ArrayList<PermissionGroupUpdateForkItem>();
-					insertPermissionGroupsIntern(entityToPgUpdateMap, forkItems, dataChange != null);
-					if (forkItems.size() == 0)
-					{
-						return Boolean.TRUE;
-					}
-					// for (PermissionGroupUpdateForkItem itemOfFork : forkItems)
-					multithreadingHelper.invokeAndWait(forkItems, new IBackgroundWorkerParamDelegate<PermissionGroupUpdateForkItem>()
+					return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Boolean>()
 					{
 						@Override
-						public void invoke(PermissionGroupUpdateForkItem itemOfFork) throws Throwable
+						public Boolean invoke() throws Throwable
 						{
-							final PgUpdateEntry pgUpdateEntry = itemOfFork.pgUpdateEntry;
-							IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
-							final ITableMetaData table = permissionGroup.getTargetTable();
-							IList<IObjRef> objRefs = securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<IList<IObjRef>>()
+							IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap = createPgUpdateMap(dataChange);
+							if (entityToPgUpdateMap.size() == 0)
+							{
+								return Boolean.FALSE;
+							}
+							insertPermissionGroupsIntern(entityToPgUpdateMap, dataChange != null);
+							if (entityToPgUpdateMap.size() == 0)
+							{
+								return Boolean.FALSE;
+							}
+							multithreadingHelper.invokeAndWait(entityToPgUpdateMap, new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>()
 							{
 								@Override
-								public IList<IObjRef> invoke() throws Throwable
+								public void invoke(Entry<Class<?>, PgUpdateEntry> entry) throws Throwable
 								{
+									PgUpdateEntry pgUpdateEntry = entry.getValue();
+									IPermissionGroup permissionGroup = pgUpdateEntry.getPermissionGroup();
+									ITableMetaData table = permissionGroup.getTargetTable();
+									IList<IObjRef> objRefs;
 									switch (pgUpdateEntry.getUpdateType())
 									{
-										case NOTHING:
-										{
-											return null;
-										}
 										case SELECTED_ROW:
 										{
-											return loadSelectedObjRefs(pgUpdateEntry);
+											objRefs = loadSelectedObjRefs(pgUpdateEntry);
+											break;
 										}
 										case EACH_ROW:
 										{
-											return loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
+											objRefs = loadAllObjRefsOfEntityTable(table, pgUpdateEntry);
+											break;
 										}
 										default:
 											throw RuntimeExceptionUtil.createEnumNotSupportedException(pgUpdateEntry.getUpdateType());
 									}
+									Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
+									updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
+
+									pgUpdateEntry.setObjRefs(objRefs);
+									pgUpdateEntry.setPermissionGroupIds(permissionGroupIds);
 								}
 							});
-							if (objRefs == null)
+
+							String[] allSids = getAllSids();
+							ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
+
+							IAuthentication[] authentications = new IAuthentication[allSids.length];
+							final IAuthorization[] authorizations = new IAuthorization[allSids.length];
+
+							for (int a = allSids.length; a-- > 0;)
 							{
-								return;
+								String sid = allSids[a];
+								authentications[a] = new DefaultAuthentication(sid, "dummyPass".toCharArray(), PasswordType.PLAIN);
+								authorizations[a] = mockAuthorization(sid, securityScopes);
 							}
-							Object[] permissionGroupIds = createPermissionGroupIds(objRefs, permissionGroup);
-							updateEntityRows(objRefs, permissionGroupIds, permissionGroup, table);
-							insertPermissionGroupsForUsers(objRefs, permissionGroupIds, itemOfFork.authentications, itemOfFork.authorizations, permissionGroup);
+							ArrayList<IObjRef> allObjRefs = new ArrayList<IObjRef>();
+							for (Entry<Class<?>, PgUpdateEntry> entry : entityToPgUpdateMap)
+							{
+								PgUpdateEntry pgUpdateEntry = entry.getValue();
+								pgUpdateEntry.setStartIndexInAllObjRefs(allObjRefs.size());
+								allObjRefs.addAll(pgUpdateEntry.getObjRefs());
+							}
+							final IList<IPrivilege>[] allPrivilegesOfAllUsers = evaluateAllPrivileges(allObjRefs, authentications, authorizations);
+
+							multithreadingHelper.invokeAndWait(entityToPgUpdateMap, new IBackgroundWorkerParamDelegate<Entry<Class<?>, PgUpdateEntry>>()
+							{
+								@Override
+								public void invoke(Entry<Class<?>, PgUpdateEntry> entry) throws Throwable
+								{
+									insertPermissionGroupsForUsers(entry.getValue(), authorizations, allPrivilegesOfAllUsers);
+								}
+							});
+							return Boolean.TRUE;
 						}
 					});
-					return Boolean.TRUE;
 				}
 			}, securityScopes);
 			if (pgUpdated.booleanValue() && log.isDebugEnabled())
@@ -518,6 +544,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 
 	protected IList<IObjRef> loadSelectedObjRefs(PgUpdateEntry pgUpdateEntry)
 	{
+		IObjRefFactory objRefFactory = this.objRefFactory;
 		IDataChange dataChange = pgUpdateEntry.getDataChange();
 		List<IDataChangeEntry> inserts = dataChange.getInserts();
 		List<IDataChangeEntry> updates = dataChange.getUpdates();
@@ -525,12 +552,14 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		for (int a = inserts.size(); a-- > 0;)
 		{
 			IDataChangeEntry dataChangeEntry = inserts.get(a);
-			objRefs.add(new ObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(), dataChangeEntry.getVersion()));
+			objRefs.add(objRefFactory.createObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
+					dataChangeEntry.getVersion()));
 		}
 		for (int a = updates.size(); a-- > 0;)
 		{
 			IDataChangeEntry dataChangeEntry = updates.get(a);
-			objRefs.add(new ObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(), dataChangeEntry.getVersion()));
+			objRefs.add(objRefFactory.createObjRef(dataChangeEntry.getEntityType(), dataChangeEntry.getIdNameIndex(), dataChangeEntry.getId(),
+					dataChangeEntry.getVersion()));
 		}
 		return objRefs;
 	}
@@ -618,21 +647,8 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return allSids;
 	}
 
-	protected void insertPermissionGroupsIntern(IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap, List<PermissionGroupUpdateForkItem> runnables,
-			boolean triggeredByDCE) throws Throwable
+	protected void insertPermissionGroupsIntern(IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap, boolean triggeredByDCE)
 	{
-		String[] allSids = getAllSids();
-
-		IAuthentication[] authentications = new IAuthentication[allSids.length];
-		IAuthorization[] authorizations = new IAuthorization[allSids.length];
-		ISecurityScope[] securityScopes = securityScopeProvider.getSecurityScopes();
-
-		for (int a = allSids.length; a-- > 0;)
-		{
-			String sid = allSids[a];
-			authentications[a] = new DefaultAuthentication(sid, "dummyPass".toCharArray(), PasswordType.PLAIN);
-			authorizations[a] = mockAuthorization(sid, securityScopes);
-		}
 		boolean debugEnabled = log.isDebugEnabled();
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();
 		StringBuilder sb = debugEnabled ? objectCollector.create(StringBuilder.class) : null;
@@ -670,13 +686,12 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 			for (Class<?> entityType : entityTypes)
 			{
 				PgUpdateEntry pgUpdateEntry = entityToPgUpdateMap.get(entityType);
+
 				if (PermissionGroupUpdateType.NOTHING.equals(pgUpdateEntry.getUpdateType()))
 				{
+					entityToPgUpdateMap.remove(entityType);
 					continue;
 				}
-				PermissionGroupUpdateForkItem runnable = new PermissionGroupUpdateForkItem(authentications, authorizations, pgUpdateEntry);
-				runnables.add(runnable);
-
 				if (debugEnabled)
 				{
 					sb.append("\n\t");
@@ -691,7 +706,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 					sb.append(pgUpdateEntry.getUpdateType().name());
 				}
 			}
-			if (runnables.size() > 0 && debugEnabled)
+			if (entityToPgUpdateMap.size() > 0 && debugEnabled)
 			{
 				log.debug(sb);
 			}
@@ -705,59 +720,75 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		}
 	}
 
-	private void insertPermissionGroupsForUsers(IList<IObjRef> objRefs, Object[] permissionGroupIds, IAuthentication[] authentications,
-			IAuthorization[] authorizations, IPermissionGroup permissionGroup) throws Throwable
+	@SuppressWarnings("unchecked")
+	protected IList<IPrivilege>[] evaluateAllPrivileges(List<IObjRef> allObjRefs, IAuthentication[] authentications, IAuthorization[] authorizations)
 	{
 		IPrivilegeProvider privilegeProvider = this.privilegeProvider;
 		ISecurityContext securityContext = securityContextHolder.getCreateContext();
-		PreparedStatement insertPermissionGroupPstm = buildInsertPermissionGroupStm(permissionGroup);
+		IAuthentication oldAuthentication = securityContext.getAuthentication();
+		IAuthorization oldAuthorization = securityContext.getAuthorization();
 		try
 		{
-			IAuthentication oldAuthentication = securityContext.getAuthentication();
-			IAuthorization oldAuthorization = securityContext.getAuthorization();
+			boolean oldIgnoreInvalidUser = SecurityFilterInterceptor.setIgnoreInvalidUser(true);
 			try
 			{
-				boolean oldIgnoreInvalidUser = SecurityFilterInterceptor.setIgnoreInvalidUser(true);
-				try
+				IList<IPrivilege>[] allPrivilegesOfAllUsers = new IList[authentications.length];
+				for (int a = authentications.length; a-- > 0;)
 				{
-					for (int a = authentications.length; a-- > 0;)
-					{
-						IAuthentication authentication = authentications[a];
-						IAuthorization authorization = authorizations[a];
-						securityContext.setAuthentication(authentication);
-						securityContext.setAuthorization(authorization);
-						IList<IPrivilege> privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
+					IAuthentication authentication = authentications[a];
+					IAuthorization authorization = authorizations[a];
+					securityContext.setAuthentication(authentication);
+					securityContext.setAuthorization(authorization);
 
-						insertPermissionGroupPstm.setObject(1, authorization.getSID());
-
-						for (int b = permissionGroupIds.length; b-- > 0;)
-						{
-							Object permissionGroupId = permissionGroupIds[b];
-
-							insertPermissionGroupPstm.setObject(2, permissionGroupId);
-
-							IPrivilege privilege = privileges.get(b);
-
-							int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
-							int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
-							int deleteAllowed = privilege == null || privilege.isDeleteAllowed() ? 1 : 0;
-
-							insertPermissionGroupPstm.setInt(3, readAllowed);
-							insertPermissionGroupPstm.setInt(4, updateAllowed);
-							insertPermissionGroupPstm.setInt(5, deleteAllowed);
-							insertPermissionGroupPstm.addBatch();
-						}
-					}
+					allPrivilegesOfAllUsers[a] = privilegeProvider.getPrivilegesByObjRef(allObjRefs);
 				}
-				finally
-				{
-					SecurityFilterInterceptor.setIgnoreInvalidUser(oldIgnoreInvalidUser);
-				}
+				return allPrivilegesOfAllUsers;
 			}
 			finally
 			{
-				securityContext.setAuthentication(oldAuthentication);
-				securityContext.setAuthorization(oldAuthorization);
+				SecurityFilterInterceptor.setIgnoreInvalidUser(oldIgnoreInvalidUser);
+			}
+		}
+		finally
+		{
+			securityContext.setAuthentication(oldAuthentication);
+			securityContext.setAuthorization(oldAuthorization);
+		}
+	}
+
+	protected void insertPermissionGroupsForUsers(PgUpdateEntry pgUpdateEntry, IAuthorization[] authorizations, IList<IPrivilege>[] allPrivilegesOfAllUsers)
+			throws Throwable
+	{
+		Object[] permissionGroupIds = pgUpdateEntry.getPermissionGroupIds();
+		int startIndexInAllObjRefs = pgUpdateEntry.getStartIndexInAllObjRefs();
+
+		PreparedStatement insertPermissionGroupPstm = buildInsertPermissionGroupStm(pgUpdateEntry.getPermissionGroup());
+		try
+		{
+			for (int b = permissionGroupIds.length; b-- > 0;)
+			{
+				Object permissionGroupId = permissionGroupIds[b];
+
+				insertPermissionGroupPstm.setObject(2, permissionGroupId);
+
+				for (int a = authorizations.length; a-- > 0;)
+				{
+					IAuthorization authorization = authorizations[a];
+					IList<IPrivilege> allPrivileges = allPrivilegesOfAllUsers[a];
+
+					insertPermissionGroupPstm.setObject(1, authorization.getSID());
+
+					IPrivilege privilege = allPrivileges.get(startIndexInAllObjRefs + b);
+
+					int readAllowed = privilege == null || privilege.isReadAllowed() ? 1 : 0;
+					int updateAllowed = privilege == null || privilege.isUpdateAllowed() ? 1 : 0;
+					int deleteAllowed = privilege == null || privilege.isDeleteAllowed() ? 1 : 0;
+
+					insertPermissionGroupPstm.setInt(3, readAllowed);
+					insertPermissionGroupPstm.setInt(4, updateAllowed);
+					insertPermissionGroupPstm.setInt(5, deleteAllowed);
+					insertPermissionGroupPstm.addBatch();
+				}
 			}
 			insertPermissionGroupPstm.executeBatch();
 		}
