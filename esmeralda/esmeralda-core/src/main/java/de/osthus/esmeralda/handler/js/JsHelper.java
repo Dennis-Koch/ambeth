@@ -110,8 +110,8 @@ public class JsHelper implements IJsHelper
 		// put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		// put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "Ambeth.util.ThreadLocal");
-		put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
-		put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
+		// put(de.osthus.ambeth.collections.IList.class.getName(), "Ambeth.collections.IList");
+		// put(de.osthus.ambeth.collections.HashSet.class.getName(), "Ambeth.collections.CHashSet");
 		put(java.util.Map.Entry.class.getName(), "Ambeth.collections.Entry");
 	}
 
@@ -264,7 +264,14 @@ public class JsHelper implements IJsHelper
 	public String createTargetFileName(JavaClassInfo classInfo)
 	{
 		String nonGenericType = astHelper.extractNonGenericType(classInfo.getName());
+		nonGenericType = handleAnonymousClassName(nonGenericType);
 		return nonGenericType + ".js";
+	}
+
+	protected String handleAnonymousClassName(String name)
+	{
+		name = name.replaceAll("\\$(\\d+)", "\\$c$1");
+		return name;
 	}
 
 	@Override
@@ -314,6 +321,7 @@ public class JsHelper implements IJsHelper
 		IWriter writer = context.getWriter();
 
 		String className = classInfo.getName().split("<", 2)[0];
+		className = handleAnonymousClassName(className);
 		writer.append(className);
 	}
 
@@ -766,6 +774,8 @@ public class JsHelper implements IJsHelper
 		{
 			convertedType = OBJECT;
 		}
+
+		convertedType = handleAnonymousClassName(convertedType);
 
 		return convertedType;
 	}

@@ -16,6 +16,7 @@ import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.ITransformedMemberAccess;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.JavaClassInfo;
 
@@ -110,6 +111,12 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				String typeOnStack = context.getTypeOnStack();
 				JavaClassInfo classInfoOnStack = context.resolveClassInfo(typeOnStack);
 				// FIXME With <anonymous de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder<V>> onStack no field can be found
+				// Data for the actual (anonymous) implementation of the interface is missing
+				if (classInfoOnStack == null)
+				{
+					throw new SnippetTrigger("Missing details for anonymous class");
+				}
+				// End of FIXME
 				Field fieldOfNameOfStack = classInfoOnStack.getField(name);
 				// String typeFromSymbolName = languageHelper.resolveTypeFromVariableName(name);
 				writer.append('.').append(name);
