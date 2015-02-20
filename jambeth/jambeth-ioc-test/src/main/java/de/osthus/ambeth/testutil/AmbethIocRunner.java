@@ -5,7 +5,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
@@ -15,6 +14,8 @@ import org.junit.runners.model.Statement;
 import de.osthus.ambeth.annotation.AnnotationInfo;
 import de.osthus.ambeth.annotation.IAnnotationInfo;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.ISet;
 import de.osthus.ambeth.collections.LinkedHashSet;
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -24,18 +25,22 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupController;
+import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
+import de.osthus.ambeth.util.EqualsUtil;
 import de.osthus.ambeth.util.NullPrintStream;
 
 public class AmbethIocRunner extends BlockJUnit4ClassRunner
 {
+	public static final ThreadLocal<List<IBackgroundWorkerDelegate>> restorePreviousTestSetupTL = new ThreadLocal<List<IBackgroundWorkerDelegate>>();
+
+	public static final ThreadLocal<IocTestSetup> previousTestSetupTL = new ThreadLocal<IocTestSetup>();
+
 	protected boolean hasContextBeenRebuildForThisTest;
 
 	protected boolean isRebuildContextForThisTestRecommended;
 
-	protected IServiceContext testClassLevelContext;
-
-	protected IServiceContext beanContext;
+	protected IocTestSetup testSetup;
 
 	protected final ThreadLocal<Object> targetProxyTL = new ThreadLocal<Object>();
 
@@ -44,30 +49,14 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		super(testClass);
 	}
 
-	@Override
-	protected void finalize() throws Throwable
-	{
-		if (beanContext != null)
-		{
-			beanContext.getRoot().dispose();
-			beanContext = null;
-		}
-		if (testClassLevelContext != null)
-		{
-			testClassLevelContext.getRoot().dispose();
-			testClassLevelContext = null;
-		}
-		super.finalize();
-	}
-
 	public IServiceContext getBeanContext()
 	{
-		return beanContext;
+		return testSetup != null ? testSetup.beanContext : null;
 	}
 
 	public void cleanupThreadLocals()
 	{
-		beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+		testSetup.beanContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
 	}
 
 	public void rebuildContext()
@@ -77,13 +66,10 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 
 	public void disposeContext()
 	{
-		if (testClassLevelContext != null)
+		if (testSetup != null)
 		{
-			IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
-			testClassLevelContext.getRoot().dispose();
-			testClassLevelContext = null;
-			beanContext = null;
-			tlCleanupController.cleanupThreadLocal();
+			testSetup.dispose();
+			testSetup = null;
 		}
 	}
 
@@ -115,9 +101,107 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		return frameworkModuleList;
 	}
 
+	protected boolean deepEquals(Object left, Object right)
+	{
+		if (left instanceof List && right instanceof List)
+		{
+			List<?> leftColl = (List<?>) left;
+			List<?> rightColl = (List<?>) right;
+			if (leftColl.size() != rightColl.size())
+			{
+				return false;
+			}
+			for (int a = leftColl.size(); a-- > 0;)
+			{
+				if (!deepEquals(leftColl.get(a), rightColl.get(a)))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return EqualsUtil.equals(left, right);
+	}
+
+	protected boolean isTestSetupIdenticallyConfiguredWithMethod(FrameworkMethod frameworkMethod, IocTestSetup testSetup)
+	{
+		if (testSetup == null)
+		{
+			return false;
+		}
+		Properties baseProps = new Properties(Properties.getApplication());
+
+		extendProperties(frameworkMethod, baseProps);
+
+		ISet<String> allNewKeys = baseProps.collectAllPropertyKeys();
+		HashMap<String, Object> existingBaseProps = testSetup.baseProps;
+		// if (existingBaseProps.size() != allNewKeys.size())
+		// {
+		// return false;
+		// }
+		for (String newKey : allNewKeys)
+		{
+			Object existingValue = existingBaseProps.get(newKey);
+			Object newValue = baseProps.get(newKey);
+			if (!deepEquals(newValue, existingValue))
+			{
+				return false;
+			}
+		}
+		for (String existingKey : existingBaseProps.keySet())
+		{
+			Object existingValue = existingBaseProps.get(existingKey);
+			Object newValue = baseProps.get(existingKey);
+			if (!deepEquals(newValue, existingValue))
+			{
+				return false;
+			}
+		}
+		LinkedHashSet<Class<? extends IInitializingModule>> frameworkModulesSet = new LinkedHashSet<Class<? extends IInitializingModule>>();
+		frameworkModulesSet.addAll(buildFrameworkTestModuleList(frameworkMethod));
+
+		ArrayList<Class<?>> existingFrameworkModules = testSetup.frameworkModules;
+		if (existingFrameworkModules.size() != frameworkModulesSet.size())
+		{
+			return false;
+		}
+		for (Class<?> existingFrameworkModule : existingFrameworkModules)
+		{
+			if (!frameworkModulesSet.contains(existingFrameworkModule))
+			{
+				return false;
+			}
+		}
+
+		LinkedHashSet<Class<? extends IInitializingModule>> applicationModulesSet = new LinkedHashSet<Class<? extends IInitializingModule>>();
+		applicationModulesSet.addAll(buildTestModuleList(frameworkMethod));
+
+		ArrayList<Class<?>> existingApplicationModules = testSetup.applicationModules;
+		if (existingApplicationModules.size() != applicationModulesSet.size())
+		{
+			return false;
+		}
+		for (Class<?> existingApplicationModule : existingApplicationModules)
+		{
+			if (!applicationModulesSet.contains(existingApplicationModule))
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	@SuppressWarnings("unchecked")
 	protected void rebuildContext(FrameworkMethod frameworkMethod)
 	{
+		IocTestSetup previousTestSetup = previousTestSetupTL.get();
+		if (previousTestSetup != null)
+		{
+			previousTestSetupTL.set(null);
+			previousTestSetup.dispose();
+			previousTestSetup = null;
+		}
 		disposeContext();
 		Properties.resetApplication();
 
@@ -145,7 +229,8 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 		Class<? extends IInitializingModule>[] frameworkModules = testClassLevelTestFrameworkModulesList.toArray(Class.class);
 		Class<? extends IInitializingModule>[] applicationModules = testClassLevelTestModulesList.toArray(Class.class);
 
-		testClassLevelContext = BeanContextFactory.createBootstrap(baseProps);
+		IServiceContext testClassLevelContext = BeanContextFactory.createBootstrap(baseProps);
+		IServiceContext beanContext = null;
 		boolean success = false;
 		try
 		{
@@ -181,8 +266,28 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			if (!success && testClassLevelContext != null)
 			{
 				testClassLevelContext.getService(IThreadLocalCleanupController.class).cleanupThreadLocal();
+				testClassLevelContext.getRoot().dispose();
+				testClassLevelContext = null;
+				beanContext = null;
 			}
 		}
+		testSetup = createTestSetup(testClassLevelContext, beanContext);
+		for (String key : baseProps.collectAllPropertyKeys())
+		{
+			testSetup.baseProps.put(key, baseProps.get(key));
+		}
+		testSetup.frameworkModules.addAll(frameworkModules);
+		testSetup.applicationModules.addAll(applicationModules);
+
+		if (restorePreviousTestSetupTL.get() != null)
+		{
+			previousTestSetupTL.set(testSetup);
+		}
+	}
+
+	protected IocTestSetup createTestSetup(IServiceContext testClassLevelContext, IServiceContext beanContext)
+	{
+		return new IocTestSetup(testClassLevelContext, beanContext);
 	}
 
 	protected List<TestProperties> getAllTestProperties(FrameworkMethod frameworkMethod)
@@ -273,8 +378,12 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			public void evaluate() throws Throwable
 			{
 				withAfterClasses.evaluate();
-				disposeContext();
-				System.gc();
+
+				if (previousTestSetupTL.get() != testSetup)
+				{
+					disposeContext();
+					System.gc();
+				}
 			}
 		};
 	}
@@ -297,11 +406,11 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				Object targetProxy;
 				if (IRunnerAware.class.isAssignableFrom(target.getClass()))
 				{
-					targetProxy = beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
+					targetProxy = testSetup.beanContext.registerWithLifecycle(target).propertyValue("Runner", AmbethIocRunner.this).finish();
 				}
 				else
 				{
-					targetProxy = beanContext.registerWithLifecycle(target).finish();
+					targetProxy = testSetup.beanContext.registerWithLifecycle(target).finish();
 				}
 				Object oldTargetProxy = targetProxyTL.get();
 				targetProxyTL.set(targetProxy);
@@ -313,17 +422,17 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 				{
 					targetProxyTL.set(oldTargetProxy);
 
-					if (beanContext != null)
+					if (testSetup.beanContext != null)
 					{
-						ICleanupAfter cleanupAfter = beanContext.getService(ICleanupAfter.class, false);
+						ICleanupAfter cleanupAfter = testSetup.beanContext.getService(ICleanupAfter.class, false);
 						if (cleanupAfter != null)
 						{
 							cleanupAfter.cleanup();
 						}
 					}
-					else if (testClassLevelContext != null)
+					else if (testSetup.testClassLevelContext != null)
 					{
-						IThreadLocalCleanupController tlCleanupController = testClassLevelContext.getService(IThreadLocalCleanupController.class);
+						IThreadLocalCleanupController tlCleanupController = testSetup.testClassLevelContext.getService(IThreadLocalCleanupController.class);
 						tlCleanupController.cleanupThreadLocal();
 					}
 				}
@@ -369,38 +478,33 @@ public class AmbethIocRunner extends BlockJUnit4ClassRunner
 			@Override
 			public void evaluate() throws Throwable
 			{
+				boolean doRebuildContext = false;
 				if (!hasContextBeenRebuildForThisTest)
 				{
-					if (method == null || method.getAnnotation(Ignore.class) == null)
+					List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
+					if (rebuildContextList.size() > 0)
 					{
-						List<IAnnotationInfo<?>> rebuildContextList = findAnnotations(getTestClass().getJavaClass(), TestRebuildContext.class);
-						if (rebuildContextList.size() > 0)
+						doRebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
+					}
+					if (!doRebuildContext && !isTestSetupIdenticallyConfiguredWithMethod(method, testSetup))
+					{
+						if (isTestSetupIdenticallyConfiguredWithMethod(method, previousTestSetupTL.get()))
 						{
-							boolean rebuildContext = ((TestRebuildContext) rebuildContextList.get(rebuildContextList.size() - 1).getAnnotation()).value();
-							if (rebuildContext)
-							{
-								rebuildContext(method);
-								hasContextBeenRebuildForThisTest = true;
-								isRebuildContextForThisTestRecommended = false;
-							}
+							testSetup = previousTestSetupTL.get();
+							hasContextBeenRebuildForThisTest = true;
+							isRebuildContextForThisTestRecommended = false;
 						}
-						if (method != null)
+						else
 						{
-							Method targetMethod = method.getMethod();
-
-							if (targetMethod.isAnnotationPresent(TestModule.class) || targetMethod.isAnnotationPresent(TestFrameworkModule.class)
-									|| targetMethod.isAnnotationPresent(TestPropertiesList.class) || targetMethod.isAnnotationPresent(TestProperties.class))
-							{
-								rebuildContext(method);
-								hasContextBeenRebuildForThisTest = true;
-								isRebuildContextForThisTestRecommended = false;
-							}
+							doRebuildContext = true;
 						}
 					}
 				}
-				if (beanContext == null || isRebuildContextForThisTestRecommended)
+				if (doRebuildContext || isRebuildContextForThisTestRecommended)
 				{
 					rebuildContext(method);
+					hasContextBeenRebuildForThisTest = true;
+					isRebuildContextForThisTestRecommended = false;
 				}
 				statement.evaluate();
 			}

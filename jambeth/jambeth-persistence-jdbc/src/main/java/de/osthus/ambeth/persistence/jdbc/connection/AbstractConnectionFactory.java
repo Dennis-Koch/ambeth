@@ -2,11 +2,13 @@ package de.osthus.ambeth.persistence.jdbc.connection;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.event.IEventDispatcher;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -45,7 +47,7 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 	protected IProxyFactory proxyFactory;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.PreparedConnectionInstances, mandatory = false)
-	protected ArrayList<Connection> preparedConnectionInstances;
+	protected List<Connection> preparedConnectionInstances;
 
 	@Property(name = PersistenceJdbcConfigurationConstants.DatabaseSchemaName)
 	protected String schemaName;
@@ -54,20 +56,25 @@ public abstract class AbstractConnectionFactory implements IConnectionFactory, I
 
 	protected final IConnectionKeyHandle connectionKeyHandle = new DefaultConnectionKeyHandle();
 
+	protected List<Connection> preparedConnectionClone;
+
 	@Override
 	public void afterPropertiesSet() throws Throwable
 	{
 		ParamChecker.assertNotNull(schemaName, "schemaName");
 
 		schemaNames = schemaName.toUpperCase().split("[:;]");
+
+		preparedConnectionClone = preparedConnectionInstances != null ? new ArrayList<Connection>(preparedConnectionInstances) : EmptyList
+				.<Connection> getInstance();
 	}
 
 	@Override
 	public final Connection create()
 	{
-		while (preparedConnectionInstances != null && preparedConnectionInstances.size() > 0)
+		while (preparedConnectionClone != null && preparedConnectionClone.size() > 0)
 		{
-			Connection preparedConnection = preparedConnectionInstances.remove(preparedConnectionInstances.size() - 1);
+			Connection preparedConnection = preparedConnectionClone.remove(preparedConnectionClone.size() - 1);
 			try
 			{
 				if (preparedConnection.isClosed())
