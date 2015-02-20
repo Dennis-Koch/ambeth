@@ -92,6 +92,9 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	/** Flag which is set to true after the first test method was executed. */
 	private boolean isFirstTestMethodAlreadyExecuted;
 
+	/** Flag which is set if the last test method has triggered a context rebuild. */
+	private boolean lastMethodTriggersContextRebuild;
+
 	public AmbethInformationBusWithPersistenceRunner(final Class<?> testClass) throws InitializationError
 	{
 		super(testClass);
@@ -242,7 +245,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		{
 			throw RuntimeExceptionUtil.mask(e);
 		}
-		testSetup.beanContext.getService(ILightweightTransaction.class).runInTransaction(new IBackgroundWorkerDelegate()
+		beanContext.getService(ILightweightTransaction.class).runInTransaction(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
@@ -269,12 +272,6 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 	}
 
 	@Override
-	protected IocTestSetup createTestSetup(IServiceContext testClassLevelContext, IServiceContext beanContext)
-	{
-		return new InformationBusWithPersistenceTestSetup(testClassLevelContext, beanContext);
-	}
-
-	@Override
 	protected org.junit.runners.model.Statement withBeforeClasses(org.junit.runners.model.Statement statement)
 	{
 		checkOS();
@@ -287,6 +284,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		final org.junit.runners.model.Statement resultStatement = super.withAfterClasses(statement);
 		return new org.junit.runners.model.Statement()
 		{
+
 			@Override
 			public void evaluate() throws Throwable
 			{
@@ -460,27 +458,14 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			@Override
 			public void evaluate() throws Throwable
 			{
-				boolean doRebuildContext = false;
+				boolean doContextRebuild = false;
 				Method method = frameworkMethod.getMethod();
 				boolean doStructureRebuild = !isStructureRebuildAlreadyHandled && hasStructureAnnotation();
-
-				if (doStructureRebuild)
-				{
-					doRebuildContext = true;
-				}
-				else if (!doRebuildContext && !isTestSetupIdenticallyConfiguredWithMethod(frameworkMethod, testSetup))
-				{
-					if (isTestSetupIdenticallyConfiguredWithMethod(frameworkMethod, previousTestSetupTL.get()))
-					{
-						testSetup = previousTestSetupTL.get();
-						hasContextBeenRebuildForThisTest = true;
-						isRebuildContextForThisTestRecommended = false;
-					}
-					else
-					{
-						doRebuildContext = true;
-					}
-				}
+				boolean methodTriggersContextRebuild = method.isAnnotationPresent(TestModule.class) || method.isAnnotationPresent(TestProperties.class)
+						|| method.isAnnotationPresent(TestPropertiesList.class);
+				doContextRebuild = beanContext == null || beanContext.isDisposed() || doStructureRebuild || methodTriggersContextRebuild
+						|| lastMethodTriggersContextRebuild;
+				lastMethodTriggersContextRebuild = methodTriggersContextRebuild;
 				boolean doDataRebuild = isDataRebuildDemanded();
 				if (!doDataRebuild) // handle the special cases for SQLDataRebuild=false
 				{
@@ -511,7 +496,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				}
 				// Do context rebuild after the database changes have been made because the beans may access the data e.g.
 				// in their afterStarted method
-				isRebuildContextForThisTestRecommended = doRebuildContext;
+				isRebuildContextForThisTestRecommended = doContextRebuild;
 				isFirstTestMethodAlreadyExecuted = true;
 				isRebuildDataForThisTestRecommended = doDataRebuild;
 
@@ -538,11 +523,11 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			{
 				if (isRebuildDataForThisTestRecommended)
 				{
-					testSetup.beanContext.getService(DataSetupExecutor.class).rebuildData();
+					beanContext.getService(DataSetupExecutor.class).rebuildData();
 					isRebuildDataForThisTestRecommended = false;
 				}
-				boolean securityActive = Boolean.parseBoolean(testSetup.beanContext.getService(IProperties.class).getString(
-						MergeConfigurationConstants.SecurityActive, "false"));
+				boolean securityActive = Boolean.parseBoolean(beanContext.getService(IProperties.class).getString(MergeConfigurationConstants.SecurityActive,
+						"false"));
 				if (!securityActive)
 				{
 					statement.evaluate();
@@ -575,28 +560,27 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 					}
 				};
 
-				SecurityFilterInterceptor interceptor = testSetup.beanContext.registerBean(SecurityFilterInterceptor.class)
+				SecurityFilterInterceptor interceptor = beanContext.registerBean(SecurityFilterInterceptor.class)
 						.propertyValue("MethodLevelBehaviour", behaviour).propertyValue("Target", statement).finish();
-				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) testSetup.beanContext.getService(IProxyFactory.class).createProxy(
+				org.junit.runners.model.Statement stmt = (org.junit.runners.model.Statement) beanContext.getService(IProxyFactory.class).createProxy(
 						new Class<?>[] { org.junit.runners.model.Statement.class }, interceptor);
 				final org.junit.runners.model.Statement fStatement = stmt;
-				ISecurityContextHolder securityContextHolder = testSetup.beanContext.getService(ISecurityContextHolder.class);
+				ISecurityContextHolder securityContextHolder = beanContext.getService(ISecurityContextHolder.class);
 				securityContextHolder.setScopedAuthentication(new DefaultAuthentication(authentication.name(), authentication.password().toCharArray(),
 						PasswordType.PLAIN), new IResultingBackgroundWorkerDelegate<Object>()
 				{
 					@Override
 					public Object invoke() throws Throwable
 					{
-						return testSetup.beanContext.getService(ISecurityScopeProvider.class).executeWithSecurityScopes(
-								new IResultingBackgroundWorkerDelegate<Object>()
-								{
-									@Override
-									public Object invoke() throws Throwable
-									{
-										fStatement.evaluate();
-										return null;
-									}
-								}, scope);
+						return beanContext.getService(ISecurityScopeProvider.class).executeWithSecurityScopes(new IResultingBackgroundWorkerDelegate<Object>()
+						{
+							@Override
+							public Object invoke() throws Throwable
+							{
+								fStatement.evaluate();
+								return null;
+							}
+						}, scope);
 					}
 				});
 			}
