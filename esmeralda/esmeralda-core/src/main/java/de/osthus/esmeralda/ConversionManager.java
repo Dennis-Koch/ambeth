@@ -186,9 +186,9 @@ public class ConversionManager implements IStartingBean
 				continue;
 			}
 
-			if (!classInfo.getName().startsWith("StringToPatternConverter"))
+			if (!classInfo.getName().startsWith("AbstractLinkedMap"))
 			{
-				// continue;
+				continue;
 			}
 
 			// ConversionContext csContext = createClassScopeContext(csDefaultContext);
