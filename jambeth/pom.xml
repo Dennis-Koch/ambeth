@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.32-SNAPSHOT</version>
+		<version>0.0.31</version>
 	</parent>
 
 	<properties>
@@ -840,6 +840,29 @@
 			</build>
 		</profile>
 		
-		
+		<profile>
+			<id>non-jenkins</id>
+			<activation>
+				<property>
+					<name>!env.JENKINS_HOME</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<forkCount>1C</forkCount>
+							<reuseForks>true</reuseForks>
+							<argLine>-XX:MaxPermSize=128m</argLine>
+							<systemPropertyVariables>
+								<ambeth.test.forkname>f${surefire.forkNumber}</ambeth.test.forkname>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 </project>
