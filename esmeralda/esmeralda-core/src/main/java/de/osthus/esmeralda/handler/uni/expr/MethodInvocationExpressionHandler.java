@@ -129,7 +129,7 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else if (meth.selected instanceof JCFieldAccess)
 			{
 				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
-				JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.toString(), true);
+				JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.selected.toString(), true);
 				if (classInfoFromFA != null)
 				{
 					typeOfOwner = classInfoFromFA.getFqName();
@@ -164,11 +164,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 						return context.getTypeOnStack();
 					}
 				}, meth.selected);
-				if (meth.selected instanceof JCMethodInvocation || meth.selected instanceof JCNewClass)
-				{
-					languageHelper.writeExpressionTree(meth.selected);
-					writer.append('.');
-				}
+				languageHelper.writeExpressionTree(meth.selected);
+				writer.append('.');
 				owner = null;
 				writeMethodDot = true;
 			}
