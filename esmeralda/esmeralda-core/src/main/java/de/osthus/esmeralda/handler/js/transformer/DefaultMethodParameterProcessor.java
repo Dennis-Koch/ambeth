@@ -93,7 +93,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				}
 				else
 				{
-					throw new SnippetTrigger("No names or types for called methods parameters available");
+					throw new SnippetTrigger("No names or types for called methods parameters available").setContext(methodInvocation.toString());
 					// overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
 				}
 				writer.append(overloadedMethodNamePostfix);
@@ -153,7 +153,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			}
 			else
 			{
-				throw new SnippetTrigger("No names for called methods parameters available");
+				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
 				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
@@ -166,7 +166,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			}
 			else
 			{
-				throw new SnippetTrigger("No names for called methods parameters available");
+				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
 				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}

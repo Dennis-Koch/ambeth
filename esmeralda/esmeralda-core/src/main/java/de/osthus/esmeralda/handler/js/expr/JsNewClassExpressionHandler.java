@@ -10,17 +10,21 @@ import com.sun.source.tree.Tree.Kind;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
+import com.sun.tools.javac.tree.JCTree.JCLiteral;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -38,6 +42,17 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
+
+	protected static final HashMap<String, String> fqClassNameToConstructorSingleStringParamName = new HashMap<>();
+
+	static
+	{
+		fqClassNameToConstructorSingleStringParamName.put("java.lang.IllegalArgumentException", "s");
+		fqClassNameToConstructorSingleStringParamName.put("java.lang.IllegalStateException", "s");
+		fqClassNameToConstructorSingleStringParamName.put("java.lang.NullPointerException", "s");
+		fqClassNameToConstructorSingleStringParamName.put("java.lang.UnsupportedOperationException", "message");
+		fqClassNameToConstructorSingleStringParamName.put("java.io.IOException", "message");
+	}
 
 	public static final String getFqNameFromAnonymousName(String fqName)
 	{
@@ -164,7 +179,17 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		}
 		else if (constructor != null && constructor.type != null)
 		{
-			throw new SnippetTrigger("No names for called constructors parameters available");
+			com.sun.tools.javac.util.List<Type> argtypes = ((MethodType) constructor.type).argtypes;
+			String fqClassName = newClass.type.toString();
+			String paramName = fqClassNameToConstructorSingleStringParamName.get(fqClassName);
+			if (argtypes.size() == 1 && argtypes.get(0).toString().equals("java.lang.String") && paramName != null)
+			{
+				paramNames.add(paramName);
+			}
+			else
+			{
+				throw new SnippetTrigger("No names for called constructors parameters available").setContext(newClass.toString());
+			}
 			// if (log.isInfoEnabled())
 			// {
 			// log.info("Using parameter types instead of names for " + newClass.toString());
@@ -176,7 +201,23 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		}
 		else
 		{
-			throw new SnippetTrigger("No names or types for called constructors parameters available");
+			if (newClass.args.size() != 1)
+			{
+				throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClass.toString());
+			}
+			JCExpression param = newClass.args.get(0);
+			String className = newClass.clazz.toString();
+			IConversionContext context = this.context.getCurrent();
+			JavaClassInfo classInfo = context.resolveClassInfo(className, true);
+			String paramName = fqClassNameToConstructorSingleStringParamName.get(classInfo.getFqName());
+			if (paramName != null && param instanceof JCLiteral && ((JCLiteral) param).value instanceof String)
+			{
+				paramNames.add(paramName);
+			}
+			else
+			{
+				throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClass.toString());
+			}
 			// if (log.isWarnEnabled())
 			// {
 			// log.warn("Guessing parameter names for " + newClass.toString());

@@ -79,6 +79,12 @@ public class ToDoWriter implements IToDoWriter
 	@Override
 	public void write(String topic, Method method, int pos)
 	{
+		write(topic, null, method, pos);
+	}
+
+	@Override
+	public void write(String topic, String message, Method method, int pos)
+	{
 		IConversionContext context = this.context.getCurrent();
 		boolean dryRun = context.isDryRun();
 		if (todoPath == null || dryRun)
@@ -104,6 +110,10 @@ public class ToDoWriter implements IToDoWriter
 			sb.append(name);
 		}
 		sb.append(")");
+		if (message != null)
+		{
+			sb.append(" => ").append(message);
+		}
 		String todo = sb.toString();
 		String languagePathName = context.getLanguagePath();
 
