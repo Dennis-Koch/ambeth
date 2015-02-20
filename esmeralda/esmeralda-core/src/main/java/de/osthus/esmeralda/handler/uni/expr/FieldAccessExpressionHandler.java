@@ -114,7 +114,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				// Data for the actual (anonymous) implementation of the interface is missing
 				if (classInfoOnStack == null)
 				{
-					throw new SnippetTrigger("Missing details for anonymous class");
+					throw new SnippetTrigger("Missing details for anonymous class").setContext(typeOnStack);
 				}
 				// End of FIXME
 				Field fieldOfNameOfStack = classInfoOnStack.getField(name);

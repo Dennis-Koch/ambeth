@@ -100,12 +100,13 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 					}
 					catch (SnippetTrigger snippetTrigger)
 					{
-						String message = snippetTrigger.getMessage();
+						String topic = snippetTrigger.getMessage();
+						String snippetContext = snippetTrigger.getContext();
 						int pos = findPos(statement);
-						todoWriter.write(message, method, pos);
+						todoWriter.write(topic, snippetContext, method, pos);
 						if (log.isInfoEnabled() && !dryRun)
 						{
-							log.info(message);
+							log.info(topic);
 						}
 						addToUntranslatableList(untranslatableStatements, statement, dryRun, context, kind);
 					}

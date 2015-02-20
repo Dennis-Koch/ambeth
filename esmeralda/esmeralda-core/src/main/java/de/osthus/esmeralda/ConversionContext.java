@@ -1,6 +1,7 @@
 package de.osthus.esmeralda;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,6 +44,11 @@ import demo.codeanalyzer.common.model.MethodInfo;
 public class ConversionContext implements IConversionContext
 {
 	protected static final Pattern extendsFromPattern = Pattern.compile("\\s*\\?\\s+extends\\s+(.+)\\s*");
+
+	protected static final Pattern variableName = Pattern.compile("[a-z]\\w*");
+
+	protected static final HashSet<String> primitiveTypeNames = new HashSet<>(Arrays.asList("void", "boolean", "char", "byte", "short", "int", "long", "float",
+			"double"));
 
 	@SuppressWarnings("unused")
 	@LogInstance
@@ -275,7 +281,7 @@ public class ConversionContext implements IConversionContext
 
 	protected JavaClassInfo resolveClassInfo(String fqTypeName, boolean tryOnly, boolean cascadeSearch)
 	{
-		if (fqTypeName == null || fqTypeName.length() == 0 || "<none>".equals(fqTypeName))
+		if (fqTypeName == null || fqTypeName.length() == 0 || "<none>".equals(fqTypeName) || isVariableName(fqTypeName))
 		{
 			return null;
 		}
@@ -469,6 +475,11 @@ public class ConversionContext implements IConversionContext
 		}
 		fqNameToClassInfoMap.putIfNotExists(classInfo.getFqName(), classInfo); // may be duplicated intentionally
 		return classInfoResolved(originalFqTypeName, classInfo);
+	}
+
+	protected boolean isVariableName(String fqTypeName)
+	{
+		return !primitiveTypeNames.contains(fqTypeName) && variableName.matcher(fqTypeName).matches();
 	}
 
 	protected JavaClassInfo makeGenericClassInfoExtendsFrom(JavaClassInfo extendsFromClassInfo, String symbolName)
