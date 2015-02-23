@@ -1128,30 +1128,37 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 
 		boolean targetCacheAccess = !loadContainerResult && !cacheValueResult;
 		final boolean filteringNecessary = isFilteringNecessary(targetCache);
-
-		ArrayList<IPrivilege> privilegesOfObjRefsToGet = null;
+		int getCount = objRefsToGet.size();
+		IPrivilege[] privilegesOfObjRefsToGet = null;
 		if (filteringNecessary)
 		{
 			IList<IPrivilege> privileges = getPrivilegesByObjRefWithoutReadLock(objRefsToGet);
 			ArrayList<IObjRef> filteredObjRefsToGet = new ArrayList<IObjRef>(objRefsToGet.size());
-			privilegesOfObjRefsToGet = new ArrayList<IPrivilege>(objRefsToGet.size());
+			privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.size()];
+			RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.size()] : null;
+			getCount = 0;
 			for (int a = 0, size = objRefsToGet.size(); a < size; a++)
 			{
 				IPrivilege privilege = privileges.get(a);
 				if (privilege != null && privilege.isReadAllowed())
 				{
+					getCount++;
 					filteredObjRefsToGet.add(objRefsToGet.get(a));
-					privilegesOfObjRefsToGet.add(privilege);
+					privilegesOfObjRefsToGet[a] = privilege;
+					if (rootCacheValuesToGet != null)
+					{
+						filteredRootCacheValuesToGet[a] = rootCacheValuesToGet[a];
+					}
 				}
-				else if (returnMisses)
+				else
 				{
 					filteredObjRefsToGet.add(null);
-					privilegesOfObjRefsToGet.add(null);
 				}
 			}
+			rootCacheValuesToGet = filteredRootCacheValuesToGet;
 			objRefsToGet = filteredObjRefsToGet;
 		}
-		if (objRefsToGet.size() == 0)
+		if (getCount == 0)
 		{
 			return new ArrayList<Object>(0);
 		}
@@ -1250,7 +1257,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 						tempObjRefList.add(new ObjRef());
 					}
 					Object cacheHitObject = createObjectFromScratch(metaData, cacheValue, targetCache, tempObjRefList, filteringNecessary,
-							privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet.get(a) : null);
+							privilegesOfObjRefsToGet != null ? privilegesOfObjRefsToGet[a] : null);
 					result.add(cacheHitObject);
 				}
 			}

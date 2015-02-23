@@ -542,16 +542,22 @@ namespace De.Osthus.Ambeth.Privilege
             return result;
         }
 
+        public void HandleClearAllCaches(ClearAllCachesEvent evnt)
+        {
+            lock (writeLock)
+            {
+                privilegeCache.Clear();
+                entityTypePrivilegeCache.Clear();
+            }
+        }
+
         public void DataChanged(IDataChange dataChange, DateTime dispatchTime, long sequenceId)
         {
             if (dataChange.IsEmpty)
             {
                 return;
             }
-            lock (writeLock)
-            {
-                privilegeCache.Clear();
-            }
+            HandleClearAllCaches(null);
         }
     }
 }

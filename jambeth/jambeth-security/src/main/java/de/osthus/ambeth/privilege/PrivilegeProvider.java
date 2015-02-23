@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.IList;
@@ -588,13 +589,8 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		return result;
 	}
 
-	@Override
-	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
+	public void handleClearAllCaches(ClearAllCachesEvent evnt)
 	{
-		if (dataChange.isEmpty())
-		{
-			return;
-		}
 		writeLock.lock();
 		try
 		{
@@ -605,5 +601,15 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 		{
 			writeLock.unlock();
 		}
+	}
+
+	@Override
+	public void dataChanged(IDataChange dataChange, long dispatchTime, long sequenceId)
+	{
+		if (dataChange.isEmpty())
+		{
+			return;
+		}
+		handleClearAllCaches(null);
 	}
 }

@@ -1,8 +1,10 @@
-﻿using De.Osthus.Ambeth.Config;
+﻿using De.Osthus.Ambeth.Cache;
+using De.Osthus.Ambeth.Config;
 using De.Osthus.Ambeth.Datachange;
 using De.Osthus.Ambeth.Datachange.Model;
 using De.Osthus.Ambeth.Event;
 using De.Osthus.Ambeth.Ioc.Annotation;
+using De.Osthus.Ambeth.Ioc.Config;
 using De.Osthus.Ambeth.Ioc.Factory;
 using De.Osthus.Ambeth.Privilege;
 using De.Osthus.Ambeth.Privilege.Config;
@@ -23,9 +25,10 @@ namespace De.Osthus.Ambeth.Ioc
 
         public virtual void AfterPropertiesSet(IBeanContextFactory beanContextFactory)
         {
-            beanContextFactory.RegisterBean<PrivilegeProvider>("privilegeProvider").Autowireable<IPrivilegeProvider>();
-            beanContextFactory.RegisterBean<UnfilteredDataChangeListener>("privilegeProvider_EventListener").PropertyRefs("privilegeProvider");
-            beanContextFactory.Link("privilegeProvider_EventListener").To<IEventListenerExtendable>().With(typeof(IDataChange));
+            IBeanConfiguration privilegeProvider = beanContextFactory.RegisterBean<PrivilegeProvider>().Autowireable<IPrivilegeProvider>();
+            IBeanConfiguration ppEventListener = beanContextFactory.RegisterBean<UnfilteredDataChangeListener>().PropertyRefs(privilegeProvider);
+            beanContextFactory.Link(ppEventListener).To<IEventListenerExtendable>().With(typeof(IDataChange));
+       		beanContextFactory.Link(privilegeProvider, "HandleClearAllCaches").To<IEventListenerExtendable>(typeof(ClearAllCachesEvent));
 
             beanContextFactory.RegisterBean<EntityPrivilegeFactoryProvider>().Autowireable<IEntityPrivilegeFactoryProvider>();
 		    beanContextFactory.RegisterBean<EntityTypePrivilegeFactoryProvider>().Autowireable<IEntityTypePrivilegeFactoryProvider>();

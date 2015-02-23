@@ -414,16 +414,16 @@ public class Query<T> implements IQuery<T>, IQueryIntern<T>, ISubQuery<T>
 	@Override
 	public T retrieveSingle()
 	{
-		IList<T> resultList = retrieve();
-		if (resultList == null)
+		IList<T> result = retrieve();
+		if (result == null || result.size() == 0)
 		{
 			return null;
 		}
-		if (resultList.size() == 0)
+		if (result.size() != 1)
 		{
-			return null;
+			throw new IllegalStateException("Query result is not unique: " + result.size());
 		}
-		return resultList.get(0);
+		return result.get(0);
 	}
 
 	@Override

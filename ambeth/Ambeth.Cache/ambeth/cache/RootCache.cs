@@ -1038,30 +1038,37 @@ namespace De.Osthus.Ambeth.Cache
             bool returnMisses = cacheDirective.HasFlag(CacheDirective.ReturnMisses);
             bool targetCacheAccess = !loadContainerResult && !cacheValueResult;
             bool filteringNecessary = IsFilteringNecessary(targetCache);
-
-            List<IPrivilege> privilegesOfObjRefsToGet = null;
+            int getCount = objRefsToGet.Count;
+            IPrivilege[] privilegesOfObjRefsToGet = null;
             if (filteringNecessary)
             {
                 IList<IPrivilege> privileges = GetPrivilegesByObjRefWithoutReadLock(objRefsToGet);
                 List<IObjRef> filteredObjRefsToGet = new List<IObjRef>(objRefsToGet.Count);
-                privilegesOfObjRefsToGet = new List<IPrivilege>(objRefsToGet.Count);
+                privilegesOfObjRefsToGet = new IPrivilege[objRefsToGet.Count];
+                RootCacheValue[] filteredRootCacheValuesToGet = rootCacheValuesToGet != null ? new RootCacheValue[objRefsToGet.Count] : null;
+                getCount = 0;
                 for (int a = 0, size = objRefsToGet.Count; a < size; a++)
                 {
                     IPrivilege privilege = privileges[a];
                     if (privilege != null && privilege.ReadAllowed)
                     {
+                        getCount++;
                         filteredObjRefsToGet.Add(objRefsToGet[a]);
-                        privilegesOfObjRefsToGet.Add(privilege);
+                        privilegesOfObjRefsToGet[a] = privilege;
+                        if (rootCacheValuesToGet != null)
+                        {
+                            filteredRootCacheValuesToGet[a] = rootCacheValuesToGet[a];
+                        }
                     }
-                    else if (returnMisses)
+                    else
                     {
                         filteredObjRefsToGet.Add(null);
-                        privilegesOfObjRefsToGet.Add(null);
                     }
                 }
+                rootCacheValuesToGet = filteredRootCacheValuesToGet;
                 objRefsToGet = filteredObjRefsToGet;
             }
-            if (objRefsToGet.Count == 0)
+            if (getCount == 0)
             {
                 return new List<Object>(0);
             }
