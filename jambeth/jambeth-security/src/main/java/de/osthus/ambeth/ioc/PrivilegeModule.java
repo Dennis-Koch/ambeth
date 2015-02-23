@@ -1,9 +1,11 @@
 package de.osthus.ambeth.ioc;
 
+import de.osthus.ambeth.cache.ClearAllCachesEvent;
 import de.osthus.ambeth.datachange.UnfilteredDataChangeListener;
 import de.osthus.ambeth.datachange.model.IDataChange;
 import de.osthus.ambeth.event.IEventListenerExtendable;
 import de.osthus.ambeth.ioc.annotation.FrameworkModule;
+import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
@@ -25,9 +27,11 @@ public class PrivilegeModule implements IInitializingModule
 	@Override
 	public void afterPropertiesSet(IBeanContextFactory beanContextFactory) throws Throwable
 	{
-		beanContextFactory.registerBean("privilegeProvider", PrivilegeProvider.class).autowireable(IPrivilegeProvider.class, IPrivilegeProviderIntern.class);
-		beanContextFactory.registerBean("privilegeProvider_EventListener", UnfilteredDataChangeListener.class).propertyRefs("privilegeProvider");
-		beanContextFactory.link("privilegeProvider_EventListener").to(IEventListenerExtendable.class).with(IDataChange.class);
+		IBeanConfiguration privilegeProvider = beanContextFactory.registerBean(PrivilegeProvider.class).autowireable(IPrivilegeProvider.class,
+				IPrivilegeProviderIntern.class);
+		IBeanConfiguration ppEventListener = beanContextFactory.registerBean(UnfilteredDataChangeListener.class).propertyRefs(privilegeProvider);
+		beanContextFactory.link(ppEventListener).to(IEventListenerExtendable.class).with(IDataChange.class);
+		beanContextFactory.link(privilegeProvider, "handleClearAllCaches").to(IEventListenerExtendable.class).with(ClearAllCachesEvent.class);
 
 		beanContextFactory.registerBean(EntityPrivilegeFactoryProvider.class).autowireable(IEntityPrivilegeFactoryProvider.class);
 		beanContextFactory.registerBean(EntityTypePrivilegeFactoryProvider.class).autowireable(IEntityTypePrivilegeFactoryProvider.class);
