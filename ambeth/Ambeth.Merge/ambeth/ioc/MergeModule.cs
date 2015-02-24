@@ -84,6 +84,8 @@ namespace De.Osthus.Ambeth.Ioc
                 .Autowireable<IEntityMetaDataExtendable>()
                 .Autowireable<IEntityInstantiationExtensionExtendable>();
 
+            beanContextFactory.RegisterBean<IndependentEntityMetaDataReader>(INDEPENDENT_META_DATA_READER).Precedence(PrecedenceType.HIGH);
+
             if (!IndependentMetaData)
             {
                 beanContextFactory.RegisterBean<EntityMetaDataConverter>("entityMetaDataConverter");
@@ -93,17 +95,16 @@ namespace De.Osthus.Ambeth.Ioc
             }
             else
             {
-                beanContextFactory.RegisterBean<IndependentEntityMetaDataReader>(INDEPENDENT_META_DATA_READER).Precedence(PrecedenceType.HIGH);
-
-                beanContextFactory.RegisterBean("ormXmlReader", typeof(ExtendableBean)).PropertyValue(ExtendableBean.P_PROVIDER_TYPE, typeof(IOrmXmlReaderRegistry))
-                        .PropertyValue(ExtendableBean.P_EXTENDABLE_TYPE, typeof(IOrmXmlReaderExtendable))
-                        .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, "ormXmlReaderLegathy").Autowireable(typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable));
-                beanContextFactory.RegisterBean<OrmXmlReaderLegathy>("ormXmlReaderLegathy");
-			    IBeanConfiguration ormXmlReader20BC = beanContextFactory.RegisterBean<OrmXmlReader20>();
-			    beanContextFactory.Link(ormXmlReader20BC).To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
-
-			    beanContextFactory.RegisterBean<XmlConfigUtil>("xmlConfigUtil").Autowireable<IXmlConfigUtil>();
             }
+
+       		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.RegisterBean<OrmXmlReaderLegathy>();
+		    ExtendableBean.RegisterExtendableBean(beanContextFactory, typeof(IOrmXmlReaderRegistry), typeof(IOrmXmlReaderExtendable))//
+				    .PropertyRef(ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy);
+		    IBeanConfiguration ormXmlReader20BC = beanContextFactory.RegisterBean<OrmXmlReader20>();
+		    beanContextFactory.Link(ormXmlReader20BC).To<IOrmXmlReaderExtendable>().With(OrmXmlReader20.ORM_XML_NS);
+
+		    beanContextFactory.RegisterBean<XmlConfigUtil>().Autowireable<IXmlConfigUtil>();
+
             beanContextFactory.RegisterBean<RelationProvider>().Autowireable<IRelationProvider>();
 
             beanContextFactory.RegisterBean<MemberTypeProvider>().Autowireable<IMemberTypeProvider>().Autowireable<IIntermediateMemberTypeProvider>();
