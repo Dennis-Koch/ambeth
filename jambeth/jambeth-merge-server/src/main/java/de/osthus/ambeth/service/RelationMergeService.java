@@ -910,7 +910,11 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	protected IList<RootCacheValue> retrieveCacheValues(IQuery<?> query, IEntityMetaData metaData, HashMap<String, ChildMember> childMemberNameToDataIndexMap,
 			IList<IObjRef> criteriaObjRefs, IRootCache rootCache)
 	{
+		IConversionHelper conversionHelper = this.conversionHelper;
 		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
+		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
+		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
+
 		IDataCursor cursor = query.retrieveAsData();
 		try
 		{
@@ -937,7 +941,10 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			{
 				IDataItem item = cursor.getCurrent();
 
-				IObjRef objRef = preparedObjRefFactory.createObjRef(item.getValue(primaryIdIndex), versionIndex >= 0 ? item.getValue(versionIndex) : null);
+				Object id = conversionHelper.convertValueToType(idTypeOfObject, item.getValue(primaryIdIndex));
+				Object version = conversionHelper.convertValueToType(versionTypeOfObject, versionIndex >= 0 ? item.getValue(versionIndex) : null);
+
+				IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
 				objRefs.add(objRef);
 
 				for (int dataIndex : dataIndices)
