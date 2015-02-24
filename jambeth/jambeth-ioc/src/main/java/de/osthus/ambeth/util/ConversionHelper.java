@@ -20,7 +20,7 @@ import de.osthus.ambeth.format.XmlHint;
 import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.threading.SensitiveThreadLocal;
 
-public class ConversionHelper implements IConversionHelper, IThreadLocalCleanupBean
+public class ConversionHelper extends IConversionHelper implements IThreadLocalCleanupBean
 {
 	protected static final boolean java7recognized = "1.7".equals(System.getProperty("java.specification.version"));
 

@@ -19,15 +19,11 @@ import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
 import de.osthus.ambeth.metadata.Member;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
-import de.osthus.ambeth.util.IConversionHelper;
 
 public class ObjRefHelper implements IObjRefHelper
 {
 	@Autowired
 	protected ICompositeIdFactory compositeIdFactory;
-
-	@Autowired
-	protected IConversionHelper conversionHelper;
 
 	@Autowired
 	protected IEntityMetaDataProvider entityMetaDataProvider;
@@ -345,13 +341,6 @@ public class ObjRefHelper implements IObjRefHelper
 
 		if (id != null || forceOri)
 		{
-			Class<?> idType = metaData.getIdMemberByIdIndex(idIndex).getElementType();
-			id = conversionHelper.convertValueToType(idType, id);
-			if (versionMember != null)
-			{
-				Class<?> versionType = versionMember.getElementType();
-				version = conversionHelper.convertValueToType(versionType, version);
-			}
 			ori = objRefFactory.createObjRef(metaData.getEntityType(), idIndex, id, version);
 		}
 		else
@@ -371,14 +360,8 @@ public class ObjRefHelper implements IObjRefHelper
 
 		Class<?> entityType = metaData.getEntityType();
 		// Convert id and version to the correct metadata type
-		Member versionMember = metaData.getVersionMember();
-		if (versionMember != null && version != null)
-		{
-			version = conversionHelper.convertValueToType(versionMember.getRealType(), version);
-		}
 		if (id != null)
 		{
-			id = conversionHelper.convertValueToType(metaData.getIdMember().getRealType(), id);
 			allOris.add(objRefFactory.createObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
 		}
 		if (alternateIdCount > 0)
@@ -401,7 +384,6 @@ public class ObjRefHelper implements IObjRefHelper
 							// If they are not specified, they are simply ignored
 							continue;
 						}
-						alternateId = conversionHelper.convertValueToType(alternateIdMember.getRealType(), alternateId);
 						allOris.add(objRefFactory.createObjRef(entityType, b, alternateId, version));
 						break;
 					}

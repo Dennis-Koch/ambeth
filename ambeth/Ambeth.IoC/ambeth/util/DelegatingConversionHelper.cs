@@ -6,45 +6,49 @@ using De.Osthus.Ambeth.Exceptions;
 
 namespace De.Osthus.Ambeth.Util
 {
-    public class DelegatingConversionHelper : ClassTupleExtendableContainer<IDedicatedConverter>, IInitializingBean, IDedicatedConverterExtendable, IConversionHelper
+    public class DelegatingConversionHelper : IConversionHelper, IInitializingBean, IDedicatedConverterExtendable
     {
         [LogInstance]
         public ILogger Log { private get; set; }
 
         public IConversionHelper DefaultConversionHelper { protected get; set; }
 
-        [Property(DateTimeUtil.DateTimeAsUTC, DefaultValue = "true")]
-        public bool DateTimeUTC { protected get; set; }
+        protected bool dateTimeUTC;
 
-        public DelegatingConversionHelper()
-            : base("dedicatedConverter", "type", true)
+        [Property(DateTimeUtil.DateTimeAsUTC, DefaultValue = "true")]
+        public override bool DateTimeUTC
         {
-            // Intended blank
+            set
+            {
+                dateTimeUTC = value;
+            }
         }
+
+        protected readonly ClassTupleExtendableContainer<IDedicatedConverter> converters = new ClassTupleExtendableContainer<IDedicatedConverter>("dedicatedConverter", "type", true);
 
         public virtual void AfterPropertiesSet()
         {
             ParamChecker.AssertNotNull(DefaultConversionHelper, "DefaultConversionHelper");
 
-            DefaultConversionHelper.DateTimeUTC = DateTimeUTC;
+            DefaultConversionHelper.DateTimeUTC = dateTimeUTC;
         }
 
-        public T ConvertValueToType<T>(Object value)
+        public override T ConvertValueToType<T>(Object value)
         {
             return (T)ConvertValueToType(typeof(T), value, null);
         }
 
-        public T ConvertValueToType<T>(Object value, Object additionalInformation)
+        public override T ConvertValueToType<T>(Object value, Object additionalInformation)
         {
             return (T)ConvertValueToType(typeof(T), value, additionalInformation);
         }
 
-        public Object ConvertValueToType(Type expectedType, Object value)
+        public override Object ConvertValueToType(Type expectedType, Object value)
         {
             return ConvertValueToType(expectedType, value, null);
         }
 
-        public Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation)
+        public override Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation)
         {
             if (expectedType == null)
             {
@@ -66,7 +70,7 @@ namespace De.Osthus.Ambeth.Util
             while (true)
             {
                 Type sourceClass = sourceValue.GetType();
-                IDedicatedConverter dedicatedConverter = GetExtension(sourceClass, expectedType);
+                IDedicatedConverter dedicatedConverter = converters.GetExtension(sourceClass, expectedType);
                 if (dedicatedConverter == null)
                 {
                     break;
@@ -121,12 +125,12 @@ namespace De.Osthus.Ambeth.Util
 
         public void RegisterDedicatedConverter(IDedicatedConverter dedicatedConverter, Type sourceType, Type targetType)
         {
-            Register(dedicatedConverter, sourceType, targetType);
+            converters.Register(dedicatedConverter, sourceType, targetType);
         }
 
         public void UnregisterDedicatedConverter(IDedicatedConverter dedicatedConverter, Type sourceType, Type targetType)
         {
-            Unregister(dedicatedConverter, sourceType, targetType);
+            converters.Unregister(dedicatedConverter, sourceType, targetType);
         }
     }
 }

@@ -329,16 +329,13 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 				byte toIdIndex = cursor.getToIdIndex();
 				Class<?> idType = toIdIndex == ObjRef.PRIMARY_KEY_INDEX ? requestedTable.getIdField().getFieldType()
 						: requestedTable.getAlternateIdFields()[toIdIndex].getFieldType();
-				Member toIdMember = requestedMetaData.getIdMemberByIdIndex(toIdIndex);
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(requestedType, toIdIndex);
-				Class<?> toIdTypeOfObject = toIdMember.getRealType();
 				while (cursor.moveNext())
 				{
 					ILinkCursorItem item = cursor.getCurrent();
 
 					Object fromId = conversionHelper.convertValueToType(idTypeOfTargetingObject, item.getFromId());
 					Object toId = conversionHelper.convertValueToType(idType, item.getToId());
-					toId = conversionHelper.convertValueToType(toIdTypeOfObject, toId);
 
 					IObjRef targetObjRef = preparedObjRefFactory.createObjRef(toId, null);
 
@@ -990,10 +987,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 						IObjRef toOri = objRefMap.get(toEntityType, Integer.valueOf(toIdIndex), dbValue);
 						if (toOri == null)
 						{
-							Class<?> expectedType = toMember.getRealType();
-
-							Object idOfObject = conversionHelper.convertValueToType(expectedType, dbValue);
-							toOri = objRefFactory.createObjRef(toEntityType, toIdIndex, idOfObject, null);
+							toOri = objRefFactory.createObjRef(toEntityType, toIdIndex, dbValue, null);
 							objRefMap.put(toEntityType, Integer.valueOf(toIdIndex), dbValue, toOri);
 						}
 						relations[dirLinkIndex.intValue()] = new IObjRef[] { toOri };
@@ -1193,9 +1187,7 @@ public class EntityLoader implements IEntityLoader, ILoadContainerProvider, ISta
 			IObjRef primaryIdObjRef = objRefMap.get(type, pkIdIndex, id);
 			if (primaryIdObjRef == null)
 			{
-				Class<?> idTypeOfObject = tableMD.getIdField().getMember().getRealType();
-				Object idOfObject = conversionHelper.convertValueToType(idTypeOfObject, id);
-				primaryIdObjRef = objRefFactory.createObjRef(type, ObjRef.PRIMARY_KEY_INDEX, idOfObject, version);
+				primaryIdObjRef = objRefFactory.createObjRef(type, ObjRef.PRIMARY_KEY_INDEX, id, version);
 				objRefMap.put(type, pkIdIndex, id, primaryIdObjRef);
 			}
 			loadContainer.setReference(primaryIdObjRef);

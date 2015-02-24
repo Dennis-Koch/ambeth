@@ -41,7 +41,6 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.ILightweightTransaction;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.config.MergeConfigurationConstants;
-import de.osthus.ambeth.merge.model.IEntityMetaData;
 import de.osthus.ambeth.merge.model.IObjRef;
 import de.osthus.ambeth.merge.transfer.ObjRef;
 import de.osthus.ambeth.metadata.IObjRefFactory;
@@ -437,7 +436,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				@Override
 				public Boolean invoke() throws Throwable
 				{
-					return securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Boolean>()
+					return securityActivation.executeWithoutFiltering(new IResultingBackgroundWorkerDelegate<Boolean>()
 					{
 						@Override
 						public Boolean invoke() throws Throwable
@@ -447,7 +446,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 							{
 								return Boolean.FALSE;
 							}
-							insertPermissionGroupsIntern(entityToPgUpdateMap, dataChange != null);
+							buildPermissionGroupMap(entityToPgUpdateMap, dataChange != null);
 							if (entityToPgUpdateMap.size() == 0)
 							{
 								return Boolean.FALSE;
@@ -570,9 +569,6 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		IQuery<?> allEntitiesQuery = getAllEntitiesQuery(entityType);
 
 		Class<?> idType = table.getIdField().getFieldType();
-		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
-		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
-		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 
 		IConversionHelper conversionHelper = this.conversionHelper;
 		IVersionCursor versionCursor = allEntitiesQuery.retrieveAsVersions(false);
@@ -585,12 +581,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 				IVersionItem item = versionCursor.getCurrent();
 
 				Object id = conversionHelper.convertValueToType(idType, item.getId());
-				// INTENTIONALLY converting the id in 2 steps: first to the fieldType, then to the idTypeOfObject
-				// this is because of the fact that the idTypeOfObject may be an Object.class which does not convert the id
-				// correctly by itself
-				id = conversionHelper.convertValueToType(idTypeOfObject, id);
-				Object version = conversionHelper.convertValueToType(versionTypeOfObject, item.getVersion());
-				objRefs.add(prepareObjRefFactory.createObjRef(id, version));
+				objRefs.add(prepareObjRefFactory.createObjRef(id, item.getVersion()));
 			}
 			return objRefs;
 		}
@@ -647,7 +638,7 @@ public class PermissionGroupUpdater implements IInitializingBean, IPermissionGro
 		return allSids;
 	}
 
-	protected void insertPermissionGroupsIntern(IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap, boolean triggeredByDCE)
+	protected void buildPermissionGroupMap(IMap<Class<?>, PgUpdateEntry> entityToPgUpdateMap, boolean triggeredByDCE)
 	{
 		boolean debugEnabled = log.isDebugEnabled();
 		IThreadLocalObjectCollector objectCollector = this.objectCollector.getCurrent();

@@ -21,9 +21,6 @@ namespace De.Osthus.Ambeth.Merge
         public ICompositeIdFactory CompositeIdFactory { protected get; set; }
 
         [Autowired]
-        public IConversionHelper ConversionHelper { protected get; set; }
-
-        [Autowired]
         public IEntityMetaDataProvider EntityMetaDataProvider { protected get; set; }
 
         [Autowired]
@@ -311,14 +308,6 @@ namespace De.Osthus.Ambeth.Merge
 
             if (id != null || forceOri)
             {
-                Type idType = metaData.GetIdMemberByIdIndex(idIndex).ElementType;
-                id = ConversionHelper.ConvertValueToType(idType, id);
-
-                if (versionMember != null)
-                {
-                    Type versionType = metaData.VersionMember.ElementType;
-                    version = ConversionHelper.ConvertValueToType(versionType, version);
-                }
                 ori = ObjRefFactory.CreateObjRef(metaData.EntityType, idIndex, id, version);
             }
             else
@@ -336,14 +325,8 @@ namespace De.Osthus.Ambeth.Merge
 
             Type entityType = metaData.EntityType;
             // Convert id and version to the correct metadata type
-            Member versionMember = metaData.VersionMember;
-            if (versionMember != null && version != null)
-            {
-                version = ConversionHelper.ConvertValueToType(versionMember.RealType, version);
-            }
             if (id != null)
             {
-                id = ConversionHelper.ConvertValueToType(metaData.IdMember.RealType, id);
                 allOris.Add(ObjRefFactory.CreateObjRef(entityType, ObjRef.PRIMARY_KEY_INDEX, id, version));
             }
             if (alternateIdCount > 0)
@@ -366,7 +349,6 @@ namespace De.Osthus.Ambeth.Merge
                                 // If they are not specified, they are simply ignored
                                 continue;
                             }
-                            alternateId = ConversionHelper.ConvertValueToType(alternateIdMember.RealType, alternateId);
                             allOris.Add(ObjRefFactory.CreateObjRef(entityType, (sbyte)b, alternateId, version));
                             break;
                         }

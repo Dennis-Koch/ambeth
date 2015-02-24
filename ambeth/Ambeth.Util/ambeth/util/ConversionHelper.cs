@@ -11,24 +11,32 @@ namespace De.Osthus.Ambeth.Util
 
         protected readonly PropertyInfo nullableHasValueProperty = typeof(Nullable<>).GetProperty("HasValue");
 
-        public bool DateTimeUTC { protected get; set; }
+        protected bool dateTimeUTC;
 
-        public T ConvertValueToType<T>(Object value)
+        public override bool DateTimeUTC
+        {
+            set
+            {
+                dateTimeUTC = value;
+            }
+        }
+
+        public override T ConvertValueToType<T>(Object value)
         {
             return (T)ConvertValueToType(typeof(T), value, null);
         }
 
-        public T ConvertValueToType<T>(Object value, Object additionalInformation)
+        public override T ConvertValueToType<T>(Object value, Object additionalInformation)
         {
             return (T)ConvertValueToType(typeof(T), value, additionalInformation);
         }
 
-        public Object ConvertValueToType(Type expectedType, Object value)
+        public override Object ConvertValueToType(Type expectedType, Object value)
         {
             return ConvertValueToType(expectedType, value, null);
         }
 
-        public Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation)
+        public override Object ConvertValueToType(Type expectedType, Object value, Object additionalInformation)
         {
             if (expectedType == null)
             {
@@ -307,7 +315,7 @@ namespace De.Osthus.Ambeth.Util
                 if (typeof(Int64).Equals(type))
                 {
                     DateTime dateTime = DateTimeUtil.ConvertJavaMillisToDateTime((Int64)value);
-                    if (!DateTimeUTC)
+                    if (!dateTimeUTC)
                     {
                         dateTime = dateTime.ToLocalTime();
                     }
@@ -316,7 +324,7 @@ namespace De.Osthus.Ambeth.Util
                 else if (typeof(UInt64).Equals(type))
                 {
                     DateTime dateTime = DateTimeUtil.ConvertJavaMillisToDateTime((long)((UInt64)value));
-                    if (!DateTimeUTC)
+                    if (!dateTimeUTC)
                     {
                         dateTime = dateTime.ToLocalTime();
                     }
@@ -329,7 +337,7 @@ namespace De.Osthus.Ambeth.Util
                     if (Int64.TryParse(sValue, out lValue))
                     {
                         DateTime dateTime = DateTimeUtil.ConvertJavaMillisToDateTime(lValue);
-                        if (!DateTimeUTC)
+                        if (!dateTimeUTC)
                         {
                             dateTime = dateTime.ToLocalTime();
                         }

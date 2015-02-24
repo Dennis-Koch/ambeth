@@ -495,12 +495,9 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	public IList<IChangeContainer> checkForPreviousParent(IList<IObjRef> oris, Class<?> entityType, String memberName,
 			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IIncrementalMergeState incrementalState)
 	{
-		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(entityType);
 		Member member = metaData.getMemberByName(memberName);
-		Class<?> primaryIdType = metaData.getIdMember().getRealType();
-		Class<?> versionType = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 
 		HashMap<String, ChildMember> childMemberNameToDataIndexMap = new HashMap<String, ChildMember>();
 
@@ -520,8 +517,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			{
 				IDataItem item = cursor.getCurrent();
 
-				Object id = conversionHelper.convertValueToType(primaryIdType, item.getValue(primaryIdIndex));
-				Object version = conversionHelper.convertValueToType(versionType, versionIndex >= 0 ? item.getValue(versionIndex) : null);
+				Object id = item.getValue(primaryIdIndex);
+				Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 
 				IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
 
@@ -797,7 +794,6 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IMap<IObjRef, IChangeContainer> objRefToChangeContainerMap, IRootCache rootCache, IIncrementalMergeState incrementalState)
 	{
 		IDirectedLinkMetaData linkMD = link.getMetaData();
-		IConversionHelper conversionHelper = this.conversionHelper;
 		IEntityMetaDataProvider entityMetaDataProvider = this.entityMetaDataProvider;
 		IObjRefHelper oriHelper = this.oriHelper;
 		IEntityMetaData relatedMetaData = entityMetaDataProvider.getMetaData(link.getToTable().getMetaData().getEntityType());
@@ -865,16 +861,12 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			IVersionCursor cursor = query.retrieveAsVersions(false);
 			try
 			{
-				Class<?> idType = relatedMetaData.getIdMember().getRealType();
-				Class<?> versionType = relatedMetaData.getVersionMember() != null ? relatedMetaData.getVersionMember().getRealType() : null;
 				IPreparedObjRefFactory preparedObjRefFactory = objRefFactory.prepareObjRefFactory(relatedType, ObjRef.PRIMARY_KEY_INDEX);
 				while (cursor.moveNext())
 				{
 					IVersionItem versionItem = cursor.getCurrent();
 
-					Object id = conversionHelper.convertValueToType(idType, versionItem.getId());
-					Object version = conversionHelper.convertValueToType(versionType, versionItem.getVersion());
-					IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
+					IObjRef objRef = preparedObjRefFactory.createObjRef(versionItem.getId(), versionItem.getVersion());
 					relatingRefs.add(objRef);
 
 					IChangeContainer changeContainer = objRefToChangeContainerMap.get(objRef);
@@ -910,10 +902,7 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 	protected IList<RootCacheValue> retrieveCacheValues(IQuery<?> query, IEntityMetaData metaData, HashMap<String, ChildMember> childMemberNameToDataIndexMap,
 			IList<IObjRef> criteriaObjRefs, IRootCache rootCache)
 	{
-		IConversionHelper conversionHelper = this.conversionHelper;
 		ArrayList<IObjRef> objRefs = new ArrayList<IObjRef>();
-		Class<?> idTypeOfObject = metaData.getIdMember().getRealType();
-		Class<?> versionTypeOfObject = metaData.getVersionMember() != null ? metaData.getVersionMember().getRealType() : null;
 
 		IDataCursor cursor = query.retrieveAsData();
 		try
@@ -941,8 +930,8 @@ public class RelationMergeService implements IRelationMergeService, IEventListen
 			{
 				IDataItem item = cursor.getCurrent();
 
-				Object id = conversionHelper.convertValueToType(idTypeOfObject, item.getValue(primaryIdIndex));
-				Object version = conversionHelper.convertValueToType(versionTypeOfObject, versionIndex >= 0 ? item.getValue(versionIndex) : null);
+				Object id = item.getValue(primaryIdIndex);
+				Object version = versionIndex >= 0 ? item.getValue(versionIndex) : null;
 
 				IObjRef objRef = preparedObjRefFactory.createObjRef(id, version);
 				objRefs.add(objRef);
