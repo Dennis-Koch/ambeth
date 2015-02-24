@@ -28,10 +28,14 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.IConnectionDialect;
+import de.osthus.ambeth.persistence.IPersistenceHelper;
+import de.osthus.ambeth.persistence.PersistenceHelper;
 import de.osthus.ambeth.persistence.jdbc.IConnectionFactory;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.connection.ConnectionFactory;
+import de.osthus.ambeth.sql.ISqlBuilder;
+import de.osthus.ambeth.sql.SqlBuilder;
 import de.osthus.ambeth.util.IPersistenceExceptionUtil;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.PersistenceExceptionUtil;
@@ -90,6 +94,8 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			beanContextFactory.registerBean(Oracle10gThinDialect.class).autowireable(IConnectionDialect.class);
 			beanContextFactory.registerBean(PersistenceExceptionUtil.class).autowireable(IPersistenceExceptionUtil.class);
 			beanContextFactory.registerBean(ConnectionFactory.class).autowireable(IConnectionFactory.class);
+			beanContextFactory.registerBean(SqlBuilder.class).autowireable(ISqlBuilder.class);
+			beanContextFactory.registerBean(PersistenceHelper.class).autowireable(IPersistenceHelper.class);
 			beanContextFactory.registerBean(RandomUserScript.class);
 		}
 	}
