@@ -2,7 +2,6 @@ package de.osthus.ambeth.testutil;
 
 import org.junit.runner.RunWith;
 
-import de.osthus.ambeth.config.ServiceConfigurationConstants;
 import de.osthus.ambeth.ioc.BytecodeModule;
 import de.osthus.ambeth.ioc.CacheBytecodeModule;
 import de.osthus.ambeth.ioc.CacheDataChangeModule;
@@ -29,7 +28,6 @@ import de.osthus.ambeth.log.LogInstance;
 		DataChangeModule.class, EventModule.class, EventDataChangeModule.class, ExprModule.class, MappingModule.class, MergeModule.class,
 		MergeBytecodeModule.class, ObjectCopierModule.class, SecurityModule.class, SecurityBytecodeModule.class, SensorModule.class, ServiceModule.class,
 		StreamModule.class })
-@TestProperties(name = ServiceConfigurationConstants.IndependentMetaData, value = "true")
 public abstract class AbstractInformationBusTest extends AbstractIocTest
 {
 	@SuppressWarnings("unused")
