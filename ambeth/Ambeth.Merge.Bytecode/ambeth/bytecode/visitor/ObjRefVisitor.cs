@@ -54,6 +54,17 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
             return cv.ImplementAssignedReadonlyProperty(templatePropertyName, bean);
         }
 
+        public static PropertyInstance GetConversionHelperPI(IClassVisitor cv)
+	    {
+		    Object bean = State.BeanContext.GetService<IConversionHelper>();
+		    PropertyInstance pi = State.GetProperty("ConversionHelper", NewType.GetType(bean.GetType()));
+		    if (pi != null)
+		    {
+			    return pi;
+		    }
+		    return cv.ImplementAssignedReadonlyProperty("ConversionHelper", bean);
+	    }
+
         protected readonly IEntityMetaData metaData;
 
         protected readonly int idIndex;
@@ -154,6 +165,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                         mg.ReturnValue();
                     });
             }
+            PropertyInstance p_conversionHelper = GetConversionHelperPI(this);
+
+		    MethodInstance m_convertValueToType = new MethodInstance(ReflectUtil.GetDeclaredMethod(false, typeof(IConversionHelper), typeof(Object),
+				"ConvertValueToType", typeof(Type), typeof(Object)));
+
             Type type = member.RealType;
             FieldInstance field = ImplementField(new FieldInstance(FieldAttributes.Private, "f_" + property.Name, type));
             return ImplementProperty(property, delegate(IMethodVisitor mg)
@@ -192,7 +208,11 @@ namespace De.Osthus.Ambeth.Bytecode.Visitor
                             mg2.LoadArg(0);
                             mg2.IfNull(l_isNull);
 
-                            mg2.LoadArg(0);
+                            mg.CallThisGetter(p_conversionHelper);
+                            mg.Push(type);
+                            mg.LoadArg(0);
+                            mg.InvokeVirtual(m_convertValueToType);
+
                             mg2.Unbox(type);
                             mg2.GoTo(l_finish);
 

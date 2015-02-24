@@ -19,7 +19,9 @@ import de.osthus.ambeth.repackaged.org.objectweb.asm.Label;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Opcodes;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.Type;
 import de.osthus.ambeth.repackaged.org.objectweb.asm.commons.GeneratorAdapter;
+import de.osthus.ambeth.util.IConversionHelper;
 import de.osthus.ambeth.util.IPrintable;
+import de.osthus.ambeth.util.ReflectUtil;
 
 public class ObjRefVisitor extends ClassGenerator
 {
@@ -75,6 +77,17 @@ public class ObjRefVisitor extends ClassGenerator
 		return cv.implementAssignedReadonlyProperty(templatePropertyName, bean);
 	}
 
+	public static PropertyInstance getConversionHelperPI(ClassGenerator cv)
+	{
+		Object bean = getState().getBeanContext().getService(IConversionHelper.class);
+		PropertyInstance pi = getState().getProperty("ConversionHelper", bean.getClass());
+		if (pi != null)
+		{
+			return pi;
+		}
+		return cv.implementAssignedReadonlyProperty("ConversionHelper", bean);
+	}
+
 	protected final IEntityMetaData metaData;
 
 	protected final int idIndex;
@@ -111,7 +124,7 @@ public class ObjRefVisitor extends ClassGenerator
 		mv.endMethod();
 	}
 
-	protected void implementIdVersionConstructor(PropertyInstance p_id, PropertyInstance p_version)
+	protected void implementIdVersionConstructor(final PropertyInstance p_id, final PropertyInstance p_version)
 	{
 		ConstructorInstance ci_super;
 		try
@@ -216,6 +229,11 @@ public class ObjRefVisitor extends ClassGenerator
 				}
 			});
 		}
+		final PropertyInstance p_conversionHelper = getConversionHelperPI(this);
+
+		final MethodInstance m_convertValueToType = new MethodInstance(ReflectUtil.getDeclaredMethod(false, IConversionHelper.class, Object.class,
+				"convertValueToType", Class.class, Object.class));
+
 		final Type type = Type.getType(member.getRealType());
 		final FieldInstance field = implementField(new FieldInstance(Opcodes.ACC_PRIVATE, "f_" + property.getName(), null, type));
 		return implementProperty(property, new Script()
@@ -264,7 +282,11 @@ public class ObjRefVisitor extends ClassGenerator
 						mg.loadArg(0);
 						mg.ifNull(l_isNull);
 
+						mg.callThisGetter(p_conversionHelper);
+						mg.push(type);
 						mg.loadArg(0);
+						mg.invokeVirtual(m_convertValueToType);
+
 						mg.unbox(type);
 						mg.goTo(l_finish);
 

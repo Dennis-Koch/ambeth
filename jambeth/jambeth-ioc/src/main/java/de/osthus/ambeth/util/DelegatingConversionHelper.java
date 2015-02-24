@@ -7,19 +7,16 @@ import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
-public class DelegatingConversionHelper extends ClassTupleExtendableContainer<IDedicatedConverter> implements IInitializingBean, IDedicatedConverterExtendable,
-		IConversionHelper
+public class DelegatingConversionHelper extends IConversionHelper implements IInitializingBean, IDedicatedConverterExtendable
 {
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
 
-	protected IConversionHelper defaultConversionHelper;
+	protected final ClassTupleExtendableContainer<IDedicatedConverter> converters = new ClassTupleExtendableContainer<IDedicatedConverter>(
+			"dedicatedConverter", "type", true);
 
-	public DelegatingConversionHelper()
-	{
-		super("dedicatedConverter", "type", true);
-	}
+	protected IConversionHelper defaultConversionHelper;
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -58,7 +55,7 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 		while (true)
 		{
 			Class<?> sourceClass = sourceValue.getClass();
-			IDedicatedConverter dedicatedConverter = getExtension(sourceClass, expectedType);
+			IDedicatedConverter dedicatedConverter = converters.getExtension(sourceClass, expectedType);
 			if (dedicatedConverter == null)
 			{
 				break;
@@ -112,12 +109,12 @@ public class DelegatingConversionHelper extends ClassTupleExtendableContainer<ID
 	@Override
 	public void registerDedicatedConverter(IDedicatedConverter dedicatedConverter, Class<?> sourceType, Class<?> targetType)
 	{
-		register(dedicatedConverter, sourceType, targetType);
+		converters.register(dedicatedConverter, sourceType, targetType);
 	}
 
 	@Override
 	public void unregisterDedicatedConverter(IDedicatedConverter dedicatedConverter, Class<?> sourceType, Class<?> targetType)
 	{
-		unregister(dedicatedConverter, sourceType, targetType);
+		converters.unregister(dedicatedConverter, sourceType, targetType);
 	}
 }
