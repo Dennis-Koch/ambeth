@@ -1,5 +1,7 @@
 package de.osthus.esmeralda.handler.js.expr;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -28,6 +30,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
@@ -41,17 +44,190 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNewClass>
 {
+	public static class ConstructorParamKey
+	{
+		private final String fqClassName;
+
+		private final String[] fqParamClassNames;
+
+		public ConstructorParamKey(String fqClassName, String... fqParamClassNames)
+		{
+			this.fqClassName = fqClassName;
+			this.fqParamClassNames = Arrays.copyOf(fqParamClassNames, fqParamClassNames.length);
+		}
+
+		@Override
+		public int hashCode()
+		{
+			int hashCode = fqClassName.hashCode();
+			hashCode *= fqParamClassNames.length;
+			return hashCode;
+		}
+
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (!(obj instanceof ConstructorParamKey))
+			{
+				return false;
+			}
+
+			ConstructorParamKey other = (ConstructorParamKey) obj;
+
+			String[] otherFqParamClassNames = other.fqParamClassNames;
+			if (!fqClassName.equals(other.fqClassName) || fqParamClassNames.length != otherFqParamClassNames.length)
+			{
+				return false;
+			}
+
+			for (int i = 0; i < fqParamClassNames.length; i++)
+			{
+				String thisName = fqParamClassNames[i];
+				String otherName = otherFqParamClassNames[i];
+				if (!thisName.equals(otherName))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+	}
+
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
 
-	protected static final HashMap<String, String> fqClassNameToConstructorSingleStringParamName = new HashMap<>();
+	protected static final HashMap<ConstructorParamKey, String[]> constructorParamTypesToConstructorParamNames = new HashMap<>();
 
 	static
 	{
-		fqClassNameToConstructorSingleStringParamName.put("java.lang.IllegalArgumentException", "s");
-		fqClassNameToConstructorSingleStringParamName.put("java.lang.IllegalStateException", "s");
-		fqClassNameToConstructorSingleStringParamName.put("java.lang.NullPointerException", "s");
-		fqClassNameToConstructorSingleStringParamName.put("java.lang.UnsupportedOperationException", "message");
-		fqClassNameToConstructorSingleStringParamName.put("java.io.IOException", "message");
+		String fqNameString = String.class.getName();
+		String fqNameThrowable = java.lang.Throwable.class.getName();
+		String fqNameClassCastException = java.lang.ClassCastException.class.getName();
+		String fqNameIllegalArgumentException = java.lang.IllegalArgumentException.class.getName();
+		String fqNameRuntimeException = java.lang.RuntimeException.class.getName();
+		String fqNameSInt = int.class.getName();
+		String fqNameSLong = long.class.getName();
+		String fqNameSFloat = float.class.getName();
+		String fqNameSBoolean = boolean.class.getName();
+		String fqNameInteger = java.lang.Integer.class.getName();
+		String fqNameFloat = java.lang.Float.class.getName();
+		String fqNameByteArray = "byte[]"; // getName() returns "[B"
+		String fqNameCharArray = "char[]"; // getName() returns "[C"
+		String fqNameCollection = Collection.class.getName();
+		String fqNameCharset = java.nio.charset.Charset.class.getName();
+		String fqNameReader = java.io.Reader.class.getName();
+		String fqNameWriter = java.io.Writer.class.getName();
+		String fqNameInputStream = java.io.InputStream.class.getName();
+		String fqNameOutputStream = java.io.OutputStream.class.getName();
+		String fqNameInputStreamReader = java.io.InputStreamReader.class.getName();
+		String fqNameOutputStreamWriter = java.io.OutputStreamWriter.class.getName();
+		String fqNameBufferedInputStream = java.io.BufferedInputStream.class.getName();
+		String fqNameBufferedOutputStream = java.io.BufferedOutputStream.class.getName();
+		String fqNameFileInputStream = java.io.FileInputStream.class.getName();
+		String fqNameFileOutputStream = java.io.FileOutputStream.class.getName();
+		String fqNameByteArrayInputStream = java.io.ByteArrayInputStream.class.getName();
+		String fqNameBufferedReader = java.io.BufferedReader.class.getName();
+		String fqNameBufferedWriter = java.io.BufferedWriter.class.getName();
+		String fqNameFile = java.io.File.class.getName();
+		String fqNameDate = java.util.Date.class.getName();
+		String fqNameSqlDate = java.sql.Date.class.getName();
+		String fqNameSqlTimestamp = java.sql.Timestamp.class.getName();
+		String fqNameBigDecimal = java.math.BigDecimal.class.getName();
+		String fqNameBigInteger = java.math.BigInteger.class.getName();
+		String fqNameIProperties = de.osthus.ambeth.config.IProperties.class.getName();
+		String fqNameProperties = de.osthus.ambeth.config.Properties.class.getName();
+		String fqNameClassWriter = de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter.class.getName();
+		String fqNameCountDownLatch = java.util.concurrent.CountDownLatch.class.getName();
+
+		// Single String constructors
+		registerConstructor(new ConstructorParamKey("java.io.File", fqNameString), "pathname");
+		registerConstructor(new ConstructorParamKey(fqNameFileInputStream, fqNameString), "name");
+		registerConstructor(new ConstructorParamKey("java.io.FileOutputStream", fqNameString), "name");
+		registerConstructor(new ConstructorParamKey("java.lang.StringBuilder", fqNameString), "str");
+		registerConstructor(new ConstructorParamKey(fqNameBigDecimal, fqNameString), "val");
+		registerConstructor(new ConstructorParamKey(fqNameBigDecimal, fqNameBigInteger), "val");
+		registerConstructor(new ConstructorParamKey(fqNameBigInteger, fqNameString), "val");
+		registerConstructor(new ConstructorParamKey("java.text.SimpleDateFormat", fqNameString), "pattern");
+
+		// Constructors on java.lang.String
+		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameCharset), "bytes", "charset");
+		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameString), "bytes", "charsetName");
+		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameCharset), "bytes", "offset", "length",
+				"charset");
+		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameString), "bytes", "offset", "length",
+				"charsetName");
+		registerConstructor(new ConstructorParamKey(fqNameString, fqNameCharArray), "value");
+
+		// Exception constructors
+		registerConstructor(new ConstructorParamKey("java.io.IOException", fqNameString), "message");
+		registerConstructor(new ConstructorParamKey("java.io.IOException", fqNameThrowable), "cause");
+		registerConstructor(new ConstructorParamKey(fqNameClassCastException, fqNameString), "s");
+		registerConstructor(new ConstructorParamKey(fqNameIllegalArgumentException, fqNameString), "s");
+		registerConstructor(new ConstructorParamKey(fqNameIllegalArgumentException, fqNameString, fqNameThrowable), "message", "cause");
+		registerConstructor(new ConstructorParamKey("java.lang.IllegalStateException", fqNameString), "s");
+		registerConstructor(new ConstructorParamKey("java.lang.IllegalStateException", fqNameString, fqNameThrowable), "message", "cause");
+		registerConstructor(new ConstructorParamKey("java.lang.NullPointerException", fqNameString), "s");
+		registerConstructor(new ConstructorParamKey(fqNameRuntimeException, fqNameString), "message");
+		registerConstructor(new ConstructorParamKey(fqNameRuntimeException, fqNameThrowable), "cause");
+		registerConstructor(new ConstructorParamKey(fqNameRuntimeException, fqNameString, fqNameThrowable), "message", "cause");
+		registerConstructor(new ConstructorParamKey("java.lang.UnsupportedOperationException", fqNameString), "message");
+
+		// Java collections constructors
+		registerConstructor(new ConstructorParamKey("java.util.ArrayList", fqNameSInt), "initialCapacity");
+		registerConstructor(new ConstructorParamKey("java.util.ArrayList", fqNameInteger), "initialCapacity");
+		registerHashConstructors("java.util.HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("java.util.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+
+		// Ambeth collections constructors
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameSInt), "initialCapacity");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameInteger), "initialCapacity");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameCollection), "coll");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", Object[].class.getName()), "array");
+		registerHashConstructors("de.osthus.ambeth.collections.HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("de.osthus.ambeth.collections.LinkedHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("de.osthus.ambeth.collections.IdentityLinkedSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("de.osthus.ambeth.collections.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+
+		// Other constructors
+		registerConstructor(new ConstructorParamKey(fqNameDate, fqNameSLong), "date");
+		registerConstructor(new ConstructorParamKey(fqNameSqlDate, fqNameSLong), "date");
+		registerConstructor(new ConstructorParamKey(fqNameSqlTimestamp, fqNameSLong), "time");
+		registerConstructor(new ConstructorParamKey(fqNameFile, fqNameString, fqNameString), "parent", "child");
+		registerConstructor(new ConstructorParamKey(fqNameInputStreamReader, fqNameInputStream, fqNameCharset), "in", "cs");
+		registerConstructor(new ConstructorParamKey(fqNameOutputStreamWriter, fqNameOutputStream, fqNameCharset), "out", "cs");
+		registerConstructor(new ConstructorParamKey(fqNameBufferedInputStream, fqNameInputStream), "in");
+		registerConstructor(new ConstructorParamKey(fqNameBufferedOutputStream, fqNameOutputStream), "out");
+		registerConstructor(new ConstructorParamKey(fqNameFileInputStream, fqNameReader), "in");
+		registerConstructor(new ConstructorParamKey(fqNameFileInputStream, fqNameFile), "file");
+		registerConstructor(new ConstructorParamKey(fqNameFileOutputStream, fqNameFile, fqNameSBoolean), "file", "append");
+		registerConstructor(new ConstructorParamKey(fqNameByteArrayInputStream, fqNameByteArray), "buf");
+		registerConstructor(new ConstructorParamKey(fqNameBufferedReader, fqNameReader), "in");
+		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameWriter), "out");
+		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameOutputStreamWriter), "out");
+		registerConstructor(new ConstructorParamKey(fqNameCountDownLatch, fqNameSInt), "count");
+
+		// Other Ambeth constructors
+		registerConstructor(new ConstructorParamKey(fqNameProperties, fqNameIProperties), "parent");
+		registerConstructor(new ConstructorParamKey(fqNameClassWriter, fqNameSInt), "flags");
+	}
+
+	protected static void registerHashConstructors(String fqClassName, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
+	{
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt), "initialCapacity");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger), "initialCapacity");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSFloat), "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameFloat), "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameFloat), "initialCapacity", "loadFactor");
+	}
+
+	protected static void registerConstructor(ConstructorParamKey key, String... paramNames)
+	{
+		constructorParamTypesToConstructorParamNames.put(key, paramNames);
 	}
 
 	public static final String getFqNameFromAnonymousName(String fqName)
@@ -168,6 +344,9 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 
 	protected Iterator<String> extractParamNames(JCNewClass newClass)
 	{
+		IConversionContext context = this.context.getCurrent();
+		final IJsHelper languageHelper = (IJsHelper) context.getLanguageHelper();
+
 		MethodSymbol constructor = (MethodSymbol) newClass.constructor;
 		ArrayList<String> paramNames = new ArrayList<>();
 		if (constructor != null && constructor.params != null)
@@ -177,55 +356,91 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 				paramNames.add(param.name.toString());
 			}
 		}
-		else if (constructor != null && constructor.type != null)
-		{
-			com.sun.tools.javac.util.List<Type> argtypes = ((MethodType) constructor.type).argtypes;
-			String fqClassName = newClass.type.toString();
-			String paramName = fqClassNameToConstructorSingleStringParamName.get(fqClassName);
-			if (argtypes.size() == 1 && argtypes.get(0).toString().equals("java.lang.String") && paramName != null)
-			{
-				paramNames.add(paramName);
-			}
-			else
-			{
-				throw new SnippetTrigger("No names for called constructors parameters available").setContext(newClass.toString());
-			}
-			// if (log.isInfoEnabled())
-			// {
-			// log.info("Using parameter types instead of names for " + newClass.toString());
-			// }
-			// for (Type param : ((MethodType) constructor.type).argtypes)
-			// {
-			// paramNames.add(param.toString());
-			// }
-		}
 		else
 		{
-			if (newClass.args.size() != 1)
+			if (constructor != null && constructor.type != null)
 			{
-				throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClass.toString());
-			}
-			JCExpression param = newClass.args.get(0);
-			String className = newClass.clazz.toString();
-			IConversionContext context = this.context.getCurrent();
-			JavaClassInfo classInfo = context.resolveClassInfo(className, true);
-			String paramName = fqClassNameToConstructorSingleStringParamName.get(classInfo.getFqName());
-			if (paramName != null && param instanceof JCLiteral && ((JCLiteral) param).value instanceof String)
-			{
-				paramNames.add(paramName);
+				String fqClassName = newClass.type.toString();
+				fqClassName = languageHelper.removeGenerics(fqClassName);
+
+				com.sun.tools.javac.util.List<Type> argtypes = ((MethodType) constructor.type).argtypes;
+				int size = argtypes.size();
+				String[] fqParamClassNames = new String[size];
+				for (int i = 0; i < size; i++)
+				{
+					Type argType = argtypes.get(i);
+					fqParamClassNames[i] = languageHelper.removeGenerics(argType.toString());
+				}
+
+				ConstructorParamKey key = new ConstructorParamKey(fqClassName, fqParamClassNames);
+				String[] paramNamesArray = constructorParamTypesToConstructorParamNames.get(key);
+				if (paramNamesArray != null)
+				{
+					paramNames.addAll(paramNamesArray);
+				}
+				else
+				{
+					String newClassString = newClass.toString();
+					throw new SnippetTrigger("No names for called constructors parameters available").setContext(newClassString);
+				}
 			}
 			else
 			{
-				throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClass.toString());
+				String className = newClass.clazz.toString();
+				JavaClassInfo classInfo = context.resolveClassInfo(className, true);
+				if (classInfo == null)
+				{
+					String newClassString = newClass.toString();
+					throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClassString);
+				}
+				String fqClassName = classInfo.getFqName();
+				fqClassName = languageHelper.removeGenerics(fqClassName);
+
+				com.sun.tools.javac.util.List<JCExpression> args = newClass.args;
+				int size = args.size();
+				String[] fqParamClassNames = new String[size];
+				for (int i = 0; i < size; i++)
+				{
+					final JCExpression param = args.get(i);
+					if (param instanceof JCLiteral)
+					{
+						Object value = ((JCLiteral) param).value;
+						fqParamClassNames[i] = languageHelper.removeGenerics(value.getClass().getName());
+					}
+					else
+					{
+						String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String[]>()
+						{
+							@Override
+							public String[] invoke() throws Throwable
+							{
+								IConversionContext context = JsNewClassExpressionHandler.this.context;
+								languageHelper.writeExpressionTree(param);
+								String[] resultTypes = { context.getTypeOnStack() };
+								return resultTypes;
+							}
+						});
+						fqParamClassNames[i] = languageHelper.removeGenerics(typeOnStack[0]);
+					}
+					if (fqParamClassNames[i] == null)
+					{
+						String newClassString = newClass.toString();
+						throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClassString);
+					}
+				}
+
+				ConstructorParamKey key = new ConstructorParamKey(fqClassName, fqParamClassNames);
+				String[] paramNamesArray = constructorParamTypesToConstructorParamNames.get(key);
+				if (paramNamesArray != null)
+				{
+					paramNames.addAll(paramNamesArray);
+				}
+				else
+				{
+					String newClassString = newClass.toString();
+					throw new SnippetTrigger("No names or types for called constructors parameters available").setContext(newClassString);
+				}
 			}
-			// if (log.isWarnEnabled())
-			// {
-			// log.warn("Guessing parameter names for " + newClass.toString());
-			// }
-			// for (int i = 0, length = newClass.args.length(); i < length; i++)
-			// {
-			// paramNames.add("argument_" + i);
-			// }
 		}
 		return paramNames.iterator();
 	}
