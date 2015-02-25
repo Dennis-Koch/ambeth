@@ -412,6 +412,10 @@ public class CacheHelper implements ICacheHelper, ICachePathHelper, IPrefetchHel
 				continue;
 			}
 			IObjRelationResult objRelResult = objRelResults.get(a);
+			if (objRelResult == null)
+			{
+				continue;
+			}
 			for (IObjRef objRef : objRelResult.getRelations())
 			{
 				if (orisToLoad == null)

@@ -499,11 +499,6 @@ public class PersistenceMergeServiceExtension implements IMergeServiceExtension
 			for (Entry<IObjRef, IChangeContainer> entry : objRefToChangeContainerMap)
 			{
 				IChangeContainer changeContainer = entry.getValue();
-				if (changeContainer instanceof ICreateOrUpdateContainer && ((ICreateOrUpdateContainer) changeContainer).getFullPUIs() == null
-						&& ((ICreateOrUpdateContainer) changeContainer).getFullRUIs() == null)
-				{
-					continue;
-				}
 				changeContainersSet.add(entry.getValue());
 			}
 

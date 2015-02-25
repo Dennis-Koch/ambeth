@@ -412,6 +412,10 @@ namespace De.Osthus.Ambeth.Util
                     continue;
                 }
                 IObjRelationResult objRelResult = objRelResults[a];
+                if (objRelResult == null)
+                {
+                    continue;
+                }
                 foreach (IObjRef objRef in objRelResult.Relations)
                 {
                     if (orisToLoad == null)
