@@ -834,6 +834,10 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				}
 			}
 		}
+		else
+		{
+			referencedVOs = new java.util.ArrayList<Object>(0);
+		}
 
 		if (!singularValue)
 		{
@@ -850,6 +854,14 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 				else if (voMemberType.isArray())
 				{
 					voMemberValue = ListUtil.anyToArray(referencedVOs, voMemberType.getComponentType());
+				}
+				else
+				{
+					voMemberValue = ListUtil.createCollectionOfType(voMemberType, referencedVOs.size());
+					for (Object referenceVO : referencedVOs)
+					{
+						((Collection<Object>) voMemberValue).add(referenceVO);
+					}
 				}
 			}
 		}
