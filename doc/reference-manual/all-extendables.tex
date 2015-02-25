@@ -3,6 +3,7 @@
 % Any changes have to be done to the java class de.osthus.ambeth.extscanner.ExtendableUpdater
 %---------------------------------------------------------------
 \chapter{Ambeth Extension Points}
+\begin{landscape}
 \begin{longtable}{ l l c c c } \hline \textbf{Extension Point} & \textbf{Extension} & \textbf{Java} & \textbf{C\#} & \textbf{Javascript} \
 	\endhead
 	\hline
@@ -90,7 +91,7 @@
 		\javadoc{de.osthus.ambeth.database.IDatabaseProvider}{IDatabaseProvider} &
 		X &   &   \\
 	\hline
-		\nameref{extendable:IDatasetBuilderExtensionExtendable} &
+		\nameref{extendable:IDatasetBuilderExtendable} &
 		\javadoc{de.osthus.ambeth.util.setup.IDatasetBuilder}{IDatasetBuilder} &
 		X &   &   \\
 	\hline
@@ -119,7 +120,7 @@
 		X &   &   \\
 	\hline
 		\nameref{extendable:IEntityTypePermissionRuleExtendable} &
-		\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRule<? super T>}{IEntityTypePermissionRule<? super T>} &
+		\javadoc{de.osthus.ambeth.privilege.IEntityTypePermissionRule}{IEntityTypePermissionRule} &
 		X &   &   \\
 	\hline
 		\nameref{extendable:IEventBatcherExtendable} &
@@ -160,7 +161,7 @@
 	\hline
 		\nameref{extendable:IMergeListenerExtendable} &
 		\javadoc{de.osthus.ambeth.merge.IMergeListener}{IMergeListener} &
-		X &   &   \\
+		X & X &   \\
 	\hline
 		\nameref{extendable:IMergeServiceExtensionExtendable} &
 		\javadoc{de.osthus.ambeth.merge.IMergeServiceExtension}{IMergeServiceExtension} &
@@ -193,6 +194,10 @@
 		\nameref{extendable:IPropertyChangeExtensionExtendable} &
 		\javadoc{de.osthus.ambeth.databinding.IPropertyChangeExtension}{IPropertyChangeExtension} &
 		X & X &   \\
+	\hline
+		\nameref{extendable:IQueryBuilderExtensionExtendable} &
+		\javadoc{de.osthus.ambeth.query.IQueryBuilderExtension}{IQueryBuilderExtension} &
+		X &   &   \\
 	\hline
 		\nameref{extendable:ISecurityScopeChangeListenerExtendable} &
 		\javadoc{de.osthus.ambeth.security.ISecurityScopeChangeListener}{ISecurityScopeChangeListener} &
@@ -255,6 +260,7 @@
 		  & X &   \\
 	\hline
 \end{longtable}
+\end{landscape}
 \input{extendable/IImplementAbstractObjectFactoryExtendable}
 \input{extendable/IXmlTypeExtendable}
 \input{extendable/ITechnicalEntityTypeExtendable}
@@ -276,7 +282,7 @@
 \input{extendable/IDatabaseMappedListenerExtendable}
 \input{extendable/IDatabaseMapperExtendable}
 \input{extendable/IDatabaseProviderExtendable}
-\input{extendable/IDatasetBuilderExtensionExtendable}
+\input{extendable/IDatasetBuilderExtendable}
 \input{extendable/IDedicatedConverterExtendable}
 \input{extendable/IDedicatedMapperExtendable}
 \input{extendable/IEntityInstantiationExtensionExtendable}
@@ -302,6 +308,7 @@
 \input{extendable/IOfflineListenerExtendable}
 \input{extendable/IOrmXmlReaderExtendable}
 \input{extendable/IPropertyChangeExtensionExtendable}
+\input{extendable/IQueryBuilderExtensionExtendable}
 \input{extendable/ISecurityScopeChangeListenerExtendable}
 \input{extendable/ISecurityScopeChangeExtendable}
 \input{extendable/ISensorReceiverExtendable}

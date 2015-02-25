@@ -2,4 +2,11 @@
 \section{PrivilegeProvider}
 \label{feature:PrivilegeProvider}
 \ClearAPI
+Provides access to instances of \type{IPrivilege} for any given entity instance or entity type. The information encapsulated in \type{IPrivilege} can be used to define the enable-state of UI-components (e.g. to deactivate a Delete-Button for a specific row-selection in a UI table if the user has no delete privilege on the corresponding entity. The \type{PrivilegeProvider} itself is the single entry point even for all \AMBETH{} modules needing access to entity-based security information like it is the case for all non-privileged Cache instances at runtime.\\
+
+The following privileges are contained in the model:
+
+
+
+Application specific rules to evaluate the
 \TODO

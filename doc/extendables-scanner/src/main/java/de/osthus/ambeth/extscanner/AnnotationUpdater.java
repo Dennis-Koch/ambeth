@@ -104,14 +104,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 		fw.append("\t\t");
 		fw.append("\\nameref{").append(annotationEntry.labelName).append('}');
 		fw.append(" &\n\t\t");
-		// Java
-		fw.append(annotationEntry.inJava() ? "X" : " ").append(" & ");
-
-		// C#
-		fw.append(annotationEntry.inCSharp() ? "X" : " ").append(" & ");
-
-		// Javascript
-		fw.append(annotationEntry.inJavascript() ? "X" : " ");
+		writeAvailability(annotationEntry, fw);
 		return true;
 	}
 

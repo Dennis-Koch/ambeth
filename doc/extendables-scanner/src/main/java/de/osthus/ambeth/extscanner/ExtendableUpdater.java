@@ -130,14 +130,8 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 		fw.append(" &\n\t\t");
 		writeJavadoc(extendableEntry.fqExtensionName, extendableEntry.simpleExtensionName, fw);
 		fw.append(" &\n\t\t");
-		// Java
-		fw.append(extendableEntry.inJava() ? "X" : " ").append(" & ");
 
-		// C#
-		fw.append(extendableEntry.inCSharp() ? "X" : " ").append(" & ");
-
-		// Javascript
-		fw.append(extendableEntry.inJavascript() ? "X" : " ");
+		writeAvailability(extendableEntry, fw);
 		return true;
 	}
 
@@ -255,6 +249,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("% Any changes have to be done to the java class " + ExtendableUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Extension Points}\n");
+			fw.append("\\begin{landscape}\n");
 			fw.append("\\begin{longtable}{ l l c c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");
@@ -283,6 +278,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 				writeToExtendableTexFile(extendableEntry, labelName, expectedExtendableTexFile);
 			}
 			fw.append("\\end{longtable}\n");
+			fw.append("\\end{landscape}\n");
 			for (int a = 0, size = includes.size(); a < size; a++)
 			{
 				// now write all chapter includes which are referenced from the table

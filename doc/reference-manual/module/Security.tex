@@ -25,6 +25,18 @@
 
 <dependency>
 	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-security-job</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
+	<artifactId>jambeth-security-persistence</artifactId>
+	<version>§\version§</version>
+</dependency>
+
+<dependency>
+	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>jambeth-security-server</artifactId>
 	<version>§\version§</version>
 </dependency>
@@ -49,8 +61,6 @@
 %% CONFIGURATION GENERATED START
 \subsection{Configuration}
 \begin{itemize}
-	\item \prettyref{configuration:AmbethMthTimeout}
-	\item \prettyref{configuration:AmbethSecurityActive}
 	\item \prettyref{configuration:EncryptionPassword}
 	\item \prettyref{configuration:SecurityCryptoAlgorithmName}
 	\item \prettyref{configuration:SecurityCryptoKeyspecName}
@@ -139,6 +149,6 @@ As with most of the Ambeth aspects you have to declare the annotation at class l
 
 
 \tip{
-Performance-wise the ``outermost'' beans should already be annotated at least with \type{@SecurityContext(SecurityContextType.NOT\_REQUIRED)}:\newline This way necessary remote IO (e.g. LDAP requests) will only be necessary once. As an effect any complex server logic can make intensive use of security functionality with generating additional overhead in intermediate authentication and/or authorization logic without performance penalty.
+Performance-wise the ``outermost'' beans of a client/server-request should already be annotated at least with \type{@SecurityContext(SecurityContextType.NOT\_REQUIRED)}:\newline This way necessary remote IO (e.g. LDAP requests) will only be necessary once. As an effect any complex server logic can make intensive use of security functionality without generating additional overhead in intermediate authentication and/or authorization logic.
 }
 

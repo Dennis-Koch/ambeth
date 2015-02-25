@@ -6,7 +6,13 @@
 \begin{longtable}{ l c c c } \hline \textbf{Annotation} & \textbf{Java} & \textbf{C\#} & \textbf{Javascript} \
 	\endhead
 	\hline
+		\nameref{annotation:AuditReasonRequired} &
+		X &   &   \\
+	\hline
 		\nameref{annotation:Audited} &
+		X &   &   \\
+	\hline
+		\nameref{annotation:AuditedArg} &
 		X &   &   \\
 	\hline
 		\nameref{annotation:Autowired} &
@@ -52,6 +58,9 @@
 		X & X &   \\
 	\hline
 		\nameref{annotation:FireThisOnPropertyChange} &
+		X & X &   \\
+	\hline
+		\nameref{annotation:Forkable} &
 		X & X &   \\
 	\hline
 		\nameref{annotation:FrameworkModule} &
@@ -101,6 +110,9 @@
 	\hline
 		\nameref{annotation:PropertyAccessor} &
 		X & X &   \\
+	\hline
+		\nameref{annotation:PropertyExpression} &
+		X &   &   \\
 	\hline
 		\nameref{annotation:QueryBehavior} &
 		X &   &   \\
@@ -160,7 +172,9 @@
 		X & X &   \\
 	\hline
 \end{longtable}
+\input{annotation/AuditReasonRequired}
 \input{annotation/Audited}
+\input{annotation/AuditedArg}
 \input{annotation/Autowired}
 \input{annotation/BootstrapModule}
 \input{annotation/ByVisitor}
@@ -176,6 +190,7 @@
 \input{annotation/Find}
 \input{annotation/FireTargetOnPropertyChange}
 \input{annotation/FireThisOnPropertyChange}
+\input{annotation/Forkable}
 \input{annotation/FrameworkModule}
 \input{annotation/Ignore}
 \input{annotation/IgnoreToBeUpdated}
@@ -192,6 +207,7 @@
 \input{annotation/Process}
 \input{annotation/Property}
 \input{annotation/PropertyAccessor}
+\input{annotation/PropertyExpression}
 \input{annotation/QueryBehavior}
 \input{annotation/Remove}
 \input{annotation/SQLData}
