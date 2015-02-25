@@ -747,6 +747,10 @@ namespace De.Osthus.Ambeth.Mapping
                     }
                 }
             }
+            else
+            {
+                referencedVOs = new List<Object>(0);
+            }
 
             if (!singularValue)
             {
@@ -763,6 +767,11 @@ namespace De.Osthus.Ambeth.Mapping
                     else if (voMemberType.IsArray)
                     {
                         voMemberValue = ListUtil.AnyToArray(referencedVOs, voMemberType.GetElementType());
+                    }
+                    else
+                    {
+                        voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
+                        ListUtil.FillList(voMember, referencedVOs);
                     }
                 }
             }
