@@ -485,7 +485,14 @@ public class JsClassHandler implements IClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 		firstLine = writeOverloadHubMethods(classInfo, true, firstLine);
 
@@ -587,7 +594,14 @@ public class JsClassHandler implements IClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 		firstLine = writeOverloadHubMethods(classInfo, false, firstLine);
 
@@ -755,7 +769,7 @@ public class JsClassHandler implements IClassHandler
 		return "java.lang.Object";
 	}
 
-	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final JavaClassInfo classInfo, final IWriter writer)
+	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final JavaClassInfo classInfo, IWriter writer)
 	{
 		if (fieldsToInit.isEmpty())
 		{
@@ -770,7 +784,7 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				IConversionContext context = JsClassHandler.this.context.getCurrent();
+				final IConversionContext context = JsClassHandler.this.context.getCurrent();
 				ISnippetManager snippetManager = context.getSnippetManager();
 				ArrayList<String> untranslatableFieldDefinitions = new ArrayList<>();
 				boolean dryRun = context.isDryRun();
@@ -789,6 +803,7 @@ public class JsClassHandler implements IClassHandler
 							@Override
 							public void invoke() throws Throwable
 							{
+								IWriter writer = context.getWriter();
 								writer.append("this.").append(field.getName()).append(" = ");
 								if (enumType && initializer instanceof JCNewClass)
 								{
@@ -894,7 +909,14 @@ public class JsClassHandler implements IClassHandler
 			}
 			languageHelper.newLineIndent();
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 	}
 
@@ -914,7 +936,15 @@ public class JsClassHandler implements IClassHandler
 		{
 			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			context.setMethod(method);
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 	}
 }

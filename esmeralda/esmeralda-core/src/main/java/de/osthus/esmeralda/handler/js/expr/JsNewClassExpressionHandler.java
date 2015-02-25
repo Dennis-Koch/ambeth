@@ -46,6 +46,8 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 {
 	public static class ConstructorParamKey
 	{
+		public static final String ANY = "*"; // Only use, if no overloads exist
+
 		private final String fqClassName;
 
 		private final String[] fqParamClassNames;
@@ -84,6 +86,10 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 			{
 				String thisName = fqParamClassNames[i];
 				String otherName = otherFqParamClassNames[i];
+				if (ANY.equals(thisName) || ANY.equals(otherName))
+				{
+					continue;
+				}
 				if (!thisName.equals(otherName))
 				{
 					return false;
@@ -136,6 +142,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		String fqNameBigInteger = java.math.BigInteger.class.getName();
 		String fqNameIProperties = de.osthus.ambeth.config.IProperties.class.getName();
 		String fqNameProperties = de.osthus.ambeth.config.Properties.class.getName();
+		String fqNameArrayList = de.osthus.ambeth.collections.ArrayList.class.getName();
 		String fqNameClassWriter = de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter.class.getName();
 		String fqNameCountDownLatch = java.util.concurrent.CountDownLatch.class.getName();
 
@@ -179,16 +186,30 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		registerHashConstructors("java.util.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 
 		// Ambeth collections constructors
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameSInt), "initialCapacity");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameInteger), "initialCapacity");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", fqNameCollection), "coll");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ArrayList", Object[].class.getName()), "array");
+		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameSInt), "initialCapacity");
+		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameInteger), "initialCapacity");
+		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameCollection), "coll");
+		registerConstructor(new ConstructorParamKey(fqNameArrayList, Object[].class.getName()), "array");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.SetLinkedEntry", fqNameSInt, "K",
+				"de.osthus.ambeth.collections.SetLinkedEntry"), "hash", "key", "nextEntry");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ListElem", ConstructorParamKey.ANY), "value");
+
 		registerHashConstructors("de.osthus.ambeth.collections.HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("de.osthus.ambeth.collections.LinkedHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("de.osthus.ambeth.collections.IdentityLinkedSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("de.osthus.ambeth.collections.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple2KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple2KeyEntry", "Key1", "Key2", "V", fqNameSInt,
+				"de.osthus.ambeth.collections.Tuple2KeyEntry"), "key1", "key2", "value", "hash", "nextEntry");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple3KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple3KeyEntry", "Key1", "Key2", "Key3", "V", fqNameSInt,
+				"de.osthus.ambeth.collections.Tuple3KeyEntry"), "key1", "key2", "key3", "value", "hash", "nextEntry");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple4KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple4KeyEntry", "Key1", "Key2", "Key3", "Key4", "V", fqNameSInt,
+				"de.osthus.ambeth.collections.Tuple4KeyEntry"), "key1", "key2", "key3", "key4", "value", "hash", "nextEntry");
 
 		// Other constructors
 		registerConstructor(new ConstructorParamKey(fqNameDate, fqNameSLong), "date");
@@ -211,6 +232,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		// Other Ambeth constructors
 		registerConstructor(new ConstructorParamKey(fqNameProperties, fqNameIProperties), "parent");
 		registerConstructor(new ConstructorParamKey(fqNameClassWriter, fqNameSInt), "flags");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.appendable.AppendableStringBuilder", "java.lang.StringBuilder"), "sb");
 	}
 
 	protected static void registerHashConstructors(String fqClassName, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
@@ -409,18 +431,23 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 					}
 					else
 					{
-						String[] typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String[]>()
+						String typeOnStack = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String>()
 						{
 							@Override
-							public String[] invoke() throws Throwable
+							public String invoke() throws Throwable
 							{
 								IConversionContext context = JsNewClassExpressionHandler.this.context;
 								languageHelper.writeExpressionTree(param);
-								String[] resultTypes = { context.getTypeOnStack() };
-								return resultTypes;
+								String resultType = context.getTypeOnStack();
+								return resultType;
 							}
 						});
-						fqParamClassNames[i] = languageHelper.removeGenerics(typeOnStack[0]);
+						JavaClassInfo onStackClassInfo = context.resolveClassInfo(typeOnStack, true);
+						if (classInfo != null)
+						{
+							typeOnStack = onStackClassInfo.getFqName();
+						}
+						fqParamClassNames[i] = languageHelper.removeGenerics(typeOnStack);
 					}
 					if (fqParamClassNames[i] == null)
 					{
