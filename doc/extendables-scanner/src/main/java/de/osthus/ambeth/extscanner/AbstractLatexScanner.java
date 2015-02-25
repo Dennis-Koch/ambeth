@@ -226,6 +226,60 @@ public abstract class AbstractLatexScanner implements IInitializingBean, IStarti
 		}
 	}
 
+	protected void escapeValue(String value, OutputStreamWriter fw) throws Exception
+	{
+		// http://tex.stackexchange.com/questions/34580/escape-character-in-latex
+		for (int a = 0, size = value.length(); a < size; a++)
+		{
+			char oneChar = value.charAt(a);
+			switch (oneChar)
+			{
+				case '&':
+				case '%':
+				case '$':
+				case '#':
+				case '_':
+				case '{':
+				case '}':
+				{
+					fw.append('\\');
+					fw.append(oneChar);
+					continue;
+				}
+				case '~':
+				{
+					fw.append("\\textasciitilde{}");
+					continue;
+				}
+				case '^':
+				{
+					fw.append("\\textasciicircum{}");
+					continue;
+				}
+				case '\\':
+				{
+					fw.append("\\textbackslash{}");
+					continue;
+				}
+			}
+			fw.append(oneChar);
+		}
+	}
+
+	protected void writeAvailability(IMultiPlatformFeature feature, OutputStreamWriter fw) throws Exception
+	{
+		// Java
+		escapeValue(feature.inJava() ? "X" : " ", fw);
+		fw.append(" & ");
+
+		// C#
+		escapeValue(feature.inCSharp() ? "X" : " ", fw);
+		fw.append(" & ");
+
+		// Javascript
+		escapeValue(feature.inJavascript() ? "X" : " ", fw);
+	}
+
 	protected void findCorrespondingSourceFiles(Iterable<? extends ISourceFileAware> sourceFileAwares)
 	{
 		HashMap<String, IFileFoundDelegate> nameToFileFoundDelegates = new HashMap<String, IFileFoundDelegate>();

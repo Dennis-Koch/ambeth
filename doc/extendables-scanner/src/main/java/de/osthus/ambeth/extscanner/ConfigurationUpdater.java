@@ -420,20 +420,13 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 		fw.append(" & ");
 
 		// default Value
-		fw.append(propertyEntry.isDefaultValueSpecified() ? propertyEntry.getDefaultValue() : "");
+		escapeValue(propertyEntry.isDefaultValueSpecified() ? propertyEntry.getDefaultValue() : "", fw);
 		fw.append(" & ");
 
 		// mandatory
-		fw.append(propertyEntry.isMandatory ? "X" : "");
-		fw.append(" & ");
+		escapeValue(propertyEntry.isMandatory ? "X" : " ", fw);
+		fw.append(" &\n\t\t");
 
-		// Java
-		fw.append(propertyEntry.inJava() ? "X" : " ").append(" & ");
-
-		// C#
-		fw.append(propertyEntry.inCSharp() ? "X" : " ").append(" & ");
-
-		// Javascript
-		fw.append(propertyEntry.inJavascript() ? "X" : " ");
+		writeAvailability(propertyEntry, fw);
 	}
 }

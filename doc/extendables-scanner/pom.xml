@@ -2,17 +2,17 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.osthus.ambeth</groupId>
 	<artifactId>extendables-scanner</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.23</version>
+		<version>0.0.31</version>
 	</parent>
 
 	<properties>
-		<ambeth.version>2.2.52</ambeth.version>
+		<ambeth.version>2.3.14</ambeth.version>
 	</properties>
 
 	<dependencies>
@@ -61,16 +61,4 @@
 			<type>pom</type>
 		</dependency>
 	</dependencies>
-
-	<repositories>
-		<!-- Location of the osthus-pom -->
-		<repository>
-			<id>osthus-releases</id>
-			<url>http://172.16.200.17:8081/nexus/content/repositories/osthus-releases/</url>
-		</repository>
-		<repository>
-			<id>osthus-snapshots</id>
-			<url>http://172.16.200.17:8081/nexus/content/repositories/osthus-snapshots/</url>
-		</repository>
-	</repositories>
 </project>
