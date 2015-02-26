@@ -1,5 +1,8 @@
 package de.osthus.ambeth.privilege.model.impl;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
+
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
@@ -7,8 +10,10 @@ import de.osthus.ambeth.privilege.transfer.IPropertyPrivilegeOfService;
 import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintable, IImmutableType
+public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintable, IImmutableType, Serializable
 {
+	private static final long serialVersionUID = 3959654761266019980L;
+
 	public static final IPropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new IPropertyPrivilege[0];
 
 	private static final PropertyPrivilegeImpl[] array = new PropertyPrivilegeImpl[arraySizeForIndex()];
@@ -135,5 +140,10 @@ public final class PropertyPrivilegeImpl implements IPropertyPrivilege, IPrintab
 		sb.append(AbstractPrivilege.upperOrLower(isReadAllowed(), 'r'));
 		sb.append(AbstractPrivilege.upperOrLower(isUpdateAllowed(), 'u'));
 		sb.append(AbstractPrivilege.upperOrLower(isDeleteAllowed(), 'd'));
+	}
+
+	private Object readResolve() throws ObjectStreamException
+	{
+		return create(create, read, update, delete);
 	}
 }

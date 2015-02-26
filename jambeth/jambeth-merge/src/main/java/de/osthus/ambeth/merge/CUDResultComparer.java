@@ -393,6 +393,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			}
 			return false;
 		}
+		boolean isEqual = true;
 		for (int a = left.length; a-- > 0;)
 		{
 			IPrimitiveUpdateItem rightPui = right[a];
@@ -404,9 +405,10 @@ public class CUDResultComparer implements ICUDResultComparer
 				}
 				CreateOrUpdateContainerBuild containerBuild = cudResultDiff.updateContainerBuild();
 				containerBuild.addPrimitive(rightPui);
+				isEqual = false;
 			}
 		}
-		return true;
+		return isEqual;
 	}
 
 	protected boolean equalsPUI(CUDResultDiff cudResultDiff, IPrimitiveUpdateItem left, IPrimitiveUpdateItem right)
@@ -474,6 +476,7 @@ public class CUDResultComparer implements ICUDResultComparer
 			}
 			return false;
 		}
+		boolean isEqual = true;
 		for (int a = left.length; a-- > 0;)
 		{
 			IRelationUpdateItem rightPui = right[a];
@@ -483,9 +486,10 @@ public class CUDResultComparer implements ICUDResultComparer
 				{
 					return false;
 				}
+				isEqual = false;
 			}
 		}
-		return true;
+		return isEqual;
 	}
 
 	protected boolean equalsRUI(CUDResultDiff cudResultDiff, IRelationUpdateItem left, IRelationUpdateItem right)

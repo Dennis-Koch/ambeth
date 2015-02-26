@@ -1,11 +1,15 @@
 package de.osthus.ambeth.privilege.model.impl;
 
+import java.io.ObjectStreamException;
+
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.privilege.transfer.IPrivilegeOfService;
 
-public class SimplePrivilegeImpl extends AbstractPrivilege
+public final class SimplePrivilegeImpl extends AbstractPrivilege
 {
+	private static final long serialVersionUID = -4733612935037155207L;
+
 	private static final SimplePrivilegeImpl[] array = new SimplePrivilegeImpl[arraySizeForIndex()];
 
 	static
@@ -67,9 +71,9 @@ public class SimplePrivilegeImpl extends AbstractPrivilege
 		return array[index];
 	}
 
-	protected final boolean create, read, update, delete, execute;
+	private final boolean create, read, update, delete, execute;
 
-	protected final IPropertyPrivilege defaultPropertyPrivileges;
+	private final IPropertyPrivilege defaultPropertyPrivileges;
 
 	private SimplePrivilegeImpl(boolean create, boolean read, boolean update, boolean delete, boolean execute, IPropertyPrivilege defaultPropertyPrivileges)
 	{
@@ -128,5 +132,10 @@ public class SimplePrivilegeImpl extends AbstractPrivilege
 	public boolean isExecuteAllowed()
 	{
 		return execute;
+	}
+
+	private Object readResolve() throws ObjectStreamException
+	{
+		return create(create, read, update, delete, execute);
 	}
 }

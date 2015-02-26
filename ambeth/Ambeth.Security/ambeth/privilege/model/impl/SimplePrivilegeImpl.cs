@@ -5,7 +5,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Privilege.Model.Impl
 {
-    public class SimplePrivilegeImpl : AbstractPrivilege
+    public sealed class SimplePrivilegeImpl : AbstractPrivilege
     {
         private static readonly SimplePrivilegeImpl[] array = new SimplePrivilegeImpl[ArraySizeForIndex()];
 
@@ -68,9 +68,9 @@ namespace De.Osthus.Ambeth.Privilege.Model.Impl
 		    return array[index];
 	    }
 
-        protected readonly bool create, read, update, delete, execute;
+        private readonly bool create, read, update, delete, execute;
 
-        protected readonly IPropertyPrivilege defaultPropertyPrivileges;
+        private readonly IPropertyPrivilege defaultPropertyPrivileges;
 
         public SimplePrivilegeImpl(bool create, bool read, bool update, bool delete, bool execute, IPropertyPrivilege defaultPropertyPrivileges)
             : base(create, read, update, delete, execute, null, null)
