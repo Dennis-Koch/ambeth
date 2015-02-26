@@ -35,12 +35,10 @@ namespace De.Osthus.Ambeth.Ioc.Extendable
                 // Type matched exactly - 'strong' registration
                 return 0;
             }
-            if (existingRequestedType.IsArray)
+            if (existingRequestedType.IsArray && type.IsArray)
             {
-                if (!type.GetElementType().IsAssignableFrom(existingRequestedType.GetElementType()))
-                {
-                    return NO_VALID_DISTANCE;
-                }
+                // if both types are an array their distance is measured by the distance of their component type
+                return GetDistanceForType(existingRequestedType.GetElementType(), type.GetElementType());
             }
             int bestDistance = Int32.MaxValue;
             Type[] currInterfaces = existingRequestedType.GetInterfaces();
