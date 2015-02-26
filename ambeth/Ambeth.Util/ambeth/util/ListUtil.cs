@@ -312,34 +312,32 @@ namespace De.Osthus.Ambeth.Util
             throw new Exception("Failed to convert \"" + obj + "\" of type \"" + objType + "\" to Array of type \"" + targetElementType + "\".");
         }
 
-        public static void ClearList(Object list)
+        public static void ClearList(Object obj)
         {
-            MemberCallDelegate clearMethod = TypeUtility.GetMemberCallDelegate(list.GetType(), "Clear");
-            clearMethod(list);
+            MemberCallDelegate clearMethod = TypeUtility.GetMemberCallDelegate(obj.GetType(), "Clear");
+            clearMethod(obj);
         }
 
-        public static void ClearAndFillList(Object list, IEnumerable values)
+        public static void ClearAndFillList(Object obj, IEnumerable items)
         {
-            Type type = list.GetType();
-            MemberCallDelegate clearMethod = TypeUtility.GetMemberCallDelegate(type, "Clear");
-            MemberSetDelegate addMethod = TypeUtility.GetMemberSetDelegate(type, "Add");
-            clearMethod(list);
-            foreach (Object item in values)
+            ClearList(obj);
+            FillList(obj, items);
+        }
+
+        public static void FillList(Object obj, IEnumerable items)
+        {
+            if (obj == null)
             {
-                addMethod(list, item);
+                return;
             }
-        }
-
-        public static void FillList(Object list, IEnumerable values)
-        {
             //MemberSetDelegate addMethod = TypeUtility.GetMemberSetDelegate(list.GetType(), "Add");
-            MethodInfo addMethod = list.GetType().GetMethod("Add");
+            MethodInfo addMethod = obj.GetType().GetMethod("Add");
             Object[] args = new Object[1];
-            foreach (Object item in values)
+            foreach (Object item in items)
             {
                 //addMethod(list, item);
                 args[0] = item;
-                addMethod.Invoke(list, args);
+                addMethod.Invoke(obj, args);
             }
         }
     }

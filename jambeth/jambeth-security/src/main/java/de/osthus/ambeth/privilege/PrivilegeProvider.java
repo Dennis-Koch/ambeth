@@ -309,16 +309,15 @@ public class PrivilegeProvider implements IPrivilegeProviderIntern, IInitializin
 	{
 		IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.getPropertyPrivileges();
 
-		IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
 		if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.length == 0)
 		{
-			return new SimplePrivilegeImpl(privilegeOfService.isCreateAllowed(), privilegeOfService.isReadAllowed(), privilegeOfService.isUpdateAllowed(),
-					privilegeOfService.isDeleteAllowed(), privilegeOfService.isExecuteAllowed(), defaultPropertyPrivilege);
+			return SimplePrivilegeImpl.createFrom(privilegeOfService);
 		}
 		String[] propertyPrivilegeNames = privilegeOfService.getPropertyPrivilegeNames();
 		IEntityMetaData metaData = entityMetaDataProvider.getMetaData(objRef.getRealType());
 		IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.getPrimitiveMembers().length];
 		IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.getRelationMembers().length];
+		IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.createFrom(privilegeOfService);
 		Arrays.fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
 		Arrays.fill(relationPropertyPrivileges, defaultPropertyPrivilege);
 		for (int b = propertyPrivilegesOfService.length; b-- > 0;)
