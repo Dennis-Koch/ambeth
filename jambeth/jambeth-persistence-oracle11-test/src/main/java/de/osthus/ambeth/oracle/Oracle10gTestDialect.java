@@ -93,6 +93,27 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	}
 
 	@Override
+	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps) throws SQLException
+	{
+		Properties createUserProps = new Properties(testProps);
+		createUserProps.put(RandomUserScript.SCRIPT_IS_CREATE, "false");
+		createUserProps.put(RandomUserScript.SCRIPT_USER_NAME, userName);
+		createUserProps.put(RandomUserScript.SCRIPT_USER_PASS, userPassword);
+
+		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabaseUser, rootDatabaseUser);
+		createUserProps.put(PersistenceJdbcConfigurationConstants.DatabasePass, rootDatabasePass);
+		IServiceContext bootstrapContext = BeanContextFactory.createBootstrap(createUserProps);
+		try
+		{
+			bootstrapContext.createService("randomUser", RandomUserModule.class, IocModule.class);
+		}
+		finally
+		{
+			bootstrapContext.dispose();
+		}
+	}
+
+	@Override
 	public void preProcessConnectionForTest(Connection connection, String[] schemaNames, boolean forcePreProcessing)
 	{
 		// intended blank

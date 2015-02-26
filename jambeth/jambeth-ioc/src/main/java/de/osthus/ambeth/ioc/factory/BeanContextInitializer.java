@@ -310,14 +310,7 @@ public class BeanContextInitializer implements IBeanContextInitializer, IInitial
 		}
 		finally
 		{
-			if (oldBeanContextInit == null)
-			{
-				currentBeanContextInitTL.remove();
-			}
-			else
-			{
-				currentBeanContextInitTL.set(oldBeanContextInit);
-			}
+			currentBeanContextInitTL.set(oldBeanContextInit);
 		}
 	}
 
