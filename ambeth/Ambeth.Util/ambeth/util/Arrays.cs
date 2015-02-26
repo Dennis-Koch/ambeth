@@ -35,6 +35,14 @@ namespace De.Osthus.Ambeth.Util
             return true;
         }
 
+        public static void Fill<T>(T[] array, T item)
+        {
+            for (int a = array.Length; a-- > 0; )
+            {
+                array[a] = item;
+            }
+        }
+
         public static int GetHashCode<T>(T[] left)
         {
             if (left == null)
