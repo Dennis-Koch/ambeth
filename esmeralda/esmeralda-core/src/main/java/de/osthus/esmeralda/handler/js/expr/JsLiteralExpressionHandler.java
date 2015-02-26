@@ -159,6 +159,11 @@ public class JsLiteralExpressionHandler extends AbstractExpressionHandler<JCExpr
 						return "this.";
 					}
 				}
+				JavaClassInfo ownerClassInfo = context.resolveClassInfo(owner.toString(), true);
+				if (ownerClassInfo != null && ownerClassInfo.isEnum())
+				{
+					return languageHelper.convertType(ownerClassInfo.getFqName(), false) + '.';
+				}
 			}
 		}
 		else if (identityExpression.sym == null && identityExpression.type == null)

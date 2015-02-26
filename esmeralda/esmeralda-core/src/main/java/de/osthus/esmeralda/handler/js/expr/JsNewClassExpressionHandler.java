@@ -121,6 +121,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		String fqNameCharArray = "char[]"; // getName() returns "[C"
 		String fqNameCollection = Collection.class.getName();
 		String fqNameCharset = java.nio.charset.Charset.class.getName();
+		String fqNameStringBuilder = java.lang.StringBuilder.class.getName();
 		String fqNameReader = java.io.Reader.class.getName();
 		String fqNameWriter = java.io.Writer.class.getName();
 		String fqNameInputStream = java.io.InputStream.class.getName();
@@ -143,14 +144,22 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		String fqNameIProperties = de.osthus.ambeth.config.IProperties.class.getName();
 		String fqNameProperties = de.osthus.ambeth.config.Properties.class.getName();
 		String fqNameArrayList = de.osthus.ambeth.collections.ArrayList.class.getName();
+		String fqNameSetLinkedEntry = de.osthus.ambeth.collections.SetLinkedEntry.class.getName();
+		String fqNameListElem = de.osthus.ambeth.collections.ListElem.class.getName();
+		String fqNameCleanupInvalidKeysSet = de.osthus.ambeth.collections.CleanupInvalidKeysSet.class.getName();
+		String fqNameIInvalidKeyChecker = de.osthus.ambeth.collections.IInvalidKeyChecker.class.getName();
 		String fqNameClassWriter = de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter.class.getName();
 		String fqNameCountDownLatch = java.util.concurrent.CountDownLatch.class.getName();
+		String fqNameSoftReference = java.lang.ref.SoftReference.class.getName();
+		String fqNameWeakReference = java.lang.ref.WeakReference.class.getName();
+
+		String pgNameCollections = "de.osthus.ambeth.collections.";
 
 		// Single String constructors
-		registerConstructor(new ConstructorParamKey("java.io.File", fqNameString), "pathname");
+		registerConstructor(new ConstructorParamKey(fqNameFile, fqNameString), "pathname");
 		registerConstructor(new ConstructorParamKey(fqNameFileInputStream, fqNameString), "name");
-		registerConstructor(new ConstructorParamKey("java.io.FileOutputStream", fqNameString), "name");
-		registerConstructor(new ConstructorParamKey("java.lang.StringBuilder", fqNameString), "str");
+		registerConstructor(new ConstructorParamKey(fqNameFileOutputStream, fqNameString), "name");
+		registerConstructor(new ConstructorParamKey(fqNameStringBuilder, fqNameString), "str");
 		registerConstructor(new ConstructorParamKey(fqNameBigDecimal, fqNameString), "val");
 		registerConstructor(new ConstructorParamKey(fqNameBigDecimal, fqNameBigInteger), "val");
 		registerConstructor(new ConstructorParamKey(fqNameBigInteger, fqNameString), "val");
@@ -190,26 +199,18 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameInteger), "initialCapacity");
 		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameCollection), "coll");
 		registerConstructor(new ConstructorParamKey(fqNameArrayList, Object[].class.getName()), "array");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.SetLinkedEntry", fqNameSInt, "K",
-				"de.osthus.ambeth.collections.SetLinkedEntry"), "hash", "key", "nextEntry");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.ListElem", ConstructorParamKey.ANY), "value");
+		registerConstructor(new ConstructorParamKey(fqNameSetLinkedEntry, fqNameSInt, "K", fqNameSetLinkedEntry), "hash", "key", "nextEntry");
+		registerConstructor(new ConstructorParamKey(fqNameListElem, ConstructorParamKey.ANY), "value");
+		registerConstructor(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameSFloat), "invalidKeyChecker", "loadFactor");
+		registerConstructor(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameFloat), "invalidKeyChecker", "loadFactor");
 
-		registerHashConstructors("de.osthus.ambeth.collections.HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-		registerHashConstructors("de.osthus.ambeth.collections.LinkedHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-		registerHashConstructors("de.osthus.ambeth.collections.IdentityLinkedSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-		registerHashConstructors("de.osthus.ambeth.collections.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-		registerHashConstructors("de.osthus.ambeth.collections.IdentityHashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
-
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple2KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple2KeyEntry", "Key1", "Key2", "V", fqNameSInt,
-				"de.osthus.ambeth.collections.Tuple2KeyEntry"), "key1", "key2", "value", "hash", "nextEntry");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple3KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple3KeyEntry", "Key1", "Key2", "Key3", "V", fqNameSInt,
-				"de.osthus.ambeth.collections.Tuple3KeyEntry"), "key1", "key2", "key3", "value", "hash", "nextEntry");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple4KeyHashMap", fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.collections.Tuple4KeyEntry", "Key1", "Key2", "Key3", "Key4", "V", fqNameSInt,
-				"de.osthus.ambeth.collections.Tuple4KeyEntry"), "key1", "key2", "key3", "key4", "value", "hash", "nextEntry");
+		registerHashConstructors(pgNameCollections + "HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors(pgNameCollections + "IdentityHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors(pgNameCollections + "LinkedHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors(pgNameCollections + "IdentityLinkedSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors(pgNameCollections + "HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerHashConstructors(pgNameCollections + "IdentityHashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+		registerTupleHashMaps(pgNameCollections, fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 
 		// Other constructors
 		registerConstructor(new ConstructorParamKey(fqNameDate, fqNameSLong), "date");
@@ -228,11 +229,17 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameWriter), "out");
 		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameOutputStreamWriter), "out");
 		registerConstructor(new ConstructorParamKey(fqNameCountDownLatch, fqNameSInt), "count");
+		registerConstructor(new ConstructorParamKey(fqNameSoftReference, ConstructorParamKey.ANY), "referent");
+		registerConstructor(new ConstructorParamKey(fqNameSoftReference, ConstructorParamKey.ANY, java.lang.ref.ReferenceQueue.class.getName()), "referent",
+				"q");
+		registerConstructor(new ConstructorParamKey(fqNameWeakReference, ConstructorParamKey.ANY), "referent");
+		registerConstructor(new ConstructorParamKey(fqNameWeakReference, ConstructorParamKey.ANY, java.lang.ref.ReferenceQueue.class.getName()), "referent",
+				"q");
 
 		// Other Ambeth constructors
 		registerConstructor(new ConstructorParamKey(fqNameProperties, fqNameIProperties), "parent");
 		registerConstructor(new ConstructorParamKey(fqNameClassWriter, fqNameSInt), "flags");
-		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.appendable.AppendableStringBuilder", "java.lang.StringBuilder"), "sb");
+		registerConstructor(new ConstructorParamKey("de.osthus.ambeth.appendable.AppendableStringBuilder", fqNameStringBuilder), "sb");
 	}
 
 	protected static void registerHashConstructors(String fqClassName, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
@@ -245,6 +252,33 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameSFloat), "initialCapacity", "loadFactor");
 		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameFloat), "initialCapacity", "loadFactor");
 		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameFloat), "initialCapacity", "loadFactor");
+	}
+
+	protected static void registerTupleHashMaps(String pgNameCollections, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
+	{
+		String[] constNames = { "value", "hash", "nextEntry" };
+		for (int i = 2; i <= 4; i++)
+		{
+			String fqNameMap = pgNameCollections + "Tuple" + i + "KeyHashMap";
+			String fqNameEntry = pgNameCollections + "Tuple" + i + "KeyEntry";
+
+			registerHashConstructors(fqNameMap, fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
+
+			String[] types = new String[i + 3];
+			String[] names = new String[i + 3];
+			int j = 0;
+			for (; j < i; j++)
+			{
+				types[j] = "Key" + (j + 1);
+				names[j] = "key" + (j + 1);
+			}
+			System.arraycopy(constNames, 0, names, j, 3);
+			types[j++] = "V";
+			types[j++] = fqNameSInt;
+			types[j++] = fqNameEntry;
+			ConstructorParamKey constructorParamKey = new ConstructorParamKey(fqNameEntry, types);
+			constructorParamTypesToConstructorParamNames.put(constructorParamKey, names);
+		}
 	}
 
 	protected static void registerConstructor(ConstructorParamKey key, String... paramNames)

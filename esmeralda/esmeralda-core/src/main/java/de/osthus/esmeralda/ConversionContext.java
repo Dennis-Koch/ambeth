@@ -854,7 +854,10 @@ public class ConversionContext implements IConversionContext
 	public void setMethod(Method method)
 	{
 		this.method = method;
-		addDefinedMethod(classInfo, method);
+		if (method != null)
+		{
+			addDefinedMethod(classInfo, method);
+		}
 	}
 
 	@Override
