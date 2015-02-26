@@ -11,7 +11,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -137,12 +136,10 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 	{
 		OneToManyEntity expected = entityFactory.createEntity(OneToManyEntity.class);
 		expected.setName("testNewEntity");
-		List<OneToManyEntity> byListType = new ArrayList<OneToManyEntity>();
 		OneToManyEntity child = entityFactory.createEntity(OneToManyEntity.class);
 		child.setName("testChildEntity");
 		child.setNeedsSpecialMapping(new Date());
-		byListType.add(child);
-		expected.setByListType(byListType);
+		expected.getByListType().add(child);
 
 		OneToManyEntityVO actualVO = fixture.mapToValueObject(expected, OneToManyEntityVO.class);
 		assertNotNull(actualVO);
@@ -334,26 +331,19 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 		OneToManyEntity child2 = entityFactory.createEntity(OneToManyEntity.class);
 		child2.setName("child2");
 		List<OneToManyEntity> expectedChildren = Arrays.asList(new OneToManyEntity[] { child1, child2 });
-		parent.setOneToManyEntities(expectedChildren);
+		parent.getOneToManyEntities().add(child1);
+		parent.getOneToManyEntities().add(child2);
 		SelfReferencingEntity selfRefEntity = entityFactory.createEntity(SelfReferencingEntity.class);
 		selfRefEntity.setName("selfRefEntity");
-		HashSet<SelfReferencingEntity> selfRefEntitiesSet = new HashSet<SelfReferencingEntity>();
-		selfRefEntitiesSet.add(selfRefEntity);
-		parent.setSelfReferencingEntities(selfRefEntitiesSet);
+		parent.getSelfReferencingEntities().add(selfRefEntity);
 
 		List<OneToManyEntity> expected = new ArrayList<OneToManyEntity>(expectedChildren);
+		int parentIndex = expected.size();
 		expected.add(parent);
 
 		List<OneToManyEntityVO> actualVOs = fixture.mapToValueObjectList(expected, OneToManyEntityVO.class);
-		OneToManyEntityVO actualVO = null;
-		for (int i = actualVOs.size(); i-- > 0;)
-		{
-			if (actualVOs.get(i).getId() == parent.getId())
-			{
-				actualVO = actualVOs.get(i);
-				break;
-			}
-		}
+		OneToManyEntityVO actualVO = actualVOs.get(parentIndex);
+
 		assertNotNull(actualVO);
 		assertEquals(0, actualVO.getId());
 		assertEquals(0, parent.getId());
@@ -366,22 +356,15 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 			assertEquals(expectedChildren.get(i).getName(), actualVOChildren.get(i));
 		}
 		List<SelfReferencingEntityVO> actualVOSelfRefEntities = actualVO.getSelfReferencingEntities();
-		assertEquals(selfRefEntitiesSet.size(), actualVOSelfRefEntities.size());
+		assertEquals(parent.getSelfReferencingEntities().size(), actualVOSelfRefEntities.size());
 		for (int i = 0; i < actualVOSelfRefEntities.size(); i++)
 		{
 			assertEquals(0, actualVOSelfRefEntities.get(i).getId());
 		}
 
 		List<OneToManyEntity> actuals = fixture.mapToBusinessObjectList(actualVOs);
-		OneToManyEntity actual = null;
-		for (int i = actuals.size(); i-- > 0;)
-		{
-			if (actuals.get(i).getId() == parent.getId())
-			{
-				actual = actuals.get(i);
-				break;
-			}
-		}
+		OneToManyEntity actual = actuals.get(parentIndex);
+
 		assertNotNull(actual);
 		assertEquals(0, actual.getId());
 		assertEquals(0, actualVO.getId());
@@ -394,7 +377,7 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 			assertEquals(expectedChildren.get(i).getName(), actualChildren.get(i).getName());
 		}
 		Set<SelfReferencingEntity> actualSelfRefEntities = actual.getSelfReferencingEntities();
-		assertEquals(selfRefEntitiesSet.size(), actualSelfRefEntities.size());
+		assertEquals(parent.getSelfReferencingEntities().size(), actualSelfRefEntities.size());
 		Iterator<SelfReferencingEntity> iter = actualSelfRefEntities.iterator();
 		while (iter.hasNext())
 		{
@@ -588,25 +571,16 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 		selfRefEnt2.setName("sreEnt2");
 		selfRefEnt2.setRelation1(selfRefEnt1);
 		selfRefEnt2.setRelation2(selfRefEnt2);
-		Set<SelfReferencingEntity> testSet1 = new HashSet<SelfReferencingEntity>();
-		testSet1.add(selfRefEnt1);
-		testSet1.add(selfRefEnt2);
-		Set<SelfReferencingEntity> testSet2 = new HashSet<SelfReferencingEntity>();
-		testSet2.add(selfRefEnt1);
-		Set<SelfReferencingEntity> testSetEmpty = new HashSet<SelfReferencingEntity>();
 
-		// Test nulls
-		originals[0].setOneToManyEntities(null);
-		originals[0].setSelfReferencingEntities(null);
 		// Empty Collections
-		originals[1].setOneToManyEntities(Collections.<OneToManyEntity> emptyList());
-		originals[1].setSelfReferencingEntities(testSetEmpty);
+		originals[1].getOneToManyEntities().clear();
+		originals[1].getSelfReferencingEntities().clear();
 		// Basic Test
-		originals[2].setOneToManyEntities(Arrays.asList(new OneToManyEntity[] { originals[0], originals[2], originals[3] }));
-		originals[2].setSelfReferencingEntities(testSet1);
+		originals[2].getOneToManyEntities().addAll(Arrays.asList(originals[0], originals[2], originals[3]));
+		originals[2].getSelfReferencingEntities().addAll(Arrays.asList(selfRefEnt1, selfRefEnt2));
 		// Self referencing
-		originals[4].setOneToManyEntities(Arrays.asList(new OneToManyEntity[] { originals[4], originals[0] }));
-		originals[4].setSelfReferencingEntities(testSet2);
+		originals[4].getOneToManyEntities().addAll(Arrays.asList(originals[4], originals[0]));
+		originals[4].getSelfReferencingEntities().addAll(Arrays.asList(selfRefEnt1));
 
 		for (int i = originals.length; i-- > 0;)
 		{
@@ -621,37 +595,41 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 
 		for (int i = originals.length; i-- > 0;)
 		{
-			assertNotNull(vos[i]);
-			assertEquals(originals[i].getId(), vos[i].getId());
-			assertEquals(originals[i].getVersion(), vos[i].getVersion());
-			assertEquals(originals[i].getName(), vos[i].getName());
-			if (originals[i].getOneToManyEntities() != null)
+			OneToManyEntity original = originals[i];
+			OneToManyEntityVO vo = vos[i];
+			assertNotNull(vo);
+			assertEquals(original.getId(), vo.getId());
+			assertEquals(original.getVersion(), vo.getVersion());
+			assertEquals(original.getName(), vo.getName());
+			if (original.getOneToManyEntities() != null)
 			{
-				if (originals[i].getOneToManyEntities().isEmpty())
+				if (original.getOneToManyEntities().isEmpty())
 				{
-					assertNull(vos[i].getOneToManyEntities());
+					assertNotNull(vo.getOneToManyEntities());
+					assertEquals(0, vo.getOneToManyEntities().size());
 				}
 				else
 				{
-					assertNotNull(vos[i].getOneToManyEntities());
-					assertEquals(originals[i].getOneToManyEntities().size(), vos[i].getOneToManyEntities().size());
-					for (Object childId : vos[i].getOneToManyEntities())
+					assertNotNull(vo.getOneToManyEntities());
+					assertEquals(original.getOneToManyEntities().size(), vo.getOneToManyEntities().size());
+					for (Object childId : vo.getOneToManyEntities())
 					{
 						Assert.assertTrue(childId instanceof String);
 					}
 				}
 			}
-			if (originals[i].getSelfReferencingEntities() != null)
+			if (original.getSelfReferencingEntities() != null)
 			{
-				if (originals[i].getSelfReferencingEntities().isEmpty())
+				if (original.getSelfReferencingEntities().isEmpty())
 				{
-					assertNull(vos[i].getSelfReferencingEntities());
+					assertNotNull(vo.getSelfReferencingEntities());
+					assertEquals(0, vo.getSelfReferencingEntities().size());
 				}
 				else
 				{
-					assertNotNull(vos[i].getSelfReferencingEntities());
-					assertEquals(originals[i].getSelfReferencingEntities().size(), vos[i].getSelfReferencingEntities().size());
-					for (Object childVO : vos[i].getSelfReferencingEntities())
+					assertNotNull(vo.getSelfReferencingEntities());
+					assertEquals(original.getSelfReferencingEntities().size(), vo.getSelfReferencingEntities().size());
+					for (Object childVO : vo.getSelfReferencingEntities())
 					{
 						Assert.assertTrue(childVO instanceof SelfReferencingEntityVO);
 					}
@@ -830,21 +808,17 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 		}
 		for (int i = originals.length; i-- > 0;)
 		{
-			List<OneToManyEntity> list = new ArrayList<OneToManyEntity>();
 			for (int j = 0; j < i; j++)
 			{
-				list.add(originals[j]);
+				originals[i].getByListType().add(originals[j]);
 			}
-			originals[i].setByListType(list);
 		}
 		for (int i = originals.length; i-- > 0;)
 		{
-			List<OneToManyEntity> list = new ArrayList<OneToManyEntity>();
 			for (int j = 0; j < i - 1; j++)
 			{
-				list.add(originals[j]);
+				originals[i].getByRefListType().add(originals[j]);
 			}
-			originals[i].setByRefListType(list);
 		}
 
 		for (int i = originals.length; i-- > 0;)
@@ -864,30 +838,32 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 	{
 		for (int i = originals.size(); i-- > 0;)
 		{
-			assertNotNull(vos.get(i));
-			assertEquals(originals.get(i).getId(), vos.get(i).getId());
-			assertEquals(originals.get(i).getVersion(), vos.get(i).getVersion());
-			assertEquals(originals.get(i).getName(), vos.get(i).getName());
-			if (originals.get(i).getByListType() != null)
+			OneToManyEntity original = originals.get(i);
+			OneToManyEntityVO vo = vos.get(i);
+			assertNotNull(vo);
+			assertEquals(original.getId(), vo.getId());
+			assertEquals(original.getVersion(), vo.getVersion());
+			assertEquals(original.getName(), vo.getName());
+			if (original.getByListType() != null)
 			{
-				assertNotNull(vos.get(i).getByListType());
-				assertEquals(originals.get(i).getByListType().size(), vos.get(i).getByListType().getOneToManyEntities().size());
-				for (Object childVO : vos.get(i).getByListType().getOneToManyEntities())
+				assertNotNull(vo.getByListType());
+				assertEquals(original.getByListType().size(), vo.getByListType().getOneToManyEntities().size());
+				for (Object childVO : vo.getByListType().getOneToManyEntities())
 				{
 					Assert.assertTrue(childVO instanceof OneToManyEntityVO);
 				}
 			}
-			if (originals.get(i).getByRefListType() != null)
+			if (original.getByRefListType() != null)
 			{
-				assertNotNull(vos.get(i).getByREFListType());
-				if (originals.get(i).getByRefListType().isEmpty())
+				assertNotNull(vo.getByREFListType());
+				if (original.getByRefListType().isEmpty())
 				{
-					assertNull(vos.get(i).getByREFListType().getBUID());
+					assertNull(vo.getByREFListType().getBUID());
 				}
 				else
 				{
-					assertEquals(originals.get(i).getByRefListType().size(), vos.get(i).getByREFListType().getBUID().size());
-					for (Object childId : vos.get(i).getByREFListType().getBUID())
+					assertEquals(original.getByRefListType().size(), vo.getByREFListType().getBUID().size());
+					for (Object childId : vo.getByREFListType().getBUID())
 					{
 						Assert.assertTrue(childId instanceof String);
 					}
@@ -905,34 +881,35 @@ public class MapperTest extends AbstractInformationBusWithPersistenceTest
 	{
 		for (int i = originals.size(); i-- > 0;)
 		{
+			OneToManyEntity original = originals.get(i);
 			assertNotNull(copies.get(i));
-			assertEquals(originals.get(i).getId(), copies.get(i).getId());
-			assertEquals(originals.get(i).getVersion(), copies.get(i).getVersion());
-			assertEquals(originals.get(i).getName(), copies.get(i).getName());
-			if (originals.get(i).getByListType() != null)
+			assertEquals(original.getId(), copies.get(i).getId());
+			assertEquals(original.getVersion(), copies.get(i).getVersion());
+			assertEquals(original.getName(), copies.get(i).getName());
+			if (original.getByListType() != null)
 			{
 				assertNotNull(copies.get(i).getByListType());
-				assertEquals(originals.get(i).getByListType().size(), copies.get(i).getByListType().size());
+				assertEquals(original.getByListType().size(), copies.get(i).getByListType().size());
 				for (Object child : copies.get(i).getByListType())
 				{
 					Assert.assertTrue(child instanceof OneToManyEntity);
 				}
-				for (int j = originals.get(i).getByListType().size(); j-- > 0;)
+				for (int j = original.getByListType().size(); j-- > 0;)
 				{
-					assertEquals(originals.get(i).getByListType().get(j).getId(), copies.get(i).getByListType().get(j).getId());
+					assertEquals(original.getByListType().get(j).getId(), copies.get(i).getByListType().get(j).getId());
 				}
 			}
-			if (originals.get(i).getByRefListType() != null)
+			if (original.getByRefListType() != null)
 			{
 				assertNotNull(copies.get(i).getByRefListType());
-				assertEquals(originals.get(i).getByRefListType().size(), copies.get(i).getByRefListType().size());
+				assertEquals(original.getByRefListType().size(), copies.get(i).getByRefListType().size());
 				for (Object child : copies.get(i).getByRefListType())
 				{
 					Assert.assertTrue(child instanceof OneToManyEntity);
 				}
-				for (int j = originals.get(i).getByRefListType().size(); j-- > 0;)
+				for (int j = original.getByRefListType().size(); j-- > 0;)
 				{
-					assertEquals(originals.get(i).getByRefListType().get(j).getId(), copies.get(i).getByRefListType().get(j).getId());
+					assertEquals(original.getByRefListType().get(j).getId(), copies.get(i).getByRefListType().get(j).getId());
 				}
 			}
 		}

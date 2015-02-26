@@ -13,6 +13,7 @@ import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
 import de.osthus.ambeth.merge.CUDResultApplier;
 import de.osthus.ambeth.merge.CUDResultComparer;
 import de.osthus.ambeth.merge.CUDResultHelper;
+import de.osthus.ambeth.merge.EntityMetaDataClient;
 import de.osthus.ambeth.merge.EntityMetaDataProvider;
 import de.osthus.ambeth.merge.ICUDResultApplier;
 import de.osthus.ambeth.merge.ICUDResultComparer;
@@ -121,24 +122,27 @@ public class MergeModule implements IInitializingModule
 				IMergeListenerExtendable.class);
 
 		IBeanConfiguration valueObjectMap = beanContextFactory.registerBean(ValueObjectMap.class);
+
 		beanContextFactory
 				.registerBean(EntityMetaDataProvider.class)
 				.propertyRef("ValueObjectMap", valueObjectMap)
 				.autowireable(IEntityMetaDataProvider.class, IEntityMetaDataRefresher.class, IValueObjectConfigExtendable.class,
 						IEntityLifecycleExtendable.class, ITechnicalEntityTypeExtendable.class, IEntityMetaDataExtendable.class, EntityMetaDataProvider.class,
 						IEntityInstantiationExtensionExtendable.class);
+
 		beanContextFactory.registerBean(INDEPENDENT_META_DATA_READER, IndependentEntityMetaDataReader.class).precedence(PrecedenceType.HIGH);
 
 		if (!independentMetaData)
 		{
 			IBeanConfiguration entityMetaDataConverter = beanContextFactory.registerBean(EntityMetaDataConverter.class);
 			DedicatedConverterUtil.biLink(beanContextFactory, entityMetaDataConverter, EntityMetaData.class, EntityMetaDataTransfer.class);
+
+			beanContextFactory.registerBean(REMOTE_ENTITY_METADATA_PROVIDER, EntityMetaDataClient.class);
 		}
 		else
 		{
-			// beanContextFactory.registerBean("valueObjectConfigReader", ValueObjectConfigReader.class);
-			// beanContextFactory.link("valueObjectConfigReader").to(IEventListenerExtendable.class).with(EntityMetaDataAddedEvent.class);
 		}
+
 		IBeanConfiguration ormXmlReaderLegathy = beanContextFactory.registerBean(OrmXmlReaderLegathy.class);
 		ExtendableBean.registerExtendableBean(beanContextFactory, IOrmXmlReaderRegistry.class, IOrmXmlReaderExtendable.class)//
 				.propertyRef(ExtendableBean.P_DEFAULT_BEAN, ormXmlReaderLegathy);

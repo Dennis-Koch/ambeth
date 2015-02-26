@@ -407,9 +407,9 @@ namespace De.Osthus.Ambeth.Cache
 			    IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.GetExtension(entityType);
                 if (mergeServiceExtension == null)
                 {
-                    throw new ArgumentException("No " + typeof(IMergeServiceExtension).FullName + " registered for type '" + entityType.FullName + "'");
+                    continue;
                 }
-			    IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
+                IList<Type> groupedEntityTypes = mseToEntityTypes.Get(mergeServiceExtension);
 			    if (groupedEntityTypes == null)
 			    {
 				    groupedEntityTypes = new List<Type>();

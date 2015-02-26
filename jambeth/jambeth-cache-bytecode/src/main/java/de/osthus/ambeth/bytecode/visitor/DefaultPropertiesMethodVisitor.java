@@ -75,6 +75,29 @@ public class DefaultPropertiesMethodVisitor extends ClassGenerator
 			MethodInstance m_getter = MethodInstance.findByTemplate(m_getterTemplate, true);
 			MethodInstance m_setter = MethodInstance.findByTemplate(m_setterTemplate, true);
 
+			if (m_getter != null && m_setter != null)
+			{
+				// ensure both accessors are public
+				if ((m_getter.getAccess() & Opcodes.ACC_PUBLIC) == 0)
+				{
+					MethodGenerator mv = visitMethod(m_getter.deriveAccess(Opcodes.ACC_PUBLIC));
+					mv.loadThis();
+					mv.loadArgs();
+					mv.invokeSuper(m_getter);
+					mv.returnValue();
+					mv.endMethod();
+				}
+				if ((m_setter.getAccess() & Opcodes.ACC_PUBLIC) == 0)
+				{
+					MethodGenerator mv = visitMethod(m_setter.deriveAccess(Opcodes.ACC_PUBLIC));
+					mv.loadThis();
+					mv.loadArgs();
+					mv.invokeSuper(m_setter);
+					mv.returnValue();
+					mv.endMethod();
+				}
+				continue;
+			}
 			if (m_getter != null || m_setter != null)
 			{
 				// at least one of the accessors is explicitly implemented

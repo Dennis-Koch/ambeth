@@ -146,6 +146,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(getExtensions().values());
 		for (IEntityMetaData metaData : extensions)
 		{
+			if (metaData == alreadyHandled)
+			{
+				continue;
+			}
 			for (RelationMember relationMember : metaData.getRelationMembers())
 			{
 				addTypeRelatedByTypes(typeRelatedByTypes, metaData.getEntityType(), relationMember.getElementType());
@@ -153,6 +157,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		}
 		for (IEntityMetaData metaData : extensions)
 		{
+			if (metaData == alreadyHandled)
+			{
+				continue;
+			}
 			Class<?> entityType = metaData.getEntityType();
 			ISet<Class<?>> relatedByTypes = typeRelatedByTypes.get(entityType);
 			if (relatedByTypes == null)
@@ -572,6 +580,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		writeLock.lock();
 		try
 		{
+			if (getExtensionHardKeyGlobalOnly(entityType) == alreadyHandled)
+			{
+				super.unregister(alreadyHandled, entityType);
+			}
 			super.register(extension, entityType);
 			updateEntityMetaDataWithLifecycleExtensions(extension);
 			Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);

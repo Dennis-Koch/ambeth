@@ -747,10 +747,6 @@ namespace De.Osthus.Ambeth.Mapping
                     }
                 }
             }
-            else
-            {
-                referencedVOs = new List<Object>(0);
-            }
 
             if (!singularValue)
             {
@@ -760,19 +756,27 @@ namespace De.Osthus.Ambeth.Mapping
                 }
                 else
                 {
-                    if (referencedVOs == null || voMemberType.IsAssignableFrom(referencedVOs.GetType()))
-                    {
-                        voMemberValue = referencedVOs;
-                    }
-                    else if (voMemberType.IsArray)
-                    {
+                    if (referencedVOs != null && voMemberType.IsAssignableFrom(referencedVOs.GetType()))
+				    {
+					    voMemberValue = referencedVOs;
+				    }
+				    else if (voMemberType.IsArray)
+				    {
+					    if (referencedVOs == null)
+					    {
+						    referencedVOs = EmptyList.Empty<Object>();
+					    }
                         voMemberValue = ListUtil.AnyToArray(referencedVOs, voMemberType.GetElementType());
-                    }
-                    else
-                    {
-                        voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
-                        ListUtil.FillList(voMember, referencedVOs);
-                    }
+				    }
+				    else
+				    {
+                        if (referencedVOs == null)
+                        {
+                            referencedVOs = EmptyList.Empty<Object>();
+                        }
+					    voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
+					    ListUtil.FillList(voMemberValue, referencedVOs);
+				    }
                 }
             }
             else if (referencedVOs != null)
