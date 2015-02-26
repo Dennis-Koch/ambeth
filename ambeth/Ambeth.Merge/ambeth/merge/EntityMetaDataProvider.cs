@@ -517,6 +517,10 @@ namespace De.Osthus.Ambeth.Merge
                 Type technicalEntityType = technicalEntityTypes.GetExtension(entityType);
                 if (technicalEntityType != null)
                 {
+                    if (Object.ReferenceEquals(GetExtensionHardKeyGlobalOnly(technicalEntityType), alreadyHandled))
+                    {
+                        base.Unregister(alreadyHandled, technicalEntityType);
+                    }
                     base.Register(extension, technicalEntityType);
                 }
             }

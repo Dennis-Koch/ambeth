@@ -589,6 +589,10 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
 			if (technicalEntityType != null)
 			{
+				if (getExtensionHardKeyGlobalOnly(technicalEntityType) == alreadyHandled)
+				{
+					super.unregister(alreadyHandled, technicalEntityType);
+				}
 				super.register(extension, technicalEntityType);
 			}
 		}
