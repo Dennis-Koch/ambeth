@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.24</version>
+		<version>0.0.31</version>
 	</parent>
 
 	<modules>
@@ -46,17 +46,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<repositories>
-		<!-- Location of the osthus-pom -->
-		<repository>
-			<id>osthus-releases</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-releases/</url>
-		</repository>
-		<repository>
-			<id>osthus-snapshots</id>
-			<url>http://maven.osthus.de/nexus/content/repositories/osthus-snapshots/</url>
-		</repository>
-	</repositories>
-
 </project>
