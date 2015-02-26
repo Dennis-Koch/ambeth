@@ -255,16 +255,6 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					}
 				}
 			}
-			for (int a = entityTypes.size(); a-- > 0;)
-			{
-				Class<?> entityType = entityTypes.get(a);
-				if (!containsKey(entityType))
-				{
-					// add dummy items to ensure that this type does not
-					// get queried a second time
-					pendingToRefreshMetaDatasTL.get().register(alreadyHandled, entityType);
-				}
-			}
 			return cascadeMissingEntityTypes != null ? cascadeMissingEntityTypes.toList() : null;
 		}
 		finally
@@ -374,6 +364,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 	@Override
 	public IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes)
 	{
+		return getMetaData(entityTypes, true);
+	}
+
+	protected IList<IEntityMetaData> getMetaData(List<Class<?>> entityTypes, boolean askRemoteOnMiss)
+	{
 		ArrayList<IEntityMetaData> result = new ArrayList<IEntityMetaData>(entityTypes.size());
 		IList<Class<?>> missingEntityTypes = null;
 		for (int a = entityTypes.size(); a-- > 0;)
@@ -383,7 +378,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 			if (metaDataItem == alreadyHandled)
 			{
 				metaDataItem = getExtensionHardKey(entityType);
-				if (metaDataItem == null)
+				if (metaDataItem == null && askRemoteOnMiss)
 				{
 					if (missingEntityTypes == null)
 					{
@@ -391,19 +386,18 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 					}
 					missingEntityTypes.add(entityType);
 				}
-				else
-				{
-					result.add(null);
-				}
 				continue;
 			}
 			if (metaDataItem == null)
 			{
-				if (missingEntityTypes == null)
+				if (askRemoteOnMiss)
 				{
-					missingEntityTypes = new ArrayList<Class<?>>();
+					if (missingEntityTypes == null)
+					{
+						missingEntityTypes = new ArrayList<Class<?>>();
+					}
+					missingEntityTypes.add(entityType);
 				}
-				missingEntityTypes.add(entityType);
 				continue;
 			}
 			result.add(metaDataItem);
@@ -488,7 +482,7 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 				pendingToRefreshMetaDatasTL.remove();
 			}
 		}
-		return getMetaData(entityTypes);
+		return getMetaData(entityTypes, false);
 	}
 
 	@Override
@@ -580,19 +574,11 @@ public class EntityMetaDataProvider extends ClassExtendableContainer<IEntityMeta
 		writeLock.lock();
 		try
 		{
-			if (getExtensionHardKeyGlobalOnly(entityType) == alreadyHandled)
-			{
-				super.unregister(alreadyHandled, entityType);
-			}
 			super.register(extension, entityType);
 			updateEntityMetaDataWithLifecycleExtensions(extension);
 			Class<?> technicalEntityType = technicalEntityTypes.getExtension(entityType);
 			if (technicalEntityType != null)
 			{
-				if (getExtensionHardKeyGlobalOnly(technicalEntityType) == alreadyHandled)
-				{
-					super.unregister(alreadyHandled, technicalEntityType);
-				}
 				super.register(extension, technicalEntityType);
 			}
 		}
