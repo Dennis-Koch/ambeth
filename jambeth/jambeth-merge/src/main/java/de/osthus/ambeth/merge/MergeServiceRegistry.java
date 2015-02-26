@@ -484,7 +484,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			IMergeServiceExtension mergeServiceExtension = mergeServiceExtensions.getExtension(entityType);
 			if (mergeServiceExtension == null)
 			{
-				throw new IllegalArgumentException("No " + IMergeServiceExtension.class.getName() + " registered for type '" + entityType.getName() + "'");
+				continue;
 			}
 			List<Class<?>> groupedEntityTypes = mseToEntityTypes.get(mergeServiceExtension);
 			if (groupedEntityTypes == null)

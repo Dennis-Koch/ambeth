@@ -211,7 +211,7 @@ public class MethodInstance
 
 	public MethodInstance deriveAccess(int access)
 	{
-		return new MethodInstance(getOwner(), access, getReturnType(), getMethod().getName(), getSignature(), getParameters());
+		return new MethodInstance(getOwner(), access, getReturnType(), getName(), getSignature(), getParameters());
 	}
 
 	public MethodInstance deriveName(String methodName)

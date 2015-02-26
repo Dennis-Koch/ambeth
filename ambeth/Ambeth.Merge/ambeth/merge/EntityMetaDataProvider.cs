@@ -112,6 +112,10 @@ namespace De.Osthus.Ambeth.Merge
             IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(GetExtensions().Values());
             foreach (IEntityMetaData metaData in extensions)
             {
+                if (Object.ReferenceEquals(metaData, alreadyHandled))
+                {
+                    continue;
+                }
                 foreach (RelationMember relationMember in metaData.RelationMembers)
                 {
                     AddTypeRelatedByTypes(typeRelatedByTypes, metaData.EntityType, relationMember.ElementType);
@@ -119,6 +123,10 @@ namespace De.Osthus.Ambeth.Merge
             }
             foreach (IEntityMetaData metaData in extensions)
             {
+                if (Object.ReferenceEquals(metaData, alreadyHandled))
+                {
+                    continue;
+                }
                 Type entityType = metaData.EntityType;
                 IISet<Type> relatedByTypes = typeRelatedByTypes.Get(entityType);
                 if (relatedByTypes == null)
@@ -500,6 +508,10 @@ namespace De.Osthus.Ambeth.Merge
             Object writeLock = GetWriteLock();
             lock (writeLock)
             {
+                if (Object.ReferenceEquals(GetExtensionHardKeyGlobalOnly(entityType), alreadyHandled))
+                {
+                    base.Unregister(alreadyHandled, entityType);
+                }
                 base.Register(extension, entityType);
                 UpdateEntityMetaDataWithLifecycleExtensions(extension);
                 Type technicalEntityType = technicalEntityTypes.GetExtension(entityType);
