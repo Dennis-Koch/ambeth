@@ -52,7 +52,7 @@
 						<!-- the generated artifacts will be copied to this folder relative to ${project.reporting.outputDirectory} -->
 						<outputDirectory>.</outputDirectory> 
 						<!-- the working directory, for temporary files and LaTeX processing relative to ${project.build.directory} -->
-						<tempDirectory>../latex-tmp</tempDirectory>
+						<tempDirectory>../../latex-tmp</tempDirectory>
 						<!-- clean up the working directory in the end? May be used for debugging -->
 						<cleanUp>true</cleanUp>
 						<!-- path to the TeX scripts, if none, it must be on the system path -->
