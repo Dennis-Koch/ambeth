@@ -94,7 +94,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				else
 				{
 					throw new SnippetTrigger("No names or types for called methods parameters available").setContext(methodInvocation.toString());
-					// overloadedMethodNamePostfix = createDummyOverloadedMethodNamePostfix(methodInvocation);
 				}
 				writer.append(overloadedMethodNamePostfix);
 			}
@@ -154,7 +153,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			else
 			{
 				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
-				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
 		else if (methodInvocation.meth instanceof JCFieldAccess)
@@ -167,7 +165,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			else
 			{
 				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
-				// getParamsList(paramsList, methodInvocation.args);
 			}
 		}
 		else
@@ -178,18 +175,6 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		return paramsList;
 	}
 
-	// protected String createDummyOverloadedMethodNamePostfix(JCMethodInvocation methodInvocation)
-	// {
-	// StringBuilder sb = new StringBuilder();
-	// com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
-	// for (JCExpression arg : args)
-	// {
-	// sb.append("_unknownType");
-	// }
-	// String dummyOverloadedMethodNamePostfix = sb.toString();
-	// return dummyOverloadedMethodNamePostfix;
-	// }
-
 	protected void getParamsList(IList<VariableElement> paramsList, MethodSymbol sym)
 	{
 		if (sym.params != null)
@@ -198,16 +183,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		}
 		else
 		{
-			System.out.println();
-		}
-	}
-
-	protected void getParamsList(IList<VariableElement> paramsList, com.sun.tools.javac.util.List<JCExpression> args)
-	{
-		// TODO
-		for (JCExpression arg : args)
-		{
-			paramsList.add(null);
+			throw new SnippetTrigger("No params found in MethodSymbol").setContext(sym.name.toString());
 		}
 	}
 }

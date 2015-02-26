@@ -795,7 +795,6 @@ public class JsClassHandler implements IClassHandler
 					{
 						continue;
 					}
-					languageHelper.newLineIndent();
 					try
 					{
 						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
@@ -804,6 +803,7 @@ public class JsClassHandler implements IClassHandler
 							public void invoke() throws Throwable
 							{
 								IWriter writer = context.getWriter();
+								languageHelper.newLineIndent();
 								writer.append("this.").append(field.getName()).append(" = ");
 								if (enumType && initializer instanceof JCNewClass)
 								{
