@@ -17,7 +17,6 @@
 
 	<build>
 		<plugins>
-
 			<plugin>
 			   <groupId>com.google.code.maven-replacer-plugin</groupId>
 			   <artifactId>replacer</artifactId>
@@ -63,20 +62,10 @@
 						<bibtexCommand>bibtex</bibtexCommand>
 						<!-- the arguments to use when calling latex -->
 						<texCommandArgs>
+							<texCommandArg>-shell-escape</texCommandArg>
 							<texCommandArg>-interaction=nonstopmode</texCommandArg>
 							<texCommandArg>--src-specials</texCommandArg>
 						</texCommandArgs>
-						
-						
-						<!-- the tex4ht command -->
-						<!--<tex4htCommand>htlatex</tex4htCommand>-->
-						<!-- the argumants to use when calling tex4ht -->
-						<!--<tex4htCommandArgs>
-							<tex4htCommandArg>html,2</tex4htCommandArg>
-							<tex4htCommandArg></tex4htCommandArg>
-							<tex4htCommandArg></tex4htCommandArg>
-							<tex4htCommandArg>-interaction=nonstopmode - -src-specials</tex4htCommandArg>
-						</tex4htCommandArgs>-->
 					</settings>
 				</configuration>
 				<executions>
