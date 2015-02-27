@@ -5,6 +5,7 @@ import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.esmeralda.handler.ITransformedMethod;
+import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import demo.codeanalyzer.common.model.Method;
 
 public class JsOverloadManager implements IJsOverloadManager
@@ -25,7 +26,7 @@ public class JsOverloadManager implements IJsOverloadManager
 	public boolean hasOverloads(Method method)
 	{
 		String fqClassName = method.getOwningClass().getFqName();
-		String methodName = method.getName();
+		String methodName = !method.isConstructor() ? method.getName() : DefaultMethodTransformer.THIS;
 		boolean hasOverloads = hasOverloads(fqClassName, methodName);
 		return hasOverloads;
 	}

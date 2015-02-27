@@ -79,7 +79,8 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			String methodOwner = languageHelper.removeGenerics(transformedMethod.getOwner());
 			writeThisIfLocalField(methodOwner, context);
 		}
-		writer.append(transformedMethod.getName());
+		String methodName = transformedMethod.getName();
+		writer.append(methodName);
 
 		if (!transformedMethod.isPropertyInvocation())
 		{
@@ -98,6 +99,10 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				writer.append(overloadedMethodNamePostfix);
 			}
 			writer.append('(');
+			if (DefaultMethodTransformer.SUPER.equals(methodName))
+			{
+				writer.append("this, ");
+			}
 			for (int a = 0, size = arguments.size(); a < size; a++)
 			{
 				JCExpression arg = arguments.get(a);
