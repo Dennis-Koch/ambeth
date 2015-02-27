@@ -124,6 +124,7 @@ public class ConfigurationUpdater extends AbstractLatexScanner implements IStart
 			fw.append("% Any changes have to be done to the java class " + ConfigurationUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Configuration}\n");
+			fw.append("\\label{ambeth:annotations}\n");
 			fw.append("\\begin{landscape}\n");
 			fw.append("\\begin{longtable}{ l l c c c c } \\hline \\textbf{Property} & \\textbf{Default Value} & \\textbf{Mandatory} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\\\n");
 			fw.append("\t\\endhead\n");
