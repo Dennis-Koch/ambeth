@@ -16,6 +16,7 @@ import de.osthus.ambeth.cache.ICacheModification;
 import de.osthus.ambeth.cache.IWritableCache;
 import de.osthus.ambeth.cache.ValueHolderState;
 import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.EmptyList;
 import de.osthus.ambeth.collections.HashMap;
 import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
@@ -843,13 +844,26 @@ public class ModelTransferMapper implements IMapperService, IDisposable
 			}
 			else
 			{
-				if (referencedVOs == null || voMemberType.isAssignableFrom(referencedVOs.getClass()))
+				if (referencedVOs != null && voMemberType.isAssignableFrom(referencedVOs.getClass()))
 				{
 					voMemberValue = referencedVOs;
 				}
 				else if (voMemberType.isArray())
 				{
+					if (referencedVOs == null)
+					{
+						referencedVOs = EmptyList.<Object> getInstance();
+					}
 					voMemberValue = ListUtil.anyToArray(referencedVOs, voMemberType.getComponentType());
+				}
+				else
+				{
+					if (referencedVOs == null)
+					{
+						referencedVOs = EmptyList.<Object> getInstance();
+					}
+					voMemberValue = ListUtil.createCollectionOfType(voMemberType, referencedVOs.size());
+					ListUtil.fillList(voMemberValue, referencedVOs);
 				}
 			}
 		}

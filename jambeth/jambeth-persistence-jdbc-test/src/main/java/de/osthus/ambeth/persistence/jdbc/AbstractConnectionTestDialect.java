@@ -52,6 +52,12 @@ public abstract class AbstractConnectionTestDialect implements IConnectionTestDi
 	}
 
 	@Override
+	public void dropCreatedTestUser(String userName, String userPassword, IProperties testProps) throws SQLException
+	{
+		// intended blank
+	}
+
+	@Override
 	public void preStructureRebuild(Connection connection) throws SQLException
 	{
 		// intended blank

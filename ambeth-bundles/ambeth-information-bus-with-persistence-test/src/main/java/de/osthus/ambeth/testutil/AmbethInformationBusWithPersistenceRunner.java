@@ -284,7 +284,6 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		final org.junit.runners.model.Statement resultStatement = super.withAfterClasses(statement);
 		return new org.junit.runners.model.Statement()
 		{
-
 			@Override
 			public void evaluate() throws Throwable
 			{
@@ -296,9 +295,23 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 						// After all test methods of the test class have been executed we probably have to delete the
 						// test data
 						Connection conn = getConnection();
-						String[] schemaNames = getSchemaNames();
-						truncateMainSchema(conn, schemaNames[0]);
-						truncateAdditionalSchemas(conn, schemaNames, true);
+
+						if (testUserHasBeenCreated)
+						{
+							JdbcUtil.close(connection);
+							connection = null;
+							IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
+							getOrCreateSchemaContext().getService(IConnectionTestDialect.class).dropCreatedTestUser(
+									testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
+									testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps);
+							testUserHasBeenCreated = false;
+						}
+						else
+						{
+							String[] schemaNames = getSchemaNames();
+							truncateMainSchema(conn, schemaNames[0]);
+							truncateAdditionalSchemas(conn, schemaNames, true);
+						}
 					}
 					finally
 					{
@@ -659,6 +672,8 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 
 	protected final DefaultXmlWriter xmlWriter = new DefaultXmlWriter(new AppendableStringBuilder(measurementXML), null);
 
+	protected boolean testUserHasBeenCreated;
+
 	protected ILogger getLog()
 	{
 		return schemaContext.getService(ILoggerCache.class).getCachedLogger(schemaContext, AmbethInformationBusWithPersistenceRunner.class);
@@ -711,9 +726,10 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 				cause = cause.getCause();
 			}
 			IProperties testProps = getOrCreateSchemaContext().getService(IProperties.class);
-			if (!getOrCreateSchemaContext().getService(IConnectionTestDialect.class).createTestUserIfSupported(cause,
+			testUserHasBeenCreated = getOrCreateSchemaContext().getService(IConnectionTestDialect.class).createTestUserIfSupported(cause,
 					testProps.getString(PersistenceJdbcConfigurationConstants.DatabaseUser),
-					testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps))
+					testProps.getString(PersistenceJdbcConfigurationConstants.DatabasePass), testProps);
+			if (!testUserHasBeenCreated)
 			{
 				throw e;
 			}
@@ -723,8 +739,7 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 			}
 			catch (Throwable t)
 			{
-				// throw the initial exception if this fails somehow
-				throw e;
+				throw RuntimeExceptionUtil.mask(e);
 			}
 		}
 		connection = conn;

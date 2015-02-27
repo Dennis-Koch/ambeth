@@ -63,12 +63,12 @@ namespace De.Osthus.Ambeth.Ioc
             beanContextFactory.RegisterBean<SecurityScopeProvider>().Autowireable(typeof(ISecurityScopeProvider), typeof(ISecurityScopeChangeListenerExtendable));
             beanContextFactory.RegisterBean<SecurityActivation>().Autowireable<ISecurityActivation>();
 
-            beanContextFactory.RegisterBean<CacheModification>("cacheModification").Autowireable<ICacheModification>();
+            beanContextFactory.RegisterBean<CacheModification>().Autowireable<ICacheModification>();
 
             beanContextFactory.RegisterAutowireableBean<IObjRefHelper, ObjRefHelper>();
-            beanContextFactory.RegisterBean<CUDResultHelper>("cudResultHelper").Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
+            beanContextFactory.RegisterBean<CUDResultHelper>().Autowireable(typeof(ICUDResultHelper), typeof(ICUDResultExtendable));
 
-            beanContextFactory.RegisterBean<EntityMetaDataReader>("entityMetaDataReader").Autowireable<IEntityMetaDataReader>();
+            beanContextFactory.RegisterBean<EntityMetaDataReader>().Autowireable<IEntityMetaDataReader>();
 
             beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable), typeof(IMergeListenerExtendable));
 
@@ -88,8 +88,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             if (!IndependentMetaData)
             {
-                beanContextFactory.RegisterBean<EntityMetaDataConverter>("entityMetaDataConverter");
-                DedicatedConverterUtil.BiLink(beanContextFactory, "entityMetaDataConverter", typeof(EntityMetaData), typeof(EntityMetaDataTransfer));
+                IBeanConfiguration entityMetaDataConverter = beanContextFactory.RegisterBean<EntityMetaDataConverter>();
+                DedicatedConverterUtil.BiLink(beanContextFactory, entityMetaDataConverter, typeof(EntityMetaData), typeof(EntityMetaDataTransfer));
 
                 beanContextFactory.RegisterBean<EntityMetaDataClient>(REMOTE_ENTITY_METADATA_PROVIDER);
             }

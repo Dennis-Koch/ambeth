@@ -20,6 +20,8 @@ public interface IConnectionTestDialect
 
 	boolean createTestUserIfSupported(Throwable reason, String userName, String userPassword, IProperties testProps) throws SQLException;
 
+	void dropCreatedTestUser(String userName, String userPassword, IProperties testProps) throws SQLException;
+
 	boolean isEmptySchema(Connection connection) throws SQLException;
 
 	String prepareCommand(String sqlCommand);

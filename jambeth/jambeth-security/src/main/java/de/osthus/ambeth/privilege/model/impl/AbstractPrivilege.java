@@ -1,12 +1,16 @@
 package de.osthus.ambeth.privilege.model.impl;
 
+import java.io.Serializable;
+
 import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.privilege.model.IPropertyPrivilege;
 import de.osthus.ambeth.util.IImmutableType;
 import de.osthus.ambeth.util.IPrintable;
 
-public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType
+public abstract class AbstractPrivilege implements IPrivilege, IPrintable, IImmutableType, Serializable
 {
+	private static final long serialVersionUID = 1549203069449950797L;
+
 	public static int arraySizeForIndex()
 	{
 		return 1 << 8;

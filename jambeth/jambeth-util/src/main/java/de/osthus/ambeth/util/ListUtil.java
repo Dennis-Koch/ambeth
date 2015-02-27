@@ -348,4 +348,30 @@ public final class ListUtil
 		}
 		return (V[]) resultArray;
 	}
+
+	public static void clearList(Object obj)
+	{
+		((Collection<?>) obj).clear();
+	}
+
+	public static void clearAndFillList(Object obj, Iterable<?> items)
+	{
+		clearList(obj);
+		fillList(obj, items);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void fillList(Object obj, Iterable<?> items)
+	{
+		if (items == null)
+		{
+			return;
+		}
+		Collection<Object> coll = (Collection<Object>) obj;
+		for (Object item : items)
+		{
+			coll.add(item);
+		}
+
+	}
 }
