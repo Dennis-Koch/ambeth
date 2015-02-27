@@ -89,6 +89,19 @@
 	\end{figure}
 }
 
+\newcommand{\showpdffull}[1] 
+{
+	\begin{figure}[H]
+		\centering
+		\edef\tmp{\noexpand\includegraphics[width=\linewidth]{\showimgref}}\tmp
+		%\includegraphics[width=0.33\textwidth, angle=30]{#2}
+		\caption{#1}
+		\label{img:\showimgref}
+	\end{figure}
+}
+
+
+
 \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
