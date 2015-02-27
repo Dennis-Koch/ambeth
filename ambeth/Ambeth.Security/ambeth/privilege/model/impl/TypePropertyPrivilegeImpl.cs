@@ -5,7 +5,7 @@ using System.Text;
 
 namespace De.Osthus.Ambeth.Privilege.Model.Impl
 {
-    public class TypePropertyPrivilegeImpl : ITypePropertyPrivilege, IPrintable, IImmutableType
+    public sealed class TypePropertyPrivilegeImpl : ITypePropertyPrivilege, IPrintable, IImmutableType
     {
         public static ITypePropertyPrivilege[] EMPTY_PROPERTY_PRIVILEGES = new ITypePropertyPrivilege[0];
 

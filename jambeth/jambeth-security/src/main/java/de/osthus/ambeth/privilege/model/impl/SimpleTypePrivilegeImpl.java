@@ -4,9 +4,9 @@ import de.osthus.ambeth.privilege.model.ITypePropertyPrivilege;
 
 public class SimpleTypePrivilegeImpl extends AbstractTypePrivilege
 {
-	protected final Boolean create, read, update, delete, execute;
+	private final Boolean create, read, update, delete, execute;
 
-	protected final ITypePropertyPrivilege defaultPropertyPrivileges;
+	private final ITypePropertyPrivilege defaultPropertyPrivileges;
 
 	public SimpleTypePrivilegeImpl(Boolean create, Boolean read, Boolean update, Boolean delete, Boolean execute,
 			ITypePropertyPrivilege defaultPropertyPrivileges)

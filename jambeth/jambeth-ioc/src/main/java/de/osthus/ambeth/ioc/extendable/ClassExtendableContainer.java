@@ -25,6 +25,11 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 			// Type matched exactly - 'strong' registration
 			return 0;
 		}
+		if (existingRequestedType.isArray() && type.isArray())
+		{
+			// if both types are an array their distance is measured by the distance of their component type
+			return getDistanceForType(existingRequestedType.getComponentType(), type.getComponentType());
+		}
 		int bestDistance = Integer.MAX_VALUE;
 		Class<?>[] currInterfaces = existingRequestedType.getInterfaces();
 

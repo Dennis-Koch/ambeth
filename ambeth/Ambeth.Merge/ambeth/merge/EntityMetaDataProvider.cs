@@ -112,6 +112,10 @@ namespace De.Osthus.Ambeth.Merge
             IdentityHashSet<IEntityMetaData> extensions = new IdentityHashSet<IEntityMetaData>(GetExtensions().Values());
             foreach (IEntityMetaData metaData in extensions)
             {
+                if (Object.ReferenceEquals(metaData, alreadyHandled))
+                {
+                    continue;
+                }
                 foreach (RelationMember relationMember in metaData.RelationMembers)
                 {
                     AddTypeRelatedByTypes(typeRelatedByTypes, metaData.EntityType, relationMember.ElementType);
@@ -119,6 +123,10 @@ namespace De.Osthus.Ambeth.Merge
             }
             foreach (IEntityMetaData metaData in extensions)
             {
+                if (Object.ReferenceEquals(metaData, alreadyHandled))
+                {
+                    continue;
+                }
                 Type entityType = metaData.EntityType;
                 IISet<Type> relatedByTypes = typeRelatedByTypes.Get(entityType);
                 if (relatedByTypes == null)
@@ -209,16 +217,6 @@ namespace De.Osthus.Ambeth.Merge
                             }
                             cascadeMissingEntityTypes.Add(relationMemberType);
                         }
-                    }
-                }
-                for (int a = entityTypes.Count; a-- > 0; )
-                {
-                    Type entityType = entityTypes[a];
-                    if (!ContainsKey(entityType))
-                    {
-                        // add dummy items to ensure that this type does not
-                        // get queried a second time
-                        pendingToRefreshMetaDatasTL.Value.Register(alreadyHandled, entityType);
                     }
                 }
                 return cascadeMissingEntityTypes != null ? ListUtil.ToList(cascadeMissingEntityTypes) : null;
@@ -320,6 +318,11 @@ namespace De.Osthus.Ambeth.Merge
 
         public IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes)
         {
+            return GetMetaData(entityTypes, true);
+        }
+
+        protected IList<IEntityMetaData> GetMetaData(IList<Type> entityTypes, bool askRemoteOnMiss)
+        {
             List<IEntityMetaData> result = new List<IEntityMetaData>(entityTypes.Count);
             IList<Type> missingEntityTypes = null;
             for (int a = entityTypes.Count; a-- > 0; )
@@ -329,7 +332,7 @@ namespace De.Osthus.Ambeth.Merge
                 if (Object.ReferenceEquals(metaDataItem, alreadyHandled))
                 {
                     metaDataItem = GetExtensionHardKey(entityType);
-                    if (metaDataItem == null)
+                    if (metaDataItem == null && askRemoteOnMiss)
                     {
                         if (missingEntityTypes == null)
                         {
@@ -337,19 +340,18 @@ namespace De.Osthus.Ambeth.Merge
                         }
                         missingEntityTypes.Add(entityType);
                     }
-                    else
-                    {
-                        result.Add(null);
-                    }
                     continue;
                 }
                 if (metaDataItem == null)
                 {
-                    if (missingEntityTypes == null)
+                    if (askRemoteOnMiss)
                     {
-                        missingEntityTypes = new List<Type>();
+                        if (missingEntityTypes == null)
+                        {
+                            missingEntityTypes = new List<Type>();
+                        }
+                        missingEntityTypes.Add(entityType);
                     }
-                    missingEntityTypes.Add(entityType);
                     continue;
                 }
                 result.Add(metaDataItem);
@@ -429,7 +431,7 @@ namespace De.Osthus.Ambeth.Merge
                     pendingToRefreshMetaDatasTL.Value = null;
                 }
             }
-            return GetMetaData(entityTypes);
+            return GetMetaData(entityTypes, false);
         }
 
         public void RegisterValueObjectConfig(IValueObjectConfig config)

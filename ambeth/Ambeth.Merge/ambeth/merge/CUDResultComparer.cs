@@ -373,6 +373,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 return false;
             }
+            bool isEqual = true;
             for (int a = left.Length; a-- > 0; )
             {
                 IPrimitiveUpdateItem rightPui = right[a];
@@ -384,9 +385,10 @@ namespace De.Osthus.Ambeth.Merge
                     }
                     CreateOrUpdateContainerBuild containerBuild = cudResultDiff.UpdateContainerBuild();
                     containerBuild.AddPrimitive(rightPui);
+                    isEqual = false;
                 }
             }
-            return true;
+            return isEqual;
         }
 
         protected bool EqualsPUI(CUDResultDiff cudResultDiff, IPrimitiveUpdateItem left, IPrimitiveUpdateItem right)
@@ -454,6 +456,7 @@ namespace De.Osthus.Ambeth.Merge
                 }
                 return false;
             }
+            bool isEqual = true;
             for (int a = left.Length; a-- > 0; )
             {
                 IRelationUpdateItem rightPui = right[a];
@@ -463,9 +466,10 @@ namespace De.Osthus.Ambeth.Merge
                     {
                         return false;
                     }
+                    isEqual = false;
                 }
             }
-            return true;
+            return isEqual;
         }
 
         protected bool EqualsRUI(CUDResultDiff cudResultDiff, IRelationUpdateItem left, IRelationUpdateItem right)

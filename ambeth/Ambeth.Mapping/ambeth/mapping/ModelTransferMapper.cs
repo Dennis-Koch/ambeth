@@ -756,14 +756,27 @@ namespace De.Osthus.Ambeth.Mapping
                 }
                 else
                 {
-                    if (referencedVOs == null || voMemberType.IsAssignableFrom(referencedVOs.GetType()))
-                    {
-                        voMemberValue = referencedVOs;
-                    }
-                    else if (voMemberType.IsArray)
-                    {
+                    if (referencedVOs != null && voMemberType.IsAssignableFrom(referencedVOs.GetType()))
+				    {
+					    voMemberValue = referencedVOs;
+				    }
+				    else if (voMemberType.IsArray)
+				    {
+					    if (referencedVOs == null)
+					    {
+						    referencedVOs = EmptyList.Empty<Object>();
+					    }
                         voMemberValue = ListUtil.AnyToArray(referencedVOs, voMemberType.GetElementType());
-                    }
+				    }
+				    else
+				    {
+                        if (referencedVOs == null)
+                        {
+                            referencedVOs = EmptyList.Empty<Object>();
+                        }
+					    voMemberValue = ListUtil.CreateCollectionOfType(voMemberType, referencedVOs.Count);
+					    ListUtil.FillList(voMemberValue, referencedVOs);
+				    }
                 }
             }
             else if (referencedVOs != null)

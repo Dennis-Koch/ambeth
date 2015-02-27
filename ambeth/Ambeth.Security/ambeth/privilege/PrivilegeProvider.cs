@@ -274,24 +274,17 @@ namespace De.Osthus.Ambeth.Privilege
 	    {
 		    IPropertyPrivilegeOfService[] propertyPrivilegesOfService = privilegeOfService.PropertyPrivileges;
 
-		    IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.CreateFrom(privilegeOfService);
-		    if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
-		    {
-			    return new SimplePrivilegeImpl(privilegeOfService.CreateAllowed, privilegeOfService.ReadAllowed, privilegeOfService.UpdateAllowed,
-					    privilegeOfService.DeleteAllowed, privilegeOfService.ExecuteAllowed, defaultPropertyPrivilege);
-		    }
+            if (propertyPrivilegesOfService == null || propertyPrivilegesOfService.Length == 0)
+            {
+                return SimplePrivilegeImpl.CreateFrom(privilegeOfService);
+            }
 		    String[] propertyPrivilegeNames = privilegeOfService.PropertyPrivilegeNames;
             IEntityMetaData metaData = EntityMetaDataProvider.GetMetaData(objRef.RealType);
 		    IPropertyPrivilege[] primitivePropertyPrivileges = new IPropertyPrivilege[metaData.PrimitiveMembers.Length];
             IPropertyPrivilege[] relationPropertyPrivileges = new IPropertyPrivilege[metaData.RelationMembers.Length];
-            for (int a = primitivePropertyPrivileges.Length; a-- > 0; )
-            {
-                primitivePropertyPrivileges[a] = defaultPropertyPrivilege;
-            }
-            for (int a = relationPropertyPrivileges.Length; a-- > 0; )
-            {
-                relationPropertyPrivileges[a] = defaultPropertyPrivilege;
-            }
+            IPropertyPrivilege defaultPropertyPrivilege = PropertyPrivilegeImpl.CreateFrom(privilegeOfService);
+            Arrays.Fill(primitivePropertyPrivileges, defaultPropertyPrivilege);
+            Arrays.Fill(relationPropertyPrivileges, defaultPropertyPrivilege);
 		    for (int b = propertyPrivilegesOfService.Length; b-- > 0;)
 		    {
 			    IPropertyPrivilegeOfService propertyPrivilegeOfService = propertyPrivilegesOfService[b];
