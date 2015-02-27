@@ -45,67 +45,6 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 {
 	public static final Pattern anonymousPattern = Pattern.compile("<anonymous (.+)>([^<>]*)");
 
-	public static final String getFqNameFromAnonymousName(String fqName)
-	{
-		Matcher anonymousMatcher = JsNewClassExpressionHandler.anonymousPattern.matcher(fqName);
-		if (!anonymousMatcher.matches())
-		{
-			return fqName;
-		}
-		return anonymousMatcher.group(1) + anonymousMatcher.group(2);
-	}
-
-	public static final String findFqAnonymousName(TreePath path)
-	{
-		TreePath currPath = path;
-		String reverseSuffix = "";
-		String anonymousFqName;
-		while (true)
-		{
-			JCClassDecl leaf = (JCClassDecl) currPath.getLeaf();
-			anonymousFqName = buildGenericTypeName(leaf);
-			if (anonymousFqName.indexOf('.') != -1)
-			{
-				return anonymousFqName + reverseSuffix;
-			}
-			else if (reverseSuffix.length() > 0)
-			{
-				reverseSuffix = "." + anonymousFqName + reverseSuffix;
-			}
-			else
-			{
-				reverseSuffix = "." + anonymousFqName;
-			}
-			currPath = currPath.getParentPath();
-		}
-	}
-
-	public static String buildGenericTypeName(JCClassDecl classdecl)
-	{
-		String fqName = classdecl.sym.toString();
-
-		StringBuilder simpleNameBuilder = new StringBuilder(fqName);
-		boolean first = true;
-		for (JCTypeParameter tp : classdecl.typarams)
-		{
-			if (first)
-			{
-				simpleNameBuilder.append('<');
-				first = false;
-			}
-			else
-			{
-				simpleNameBuilder.append(',');
-			}
-			simpleNameBuilder.append(tp.type.toString());
-		}
-		if (!first)
-		{
-			simpleNameBuilder.append('>');
-		}
-		return simpleNameBuilder.toString();
-	}
-
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
@@ -273,7 +212,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		IWriter writer = context.getWriter();
 		HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
-		owner = JsNewClassExpressionHandler.getFqNameFromAnonymousName(def.sym.toString());
+		owner = getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
 
 		writer.append("Ext.create(\"");
@@ -343,5 +282,66 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		writer.append(')');
 
 		context.setTypeOnStack(owner);
+	}
+
+	protected String getFqNameFromAnonymousName(String fqName)
+	{
+		Matcher anonymousMatcher = JsNewClassExpressionHandler.anonymousPattern.matcher(fqName);
+		if (!anonymousMatcher.matches())
+		{
+			return fqName;
+		}
+		return anonymousMatcher.group(1) + anonymousMatcher.group(2);
+	}
+
+	protected String findFqAnonymousName(TreePath path)
+	{
+		TreePath currPath = path;
+		String reverseSuffix = "";
+		String anonymousFqName;
+		while (true)
+		{
+			JCClassDecl leaf = (JCClassDecl) currPath.getLeaf();
+			anonymousFqName = buildGenericTypeName(leaf);
+			if (anonymousFqName.indexOf('.') != -1)
+			{
+				return anonymousFqName + reverseSuffix;
+			}
+			else if (reverseSuffix.length() > 0)
+			{
+				reverseSuffix = "." + anonymousFqName + reverseSuffix;
+			}
+			else
+			{
+				reverseSuffix = "." + anonymousFqName;
+			}
+			currPath = currPath.getParentPath();
+		}
+	}
+
+	protected String buildGenericTypeName(JCClassDecl classdecl)
+	{
+		String fqName = classdecl.sym.toString();
+
+		StringBuilder simpleNameBuilder = new StringBuilder(fqName);
+		boolean first = true;
+		for (JCTypeParameter tp : classdecl.typarams)
+		{
+			if (first)
+			{
+				simpleNameBuilder.append('<');
+				first = false;
+			}
+			else
+			{
+				simpleNameBuilder.append(',');
+			}
+			simpleNameBuilder.append(tp.type.toString());
+		}
+		if (!first)
+		{
+			simpleNameBuilder.append('>');
+		}
+		return simpleNameBuilder.toString();
 	}
 }

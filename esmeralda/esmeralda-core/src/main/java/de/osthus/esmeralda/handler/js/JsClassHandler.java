@@ -30,6 +30,7 @@ import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.handler.IMethodHandler;
 import de.osthus.esmeralda.handler.IVariable;
+import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.snippet.ISnippetManager;
@@ -448,7 +449,7 @@ public class JsClassHandler implements IClassHandler
 				continue;
 			}
 
-			String name = method.getName();
+			String name = !method.isConstructor() ? method.getName() : DefaultMethodTransformer.THIS;
 			ArrayList<Method> bucket = buckets.get(name);
 			if (bucket == null)
 			{

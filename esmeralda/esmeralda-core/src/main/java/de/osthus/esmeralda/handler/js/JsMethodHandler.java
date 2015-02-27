@@ -123,7 +123,11 @@ public class JsMethodHandler implements IMethodHandler
 			{
 				IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.JS + methodBodyBlock.getKind());
 
-				if (method.isConstructor())
+				if (!method.isConstructor())
+				{
+					blockHandler.handle(methodBodyBlock);
+				}
+				else
 				{
 					// Skip only this() and super() calls without parameters
 					boolean newSkip = isFirstStatementToSkip(methodBodyBlock);
@@ -138,10 +142,6 @@ public class JsMethodHandler implements IMethodHandler
 					{
 						context.setSkipFirstBlockStatement(oldSkip);
 					}
-				}
-				else
-				{
-					blockHandler.handle(methodBodyBlock);
 				}
 
 				// Runs check for unused (old) snippet files for this method
