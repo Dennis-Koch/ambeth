@@ -111,6 +111,7 @@ public class JsClassHandler implements IClassHandler
 		}
 
 		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
+		ArrayList<String> duplicateNames = findFieldMethodNameCollisions(classInfo);
 
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
 		context.setSnippetManager(snippetManager);
@@ -171,38 +172,30 @@ public class JsClassHandler implements IClassHandler
 		return fieldsToInit;
 	}
 
-	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods, boolean staticOnly)
+	protected ArrayList<String> findFieldMethodNameCollisions(JavaClassInfo classInfo)
 	{
-		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
+		IList<Field> fields = classInfo.getFields();
+		IList<Method> methods = classInfo.getMethods();
+
+		HashSet<String> methodNames = new HashSet<>((int) (methods.size() / 0.75));
+		ArrayList<String> duplicateNames = new ArrayList<String>();
+
 		for (Method method : methods)
 		{
-			if ((method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
-			{
-				continue;
-			}
-
-			String name = method.getName();
-			ArrayList<Method> bucket = buckets.get(name);
-			if (bucket == null)
-			{
-				bucket = new ArrayList<>();
-				buckets.put(name, bucket);
-			}
-			bucket.add(method);
+			methodNames.add(method.getName());
 		}
 
-		Iterator<Entry<String, ArrayList<Method>>> iter = buckets.iterator();
-		while (iter.hasNext())
+		for (Field field : fields)
 		{
-			Entry<String, ArrayList<Method>> entry = iter.next();
-			ArrayList<Method> bucket = entry.getValue();
-			if (bucket.size() == 1)
+			String fieldName = field.getName();
+			if (methodNames.contains(fieldName))
 			{
-				iter.remove();
+				duplicateNames.add(fieldName);
+				todoWriter.write("Field and Method with the same name", fieldName, classInfo, field.getLocationInfo().getStartOffset());
 			}
 		}
 
-		return buckets;
+		return duplicateNames;
 	}
 
 	protected void writeName(JavaClassInfo classInfo)
@@ -443,6 +436,40 @@ public class JsClassHandler implements IClassHandler
 		});
 
 		return firstLine;
+	}
+
+	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods, boolean staticOnly)
+	{
+		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
+		for (Method method : methods)
+		{
+			if ((method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
+			{
+				continue;
+			}
+
+			String name = method.getName();
+			ArrayList<Method> bucket = buckets.get(name);
+			if (bucket == null)
+			{
+				bucket = new ArrayList<>();
+				buckets.put(name, bucket);
+			}
+			bucket.add(method);
+		}
+
+		Iterator<Entry<String, ArrayList<Method>>> iter = buckets.iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, ArrayList<Method>> entry = iter.next();
+			ArrayList<Method> bucket = entry.getValue();
+			if (bucket.size() == 1)
+			{
+				iter.remove();
+			}
+		}
+
+		return buckets;
 	}
 
 	protected <T extends BaseJavaClassModel> ArrayList<T> createView(IList<T> elements, Boolean checkPrivate, Boolean checkStatic)

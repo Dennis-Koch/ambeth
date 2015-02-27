@@ -47,12 +47,14 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
+import de.osthus.esmeralda.handler.js.IMethodParamNameService;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsClasspathManager;
 import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.handler.js.JsMethodHandler;
 import de.osthus.esmeralda.handler.js.JsOverloadManager;
+import de.osthus.esmeralda.handler.js.MethodParamNameService;
 import de.osthus.esmeralda.handler.js.expr.JsArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsBinaryExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsInstanceOfExpressionHandler;
@@ -126,6 +128,7 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean("jsClasspathManager", JsClasspathManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.STATIC, JsOverloadManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.NON_STATIC, JsOverloadManager.class);
+		beanContextFactory.registerBean(MethodParamNameService.class).autowireable(IMethodParamNameService.class);
 
 		// Method transformation
 		beanContextFactory.registerBean(ExtendableBean.class) //
