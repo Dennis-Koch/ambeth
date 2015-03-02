@@ -1901,7 +1901,7 @@ namespace De.Osthus.Ambeth.Cache
             }
         }
 
-        public bool ApplyValues(Object targetObject, ICacheIntern targetCache)
+        public bool ApplyValues(Object targetObject, ICacheIntern targetCache, IPrivilege privilege)
         {
             if (targetObject == null)
             {
@@ -1914,7 +1914,7 @@ namespace De.Osthus.Ambeth.Cache
             {
                 return false;
             }
-            UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), null);
+            UpdateExistingObject(metaData, cacheValue, targetObject, targetCache, IsFilteringNecessary(targetCache), privilege);
             return true;
         }
 

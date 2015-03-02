@@ -20,6 +20,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using De.Osthus.Ambeth.Cache.Rootcachevalue;
+using De.Osthus.Ambeth.Privilege;
+using De.Osthus.Ambeth.Security;
+using De.Osthus.Ambeth.Privilege.Model;
 
 namespace De.Osthus.Ambeth.Cache
 {
@@ -47,9 +50,15 @@ namespace De.Osthus.Ambeth.Cache
 
         [Autowired]
         public IGuiThreadHelper GuiThreadHelper { protected get; set; }
-        
+
+        [Autowired(Optional = true)]
+        public IPrivilegeProvider PrivilegeProvider { protected get; set; }
+
         [Autowired]
         public ISecondLevelCacheManager SecondLevelCacheManager { protected get; set; }
+
+        [Autowired(Optional = true)]
+        public ISecurityActivation SecurityActivation { protected get; set; }
 
         [Autowired]
         public ValueHolderContainerMixin ValueHolderContainerMixin { protected get; set; }
@@ -240,10 +249,29 @@ namespace De.Osthus.Ambeth.Cache
 
 	    protected void ChangeSecondLevelCacheIntern(CacheDependencyNode node, CacheDirective cacheDirective)
 	    {
-		    IRootCache rootCache = node.rootCache;
-		    HashMap<IObjRef, RootCacheValue> objRefToLoadContainerDict = node.objRefToLoadContainerMap;
-            IList<IObjRef> objRefsToLoadList = node.objRefsToLoad.ToList();
-            IList<Object> refreshResult = rootCache.GetObjects(objRefsToLoadList, cacheDirective);
+            IRootCache rootCache = node.rootCache;
+		    HashMap<IObjRef, CacheValueAndPrivilege> objRefToLoadContainerDict = node.objRefToCacheValueMap;
+            CHashSet<IObjRef> objRefsToLoad = new CHashSet<IObjRef>(node.objRefsToLoad);
+
+		    if (node.cacheChangeItems != null)
+		    {
+			    foreach (CacheChangeItem cci in node.cacheChangeItems)
+			    {
+				    if (cci == null)
+				    {
+					    continue;
+				    }
+				    objRefsToLoad.AddAll(cci.UpdatedObjRefs);
+			    }
+		    }
+		    IList<IObjRef> objRefs = objRefsToLoad.ToList();
+		    IList<Object> refreshResult = rootCache.GetObjects(objRefs, cacheDirective);
+
+		    IList<IPrivilege> privileges = null;
+            if (SecurityActivation != null && PrivilegeProvider != null && SecurityActivation.FilterActivated)
+		    {
+			    privileges = PrivilegeProvider.GetPrivilegesByObjRef(objRefs);
+		    }
 		    for (int a = refreshResult.Count; a-- > 0;)
 		    {
                 RootCacheValue cacheValue = (RootCacheValue)refreshResult[a];
@@ -251,7 +279,7 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     continue;
                 }
-                objRefToLoadContainerDict.Put(objRefsToLoadList[a], cacheValue);
+                objRefToLoadContainerDict.Put(objRefs[a], new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges[a] : null));
 		    }
 		    CheckCascadeRefreshNeeded(node);
 
@@ -533,7 +561,7 @@ namespace De.Osthus.Ambeth.Cache
 		    {
 			    return;
 		    }
-		    HashMap<IObjRef, RootCacheValue> objRefToLoadContainerMap = node.objRefToLoadContainerMap;
+            HashMap<IObjRef, CacheValueAndPrivilege> objRefToCacheValueMap = node.objRefToCacheValueMap;
 		    for (int c = cacheChangeItems.Length; c-- > 0;)
 		    {
 			    CacheChangeItem cci = cacheChangeItems[c];
@@ -548,8 +576,8 @@ namespace De.Osthus.Ambeth.Cache
                 {
                     IObjRef objRefToUpdate = objectRefsToUpdate[a];
                     Object objectToUpdate = objectsToUpdate[a];
-                    RootCacheValue cacheValue = objRefToLoadContainerMap.Get(objRefToUpdate);
-                    if (cacheValue == null)
+                    CacheValueAndPrivilege cacheValueAndPrivilege = objRefToCacheValueMap.Get(objRefToUpdate);
+                    if (cacheValueAndPrivilege == null)
                     {
                         // Current value in childCache is not in our interest here
                         continue;
@@ -560,6 +588,7 @@ namespace De.Osthus.Ambeth.Cache
                     {
                         continue;
                     }
+                    RootCacheValue cacheValue = cacheValueAndPrivilege.cacheValue;
                     IObjRefContainer vhc = (IObjRefContainer)objectToUpdate;
                     for (int relationIndex = relationMembers.Length; relationIndex-- > 0; )
                     {
@@ -642,6 +671,8 @@ namespace De.Osthus.Ambeth.Cache
 		    parentCacheReadLock.Lock();
 		    try
 		    {
+                HashMap<IObjRef, CacheValueAndPrivilege> objRefToCacheValueMap = node.objRefToCacheValueMap;
+
 			    for (int a = cacheChangeItems.Length; a-- > 0;)
 			    {
 				    CacheChangeItem cci = cacheChangeItems[a];
@@ -653,6 +684,7 @@ namespace De.Osthus.Ambeth.Cache
 
                     IList<IObjRef> deletedObjRefs = cci.DeletedObjRefs;
                     IList<Object> objectsToUpdate = cci.UpdatedObjects;
+                    IList<IObjRef> objRefsToUpdate = cci.UpdatedObjRefs;
 
                     IRootCache parent = ((IRootCache)childCache.Parent).CurrentRootCache;
 
@@ -670,8 +702,10 @@ namespace De.Osthus.Ambeth.Cache
                         }
                         if (objectsToUpdate != null && objectsToUpdate.Count > 0)
                         {
-                            foreach (Object objectInCache in objectsToUpdate)
+                            for (int b = objectsToUpdate.Count; b-- > 0; )
                             {
+                                Object objectInCache = objectsToUpdate[b];
+                                IObjRef objRefInCache = objRefsToUpdate[b];
                                 // Check if the objects still have their id. They may have lost them concurrently because this
                                 // method here may be called from another thread (e.g. UI thread)
                                 IEntityMetaData metaData = ((IEntityMetaDataHolder)objectInCache).Get__EntityMetaData();
@@ -680,7 +714,8 @@ namespace De.Osthus.Ambeth.Cache
                                 {
                                     continue;
                                 }
-                                if (!parentCache.ApplyValues(objectInCache, childCache))
+                                CacheValueAndPrivilege cacheValueP = objRefToCacheValueMap.Get(objRefInCache);
+                                if (!parentCache.ApplyValues(objectInCache, childCache, cacheValueP.privilege))
                                 {
                                     if (Log.WarnEnabled)
                                     {

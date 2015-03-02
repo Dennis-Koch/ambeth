@@ -26,7 +26,7 @@ namespace De.Osthus.Ambeth.Cache
 
         public readonly CHashSet<IObjRelation> cascadeRefreshObjRelationsSet = new CHashSet<IObjRelation>();
 
-        public readonly HashMap<IObjRef, RootCacheValue> objRefToLoadContainerMap = new HashMap<IObjRef, RootCacheValue>();
+        public readonly HashMap<IObjRef, CacheValueAndPrivilege> objRefToCacheValueMap = new HashMap<IObjRef, CacheValueAndPrivilege>();
 
 	    public CacheChangeItem[] cacheChangeItems;
 

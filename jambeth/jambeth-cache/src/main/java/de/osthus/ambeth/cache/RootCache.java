@@ -2008,7 +2008,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 	}
 
 	@Override
-	public boolean applyValues(Object targetObject, ICacheIntern targetCache)
+	public boolean applyValues(Object targetObject, ICacheIntern targetCache, IPrivilege privilege)
 	{
 		if (targetObject == null)
 		{
@@ -2021,7 +2021,7 @@ public class RootCache extends AbstractCache<RootCacheValue> implements IRootCac
 		{
 			return false;
 		}
-		updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), null);
+		updateExistingObject(metaData, cacheValue, targetObject, targetCache, isFilteringNecessary(targetCache), privilege);
 		return true;
 	}
 

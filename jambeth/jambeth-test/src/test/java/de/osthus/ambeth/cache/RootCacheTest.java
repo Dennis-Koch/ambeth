@@ -585,7 +585,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 	@Test
 	public final void testApplyValues()
 	{
-		fixture.applyValues(null, null);
+		fixture.applyValues(null, null, null);
 
 		Set<CacheDirective> noDirective = CacheDirective.none();
 		Material material = ObjectMother.getNewMaterial(entityFactory, 5, 3, "testApplyValues");
@@ -602,7 +602,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertTrue(material.equals(independentMaterial));
 
 		ICacheIntern targetCache = (ICacheIntern) cacheFactory.create(CacheFactoryDirective.NoDCE, "test");
-		fixture.applyValues(cachedMaterial, targetCache);
+		fixture.applyValues(cachedMaterial, targetCache, null);
 		assertTrue(material.equals(targetCache.getObject(materialRef, noDirective)));
 		assertTrue(material.equals(fixture.getObject(materialRef, noDirective)));
 
@@ -610,7 +610,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 		assertFalse(material.equals(fixture.getObject(materialRef, noDirective)));
 		assertTrue(material.equals(targetCache.getObject(materialRef, noDirective)));
 
-		fixture.applyValues(cachedMaterial, targetCache);
+		fixture.applyValues(cachedMaterial, targetCache, null);
 		assertFalse(material.equals(fixture.getObject(materialRef, noDirective)));
 		assertFalse(material.equals(targetCache.getObject(materialRef, noDirective)));
 	}
@@ -619,7 +619,7 @@ public class RootCacheTest extends AbstractInformationBusTest
 	public final void testApplyValues_notInCache()
 	{
 		Material material = ObjectMother.getNewMaterial(entityFactory, 5, 3, "testApplyValues_notInCache");
-		if (!fixture.applyValues(material, null))
+		if (!fixture.applyValues(material, null, null))
 		{
 			throw new IllegalArgumentException();
 		}
