@@ -524,7 +524,7 @@ namespace De.Osthus.Ambeth.Cache
                                                 {
                                                     continue;
                                                 }
-                                                RootCache.ApplyValues(persistedObjectInThisCache, (ICacheIntern)firstLevelCache);
+                                                RootCache.ApplyValues(persistedObjectInThisCache, (ICacheIntern)firstLevelCache, null);
                                             }
                                         }
                                         for (int a = objectsToRevert.Count; a-- > 0; )

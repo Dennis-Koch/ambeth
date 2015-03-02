@@ -21,6 +21,7 @@ using System.Runtime.CompilerServices;
 using Castle.Core.Interceptor;
 #else
 using Castle.DynamicProxy;
+using System.Threading;
 #endif
 using De.Osthus.Ambeth.Proxy;
 using De.Osthus.Ambeth.Ioc.Threadlocal;

@@ -35,8 +35,11 @@ import de.osthus.ambeth.metadata.RelationMember;
 import de.osthus.ambeth.mixin.ValueHolderContainerMixin;
 import de.osthus.ambeth.model.IDataObject;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
+import de.osthus.ambeth.privilege.IPrivilegeProvider;
+import de.osthus.ambeth.privilege.model.IPrivilege;
 import de.osthus.ambeth.proxy.IEntityMetaDataHolder;
 import de.osthus.ambeth.proxy.IObjRefContainer;
+import de.osthus.ambeth.security.ISecurityActivation;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.threading.IGuiThreadHelper;
@@ -70,8 +73,14 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	@Autowired
 	protected IThreadLocalObjectCollector objectCollector;
 
+	@Autowired(optional = true)
+	protected IPrivilegeProvider privilegeProvider;
+
 	@Autowired
 	protected ISecondLevelCacheManager secondLevelCacheManager;
+
+	@Autowired(optional = true)
+	protected ISecurityActivation securityActivation;
 
 	@Autowired
 	protected ValueHolderContainerMixin valueHolderContainerTemplate;
@@ -275,9 +284,28 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 	protected void changeSecondLevelCacheIntern(CacheDependencyNode node, Set<CacheDirective> cacheDirective)
 	{
 		IRootCache rootCache = node.rootCache;
-		HashMap<IObjRef, RootCacheValue> objRefToLoadContainerDict = node.objRefToCacheValueMap;
-		IList<IObjRef> objRefsToLoad = node.objRefsToLoad.toList();
-		IList<Object> refreshResult = rootCache.getObjects(objRefsToLoad, cacheDirective);
+		HashMap<IObjRef, CacheValueAndPrivilege> objRefToLoadContainerDict = node.objRefToCacheValueMap;
+		HashSet<IObjRef> objRefsToLoad = new HashSet<IObjRef>(node.objRefsToLoad);
+
+		if (node.cacheChangeItems != null)
+		{
+			for (CacheChangeItem cci : node.cacheChangeItems)
+			{
+				if (cci == null)
+				{
+					continue;
+				}
+				objRefsToLoad.addAll(cci.updatedObjRefs);
+			}
+		}
+		IList<IObjRef> objRefs = objRefsToLoad.toList();
+		IList<Object> refreshResult = rootCache.getObjects(objRefs, cacheDirective);
+
+		IList<IPrivilege> privileges = null;
+		if (securityActivation != null && privilegeProvider != null && securityActivation.isFilterActivated())
+		{
+			privileges = privilegeProvider.getPrivilegesByObjRef(objRefs);
+		}
 		for (int a = refreshResult.size(); a-- > 0;)
 		{
 			RootCacheValue cacheValue = (RootCacheValue) refreshResult.get(a);
@@ -285,7 +313,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				continue;
 			}
-			objRefToLoadContainerDict.put(objRefsToLoad.get(a), cacheValue);
+			objRefToLoadContainerDict.put(objRefs.get(a), new CacheValueAndPrivilege(cacheValue, privileges != null ? privileges.get(a) : null));
 		}
 		checkCascadeRefreshNeeded(node);
 
@@ -565,7 +593,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		{
 			return;
 		}
-		HashMap<IObjRef, RootCacheValue> objRefToCacheValueMap = node.objRefToCacheValueMap;
+		HashMap<IObjRef, CacheValueAndPrivilege> objRefToCacheValueMap = node.objRefToCacheValueMap;
 		for (int c = cacheChangeItems.length; c-- > 0;)
 		{
 			CacheChangeItem cci = cacheChangeItems[c];
@@ -580,8 +608,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 			{
 				IObjRef objRefToUpdate = objectRefsToUpdate.get(a);
 				Object objectToUpdate = objectsToUpdate.get(a);
-				RootCacheValue cacheValue = objRefToCacheValueMap.get(objRefToUpdate);
-				if (cacheValue == null)
+				CacheValueAndPrivilege cacheValueAndPrivilege = objRefToCacheValueMap.get(objRefToUpdate);
+				if (cacheValueAndPrivilege == null)
 				{
 					// Current value in childCache is not in our interest here
 					continue;
@@ -592,6 +620,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 				{
 					continue;
 				}
+				RootCacheValue cacheValue = cacheValueAndPrivilege.cacheValue;
 				IObjRefContainer vhc = (IObjRefContainer) objectToUpdate;
 				for (int relationIndex = relationMembers.length; relationIndex-- > 0;)
 				{
@@ -678,6 +707,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 		parentCacheReadLock.lock();
 		try
 		{
+			HashMap<IObjRef, CacheValueAndPrivilege> objRefToCacheValueMap = node.objRefToCacheValueMap;
+
 			for (int a = cacheChangeItems.length; a-- > 0;)
 			{
 				CacheChangeItem cci = cacheChangeItems[a];
@@ -689,6 +720,7 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 
 				IList<IObjRef> deletedObjRefs = cci.deletedObjRefs;
 				IList<Object> objectsToUpdate = cci.updatedObjects;
+				IList<IObjRef> objRefsToUpdate = cci.updatedObjRefs;
 
 				de.osthus.ambeth.util.Lock writeLock = childCache.getWriteLock();
 
@@ -716,8 +748,10 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 					}
 					if (objectsToUpdate != null && objectsToUpdate.size() > 0)
 					{
-						for (Object objectInCache : objectsToUpdate)
+						for (int b = objectsToUpdate.size(); b-- > 0;)
 						{
+							Object objectInCache = objectsToUpdate.get(b);
+							IObjRef objRefInCache = objRefsToUpdate.get(b);
 							// Check if the objects still have their id. They may have lost them concurrently because this
 							// method here may be called from another thread (e.g. UI thread)
 							IEntityMetaData metaData = ((IEntityMetaDataHolder) objectInCache).get__EntityMetaData();
@@ -726,7 +760,8 @@ public class CacheDataChangeListener implements IEventListener, IEventTargetEven
 							{
 								continue;
 							}
-							if (!parentCache.applyValues(objectInCache, childCache))
+							CacheValueAndPrivilege cacheValueP = objRefToCacheValueMap.get(objRefInCache);
+							if (!parentCache.applyValues(objectInCache, childCache, cacheValueP.privilege))
 							{
 								if (log.isWarnEnabled())
 								{
