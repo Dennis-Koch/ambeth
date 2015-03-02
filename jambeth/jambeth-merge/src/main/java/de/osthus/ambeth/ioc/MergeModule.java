@@ -28,6 +28,7 @@ import de.osthus.ambeth.merge.IMergeController;
 import de.osthus.ambeth.merge.IMergeListenerExtendable;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.IMergeServiceExtensionExtendable;
+import de.osthus.ambeth.merge.IMergeTimeProvider;
 import de.osthus.ambeth.merge.IObjRefHelper;
 import de.osthus.ambeth.merge.ITechnicalEntityTypeExtendable;
 import de.osthus.ambeth.merge.IValueObjectConfigExtendable;
@@ -119,7 +120,7 @@ public class MergeModule implements IInitializingModule
 		beanContextFactory.registerBean(EntityMetaDataReader.class).autowireable(IEntityMetaDataReader.class);
 
 		beanContextFactory.registerBean(MergeServiceRegistry.class).autowireable(IMergeService.class, IMergeServiceExtensionExtendable.class,
-				IMergeListenerExtendable.class);
+				IMergeListenerExtendable.class, IMergeTimeProvider.class);
 
 		IBeanConfiguration valueObjectMap = beanContextFactory.registerBean(ValueObjectMap.class);
 

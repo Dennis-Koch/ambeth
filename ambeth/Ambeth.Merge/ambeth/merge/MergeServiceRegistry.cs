@@ -23,10 +23,11 @@ using Castle.Core.Interceptor;
 using Castle.DynamicProxy;
 #endif
 using De.Osthus.Ambeth.Proxy;
+using De.Osthus.Ambeth.Ioc.Threadlocal;
 
 namespace De.Osthus.Ambeth.Cache
 {
-    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable
+    public class MergeServiceRegistry : IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IThreadLocalCleanupBean
     {
         public class MergeOperation
         {
@@ -78,19 +79,45 @@ namespace De.Osthus.Ambeth.Cache
 
         protected readonly DefaultExtendableContainer<IMergeListener> mergeListeners = new DefaultExtendableContainer<IMergeListener>("mergeListener");
         
-        public IOriCollection Merge(ICUDResult cudResult, IMethodDescription methodDescription)
-	    {
-		    ParamChecker.AssertParamNotNull(cudResult, "cudResult");
+        [Forkable]
+	    protected readonly ThreadLocal<long?> startTimeTL = new ThreadLocal<long?>();
 
-            if (Transaction == null || Transaction.Active)
-		    {
-			    return MergeIntern(cudResult, methodDescription);
-		    }
-		    return Transaction.RunInLazyTransaction(delegate()
-			    {
-				    return MergeIntern(cudResult, methodDescription);
-			    });
+	    public void CleanupThreadLocal()
+	    {
+            // intended blank. Interface is just needed to make the @Forkable annotation work
 	    }
+
+        public IOriCollection Merge(ICUDResult cudResult, IMethodDescription methodDescription)
+        {
+            ParamChecker.AssertParamNotNull(cudResult, "cudResult");
+
+            long? startTime = startTimeTL.Value;
+            bool startTimeHasBeenSet = false;
+            if (!startTime.HasValue)
+            {
+                startTime = DateTimeUtil.CurrentTimeMillis();
+                startTimeTL.Value = startTime;
+                startTimeHasBeenSet = true;
+            }
+            try
+            {
+                if (Transaction == null || Transaction.Active)
+                {
+                    return MergeIntern(cudResult, methodDescription);
+                }
+                return Transaction.RunInLazyTransaction(delegate()
+                    {
+                        return MergeIntern(cudResult, methodDescription);
+                    });
+            }
+            finally
+            {
+                if (startTimeHasBeenSet)
+                {
+                    startTimeTL.Value = null;
+                }
+            }
+        }
 
 	    protected IOriCollection MergeIntern(ICUDResult cudResultOriginal, IMethodDescription methodDescription)
 	    {
@@ -587,6 +614,16 @@ namespace De.Osthus.Ambeth.Cache
                 mergeOperations.Add(mergeOperation);
             };
             return mergeOperations;
+        }
+
+        public long GetStartTime()
+        {
+            long? startTime = startTimeTL.Value;
+            if (!startTime.HasValue)
+            {
+                throw new Exception("No merge process is currently active");
+            }
+            return startTime.Value;
         }
 
 	    public void RegisterMergeServiceExtension(IMergeServiceExtension mergeServiceExtension, Type entityType)

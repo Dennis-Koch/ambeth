@@ -19,6 +19,8 @@ import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.DefaultExtendableContainer;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.extendable.ClassExtendableContainer;
+import de.osthus.ambeth.ioc.threadlocal.Forkable;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.incremental.IncrementalMergeState;
@@ -41,7 +43,8 @@ import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.ParamHolder;
 
-public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable
+public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensionExtendable, IMergeListenerExtendable, IMergeTimeProvider,
+		IThreadLocalCleanupBean
 {
 	public static class MergeOperation
 	{
@@ -112,23 +115,49 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 	protected final DefaultExtendableContainer<IMergeListener> mergeListeners = new DefaultExtendableContainer<IMergeListener>(IMergeListener.class,
 			"mergeListener");
 
+	@Forkable
+	protected final ThreadLocal<Long> startTimeTL = new ThreadLocal<Long>();
+
+	@Override
+	public void cleanupThreadLocal()
+	{
+		// intended blank. Interface is just needed to make the @Forkable annotation work
+	}
+
 	@Override
 	public IOriCollection merge(final ICUDResult cudResult, final IMethodDescription methodDescription)
 	{
 		ParamChecker.assertParamNotNull(cudResult, "cudResult");
-
-		if (transaction == null || transaction.isActive())
+		Long startTime = startTimeTL.get();
+		boolean startTimeHasBeenSet = false;
+		if (startTime == null)
 		{
-			return mergeIntern(cudResult, methodDescription);
+			startTime = Long.valueOf(System.currentTimeMillis());
+			startTimeTL.set(startTime);
+			startTimeHasBeenSet = true;
 		}
-		return transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IOriCollection>()
+		try
 		{
-			@Override
-			public IOriCollection invoke() throws Throwable
+			if (transaction == null || transaction.isActive())
 			{
 				return mergeIntern(cudResult, methodDescription);
 			}
-		});
+			return transaction.runInLazyTransaction(new IResultingBackgroundWorkerDelegate<IOriCollection>()
+			{
+				@Override
+				public IOriCollection invoke() throws Throwable
+				{
+					return mergeIntern(cudResult, methodDescription);
+				}
+			});
+		}
+		finally
+		{
+			if (startTimeHasBeenSet)
+			{
+				startTimeTL.set(null);
+			}
+		}
 	}
 
 	protected IOriCollection mergeIntern(final ICUDResult cudResultOriginal, final IMethodDescription methodDescription)
@@ -675,6 +704,17 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 			mergeOperations.add(mergeOperation);
 		}
 		return mergeOperations;
+	}
+
+	@Override
+	public long getStartTime()
+	{
+		Long startTime = startTimeTL.get();
+		if (startTime == null)
+		{
+			throw new IllegalStateException("No merge process is currently active");
+		}
+		return startTime.longValue();
 	}
 
 	@Override

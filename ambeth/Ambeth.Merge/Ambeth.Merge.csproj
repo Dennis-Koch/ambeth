@@ -69,6 +69,7 @@
     <Compile Include="ambeth\event\EntityMetaDataAddedEvent.cs" />
     <Compile Include="ambeth\merge\config\EntityMetaDataReader.cs" />
     <Compile Include="ambeth\merge\config\ValueObjectConfigReader.cs" />
+    <Compile Include="ambeth\merge\IMergeTimeProvider.cs" />
     <Compile Include="ambeth\merge\ICUDResultExtendable.cs" />
     <Compile Include="ambeth\merge\ICUDResultExtension.cs" />
     <Compile Include="ambeth\merge\ICUDResultPreprocessor.cs" />

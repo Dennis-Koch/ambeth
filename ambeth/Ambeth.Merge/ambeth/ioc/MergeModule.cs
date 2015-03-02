@@ -70,7 +70,8 @@ namespace De.Osthus.Ambeth.Ioc
 
             beanContextFactory.RegisterBean<EntityMetaDataReader>().Autowireable<IEntityMetaDataReader>();
 
-            beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable), typeof(IMergeListenerExtendable));
+            beanContextFactory.RegisterBean<MergeServiceRegistry>().Autowireable(typeof(IMergeService), typeof(IMergeServiceExtensionExtendable), typeof(IMergeListenerExtendable),
+                typeof(IMergeTimeProvider));
 
             IBeanConfiguration valueObjectMap = beanContextFactory.RegisterBean<ValueObjectMap>();
 
