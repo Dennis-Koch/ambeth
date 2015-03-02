@@ -230,6 +230,7 @@ public class AnnotationUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("% Any changes have to be done to the java class " + AnnotationUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Annotations}\n");
+			fw.append("\\label{ambeth:annotations}\n");
 			fw.append("\\begin{longtable}{ l c c c } \\hline \\textbf{Annotation} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
 			fw.append("\t\\endhead\n");
 			fw.append("\t\\hline\n");

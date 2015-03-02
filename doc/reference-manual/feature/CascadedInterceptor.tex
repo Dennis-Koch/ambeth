@@ -1,0 +1,10 @@
+\SetAPI{J-C}
+\section{CascadedInterceptor}
+\label{feature:CascadedInterceptor}
+\ClearAPI
+Multiple proxy beans can target the same bean. They are processed in the reverse order they are defined to proxy the target bean. To avoid the overhead of multiple proxy beans each with its own interceptor all calling the same target bean "CascadedInterceptor" exists. These special type of interceptors is able to find out that its target bean is also a proxy bean and directly calls the interceptor of its target proxy instead of calling the proxy bean.
+
+\def\showimgref{img/proxybeans2.png}
+\showimgfull{Interceptors / Proxy Beans}
+
+For only one proxy see \prettyref{feature:ProxyFactory}

@@ -1,0 +1,123 @@
+\chapter{Introduction}
+\label{Introduction}
+
+
+Ambeth is a Java and C\# framework with a vast amount of features and technology. The first version of Ambeth was created due to the development
+of a C\# UI / Server project. After a while the source code was translated into java and evolved to one of the core frameworks, used at OSTHUS(R) for server and client development.
+
+This document covers the Ambeth framework. The usage of components as well as the fundamental ideas and patterns, used in Ambeth are explained.
+
+As you can imaging, while taking a first look at the table of contents, the framework is very huge and the process of writing documentation is still an ongoing task. Please do not step back if you encounter \TODO parts in this document. If you need answers to this sections, just ask the technology@osthus.de team! We love to here your feedback.
+
+\section{The manual}
+This document is separated into 5 sections. The sections are described in the next chapters.
+\subsection{Modules}
+
+The \prettyref{ambeth:modules} are parts of Ambeth that can be bundled together to deliver a certain kind of functionality. There is of course a dependency between those module and 
+just using a single module won't work in the most cases. The dependencies between those modules are managed with \prettyref{stack:maven}. To support faster setting up your environment the
+necessary Maven dependency snippets are provided for every module for easy usage. For questions about Maven, please refer to the \prettyref{stack:maven} chapter of this manual.
+To even speed up the usage of Ambeth, so called "`ambeth-bundles"' are provided. For further questions please see the \prettyref{stack:bundles}.
+An example for a module is the \prettyref{module:Audit} module. Use this module if you need full \prettyref{regulations:21CFRPart11} Title 21 CFR Part 11 audit support for your application.
+
+\def\showimgref{img/platform-overview.png}
+\showimg{Ambeth Overview}
+
+\subsubsection{Core Components}
+%note, some of the content is copy and paste from the wiki, as of 27.02.2015
+\begin{itemize}
+	\item Inherent support for agile development \newline testability as a core concept
+	\item Seamless \newline identical concept, algorithms, implementation and API in Java and C\#
+	\item Extendable \newline component interaction is completely interface-based
+	\item Performance \newline e.g. Ambeth IOC more than 500\% runtime-performance compared to Spring IOC
+\end{itemize}
+
+\subsubsection{Rich Components}
+\begin{itemize}
+	\item Modular structure, enriches core functionality
+	\begin{itemize}
+		\item useable like a toolkit
+		\item modules not required can be skipped
+		\item or be customized/extended at runtime
+		\item or even be completely replaced by own solutions
+	\end{itemize}
+	\item Runs everywhere
+	\begin{itemize}
+		\item highly reusable code
+		\item can be applied to client as well as server environments
+	\end{itemize}
+\end{itemize}
+
+
+\subsubsection{Enterprise Components}
+\begin{itemize}
+	\item Extension to rich components with common enterprise functionality
+	\item In-Process security
+	\begin{itemize}
+		\item At service-level (even internal services), at field-level, at row-level
+		\item multi-client capability
+	\end{itemize}
+	\item Efficient \& Light-weight
+	\begin{itemize}
+		\item e.g. complete Ambeth enterprise stack fits in 9 mb of overall JVM heap (including JVM itself)
+	\end{itemize}
+	\item High Performance
+	\begin{itemize}
+		\item e.g. Ambeth Query more than 300\% improvement in runtime-performance compared to Hibernate
+	\end{itemize}
+\end{itemize}
+
+
+
+\subsection{Features}
+Refer to the \prettyref{ambeth:features} part of this document if you need information about the question ``I have work to do, how can help Ambeth me with that?''. This 
+chapter is focused on the functionality that Ambeth offers. It is worth reading this chapter in total, to get a complete overview of the possible situations to use Ambeth features. For example the \prettyref{feature:AccessorTypeProvider} offers you the possibility to call getter and setter with high performance for a given object.
+
+\subsection{Extendables}
+To allow a huge flexibility the feature \prettyref{feature:Extendable} offers a way of lose coupling functionality at runtime that enables application to get richer in features and functionality without even changing one line of code. Enable and disable behaviors at runtime and even enhance the Ambeth framework itself with new parts. A good example for the power of this feature is the \prettyref{extendable:IDedicatedConverterExtendable}. This extension point offers an easy and clean way to enrich the converter API of Ambeth. All core Ambeth extension points and the usage are documented in the chapter \prettyref{ambeth:extendables}.
+
+\subsection{Annotations}
+Annotations (\prettyref{ambeth:annotations}) used in different scenarios. Use them for example to tell Ambeth certain things about your code. For example, use the  \prettyref{annotation:BootstrapModule} to inform the Ambeth \prettyref{module:IoC} module about the modules of your application. Use the \prettyref{annotation:EntityEqualsAspect} annotation to let Ambeth generate functionality at runtime that.
+
+\subsection{Configurations}
+\prettyref{ambeth:configuration} are used for tweaking the performance of Ambeth for different environments e.g. the \prettyref{configuration:CacheLruThreshold} and also allow the configuration of certain modules for example the \prettyref{module:Persistence} module with the ``\prettyref{configuration:DatabaseConnection}'' configuration.
+
+\section{Ambeth Overview}
+The Ambeth Framework speeds up software development by allowing programmers to focus on business requirements rather than dealing with technical infrastructure code. It greatly simplifies the integration of data from various sources into customers application platforms. Real life experience enabled OSTHUS(R) to create the Ambeth Framework to overcome issues inherent with current open-source frameworks.
+
+
+\subsection{Why Ambeth?}
+
+\begin{itemize}
+	\item Similar to Spring, but enhanced ease of use and performance
+	\item Identical API for Java and .NET (other technologies would be possible)
+	\begin{itemize}
+		\item inclusion of .NET Silverlight (at present not covered by Spring)
+		\item improvements to Spring API for more consistency
+	\end{itemize}
+	\item Holistic base for all other concepts and implementations
+	\item Additional implementations of innovative design patterns (e.g. Ambeth Link-API)
+	\item Integrated unit test API including database setup/teardown and web service emulation
+	\item Identical API for Java and .NET
+\end{itemize}
+
+\subsection{Features}
+\subsubsection{Platform Independence}
+
+The Ambeth core is based on few open-source libraries that have proven to be stable, e.g. Apache CgLib and OW2 ASM for byte code-manipulation to provide generic functionality without reducing runtime-performance or processing throughput in any way. Ambeth provides reference implementations for common basic as well as high-level functionalities. The framework provides consistent abstraction layers on top of exchangeable technical implementation modules for different environments. This reduces the overall complexity of integration and allows developers to focus on project specific coding of  business logic needs.
+
+\subsubsection{List of features}
+
+\begin{itemize}
+	\item Consistent API both for Java and C\#
+	\item Consistent API for client and server (same programming model to access data)
+	\item Integration for C\# clients with Java back ends
+	\item WS-I compliant SOAP services, REST support
+	\item Handling of large data sets using object oriented programming
+	\item Strictly batch-oriented API
+	\item Automated data change detection
+	\item Optimization of transferred data amounts, compression and transport protocols
+	\item Client- and server based caching, in memory management of data objects
+	\item Approved and versiond stack of compatible open-source libraries
+\end{itemize}
+
+
