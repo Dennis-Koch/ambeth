@@ -127,6 +127,7 @@
     <Compile Include="ambeth\merge\IMergeSecurityManager.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtension.cs" />
     <Compile Include="ambeth\merge\IMergeServiceExtensionExtendable.cs" />
+    <Compile Include="ambeth\merge\IMergeTimeProvider.cs" />
     <Compile Include="ambeth\merge\incremental\IIncrementalMergeState.cs" />
     <Compile Include="ambeth\merge\incremental\IncrementalMergeState.cs" />
     <Compile Include="ambeth\merge\incremental\StateEntry.cs" />
