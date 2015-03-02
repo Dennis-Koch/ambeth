@@ -249,6 +249,7 @@ public class ExtendableUpdater extends AbstractLatexScanner implements IStarting
 			fw.append("% Any changes have to be done to the java class " + ExtendableUpdater.class.getName() + "\n");
 			fw.append("%---------------------------------------------------------------\n");
 			fw.append("\\chapter{Ambeth Extension Points}\n");
+			fw.append("\\label{ambeth:extendables}\n");
 			fw.append("\\begin{landscape}\n");
 			fw.append("\\begin{longtable}{ l l c c c } \\hline \\textbf{Extension Point} & \\textbf{Extension} & \\textbf{Java} & \\textbf{C\\#} & \\textbf{Javascript} \\\n");
 			fw.append("\t\\endhead\n");

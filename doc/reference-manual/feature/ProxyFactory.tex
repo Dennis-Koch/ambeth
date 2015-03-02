@@ -1,0 +1,18 @@
+\SetAPI{J-C}
+\section{ProxyFactory}
+\label{feature:ProxyFactory}
+\ClearAPI
+Cross cutting concerns are adressed by an approach of aspect oriented programming. Ambeth offers the functionality to define proxy beans containing interceptors to add their aspect. A proxy bean intercepts the method call to the target bean and redirects the call to the interceptor. When a proxy bean is defined to intercept a target bean the proxy bean is injected into all other dependent beans. This is done transparently to the target and dependent beans.
+
+\def\showimgref{img/proxybeans1.png}
+\showimgfull{Interceptors / Proxy Beans}
+
+There are several ways an interceptor may handle a method interception:
+
+\begin{itemize}
+	\item \textbf{Before}: The interceptor is called before the method of the target bean. While the interceptor can add functionality it is also possible to deny the target method call. The target bean, method and all parameter are available to the interceptor.
+	\item \textbf{After}: The interceptor is called after the method of the target bean. So the result of the target method call is available to the interceptor and may be changed before it is returned to the callee.
+	\item \textbf{Around}: The interceptor wraps the whole method call; this is a combination of the before and after approach. So the interceptor is called instead of the target method, do additional work, may or may not call the target method and may process the result of the target method in any way.
+\end{itemize}
+ 
+To use multiple proxies use the \prettyref{feature:CascadedInterceptor}.

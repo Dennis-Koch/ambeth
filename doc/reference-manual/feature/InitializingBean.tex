@@ -2,4 +2,4 @@
 \section{InitializingBean}
 \label{feature:InitializingBean}
 \ClearAPI
-\TODO
+The defined method "afterPropertiesSet" is called after all dependencies were set by the container. The order of the beans is determined by the hierarchy of the beans and by the bean priority. At this point the container is not completely initialized and some beans may not be instantiated and not all dependencies may be injected in other beans.
