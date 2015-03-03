@@ -82,7 +82,7 @@ public class JsMethodHandler implements IMethodHandler
 		if (hasOverloads)
 		{
 			// Add parameter type names to function name
-			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(parameters);
+			String methodNamePostfix = languageHelper.createOverloadedMethodNamePostfix(languageHelper.createTypeNamesFromParams(parameters));
 			writer.append(methodNamePostfix);
 		}
 		writer.append("\": function (");

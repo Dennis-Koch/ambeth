@@ -1,5 +1,7 @@
 package de.osthus.esmeralda.handler.js;
 
+import java.util.List;
+
 import javax.lang.model.element.VariableElement;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -36,7 +38,9 @@ public interface IJsHelper extends ILanguageHelper
 
 	String convertType(String typeName, boolean direct);
 
-	String createOverloadedMethodNamePostfix(IList<VariableElement> parameters);
+	String createOverloadedMethodNamePostfix(IList<String> parameters);
+
+	IList<String> createTypeNamesFromParams(List<VariableElement> params);
 
 	JavaClassInfo findClassInHierarchy(String className, JavaClassInfo current, IConversionContext context);
 
