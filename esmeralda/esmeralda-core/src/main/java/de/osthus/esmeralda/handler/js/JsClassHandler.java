@@ -111,12 +111,17 @@ public class JsClassHandler implements IClassHandler
 			return;
 		}
 
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+		HashSet<String> duplicateNamesSet = languageSpecific.getDuplicateNames();
+		duplicateNamesSet.clear();
+
 		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
 		ArrayList<String> duplicateNames = findFieldMethodNameCollisions(classInfo);
 
 		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
 		context.setSnippetManager(snippetManager);
 		context.setIndentationLevel(0);
+		duplicateNamesSet.addAll(duplicateNames);
 		try
 		{
 			writer.append("Ext.define(");
@@ -143,6 +148,7 @@ public class JsClassHandler implements IClassHandler
 		}
 		finally
 		{
+			duplicateNamesSet.clear();
 			context.setIndentationLevel(0);
 			context.setSnippetManager(null);
 		}
