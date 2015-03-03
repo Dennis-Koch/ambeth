@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -287,6 +288,50 @@ public class ASTHelper implements IASTHelper
 			}
 		}
 		return typeName;
+	}
+
+	@Override
+	public String getTypeNameForLiteralKind(Kind kind)
+	{
+		switch (kind)
+		{
+			case BOOLEAN_LITERAL:
+			{
+				return boolean.class.getName();
+			}
+			case CHAR_LITERAL:
+			{
+				return char.class.getName();
+			}
+			case FLOAT_LITERAL:
+			{
+				return float.class.getName();
+			}
+			case DOUBLE_LITERAL:
+			{
+				return double.class.getName();
+			}
+			case INT_LITERAL:
+			{
+				return int.class.getName();
+			}
+			case LONG_LITERAL:
+			{
+				return long.class.getName();
+			}
+			case STRING_LITERAL:
+			{
+				return String.class.getName();
+			}
+			case NULL_LITERAL:
+			{
+				return null;
+			}
+			default:
+			{
+				throw new RuntimeException("Kind not supported: " + kind);
+			}
+		}
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package de.osthus.esmeralda.handler.js.transformer;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.lang.model.element.VariableElement;
@@ -17,12 +18,16 @@ import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IMethodParameterProcessor;
 import de.osthus.esmeralda.handler.IOwnerWriter;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
+import de.osthus.esmeralda.handler.js.IMethodParamNameService;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.JavaClassInfo;
@@ -37,6 +42,9 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 	protected IConversionContext context;
 
 	@Autowired
+	protected IASTHelper astHelper;
+
+	@Autowired
 	protected IJsHelper languageHelper;
 
 	@Autowired(IJsOverloadManager.STATIC)
@@ -44,6 +52,9 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
+
+	@Autowired
+	protected IMethodParamNameService methodParamNameService;
 
 	@Override
 	public void processMethodParameters(JCMethodInvocation methodInvocation, String owner, ITransformedMethod transformedMethod, IOwnerWriter ownerWriter)
@@ -80,13 +91,14 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			writeThisIfLocalField(methodOwner, context);
 		}
 		String methodName = transformedMethod.getName();
-		writer.append(methodName);
 
 		if (!transformedMethod.isPropertyInvocation())
 		{
+			boolean isSuperConstructor = DefaultMethodTransformer.SUPER.equals(methodName);
+			String trueMethodName = methodName;
 			if (overloadManagerNonStatic.hasOverloads(transformedMethod) || overloadManagerStatic.hasOverloads(transformedMethod))
 			{
-				IList<VariableElement> paramsList = getParamsList(methodInvocation);
+				IList<String> paramsList = getParamsList(methodInvocation);
 				String overloadedMethodNamePostfix;
 				if (paramsList != null)
 				{
@@ -96,10 +108,18 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 				{
 					throw new SnippetTrigger("No names or types for called methods parameters available").setContext(methodInvocation.toString());
 				}
-				writer.append(overloadedMethodNamePostfix);
+
+				if (!isSuperConstructor)
+				{
+					trueMethodName += overloadedMethodNamePostfix;
+				}
+				else
+				{
+					trueMethodName = trueMethodName.replace(DefaultMethodTransformer.THIS, DefaultMethodTransformer.THIS + overloadedMethodNamePostfix);
+				}
 			}
-			writer.append('(');
-			if (DefaultMethodTransformer.SUPER.equals(methodName))
+			writer.append(trueMethodName).append('(');
+			if (isSuperConstructor)
 			{
 				writer.append("this, ");
 			}
@@ -116,7 +136,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		}
 		else if (arguments.size() == 1)
 		{
-			writer.append(" = ");
+			writer.append(methodName).append(" = ");
 			JCExpression argument = arguments.get(0);
 			languageHelper.writeExpressionTree(argument);
 			writer.append(';');
@@ -124,6 +144,10 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		else if (arguments.size() > 0)
 		{
 			throw new IllegalStateException("Property assignment with multiple values not supported: " + methodInvocation);
+		}
+		else
+		{
+			writer.append(methodName);
 		}
 	}
 
@@ -138,15 +162,17 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		}
 	}
 
-	protected IList<VariableElement> getParamsList(JCMethodInvocation methodInvocation)
+	protected IList<String> getParamsList(final JCMethodInvocation methodInvocation)
 	{
-		IList<VariableElement> paramsList = new ArrayList<VariableElement>();
-
-		if (methodInvocation.meth == null)
+		if (methodInvocation.meth == null && methodInvocation.args == null)
 		{
 			return null;
-			// return paramsList;
 		}
+
+		IList<String> paramsList = new ArrayList<>();
+
+		boolean processed = false;
+		String methodName = null;
 
 		if (methodInvocation.meth instanceof JCIdent)
 		{
@@ -154,10 +180,11 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			if (meth.sym != null)
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
+				processed = true;
 			}
 			else
 			{
-				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
+				methodName = meth.name.toString();
 			}
 		}
 		else if (methodInvocation.meth instanceof JCFieldAccess)
@@ -166,25 +193,107 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			if (meth.sym != null)
 			{
 				getParamsList(paramsList, (MethodSymbol) meth.sym);
+				processed = true;
 			}
 			else
 			{
-				throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
+				methodName = meth.name.toString();
 			}
 		}
-		else
+
+		if (!processed && methodInvocation.args != null)
 		{
-			throw new RuntimeException("Unknown type of methodInvocation.meth");
+			processed = extractParamTypesFromArgs(methodInvocation, paramsList);
+
+			if (!processed && methodName != null)
+			{
+				// paramsList contains null values
+				JavaClassInfo classInfo = context.getCurrent().getClassInfo();
+				String fqClassName;
+				if ("this".equals(methodName))
+				{
+					fqClassName = classInfo.getFqName();
+					methodName = "<init>";
+				}
+				else if ("super".equals(methodName))
+				{
+					fqClassName = classInfo.getNameOfSuperClass();
+					methodName = "<init>";
+				}
+				else
+				{
+					// TODO Think of something else. The methodParamNameService does only contain constructors.
+					return null;
+				}
+
+				String[] fqParamClassNames = paramsList.toArray(String.class);
+				String[] paramClassNames = methodParamNameService.getMethodParamClassNames(fqClassName, methodName, fqParamClassNames);
+
+				if (paramClassNames != null)
+				{
+					paramsList.clear();
+					paramsList.addAll(Arrays.asList(paramClassNames));
+
+					processed = true;
+				}
+			}
+		}
+
+		if (!processed)
+		{
+			return null;
 		}
 
 		return paramsList;
 	}
 
-	protected void getParamsList(IList<VariableElement> paramsList, MethodSymbol sym)
+	protected boolean extractParamTypesFromArgs(final JCMethodInvocation methodInvocation, final IList<String> paramsList)
+	{
+		Boolean processed = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<Boolean>()
+		{
+			@Override
+			public Boolean invoke() throws Throwable
+			{
+				IConversionContext context = DefaultMethodParameterProcessor.this.context.getCurrent();
+				ILanguageHelper languageHelper = context.getLanguageHelper();
+				com.sun.tools.javac.util.List<JCExpression> args = methodInvocation.args;
+				boolean processed = true;
+				int size = args.size();
+				for (int a = 0; a < size; a++)
+				{
+					JCExpression arg = args.get(a);
+					languageHelper.writeExpressionTree(arg);
+					String typeOnStack = context.getTypeOnStack();
+
+					if (typeOnStack == null)
+					{
+						paramsList.add(null);
+						processed = false;
+						continue;
+					}
+
+					JavaClassInfo paramClassInfo = context.resolveClassInfo(typeOnStack, true);
+					if (paramClassInfo == null)
+					{
+						throw new SnippetTrigger("No names for called methods parameters available").setContext(methodInvocation.toString());
+					}
+					String paramTypeName = paramClassInfo.getFqName();
+					paramsList.add(paramTypeName);
+				}
+				return Boolean.valueOf(processed);
+			}
+		});
+		return processed.booleanValue();
+	}
+
+	protected void getParamsList(IList<String> paramsList, MethodSymbol sym)
 	{
 		if (sym.params != null)
 		{
-			paramsList.addAll(sym.params);
+			@SuppressWarnings("unchecked")
+			List<VariableElement> retypedParams = (List<VariableElement>) (Object) sym.params;
+			IList<String> paramTypeNames = languageHelper.createTypeNamesFromParams(retypedParams);
+			paramsList.addAll(paramTypeNames);
 		}
 		else
 		{

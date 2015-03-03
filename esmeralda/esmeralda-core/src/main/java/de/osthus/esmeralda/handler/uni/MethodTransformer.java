@@ -11,7 +11,7 @@ import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
-import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
+import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -157,21 +157,23 @@ public class MethodTransformer implements IMethodTransformer
 
 	protected String[] parseArgumentTypes(final List<JCExpression> parameterTypes)
 	{
-		final String[] argTypes = new String[parameterTypes.size()];
-		astHelper.writeToStash(new IBackgroundWorkerDelegate()
+		String[] argTypes = astHelper.writeToStash(new IResultingBackgroundWorkerDelegate<String[]>()
 		{
 			@Override
-			public void invoke() throws Throwable
+			public String[] invoke() throws Throwable
 			{
 				IConversionContext context = MethodTransformer.this.context.getCurrent();
 				ILanguageHelper languageHelper = context.getLanguageHelper();
-				for (int a = 0, size = parameterTypes.size(); a < size; a++)
+				int size = parameterTypes.size();
+				String[] argTypes = new String[size];
+				for (int a = 0; a < size; a++)
 				{
 					JCExpression arg = parameterTypes.get(a);
 					languageHelper.writeExpressionTree(arg);
 					String typeOnStack = context.getTypeOnStack();
 					argTypes[a] = typeOnStack;
 				}
+				return argTypes;
 			}
 		});
 		return argTypes;

@@ -3,15 +3,19 @@ package de.osthus.esmeralda.handler.js;
 import java.util.Arrays;
 
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.ioc.IInitializingBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 
 public class MethodParamNameService implements IMethodParamNameService, IInitializingBean
 {
-	private static class MethodParamKey
+	public static class MethodParamKey
 	{
 		public static final String ANY = "*"; // Use only if no overloads exist
+
+		private static final HashSet<String> primitives = new HashSet<>(Arrays.asList(byte.class.getName(), char.class.getName(), short.class.getName(),
+				int.class.getName(), long.class.getName(), float.class.getName(), double.class.getName()));
 
 		private final String fqClassName;
 
@@ -83,6 +87,10 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 				{
 					continue;
 				}
+				if ((thisName == null && !primitives.contains(otherName)) || (otherName == null && !primitives.contains(thisName)))
+				{
+					continue;
+				}
 				if (!thisName.equals(otherName))
 				{
 					return false;
@@ -111,7 +119,9 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 	@LogInstance
 	private ILogger log;
 
-	protected static final HashMap<MethodParamKey, String[]> methodParamTypesToConstructorParamNames = new HashMap<>();
+	protected static final HashMap<MethodParamKey, String[]> methodParamTypesToMethodParamNames = new HashMap<>();
+
+	protected static final HashMap<MethodParamKey, MethodParamKey> methodParamTypesToMethodParamTypes = new HashMap<>();
 
 	@Override
 	public void afterPropertiesSet() throws Throwable
@@ -123,7 +133,7 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 	public String[] getConstructorParamNames(String fqClassName, String... fqParamClassNames)
 	{
 		ConstructorParamKey key = new ConstructorParamKey(fqClassName, fqParamClassNames);
-		String[] paramNames = get(key);
+		String[] paramNames = getNames(key);
 		return paramNames;
 	}
 
@@ -136,14 +146,42 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 		}
 
 		MethodParamKey key = new MethodParamKey(fqClassName, methodName, fqParamClassNames);
-		String[] paramNames = get(key);
+		String[] paramNames = getNames(key);
 		return paramNames;
 	}
 
-	protected String[] get(MethodParamKey key)
+	protected String[] getNames(MethodParamKey key)
 	{
-		String[] paramNames = methodParamTypesToConstructorParamNames.get(key);
+		String[] paramNames = methodParamTypesToMethodParamNames.get(key);
 		return paramNames;
+	}
+
+	@Override
+	public String[] getConstructorParamClassNames(String fqClassName, String... fqParamClassNames)
+	{
+		ConstructorParamKey key = new ConstructorParamKey(fqClassName, fqParamClassNames);
+		String[] registeredParamClassNames = getClassNames(key);
+		return registeredParamClassNames;
+	}
+
+	@Override
+	public String[] getMethodParamClassNames(String fqClassName, String methodName, String... fqParamClassNames)
+	{
+		if (!CONSTRUCTOR_NAME.equals(methodName))
+		{
+			throw new UnsupportedOperationException("Currently only constructors are supported");
+		}
+
+		MethodParamKey key = new MethodParamKey(fqClassName, methodName, fqParamClassNames);
+		String[] registeredParamClassNames = getClassNames(key);
+		return registeredParamClassNames;
+	}
+
+	protected String[] getClassNames(MethodParamKey key)
+	{
+		MethodParamKey originalKey = methodParamTypesToMethodParamTypes.get(key);
+		String[] registeredParamClassNames = originalKey != null ? Arrays.copyOf(originalKey.fqParamClassNames, originalKey.fqParamClassNames.length) : null;
+		return registeredParamClassNames;
 	}
 
 	private void init()
@@ -179,53 +217,53 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 		String pgNameCollections = "de.osthus.ambeth.collections.";
 
 		// Single String constructors
-		registerConstructor(new ConstructorParamKey(java.io.File.class, String.class), "pathname");
-		registerConstructor(new ConstructorParamKey(java.io.FileInputStream.class, String.class), "name");
-		registerConstructor(new ConstructorParamKey(java.io.FileOutputStream.class, String.class), "name");
-		registerConstructor(new ConstructorParamKey(StringBuilder.class, String.class), "str");
-		registerConstructor(new ConstructorParamKey(java.math.BigDecimal.class, String.class), "val");
-		registerConstructor(new ConstructorParamKey(java.math.BigDecimal.class, java.math.BigInteger.class), "val");
-		registerConstructor(new ConstructorParamKey(java.math.BigInteger.class, String.class), "val");
-		registerConstructor(new ConstructorParamKey(java.text.SimpleDateFormat.class, String.class), "pattern");
+		registerMethod(new ConstructorParamKey(java.io.File.class, String.class), "pathname");
+		registerMethod(new ConstructorParamKey(java.io.FileInputStream.class, String.class), "name");
+		registerMethod(new ConstructorParamKey(java.io.FileOutputStream.class, String.class), "name");
+		registerMethod(new ConstructorParamKey(StringBuilder.class, String.class), "str");
+		registerMethod(new ConstructorParamKey(java.math.BigDecimal.class, String.class), "val");
+		registerMethod(new ConstructorParamKey(java.math.BigDecimal.class, java.math.BigInteger.class), "val");
+		registerMethod(new ConstructorParamKey(java.math.BigInteger.class, String.class), "val");
+		registerMethod(new ConstructorParamKey(java.text.SimpleDateFormat.class, String.class), "pattern");
 
 		// Constructors on String
-		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameCharset), "bytes", "charset");
-		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameString), "bytes", "charsetName");
-		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameCharset), "bytes", "offset", "length",
-				"charset");
-		registerConstructor(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameString), "bytes", "offset", "length",
-				"charsetName");
-		registerConstructor(new ConstructorParamKey(fqNameString, fqNameCharArray), "value");
+		registerMethod(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameCharset), "bytes", "charset");
+		registerMethod(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameString), "bytes", "charsetName");
+		registerMethod(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameCharset), "bytes", "offset", "length", "charset");
+		registerMethod(new ConstructorParamKey(fqNameString, fqNameByteArray, fqNameSInt, fqNameSInt, fqNameString), "bytes", "offset", "length", "charsetName");
+		registerMethod(new ConstructorParamKey(fqNameString, fqNameCharArray), "value");
 
 		// Exception constructors
-		registerConstructor(new ConstructorParamKey(java.io.IOException.class, String.class), "message");
-		registerConstructor(new ConstructorParamKey(java.io.IOException.class, Throwable.class), "cause");
-		registerConstructor(new ConstructorParamKey(ClassCastException.class, String.class), "s");
-		registerConstructor(new ConstructorParamKey(IllegalArgumentException.class, String.class), "s");
-		registerConstructor(new ConstructorParamKey(IllegalArgumentException.class, String.class, Throwable.class), "message", "cause");
-		registerConstructor(new ConstructorParamKey(IllegalStateException.class, String.class), "s");
-		registerConstructor(new ConstructorParamKey(IllegalStateException.class, String.class, Throwable.class), "message", "cause");
-		registerConstructor(new ConstructorParamKey(NullPointerException.class, String.class), "s");
-		registerConstructor(new ConstructorParamKey(RuntimeException.class, String.class), "message");
-		registerConstructor(new ConstructorParamKey(RuntimeException.class, Throwable.class), "cause");
-		registerConstructor(new ConstructorParamKey(RuntimeException.class, String.class, Throwable.class), "message", "cause");
-		registerConstructor(new ConstructorParamKey(UnsupportedOperationException.class, String.class), "message");
+		registerMethod(new ConstructorParamKey(java.io.IOException.class, String.class), "message");
+		registerMethod(new ConstructorParamKey(java.io.IOException.class, Throwable.class), "cause");
+		registerMethod(new ConstructorParamKey(ClassCastException.class, String.class), "s");
+		registerMethod(new ConstructorParamKey(IllegalArgumentException.class, String.class), "s");
+		registerMethod(new ConstructorParamKey(IllegalArgumentException.class, String.class, Throwable.class), "message", "cause");
+		registerMethod(new ConstructorParamKey(IllegalStateException.class, String.class), "s");
+		registerMethod(new ConstructorParamKey(IllegalStateException.class, String.class, Throwable.class), "message", "cause");
+		registerMethod(new ConstructorParamKey(NullPointerException.class, String.class), "s");
+		registerMethod(new ConstructorParamKey(RuntimeException.class, String.class), "message");
+		registerMethod(new ConstructorParamKey(RuntimeException.class, Throwable.class), "cause");
+		registerMethod(new ConstructorParamKey(RuntimeException.class, String.class, Throwable.class), "message", "cause");
+		registerMethod(new ConstructorParamKey(RuntimeException.class, String.class, Throwable.class, boolean.class, boolean.class), "message", "cause",
+				"enableSuppression", "writableStackTrace");
+		registerMethod(new ConstructorParamKey(UnsupportedOperationException.class, String.class), "message");
 
 		// Java collections constructors
-		registerConstructor(new ConstructorParamKey(java.util.ArrayList.class, int.class), "initialCapacity");
-		registerConstructor(new ConstructorParamKey(java.util.ArrayList.class, Integer.class), "initialCapacity");
+		registerMethod(new ConstructorParamKey(java.util.ArrayList.class, int.class), "initialCapacity");
+		registerMethod(new ConstructorParamKey(java.util.ArrayList.class, Integer.class), "initialCapacity");
 		registerHashConstructors("java.util.HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors("java.util.HashMap", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 
 		// Ambeth collections constructors
-		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameSInt), "initialCapacity");
-		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameInteger), "initialCapacity");
-		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameCollection), "coll");
-		registerConstructor(new ConstructorParamKey(fqNameArrayList, fqNameObjectArray), "array");
-		registerConstructor(new ConstructorParamKey(fqNameSetLinkedEntry, fqNameSInt, "K", fqNameSetLinkedEntry), "hash", "key", "nextEntry");
-		registerConstructor(new ConstructorParamKey(fqNameListElem, MethodParamKey.ANY), "value");
-		registerConstructor(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameSFloat), "invalidKeyChecker", "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameFloat), "invalidKeyChecker", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqNameArrayList, fqNameSInt), "initialCapacity");
+		registerMethod(new ConstructorParamKey(fqNameArrayList, fqNameInteger), "initialCapacity");
+		registerMethod(new ConstructorParamKey(fqNameArrayList, fqNameCollection), "coll");
+		registerMethod(new ConstructorParamKey(fqNameArrayList, fqNameObjectArray), "array");
+		registerMethod(new ConstructorParamKey(fqNameSetLinkedEntry, fqNameSInt, "K", fqNameSetLinkedEntry), "hash", "key", "nextEntry");
+		registerMethod(new ConstructorParamKey(fqNameListElem, MethodParamKey.ANY), "value");
+		registerMethod(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameSFloat), "invalidKeyChecker", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqNameCleanupInvalidKeysSet, fqNameIInvalidKeyChecker, fqNameFloat), "invalidKeyChecker", "loadFactor");
 
 		registerHashConstructors(pgNameCollections + "HashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 		registerHashConstructors(pgNameCollections + "IdentityHashSet", fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
@@ -236,44 +274,44 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 		registerTupleHashMaps(pgNameCollections, fqNameSInt, fqNameInteger, fqNameSFloat, fqNameFloat);
 
 		// Other constructors
-		registerConstructor(new ConstructorParamKey(java.util.Date.class, long.class), "date");
-		registerConstructor(new ConstructorParamKey(java.sql.Date.class, long.class), "date");
-		registerConstructor(new ConstructorParamKey(java.sql.Timestamp.class, long.class), "time");
-		registerConstructor(new ConstructorParamKey(java.io.File.class, String.class, String.class), "parent", "child");
-		registerConstructor(new ConstructorParamKey(fqNameInputStreamReader, fqNameInputStream, fqNameCharset), "in", "cs");
-		registerConstructor(new ConstructorParamKey(fqNameOutputStreamWriter, fqNameOutputStream, fqNameCharset), "out", "cs");
-		registerConstructor(new ConstructorParamKey(fqNameBufferedInputStream, fqNameInputStream), "in");
-		registerConstructor(new ConstructorParamKey(fqNameBufferedOutputStream, fqNameOutputStream), "out");
-		registerConstructor(new ConstructorParamKey(fqNameFileInputStream, fqNameReader), "in");
-		registerConstructor(new ConstructorParamKey(java.io.FileInputStream.class, java.io.File.class), "file");
-		registerConstructor(new ConstructorParamKey(java.io.FileOutputStream.class, java.io.File.class, boolean.class), "file", "append");
-		registerConstructor(new ConstructorParamKey(fqNameByteArrayInputStream, fqNameByteArray), "buf");
-		registerConstructor(new ConstructorParamKey(fqNameBufferedReader, fqNameReader), "in");
-		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameWriter), "out");
-		registerConstructor(new ConstructorParamKey(fqNameBufferedWriter, fqNameOutputStreamWriter), "out");
-		registerConstructor(new ConstructorParamKey(java.util.concurrent.CountDownLatch.class, int.class), "count");
-		registerConstructor(new ConstructorParamKey(java.lang.ref.SoftReference.class, (Class<?>) null), "referent");
-		registerConstructor(new ConstructorParamKey(java.lang.ref.SoftReference.class, null, java.lang.ref.ReferenceQueue.class), "referent", "q");
-		registerConstructor(new ConstructorParamKey(java.lang.ref.WeakReference.class, (Class<?>) null), "referent");
-		registerConstructor(new ConstructorParamKey(java.lang.ref.WeakReference.class, null, java.lang.ref.ReferenceQueue.class), "referent", "q");
-		registerConstructor(new ConstructorParamKey(javax.management.ObjectName.class, String.class), "name");
+		registerMethod(new ConstructorParamKey(java.util.Date.class, long.class), "date");
+		registerMethod(new ConstructorParamKey(java.sql.Date.class, long.class), "date");
+		registerMethod(new ConstructorParamKey(java.sql.Timestamp.class, long.class), "time");
+		registerMethod(new ConstructorParamKey(java.io.File.class, String.class, String.class), "parent", "child");
+		registerMethod(new ConstructorParamKey(fqNameInputStreamReader, fqNameInputStream, fqNameCharset), "in", "cs");
+		registerMethod(new ConstructorParamKey(fqNameOutputStreamWriter, fqNameOutputStream, fqNameCharset), "out", "cs");
+		registerMethod(new ConstructorParamKey(fqNameBufferedInputStream, fqNameInputStream), "in");
+		registerMethod(new ConstructorParamKey(fqNameBufferedOutputStream, fqNameOutputStream), "out");
+		registerMethod(new ConstructorParamKey(fqNameFileInputStream, fqNameReader), "in");
+		registerMethod(new ConstructorParamKey(java.io.FileInputStream.class, java.io.File.class), "file");
+		registerMethod(new ConstructorParamKey(java.io.FileOutputStream.class, java.io.File.class, boolean.class), "file", "append");
+		registerMethod(new ConstructorParamKey(fqNameByteArrayInputStream, fqNameByteArray), "buf");
+		registerMethod(new ConstructorParamKey(fqNameBufferedReader, fqNameReader), "in");
+		registerMethod(new ConstructorParamKey(fqNameBufferedWriter, fqNameWriter), "out");
+		registerMethod(new ConstructorParamKey(fqNameBufferedWriter, fqNameOutputStreamWriter), "out");
+		registerMethod(new ConstructorParamKey(java.util.concurrent.CountDownLatch.class, int.class), "count");
+		registerMethod(new ConstructorParamKey(java.lang.ref.SoftReference.class, (Class<?>) null), "referent");
+		registerMethod(new ConstructorParamKey(java.lang.ref.SoftReference.class, null, java.lang.ref.ReferenceQueue.class), "referent", "q");
+		registerMethod(new ConstructorParamKey(java.lang.ref.WeakReference.class, (Class<?>) null), "referent");
+		registerMethod(new ConstructorParamKey(java.lang.ref.WeakReference.class, null, java.lang.ref.ReferenceQueue.class), "referent", "q");
+		registerMethod(new ConstructorParamKey(javax.management.ObjectName.class, String.class), "name");
 
 		// Other Ambeth constructors
-		registerConstructor(new ConstructorParamKey(de.osthus.ambeth.config.Properties.class, de.osthus.ambeth.config.IProperties.class), "parent");
-		registerConstructor(new ConstructorParamKey(de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter.class, int.class), "flags");
-		registerConstructor(new ConstructorParamKey(de.osthus.ambeth.appendable.AppendableStringBuilder.class, StringBuilder.class), "sb");
+		registerMethod(new ConstructorParamKey(de.osthus.ambeth.config.Properties.class, de.osthus.ambeth.config.IProperties.class), "parent");
+		registerMethod(new ConstructorParamKey(de.osthus.ambeth.repackaged.org.objectweb.asm.ClassWriter.class, int.class), "flags");
+		registerMethod(new ConstructorParamKey(de.osthus.ambeth.appendable.AppendableStringBuilder.class, StringBuilder.class), "sb");
 	}
 
 	protected static void registerHashConstructors(String fqClassName, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
 	{
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt), "initialCapacity");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger), "initialCapacity");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSFloat), "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameFloat), "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameSFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameFloat), "initialCapacity", "loadFactor");
-		registerConstructor(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameFloat), "initialCapacity", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameSInt), "initialCapacity");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameInteger), "initialCapacity");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameSFloat), "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameFloat), "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameSFloat), "initialCapacity", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameSInt, fqNameFloat), "initialCapacity", "loadFactor");
+		registerMethod(new ConstructorParamKey(fqClassName, fqNameInteger, fqNameFloat), "initialCapacity", "loadFactor");
 	}
 
 	protected static void registerTupleHashMaps(String pgNameCollections, String fqNameSInt, String fqNameInteger, String fqNameSFloat, String fqNameFloat)
@@ -298,13 +336,15 @@ public class MethodParamNameService implements IMethodParamNameService, IInitial
 			types[j++] = "V";
 			types[j++] = fqNameSInt;
 			types[j++] = fqNameEntry;
-			ConstructorParamKey constructorParamKey = new ConstructorParamKey(fqNameEntry, types);
-			methodParamTypesToConstructorParamNames.put(constructorParamKey, names);
+			ConstructorParamKey key = new ConstructorParamKey(fqNameEntry, types);
+			methodParamTypesToMethodParamNames.put(key, names);
+			methodParamTypesToMethodParamTypes.put(key, key);
 		}
 	}
 
-	protected static void registerConstructor(ConstructorParamKey key, String... paramNames)
+	protected static void registerMethod(MethodParamKey key, String... paramNames)
 	{
-		methodParamTypesToConstructorParamNames.put(key, paramNames);
+		methodParamTypesToMethodParamNames.put(key, paramNames);
+		methodParamTypesToMethodParamTypes.put(key, key);
 	}
 }

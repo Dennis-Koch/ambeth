@@ -454,7 +454,7 @@ public class JsHelper implements IJsHelper
 				{
 					String[] paramNames = new String[i];
 
-					String methodNamePostfix = createOverloadedMethodNamePostfix(method.getParameters());
+					String methodNamePostfix = createOverloadedMethodNamePostfix(createTypeNamesFromParams(method.getParameters()));
 					String fullMethodName = methodName + methodNamePostfix;
 					firstMethod = writeStringIfFalse(",", firstMethod);
 					newLineIndentIfFalse(singleMethod);
@@ -807,21 +807,19 @@ public class JsHelper implements IJsHelper
 	}
 
 	@Override
-	public String createOverloadedMethodNamePostfix(IList<VariableElement> parameters)
+	public String createOverloadedMethodNamePostfix(IList<String> paramTypeNames)
 	{
-		if (parameters.isEmpty())
+		if (paramTypeNames.isEmpty())
 		{
 			return "_none";
 		}
 		else
 		{
-			int length = parameters.size();
+			int length = paramTypeNames.size();
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < length; i++)
 			{
-				VariableElement param = parameters.get(i);
-				VarSymbol var = (VarSymbol) param;
-				String paramTypeName = var.type.toString();
+				String paramTypeName = paramTypeNames.get(i);
 				paramTypeName = removeGenerics(paramTypeName);
 				paramTypeName = paramTypeName.replaceAll("\\.", "_");
 				paramTypeName = StringConversionHelper.underscoreToCamelCase(objectCollector, paramTypeName);
@@ -833,6 +831,28 @@ public class JsHelper implements IJsHelper
 				sb.append('_').append(paramTypeName);
 			}
 			return sb.toString();
+		}
+	}
+
+	@Override
+	public IList<String> createTypeNamesFromParams(List<VariableElement> parameters)
+	{
+		if (parameters.isEmpty())
+		{
+			return new ArrayList<>();
+		}
+		else
+		{
+			int length = parameters.size();
+			ArrayList<String> paramTypeNames = new ArrayList<>();
+			for (int i = 0; i < length; i++)
+			{
+				VariableElement param = parameters.get(i);
+				VarSymbol var = (VarSymbol) param;
+				String paramTypeName = var.type.toString();
+				paramTypeNames.add(paramTypeName);
+			}
+			return paramTypeNames;
 		}
 	}
 

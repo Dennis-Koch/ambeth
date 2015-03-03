@@ -2,10 +2,13 @@ package de.osthus.esmeralda.handler.js;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.HashMap;
+import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
+import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.Method;
 
 public class JsOverloadManager implements IJsOverloadManager
@@ -13,6 +16,12 @@ public class JsOverloadManager implements IJsOverloadManager
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
+
+	@Autowired
+	protected IConversionContext context;
+
+	@Autowired
+	protected IMethodParamNameService methodParamNameService;
 
 	protected HashMap<String, HashMap<String, ArrayList<Method>>> overloadedMethods = new HashMap<>();
 
@@ -36,7 +45,28 @@ public class JsOverloadManager implements IJsOverloadManager
 	{
 		String fqClassName = transformedMethod.getOwner();
 		String methodName = transformedMethod.getName();
+
+		if (!DefaultMethodTransformer.SUPER.equals(methodName))
+		{
+			boolean hasOverloads = hasOverloads(fqClassName, methodName);
+			return hasOverloads;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.resolveClassInfo(fqClassName, true);
+		if (classInfo != null)
+		{
+			fqClassName = classInfo.getNameOfSuperClass();
+		}
+		methodName = DefaultMethodTransformer.THIS;
 		boolean hasOverloads = hasOverloads(fqClassName, methodName);
+
+		if (!hasOverloads)
+		{
+			String[] paramNames = methodParamNameService.getConstructorParamNames(fqClassName, transformedMethod.getArgumentTypes());
+			return paramNames != null;
+		}
+
 		return hasOverloads;
 	}
 
