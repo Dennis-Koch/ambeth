@@ -91,7 +91,8 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 			}
 			case PLUS:
 			{
-				writeSimpleBinary(" + ", binary);
+				String dominantType = writeSimpleBinary(" + ", binary);
+				context.setTypeOnStack(dominantType);
 				break;
 			}
 			case EQUAL_TO:
@@ -206,14 +207,44 @@ public class BinaryExpressionHandler extends AbstractExpressionHandler<JCBinary>
 		context.setTypeOnStack(boolean.class.getName());
 	}
 
-	protected void writeSimpleBinary(String operator, JCBinary binary)
+	protected String writeSimpleBinary(String operator, JCBinary binary)
 	{
 		IConversionContext context = this.context.getCurrent();
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
 		languageHelper.writeExpressionTree(binary.lhs);
+		String leftType = context.getTypeOnStack();
 		writer.append(operator);
 		languageHelper.writeExpressionTree(binary.rhs);
+		String rightType = context.getTypeOnStack();
+
+		String dominantType = getDominantType(leftType, rightType);
+		return dominantType;
+	}
+
+	protected String getDominantType(String left, String right)
+	{
+		if (left == null)
+		{
+			return right;
+		}
+		else if (right == null)
+		{
+			return left;
+		}
+		else if (left.equals(right))
+		{
+			return left;
+		}
+
+		String fqNameString = String.class.getName();
+		if (fqNameString.equals(left) || fqNameString.equals(right))
+		{
+			return fqNameString;
+		}
+
+		// TODO This imitates the previous (faulty) behavior. Implement comparisons for number types.
+		return right;
 	}
 }

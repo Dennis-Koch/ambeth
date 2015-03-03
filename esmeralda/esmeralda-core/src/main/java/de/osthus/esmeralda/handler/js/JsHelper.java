@@ -395,8 +395,22 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String prefix = model instanceof FieldInfo ? "m$p_" : "m$f_";
-		String name = (model instanceof MethodInfo && ((MethodInfo) model).isConstructor()) ? "constructor" : model.getName();
+		String prefix;
+		String name;
+		if (model instanceof FieldInfo)
+		{
+			prefix = "m$p_";
+			name = convertVariableName(model.getName());
+		}
+		else if (model instanceof MethodInfo)
+		{
+			prefix = "m$f_";
+			name = ((MethodInfo) model).isConstructor() ? "constructor" : model.getName();
+		}
+		else
+		{
+			throw new RuntimeException("Unknown model type: '" + model.getClass().getName() + "'");
+		}
 
 		newLineIndentWithCommaIfFalse(false);
 		writer.append('"').append(prefix).append(name).append("\": {");
@@ -651,12 +665,6 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		// TODO
-		// if (!getLanguageSpecific().getMethodScopeVars().contains(varName))
-		// {
-		// writer.append("this.");
-		// }
-
 		varName = convertVariableName(varName);
 
 		writer.append(varName);
@@ -668,6 +676,10 @@ public class JsHelper implements IJsHelper
 		if (RESERVED_WORDS.contains(varName))
 		{
 			varName += "_";
+		}
+		else if (getLanguageSpecific().getDuplicateNames().contains(varName))
+		{
+			varName += "_deDup";
 		}
 		return varName;
 	}
