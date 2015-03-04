@@ -14,11 +14,13 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.handler.IMethodHandler;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.misc.IEsmeFileUtil;
 import de.osthus.esmeralda.misc.IWriter;
@@ -55,6 +57,8 @@ public class CsClassHandler implements IClassHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		final JavaClassInfo classInfo = context.getClassInfo();
+
+		context.getPostProcesses().clear();
 
 		context.setIndentationLevel(0);
 		try
@@ -161,8 +165,9 @@ public class CsClassHandler implements IClassHandler
 			firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
 			writer.append("interface");
 		}
+
 		firstModifier = languageHelper.writeStringIfFalse(" ", firstModifier);
-		writer.append(classInfo.getName());
+		languageHelper.writeSimpleName(classInfo);
 
 		boolean firstInterfaceName = true;
 		String nameOfSuperClass = classInfo.getNameOfSuperClass();
@@ -210,18 +215,50 @@ public class CsClassHandler implements IClassHandler
 			public void invoke() throws Throwable
 			{
 				IConversionContext context = CsClassHandler.this.context.getCurrent();
-				if (classInfo.isAnonymous())
-				{
-					writeAnonymousClassBody(classInfo);
-				}
-				else
+				if (!classInfo.isAnonymous())
 				{
 					writeClassBody(classInfo);
 				}
-				for (IPostProcess postProcess : context.getPostProcesses())
+				else
 				{
-					postProcess.postProcess();
+					writeAnonymousClassBody(classInfo);
 				}
+
+				postProcessing(context);
+			}
+
+			protected void postProcessing(IConversionContext context)
+			{
+				final IList<IPostProcess> postProcesses = context.getPostProcesses();
+				if (postProcesses.isEmpty())
+				{
+					return;
+				}
+				if (!classInfo.isAnnotation())
+				{
+					throw new UnsupportedOperationException("PostProcessing only implemented for Annotations");
+				}
+
+				ILanguageHelper languageHelper = context.getLanguageHelper();
+				IWriter writer = context.getWriter();
+
+				String className = classInfo.getName();
+				String methodName = languageHelper.createMethodName(className);
+
+				languageHelper.newLineIndent();
+				languageHelper.newLineIndent();
+				writer.append("public ").append(methodName).append("()");
+				languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						for (IPostProcess postProcess : postProcesses)
+						{
+							postProcess.postProcess();
+						}
+					}
+				});
 			}
 		});
 	}
@@ -230,7 +267,6 @@ public class CsClassHandler implements IClassHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
 
 		for (Field field : classInfo.getFields())
 		{
@@ -238,45 +274,56 @@ public class CsClassHandler implements IClassHandler
 			context.setField(field);
 			fieldHandler.handle();
 		}
-		for (IVariable usedVariable : allUsedVariables)
+
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			languageHelper.newLineIndent();
-			writer.append("private ");
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-			writer.append(';');
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				languageHelper.newLineIndent();
+				writer.append("private ");
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+				writer.append(';');
+			}
+		});
+
 		languageHelper.newLineIndent();
 		languageHelper.newLineIndent();
 		writer.append("public ");
-		writer.append(classInfo.getName());
+		languageHelper.writeSimpleName(classInfo);
 		writer.append('(');
-		boolean firstVariable = true;
-		for (IVariable usedVariable : allUsedVariables)
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+			}
+		});
 		writer.append(')');
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				IConversionContext context = CsClassHandler.this.context.getCurrent();
-				IWriter writer = context.getWriter();
-				for (IVariable usedVariable : allUsedVariables)
+				languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 				{
-					languageHelper.newLineIndent();
-					writer.append("this.");
-					writer.append(usedVariable.getName());
-					writer.append(" = ");
-					writer.append(usedVariable.getName());
-					writer.append(";");
-				}
+					@Override
+					public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+					{
+						languageHelper.newLineIndent();
+						writer.append("this.");
+						writer.append(usedVariable.getName());
+						writer.append(" = ");
+						writer.append(usedVariable.getName());
+						writer.append(";");
+					}
+				});
 			}
 		});
 		for (Method method : classInfo.getMethods())
@@ -316,7 +363,7 @@ public class CsClassHandler implements IClassHandler
 				if (statements.size() == 1 && "super()".equals(statements.toString()))
 				{
 					// default constructor without a single statement in its body can be omitted
-					// the single statement is the mandatory call to
+					// the single statement is the mandatory call to the super constructor
 					continue;
 				}
 			}

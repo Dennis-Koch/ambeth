@@ -11,6 +11,8 @@ import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransform
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangClassTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilCollectionTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilIteratorTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaUtilListTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.StackTraceElementTransformer;
 import de.osthus.esmeralda.handler.uni.transformer.AbstractMethodTransformerExtension;
@@ -38,6 +40,8 @@ public class CsMethodTransformationModule implements IInitializingModule
 		registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectFieldTransformer.class, java.lang.reflect.Field.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaUtilCollectionTransformer.class, java.util.Collection.class);
+		registerMethodTransformerExtension(beanContextFactory, JavaUtilIteratorTransformer.class, java.util.Iterator.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaUtilListTransformer.class, java.util.List.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaIoPrintstreamTransformer.class, java.io.PrintStream.class);
 		registerMethodTransformerExtension(beanContextFactory, StackTraceElementTransformer.class, java.lang.StackTraceElement.class);

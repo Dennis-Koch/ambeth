@@ -25,10 +25,12 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IClasspathManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.handler.IMethodHandler;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.misc.IToDoWriter;
@@ -580,26 +582,21 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				HashSet<String> alreadyHandled = new HashSet<>();
-				boolean firstVar = true;
-				for (IVariable usedVariable : allUsedVariables)
+				languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 				{
-					String name = usedVariable.getName();
-					if (!alreadyHandled.add(name))
+					@Override
+					public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
 					{
-						// The IVariable instances have no equals(). So there are duplicates.
-						continue;
+						FieldInfo field = new FieldInfo();
+						field.setPrivateFlag(true);
+						field.setFieldType(usedVariable.getType());
+						field.setName(usedVariable.getName());
+						context.setField(field);
+
+						languageHelper.writeStringIfFalse(",", firstVariable);
+						fieldHandler.handle();
 					}
-
-					FieldInfo field = new FieldInfo();
-					field.setPrivateFlag(true);
-					field.setFieldType(usedVariable.getType());
-					field.setName(name);
-					context.setField(field);
-
-					firstVar = languageHelper.writeStringIfFalse(",", firstVar);
-					fieldHandler.handle();
-				}
+				});
 			}
 		});
 
@@ -885,7 +882,6 @@ public class JsClassHandler implements IClassHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
 
 		for (Field field : classInfo.getFields())
 		{
@@ -893,47 +889,59 @@ public class JsClassHandler implements IClassHandler
 			context.setField(field);
 			fieldHandler.handle();
 		}
-		for (IVariable usedVariable : allUsedVariables)
+
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			languageHelper.newLineIndent();
-			writer.append("private ");
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-			writer.append(';');
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				languageHelper.newLineIndent();
+				writer.append("private ");
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+				writer.append(';');
+			}
+		});
+
 		languageHelper.newLineIndent();
 		languageHelper.newLineIndent();
 		writer.append("public ");
-		writer.append(classInfo.getName());
+		languageHelper.writeSimpleName(classInfo);
 		writer.append('(');
-		boolean firstVariable = true;
-		for (IVariable usedVariable : allUsedVariables)
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+			}
+		});
 		writer.append(')');
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				IConversionContext context = JsClassHandler.this.context.getCurrent();
-				IWriter writer = context.getWriter();
-				for (IVariable usedVariable : allUsedVariables)
+				languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 				{
-					languageHelper.newLineIndent();
-					writer.append("this.");
-					writer.append(usedVariable.getName());
-					writer.append(" = ");
-					writer.append(usedVariable.getName());
-					writer.append(";");
-				}
+					@Override
+					public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+					{
+						languageHelper.newLineIndent();
+						writer.append("this.");
+						writer.append(usedVariable.getName());
+						writer.append(" = ");
+						writer.append(usedVariable.getName());
+						writer.append(";");
+					}
+				});
 			}
 		});
+
 		for (Method method : classInfo.getMethods())
 		{
 			if (method.isConstructor())

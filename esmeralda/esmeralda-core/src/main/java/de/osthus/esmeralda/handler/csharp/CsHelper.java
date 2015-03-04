@@ -40,6 +40,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -47,6 +48,8 @@ import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IWriter;
 import de.osthus.esmeralda.misc.Lang;
@@ -92,9 +95,11 @@ public class CsHelper implements ICsHelper
 		put(java.lang.Float.class.getName(), "float?");
 		put(java.lang.Double.class.getName(), "double?");
 		put(java.lang.String.class.getName(), "System.String");
-
 		put(java.io.InputStream.class.getName(), "System.IO.Stream");
 		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
+		put(java.util.Collection.class.getName(), "System.Collections.Generic.ICollection");
+		put(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
+		put(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
 		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
 		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
@@ -112,9 +117,9 @@ public class CsHelper implements ICsHelper
 		put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
-		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
+		// put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
-		put(java.util.Map.Entry.class.getName(), "De.Osthus.Ambeth.Collections.Entry");
+		put(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
 
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.TYPE.name(), "Class");
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PARAMETER.name(), "Parameter");
@@ -228,6 +233,40 @@ public class CsHelper implements ICsHelper
 		writer.append('}');
 	}
 
+	// TODO Move the next to method (and those from the JsHelper) to new class (?EsmeraldaHelper?)
+	@Override
+	public void forAllUsedVariables(IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		forAllUsedVariables(classInfo, usedVariableDelegate);
+	}
+
+	@Override
+	public void forAllUsedVariables(JavaClassInfo classInfo, IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IWriter writer = context.getWriter();
+		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		boolean firstVariable = true;
+		HashSet<String> alreadyHandled = new HashSet<>();
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			String name = usedVariable.getName();
+			if (!alreadyHandled.add(name))
+			{
+				// The IVariable instances have no equals(). So there are duplicates.
+				continue;
+			}
+
+			usedVariableDelegate.invoke(usedVariable, firstVariable, context, languageHelper, writer);
+			firstVariable = false;
+		}
+	}
+
 	@Override
 	public void writeAsTypeOf(String typeName)
 	{
@@ -278,15 +317,25 @@ public class CsHelper implements ICsHelper
 					// in C# the type handle is not generic so we intentionally "lose" the generic type information here
 					return;
 				}
-				writer.append('<');
 
+				writer.append('<');
 				String typeArguments = genericTypeMatcher.group(2);
 				String[] typeArgumentsSplit = astHelper.splitTypeArgument(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
 					firstArgument = writeStringIfFalse(",", firstArgument);
-					writeTypeIntern(typeArgumentSplit, direct);
+					typeArgumentSplit = ASTHelper.genericTypeExtendsPattern.matcher(typeArgumentSplit).replaceAll("");
+					Matcher matcher = ASTHelper.questionmarkPattern.matcher(typeArgumentSplit);
+					if (matcher.find())
+					{
+						typeArgumentSplit = matcher.replaceAll("Object");
+						writeTypeIntern(typeArgumentSplit, true);
+					}
+					else
+					{
+						writeTypeIntern(typeArgumentSplit, direct);
+					}
 				}
 				writer.append('>');
 				return;
@@ -294,9 +343,8 @@ public class CsHelper implements ICsHelper
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
-				String[] typeNameSplit = dotSplit.split(createNamespace(typeName));
-				typeNameSplit = camelCaseName(typeNameSplit);
-				mappedTypeName = new String[] { StringConversionHelper.implode(objectCollector, typeNameSplit, ".") };
+				typeName = createFqName(typeName);
+				mappedTypeName = new String[] { typeName };
 			}
 			else
 			{
@@ -331,7 +379,7 @@ public class CsHelper implements ICsHelper
 			}
 
 		}
-		writer.append(mappedTypeName[0]);
+		writer.append(removeDollars(mappedTypeName[0]));
 	}
 
 	@Override
@@ -360,7 +408,12 @@ public class CsHelper implements ICsHelper
 	@Override
 	public void writeSimpleName(JavaClassInfo classInfo)
 	{
-		throw new UnsupportedOperationException("Not yet implemented");
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String className = classInfo.getName();
+		className = removeDollars(className);
+		writer.append(className);
 	}
 
 	@Override
@@ -412,6 +465,20 @@ public class CsHelper implements ICsHelper
 		return namespace;
 	}
 
+	private String createFqName(String fqTypeName)
+	{
+		Pattern fqNamePattern = Pattern.compile("((.+)\\.)([^\\.]+?)");
+		Matcher matcher = fqNamePattern.matcher(fqTypeName);
+		if (matcher.matches())
+		{
+			String packageName = matcher.group(2);
+			String simpleName = matcher.group(3);
+			packageName = createNamespace(packageName);
+			fqTypeName = packageName + "." + simpleName;
+		}
+		return fqTypeName;
+	}
+
 	@Override
 	public String createNamespace(String packageName)
 	{
@@ -431,10 +498,32 @@ public class CsHelper implements ICsHelper
 		}
 
 		String[] packageSplit = dotSplit.split(packageName);
+		checkForInnerClassPackage(packageSplit);
 		packageSplit = camelCaseName(packageSplit);
 		String namespace = StringConversionHelper.implode(objectCollector, packageSplit, ".");
 
 		return namespace;
+	}
+
+	/**
+	 * Prevents a collision between a class name and a package name.
+	 * 
+	 * @param packageSplit
+	 *            Parts of the package name
+	 */
+	protected void checkForInnerClassPackage(String[] packageSplit)
+	{
+		Pattern upperCasePattern = Pattern.compile("^[A-Z].*");
+		for (int i = packageSplit.length; i-- > 0;)
+		{
+			String part = packageSplit[i];
+			if (!upperCasePattern.matcher(part).matches())
+			{
+				break;
+			}
+
+			packageSplit[i] = part + "NS";
+		}
 	}
 
 	protected String[] camelCaseName(String[] strings)
@@ -450,8 +539,16 @@ public class CsHelper implements ICsHelper
 	@Override
 	public String createMethodName(String methodName)
 	{
+		methodName = methodName.split("<", 2)[0]; // Generics are written elsewhere
+		methodName = removeDollars(methodName);
 		methodName = StringConversionHelper.upperCaseFirst(objectCollector, methodName);
 		return methodName;
+	}
+
+	protected String removeDollars(String name)
+	{
+		name = name.replaceAll("\\$", "_");
+		return name;
 	}
 
 	@Override
@@ -651,7 +748,7 @@ public class CsHelper implements ICsHelper
 			writer.append(propertyName).append(" = ");
 			writer.append(entry.getValue().toString());
 		}
-		writer.append(')');
+		writer.append(")]");
 	}
 
 	@Override
