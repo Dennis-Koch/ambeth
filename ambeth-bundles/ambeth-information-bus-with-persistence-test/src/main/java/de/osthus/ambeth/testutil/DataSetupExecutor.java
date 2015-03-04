@@ -39,6 +39,9 @@ public class DataSetupExecutor implements IStartingBean
 	private ILogger log;
 
 	@Autowired
+	protected IAuditInfoController auditInfoController;
+
+	@Autowired
 	protected IPermissionGroupUpdater permissionGroupUpdater;
 
 	@Autowired
@@ -62,14 +65,11 @@ public class DataSetupExecutor implements IStartingBean
 		}
 	}
 
-	@Autowired
-	protected IAuditInfoController auditInfoController;
-
 	public void rebuildData()
 	{
+		auditInfoController.pushAuditReason("Data Rebuild!");
 		try
 		{
-			auditInfoController.pushAuditReason("Data Rebuild!");
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 			{
 				@Override
@@ -99,11 +99,14 @@ public class DataSetupExecutor implements IStartingBean
 					return null;
 				}
 			});
-			auditInfoController.removeAuditInfo();
 		}
 		catch (Throwable e)
 		{
 			throw RuntimeExceptionUtil.mask(e);
+		}
+		finally
+		{
+			auditInfoController.popAuditReason();
 		}
 	}
 }
