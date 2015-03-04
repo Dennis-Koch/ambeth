@@ -33,6 +33,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.AbstractExpressionHandler;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
 import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IMethodParamNameService;
@@ -210,7 +211,7 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		IConversionContext context = this.context.getCurrent();
 		IJsHelper languageHelper = (IJsHelper) context.getLanguageHelper();
 		IWriter writer = context.getWriter();
-		HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
+		final HashSet<String> methodScopeVars = languageHelper.getLanguageSpecific().getMethodScopeVars();
 
 		owner = getFqNameFromAnonymousName(def.sym.toString());
 		JavaClassInfo newClassInfo = context.resolveClassInfo(owner);
@@ -218,26 +219,21 @@ public class JsNewClassExpressionHandler extends AbstractExpressionHandler<JCNew
 		writer.append("Ext.create(\"");
 		languageHelper.writeType(owner);
 		writer.append("\", { ");
-
-		HashSet<String> alreadyHandled = new HashSet<>();
-		boolean firstParameter = true;
-		for (IVariable usedVariable : newClassInfo.getAllUsedVariables())
+		languageHelper.forAllUsedVariables(newClassInfo, new IUsedVariableDelegate()
 		{
-			String name = usedVariable.getName();
-			if (!alreadyHandled.add(name))
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
 			{
-				// The IVariable instances have no equals(). So there are duplicates.
-				continue;
+				languageHelper.writeStringIfFalse(", ", firstVariable);
+				String name = usedVariable.getName();
+				writer.append('"').append(name).append("\" : ");
+				if (!methodScopeVars.contains(name))
+				{
+					writer.append("this.");
+				}
+				writer.append(name);
 			}
-
-			firstParameter = languageHelper.writeStringIfFalse(", ", firstParameter);
-			writer.append('"').append(name).append("\" : ");
-			if (!methodScopeVars.contains(name))
-			{
-				writer.append("this.");
-			}
-			writer.append(name);
-		}
+		});
 		writer.append(" })");
 		context.setTypeOnStack(owner);
 	}

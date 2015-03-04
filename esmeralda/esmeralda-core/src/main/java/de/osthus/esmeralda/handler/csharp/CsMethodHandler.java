@@ -31,6 +31,7 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IMethodHandler;
@@ -115,7 +116,8 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeType(method.getReturnType());
 			writer.append(' ');
 		}
-		String methodName = languageHelper.createMethodName(method.getName());
+		String methodName = method.getName();
+		methodName = languageHelper.createMethodName(methodName);
 		// TODO: remind of the changed method name on all invocations
 
 		writer.append(methodName);
@@ -185,6 +187,7 @@ public class CsMethodHandler implements IMethodHandler
 				writer.append('>');
 			}
 		}
+
 		writer.append('(');
 		for (int a = 0, size = parameters.size(); a < size; a++)
 		{
@@ -346,7 +349,10 @@ public class CsMethodHandler implements IMethodHandler
 				public void postProcess()
 				{
 					IConversionContext context = CsMethodHandler.this.context.getCurrent();
+					ILanguageHelper languageHelper = context.getLanguageHelper();
 					IWriter writer = context.getWriter();
+
+					languageHelper.newLineIndent();
 					writer.append(propertyName).append(" = ");
 					if (defaultValue instanceof ExpressionTree)
 					{
@@ -356,6 +362,7 @@ public class CsMethodHandler implements IMethodHandler
 					{
 						writer.append(defaultValue.toString());
 					}
+					writer.append(";");
 				}
 			});
 		}

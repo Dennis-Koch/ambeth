@@ -35,6 +35,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.util.ParamChecker;
 import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
@@ -42,6 +43,8 @@ import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.handler.IStatementHandlerRegistry;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
+import de.osthus.esmeralda.handler.IVariable;
 import de.osthus.esmeralda.handler.uni.stmt.UniversalBlockHandler;
 import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
@@ -227,6 +230,39 @@ public class JsHelper implements IJsHelper
 		}
 		newLineIndent();
 		writer.append('}');
+	}
+
+	@Override
+	public void forAllUsedVariables(IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		forAllUsedVariables(classInfo, usedVariableDelegate);
+	}
+
+	@Override
+	public void forAllUsedVariables(JavaClassInfo classInfo, IUsedVariableDelegate usedVariableDelegate)
+	{
+		IConversionContext context = this.context.getCurrent();
+		ILanguageHelper languageHelper = context.getLanguageHelper();
+		IWriter writer = context.getWriter();
+		IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
+
+		boolean firstVariable = true;
+		HashSet<String> alreadyHandled = new HashSet<>();
+		for (IVariable usedVariable : allUsedVariables)
+		{
+			String name = usedVariable.getName();
+			if (!alreadyHandled.add(name))
+			{
+				// The IVariable instances have no equals(). So there are duplicates.
+				continue;
+			}
+
+			usedVariableDelegate.invoke(usedVariable, firstVariable, context, languageHelper, writer);
+			firstVariable = false;
+		}
 	}
 
 	@Override

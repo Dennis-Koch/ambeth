@@ -309,7 +309,7 @@ public class ConversionContext implements IConversionContext
 			{
 				return classInfoResolved(originalFqTypeName, nonGenericClassInfo);
 			}
-			if (nonGenericClassInfo.getFqName().equals(fqTypeName))
+			if (nonGenericClassInfo.getFqName().endsWith(fqTypeName))
 			{
 				return nonGenericClassInfo;
 			}

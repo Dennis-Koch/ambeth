@@ -37,6 +37,10 @@ public class ASTHelper implements IASTHelper
 {
 	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
 
+	public static final Pattern genericTypeExtendsPattern = Pattern.compile("\\? extends ");
+
+	public static final Pattern questionmarkPattern = Pattern.compile("\\?");
+
 	public static final HashSet<String> primitiveTypeSet = new HashSet<String>();
 
 	public static final HashSet<String> boxedPrimitiveTypeSet = new HashSet<String>();
