@@ -78,7 +78,7 @@ import de.osthus.ambeth.util.IPrefetchHelper;
 import de.osthus.ambeth.util.ParamHolder;
 
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, IAuditEntryVerifier, ITransactionListener, IStartingBean,
-		IAuditEntryWriterExtendable, IAuditReasonController
+		IAuditEntryWriterExtendable, IAuditInfoController
 {
 	public static class AuditControllerState
 	{
@@ -87,6 +87,9 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		public final IEntityMetaDataProvider entityMetaDataProvider;
 
 		public IAuditEntry auditEntry;
+
+		// private ArrayList<String> auditReasonContainer = new ArrayList<String>();
+		// private ArrayList<String> auditContextContainer = new ArrayList<String>();
 
 		public final ArrayList<CreateOrUpdateContainerBuild> auditedChanges = new ArrayList<CreateOrUpdateContainerBuild>();
 
@@ -104,6 +107,22 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			return entity;
 		}
 	}
+
+	public class AdditionalAuditInfo
+	{
+		private ArrayList<String> auditReasonContainer = new ArrayList<String>();
+		private ArrayList<String> auditContextContainer = new ArrayList<String>();
+	}
+
+	@Forkable
+	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<AuditController.AdditionalAuditInfo>()
+	{
+		@Override
+		protected AdditionalAuditInfo initialValue()
+		{
+			return new AdditionalAuditInfo();
+		};
+	};
 
 	@LogInstance
 	private ILogger log;
@@ -182,9 +201,6 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 
 	protected IPrefetchHandle prefetchAuditEntries;
 
-	@Forkable
-	private final ThreadLocal<String> auditReasonTL = new ThreadLocal<String>();
-
 	@Override
 	public void afterStarted() throws Throwable
 	{
@@ -199,12 +215,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void cleanupThreadLocal()
 	{
-		if (auditEntryTL.get() != null)
-		{
-			throw new IllegalStateException("Should never contain a value at this point");
-		}
-		auditReasonTL.set(null);
-		if (clearTextPasswordTL.get() != null)
+		if (auditEntryTL.get() != null || clearTextPasswordTL.get() != null)
 		{
 			throw new IllegalStateException("Should never contain a value at this point");
 		}
@@ -295,35 +306,29 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs)
 	{
-		try
+		if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
 		{
-			if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
-			{
-				// ignore this dataChange because it is our own Audit merge
-				return;
-			}
-			AuditControllerState auditControllerState = ensureAuditEntry();
-
-			List<Object> originalRefs = cudResult.getOriginalRefs();
-			List<IChangeContainer> allChanges = cudResult.getAllChanges();
-			HashMap<IObjRef, IDirectObjRef> objRefToRefMap = new HashMap<IObjRef, IDirectObjRef>();
-
-			for (int index = allChanges.size(); index-- > 0;)
-			{
-				IChangeContainer changeContainer = allChanges.get(index);
-				IObjRef updatedObjRef = updatedObjRefs[index];
-				Object originalRef = originalRefs.get(index);
-				auditChangeContainer(originalRef, updatedObjRef, changeContainer, auditControllerState, objRefToRefMap);
-			}
-			if (auditControllerState.auditedChanges.get(0).findRelation(IAuditEntry.Entities) != null)
-			{
-				auditControllerState.auditEntry.setReason(auditReasonTL.get());
-			}
+			// ignore this dataChange because it is our own Audit merge
+			return;
 		}
-		finally
+		AuditControllerState auditControllerState = ensureAuditEntry();
+
+		List<Object> originalRefs = cudResult.getOriginalRefs();
+		List<IChangeContainer> allChanges = cudResult.getAllChanges();
+		HashMap<IObjRef, IDirectObjRef> objRefToRefMap = new HashMap<IObjRef, IDirectObjRef>();
+
+		for (int index = allChanges.size(); index-- > 0;)
 		{
-			auditReasonTL.remove();
+			IChangeContainer changeContainer = allChanges.get(index);
+			IObjRef updatedObjRef = updatedObjRefs[index];
+			Object originalRef = originalRefs.get(index);
+			auditChangeContainer(originalRef, updatedObjRef, changeContainer, auditControllerState, objRefToRefMap);
 		}
+		if (auditControllerState.auditedChanges.get(0).findRelation(IAuditEntry.Entities) != null)
+		{
+			auditControllerState.auditEntry.setReason(peekAuditReason());
+		}
+		auditControllerState.auditEntry.setContext(peekAuditContext());
 	}
 
 	protected void auditChangeContainer(Object originalRef, IObjRef updatedObjRef, IChangeContainer changeContainer, AuditControllerState auditControllerState,
@@ -338,7 +343,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 
 		// test if audit reason is required and throw exception if its not set
-		if (auditConfiguration.isReasonRequired() && auditReasonTL.get() == null)
+		if (auditConfiguration.isReasonRequired() && peekAuditReason() == null)
 		{
 			throw new AuditReasonMissingException("Audit reason is missing for " + originalRef.getClass() + "!");
 		}
@@ -695,10 +700,51 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 	}
 
-	@Override
-	public void setAuditReason(String auditReason)
+	public AdditionalAuditInfo getAdditionalAuditInfo()
 	{
-		auditReasonTL.set(auditReason);
+		return additionalAuditInfoTL.get();
+	}
+
+	@Override
+	public void removeAuditInfo()
+	{
+		additionalAuditInfoTL.remove();
+	}
+
+	@Override
+	public void pushAuditReason(String auditReason)
+	{
+		getAdditionalAuditInfo().auditReasonContainer.add(auditReason);
+	}
+
+	@Override
+	public String popAuditReason()
+	{
+		return getAdditionalAuditInfo().auditReasonContainer.popLastElement();
+	}
+
+	@Override
+	public String peekAuditReason()
+	{
+		return getAdditionalAuditInfo().auditReasonContainer.peek();
+	}
+
+	@Override
+	public void pushAuditContext(String auditContext)
+	{
+		getAdditionalAuditInfo().auditContextContainer.add(auditContext);
+	}
+
+	@Override
+	public String popAuditContext()
+	{
+		return getAdditionalAuditInfo().auditContextContainer.popLastElement();
+	}
+
+	@Override
+	public String peekAuditContext()
+	{
+		return getAdditionalAuditInfo().auditContextContainer.peek();
 	}
 
 	@Override

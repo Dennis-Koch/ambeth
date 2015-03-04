@@ -8,6 +8,7 @@ import de.osthus.ambeth.audit.AuditMethodCallTest.AuditMethodCallTestModule;
 import de.osthus.ambeth.audit.model.IAuditEntry;
 import de.osthus.ambeth.audit.model.IAuditedEntity;
 import de.osthus.ambeth.audit.model.IAuditedEntityPrimitiveProperty;
+import de.osthus.ambeth.audit.model.IAuditedEntityRef;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationProperty;
 import de.osthus.ambeth.audit.model.IAuditedEntityRelationPropertyItem;
 import de.osthus.ambeth.audit.model.IAuditedService;
@@ -20,6 +21,7 @@ import de.osthus.ambeth.ioc.SecurityServerModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.ambeth.ioc.threadlocal.IThreadLocalCleanupBean;
 import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.merge.IMergeProcess;
@@ -92,6 +94,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 			beanContextFactory.registerBean(TestUserResolver.class).autowireable(IUserResolver.class);
 
 			beanContextFactory.link(IAuditedEntity.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntity.class);
+			beanContextFactory.link(IAuditedEntityRef.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRef.class);
 			beanContextFactory.link(IAuditedEntityPrimitiveProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityPrimitiveProperty.class);
 			beanContextFactory.link(IAuditedEntityRelationProperty.class).to(ITechnicalEntityTypeExtendable.class).with(AuditedEntityRelationProperty.class);
 			beanContextFactory.link(IAuditedEntityRelationPropertyItem.class).to(ITechnicalEntityTypeExtendable.class)
@@ -108,7 +111,7 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 	private ILogger log;
 
 	@Autowired
-	protected IAuditReasonController auditController;
+	protected IAuditInfoController auditController;
 
 	@Autowired
 	protected ITestAuditService testAuditService;
@@ -132,13 +135,15 @@ public class AuditMethodCallTest extends AbstractInformationBusWithPersistenceTe
 		User user = entityFactory.createEntity(User.class);
 		user.setName("MyName");
 
-		auditController.setAuditReason("junit test");
+		auditController.pushAuditReason("junit test");
 
 		Password password = entityFactory.createEntity(Password.class);
 		passwordUtil.assignNewPassword(passwordOfUser, password, user);
 		user.setPassword(password);
 
 		mergeProcess.process(user, null, null, null);
+		auditController.popAuditReason();
+		((IThreadLocalCleanupBean) auditController).cleanupThreadLocal();
 		Assert.assertTrue(user.getId() > 0);
 	}
 
