@@ -43,7 +43,6 @@ import de.osthus.ambeth.merge.IEntityMetaDataProvider;
 import de.osthus.ambeth.merge.IMergeListener;
 import de.osthus.ambeth.merge.IMergeProcess;
 import de.osthus.ambeth.merge.ProceedWithMergeHook;
-import de.osthus.ambeth.merge.incremental.IIncrementalMergeState;
 import de.osthus.ambeth.merge.model.CreateOrUpdateContainerBuild;
 import de.osthus.ambeth.merge.model.ICUDResult;
 import de.osthus.ambeth.merge.model.IChangeContainer;
@@ -57,7 +56,6 @@ import de.osthus.ambeth.merge.model.RelationUpdateItemBuild;
 import de.osthus.ambeth.merge.transfer.CUDResult;
 import de.osthus.ambeth.merge.transfer.CreateContainer;
 import de.osthus.ambeth.merge.transfer.DeleteContainer;
-import de.osthus.ambeth.merge.transfer.DirectObjRef;
 import de.osthus.ambeth.merge.transfer.UpdateContainer;
 import de.osthus.ambeth.persistence.IDatabase;
 import de.osthus.ambeth.security.IAuthorization;
@@ -80,50 +78,6 @@ import de.osthus.ambeth.util.ParamHolder;
 public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogger, IMergeListener, IAuditEntryVerifier, ITransactionListener, IStartingBean,
 		IAuditEntryWriterExtendable, IAuditInfoController
 {
-	public static class AuditControllerState
-	{
-		public final IIncrementalMergeState incrementalMergeState;
-
-		public final IEntityMetaDataProvider entityMetaDataProvider;
-
-		public IAuditEntry auditEntry;
-
-		// private ArrayList<String> auditReasonContainer = new ArrayList<String>();
-		// private ArrayList<String> auditContextContainer = new ArrayList<String>();
-
-		public final ArrayList<CreateOrUpdateContainerBuild> auditedChanges = new ArrayList<CreateOrUpdateContainerBuild>();
-
-		public AuditControllerState(IIncrementalMergeState incrementalMergeState, IEntityMetaDataProvider entityMetaDataProvider)
-		{
-			this.incrementalMergeState = incrementalMergeState;
-			this.entityMetaDataProvider = entityMetaDataProvider;
-		}
-
-		public CreateOrUpdateContainerBuild createEntity(Class<?> entityType)
-		{
-			CreateOrUpdateContainerBuild entity = incrementalMergeState.newCreateContainer(entityType);
-			entity.setReference(new DirectObjRef(entityMetaDataProvider.getMetaData(entityType).getEntityType(), entity));
-			auditedChanges.add(entity);
-			return entity;
-		}
-	}
-
-	public class AdditionalAuditInfo
-	{
-		private ArrayList<String> auditReasonContainer = new ArrayList<String>();
-		private ArrayList<String> auditContextContainer = new ArrayList<String>();
-	}
-
-	@Forkable
-	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<AuditController.AdditionalAuditInfo>()
-	{
-		@Override
-		protected AdditionalAuditInfo initialValue()
-		{
-			return new AdditionalAuditInfo();
-		};
-	};
-
 	@LogInstance
 	private ILogger log;
 
@@ -191,13 +145,10 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			"auditEntryWriter", "auditEntryProtocol");
 
 	@Forkable
+	private final ThreadLocal<AdditionalAuditInfo> additionalAuditInfoTL = new ThreadLocal<AdditionalAuditInfo>();
+
+	@Forkable
 	protected final ThreadLocal<AuditControllerState> auditEntryTL = new ThreadLocal<AuditControllerState>();
-
-	@Forkable
-	protected final ThreadLocal<Boolean> ownAuditMergeActiveTL = new ThreadLocal<Boolean>();
-
-	@Forkable
-	protected final ThreadLocal<char[]> clearTextPasswordTL = new ThreadLocal<char[]>();
 
 	protected IPrefetchHandle prefetchAuditEntries;
 
@@ -215,10 +166,11 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void cleanupThreadLocal()
 	{
-		if (auditEntryTL.get() != null || clearTextPasswordTL.get() != null)
+		if (auditEntryTL.get() != null || (additionalAuditInfoTL.get() != null && additionalAuditInfoTL.get().clearTextPassword != null))
 		{
 			throw new IllegalStateException("Should never contain a value at this point");
 		}
+		additionalAuditInfoTL.set(null);
 	}
 
 	protected AuditControllerState ensureAuditEntry()
@@ -240,7 +192,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			IAuthorization authorization = context != null ? context.getAuthorization() : null;
 			if (authorization != null)
 			{
-				clearTextPasswordTL.set(context.getAuthentication().getPassword());
+				getAdditionalAuditInfo().clearTextPassword = context.getAuthentication().getPassword();
 				final String currentSID = authorization.getSID();
 				IUser currentUser = securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<IUser>()
 				{
@@ -306,7 +258,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	@Override
 	public void postMerge(ICUDResult cudResult, IObjRef[] updatedObjRefs)
 	{
-		if (Boolean.TRUE.equals(ownAuditMergeActiveTL.get()))
+		if (Boolean.TRUE.equals(getAdditionalAuditInfo().ownAuditMergeActive))
 		{
 			// ignore this dataChange because it is our own Audit merge
 			return;
@@ -324,10 +276,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 			Object originalRef = originalRefs.get(index);
 			auditChangeContainer(originalRef, updatedObjRef, changeContainer, auditControllerState, objRefToRefMap);
 		}
-		if (auditControllerState.auditedChanges.get(0).findRelation(IAuditEntry.Entities) != null)
-		{
-			auditControllerState.auditEntry.setReason(peekAuditReason());
-		}
+		auditControllerState.auditEntry.setReason(peekAuditReason());
 		auditControllerState.auditEntry.setContext(peekAuditContext());
 	}
 
@@ -470,7 +419,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	protected void signAuditEntry(IAuditEntry auditEntry, CreateOrUpdateContainerBuild auditEntryContainer)
 	{
 		IUser user = auditEntry.getUser();
-		char[] clearTextPassword = clearTextPasswordTL.get();
+		char[] clearTextPassword = getAdditionalAuditInfo().clearTextPassword;
 
 		java.security.Signature signatureHandle = privateKeyProvider.getSigningHandle(user, clearTextPassword);
 		auditEntry.setUserIdentifier(user != null ? userIdentifierProvider.getSID(user) : null);
@@ -602,7 +551,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	public void handlePostRollback(long sessionId) throws Throwable
 	{
 		auditEntryTL.set(null);
-		clearTextPasswordTL.set(null);
+		getAdditionalAuditInfo().clearTextPassword = null;
 	}
 
 	@Override
@@ -615,7 +564,7 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 		auditEntryTL.set(null);
 
-		ownAuditMergeActiveTL.set(Boolean.TRUE);
+		getAdditionalAuditInfo().ownAuditMergeActive = Boolean.TRUE;
 		try
 		{
 			final ParamHolder<ICUDResult> cudResultHolder = new ParamHolder<ICUDResult>();
@@ -695,20 +644,26 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 		}
 		finally
 		{
-			ownAuditMergeActiveTL.set(null);
-			clearTextPasswordTL.set(null);
+			getAdditionalAuditInfo().ownAuditMergeActive = null;
+			getAdditionalAuditInfo().clearTextPassword = null;
 		}
 	}
 
 	public AdditionalAuditInfo getAdditionalAuditInfo()
 	{
-		return additionalAuditInfoTL.get();
+		AdditionalAuditInfo additionalAuditInfo = additionalAuditInfoTL.get();
+		if (additionalAuditInfo == null)
+		{
+			additionalAuditInfo = new AdditionalAuditInfo();
+			additionalAuditInfoTL.set(additionalAuditInfo);
+		}
+		return additionalAuditInfo;
 	}
 
 	@Override
 	public void removeAuditInfo()
 	{
-		additionalAuditInfoTL.remove();
+		additionalAuditInfoTL.set(null);
 	}
 
 	@Override
