@@ -43,13 +43,13 @@ public abstract class AbstractDatasetBuilder implements IDatasetBuilder
 
 	protected abstract void buildDatasetInternal();
 
-	private void beforeBuildDataset()
+	protected void beforeBuildDataset()
 	{
 		IdentityHashSet<Object> initialTestDataset = new IdentityHashSet<Object>();
 		initialTestDatasetTL.set(initialTestDataset);
 	}
 
-	private void afterBuildDataset()
+	protected void afterBuildDataset()
 	{
 		initialTestDatasetTL.remove();
 	}
