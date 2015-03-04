@@ -64,9 +64,21 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 
 		List<JCExpression> arguments = methodInvocation.getArguments();
 
+		boolean isSuperCall = false;
+
 		if (owner != null)
 		{
-			if (methodInvocation.meth instanceof JCFieldAccess)
+			if ("this".equals(owner))
+			{
+				// Nothing to do. "this." is written automatically elsewhere.
+			}
+			else if ("super".equals(owner))
+			{
+				writer.append("this.");
+				owner = "superclass";
+				isSuperCall = true;
+			}
+			else if (methodInvocation.meth instanceof JCFieldAccess)
 			{
 				JCExpression selected = ((JCFieldAccess) methodInvocation.meth).selected;
 				if (selected != null && selected instanceof JCIdent)
@@ -95,6 +107,7 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 		if (!transformedMethod.isPropertyInvocation())
 		{
 			boolean isSuperConstructor = DefaultMethodTransformer.SUPER.equals(methodName);
+			isSuperCall |= isSuperConstructor;
 			String trueMethodName = methodName;
 			if (overloadManagerNonStatic.hasOverloads(transformedMethod) || overloadManagerStatic.hasOverloads(transformedMethod))
 			{
@@ -118,19 +131,27 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 					trueMethodName = trueMethodName.replace(DefaultMethodTransformer.THIS, DefaultMethodTransformer.THIS + overloadedMethodNamePostfix);
 				}
 			}
-			writer.append(trueMethodName).append('(');
-			if (isSuperConstructor)
+			writer.append(trueMethodName);
+			boolean isFirstArgument = true;
+			if (!isSuperCall)
 			{
-				writer.append("this, ");
+				writer.append('(');
 			}
+			else
+			{
+				writer.append(".call(this");
+				isFirstArgument = false;
+			}
+
 			for (int a = 0, size = arguments.size(); a < size; a++)
 			{
 				JCExpression arg = arguments.get(a);
-				if (a > 0)
+				if (!isFirstArgument)
 				{
 					writer.append(", ");
 				}
 				languageHelper.writeExpressionTree(arg);
+				isFirstArgument = false;
 			}
 			writer.append(')');
 		}
