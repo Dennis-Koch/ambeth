@@ -41,6 +41,10 @@ public interface IAuditEntry
 
 	void setReason(String reason);
 
+	String getContext();
+
+	void setContext(String context);
+
 	ISignature getSignatureOfUser();
 
 	void setSignatureOfUser(ISignature signatureOfUser);
