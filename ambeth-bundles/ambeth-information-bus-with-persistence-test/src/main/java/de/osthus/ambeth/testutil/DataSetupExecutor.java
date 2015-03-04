@@ -2,6 +2,7 @@ package de.osthus.ambeth.testutil;
 
 import java.util.Collection;
 
+import de.osthus.ambeth.audit.IAuditInfoController;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
 import de.osthus.ambeth.ioc.IStartingBean;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -61,10 +62,14 @@ public class DataSetupExecutor implements IStartingBean
 		}
 	}
 
+	@Autowired
+	protected IAuditInfoController auditInfoController;
+
 	public void rebuildData()
 	{
 		try
 		{
+			auditInfoController.pushAuditReason("Data Rebuild!");
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
 			{
 				@Override
@@ -94,6 +99,7 @@ public class DataSetupExecutor implements IStartingBean
 					return null;
 				}
 			});
+			auditInfoController.removeAuditInfo();
 		}
 		catch (Throwable e)
 		{
