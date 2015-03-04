@@ -11,7 +11,7 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 {
 	public static final String THIS = "constructor";
 
-	public static final String SUPER = "superclass.constructor.call";
+	public static final String SUPER = "superclass.constructor";
 
 	@SuppressWarnings("unused")
 	@LogInstance
