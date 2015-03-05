@@ -74,6 +74,8 @@ public class CsHelper implements ICsHelper
 
 	protected static final Pattern dotSplit = Pattern.compile(Pattern.quote("."));
 
+	protected static final Pattern upperCaseStart = Pattern.compile("^[A-Z].*");
+
 	static
 	{
 		put("void", "void");
@@ -101,6 +103,7 @@ public class CsHelper implements ICsHelper
 		put(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
 		put(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(java.util.Map.class.getName(), "De.Osthus.Ambeth.Collections.IMap");
 		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
 		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
 		put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
@@ -120,6 +123,7 @@ public class CsHelper implements ICsHelper
 		// put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
 		put(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
+		put(java.util.concurrent.locks.Lock.class.getName(), "De.Osthus.Ambeth.Util.Lock");
 
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.TYPE.name(), "Class");
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PARAMETER.name(), "Parameter");
@@ -306,10 +310,10 @@ public class CsHelper implements ICsHelper
 				writer.append("[]");
 				return;
 			}
-			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-			if (genericTypeMatcher.matches())
+			String[] typeAndGeneric = astHelper.parseGenericType(typeName);
+			if (typeAndGeneric.length == 2)
 			{
-				String plainType = genericTypeMatcher.group(1);
+				String plainType = typeAndGeneric[0];
 
 				writeTypeIntern(plainType, direct);
 				if (Class.class.getName().equals(plainType))
@@ -319,18 +323,16 @@ public class CsHelper implements ICsHelper
 				}
 
 				writer.append('<');
-				String typeArguments = genericTypeMatcher.group(2);
+				String typeArguments = typeAndGeneric[1];
+				typeArguments = ASTHelper.genericTypeExtendsPattern.matcher(typeArguments).replaceAll("");
 				String[] typeArgumentsSplit = astHelper.splitTypeArgument(typeArguments);
 				boolean firstArgument = true;
 				for (String typeArgumentSplit : typeArgumentsSplit)
 				{
 					firstArgument = writeStringIfFalse(",", firstArgument);
-					typeArgumentSplit = ASTHelper.genericTypeExtendsPattern.matcher(typeArgumentSplit).replaceAll("");
-					Matcher matcher = ASTHelper.questionmarkPattern.matcher(typeArgumentSplit);
-					if (matcher.find())
+					if ("?".equals(typeArgumentSplit))
 					{
-						typeArgumentSplit = matcher.replaceAll("Object");
-						writeTypeIntern(typeArgumentSplit, true);
+						writeTypeIntern("Object", true);
 					}
 					else
 					{
@@ -422,6 +424,7 @@ public class CsHelper implements ICsHelper
 		IConversionContext context = this.context.getCurrent();
 		JavaClassInfo classInfo = context.getClassInfo();
 		File targetPath = context.getTargetPath();
+
 		Path relativeTargetPath = createRelativeTargetPath();
 		File targetFileDir = new File(targetPath, relativeTargetPath.toString());
 		targetFileDir.mkdirs();
@@ -433,8 +436,22 @@ public class CsHelper implements ICsHelper
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		String namespace = createNamespace();
-		String relativeTargetPathName = namespace.replace(".", File.separator);
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+
+		String packageName = classInfo.getPackageName();
+
+		String pathPrefixRemove = context.getPathPrefixRemove();
+		if (pathPrefixRemove != null && packageName.toLowerCase().startsWith(pathPrefixRemove.toLowerCase()))
+		{
+			int removeLength = pathPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
+		}
+
+		String[] packageSplit = dotSplit.split(packageName);
+		checkForInnerClassPackage(packageSplit);
+		packageSplit = camelCaseName(packageSplit);
+		String relativeTargetPathName = StringConversionHelper.implode(objectCollector, packageSplit, File.separator);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -485,7 +502,7 @@ public class CsHelper implements ICsHelper
 		IConversionContext context = this.context.getCurrent();
 
 		String nsPrefixRemove = context.getNsPrefixRemove();
-		if (packageName.toLowerCase().startsWith(nsPrefixRemove.toLowerCase()))
+		if (nsPrefixRemove != null && packageName.toLowerCase().startsWith(nsPrefixRemove.toLowerCase()))
 		{
 			int removeLength = nsPrefixRemove.length();
 			packageName = packageName.substring(removeLength);
@@ -499,6 +516,7 @@ public class CsHelper implements ICsHelper
 
 		String[] packageSplit = dotSplit.split(packageName);
 		checkForInnerClassPackage(packageSplit);
+		checkForWordException(packageSplit);
 		packageSplit = camelCaseName(packageSplit);
 		String namespace = StringConversionHelper.implode(objectCollector, packageSplit, ".");
 
@@ -513,16 +531,32 @@ public class CsHelper implements ICsHelper
 	 */
 	protected void checkForInnerClassPackage(String[] packageSplit)
 	{
-		Pattern upperCasePattern = Pattern.compile("^[A-Z].*");
 		for (int i = packageSplit.length; i-- > 0;)
 		{
 			String part = packageSplit[i];
-			if (!upperCasePattern.matcher(part).matches())
+			if (!upperCaseStart.matcher(part).matches())
 			{
 				break;
 			}
 
 			packageSplit[i] = part + "NS";
+		}
+	}
+
+	/**
+	 * Prevents a collision between the Exception class and a package name.
+	 * 
+	 * @param packageSplit
+	 */
+	private void checkForWordException(String[] packageSplit)
+	{
+		for (int i = 0, length = packageSplit.length; i < length; i++)
+		{
+			String part = packageSplit[i];
+			if ("exception".equalsIgnoreCase(part))
+			{
+				packageSplit[i] = part + "s";
+			}
 		}
 	}
 
@@ -777,20 +811,40 @@ public class CsHelper implements ICsHelper
 			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			writer.append("abstract");
 		}
+		boolean isStaticWritten = false;
 		if (javaClassModel.isStatic())
 		{
-			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
-			writer.append("static");
+			boolean isEnum = false;
+			boolean isInnerClass = false;
+			if (javaClassModel instanceof JavaClassInfo)
+			{
+				// A class cannot be static and sealed at the same time. Enums are generated as sealed.
+				// Also inner classes in Java are often declared static to be instantiatable independend from its owner - this has the opposite effect in C#.
+				JavaClassInfo javaClassInfo = (JavaClassInfo) javaClassModel;
+				isEnum = javaClassInfo.isEnum();
+				isInnerClass = "MEMBER".equals(javaClassInfo.getNestingKind());
+			}
+			if (!isEnum && !isInnerClass)
+			{
+				firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
+				writer.append("static");
+				isStaticWritten = true;
+			}
 		}
 		if (javaClassModel.isFinal())
 		{
-			firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 			if (javaClassModel instanceof JavaClassInfo)
 			{
-				writer.append("sealed");
+				// A class cannot be static and sealed at the same time
+				if (!isStaticWritten)
+				{
+					firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
+					writer.append("sealed");
+				}
 			}
 			else
 			{
+				firstKeyWord = writeStringIfFalse(" ", firstKeyWord);
 				writer.append("readonly");
 			}
 		}

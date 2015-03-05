@@ -84,7 +84,11 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
-			parameters[a] = parameterTypes[a].getName();
+			Class<?> parameterType = parameterTypes[a];
+			if (parameterType != null)
+			{
+				parameters[a] = parameterTypes[a].getName();
+			}
 		}
 		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false, writeOwner, isOwnerAType);
 		tm.setParameterProcessor(defaultMethodParameterProcessor);

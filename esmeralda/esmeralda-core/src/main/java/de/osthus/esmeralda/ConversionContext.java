@@ -64,6 +64,8 @@ public class ConversionContext implements IConversionContext
 
 	private File snippetPath;
 
+	private String pathPrefixRemove;
+
 	private String nsPrefixAdd;
 
 	private String nsPrefixRemove;
@@ -511,9 +513,9 @@ public class ConversionContext implements IConversionContext
 		String[] genericTypeOfClassInfo = astHelper.parseGenericType(classInfo.getFqName());
 		String[] typeArgumentsOfClassInfo = genericTypeOfClassInfo.length == 2 ? astHelper.splitTypeArgument(genericTypeOfClassInfo[1]) : null;
 		HashMap<String, String> templateToTypeInstanceMap = new HashMap<String, String>();
-		sb.append(classInfo.getName());
+		sb.append(astHelper.extractNonGenericType(classInfo.getName()));
 		boolean first = true;
-		for (int a = typeArgumentsSplit.length; a-- > 0;)
+		for (int a = 0, length = typeArgumentsSplit.length; a < length; a++)
 		{
 			if (first)
 			{
@@ -732,6 +734,17 @@ public class ConversionContext implements IConversionContext
 	public void setSnippetPath(File snippetPath)
 	{
 		this.snippetPath = snippetPath;
+	}
+
+	@Override
+	public String getPathPrefixRemove()
+	{
+		return pathPrefixRemove;
+	}
+
+	public void setPathPrefixRemove(String pathPrefixRemove)
+	{
+		this.pathPrefixRemove = pathPrefixRemove;
 	}
 
 	@Override

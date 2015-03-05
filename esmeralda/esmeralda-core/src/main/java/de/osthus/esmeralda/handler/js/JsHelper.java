@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.AnnotationValue;
@@ -37,7 +36,6 @@ import de.osthus.ambeth.util.StringConversionHelper;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.TypeUsing;
-import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
@@ -72,6 +70,8 @@ public class JsHelper implements IJsHelper
 			"isPrototypeOf", "NaN", "prototype", "undefined", "valueOf"));
 
 	protected static final HashMap<String, String[]> javaTypeToJsMap = new HashMap<String, String[]>();
+
+	protected static final Pattern dotSplit = Pattern.compile(Pattern.quote("."));
 
 	static
 	{
@@ -282,9 +282,19 @@ public class JsHelper implements IJsHelper
 	@Override
 	public Path createRelativeTargetPath()
 	{
-		String namespace = createNamespace();
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
 
-		String relativeTargetPathName = namespace.replace(".", File.separator);
+		String packageName = classInfo.getPackageName();
+
+		String pathPrefixRemove = context.getPathPrefixRemove();
+		if (pathPrefixRemove != null && packageName.toLowerCase().startsWith(pathPrefixRemove.toLowerCase()))
+		{
+			int removeLength = pathPrefixRemove.length();
+			packageName = packageName.substring(removeLength);
+		}
+
+		String relativeTargetPathName = packageName.replace('.', File.separatorChar);
 
 		String languagePath = context.getLanguagePath();
 		if (languagePath != null && !languagePath.isEmpty())
@@ -787,10 +797,10 @@ public class JsHelper implements IJsHelper
 				convertedType += "[]";
 				return convertedType;
 			}
-			Matcher genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-			if (genericTypeMatcher.matches())
+			String[] typeAndGeneric = astHelper.parseGenericType(typeName);
+			if (typeAndGeneric.length == 2)
 			{
-				String plainType = genericTypeMatcher.group(1);
+				String plainType = typeAndGeneric[0];
 				String convertedType = convertType(plainType, direct);
 				return convertedType;
 			}
@@ -798,11 +808,7 @@ public class JsHelper implements IJsHelper
 			if (!direct)
 			{
 				typeName = astHelper.resolveFqTypeFromTypeName(typeName);
-				genericTypeMatcher = ASTHelper.genericTypePattern.matcher(typeName);
-				if (genericTypeMatcher.matches())
-				{
-					typeName = genericTypeMatcher.group(1);
-				}
+				typeName = astHelper.extractNonGenericType(typeName);
 				typeName = prefixModification(typeName, context);
 				mappedTypeName = new String[] { StringConversionHelper.upperCaseFirst(objectCollector, typeName) };
 			}
