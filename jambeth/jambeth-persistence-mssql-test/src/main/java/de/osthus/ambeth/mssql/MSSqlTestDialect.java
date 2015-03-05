@@ -1,4 +1,4 @@
-package de.osthus.ambeth.oracle;
+package de.osthus.ambeth.mssql;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -20,7 +20,9 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.oracle.RandomUserScript.RandomUserModule;
+import de.osthus.ambeth.log.ILogger;
+import de.osthus.ambeth.log.LogInstance;
+import de.osthus.ambeth.mssql.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
@@ -29,11 +31,15 @@ import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.sql.ISqlBuilder;
 
-public class Oracle10gTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
+public class MSSqlTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
 {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
+
+	@SuppressWarnings("unused")
+	@LogInstance
+	private ILogger log;
 
 	@Autowired
 	protected IOrmPatternMatcher ormPatternMatcher;
@@ -131,8 +137,8 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			rs = stmt.executeQuery("SELECT tname FROM tab");
 			while (rs.next())
 			{
-				if (!Oracle10gDialect.BIN_TABLE_NAME.matcher(rs.getString("tname")).matches()
-						&& !Oracle10gDialect.IDX_TABLE_NAME.matcher(rs.getString("tname")).matches())
+				if (!MSSqlDialect.BIN_TABLE_NAME.matcher(rs.getString("tname")).matches()
+						&& !MSSqlDialect.IDX_TABLE_NAME.matcher(rs.getString("tname")).matches())
 				{
 					return false;
 				}
@@ -151,8 +157,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fullyQualifiedTableName) throws SQLException
 	{
-		if (Oracle10gDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches()
-				|| Oracle10gDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
+		if (MSSqlDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
 		{
 			return new String[0];
 		}
@@ -204,7 +209,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
-		sb.append(Integer.toString(Oracle10gDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
+		sb.append(Integer.toString(MSSqlDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
 		return new String[] { sb.toString() };
@@ -226,7 +231,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			while (rs.next())
 			{
 				String tableName = rs.getString("FULL_NAME");
-				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -320,7 +325,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
-				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -440,7 +445,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			while (rs.next())
 			{
 				String tableName = rs.getString(1);
-				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(tableName).matches() || Oracle10gDialect.IDX_TABLE_NAME.matcher(tableName).matches())
+				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -465,7 +470,7 @@ public class Oracle10gTestDialect extends AbstractConnectionTestDialect implemen
 			{
 				String objectType = rs.getString("object_type");
 				String objectName = rs.getString("object_name");
-				if (Oracle10gDialect.BIN_TABLE_NAME.matcher(objectName).matches() || Oracle10gDialect.IDX_TABLE_NAME.matcher(objectName).matches())
+				if (MSSqlDialect.BIN_TABLE_NAME.matcher(objectName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(objectName).matches())
 				{
 					continue;
 				}

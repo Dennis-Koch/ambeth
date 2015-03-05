@@ -40,6 +40,7 @@
 		<module>../jambeth-persistence-api-test</module>
 		<module>../jambeth-persistence-h2-test</module>
 		<module>../jambeth-persistence-jdbc-test</module>
+		<module>../jambeth-persistence-mssql-test</module>
 		<module>../jambeth-persistence-oracle11-test</module>
 		<module>../jambeth-platform-test</module>
 		<module>../jambeth-query-test</module>
