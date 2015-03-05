@@ -266,7 +266,7 @@ public class MergeServiceRegistry implements IMergeService, IMergeServiceExtensi
 		};
 		try
 		{
-			if (securityActive != null && securityActive.isFilterActivated())
+			if (securityActive == null || !securityActive.isFilterActivated())
 			{
 				return runnable.invoke();
 			}

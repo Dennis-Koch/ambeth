@@ -70,7 +70,7 @@ namespace De.Osthus.Ambeth.Cache
         [Autowired(Optional = true)]
         public IMergeSecurityManager MergeSecurityManager { protected get; set; }
 
-        [Autowired]
+        [Autowired(Optional = true)]
         public ISecurityActivation SecurityActive { protected get; set; }
 
         [Autowired(Optional = true)]
@@ -202,7 +202,7 @@ namespace De.Osthus.Ambeth.Cache
 					childCache.Dispose();
 				}
 		    });
-			if (SecurityActive != null && SecurityActive.FilterActivated)
+			if (SecurityActive == null || !SecurityActive.FilterActivated)
 			{
 				return runnable();
 			}
