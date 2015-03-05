@@ -38,7 +38,7 @@ public class DataSetupExecutor implements IStartingBean
 	@LogInstance
 	private ILogger log;
 
-	@Autowired
+	@Autowired(optional = true)
 	protected IAuditInfoController auditInfoController;
 
 	@Autowired
@@ -67,7 +67,10 @@ public class DataSetupExecutor implements IStartingBean
 
 	public void rebuildData()
 	{
-		auditInfoController.pushAuditReason("Data Rebuild!");
+		if (auditInfoController != null)
+		{
+			auditInfoController.pushAuditReason("Data Rebuild!");
+		}
 		try
 		{
 			securityActivation.executeWithoutSecurity(new IResultingBackgroundWorkerDelegate<Object>()
@@ -106,7 +109,10 @@ public class DataSetupExecutor implements IStartingBean
 		}
 		finally
 		{
-			auditInfoController.popAuditReason();
+			if (auditInfoController != null)
+			{
+				auditInfoController.popAuditReason();
+			}
 		}
 	}
 }
