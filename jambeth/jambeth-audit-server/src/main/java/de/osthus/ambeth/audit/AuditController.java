@@ -223,6 +223,8 @@ public class AuditController implements IThreadLocalCleanupBean, IMethodCallLogg
 	{
 		AuditControllerState auditControllerState = ensureAuditEntry();
 
+		auditControllerState.auditEntry.setContext(peekAuditContext());
+
 		CreateOrUpdateContainerBuild auditEntry = auditControllerState.auditedChanges.get(0);
 		RelationUpdateItemBuild servicesRUI = auditEntry.ensureRelation(IAuditEntry.Services);
 

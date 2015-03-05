@@ -21,6 +21,14 @@ public interface IAuditEntry
 
 	public static final String Entities = "Entities";
 
+	public static final String Reason = "Reason";
+
+	public static final String Context = "Context";
+
+	public static final String HashAlgorithm = "HashAlgorithm";
+
+	public static final String Signature = "Signature";
+
 	int getProtocol();
 
 	void setProtocol(int protocol);
