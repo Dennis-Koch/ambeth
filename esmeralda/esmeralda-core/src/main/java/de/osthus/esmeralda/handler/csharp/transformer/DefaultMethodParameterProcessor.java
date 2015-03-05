@@ -39,7 +39,8 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			ownerWriter.writeOwner(owner);
 			writer.append('.');
 		}
-		writer.append(transformedMethod.getName());
+		String methodName = transformedMethod.getName();
+		writer.append(methodName);
 
 		if (!transformedMethod.isPropertyInvocation())
 		{
@@ -55,7 +56,14 @@ public class DefaultMethodParameterProcessor implements IMethodParameterProcesso
 			}
 			writer.append(')');
 		}
-		else if (methodInvocation.getArguments().size() > 0)
+		else if (arguments.size() == 1)
+		{
+			writer.append(" = ");
+			JCExpression argument = arguments.get(0);
+			languageHelper.writeExpressionTree(argument);
+			writer.append(';');
+		}
+		else if (arguments.size() > 0)
 		{
 			// C# will be an assignment to a property (setter-semantics)
 			throw new IllegalStateException("Property assignment not yet supported: " + methodInvocation);

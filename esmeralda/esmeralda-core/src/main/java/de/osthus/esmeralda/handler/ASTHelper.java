@@ -2,7 +2,6 @@ package de.osthus.esmeralda.handler;
 
 import java.io.StringWriter;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.VariableElement;
@@ -35,8 +34,6 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ASTHelper implements IASTHelper
 {
-	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
-
 	public static final Pattern genericTypeExtendsPattern = Pattern.compile("\\? extends ");
 
 	public static final Pattern questionmarkPattern = Pattern.compile("\\?");
@@ -93,6 +90,7 @@ public class ASTHelper implements IASTHelper
 	public String[] parseGenericType(String fqTypeName)
 	{
 		int genericBracketCounter = 0;
+		int firstBracketOpening = -1;
 		int lastBracketOpening = -1;
 		int lastBracketClosing = -1;
 		for (int a = 0, size = fqTypeName.length(); a < size; a++)
@@ -104,6 +102,10 @@ public class ASTHelper implements IASTHelper
 				{
 					lastBracketOpening = a;
 					lastBracketClosing = -1;
+				}
+				if (firstBracketOpening == -1)
+				{
+					firstBracketOpening = a;
 				}
 				genericBracketCounter++;
 				continue;
@@ -136,7 +138,7 @@ public class ASTHelper implements IASTHelper
 		{
 			return new String[] { fqTypeName };
 		}
-		String nonGenericType = fqTypeName.substring(0, lastBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
+		String nonGenericType = fqTypeName.substring(0, firstBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
 		String genericTypeArguments = fqTypeName.substring(lastBracketOpening + 1, lastBracketClosing);
 		return new String[] { nonGenericType, genericTypeArguments };
 	}
@@ -144,12 +146,8 @@ public class ASTHelper implements IASTHelper
 	@Override
 	public String extractNonGenericType(String typeName)
 	{
-		Matcher paramGenericTypeMatcher = genericTypePattern.matcher(typeName);
-		if (paramGenericTypeMatcher.matches())
-		{
-			return paramGenericTypeMatcher.group(1);
-		}
-		return typeName;
+		String[] parts = typeName.split("<", 2);
+		return parts[0];
 	}
 
 	@Override

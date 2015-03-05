@@ -33,6 +33,8 @@ public interface IConversionContext
 
 	File getSnippetPath();
 
+	String getPathPrefixRemove();
+
 	void setFqNameToClassInfoMap(IMap<String, JavaClassInfo> fqNameToClassInfoMap);
 
 	IMap<String, JavaClassInfo> getFqNameToClassInfoMap();

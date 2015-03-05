@@ -211,13 +211,13 @@ public class ConversionManager implements IStartingBean
 		ConversionContext csContext = new ConversionContext();
 		csContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		csContext.setLanguage(Lang.C_SHARP);
-		csContext.setSnippetPath(snippetPath);
 		csContext.setTargetPath(targetPath);
+		csContext.setSnippetPath(snippetPath);
+		csContext.setPathPrefixRemove(NS_PREFIX_OSTHUS);
 		csContext.setLanguagePath(LANGUAGE_PATH_CSHARP);
 		csContext.setGenericTypeSupported(true);
 		csContext.setLanguageSpecific(csSpecific);
 		csContext.setMetric(csMetric);
-		csContext.setNsPrefixRemove(NS_PREFIX_OSTHUS);
 		csContext.setAstHelper(astHelper);
 		csContext.setClassInfoFactory(classInfoFactory);
 		csContext.setLanguageHelper(csHelper);
@@ -237,8 +237,9 @@ public class ConversionManager implements IStartingBean
 		ConversionContext jsContext = new ConversionContext();
 		jsContext.setFqNameToClassInfoMap(fqNameToClassInfoMap);
 		jsContext.setLanguage(Lang.JS);
-		jsContext.setSnippetPath(snippetPath);
 		jsContext.setTargetPath(targetPath);
+		jsContext.setSnippetPath(snippetPath);
+		jsContext.setPathPrefixRemove(NS_PREFIX_OSTHUS);
 		jsContext.setLanguagePath(LANGUAGE_PATH_JS);
 		jsContext.setGenericTypeSupported(false);
 		jsContext.setLanguageSpecific(jsSpecific);
@@ -258,8 +259,9 @@ public class ConversionManager implements IStartingBean
 		ConversionContext context = new ConversionContext();
 
 		context.setLanguage(defaultContext.getLanguage());
-		context.setSnippetPath(defaultContext.getSnippetPath());
 		context.setTargetPath(defaultContext.getTargetPath());
+		context.setSnippetPath(defaultContext.getSnippetPath());
+		context.setPathPrefixRemove(defaultContext.getPathPrefixRemove());
 		context.setLanguagePath(defaultContext.getLanguagePath());
 		context.setGenericTypeSupported(defaultContext.isGenericTypeSupported());
 		context.setLanguageSpecific(defaultContext.getLanguageSpecific());
