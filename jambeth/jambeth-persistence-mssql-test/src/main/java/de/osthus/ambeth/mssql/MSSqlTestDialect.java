@@ -50,7 +50,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)
 	protected String ignoredTableProperty;
 
-	@Property(name = ROOT_DATABASE_USER, defaultValue = "sys as sysdba")
+	@Property(name = ROOT_DATABASE_USER, defaultValue = "sa")
 	protected String rootDatabaseUser;
 
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
@@ -74,7 +74,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		{
 			return false;
 		}
-		if (((SQLException) reason).getErrorCode() != 1017) // ORA-01017: invalid username/password; logon denied
+		if (((SQLException) reason).getErrorCode() != 18456) // Login failed for user
 		{
 			return false;
 		}
@@ -125,7 +125,6 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		// intended blank
 	}
 
-	@SuppressWarnings("resource")
 	@Override
 	public boolean isEmptySchema(Connection connection) throws SQLException
 	{
@@ -134,18 +133,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		try
 		{
 			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT tname FROM tab");
-			while (rs.next())
-			{
-				if (!MSSqlDialect.BIN_TABLE_NAME.matcher(rs.getString("tname")).matches()
-						&& !MSSqlDialect.IDX_TABLE_NAME.matcher(rs.getString("tname")).matches())
-				{
-					return false;
-				}
-			}
-			rs.close();
-			rs = stmt
-					.executeQuery("SELECT object_type, object_name FROM user_objects WHERE object_type IN ('FUNCTION', 'INDEX', 'PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'SEQUENCE', 'TABLE', 'TYPE', 'VIEW')");
+			rs = stmt.executeQuery("SELECT * FROM sys.all_objects WHERE is_ms_shipped<>1");
 			return !rs.next();
 		}
 		finally
@@ -428,7 +416,45 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " REAL");
+		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE INITIALLY DEFERRED", "");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
+
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
+
 		return sqlCommand;
+	}
+
+	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
+	{
+		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
+	}
+
+	protected String prepareCommandInternWithGroup(String sqlCommand, String regex, String replacement)
+	{
+		Pattern pattern = Pattern.compile("(.*)" + regex + "(.*)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+		return concat(sqlCommand, replacement, pattern);
+	}
+
+	protected String concat(String sqlCommand, String replacement, Pattern pattern)
+	{
+		Matcher matcher = pattern.matcher(sqlCommand);
+		if (!matcher.matches())
+		{
+			return sqlCommand;
+		}
+		String left = concat(matcher.group(1), replacement, pattern);
+		String right = concat(matcher.group(3), replacement, pattern);
+		return left + replacement.replace("\\2", matcher.group(2)) + right;
 	}
 
 	@Override

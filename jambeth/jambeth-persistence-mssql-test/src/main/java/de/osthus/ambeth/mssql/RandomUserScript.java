@@ -11,8 +11,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.PersistenceException;
-
 import de.osthus.ambeth.config.Properties;
 import de.osthus.ambeth.config.Property;
 import de.osthus.ambeth.exception.RuntimeExceptionUtil;
@@ -250,12 +248,17 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 			while (tryCount++ < tries)
 			{
 				// Ensure that we have maximum 28 characters: prefix has 7, long has maximum 19 + 2 random digits
-				String randomName = username != null ? username.toUpperCase() : "CI_TMP_" + System.nanoTime()
-						+ String.format("%02d", (int) (Math.random() * 99));
+				String randomName = username != null ? username : "CI_TMP_" + System.nanoTime() + String.format("%02d", (int) (Math.random() * 99));
+				String dbName = "db_" + randomName;
 				try
 				{
-					stm.execute("CREATE USER " + randomName + " IDENTIFIED BY \"" + password + "\" DEFAULT TABLESPACE \"" + userTablespace
-							+ "\" TEMPORARY TABLESPACE \"" + tempTablespace + "\" ACCOUNT LOCK");
+					stm.execute("if not exists(select * from sys.databases where name = '" + dbName + "') create database " + dbName);
+					stm.execute("CREATE LOGIN " + randomName + " WITH PASSWORD = '" + password + "'");
+					stm.execute("USE " + dbName);
+					// stm.execute("IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = '" + randomName + "') BEGIN CREATE USER " + randomName
+					// + " FOR LOGIN " + randomName + " EXEC sp_addrolemember 'db_owner', '" + randomName + "'	END");
+					stm.execute("CREATE USER " + randomName + " FOR LOGIN " + randomName);
+					stm.execute("EXEC sp_addrolemember 'db_owner', '" + randomName + "'");
 					createdUserName = randomName;
 					break;
 				}
@@ -272,28 +275,28 @@ public class RandomUserScript implements IInitializingBean, IStartingBean
 					}
 				}
 			}
-			if (createdUserName == null)
-			{
-				log.error("It was not possible to create a random user after " + tries + " + tries. The exception on the first try was:", firstEx);
-			}
-			else
-			{
-				for (int a = privileges.length; a-- > 0;)
-				{
-					try
-					{
-						stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
-					}
-					catch (PersistenceException e)
-					{
-						log.error(e);
-					}
-				}
-				stm.execute("ALTER USER " + createdUserName + " QUOTA " + quota + " ON \"" + userTablespace + "\"");
-				stm.execute("ALTER USER " + createdUserName + " ACCOUNT UNLOCK");
-			}
+			// if (createdUserName == null)
+			// {
+			// log.error("It was not possible to create a random user after " + tries + " + tries. The exception on the first try was:", firstEx);
+			// }
+			// else
+			// {
+			// for (int a = privileges.length; a-- > 0;)
+			// {
+			// try
+			// {
+			// stm.execute("GRANT " + privileges[a] + " to " + createdUserName);
+			// }
+			// catch (PersistenceException e)
+			// {
+			// log.error(e);
+			// }
+			// }
+			// stm.execute("ALTER USER " + createdUserName + " QUOTA " + quota + " ON \"" + userTablespace + "\"");
+			// stm.execute("ALTER USER " + createdUserName + " ACCOUNT UNLOCK");
+			// }
 		}
-		catch (SQLException e)
+		catch (Throwable e)
 		{
 			if (createdUserName != null)
 			{

@@ -160,7 +160,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 				{
 					pstmInterfaces = cgLibUtil.getAllInterfaces(pstm, IPrintable.class, ISqlValue.class);
 				}
-				return proxyFactory.createProxy(pstmInterfaces, logPstmInterceptor);
+				return proxyFactory.createProxy(PreparedStatement.class, pstmInterfaces, logPstmInterceptor);
 			}
 			else if (Statement.class.isAssignableFrom(method.getReturnType()))
 			{
@@ -175,7 +175,7 @@ public class LogConnectionInterceptor extends AbstractSimpleInterceptor implemen
 				{
 					stmInterfaces = cgLibUtil.getAllInterfaces(stm, IPrintable.class);
 				}
-				return proxyFactory.createProxy(stmInterfaces, logStmInterceptor);
+				return proxyFactory.createProxy(Statement.class, stmInterfaces, logStmInterceptor);
 			}
 			Object result = proxy.invoke(connection, args);
 
