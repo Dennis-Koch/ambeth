@@ -97,14 +97,7 @@ public class CsHelper implements ICsHelper
 		put(java.lang.Float.class.getName(), "float?");
 		put(java.lang.Double.class.getName(), "double?");
 		put(java.lang.String.class.getName(), "System.String");
-		put(java.io.InputStream.class.getName(), "System.IO.Stream");
-		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
-		put(java.util.Collection.class.getName(), "System.Collections.Generic.ICollection");
 		put(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
-		put(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
-		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
-		put(java.util.Map.class.getName(), "De.Osthus.Ambeth.Collections.IMap");
-		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
 		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
 		put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
 		put(java.lang.Class.class.getName(), "System.Type");
@@ -119,11 +112,18 @@ public class CsHelper implements ICsHelper
 		put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
+		put(java.io.InputStream.class.getName(), "System.IO.Stream");
+		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
+		put(java.util.Collection.class.getName(), "System.Collections.Generic.ICollection");
+		put(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
+		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(java.util.Map.class.getName(), "De.Osthus.Ambeth.Collections.IMap");
+		put(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
+		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");
+		put(java.util.concurrent.locks.Lock.class.getName(), "De.Osthus.Ambeth.Util.Lock");
 		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		// put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(de.osthus.ambeth.collections.HashSet.class.getName(), "De.Osthus.Ambeth.Collections.CHashSet");
-		put(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
-		put(java.util.concurrent.locks.Lock.class.getName(), "De.Osthus.Ambeth.Util.Lock");
 
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.TYPE.name(), "Class");
 		annotationTargetMap.put(ElementType.class.getName() + "." + ElementType.PARAMETER.name(), "Parameter");

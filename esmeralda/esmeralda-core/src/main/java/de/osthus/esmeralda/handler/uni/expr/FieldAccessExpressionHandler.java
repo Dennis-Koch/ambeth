@@ -108,6 +108,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				{
 					languageHelper.writeExpressionTree(identityExpression);
 				}
+
 				String typeOnStack = context.getTypeOnStack();
 				JavaClassInfo classInfoOnStack = context.resolveClassInfo(typeOnStack);
 				// FIXME With <anonymous de.osthus.ambeth.ioc.hierarchy.IBeanContextHolder<V>> onStack no field can be found
@@ -120,6 +121,7 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				Field fieldOfNameOfStack = classInfoOnStack.getField(name);
 				// String typeFromSymbolName = languageHelper.resolveTypeFromVariableName(name);
 				writer.append('.');
+
 				if (classInfoOnStack.isArray() && name.equals("length"))
 				{
 					name = "Length";
