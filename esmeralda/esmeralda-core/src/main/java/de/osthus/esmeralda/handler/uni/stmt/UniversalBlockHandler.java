@@ -69,10 +69,19 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 			metric.setStatements(metric.getStatements() + statements.size());
 		}
 		boolean skipFirstBlockStatement = context.isSkipFirstBlockStatement();
+		boolean realSkipFirstBlockStatement = skipFirstBlockStatement;
+		if (realSkipFirstBlockStatement)
+		{
+			StatementTree firstBlockStatement = statements.size() > 0 ? statements.get(0) : null;
+			if (firstBlockStatement != null && !firstBlockStatement.toString().startsWith("super("))
+			{
+				realSkipFirstBlockStatement = false;
+			}
+		}
 		context.setSkipFirstBlockStatement(false);
 		try
 		{
-			for (int a = skipFirstBlockStatement ? 1 : 0, size = statements.size(); a < size; a++)
+			for (int a = realSkipFirstBlockStatement ? 1 : 0, size = statements.size(); a < size; a++)
 			{
 				StatementTree statement = statements.get(a);
 				Kind kind = statement.getKind();

@@ -30,7 +30,7 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 	@Override
 	public boolean isConstructor()
 	{
-		return getName().equals(getOwningClass().getName());
+		return getName().equals(getOwningClass().getNonGenericName());
 	}
 
 	@Override

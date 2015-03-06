@@ -350,10 +350,11 @@ public class CsClassHandler implements IClassHandler
 			context.setField(field);
 			fieldHandler.handle();
 		}
+		IList<Method> constructors = classInfo.getConstructors();
 
 		for (Method method : classInfo.getMethods())
 		{
-			if (method.isConstructor() && method.getParameters().size() == 0)
+			if (method.isConstructor() && constructors.size() == 1 && method.getParameters().size() == 0 && method.isPublic())
 			{
 				List<? extends StatementTree> statements = method.getMethodTree().getBody().getStatements();
 				if (statements.size() == 0)

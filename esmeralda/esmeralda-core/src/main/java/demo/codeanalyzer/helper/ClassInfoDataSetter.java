@@ -30,7 +30,6 @@ import demo.codeanalyzer.common.model.LocationInfo;
 public class ClassInfoDataSetter
 {
 	public static final Pattern fqPattern = Pattern.compile("(.+)\\.([^\\.]+)");
-	private static final String JCClassDecl = null;
 
 	/**
 	 * Set the attributes of the currently visiting class to the java class model
@@ -68,6 +67,10 @@ public class ClassInfoDataSetter
 		classInfo.setClassTree(classTree);
 		classInfo.setPackageName(fqMatcher.group(1));
 		classInfo.setName(fqMatcher.group(2));
+		if (classInfo.getName().indexOf('<') >= 0)
+		{
+			classInfo.setNonGenericName(classInfo.getName().substring(0, classInfo.getName().indexOf('<')));
+		}
 		// Set Nesting kind
 		classInfo.setNestingKind(e.getNestingKind().toString());
 		JCModifiers modifiers = ((JCClassDecl) classTree).getModifiers();
