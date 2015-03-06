@@ -219,7 +219,9 @@ public class MethodInfoDataSetter
 		// Check if the method is a default constructor
 		if (methodName.equals(DEFAULT_CONSTRUCTOR_NAME))
 		{
-			methodInfo.setName(CodeAnalyzerUtil.getSimpleNameFromQualifiedName(clazzInfo.getName()));
+			String simpleName = CodeAnalyzerUtil.getSimpleNameFromQualifiedName(clazzInfo.getName());
+			simpleName = simpleName.split("<")[0];
+			methodInfo.setName(simpleName);
 			clazzInfo.addConstructor(methodInfo);
 		}
 		else

@@ -1,5 +1,7 @@
 package demo.codeanalyzer.common.model;
 
+import java.util.regex.Pattern;
+
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
@@ -16,6 +18,8 @@ import de.osthus.ambeth.collections.IList;
  */
 public class MethodInfo extends BaseJavaClassModelInfo implements Method
 {
+	private static final Pattern genericStart = Pattern.compile("<");
+
 	private ClassFile owningClass;
 	private MethodTree methodTree;
 	private ArrayList<VariableElement> parameters = new ArrayList<VariableElement>();
@@ -27,10 +31,16 @@ public class MethodInfo extends BaseJavaClassModelInfo implements Method
 
 	private TypeParameterTree[] typeParameters;
 
+	private String ownersGenericFreeSimpleName = null;
+
 	@Override
 	public boolean isConstructor()
 	{
-		return getName().equals(getOwningClass().getName());
+		if (ownersGenericFreeSimpleName == null)
+		{
+			ownersGenericFreeSimpleName = genericStart.split(getOwningClass().getName(), 2)[0];
+		}
+		return getName().equals(ownersGenericFreeSimpleName);
 	}
 
 	@Override
