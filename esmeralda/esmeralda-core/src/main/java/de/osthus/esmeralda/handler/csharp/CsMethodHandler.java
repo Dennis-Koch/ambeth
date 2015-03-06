@@ -15,14 +15,13 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
-import com.sun.tools.javac.code.Type.WildcardType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
-import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -116,8 +115,8 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeType(method.getReturnType());
 			writer.append(' ');
 		}
-		String methodName = method.getName();
-		methodName = languageHelper.createMethodName(methodName);
+		String methodName = transformedMethod.getName();
+		// methodName = languageHelper.createMethodName(methodName);
 		// TODO: remind of the changed method name on all invocations
 
 		writer.append(methodName);
@@ -125,8 +124,8 @@ public class CsMethodHandler implements IMethodHandler
 		// append generic type parameters
 		MethodTree methodTree = method.getMethodTree();
 		IList<VariableElement> parameters = method.getParameters();
-		List<? extends TypeParameterTree> typeParameters = methodTree.getTypeParameters();
-		if (typeParameters.size() > 0)
+		TypeParameterTree[] typeParameters = method.getTypeParameters();
+		if (typeParameters.length > 0)
 		{
 			boolean firstGenericParameter = true;
 
@@ -150,31 +149,37 @@ public class CsMethodHandler implements IMethodHandler
 					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
 				}
 			}
-			for (VariableElement parameter : parameters)
+			HashSet<Integer> parameterIndexToEraseGenericType = new HashSet<Integer>(method.getParameterIndexToEraseGenericType());
+			for (int a = 0, size = parameters.size(); a < size; a++)
 			{
+				if (parameterIndexToEraseGenericType.contains(Integer.valueOf(a)))
+				{
+					continue;
+				}
+				VariableElement parameter = parameters.get(a);
 				VarSymbol varSymbol = (VarSymbol) parameter;
 				if (!(varSymbol.type instanceof ClassType))
 				{
 					// a primitive type like boolean or int is just a "Type" not a "ClassType" but that is no problem because they can never be generic anyways
 					continue;
 				}
-				for (Type typeParamsOfParameter : ((ClassType) varSymbol.type).typarams_field)
-				{
-					if (typeParamsOfParameter instanceof WildcardType)
-					{
-						continue;
-					}
-					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
-				}
+				// for (Type typeParamsOfParameter : ((ClassType) varSymbol.type).typarams_field)
+				// {
+				// if (typeParamsOfParameter instanceof WildcardType)
+				// {
+				// continue;
+				// }
+				// fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
+				// }
 			}
 			for (TypeParameterTree typeParameter : typeParameters)
 			{
-				Type typeOfTypeParameter = ((JCTypeParameter) typeParameter).type;
-				if (!fromArgumentsRequestedTypeVars.contains(typeOfTypeParameter))
-				{
-					// this type parameter has been erased
-					continue;
-				}
+				// Type typeOfTypeParameter = ((JCTypeParameter) typeParameter).type;
+				// if (!fromArgumentsRequestedTypeVars.contains(typeOfTypeParameter))
+				// {
+				// // this type parameter has been erased
+				// continue;
+				// }
 				if (firstGenericParameter)
 				{
 					writer.append('<');
@@ -267,7 +272,7 @@ public class CsMethodHandler implements IMethodHandler
 			{
 				break;
 			}
-			if (currType.hasMethodWithIdenticalSignature(transformedMethod))
+			if (currType.hasMethodWithIdenticalSignature(method))
 			{
 				overrideNeeded = true;
 				break;

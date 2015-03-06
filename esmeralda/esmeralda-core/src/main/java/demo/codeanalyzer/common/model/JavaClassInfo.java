@@ -221,7 +221,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 			{
 				VariableElement existingParameter = existingParameters.get(a);
 				VariableElement parameter = parameters.get(a);
-				if (!existingParameter.asType().equals(parameter.asType()))
+				if (!existingParameter.asType().toString().equals(parameter.asType().toString()))
 				{
 					parametersIdentical = false;
 					break;

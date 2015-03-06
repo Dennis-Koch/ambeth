@@ -29,7 +29,7 @@ public class DefaultMethodTransformer extends AbstractMethodTransformerExtension
 		{
 			methodName = THIS;
 		}
-		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false, false);
+		TransformedMethod transformedMethod = new TransformedMethod(methodKey.getDeclaringTypeName(), methodName, methodKey.getParameters(), false);
 		transformedMethod.setParameterProcessor(defaultMethodParameterProcessor);
 		return transformedMethod;
 	}

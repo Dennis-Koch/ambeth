@@ -129,24 +129,32 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 			else if (meth.selected instanceof JCFieldAccess)
 			{
 				JCFieldAccess fieldAccess = (JCFieldAccess) meth.selected;
-				JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.selected.toString(), true);
-				if (classInfoFromFA != null)
+				if (fieldAccess.name.contentEquals("class"))
 				{
-					typeOfOwner = classInfoFromFA.getFqName();
+					typeOfOwner = Class.class.getName();
 					writeOwnerAsType = true;
 				}
 				else
 				{
-					typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
+					JavaClassInfo classInfoFromFA = context.resolveClassInfo(fieldAccess.selected.toString(), true);
+					if (classInfoFromFA != null)
 					{
-						@Override
-						public String invoke(JCExpression state) throws Throwable
+						typeOfOwner = classInfoFromFA.getFqName();
+						writeOwnerAsType = true;
+					}
+					else
+					{
+						typeOfOwner = astHelper.writeToStash(new IResultingBackgroundWorkerParamDelegate<String, JCExpression>()
 						{
-							IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
-							languageHelper.writeExpressionTree(state);
-							return context.getTypeOnStack();
-						}
-					}, fieldAccess);
+							@Override
+							public String invoke(JCExpression state) throws Throwable
+							{
+								IConversionContext context = MethodInvocationExpressionHandler.this.context.getCurrent();
+								languageHelper.writeExpressionTree(state);
+								return context.getTypeOnStack();
+							}
+						}, fieldAccess);
+					}
 				}
 				owner = null;
 				writeMethodDot = true;
