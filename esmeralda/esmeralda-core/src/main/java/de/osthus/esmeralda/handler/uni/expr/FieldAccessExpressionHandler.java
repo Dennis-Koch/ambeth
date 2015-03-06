@@ -120,6 +120,10 @@ public class FieldAccessExpressionHandler extends AbstractExpressionHandler<JCFi
 				Field fieldOfNameOfStack = classInfoOnStack.getField(name);
 				// String typeFromSymbolName = languageHelper.resolveTypeFromVariableName(name);
 				writer.append('.');
+				if (classInfoOnStack.isArray() && name.equals("length"))
+				{
+					name = "Length";
+				}
 				languageHelper.writeVariableName(name);
 				context.setTypeOnStack(fieldOfNameOfStack.getFieldType());
 			}

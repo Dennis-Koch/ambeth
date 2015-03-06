@@ -72,14 +72,14 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		return null;
 	}
 
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
-			Class<?>... parameterTypes)
+	protected TransformedMethod mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
+			boolean isProperty, Class<?>... parameterTypes)
 	{
-		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, isProperty, null, false, parameterTypes);
+		return mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, isProperty, null, false, parameterTypes);
 	}
 
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, boolean isProperty,
-			Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
+	protected TransformedMethod mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
+			boolean isProperty, Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
 	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
@@ -90,11 +90,13 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 				parameters[a] = parameterTypes[a].getName();
 			}
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, isProperty, false, writeOwner, isOwnerAType);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, writeOwner, isOwnerAType);
+		tm.setPropertyInvocation(isProperty);
 		tm.setParameterProcessor(defaultMethodParameterProcessor);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
 				tm);
+		return tm;
 	}
 
 	protected void mapTransformationOverloads(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, Boolean writeOwner,
@@ -106,25 +108,26 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		}
 	}
 
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
-			Class<?>... parameterTypes)
+	protected TransformedMethod mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
+			IMethodParameterProcessor mpp, Class<?>... parameterTypes)
 	{
-		mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, null, false, parameterTypes);
+		return mapTransformation(sourceOwner, sourceMethodName, targetOwner, targetMethodName, mpp, null, false, parameterTypes);
 	}
 
-	protected void mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName, IMethodParameterProcessor mpp,
-			Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
+	protected TransformedMethod mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
+			IMethodParameterProcessor mpp, Boolean writeOwner, boolean isOwnerAType, Class<?>... parameterTypes)
 	{
 		String[] parameters = new String[parameterTypes.length];
 		for (int a = parameterTypes.length; a-- > 0;)
 		{
 			parameters[a] = parameterTypes[a].getName();
 		}
-		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, false, writeOwner, isOwnerAType);
+		TransformedMethod tm = new TransformedMethod(targetOwner, targetMethodName, parameters, false, writeOwner, isOwnerAType);
 		tm.setParameterProcessor(mpp);
 		methodTransformationMap.put(//
 				new MethodKey(sourceOwner.getName(), sourceMethodName, parameters),//
 				tm);
+		return tm;
 	}
 
 	protected void mapTransformationOverloads(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,

@@ -9,11 +9,11 @@
 	<parent>
 		<groupId>de.osthus</groupId>
 		<artifactId>osthus-pom</artifactId>
-		<version>0.0.30</version>
+		<version>0.0.31</version>
 	</parent>
 
 	<properties>
-		<ambeth.version>2.2.X-SNAPSHOT</ambeth.version>
+		<ambeth.version>2.3.32</ambeth.version>
 	</properties>
 
 	<modules>
