@@ -20,7 +20,6 @@ import com.sun.source.util.TreeScanner;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
-import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
@@ -33,7 +32,6 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
 import de.osthus.ambeth.collections.ArrayList;
-import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.esmeralda.CodeVisitor;
 import de.osthus.esmeralda.handler.IVariable;
@@ -245,7 +243,9 @@ public class MethodInfoDataSetter
 			return;
 		}
 		// check if it contains exactly 1 parameter with the generic type "java.util.Class<T>"
-		VarSymbol genericParameterOfClass = null;
+		ArrayList<VarSymbol> genericParametersToIgnoreOnMethod = new ArrayList<VarSymbol>();
+		ArrayList<VarSymbol> parametersNeededGenericMethod = new ArrayList<VarSymbol>();
+		ArrayList<VarSymbol> parametersNeededNongenericMethod = new ArrayList<VarSymbol>();
 		if (methodInfo.getMethodTree().getReturnType() instanceof JCTypeApply)
 		{
 			// TODO: handle this
@@ -264,32 +264,35 @@ public class MethodInfoDataSetter
 			clazzInfo.addMethod(methodInfo);
 			return;
 		}
-		JCIdent returnTypeSymbol = (JCIdent) methodInfo.getMethodTree().getReturnType();
-		if (!(returnTypeSymbol.type instanceof TypeVar))
-		{
-			// TODO: handle this
-			clazzInfo.addMethod(methodInfo);
-			return;
-		}
-		TypeVar returnType = (TypeVar) returnTypeSymbol.type;
+		// JCIdent returnTypeSymbol = (JCIdent) methodInfo.getMethodTree().getReturnType();
+		// if (!(returnTypeSymbol.type instanceof TypeVar))
+		// {
+		// // TODO: handle this
+		// clazzInfo.addMethod(methodInfo);
+		// return;
+		// }
+		// TypeVar returnType = (TypeVar) returnTypeSymbol.type;
 
 		for (VariableElement parameter : methodInfo.getParameters())
 		{
 			VarSymbol varSymbol = (VarSymbol) parameter;
-			for (Type typeArgumentOfParameter : varSymbol.type.getTypeArguments())
+			if (!varSymbol.type.tsym.toString().equals("java.lang.Class"))
 			{
-				if (typeArgumentOfParameter == returnType)
-				{
-					genericParameterOfClass = varSymbol;
-					break;
-				}
+				parametersNeededGenericMethod.add(varSymbol);
+				parametersNeededNongenericMethod.add(varSymbol);
+				continue;
 			}
-			if (genericParameterOfClass != null)
+			com.sun.tools.javac.util.List<Type> typeArguments = varSymbol.type.getTypeArguments();
+			if (typeArguments.size() == 0)
 			{
-				break;
+				parametersNeededGenericMethod.add(varSymbol);
+				parametersNeededNongenericMethod.add(varSymbol);
+				continue;
 			}
+			// Type typeArgumentClassParameter = typeArguments.get(0);
+			parametersNeededNongenericMethod.add(varSymbol);
 		}
-		if (genericParameterOfClass == null)
+		if (parametersNeededGenericMethod.size() == parametersNeededNongenericMethod.size())
 		{
 			clazzInfo.addMethod(methodInfo);
 			return;
@@ -302,29 +305,41 @@ public class MethodInfoDataSetter
 		// create a method signature for the genericParameters in addition to the "default" one
 		// so we intentionally create 2 different C# methods for the given single java method
 		// first we create the non-generic method with a System.Type as Argument and System.Object as result
-		Method methodInfoNonGeneric = createMethodHandleNonGeneric(methodInfo, genericParameterOfClass);
+		Method methodInfoNonGeneric = createMethodHandleNonGeneric(methodInfo, parametersNeededNongenericMethod);
 		clazzInfo.addMethod(methodInfoNonGeneric);
-		Method methodInfoGeneric = createMethodHandle(methodInfo, genericParameterOfClass);
+		Method methodInfoGeneric = createMethodHandle(methodInfo, parametersNeededGenericMethod);
 		clazzInfo.addMethod(methodInfoGeneric);
 	}
 
-	protected static Method createMethodHandleNonGeneric(Method methodTemplate, VarSymbol genericParameterOfClass)
+	protected static Method createMethodHandleNonGeneric(Method methodTemplate, List<VarSymbol> parametersNeededNongenericMethod)
 	{
 		MethodInfo method = new MethodInfo();
 		copyMethodAttributes(methodTemplate, method);
 
 		method.setReturnType(Object.class.getName());
 
-		IList<VariableElement> parameters = methodTemplate.getParameters();
-		for (int a = 0, size = parameters.size(); a < size; a++)
+		List<? extends TypeParameterTree> typeParameters = method.getMethodTree().getTypeParameters();
+
+		for (int a = 0, size = parametersNeededNongenericMethod.size(); a < size; a++)
 		{
-			VariableElement parameterTemplate = parameters.get(a);
+			VariableElement parameterTemplate = parametersNeededNongenericMethod.get(a);
 			method.addParameters(parameterTemplate);
-			if (parameterTemplate == genericParameterOfClass)
-			{
-				method.addParameterIndexToEraseGenericType(a);
-			}
 		}
+		method.setTypeParameters(new TypeParameterTree[0]);
+		// IList<VariableElement> parameters = methodTemplate.getParameters();
+		// for (int a = 0, size = parameters.size(); a < size; a++)
+		// {
+		// VariableElement parameterTemplate = parameters.get(a);
+		// method.addParameters(parameterTemplate);
+		// for (VarSymbol genericParameterOfClass : genericParametersOfClass)
+		// {
+		// if (parameterTemplate == genericParameterOfClass)
+		// {
+		// method.addParameterIndexToEraseGenericType(a);
+		// break;
+		// }
+		// }
+		// }
 		// VarSymbol vs = (VarSymbol) parameterTemplate;
 		// ClassType givenClassType = (ClassType) vs.type;
 		// ClassType classType = new ClassType(givenClassType.supertype_field, new ArrayList<Type>(), givenClassType.tsym);
@@ -358,25 +373,39 @@ public class MethodInfoDataSetter
 		}
 	}
 
-	protected static Method createMethodHandle(Method methodTemplate, VarSymbol genericParameterOfClass)
+	protected static Method createMethodHandle(Method methodTemplate, List<VarSymbol> parametersNeededGenericMethod)
 	{
 		MethodInfo method = new MethodInfo();
 		copyMethodAttributes(methodTemplate, method);
 
 		method.setReturnType(methodTemplate.getReturnType());
 
-		IList<VariableElement> parameters = methodTemplate.getParameters();
-		for (int a = 0, size = parameters.size(); a < size; a++)
+		for (int a = 0, size = parametersNeededGenericMethod.size(); a < size; a++)
 		{
-			VariableElement parameterTemplate = parameters.get(a);
-			if (parameterTemplate == genericParameterOfClass)
-			{
-				// skip the parameter of the generic class because we write this information in the methodName later
-				method.addParameterIndexToDelete(a);
-				continue;
-			}
+			VariableElement parameterTemplate = parametersNeededGenericMethod.get(a);
 			method.addParameters(parameterTemplate);
 		}
+		// IList<VariableElement> parameters = methodTemplate.getParameters();
+		// for (int a = 0, size = parameters.size(); a < size; a++)
+		// {
+		// VariableElement parameterTemplate = parameters.get(a);
+		// boolean isToDelete = false;
+		// for (VarSymbol genericParameterOfClass : genericParametersOfClass)
+		// {
+		// if (parameterTemplate == genericParameterOfClass)
+		// {
+		// // skip the parameter of the generic class because we write this information in the methodName later
+		// isToDelete = true;
+		// break;
+		// }
+		// }
+		// if (isToDelete)
+		// {
+		// method.addParameterIndexToDelete(a);
+		// continue;
+		// }
+		// method.addParameters(parameterTemplate);
+		// }
 		return method;
 	}
 
