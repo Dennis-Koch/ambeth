@@ -345,16 +345,31 @@ public class AmbethInformationBusWithPersistenceRunner extends AmbethInformation
 		{
 			getOrCreateSchemaContext().getService(IConnectionTestDialect.class).preStructureRebuild(getConnection());
 			Connection connection = getConnection();
-			ensureSchemaEmpty(connection);
 
-			ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
-			for (ISchemaRunnable structRunnable : structureRunnables)
+			boolean oldAutoCommit = connection.getAutoCommit();
+			if (!oldAutoCommit)
 			{
-				structRunnable.executeSchemaSql(connection);
+				connection.setAutoCommit(true);
 			}
+			try
+			{
+				ensureSchemaEmpty(connection);
 
-			ensureExistanceOfNeededDatabaseObjects(connection);
+				ISchemaRunnable[] structureRunnables = getStructureRunnables(callingClass, callingClass);
+				for (ISchemaRunnable structRunnable : structureRunnables)
+				{
+					structRunnable.executeSchemaSql(connection);
+				}
 
+				ensureExistanceOfNeededDatabaseObjects(connection);
+			}
+			finally
+			{
+				if (!oldAutoCommit)
+				{
+					connection.setAutoCommit(false);
+				}
+			}
 			isStructureRebuildAlreadyHandled = true;
 		}
 		catch (Exception e)

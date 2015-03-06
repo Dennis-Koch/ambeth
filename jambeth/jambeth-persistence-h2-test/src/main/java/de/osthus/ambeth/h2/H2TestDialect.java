@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import de.osthus.ambeth.collections.ArrayList;
 import de.osthus.ambeth.collections.EmptyList;
@@ -109,11 +108,6 @@ public class H2TestDialect extends AbstractConnectionTestDialect
 		sqlCommand = prepareCommandIntern(sqlCommand, "DBMS_RANDOM\\.VALUE", "RAND()");
 		sqlCommand = prepareCommandIntern(sqlCommand, "to_timestamp\\(", "TO_TIMESTAMP(");
 		return sqlCommand;
-	}
-
-	protected String prepareCommandIntern(String sqlCommand, String regex, String replacement)
-	{
-		return Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(sqlCommand).replaceAll(replacement);
 	}
 
 	@Override

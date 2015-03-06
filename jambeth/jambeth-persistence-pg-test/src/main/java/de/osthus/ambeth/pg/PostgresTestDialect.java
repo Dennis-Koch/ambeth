@@ -1,4 +1,4 @@
-package de.osthus.ambeth.mssql;
+package de.osthus.ambeth.pg;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -20,26 +20,20 @@ import de.osthus.ambeth.ioc.IServiceContext;
 import de.osthus.ambeth.ioc.IocModule;
 import de.osthus.ambeth.ioc.annotation.Autowired;
 import de.osthus.ambeth.ioc.factory.BeanContextFactory;
-import de.osthus.ambeth.log.ILogger;
-import de.osthus.ambeth.log.LogInstance;
-import de.osthus.ambeth.mssql.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.orm.IOrmPatternMatcher;
 import de.osthus.ambeth.persistence.PermissionGroup;
 import de.osthus.ambeth.persistence.config.PersistenceConfigurationConstants;
 import de.osthus.ambeth.persistence.jdbc.AbstractConnectionTestDialect;
 import de.osthus.ambeth.persistence.jdbc.JdbcUtil;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
+import de.osthus.ambeth.pg.RandomUserScript.RandomUserModule;
 import de.osthus.ambeth.sql.ISqlBuilder;
 
-public class MSSqlTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
+public class PostgresTestDialect extends AbstractConnectionTestDialect implements IInitializingBean
 {
 	public static final String ROOT_DATABASE_USER = "ambeth.root.database.user";
 
 	public static final String ROOT_DATABASE_PASS = "ambeth.root.database.pass";
-
-	@SuppressWarnings("unused")
-	@LogInstance
-	private ILogger log;
 
 	@Autowired
 	protected IOrmPatternMatcher ormPatternMatcher;
@@ -50,7 +44,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	@Property(name = PersistenceConfigurationConstants.DatabaseTableIgnore, mandatory = false)
 	protected String ignoredTableProperty;
 
-	@Property(name = ROOT_DATABASE_USER, defaultValue = "sa")
+	@Property(name = ROOT_DATABASE_USER, defaultValue = "postgres")
 	protected String rootDatabaseUser;
 
 	@Property(name = ROOT_DATABASE_PASS, defaultValue = "developer")
@@ -74,7 +68,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		{
 			return false;
 		}
-		if (((SQLException) reason).getErrorCode() != 18456) // Login failed for user
+		if (!"28P01".equals(((SQLException) reason).getSQLState())) // INVALID PASSWORD, FATAL: password authentication failed for user "xxx"
 		{
 			return false;
 		}
@@ -133,8 +127,11 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		try
 		{
 			stmt = connection.createStatement();
-			rs = stmt.executeQuery("SELECT * FROM sys.all_objects WHERE is_ms_shipped<>1");
-			return !rs.next();
+			rs = stmt.executeQuery("SELECT count(*) FROM information_schema.triggers"//
+					+ " UNION SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"//
+					+ " UNION SELECT count(*) FROM information_schema.sequences");
+			rs.next();
+			return rs.getInt(1) == 0;
 		}
 		finally
 		{
@@ -145,7 +142,8 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	@Override
 	public String[] createOptimisticLockTrigger(Connection connection, String fullyQualifiedTableName) throws SQLException
 	{
-		if (MSSqlDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
+		if (PostgresDialect.BIN_TABLE_NAME.matcher(fullyQualifiedTableName).matches()
+				|| PostgresDialect.IDX_TABLE_NAME.matcher(fullyQualifiedTableName).matches())
 		{
 			return new String[0];
 		}
@@ -197,7 +195,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 		sb.append(" BEGIN");
 		sb.append(" if( :new.\"VERSION\" <= :old.\"VERSION\" ) then");
 		sb.append(" raise_application_error( -");
-		sb.append(Integer.toString(MSSqlDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
+		sb.append(Integer.toString(PostgresDialect.getOptimisticLockErrorCode())).append(", 'Optimistic Lock Exception');");
 		sb.append(" end if;");
 		sb.append(" END;");
 		return new String[] { sb.toString() };
@@ -219,7 +217,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 			while (rs.next())
 			{
 				String tableName = rs.getString("FULL_NAME");
-				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+				if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -313,7 +311,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 			while (rs.next())
 			{
 				String tableName = rs.getString("TNAME");
-				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches())
+				if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -416,18 +414,10 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 	@Override
 	public String prepareCommand(String sqlCommand)
 	{
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *1 *, *0 *\\)", " BOOLEAN");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *3 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *5 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *9 *, *0 *\\)", " INT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *10 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *12 *, *0 *\\)", " LONG");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *18 *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER *\\( *\\* *, *0 *\\)", " BIGINT");
-		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER", " REAL");
-		sqlCommand = prepareCommandIntern(sqlCommand, " DEFERRABLE INITIALLY DEFERRED", "");
-
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +BYTE\\)", " VARCHAR(\\2)");
+		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " VARCHAR2 *\\( *(\\d+) +CHAR\\)", " VARCHAR(\\2)");
+
+		sqlCommand = prepareCommandIntern(sqlCommand, " NUMBER\\(", " NUMERIC\\(");
 
 		sqlCommand = prepareCommandInternWithGroup(sqlCommand, " PRIMARY KEY (\\([^\\)]+\\)) USING INDEX", " PRIMARY KEY \\2");
 
@@ -448,7 +438,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 			while (rs.next())
 			{
 				String tableName = rs.getString(1);
-				if (MSSqlDialect.BIN_TABLE_NAME.matcher(tableName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(tableName).matches())
+				if (PostgresDialect.BIN_TABLE_NAME.matcher(tableName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(tableName).matches())
 				{
 					continue;
 				}
@@ -473,7 +463,7 @@ public class MSSqlTestDialect extends AbstractConnectionTestDialect implements I
 			{
 				String objectType = rs.getString("object_type");
 				String objectName = rs.getString("object_name");
-				if (MSSqlDialect.BIN_TABLE_NAME.matcher(objectName).matches() || MSSqlDialect.IDX_TABLE_NAME.matcher(objectName).matches())
+				if (PostgresDialect.BIN_TABLE_NAME.matcher(objectName).matches() || PostgresDialect.IDX_TABLE_NAME.matcher(objectName).matches())
 				{
 					continue;
 				}

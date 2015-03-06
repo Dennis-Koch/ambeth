@@ -42,6 +42,7 @@
 		<module>../jambeth-persistence-jdbc-test</module>
 		<module>../jambeth-persistence-mssql-test</module>
 		<module>../jambeth-persistence-oracle11-test</module>
+		<module>../jambeth-persistence-pg-test</module>
 		<module>../jambeth-platform-test</module>
 		<module>../jambeth-query-test</module>
 		<module>../jambeth-query-inmemory-test</module>
