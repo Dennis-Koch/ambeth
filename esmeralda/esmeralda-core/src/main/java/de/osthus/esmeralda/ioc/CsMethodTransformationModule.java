@@ -8,6 +8,7 @@ import de.osthus.esmeralda.handler.IMethodTransformerExtensionExtendable;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodParameterProcessor;
 import de.osthus.esmeralda.handler.csharp.transformer.DefaultMethodTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaIoPrintstreamTransformer;
+import de.osthus.esmeralda.handler.csharp.transformer.JavaLangCharacterTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangClassTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangObjectTransformer;
 import de.osthus.esmeralda.handler.csharp.transformer.JavaLangReflectFieldTransformer;
@@ -40,6 +41,7 @@ public class CsMethodTransformationModule implements IInitializingModule
 				.propertyRef(AbstractMethodTransformerExtension.defaultMethodParameterProcessorProp, defaultMethodParameterProcessor);
 		beanContextFactory.link(defaultMethodTransformer).to(IMethodTransformerExtensionExtendable.class).with(CsDefaultMethodTransformerName);
 
+		registerMethodTransformerExtension(beanContextFactory, JavaLangCharacterTransformer.class, java.lang.Character.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangClassTransformer.class, java.lang.Class.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangObjectTransformer.class, java.lang.Object.class);
 		registerMethodTransformerExtension(beanContextFactory, JavaLangReflectFieldTransformer.class, java.lang.reflect.Field.class);
