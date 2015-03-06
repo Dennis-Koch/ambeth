@@ -8,6 +8,7 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.persistence.jdbc.config.PersistenceJdbcConfigurationConstants;
 import de.osthus.ambeth.testutil.connectors.H2Connector;
+import de.osthus.ambeth.testutil.connectors.MSSqlConnector;
 import de.osthus.ambeth.testutil.connectors.OracleConnector;
 
 public class DialectSelectorModule implements IInitializingModule
@@ -25,6 +26,10 @@ public class DialectSelectorModule implements IInitializingModule
 			return;
 		}
 		else if (OracleConnector.handleProperties(props, databaseProtocol))
+		{
+			return;
+		}
+		else if (MSSqlConnector.handleProperties(props, databaseProtocol))
 		{
 			return;
 		}
@@ -46,6 +51,10 @@ public class DialectSelectorModule implements IInitializingModule
 			return;
 		}
 		else if (OracleConnector.handleTest(beanContextFactory, databaseProtocol))
+		{
+			return;
+		}
+		else if (MSSqlConnector.handleTest(beanContextFactory, databaseProtocol))
 		{
 			return;
 		}
