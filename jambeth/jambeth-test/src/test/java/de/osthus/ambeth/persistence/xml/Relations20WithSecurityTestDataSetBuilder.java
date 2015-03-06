@@ -3,7 +3,6 @@ package de.osthus.ambeth.persistence.xml;
 import java.sql.Connection;
 import java.util.Collection;
 
-import de.osthus.ambeth.audit.IAuditInfoController;
 import de.osthus.ambeth.audit.Password;
 import de.osthus.ambeth.audit.User;
 import de.osthus.ambeth.ioc.IServiceContext;
@@ -23,9 +22,6 @@ public class Relations20WithSecurityTestDataSetBuilder extends AbstractDatasetBu
 	@SuppressWarnings("unused")
 	@LogInstance
 	private ILogger log;
-
-	@Autowired
-	protected IAuditInfoController auditInfoController;
 
 	@Autowired
 	protected IServiceContext beanContext;
