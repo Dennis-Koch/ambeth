@@ -60,4 +60,5 @@ public interface ClassFile extends BaseJavaClassModel
 
 	String getFqName();
 
+	String getNonGenericName();
 }

@@ -48,6 +48,7 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	private TreePath treePath;
 	private ClassTree classTree;
 	private JavaClassInfo[] typeArguments;
+	private String nonGenericName;
 
 	public JavaClassInfo(IConversionContext context)
 	{
@@ -451,5 +452,22 @@ public class JavaClassInfo extends BaseJavaClassModelInfo implements ClassFile
 	public void setExtendsFrom(JavaClassInfo extendsFrom)
 	{
 		this.extendsFrom = extendsFrom;
+	}
+
+	@Override
+	public void setName(String name)
+	{
+		super.setName(name);
+		setNonGenericName(getName());
+	}
+
+	public String getNonGenericName()
+	{
+		return nonGenericName;
+	}
+
+	public void setNonGenericName(String nonGenericName)
+	{
+		this.nonGenericName = nonGenericName;
 	}
 }

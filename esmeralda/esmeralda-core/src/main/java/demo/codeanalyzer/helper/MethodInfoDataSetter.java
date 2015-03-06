@@ -43,7 +43,6 @@ import demo.codeanalyzer.common.model.JavaClassInfo;
 import demo.codeanalyzer.common.model.LocationInfo;
 import demo.codeanalyzer.common.model.Method;
 import demo.codeanalyzer.common.model.MethodInfo;
-import demo.codeanalyzer.common.util.CodeAnalyzerUtil;
 
 /**
  * Helper class to set the properties of a method to the java class model
@@ -219,7 +218,7 @@ public class MethodInfoDataSetter
 		// Check if the method is a default constructor
 		if (methodName.equals(DEFAULT_CONSTRUCTOR_NAME))
 		{
-			methodInfo.setName(CodeAnalyzerUtil.getSimpleNameFromQualifiedName(clazzInfo.getName()));
+			methodInfo.setName(clazzInfo.getNonGenericName());
 			clazzInfo.addConstructor(methodInfo);
 		}
 		else

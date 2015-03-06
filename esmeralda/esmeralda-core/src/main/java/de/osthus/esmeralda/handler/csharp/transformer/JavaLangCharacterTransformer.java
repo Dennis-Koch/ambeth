@@ -15,6 +15,8 @@ public class JavaLangCharacterTransformer extends AbstractMethodTransformerExten
 	{
 		super.afterPropertiesSet();
 
+		mapTransformation(Character.class, "isLowerCase", "System.Char", "IsLower", false, Boolean.TRUE, true, char.class);
+		mapTransformation(Character.class, "isUpperCase", "System.Char", "IsUpper", false, Boolean.TRUE, true, char.class);
 		mapTransformation(Character.class, "toLowerCase", "System.Char", "ToLowerInvariant", false, Boolean.TRUE, true, char.class);
 		mapTransformation(Character.class, "toUpperCase", "System.Char", "ToUpperInvariant", false, Boolean.TRUE, true, char.class);
 	}
