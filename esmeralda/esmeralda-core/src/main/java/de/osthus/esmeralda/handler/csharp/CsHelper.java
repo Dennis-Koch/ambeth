@@ -97,7 +97,6 @@ public class CsHelper implements ICsHelper
 		put(java.lang.Float.class.getName(), "float?");
 		put(java.lang.Double.class.getName(), "double?");
 		put(java.lang.String.class.getName(), "System.String");
-		put(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
 		put(java.lang.annotation.Annotation.class.getName(), "System.Attribute");
 		put(java.lang.annotation.Target.class.getName(), "System.AttributeUsageAttribute");
 		put(java.lang.Class.class.getName(), "System.Type");
@@ -105,18 +104,25 @@ public class CsHelper implements ICsHelper
 		put(java.lang.Exception.class.getName(), "System.Exception");
 		put(java.lang.IllegalArgumentException.class.getName(), "System.ArgumentException");
 		put(java.lang.IllegalStateException.class.getName(), "System.Exception");
+		put(java.lang.Iterable.class.getName(), "System.Collections.Generic.IEnumerable");
 		put(java.lang.Throwable.class.getName(), "System.Exception");
 		put(java.lang.Object.class.getName(), "System.Object");
 		put(java.lang.StringBuilder.class.getName(), "System.Text.StringBuilder");
+		put(java.lang.reflect.Constructor.class.getName(), "System.Reflection.ConstructorInfo");
 		put(java.lang.reflect.Field.class.getName(), "System.Reflection.FieldInfo");
+		put(java.lang.reflect.Method.class.getName(), "System.Reflection.MethodInfo");
 		put(java.lang.RuntimeException.class.getName(), "System.Exception");
 		put(java.lang.StackTraceElement.class.getName(), "System.Diagnostics.StackFrame");
 		put(java.lang.ThreadLocal.class.getName(), "System.Threading.ThreadLocal", "De.Osthus.Ambeth.Util.ThreadLocal");
 		put(java.io.InputStream.class.getName(), "System.IO.Stream");
 		put(java.io.OutputStream.class.getName(), "System.IO.Stream");
+		put(java.util.ArrayList.class.getName(), "System.Collections.Generic.List");
 		put(java.util.Collection.class.getName(), "System.Collections.Generic.ICollection");
+		put(java.util.Enumeration.class.getName(), "System.Collections.Generic.IEnumerator");
 		put(java.util.Iterator.class.getName(), "System.Collections.Generic.IEnumerator");
 		put(java.util.List.class.getName(), "System.Collections.Generic.IList");
+		put(de.osthus.ambeth.collections.ArrayList.class.getName(), "System.Collections.Generic.List");
+		put(de.osthus.ambeth.collections.IList.class.getName(), "System.Collections.Generic.IList");
 		put(java.util.Map.class.getName(), "De.Osthus.Ambeth.Collections.IMap");
 		put(java.util.Map.class.getName() + ".Entry", "De.Osthus.Ambeth.Collections.Entry"); // Inner classes are appended with '$'
 		put(java.util.regex.Pattern.class.getName(), "System.Text.RegularExpressions.Regex");

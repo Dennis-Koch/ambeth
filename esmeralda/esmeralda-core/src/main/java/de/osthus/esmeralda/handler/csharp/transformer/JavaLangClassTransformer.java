@@ -29,6 +29,7 @@ public class JavaLangClassTransformer extends AbstractMethodTransformerExtension
 
 		mapTransformation(java.lang.Class.class, "getSimpleName", "System.Type", "Name", true);
 		mapTransformation(java.lang.Class.class, "getName", "System.Type", "FullName", true);
+		mapTransformation(java.lang.Class.class, "isArray", "System.Type", "IsArray", true);
 		mapTransformation(java.lang.Class.class, "isPrimitive", "System.Type", "IsPrimitive", true);
 		mapTransformation(java.lang.Class.class, "isInterface", "System.Type", "IsInterface", true);
 

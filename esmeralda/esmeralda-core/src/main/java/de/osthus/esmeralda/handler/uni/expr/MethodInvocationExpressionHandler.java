@@ -230,11 +230,18 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		}
 		ITransformedMethod transformedMethod = methodTransformer.transform(typeOfOwner, methodName, methodInvocation.getArguments());
 
-		context.addCalledMethod(transformedMethod);
+		if (transformedMethod.getOwner() != null)
+		{
+			context.addCalledMethod(transformedMethod);
+		}
 
 		if (Boolean.TRUE.equals(transformedMethod.isWriteOwner()) || (transformedMethod.isWriteOwner() == null && writeOwnerAsType))
 		{
-			owner = transformedMethod.getOwner();
+			String transformedOwner = transformedMethod.getOwner();
+			if (transformedOwner != null)
+			{
+				owner = transformedOwner;
+			}
 		}
 		writeOwnerAsType |= transformedMethod.isOwnerAType();
 
@@ -275,7 +282,8 @@ public class MethodInvocationExpressionHandler extends AbstractExpressionHandler
 		transformedMethod.getParameterProcessor().processMethodParameters(methodInvocation, owner, transformedMethod, ownerWriter);
 		if (methodInvocation.type != null)
 		{
-			String returnType = methodInvocation.type.toString();
+			String returnType = methodInvocation.type.getUpperBound() != null ? methodInvocation.type.getUpperBound().toString() : methodInvocation.type
+					.toString();
 			returnType = trimCaptureOfPattern.matcher(returnType).replaceAll("");
 			context.setTypeOnStack(returnType);
 			return;

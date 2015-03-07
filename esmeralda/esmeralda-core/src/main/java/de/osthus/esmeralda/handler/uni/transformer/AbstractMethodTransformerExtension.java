@@ -13,6 +13,7 @@ import de.osthus.esmeralda.handler.IMethodTransformerExtension;
 import de.osthus.esmeralda.handler.ITransformedMethod;
 import de.osthus.esmeralda.handler.MethodKey;
 import de.osthus.esmeralda.handler.TransformedMethod;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public abstract class AbstractMethodTransformerExtension implements IMethodTransformerExtension, IInitializingBean
 {
@@ -51,12 +52,40 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 	}
 
 	@Override
-	public final ITransformedMethod buildMethodTransformation(MethodKey methodKey)
+	public ITransformedMethod buildMethodTransformation(MethodKey methodKey)
 	{
 		ITransformedMethod transformedMethod = methodTransformationMap.get(methodKey);
 		if (transformedMethod != null)
 		{
 			return transformedMethod;
+		}
+		String[] parameters = methodKey.getParameters();
+		String[] newParameters = null;
+		for (int a = parameters.length; a-- > 0;)
+		{
+			String parameterName = parameters[a];
+			JavaClassInfo parameterCI = context.resolveClassInfo(parameterName);
+			String nonGenericParameterName = parameterCI.getPackageName() != null ? parameterCI.getPackageName() + "." + parameterCI.getNonGenericName()
+					: parameterCI.getNonGenericName();
+			if (parameterName.equals(nonGenericParameterName))
+			{
+				continue;
+			}
+			if (newParameters == null)
+			{
+				newParameters = new String[parameters.length];
+				System.arraycopy(parameters, 0, newParameters, 0, parameters.length);
+			}
+			newParameters[a] = nonGenericParameterName;
+		}
+		if (newParameters != null)
+		{
+			MethodKey nonGenericMethodKey = new MethodKey(methodKey.getDeclaringTypeName(), methodKey.getMethodName(), newParameters);
+			transformedMethod = methodTransformationMap.get(nonGenericMethodKey);
+			if (transformedMethod != null)
+			{
+				return transformedMethod;
+			}
 		}
 		transformedMethod = buildMethodTransformationIntern(methodKey);
 		if (transformedMethod != null)

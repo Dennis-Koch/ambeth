@@ -488,6 +488,10 @@ public class ConversionContext implements IConversionContext
 	{
 		JavaClassInfo classInfo = new JavaClassInfo(extendsFromClassInfo.context);
 		classInfo.setName(symbolName);
+		if (classInfo.getName().indexOf('<') >= 0)
+		{
+			classInfo.setNonGenericName(classInfo.getName().substring(0, classInfo.getName().indexOf('<')));
+		}
 		classInfo.setPackageName(null);
 		classInfo.setExtendsFrom(extendsFromClassInfo);
 
@@ -575,6 +579,10 @@ public class ConversionContext implements IConversionContext
 		}
 		JavaClassInfo genericClassInfo = new JavaClassInfo(classInfo.context);
 		genericClassInfo.setName(sb.toString());
+		if (genericClassInfo.getName().indexOf('<') >= 0)
+		{
+			genericClassInfo.setNonGenericName(genericClassInfo.getName().substring(0, genericClassInfo.getName().indexOf('<')));
+		}
 		genericClassInfo.setPackageName(classInfo.getPackageName());
 		genericClassInfo.setTypeArguments(typeArgumentCIs);
 

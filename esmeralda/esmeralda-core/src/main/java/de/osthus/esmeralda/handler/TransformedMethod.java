@@ -14,7 +14,7 @@ public class TransformedMethod implements ITransformedMethod
 
 	protected boolean isPropertyInvocation;
 
-	protected final boolean isStatic;
+	protected boolean isStatic;
 
 	protected IMethodParameterProcessor parameterProcessor;
 
@@ -59,6 +59,11 @@ public class TransformedMethod implements ITransformedMethod
 	public boolean isStatic()
 	{
 		return isStatic;
+	}
+
+	public void setStatic(boolean isStatic)
+	{
+		this.isStatic = isStatic;
 	}
 
 	@Override
