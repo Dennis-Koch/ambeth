@@ -137,6 +137,11 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		}
 	}
 
+	protected TransformedMethod mapCustomTransformation(Class<?> sourceOwner, String sourceMethodName, Class<?>... parameterTypes)
+	{
+		return mapTransformation(sourceOwner, sourceMethodName, null, null, false, null, false, parameterTypes);
+	}
+
 	protected TransformedMethod mapTransformation(Class<?> sourceOwner, String sourceMethodName, String targetOwner, String targetMethodName,
 			IMethodParameterProcessor mpp, Class<?>... parameterTypes)
 	{

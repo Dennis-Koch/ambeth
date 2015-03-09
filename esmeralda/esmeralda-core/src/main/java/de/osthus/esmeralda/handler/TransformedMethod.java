@@ -61,9 +61,10 @@ public class TransformedMethod implements ITransformedMethod
 		return isStatic;
 	}
 
-	public void setStatic(boolean isStatic)
+	public TransformedMethod setStatic(boolean isStatic)
 	{
 		this.isStatic = isStatic;
+		return this;
 	}
 
 	@Override
@@ -95,14 +96,16 @@ public class TransformedMethod implements ITransformedMethod
 		return isIndexedInvocation;
 	}
 
-	public void setIndexedInvocation(boolean isIndexedInvocation)
+	public TransformedMethod setIndexedInvocation(boolean isIndexedInvocation)
 	{
 		this.isIndexedInvocation = isIndexedInvocation;
+		return this;
 	}
 
-	public void setParameterProcessor(IMethodParameterProcessor parameterProcessor)
+	public TransformedMethod setParameterProcessor(IMethodParameterProcessor parameterProcessor)
 	{
 		this.parameterProcessor = parameterProcessor;
+		return this;
 	}
 
 	@Override

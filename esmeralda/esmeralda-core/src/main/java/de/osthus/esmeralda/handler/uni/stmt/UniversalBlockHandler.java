@@ -73,7 +73,7 @@ public class UniversalBlockHandler extends AbstractStatementHandler<BlockTree> i
 		if (realSkipFirstBlockStatement)
 		{
 			StatementTree firstBlockStatement = statements.size() > 0 ? statements.get(0) : null;
-			if (firstBlockStatement != null && !firstBlockStatement.toString().startsWith("super("))
+			if (firstBlockStatement != null && !firstBlockStatement.toString().startsWith("super(") && !firstBlockStatement.toString().startsWith("this("))
 			{
 				realSkipFirstBlockStatement = false;
 			}
