@@ -9,12 +9,16 @@ import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Type.TypeVar;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCImport;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
+import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.util.List;
 
@@ -353,32 +357,54 @@ public class ConversionContext implements IConversionContext
 				}
 			}
 		}
-		for (JCTypeParameter typeParameter : ((JCClassDecl) classTreePath.getLeaf()).getTypeParameters())
+		JCClassDecl leaf = (JCClassDecl) classTreePath.getLeaf();
+		if (leaf.getSimpleName().contentEquals(""))
 		{
-			String typeName = typeParameter.type.tsym.name.toString();
-			if (typeName.equals(fqTypeName))
+			JCTree extendsClause = leaf.getExtendsClause();
+			if (extendsClause instanceof JCTypeApply)
 			{
-				List<JCExpression> bounds = typeParameter.bounds;
-				if (bounds.size() == 0)
+				for (Type type : ((JCTypeApply) extendsClause).type.allparams())
 				{
-					// extends from java.lang.Object
-					JavaClassInfo boundClassInfo = resolveClassInfo(Object.class.getName());
+					String typeName = type.tsym.name.toString();
+					if (typeName.equals(fqTypeName))
+					{
+						Type bound = ((TypeVar) type).bound;
+						JavaClassInfo boundClassInfo = resolveClassInfo(bound.toString());
+						JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+						return classInfoResolved(fqTypeName, classInfo);
+					}
+				}
+			}
+		}
+		else
+		{
+			for (JCTypeParameter typeParameter : leaf.getTypeParameters())
+			{
+				String typeName = typeParameter.type.tsym.name.toString();
+				if (typeName.equals(fqTypeName))
+				{
+					List<JCExpression> bounds = typeParameter.bounds;
+					if (bounds.size() == 0)
+					{
+						// extends from java.lang.Object
+						JavaClassInfo boundClassInfo = resolveClassInfo(Object.class.getName());
+						JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
+						return classInfoResolved(fqTypeName, classInfo);
+					}
+					JCExpression bound = bounds.get(0);
+					JavaClassInfo boundClassInfo;
+					this.method = null;
+					try
+					{
+						boundClassInfo = resolveClassInfo(bound.type.toString());
+					}
+					finally
+					{
+						this.method = method;
+					}
 					JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
 					return classInfoResolved(fqTypeName, classInfo);
 				}
-				JCExpression bound = bounds.get(0);
-				JavaClassInfo boundClassInfo;
-				this.method = null;
-				try
-				{
-					boundClassInfo = resolveClassInfo(bound.type.toString());
-				}
-				finally
-				{
-					this.method = method;
-				}
-				JavaClassInfo classInfo = makeGenericClassInfoExtendsFrom(boundClassInfo, typeName);
-				return classInfoResolved(fqTypeName, classInfo);
 			}
 		}
 		fqTypeName = NewClassExpressionHandler.getFqNameFromAnonymousName(fqTypeName);

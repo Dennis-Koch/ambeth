@@ -54,6 +54,8 @@ public interface ILanguageHelper
 
 	void writeSimpleName(JavaClassInfo classInfo);
 
+	void writeSimpleNonGenericName(JavaClassInfo classInfo);
+
 	void writeAsTypeOf(String typeName);
 
 	void writeType(String typeName);

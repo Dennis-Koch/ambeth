@@ -52,9 +52,8 @@ public class ClassInfoDataSetter
 		{
 			return;
 		}
-		String anonymousFqName = NewClassExpressionHandler.findFqAnonymousName(path);
-		String fqName = NewClassExpressionHandler.getFqNameFromAnonymousName(anonymousFqName);
-		if (!fqName.equals(anonymousFqName))
+		String fqName = NewClassExpressionHandler.getFqName((JCClassDecl) classTree);
+		if (classTree.getSimpleName().contentEquals(""))
 		{
 			classInfo.setIsAnonymous(true);
 		}

@@ -292,7 +292,7 @@ public class CsClassHandler implements IClassHandler
 		languageHelper.newLineIndent();
 		languageHelper.newLineIndent();
 		writer.append("public ");
-		languageHelper.writeSimpleName(classInfo);
+		languageHelper.writeSimpleNonGenericName(classInfo);
 		writer.append('(');
 		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{

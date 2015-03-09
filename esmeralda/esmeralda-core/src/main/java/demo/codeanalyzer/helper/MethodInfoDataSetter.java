@@ -101,7 +101,7 @@ public class MethodInfoDataSetter
 				}
 				else if (leaf instanceof JCClassDecl)
 				{
-					String className = NewClassExpressionHandler.findFqAnonymousName(parentTreePath);
+					String className = NewClassExpressionHandler.getFqName((JCClassDecl) parentTreePath.getLeaf());
 					className = NewClassExpressionHandler.getFqNameFromAnonymousName(className);
 					JavaClassInfo parentClassInfo = null;
 					for (JavaClassInfo classInfoItem : CodeVisitor.getClassInfoStack())

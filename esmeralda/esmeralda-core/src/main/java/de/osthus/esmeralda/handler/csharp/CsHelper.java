@@ -425,6 +425,17 @@ public class CsHelper implements ICsHelper
 	}
 
 	@Override
+	public void writeSimpleNonGenericName(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String className = classInfo.getNonGenericName();
+		className = removeDollars(className);
+		writer.append(className);
+	}
+
+	@Override
 	public File createTargetFile()
 	{
 		IConversionContext context = this.context.getCurrent();
