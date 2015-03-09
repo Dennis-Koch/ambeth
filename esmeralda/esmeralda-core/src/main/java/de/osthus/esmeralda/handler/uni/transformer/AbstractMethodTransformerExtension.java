@@ -64,6 +64,10 @@ public abstract class AbstractMethodTransformerExtension implements IMethodTrans
 		for (int a = parameters.length; a-- > 0;)
 		{
 			String parameterName = parameters[a];
+			if (parameterName == null)
+			{
+				continue;
+			}
 			JavaClassInfo parameterCI = context.resolveClassInfo(parameterName);
 			String nonGenericParameterName = parameterCI.getPackageName() != null ? parameterCI.getPackageName() + "." + parameterCI.getNonGenericName()
 					: parameterCI.getNonGenericName();
