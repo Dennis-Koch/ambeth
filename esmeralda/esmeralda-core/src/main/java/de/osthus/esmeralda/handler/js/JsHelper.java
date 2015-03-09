@@ -366,7 +366,18 @@ public class JsHelper implements IJsHelper
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
 
-		String className = classInfo.getName().split("<", 2)[0];
+		String className = classInfo.getNonGenericName();
+		className = handleAnonymousClassName(className);
+		writer.append(className);
+	}
+
+	@Override
+	public void writeSimpleNonGenericName(JavaClassInfo classInfo)
+	{
+		IConversionContext context = this.context.getCurrent();
+		IWriter writer = context.getWriter();
+
+		String className = classInfo.getNonGenericName();
 		className = handleAnonymousClassName(className);
 		writer.append(className);
 	}
