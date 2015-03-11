@@ -78,6 +78,26 @@ public class ClassExtendableContainer<V> extends MapExtendableContainer<Class<?>
 		super(message, keyMessage, multiValue);
 	}
 
+	@SuppressWarnings("unchecked")
+	public void clearWeakCache()
+	{
+		Lock writeLock = getWriteLock();
+		writeLock.lock();
+		try
+		{
+			ClassExtendableContainer<V> tempCC = new ClassExtendableContainer<V>("", "");
+			for (Entry<Class<?>, Object> entry : this)
+			{
+				tempCC.register((V) entry.getValue(), entry.getKey());
+			}
+			this.classEntry = tempCC.classEntry;
+		}
+		finally
+		{
+			writeLock.unlock();
+		}
+	}
+
 	public V getExtensionHardKey(Class<?> key)
 	{
 		return super.getExtension(key);
