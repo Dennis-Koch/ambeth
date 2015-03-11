@@ -18,6 +18,8 @@ public final class ImmutableTypeSet
 
 	private static final HashMap<Class<?>, Class<?>> wrapperTypesMap = new HashMap<Class<?>, Class<?>>(0.5f);
 
+	private static final Class<?>[] immutableSuperTypes = { Charset.class };
+
 	static
 	{
 		wrapperTypesMap.put(Integer.class, Integer.TYPE);
@@ -51,7 +53,6 @@ public final class ImmutableTypeSet
 		immutableTypeSet.add(BigInteger.class);
 		immutableTypeSet.add(BigDecimal.class);
 
-		immutableTypeSet.add(Charset.class);
 		immutableTypeSet.add(Pattern.class);
 		immutableTypeSet.add(URI.class);
 		immutableTypeSet.add(URL.class);
@@ -65,7 +66,18 @@ public final class ImmutableTypeSet
 
 	public static boolean isImmutableType(Class<?> type)
 	{
-		return type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type);
+		if (type.isPrimitive() || type.isEnum() || immutableTypeSet.contains(type) || IImmutableType.class.isAssignableFrom(type))
+		{
+			return true;
+		}
+		for (Class<?> immutableSuperType : immutableSuperTypes)
+		{
+			if (immutableSuperType.isAssignableFrom(type))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private ImmutableTypeSet()
