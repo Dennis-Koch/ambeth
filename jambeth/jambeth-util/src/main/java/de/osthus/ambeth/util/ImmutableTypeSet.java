@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.regex.Pattern;
 
@@ -50,6 +51,7 @@ public final class ImmutableTypeSet
 		immutableTypeSet.add(BigInteger.class);
 		immutableTypeSet.add(BigDecimal.class);
 
+		immutableTypeSet.add(Charset.class);
 		immutableTypeSet.add(Pattern.class);
 		immutableTypeSet.add(URI.class);
 		immutableTypeSet.add(URL.class);
