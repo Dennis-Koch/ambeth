@@ -11,7 +11,11 @@ public interface IToDoWriter
 
 	void write(String topic, Method method, int pos);
 
+	void write(String topic, String message, Method method, int pos);
+
 	void write(String topic, JavaClassInfo classInfo, int pos);
+
+	void write(String topic, String message, JavaClassInfo classInfo, int pos);
 
 	void write(String topic, String todo);
 

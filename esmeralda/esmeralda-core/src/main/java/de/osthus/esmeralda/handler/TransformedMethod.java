@@ -10,9 +10,11 @@ public class TransformedMethod implements ITransformedMethod
 
 	protected String[] argTypes;
 
-	protected final boolean isPropertyInvocation;
+	protected boolean isIndexedInvocation;
 
-	protected final boolean isStatic;
+	protected boolean isPropertyInvocation;
+
+	protected boolean isStatic;
 
 	protected IMethodParameterProcessor parameterProcessor;
 
@@ -20,18 +22,16 @@ public class TransformedMethod implements ITransformedMethod
 
 	private boolean isOwnerAType;
 
-	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic)
+	public TransformedMethod(String owner, String name, String[] argTypes, boolean isStatic)
 	{
-		this(owner, name, argTypes, isPropertyInvocation, isStatic, null, false);
+		this(owner, name, argTypes, isStatic, null, false);
 	}
 
-	public TransformedMethod(String owner, String name, String[] argTypes, boolean isPropertyInvocation, boolean isStatic, Boolean writeOwner,
-			boolean isOwnerAType)
+	public TransformedMethod(String owner, String name, String[] argTypes, boolean isStatic, Boolean writeOwner, boolean isOwnerAType)
 	{
 		this.owner = owner;
 		this.name = name;
 		this.argTypes = argTypes;
-		this.isPropertyInvocation = isPropertyInvocation;
 		this.isStatic = isStatic;
 		this.writeOwner = writeOwner;
 		this.isOwnerAType = isOwnerAType;
@@ -61,6 +61,12 @@ public class TransformedMethod implements ITransformedMethod
 		return isStatic;
 	}
 
+	public TransformedMethod setStatic(boolean isStatic)
+	{
+		this.isStatic = isStatic;
+		return this;
+	}
+
 	@Override
 	public Boolean isWriteOwner()
 	{
@@ -79,9 +85,27 @@ public class TransformedMethod implements ITransformedMethod
 		return isPropertyInvocation;
 	}
 
-	public void setParameterProcessor(IMethodParameterProcessor parameterProcessor)
+	public void setPropertyInvocation(boolean isPropertyInvocation)
+	{
+		this.isPropertyInvocation = isPropertyInvocation;
+	}
+
+	@Override
+	public boolean isIndexedInvocation()
+	{
+		return isIndexedInvocation;
+	}
+
+	public TransformedMethod setIndexedInvocation(boolean isIndexedInvocation)
+	{
+		this.isIndexedInvocation = isIndexedInvocation;
+		return this;
+	}
+
+	public TransformedMethod setParameterProcessor(IMethodParameterProcessor parameterProcessor)
 	{
 		this.parameterProcessor = parameterProcessor;
+		return this;
 	}
 
 	@Override

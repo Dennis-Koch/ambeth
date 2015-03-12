@@ -2,12 +2,12 @@ package de.osthus.esmeralda.handler;
 
 import java.io.StringWriter;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.lang.model.element.VariableElement;
 
 import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree.Kind;
 import com.sun.source.tree.TypeParameterTree;
 
 import de.osthus.ambeth.collections.ArrayList;
@@ -21,6 +21,7 @@ import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerDelegate;
 import de.osthus.ambeth.threading.IResultingBackgroundWorkerParamDelegate;
 import de.osthus.ambeth.util.ParamChecker;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.misc.EsmeraldaWriter;
 import de.osthus.esmeralda.misc.IWriter;
@@ -34,7 +35,9 @@ import demo.codeanalyzer.common.model.Method;
 
 public class ASTHelper implements IASTHelper
 {
-	public static final Pattern genericTypePattern = Pattern.compile("\\.?([^<>]+)<(.+)>");
+	public static final Pattern genericTypeExtendsPattern = Pattern.compile("\\? extends ");
+
+	public static final Pattern questionmarkPattern = Pattern.compile("\\?");
 
 	public static final HashSet<String> primitiveTypeSet = new HashSet<String>();
 
@@ -75,6 +78,9 @@ public class ASTHelper implements IASTHelper
 	private ILogger log;
 
 	@Autowired
+	protected IClassInfoManager classInfoManager;
+
+	@Autowired
 	protected IConversionContext context;
 
 	@Override
@@ -88,6 +94,7 @@ public class ASTHelper implements IASTHelper
 	public String[] parseGenericType(String fqTypeName)
 	{
 		int genericBracketCounter = 0;
+		int firstBracketOpening = -1;
 		int lastBracketOpening = -1;
 		int lastBracketClosing = -1;
 		for (int a = 0, size = fqTypeName.length(); a < size; a++)
@@ -99,6 +106,10 @@ public class ASTHelper implements IASTHelper
 				{
 					lastBracketOpening = a;
 					lastBracketClosing = -1;
+				}
+				if (firstBracketOpening == -1)
+				{
+					firstBracketOpening = a;
 				}
 				genericBracketCounter++;
 				continue;
@@ -131,7 +142,7 @@ public class ASTHelper implements IASTHelper
 		{
 			return new String[] { fqTypeName };
 		}
-		String nonGenericType = fqTypeName.substring(0, lastBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
+		String nonGenericType = fqTypeName.substring(0, firstBracketOpening) + fqTypeName.substring(lastBracketClosing + 1);
 		String genericTypeArguments = fqTypeName.substring(lastBracketOpening + 1, lastBracketClosing);
 		return new String[] { nonGenericType, genericTypeArguments };
 	}
@@ -139,12 +150,7 @@ public class ASTHelper implements IASTHelper
 	@Override
 	public String extractNonGenericType(String typeName)
 	{
-		Matcher paramGenericTypeMatcher = genericTypePattern.matcher(typeName);
-		if (paramGenericTypeMatcher.matches())
-		{
-			return paramGenericTypeMatcher.group(1);
-		}
-		return typeName;
+		return parseGenericType(typeName)[0];
 	}
 
 	@Override
@@ -175,7 +181,7 @@ public class ASTHelper implements IASTHelper
 		List<? extends TypeParameterTree> classTypeParameters = context.getClassInfo().getClassTree().getTypeParameters();
 		if (method != null)
 		{
-			List<? extends TypeParameterTree> typeParameters = method.getMethodTree().getTypeParameters();
+			TypeParameterTree[] typeParameters = method.getTypeParameters();
 			allTypeParameters.addAll(typeParameters);
 		}
 		int methodTypeIndex = allTypeParameters.size();
@@ -218,7 +224,7 @@ public class ASTHelper implements IASTHelper
 		{
 			if ("this".equals(variableName))
 			{
-				return owningClass.getPackageName() + "." + owningClass.getName();
+				return owningClass.getFqName();
 			}
 			if ("super".equals(variableName))
 			{
@@ -239,19 +245,17 @@ public class ASTHelper implements IASTHelper
 			ClassFile currOwningClass = owningClass;
 			while (currOwningClass != null)
 			{
-				for (Field currField : currOwningClass.getFields())
+				Field fieldWithVariableName = currOwningClass.getField(variableName, true);
+				if (fieldWithVariableName != null)
 				{
-					if (variableName.equals(currField.getName()))
-					{
-						return currField.getFieldType().toString();
-					}
+					return fieldWithVariableName.getFieldType().toString();
 				}
 				String nameOfSuperClass = currOwningClass.getNameOfSuperClass();
 				if (nameOfSuperClass == null)
 				{
 					break;
 				}
-				currOwningClass = context.resolveClassInfo(nameOfSuperClass);
+				currOwningClass = classInfoManager.resolveClassInfo(nameOfSuperClass);
 			}
 			return resolveFqTypeFromTypeName(variableName);
 		}
@@ -265,7 +269,7 @@ public class ASTHelper implements IASTHelper
 	public String resolveFqTypeFromTypeName(String typeName)
 	{
 		IConversionContext context = this.context.getCurrent();
-		JavaClassInfo resolvedClassInfo = context.resolveClassInfo(typeName, true);
+		JavaClassInfo resolvedClassInfo = classInfoManager.resolveClassInfo(typeName, true);
 		if (resolvedClassInfo != null)
 		{
 			if (parseGenericType(typeName)[0].equals(typeName))
@@ -287,6 +291,50 @@ public class ASTHelper implements IASTHelper
 			}
 		}
 		return typeName;
+	}
+
+	@Override
+	public String getTypeNameForLiteralKind(Kind kind)
+	{
+		switch (kind)
+		{
+			case BOOLEAN_LITERAL:
+			{
+				return boolean.class.getName();
+			}
+			case CHAR_LITERAL:
+			{
+				return char.class.getName();
+			}
+			case FLOAT_LITERAL:
+			{
+				return float.class.getName();
+			}
+			case DOUBLE_LITERAL:
+			{
+				return double.class.getName();
+			}
+			case INT_LITERAL:
+			{
+				return int.class.getName();
+			}
+			case LONG_LITERAL:
+			{
+				return long.class.getName();
+			}
+			case STRING_LITERAL:
+			{
+				return String.class.getName();
+			}
+			case NULL_LITERAL:
+			{
+				return null;
+			}
+			default:
+			{
+				throw new RuntimeException("Kind not supported: " + kind);
+			}
+		}
 	}
 
 	@Override

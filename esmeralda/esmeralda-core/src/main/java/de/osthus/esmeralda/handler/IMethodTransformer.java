@@ -10,7 +10,7 @@ public interface IMethodTransformer
 {
 	ITransformedMethod transform(String owner, String methodName, List<JCExpression> parameterTypes);
 
-	ITransformedMemberAccess transformFieldAccess(String owner, String name);
+	ITransformedField transformFieldAccess(String owner, String name);
 
 	ITransformedMethod transformMethodDeclaration(Method method);
 }

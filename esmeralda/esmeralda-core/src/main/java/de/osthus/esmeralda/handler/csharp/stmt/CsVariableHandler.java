@@ -9,6 +9,7 @@ import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.handler.IStatementHandlerExtension;
 import de.osthus.esmeralda.misc.IWriter;
+import demo.codeanalyzer.common.model.JavaClassInfo;
 
 public class CsVariableHandler extends AbstractCsStatementHandler<JCVariableDecl> implements IStatementHandlerExtension<JCVariableDecl>
 {
@@ -23,14 +24,17 @@ public class CsVariableHandler extends AbstractCsStatementHandler<JCVariableDecl
 		ILanguageHelper languageHelper = context.getLanguageHelper();
 		IWriter writer = context.getWriter();
 
+		String variableName = variableStatement.getName().toString();
+		JavaClassInfo variableType = classInfoManager.resolveClassInfo(variableStatement.type.toString());
+		context.pushVariableDecl(variableName, variableType);
+
 		if (standalone)
 		{
 			languageHelper.newLineIndent();
 		}
-
-		languageHelper.writeType(variableStatement.type.toString());
+		languageHelper.writeType(variableType.getFqName());
 		writer.append(' ');
-		languageHelper.writeVariableName(variableStatement.getName().toString());
+		languageHelper.writeVariableName(variableName);
 
 		JCExpression initializer = variableStatement.getInitializer();
 		if (initializer != null)

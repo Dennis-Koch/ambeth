@@ -25,11 +25,19 @@ import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.threading.IBackgroundWorkerDelegate;
 import de.osthus.esmeralda.IClasspathManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
+import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IClassHandler;
 import de.osthus.esmeralda.handler.IFieldHandler;
 import de.osthus.esmeralda.handler.IMethodHandler;
+import de.osthus.esmeralda.handler.IUsedVariableDelegate;
 import de.osthus.esmeralda.handler.IVariable;
+import de.osthus.esmeralda.handler.js.transformer.DefaultMethodTransformer;
+import de.osthus.esmeralda.misc.IToDoWriter;
 import de.osthus.esmeralda.misc.IWriter;
+import de.osthus.esmeralda.snippet.ISnippetManager;
+import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
+import de.osthus.esmeralda.snippet.SnippetTrigger;
 import demo.codeanalyzer.common.model.BaseJavaClassModel;
 import demo.codeanalyzer.common.model.Field;
 import demo.codeanalyzer.common.model.FieldInfo;
@@ -48,6 +56,9 @@ public class JsClassHandler implements IClassHandler
 	@Autowired
 	protected IConversionContext context;
 
+	@Autowired
+	protected IASTHelper astHelper;
+
 	@Autowired("jsClasspathManager")
 	protected IClasspathManager jsClasspathManager;
 
@@ -65,6 +76,12 @@ public class JsClassHandler implements IClassHandler
 
 	@Autowired(IJsOverloadManager.NON_STATIC)
 	protected IJsOverloadManager overloadManagerNonStatic;
+
+	@Autowired
+	protected ISnippetManagerFactory snippetManagerFactory;
+
+	@Autowired
+	protected IToDoWriter todoWriter;
 
 	@Override
 	public IJsHelper getLanguageHelper()
@@ -96,9 +113,17 @@ public class JsClassHandler implements IClassHandler
 			return;
 		}
 
-		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
+		JsSpecific languageSpecific = languageHelper.getLanguageSpecific();
+		HashSet<String> duplicateNamesSet = languageSpecific.getDuplicateNames();
+		duplicateNamesSet.clear();
 
+		ArrayList<Field> fieldsToInit = createInitOps(classInfo);
+		ArrayList<String> duplicateNames = findFieldMethodNameCollisions(classInfo);
+
+		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
+		context.setSnippetManager(snippetManager);
 		context.setIndentationLevel(0);
+		duplicateNamesSet.addAll(duplicateNames);
 		try
 		{
 			writer.append("Ext.define(");
@@ -125,7 +150,9 @@ public class JsClassHandler implements IClassHandler
 		}
 		finally
 		{
+			duplicateNamesSet.clear();
 			context.setIndentationLevel(0);
+			context.setSnippetManager(null);
 		}
 	}
 
@@ -154,38 +181,30 @@ public class JsClassHandler implements IClassHandler
 		return fieldsToInit;
 	}
 
-	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods, boolean staticOnly)
+	protected ArrayList<String> findFieldMethodNameCollisions(JavaClassInfo classInfo)
 	{
-		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
+		IList<Field> fields = classInfo.getFields();
+		IList<Method> methods = classInfo.getMethods();
+
+		HashSet<String> methodNames = new HashSet<>((int) (methods.size() / 0.75));
+		ArrayList<String> duplicateNames = new ArrayList<String>();
+
 		for (Method method : methods)
 		{
-			if ((method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
-			{
-				continue;
-			}
-
-			String name = method.getName();
-			ArrayList<Method> bucket = buckets.get(name);
-			if (bucket == null)
-			{
-				bucket = new ArrayList<>();
-				buckets.put(name, bucket);
-			}
-			bucket.add(method);
+			methodNames.add(method.getName());
 		}
 
-		Iterator<Entry<String, ArrayList<Method>>> iter = buckets.iterator();
-		while (iter.hasNext())
+		for (Field field : fields)
 		{
-			Entry<String, ArrayList<Method>> entry = iter.next();
-			ArrayList<Method> bucket = entry.getValue();
-			if (bucket.size() == 1)
+			String fieldName = field.getName();
+			if (methodNames.contains(fieldName))
 			{
-				iter.remove();
+				duplicateNames.add(fieldName);
+				todoWriter.write("Field and Method with the same name", fieldName, classInfo, field.getLocationInfo().getStartOffset());
 			}
 		}
 
-		return buckets;
+		return duplicateNames;
 	}
 
 	protected void writeName(JavaClassInfo classInfo)
@@ -194,13 +213,14 @@ public class JsClassHandler implements IClassHandler
 		IWriter writer = context.getWriter();
 
 		String namespace = languageHelper.createNamespace();
+		String name = classInfo.getName();
 
 		writer.append('"');
 		if (!namespace.isEmpty())
 		{
-			writer.append(namespace).append(".");
+			name = namespace + "." + name;
 		}
-		languageHelper.writeSimpleName(classInfo);
+		languageHelper.writeType(name);
 		writer.append('"');
 	}
 
@@ -262,13 +282,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writePrivateStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		IList<Field> privateStaticFields = createView(classInfo.getFields(), Boolean.TRUE, Boolean.TRUE);
-		for (Field field : privateStaticFields)
-		{
-			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(privateStaticFields, writer, firstLine, false);
 		return firstLine;
 	}
 
@@ -387,7 +401,9 @@ public class JsClassHandler implements IClassHandler
 				{
 					firstRequires = languageHelper.newLineIndentWithCommaIfFalse(firstRequires);
 				}
-				writer.append('"').append(className).append('"');
+				writer.append('"');
+				languageHelper.writeType(className);
+				writer.append('"');
 			}
 		}
 		finally
@@ -431,6 +447,40 @@ public class JsClassHandler implements IClassHandler
 		return firstLine;
 	}
 
+	protected HashMap<String, ArrayList<Method>> findOverloadedMethods(IList<Method> methods, boolean staticOnly)
+	{
+		HashMap<String, ArrayList<Method>> buckets = new HashMap<>();
+		for (Method method : methods)
+		{
+			if ((method.isPrivate() && method.isStatic()) || method.isStatic() != staticOnly)
+			{
+				continue;
+			}
+
+			String name = !method.isConstructor() ? method.getName() : DefaultMethodTransformer.THIS;
+			ArrayList<Method> bucket = buckets.get(name);
+			if (bucket == null)
+			{
+				bucket = new ArrayList<>();
+				buckets.put(name, bucket);
+			}
+			bucket.add(method);
+		}
+
+		Iterator<Entry<String, ArrayList<Method>>> iter = buckets.iterator();
+		while (iter.hasNext())
+		{
+			Entry<String, ArrayList<Method>> entry = iter.next();
+			ArrayList<Method> bucket = entry.getValue();
+			if (bucket.size() == 1)
+			{
+				iter.remove();
+			}
+		}
+
+		return buckets;
+	}
+
 	protected <T extends BaseJavaClassModel> ArrayList<T> createView(IList<T> elements, Boolean checkPrivate, Boolean checkStatic)
 	{
 		ArrayList<T> view = new ArrayList<>();
@@ -454,18 +504,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writePublicStaticVars(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonStaticPrivateFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.TRUE);
-		if (nonStaticPrivateFields.isEmpty())
-		{
-			return firstLine;
-		}
-
-		for (Field field : nonStaticPrivateFields)
-		{
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(nonStaticPrivateFields, writer, firstLine, true);
 		return firstLine;
 	}
 
@@ -482,7 +521,14 @@ public class JsClassHandler implements IClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 		firstLine = writeOverloadHubMethods(classInfo, true, firstLine);
 
@@ -505,13 +551,8 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				boolean firstLine = true;
-				for (Field field : privateNonStaticFields)
-				{
-					firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-					context.setField(field);
-					fieldHandler.handle();
-				}
+				boolean firstLine = true; // new scope
+				writeFieldListWithSnippets(privateNonStaticFields, writer, firstLine, true);
 			}
 		});
 
@@ -521,18 +562,7 @@ public class JsClassHandler implements IClassHandler
 	protected boolean writeFields(JavaClassInfo classInfo, IWriter writer, boolean firstLine)
 	{
 		ArrayList<Field> nonPrivateNonStaticFields = createView(classInfo.getFields(), Boolean.FALSE, Boolean.FALSE);
-		if (nonPrivateNonStaticFields.isEmpty())
-		{
-			return firstLine;
-		}
-
-		for (Field field : nonPrivateNonStaticFields)
-		{
-			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
-			context.setField(field);
-			fieldHandler.handle();
-		}
-
+		firstLine = writeFieldListWithSnippets(nonPrivateNonStaticFields, writer, firstLine, true);
 		return firstLine;
 	}
 
@@ -552,16 +582,21 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				for (IVariable usedVariable : allUsedVariables)
+				languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 				{
-					FieldInfo field = new FieldInfo();
-					field.setPrivateFlag(true);
-					field.setFieldType(usedVariable.getType());
-					field.setName(usedVariable.getName());
+					@Override
+					public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+					{
+						FieldInfo field = new FieldInfo();
+						field.setPrivateFlag(true);
+						field.setFieldType(usedVariable.getType());
+						field.setName(usedVariable.getName());
+						context.setField(field);
 
-					context.setField(field);
-					fieldHandler.handle();
-				}
+						languageHelper.writeStringIfFalse(",", firstVariable);
+						fieldHandler.handle();
+					}
+				});
 			}
 		});
 
@@ -590,7 +625,14 @@ public class JsClassHandler implements IClassHandler
 
 			firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 		firstLine = writeOverloadHubMethods(classInfo, false, firstLine);
 
@@ -653,6 +695,91 @@ public class JsClassHandler implements IClassHandler
 		return firstLine;
 	}
 
+	protected boolean writeFieldListWithSnippets(IList<Field> fields, IWriter writer, boolean firstLine, boolean useComma)
+	{
+		if (fields.isEmpty())
+		{
+			return firstLine;
+		}
+
+		IConversionContext context = this.context.getCurrent();
+		JavaClassInfo classInfo = context.getClassInfo();
+		ISnippetManager snippetManager = context.getSnippetManager();
+		ArrayList<String> untranslatableFieldDefinitions = new ArrayList<>();
+		boolean dryRun = context.isDryRun();
+		for (Field field : fields)
+		{
+			if (useComma)
+			{
+				firstLine = languageHelper.newLineIndentWithCommaIfFalse(firstLine);
+			}
+			else
+			{
+				firstLine = languageHelper.newLineIndentIfFalse(firstLine);
+			}
+			context.setField(field);
+			try
+			{
+				String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
+				{
+					@Override
+					public void invoke() throws Throwable
+					{
+						fieldHandler.handle();
+					}
+				});
+
+				// Important to check here to keep the code in order
+				checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+				context.getWriter().append(statementString);
+			}
+			catch (SnippetTrigger snippetTrigger)
+			{
+				if (!dryRun)
+				{
+					String topic = snippetTrigger.getMessage();
+					String message = "Field initializer: " + ((FieldInfo) field).getInitializer().toString();
+					todoWriter.write(topic, message, classInfo, field.getLocationInfo().getStartOffset());
+					if (log.isInfoEnabled())
+					{
+						log.info(topic);
+					}
+				}
+				addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
+			}
+		}
+		checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+		return firstLine;
+	}
+
+	protected void addToUntranslatableList(ArrayList<String> untranslatableFieldDefinitions, Field field, boolean dryRun, IConversionContext context)
+	{
+		if (dryRun)
+		{
+			return;
+		}
+		if (log.isInfoEnabled())
+		{
+			log.info(context.getClassInfo().getFqName() + ": unhandled - FIELD: " + field.toString());
+		}
+
+		String untranslatableFieldDefinition = field.toString();
+		untranslatableFieldDefinitions.add(untranslatableFieldDefinition);
+	}
+
+	protected void checkUntranslatableList(ArrayList<String> untranslatableStatements, ISnippetManager snippetManager, boolean dryRun)
+	{
+		if (dryRun || untranslatableStatements.isEmpty())
+		{
+			return;
+		}
+
+		snippetManager.writeSnippet(untranslatableStatements);
+		untranslatableStatements.clear();
+	}
+
 	protected String findReturnType(ArrayList<Method> methods)
 	{
 		HashSet<String> returnTypes = new HashSet<>();
@@ -673,8 +800,13 @@ public class JsClassHandler implements IClassHandler
 		return "java.lang.Object";
 	}
 
-	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, JavaClassInfo classInfo, final IWriter writer)
+	protected void writeCreateFunction(final ArrayList<Field> fieldsToInit, final JavaClassInfo classInfo, IWriter writer)
 	{
+		if (fieldsToInit.isEmpty())
+		{
+			return;
+		}
+
 		final boolean enumType = classInfo.isEnum();
 
 		writer.append("function() ");
@@ -683,24 +815,57 @@ public class JsClassHandler implements IClassHandler
 			@Override
 			public void invoke() throws Throwable
 			{
-				for (Field field : fieldsToInit)
+				final IConversionContext context = JsClassHandler.this.context.getCurrent();
+				ISnippetManager snippetManager = context.getSnippetManager();
+				ArrayList<String> untranslatableFieldDefinitions = new ArrayList<>();
+				boolean dryRun = context.isDryRun();
+				for (final Field field : fieldsToInit)
 				{
-					ExpressionTree initializer = ((FieldInfo) field).getInitializer();
-					if (initializer != null)
+					final ExpressionTree initializer = ((FieldInfo) field).getInitializer();
+					if (initializer == null)
 					{
-						languageHelper.newLineIndent();
-						writer.append("this.").append(field.getName()).append(" = ");
-						if (enumType && initializer instanceof JCNewClass)
+						continue;
+					}
+					try
+					{
+						String statementString = astHelper.writeToStash(new IBackgroundWorkerDelegate()
 						{
-							writeEnumConstruction((JCNewClass) initializer, field.getName(), writer);
-						}
-						else
+							@Override
+							public void invoke() throws Throwable
+							{
+								IWriter writer = context.getWriter();
+								languageHelper.newLineIndent();
+								writer.append("this.").append(field.getName()).append(" = ");
+								if (enumType && initializer instanceof JCNewClass)
+								{
+									writeEnumConstruction((JCNewClass) initializer, field.getName(), writer);
+								}
+								else
+								{
+									languageHelper.writeExpressionTree(initializer);
+								}
+								writer.append(";");
+							}
+						});
+
+						// Important to check here to keep the code in order
+						checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
+
+						context.getWriter().append(statementString);
+					}
+					catch (SnippetTrigger snippetTrigger)
+					{
+						String topic = snippetTrigger.getMessage();
+						String message = "Field initializer: " + ((FieldInfo) field).getInitializer().toString();
+						todoWriter.write(topic, message, classInfo, field.getLocationInfo().getStartOffset());
+						if (log.isInfoEnabled() && !dryRun)
 						{
-							languageHelper.writeExpressionTree(initializer);
+							log.info(topic);
 						}
-						writer.append(";");
+						addToUntranslatableList(untranslatableFieldDefinitions, field, dryRun, context);
 					}
 				}
+				checkUntranslatableList(untranslatableFieldDefinitions, snippetManager, dryRun);
 			}
 		});
 	}
@@ -717,7 +882,6 @@ public class JsClassHandler implements IClassHandler
 	{
 		IConversionContext context = this.context.getCurrent();
 		IWriter writer = context.getWriter();
-		final IList<IVariable> allUsedVariables = classInfo.getAllUsedVariables();
 
 		for (Field field : classInfo.getFields())
 		{
@@ -725,47 +889,59 @@ public class JsClassHandler implements IClassHandler
 			context.setField(field);
 			fieldHandler.handle();
 		}
-		for (IVariable usedVariable : allUsedVariables)
+
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			languageHelper.newLineIndent();
-			writer.append("private ");
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-			writer.append(';');
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				languageHelper.newLineIndent();
+				writer.append("private ");
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+				writer.append(';');
+			}
+		});
+
 		languageHelper.newLineIndent();
 		languageHelper.newLineIndent();
 		writer.append("public ");
-		writer.append(classInfo.getName());
+		languageHelper.writeSimpleName(classInfo);
 		writer.append('(');
-		boolean firstVariable = true;
-		for (IVariable usedVariable : allUsedVariables)
+		languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 		{
-			firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
-			languageHelper.writeType(usedVariable.getType());
-			writer.append(' ');
-			writer.append(usedVariable.getName());
-		}
+			@Override
+			public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+			{
+				firstVariable = languageHelper.writeStringIfFalse(", ", firstVariable);
+				languageHelper.writeType(usedVariable.getType());
+				writer.append(' ');
+				writer.append(usedVariable.getName());
+			}
+		});
 		writer.append(')');
 		languageHelper.scopeIntend(new IBackgroundWorkerDelegate()
 		{
 			@Override
 			public void invoke() throws Throwable
 			{
-				IConversionContext context = JsClassHandler.this.context.getCurrent();
-				IWriter writer = context.getWriter();
-				for (IVariable usedVariable : allUsedVariables)
+				languageHelper.forAllUsedVariables(new IUsedVariableDelegate()
 				{
-					languageHelper.newLineIndent();
-					writer.append("this.");
-					writer.append(usedVariable.getName());
-					writer.append(" = ");
-					writer.append(usedVariable.getName());
-					writer.append(";");
-				}
+					@Override
+					public void invoke(IVariable usedVariable, boolean firstVariable, IConversionContext context, ILanguageHelper languageHelper, IWriter writer)
+					{
+						languageHelper.newLineIndent();
+						writer.append("this.");
+						writer.append(usedVariable.getName());
+						writer.append(" = ");
+						writer.append(usedVariable.getName());
+						writer.append(";");
+					}
+				});
 			}
 		});
+
 		for (Method method : classInfo.getMethods())
 		{
 			if (method.isConstructor())
@@ -775,7 +951,14 @@ public class JsClassHandler implements IClassHandler
 			}
 			languageHelper.newLineIndent();
 			context.setMethod(method);
-			methodHandler.handle();
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 	}
 
@@ -795,7 +978,15 @@ public class JsClassHandler implements IClassHandler
 		{
 			firstLine = languageHelper.newLineIndentIfFalse(firstLine);
 			context.setMethod(method);
-			methodHandler.handle();
+			context.setMethod(method);
+			try
+			{
+				methodHandler.handle();
+			}
+			finally
+			{
+				context.setMethod(null);
+			}
 		}
 	}
 }

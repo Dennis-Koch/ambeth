@@ -15,7 +15,6 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Type.ClassType;
 import com.sun.tools.javac.code.Type.TypeVar;
-import com.sun.tools.javac.code.Type.WildcardType;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
@@ -23,6 +22,8 @@ import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeParameter;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 
+import de.osthus.ambeth.collections.ArrayList;
+import de.osthus.ambeth.collections.HashSet;
 import de.osthus.ambeth.collections.IList;
 import de.osthus.ambeth.collections.IdentityHashSet;
 import de.osthus.ambeth.ioc.annotation.Autowired;
@@ -30,7 +31,9 @@ import de.osthus.ambeth.log.ILogger;
 import de.osthus.ambeth.log.LogInstance;
 import de.osthus.ambeth.objectcollector.IThreadLocalObjectCollector;
 import de.osthus.ambeth.util.StringConversionHelper;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
+import de.osthus.esmeralda.ILanguageHelper;
 import de.osthus.esmeralda.IPostProcess;
 import de.osthus.esmeralda.handler.IASTHelper;
 import de.osthus.esmeralda.handler.IMethodHandler;
@@ -53,6 +56,9 @@ public class CsMethodHandler implements IMethodHandler
 
 	@Autowired
 	protected IASTHelper astHelper;
+
+	@Autowired
+	protected IClassInfoManager classInfoManager;
 
 	@Autowired
 	protected IConversionContext context;
@@ -115,7 +121,8 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeType(method.getReturnType());
 			writer.append(' ');
 		}
-		String methodName = languageHelper.createMethodName(method.getName());
+		String methodName = transformedMethod.getName();
+		// methodName = languageHelper.createMethodName(methodName);
 		// TODO: remind of the changed method name on all invocations
 
 		writer.append(methodName);
@@ -123,8 +130,10 @@ public class CsMethodHandler implements IMethodHandler
 		// append generic type parameters
 		MethodTree methodTree = method.getMethodTree();
 		IList<VariableElement> parameters = method.getParameters();
-		List<? extends TypeParameterTree> typeParameters = methodTree.getTypeParameters();
-		if (typeParameters.size() > 0)
+		TypeParameterTree[] typeParameters = method.getTypeParameters();
+		ArrayList<TypeParameterTree> whereClauses = new ArrayList<TypeParameterTree>();
+
+		if (typeParameters.length > 0)
 		{
 			boolean firstGenericParameter = true;
 
@@ -148,43 +157,52 @@ public class CsMethodHandler implements IMethodHandler
 					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
 				}
 			}
-			for (VariableElement parameter : parameters)
+			HashSet<Integer> parameterIndexToEraseGenericType = new HashSet<Integer>(method.getParameterIndexToEraseGenericType());
+			for (int a = 0, size = parameters.size(); a < size; a++)
 			{
+				if (parameterIndexToEraseGenericType.contains(Integer.valueOf(a)))
+				{
+					continue;
+				}
+				VariableElement parameter = parameters.get(a);
 				VarSymbol varSymbol = (VarSymbol) parameter;
 				if (!(varSymbol.type instanceof ClassType))
 				{
 					// a primitive type like boolean or int is just a "Type" not a "ClassType" but that is no problem because they can never be generic anyways
 					continue;
 				}
-				for (Type typeParamsOfParameter : ((ClassType) varSymbol.type).typarams_field)
-				{
-					if (typeParamsOfParameter instanceof WildcardType)
-					{
-						continue;
-					}
-					fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
-				}
+				// for (Type typeParamsOfParameter : ((ClassType) varSymbol.type).typarams_field)
+				// {
+				// if (typeParamsOfParameter instanceof WildcardType)
+				// {
+				// continue;
+				// }
+				// fromArgumentsRequestedTypeVars.add((TypeVar) typeParamsOfParameter);
+				// }
 			}
 			for (TypeParameterTree typeParameter : typeParameters)
 			{
-				Type typeOfTypeParameter = ((JCTypeParameter) typeParameter).type;
-				if (!fromArgumentsRequestedTypeVars.contains(typeOfTypeParameter))
-				{
-					// this type parameter has been erased
-					continue;
-				}
+				// Type typeOfTypeParameter = ((JCTypeParameter) typeParameter).type;
+				// if (!fromArgumentsRequestedTypeVars.contains(typeOfTypeParameter))
+				// {
+				// // this type parameter has been erased
+				// continue;
+				// }
 				if (firstGenericParameter)
 				{
 					writer.append('<');
 				}
 				firstGenericParameter = languageHelper.writeStringIfFalse(", ", firstGenericParameter);
-				writer.append(typeParameter.toString());
+				writer.append(typeParameter.getName());
+
+				whereClauses.add(typeParameter);
 			}
 			if (!firstGenericParameter)
 			{
 				writer.append('>');
 			}
 		}
+
 		writer.append('(');
 		for (int a = 0, size = parameters.size(); a < size; a++)
 		{
@@ -199,6 +217,33 @@ public class CsMethodHandler implements IMethodHandler
 		}
 		writer.append(')');
 
+		if (whereClauses.size() > 0)
+		{
+			boolean first = true;
+			for (int a = 0, size = whereClauses.size(); a < size; a++)
+			{
+				JCTypeParameter whereClause = (JCTypeParameter) whereClauses.get(a);
+
+				com.sun.tools.javac.util.List<JCExpression> bounds = whereClause.bounds;
+				for (JCExpression bound : bounds)
+				{
+					if (first)
+					{
+						writer.append(" where ");
+						first = false;
+					}
+					else
+					{
+						writer.append(',');
+					}
+					writer.append(whereClause.getName());
+					writer.append(" : ");
+					JavaClassInfo boundCI = classInfoManager.resolveClassInfo(bound.toString());
+					languageHelper.writeType(boundCI.getFqName());
+				}
+			}
+		}
+
 		if (method.getOwningClass().isInterface() || method.isAbstract())
 		{
 			writer.append(';');
@@ -211,37 +256,76 @@ public class CsMethodHandler implements IMethodHandler
 			languageHelper.writeExpressionTree(superOrThisStatement);
 		}
 
-		ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager(methodTree, languageHelper);
-		context.setSnippetManager(snippetManager);
+		boolean pushedVariableBlock = false;
+		if (!method.isStatic())
+		{
+			pushedVariableBlock = true;
+			context.pushVariableDeclBlock();
+			context.pushVariableDecl("this", (JavaClassInfo) method.getOwningClass());
+			String nameOfSuperClass = method.getOwningClass().getNameOfSuperClass();
+			if (nameOfSuperClass == null)
+			{
+				nameOfSuperClass = Object.class.getName();
+			}
+			JavaClassInfo superCI = classInfoManager.resolveClassInfo(nameOfSuperClass);
+			context.pushVariableDecl("super", superCI);
+		}
+		if (parameters.size() > 0)
+		{
+			if (!pushedVariableBlock)
+			{
+				pushedVariableBlock = true;
+				context.pushVariableDeclBlock();
+			}
+			for (int a = 0, size = parameters.size(); a < size; a++)
+			{
+				VariableElement parameter = parameters.get(a);
+				JavaClassInfo parameterCI = classInfoManager.resolveClassInfo(parameter.asType().toString());
+				context.pushVariableDecl(parameter.getSimpleName().toString(), parameterCI);
+			}
+		}
 		try
 		{
-			BlockTree methodBodyBlock = methodTree.getBody();
-			IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + methodBodyBlock.getKind());
-
-			if (method.isConstructor())
+			ISnippetManager originalSnippetManager = context.getSnippetManager();
+			ISnippetManager snippetManager = snippetManagerFactory.createSnippetManager();
+			context.setSnippetManager(snippetManager);
+			try
 			{
-				boolean oldSkip = context.isSkipFirstBlockStatement();
-				context.setSkipFirstBlockStatement(true);
-				try
+				BlockTree methodBodyBlock = methodTree.getBody();
+				IStatementHandlerExtension<BlockTree> blockHandler = statementHandlerRegistry.getExtension(Lang.C_SHARP + methodBodyBlock.getKind());
+
+				if (method.isConstructor())
+				{
+					boolean oldSkip = context.isSkipFirstBlockStatement();
+					context.setSkipFirstBlockStatement(true);
+					try
+					{
+						blockHandler.handle(methodBodyBlock);
+					}
+					finally
+					{
+						context.setSkipFirstBlockStatement(oldSkip);
+					}
+				}
+				else
 				{
 					blockHandler.handle(methodBodyBlock);
 				}
-				finally
-				{
-					context.setSkipFirstBlockStatement(oldSkip);
-				}
-			}
-			else
-			{
-				blockHandler.handle(methodBodyBlock);
-			}
 
-			// Starts check for unused (old) snippet files for this method
-			snippetManager.finished();
+				// Starts check for unused (old) snippet files for this method
+				snippetManager.finished();
+			}
+			finally
+			{
+				context.setSnippetManager(originalSnippetManager);
+			}
 		}
 		finally
 		{
-			context.setSnippetManager(null);
+			if (pushedVariableBlock)
+			{
+				context.popVariableDeclBlock();
+			}
 		}
 	}
 
@@ -259,12 +343,12 @@ public class CsMethodHandler implements IMethodHandler
 		boolean overrideNeeded = false;
 		while (currTypeName != null)
 		{
-			JavaClassInfo currType = context.resolveClassInfo(currTypeName);
+			JavaClassInfo currType = classInfoManager.resolveClassInfo(currTypeName);
 			if (currType == null)
 			{
 				break;
 			}
-			if (currType.hasMethodWithIdenticalSignature(transformedMethod))
+			if (currType.hasMethodWithIdenticalSignature(method))
 			{
 				overrideNeeded = true;
 				break;
@@ -346,7 +430,10 @@ public class CsMethodHandler implements IMethodHandler
 				public void postProcess()
 				{
 					IConversionContext context = CsMethodHandler.this.context.getCurrent();
+					ILanguageHelper languageHelper = context.getLanguageHelper();
 					IWriter writer = context.getWriter();
+
+					languageHelper.newLineIndent();
 					writer.append(propertyName).append(" = ");
 					if (defaultValue instanceof ExpressionTree)
 					{
@@ -356,6 +443,7 @@ public class CsMethodHandler implements IMethodHandler
 					{
 						writer.append(defaultValue.toString());
 					}
+					writer.append(";");
 				}
 			});
 		}

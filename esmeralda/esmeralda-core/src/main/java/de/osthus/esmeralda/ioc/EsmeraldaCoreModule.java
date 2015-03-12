@@ -6,9 +6,11 @@ import de.osthus.ambeth.ioc.IInitializingModule;
 import de.osthus.ambeth.ioc.config.IBeanConfiguration;
 import de.osthus.ambeth.ioc.extendable.ExtendableBean;
 import de.osthus.ambeth.ioc.factory.IBeanContextFactory;
+import de.osthus.esmeralda.ClassInfoManager;
 import de.osthus.esmeralda.CodeProcessor;
 import de.osthus.esmeralda.ConversionContextBean;
 import de.osthus.esmeralda.ConversionManager;
+import de.osthus.esmeralda.IClassInfoManager;
 import de.osthus.esmeralda.IConversionContext;
 import de.osthus.esmeralda.handler.ASTHelper;
 import de.osthus.esmeralda.handler.ClassInfoFactory;
@@ -17,6 +19,8 @@ import de.osthus.esmeralda.handler.IClassInfoFactory;
 import de.osthus.esmeralda.handler.IExpressionHandler;
 import de.osthus.esmeralda.handler.IExpressionHandlerExtendable;
 import de.osthus.esmeralda.handler.IExpressionHandlerRegistry;
+import de.osthus.esmeralda.handler.IFieldTransformerExtensionExtendable;
+import de.osthus.esmeralda.handler.IFieldTransformerExtensionRegistry;
 import de.osthus.esmeralda.handler.IMethodMatcher;
 import de.osthus.esmeralda.handler.IMethodTransformer;
 import de.osthus.esmeralda.handler.IMethodTransformerExtension;
@@ -47,12 +51,14 @@ import de.osthus.esmeralda.handler.csharp.stmt.CsTryHandler;
 import de.osthus.esmeralda.handler.csharp.stmt.CsVariableHandler;
 import de.osthus.esmeralda.handler.js.IJsHelper;
 import de.osthus.esmeralda.handler.js.IJsOverloadManager;
+import de.osthus.esmeralda.handler.js.IMethodParamNameService;
 import de.osthus.esmeralda.handler.js.JsClassHandler;
 import de.osthus.esmeralda.handler.js.JsClasspathManager;
 import de.osthus.esmeralda.handler.js.JsFieldHandler;
 import de.osthus.esmeralda.handler.js.JsHelper;
 import de.osthus.esmeralda.handler.js.JsMethodHandler;
 import de.osthus.esmeralda.handler.js.JsOverloadManager;
+import de.osthus.esmeralda.handler.js.MethodParamNameService;
 import de.osthus.esmeralda.handler.js.expr.JsArrayTypeExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsBinaryExpressionHandler;
 import de.osthus.esmeralda.handler.js.expr.JsInstanceOfExpressionHandler;
@@ -94,10 +100,13 @@ import de.osthus.esmeralda.misc.Lang;
 import de.osthus.esmeralda.misc.ToDoWriter;
 import de.osthus.esmeralda.snippet.ISnippetManagerFactory;
 import de.osthus.esmeralda.snippet.SnippetManagerFactory;
+import demo.codeanalyzer.helper.MethodInfoDataSetter;
 
 public class EsmeraldaCoreModule implements IInitializingModule
 {
 	public static final String DefaultMethodTransformerName = "defaultMethodTransformer";
+
+	public static final String DefaultFieldTransformerName = "defaultFieldTransformer";
 
 	public static final String DefaultMethodParameterProcessor = "defaultMethodParameterProcessor";
 
@@ -106,6 +115,10 @@ public class EsmeraldaCoreModule implements IInitializingModule
 	{
 		// beanContextFactory.registerBean(InterfaceConverter.class);
 		beanContextFactory.registerBean(ASTHelper.class).autowireable(IASTHelper.class);
+
+		beanContextFactory.registerBean(ClassInfoManager.class).autowireable(IClassInfoManager.class);
+
+		beanContextFactory.registerBean(MethodInfoDataSetter.class).autowireable(MethodInfoDataSetter.class);
 
 		beanContextFactory.registerBean(ConversionManager.class);
 		beanContextFactory.registerBean(CodeProcessor.class).autowireable(CodeProcessor.class);
@@ -126,6 +139,13 @@ public class EsmeraldaCoreModule implements IInitializingModule
 		beanContextFactory.registerBean("jsClasspathManager", JsClasspathManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.STATIC, JsOverloadManager.class);
 		beanContextFactory.registerBean(IJsOverloadManager.NON_STATIC, JsOverloadManager.class);
+		beanContextFactory.registerBean(MethodParamNameService.class).autowireable(IMethodParamNameService.class);
+
+		// Field transformation
+		beanContextFactory.registerBean(ExtendableBean.class) //
+				.propertyValue(ExtendableBean.P_EXTENDABLE_TYPE, IFieldTransformerExtensionExtendable.class) //
+				.propertyValue(ExtendableBean.P_PROVIDER_TYPE, IFieldTransformerExtensionRegistry.class) //
+				.autowireable(IFieldTransformerExtensionExtendable.class, IFieldTransformerExtensionRegistry.class);
 
 		// Method transformation
 		beanContextFactory.registerBean(ExtendableBean.class) //
